@@ -1,38 +1,54 @@
-# create-svelte
+[ShadowSelf Logo](./static/icon.svg)
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+# ShadowSelf: Cloaking Your Real Identity
 
-## Creating a project
+## Overview
 
-If you're seeing this, you've probably already done this step. Congrats!
+ShadowSelf is a web application that allows any individual to safeguard their privacy and anonymity in the digital age. With it, you can generate synthetic identities, complete with functional phone numbers, virtual cards, email addresses, Proxies, metadata, names, nationalities and way more exciting stuff....
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+By utilizing such fabricated identities, you can register for online services while concealing you true identity, offering a significant step toward protecting you privacy & right to remain anonymous online.
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+This is not a perfect solution nor is it the most economical viable one, but it presents the perfect balance of convenience for the user and protection of sensitive data &.
 
-## Developing
+## Running Locally
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+To get started, clone the repository with the following command:
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+git clone https://github.com/RedeemedSpoon/ShadowSelf.git
 ```
 
-## Building
-
-To create a production version of your app:
+Change into the directory:
 
 ```bash
-npm run build
+cd ShadowSelf
 ```
 
-You can preview the production build with `npm run preview`.
+Install the dependencies:
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+```bash
+bun install
+```
+
+Start the server:
+
+```bash
+bun dev
+```
+
+If you want to build the project and preview it locally, run the following command:
+
+```bash
+bun build
+bun preview
+```
+
+## License
+
+This project is licensed under the GPL-3.0 License. This license allows you to use, modify, and distribute this project. To view a copy of this license, visit [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html).
+
+## Contribution
+
+If you'd like to contribute, please [open an issue](https://github.com/RedeemedSpoon/ShadowSelf/issues) or [open a pull request](https://github.com/RedeemedSpoon/ShadowSelf/pulls).
+
+Refer to the [Contributing Guide](./CONTRIBUTING.md) for more information.
