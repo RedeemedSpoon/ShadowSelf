@@ -1,10 +1,10 @@
-[ShadowSelf Logo](./static/icon.svg)
+![ShadowSelf Logo](./static/logo.svg)
 
 # ShadowSelf: Cloaking Your Real Identity
 
 ## Overview
 
-ShadowSelf is a web application that allows any individual to safeguard their privacy and anonymity in the digital age. With it, you can generate synthetic identities, complete with functional phone numbers, virtual cards, email addresses, Proxies, metadata, names, nationalities and way more exciting stuff....
+ShadowSelf is a web application that allows any individual to safeguard their privacy and anonymity in the digital age. With it, you can generate synthetic identities, complete with functional phone numbers, virtual cards, email addresses, proxies, metadata, names, nationalities and way more exciting stuff....
 
 By utilizing such fabricated identities, you can register for online services while concealing you true identity, offering a significant step toward protecting you privacy & right to remain anonymous online.
 
