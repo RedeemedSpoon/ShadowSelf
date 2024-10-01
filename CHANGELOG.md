@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Change fonts
+- Change font to 'Inter'
 - Modify logo & favicon
 - Restructure the 'static' directory
 
