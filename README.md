@@ -1,4 +1,4 @@
-![ShadowSelf Logo](./static/images/logo.svg)
+![ShadowSelf Logo](./src/lib/logo.svg)
 
 ## ShadowSelf Overview
 
