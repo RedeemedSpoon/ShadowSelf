@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="2063.3 -1184.5795 313.7188 198.6195" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="gradient-1-0" gradientUnits="userSpaceOnUse" x1="2175.997" y1="-1209.6" x2="2175.997" y2="-1120.8" gradientTransform="matrix(0, -1.103606, 1.103606, 0, 3461.922854, 1237.695176)" xlink:href="#gradient-1"/>
+    <linearGradient id="gradient-1">
+      <stop offset="0" style="stop-color: rgb(132, 75, 223);"/>
+      <stop offset="0.517" style="stop-color: rgb(108, 40, 217);"/>
+      <stop offset="1" style="stop-color: rgb(90, 32, 184);"/>
+    </linearGradient>
+    <linearGradient id="gradient-1-1" gradientUnits="userSpaceOnUse" x1="2176.357" y1="-1161.637" x2="2176.357" y2="-1075.2" gradientTransform="matrix(0, -2.075822, 2.075822, 0, 4498.914978, 3405.752489)" xlink:href="#gradient-1"/>
+    <linearGradient id="gradient-3-0" gradientUnits="userSpaceOnUse" x1="2176.357" y1="-1161.637" x2="2176.357" y2="-1075.2" xlink:href="#gradient-3"/>
+    <linearGradient id="gradient-3">
+      <stop offset="0" style="stop-color: rgb(124, 58, 237);"/>
+      <stop offset="1" style="stop-color: rgb(173, 40, 217);"/>
+    </linearGradient>
+    <linearGradient id="gradient-2-0" gradientUnits="userSpaceOnUse" x1="2175.6" y1="-1111.246" x2="2175.6" y2="-1075.2" xlink:href="#gradient-2"/>
+    <linearGradient id="gradient-2">
+      <stop offset="0.5" style="stop-color: rgb(22, 8, 45);"/>
+    </linearGradient>
+    <linearGradient id="gradient-1-2" gradientUnits="userSpaceOnUse" x1="2218.907" y1="-1058.291" x2="2218.907" y2="-997.949" gradientTransform="matrix(1, 0, 0, 1, -8.522095, 11)" xlink:href="#gradient-1"/>
+    <style>@import url(https://fonts.googleapis.com/css2?family=Inter%3Aital%2Cwght%400%2C100..900&amp;display=swap);</style>
+  </defs>
+  <g transform="matrix(1, 0, 0, 1, 42.5498046875, 25.02051544189453)" style="">
+    <path style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url('#gradient-1-0');" d="M 2132.4 -1196.4 C 2124.418 -1186.997 2124.79 -1171.721 2127.6 -1159.711 C 2129.73 -1150.607 2136.121 -1142.508 2143.2 -1136.4 C 2152.386 -1128.473 2176.089 -1120.8 2176.089 -1120.8 C 2176.089 -1120.8 2198.905 -1128.82 2208 -1136.4 C 2215.2 -1142.4 2221.774 -1150.543 2224.079 -1159.691 C 2227.087 -1171.63 2227.88 -1186.941 2220 -1196.4 C 2190 -1168.8 2176.135 -1209.6 2176.135 -1209.6 C 2176.135 -1209.6 2160 -1167.6 2132.4 -1196.4 Z"/>
+    <path style="shape-rendering: crispedges; stroke-width: 0px; fill: url('#gradient-1-1'); stroke: url('#gradient-3-0');" d="M 2117.484 -1161.637 C 2117.484 -1161.637 2102.4 -1153.2 2100 -1135.929 C 2097.6 -1108.8 2130 -1094.4 2130 -1094.4 L 2176.019 -1075.2 L 2221.2 -1094.4 C 2221.2 -1094.4 2257.2 -1112.4 2252.4 -1136.4 C 2250 -1153.2 2234.4 -1161.6 2234.4 -1161.6 C 2234.4 -1161.6 2232.897 -1148.026 2221.2 -1135.2 C 2209.93 -1122.841 2188.8 -1113.6 2176.089 -1111.2 C 2162.4 -1113.6 2141.334 -1122.826 2130 -1135.2 C 2118.239 -1148.042 2117.484 -1161.637 2117.484 -1161.637 Z"/>
+    <path style="stroke: rgb(0, 0, 0); shape-rendering: crispedges; stroke-width: 0px; fill: url('#gradient-2-0'); fill-opacity: 0.3;" d="M 2175.743 -1111.246 C 2175.743 -1111.246 2149.707 -1103.979 2130 -1094.4 C 2145.46 -1087.996 2176.089 -1075.2 2176.089 -1075.2 C 2176.089 -1075.2 2205.43 -1087.667 2221.2 -1094.4 C 2202.514 -1103.979 2175.743 -1111.246 2175.743 -1111.246 Z"/>
+  </g>
+  <text style="fill: rgb(30, 41, 59); font-family: Inter; font-size: 53px; letter-spacing: 1px; white-space: pre;"><tspan x="2063.3" y="-998.96" style="fill: rgb(203, 213, 225);">Shadow</tspan><tspan style="fill: url('#gradient-1-2'); font-weight: 600;">Self</tspan></text>
+</svg>

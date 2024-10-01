@@ -9,19 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Change logo
-- Change Favicons
-- Change the file structure in /static
-- Add 'prettier' for formating code
+- Add meta-tags to the <head>
+- Support for 'prettier' for formatting code
+
+### Changed
+
+- Change fonts
+- Modify logo & favicon
+- Restructure the 'static' directory
 
 ## [0.0.1] - 2024-9-30
 
 ### Added
 
 - Initial start
-- Add Icon & Favicon
-- Add GPL license
+- Add favicon
+- Add GPL-v3 license
 - Add README.md
 - Add support for 'bun'
 - Add support for 'tailwindcss'
-- Modify configuration files to suit my needs
+- Add configuration files to suit my needs

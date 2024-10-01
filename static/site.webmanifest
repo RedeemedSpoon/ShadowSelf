@@ -1,7 +1,6 @@
 {
   "name": "ShadowSelf",
   "short_name": "ShadowSelf",
-  "start_url": "/",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -14,8 +13,8 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#4338CA",
-  "background_color": "#CBD5E1",
+  "theme_color": "#6d28d9",
+  "background_color": "#0f172ab",
   "display": "standalone"
 }
 

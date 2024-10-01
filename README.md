@@ -1,4 +1,7 @@
-![ShadowSelf Logo](./src/lib/logo.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./src/lib/dark-logo.svg">
+  <img alt="ShadowSelf" src="./src/lib/light-logo.svg">
+</picture>
 
 ## ShadowSelf Overview
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../app.css';
-  import {logo} from '$lib';
+  import { darkLogo } from '$lib';
 </script>
 
 <h1>ShadowSelf</h1>
@@ -9,8 +9,7 @@
   dignissimos eligendi. Deserunt consequatur minus cum in tenetur. Atque, tempore placeat. Repellendus perferendis animi
   sint?
 </p>
-<img src={logo} alt="App" width="512" height="512" />
-<img src={logo} alt="App" width="256" height="256" />
+<img src={darkLogo} alt="App" width="512" height="512" />
 
 <style lang="postcss">
   :global(body) {

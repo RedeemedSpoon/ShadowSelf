@@ -6,7 +6,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: colors.indigo,
+        primary: colors.violet,
         neutral: colors.slate,
       },
     },
