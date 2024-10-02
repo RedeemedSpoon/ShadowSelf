@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../app.css';
-  import { darkLogo } from '$lib';
+  import {darkLogo} from '$lib';
 </script>
 
 <h1>ShadowSelf</h1>

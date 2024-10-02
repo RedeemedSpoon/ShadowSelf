@@ -11,7 +11,7 @@ ShadowSelf is a web application that allows any individual to safeguard their pr
 
 By utilizing such fabricated identities, you can register for online services while concealing you true identity, offering a significant step toward protecting you privacy & right to remain anonymous online.
 
-This is not a perfect solution nor is it the most economical viable one, but it presents the perfect balance of convenience for the user and protection of sensitive data &.
+This is not a perfect solution nor is it the most economical viable one, but it presents the perfect balance of convenience for the user and protection of sensitive data.
 
 ## Running Locally
 
