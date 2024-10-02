@@ -1,29 +1,22 @@
 <script lang="ts">
-  import '../app.css';
   import {darkLogo} from '$lib';
 </script>
 
-<h1>ShadowSelf</h1>
-<p>
-  Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ipsum cupiditate quidem magnam dolorum hic accusamus
-  dignissimos eligendi. Deserunt consequatur minus cum in tenetur. Atque, tempore placeat. Repellendus perferendis animi
-  sint?
-</p>
 <img src={darkLogo} alt="App" width="512" height="512" />
+<p>click that button to start developing the app!</p>
+<button>Begin 😃</button>
+
 
 <style lang="postcss">
-  :global(body) {
-    @apply flex flex-col items-center gap-4 bg-neutral-900 text-neutral-300;
-  }
-
-  h1 {
-    @apply mt-52 text-6xl font-semibold text-primary-700 shadow-primary-900 drop-shadow-2xl [text-shadow:5px_5px_50px_var(--tw-shadow-color)];
-  }
-  p {
-    @apply max-w-4xl text-center text-2xl;
-  }
-
   img {
-    @apply mt-10;
+    @apply mt-52;
+  }
+
+  p {
+    @apply mt-8 text-neutral-300 text-4xl;
+  }
+
+  button {
+    @apply mt-8 text-4xl text-neutral-300 bg-primary-700 p-6 rounded-md hover:bg-primary-900 shadow-xl shadow-primary-900 transition-all hover:shadow-primary-950;
   }
 </style>
