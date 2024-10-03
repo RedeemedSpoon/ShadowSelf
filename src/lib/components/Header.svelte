@@ -12,16 +12,16 @@
   </a>
   <div>
     <div id="navigation-links">
-      <a href="/">Extension</a>
-      <a href="/">Pricing</a>
-      <a href="/">Docs</a>
+      <a href="/entension">Extension</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/docs">Docs</a>
     </div>
     <div id="auth-buttons">
       {#if $authenticated}
-        <a href="/">Account Name</a>
+        <a href="/dashboard">Account Name</a>
       {:else}
-        <a href="/">Log In</a>
-        <a href="/"><button>Sign Up</button></a>
+        <a href="/login">Log In</a>
+        <a href="/signup"><button>Sign Up</button></a>
       {/if}
     </div>
   </div>

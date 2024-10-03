@@ -18,7 +18,7 @@
     <div id="logo">
       <a href="/"><img src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div>
-        <a href="/"><img src={github} alt="Source Code" /></a>
+        <a href="https://github.com/RedeemedSpoon/ShadowSelf"><img src={github} alt="Source Code" /></a>
         <a href="/"><img src={tor} alt="Onion Website" /></a>
         <a href="/"><img src={session} alt="Session Community" /></a>
       </div>
@@ -28,7 +28,8 @@
         <div>
           <p>{key}</p>
           {#each value as link}
-            <a href="/">{link}</a>
+            {@const url = link === 'Homepage' ? '/' : `/${link.toLowerCase().replace(' ', '-')}`}
+            <a href={url}>{link}</a>
           {/each}
         </div>
       {/each}
@@ -39,7 +40,7 @@
 
 <style lang="postcss">
   footer {
-    @apply flex w-full flex-col bg-neutral-950 bg-opacity-75 pt-24;
+    @apply sticky flex w-full flex-col bg-neutral-950 bg-opacity-75 pt-24;
   }
 
   section {
