@@ -1,15 +1,14 @@
 <script lang="ts">
   import '../app.css';
-  import {Header, Footer} from '$lib';
-
-  import {setContext} from 'svelte';
-  import {writable} from 'svelte/store';
+  import {Header, Footer, Notification} from '$components';
   import type {LayoutData} from './$types';
+  import {setContext} from 'svelte';
+  import {auth} from '$store';
 
   export let data: LayoutData;
 
-  const authenticated = writable<boolean>(data.authenticated);
-  setContext('auth', authenticated);
+  $auth = data.authenticated;
+  setContext('auth', auth);
 </script>
 
 <Header />
@@ -17,6 +16,7 @@
   <slot />
 </main>
 <Footer />
+<Notification />
 
 <style lang="postcss">
   main {

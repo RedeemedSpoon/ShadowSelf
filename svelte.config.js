@@ -7,6 +7,13 @@ const config = {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter(),
+    alias: {
+      $lib: 'src/lib/index.ts',
+      $store: 'src/lib/store.ts',
+      $components: 'src/lib/components',
+      $images: 'src/lib/images',
+      $types: 'src/lib/types.ts',
+    },
   },
 };
 

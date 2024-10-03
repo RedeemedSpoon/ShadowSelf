@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {logoBeside} from '$lib';
+  import {logoBeside} from '$images';
   import {getContext} from 'svelte';
   import type {Writable} from 'svelte/store';
 

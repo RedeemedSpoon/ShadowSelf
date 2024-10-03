@@ -12,7 +12,6 @@ export default {
         success: colors.green,
         info: colors.yellow,
         alert: colors.red,
-        alt: colors.teal,
       },
     },
     fontFamily: {

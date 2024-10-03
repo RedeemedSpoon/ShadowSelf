@@ -1,8 +1,6 @@
 <script lang="ts">
-  import {logo} from '$lib';
-  import {github} from '$lib';
-  import {session} from '$lib';
-  import {tor} from '$lib';
+  import {logo, github, tor, session} from '$images';
+  import {notification} from '$store';
 
   const year = new Date().getFullYear();
   const links = {
@@ -19,8 +17,12 @@
       <a href="/"><img src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div>
         <a href="https://github.com/RedeemedSpoon/ShadowSelf"><img src={github} alt="Source Code" /></a>
-        <a href="/"><img src={tor} alt="Onion Website" /></a>
-        <a href="/"><img src={session} alt="Session Community" /></a>
+        <a href="/" on:click|preventDefault|once={() => $notification = {type: 'info', message: 'Onion Website Coming Soon!'}}>
+          <img src={tor} alt="Onion Website" />
+        </a>
+        <a href="/" on:click|preventDefault|once={() => $notification = {type: 'info', message: 'Session Community Coming Soon!'}}>
+          <img src={session} alt="Session Community" />
+        </a>
       </div>
     </div>
     <nav>
