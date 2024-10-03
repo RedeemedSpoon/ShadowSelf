@@ -8,7 +8,7 @@
 
   export let data: LayoutData;
 
-  const authenticated = writable(data.authenticated);
+  const authenticated = writable<boolean>(data.authenticated);
   setContext('auth', authenticated);
 </script>
 
@@ -20,6 +20,6 @@
 
 <style lang="postcss">
   main {
-    @apply flex flex-col items-center gap-4 bg-neutral-900 text-neutral-300;
+    @apply mx-auto my-16 flex max-w-screen-xl flex-col items-center gap-4;
   }
 </style>

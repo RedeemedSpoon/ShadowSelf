@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.3] - 2024-10-02
+
+### Added
+
+- Create Header component
+- Create Footer component
+- Create Layout component
+- Add Icons : GitHub, Session, Tor
+
+## Changed
+
+- Header logo has text beside it instead of under it
+- 'App.css' has global styles
+
+### Removed
+
+- Remove light mode
+
 ## [0.0.2] - 2024-10-01
 
 ### Added
