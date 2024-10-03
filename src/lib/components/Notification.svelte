@@ -1,32 +1,50 @@
 <script lang="ts">
-  import { notification } from '$store';
+  import {notification} from '$store';
+  import {alert, info, success} from '$images';
+  import {slide} from 'svelte/transition';
 
+  $: id = $notification.id;
   $: type = $notification.type;
   $: message = $notification.message;
+  const icons = {
+    alert: alert,
+    info: info,
+    success: success,
+  };
+
+  const handleClick = () => ($notification = {id: null, type: 'info', message: ''});
 </script>
 
-  <div class="notification {type}">
+{#if id}
+  <div class="notification {type}" transition:slide={{axis: 'x'}} on:click={handleClick} aria-hidden>
+    <img src={icons[type]} alt={type} width="48px" height="48px" />
     <p>{message}</p>
   </div>
+{/if}
 
 <style lang="postcss">
   .notification {
-    @apply text-neutral-100;
+    @apply fixed bottom-12 left-8 z-20 flex items-center border-l-8 bg-neutral-800 bg-opacity-90 p-6;
+    @apply cursor-pointer shadow-md shadow-neutral-950 hover:bg-neutral-900;
   }
 
-  .notification p {
-    @apply p-4;
+  p {
+    @apply text-nowrap text-xl text-clip;
   }
 
-  .error {
-    @apply bg-alert-500;
+  img {
+    @apply mr-4;
+  }
+
+  .alert {
+    @apply border-alert-500;
   }
 
   .info {
-    @apply bg-info-500;
+    @apply border-info-500;
   }
 
   .success {
-    @apply bg-success-500;
+    @apply border-success-500;
   }
 </style>

@@ -2,13 +2,10 @@
   import '../app.css';
   import {Header, Footer, Notification} from '$components';
   import type {LayoutData} from './$types';
-  import {setContext} from 'svelte';
-  import {auth} from '$store';
+  import {authenticated} from '$store';
 
   export let data: LayoutData;
-
-  $auth = data.authenticated;
-  setContext('auth', auth);
+  $authenticated = data.authenticated;
 </script>
 
 <Header />

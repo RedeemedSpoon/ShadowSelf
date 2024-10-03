@@ -9,8 +9,7 @@
 
   button {
     @apply cursor-pointer rounded-md bg-primary-700 px-4 py-3 text-xl text-neutral-300 transition-all;
-    @apply shadow-lg shadow-primary-900 hover:bg-primary-900 hover:shadow-primary-950;
-    @apply transition-all duration-300;
+    @apply shadow-lg shadow-primary-900 transition-all duration-300 hover:bg-primary-900 hover:shadow-primary-950;
   }
 
   p {

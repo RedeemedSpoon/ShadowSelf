@@ -1,4 +1,5 @@
 export interface Notification {
+  id: number | null;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'alert' | 'info';
 }

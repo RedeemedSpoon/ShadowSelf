@@ -1,9 +1,6 @@
 <script lang="ts">
   import {logoBeside} from '$images';
-  import {getContext} from 'svelte';
-  import type {Writable} from 'svelte/store';
-
-  const authenticated: Writable<boolean> = getContext('auth');
+  import {authenticated} from '$store';
 </script>
 
 <header>
@@ -12,7 +9,7 @@
   </a>
   <div>
     <div id="navigation-links">
-      <a href="/entension">Extension</a>
+      <a href="/extension">Extension</a>
       <a href="/pricing">Pricing</a>
       <a href="/docs">Docs</a>
     </div>
@@ -29,7 +26,7 @@
 
 <style lang="postcss">
   header {
-    @apply fixed top-0 z-10 flex h-24 w-full items-center justify-evenly bg-neutral-950 bg-opacity-75 py-4 backdrop-blur-md;
+    @apply fixed top-0 z-10 flex h-24 w-full items-center justify-evenly bg-neutral-950 bg-opacity-75 px-24 py-4 backdrop-blur-md;
   }
 
   header > div {

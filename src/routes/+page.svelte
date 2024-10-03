@@ -1,9 +1,6 @@
 <script lang="ts">
   import {logo} from '$images';
-  import {getContext} from 'svelte';
-  import type {Writable} from 'svelte/store';
-
-  const authenticated: Writable<boolean> = getContext('auth');
+  import {authenticated} from '$store';
 </script>
 
 <div>
