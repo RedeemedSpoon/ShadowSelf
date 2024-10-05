@@ -42,7 +42,7 @@
 
 <style lang="postcss">
   footer {
-    @apply sticky flex w-full flex-col bg-neutral-950 bg-opacity-75 pt-24 z-50;
+    @apply sticky z-50 flex w-full flex-col bg-neutral-950 bg-opacity-75 pt-24;
   }
 
   section {

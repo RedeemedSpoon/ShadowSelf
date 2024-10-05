@@ -19,6 +19,19 @@ export default tseslint.config(
     },
   },
   {
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.svelte'],
     languageOptions: {
       parserOptions: {
@@ -27,6 +40,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['build/', '.svelte-kit/', 'dist/'],
+    ignores: ['Frontend/build/', 'Frontend/.svelte-kit/', 'Frontend/dist/'],
   },
 );

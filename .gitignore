@@ -8,6 +8,6 @@ Thumbs.db
 .output
 .env
 
-/node_modules
-/.svelte-kit
-/build
+node_modules
+.svelte-kit
+.build

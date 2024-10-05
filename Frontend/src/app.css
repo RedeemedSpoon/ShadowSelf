@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply overflow-x-hidden bg-neutral-900 font-sans text-neutral-300 antialiased;
+  }
+
+  button {
+    @apply bg-primary-700 cursor-pointer rounded-md px-4 py-3 text-xl text-neutral-300 transition-all;
+    @apply shadow-primary-900 hover:bg-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
+  }
+
+  p {
+    @apply truncate hyphens-auto whitespace-normal text-pretty text-xl font-normal leading-loose antialiased;
+  }
+
+  a {
+    @apply text-primary-700 hover:text-primary-900 cursor-pointer underline transition-colors duration-300;
+  }
+}

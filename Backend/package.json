@@ -1,0 +1,16 @@
+{
+  "name": "ShadowSelf",
+  "version": "0.0.1",
+  "license": "GPL-3.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun run build src/index.ts"
+  },
+  "devDependencies": {
+    "elysia": "latest",
+    "bun-types": "latest"
+  },
+  "type": "module",
+  "module": "src/index.js"
+}

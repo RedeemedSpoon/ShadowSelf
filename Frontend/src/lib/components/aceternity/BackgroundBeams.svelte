@@ -1,6 +1,6 @@
 <script lang="ts">
   import {cn} from '$cn';
-  import {M, Motion} from 'svelte-motion';
+  import {Motion} from 'svelte-motion';
 
   export let className: string | undefined = undefined;
 
@@ -83,7 +83,7 @@
       </Motion>
     {/each}
     <defs>
-      {#each paths as path, index (`gradient-${index}`)}
+      {#each paths as _, index (`gradient-${index}`)}
         <Motion
           isSVG={true}
           let:motion

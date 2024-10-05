@@ -29,7 +29,7 @@
   }
 
   p {
-    @apply text-nowrap text-xl text-clip;
+    @apply text-clip text-nowrap text-xl;
   }
 
   img {

@@ -1,10 +1,10 @@
 <script lang="ts">
-import type {Notification} from '$types';
+  import type {Notification} from '$types';
   import {BackgroundBeams} from '$components';
   import {enhance} from '$app/forms';
   import {notify} from '$lib';
 
-  export let form: Notification
+  export let form: Notification;
   $: if (form?.message) notify(form?.message, form?.type);
 </script>
 
@@ -27,7 +27,7 @@ import type {Notification} from '$types';
   }
 
   h1 {
-    @apply z-10 bg-gradient-to-b from-primary-500 to-primary-800 bg-clip-text font-sans text-7xl font-bold text-transparent;
+    @apply from-primary-500 to-primary-800 z-10 bg-gradient-to-b bg-clip-text font-sans text-7xl font-bold text-transparent;
   }
 
   p {
@@ -39,7 +39,7 @@ import type {Notification} from '$types';
   }
 
   input {
-    @apply z-10 w-full rounded-xl border border-primary-800 bg-neutral-950 p-4;
-    @apply outline-none placeholder:text-neutral-700 focus:ring-2 focus:ring-primary-500;
+    @apply border-primary-800 z-10 w-full rounded-xl border bg-neutral-950 p-4;
+    @apply focus:ring-primary-500 outline-none placeholder:text-neutral-700 focus:ring-2;
   }
 </style>
