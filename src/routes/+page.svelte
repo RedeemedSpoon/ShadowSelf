@@ -1,5 +1,11 @@
 <script lang="ts">
+import type {Notification} from '$types';
   import {BackgroundBeams} from '$components';
+  import {enhance} from '$app/forms';
+  import {notify} from '$lib';
+
+  export let form: Notification
+  $: if (form?.message) notify(form?.message, form?.type);
 </script>
 
 <div id="join-the-waitlist">
@@ -9,8 +15,8 @@
     sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your
     actual identity from being at risk of misuse, breach, theft, or fraud.
   </p>
-  <form action="/join" method="post">
-    <input on:submit name="email" type="email" placeholder="Enter your email" />
+  <form use:enhance method="post">
+    <input name="email" type="email" placeholder="Enter your email" />
   </form>
   <BackgroundBeams />
 </div>
@@ -33,7 +39,7 @@
   }
 
   input {
-    @apply z-10 rounded-xl w-full border border-primary-800 bg-neutral-950 p-4;
+    @apply z-10 w-full rounded-xl border border-primary-800 bg-neutral-950 p-4;
     @apply outline-none placeholder:text-neutral-700 focus:ring-2 focus:ring-primary-500;
   }
 </style>
