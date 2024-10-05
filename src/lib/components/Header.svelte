@@ -31,7 +31,7 @@
 
 <style lang="postcss">
   header {
-    @apply fixed top-0 z-10 flex h-24 w-full items-center justify-evenly bg-neutral-950 bg-opacity-75 px-24 py-4 backdrop-blur-md;
+    @apply fixed top-0 z-50 flex h-24 w-full items-center justify-evenly bg-neutral-950 bg-opacity-75 px-24 py-4 backdrop-blur-md;
     @apply transition-all duration-1000 ease-in-out;
   }
 
