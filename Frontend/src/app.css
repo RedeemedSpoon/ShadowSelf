@@ -19,4 +19,19 @@
   a {
     @apply text-primary-700 hover:text-primary-900 cursor-pointer underline transition-colors duration-300;
   }
+
+  header a,
+  a.alt {
+    @apply text-neutral-400 no-underline transition-colors duration-300 hover:text-neutral-100;
+  }
+
+  h1,
+  h2 {
+    @apply from-primary-500 to-primary-800 z-10 bg-gradient-to-b bg-clip-text font-sans text-7xl font-bold text-transparent;
+  }
+
+  input,
+  textarea {
+    @apply rounded-xl border p-4 !outline-none placeholder:text-neutral-700;
+  }
 }

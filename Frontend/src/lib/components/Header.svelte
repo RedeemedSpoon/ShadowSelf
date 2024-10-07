@@ -22,7 +22,7 @@
       {#if $authenticated}
         <a href="/dashboard">Account Name</a>
       {:else}
-        <a href="/login">Log In</a>
+        <a class="text-primary-700 underline hover:text-primary-900" href="/login">Log In</a>
         <a href="/signup"><button>Sign Up</button></a>
       {/if}
     </div>
@@ -46,10 +46,6 @@
 
   #auth-buttons {
     @apply border-l border-neutral-700 px-8;
-  }
-
-  #navigation-links a {
-    @apply text-neutral-400 no-underline transition-colors duration-300 hover:text-neutral-100;
   }
 
   .focused {

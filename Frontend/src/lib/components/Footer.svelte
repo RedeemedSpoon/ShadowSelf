@@ -15,7 +15,7 @@
   <section>
     <div id="logo">
       <a href="/"><img src={logo} alt="ShadowSelf" width="216" height="216" /></a>
-      <div>
+      <div class="flex justify-center gap-4">
         <a href="https://github.com/RedeemedSpoon/ShadowSelf"><img src={github} alt="Source Code" /></a>
         <a href="/" on:click|preventDefault={() => notify('Onion Website Coming Soon!', 'info')}>
           <img src={tor} alt="Onion Website" />
@@ -25,13 +25,13 @@
         </a>
       </div>
     </div>
-    <nav>
+    <nav class="flex justify-end gap-24 px-16">
       {#each Object.entries(links) as [key, value]}
-        <div>
-          <p>{key}</p>
+        <div class="flex flex-col gap-6">
+          <p class="font-bold text-neutral-400">{key}</p>
           {#each value as link}
             {@const url = link === 'Homepage' ? '/' : `/${link.toLowerCase().replace(' ', '-')}`}
-            <a href={url}>{link}</a>
+            <a class="alt" href={url}>{link}</a>
           {/each}
         </div>
       {/each}
@@ -53,28 +53,8 @@
     @apply flex flex-col items-center gap-6;
   }
 
-  #logo > div {
-    @apply flex justify-center gap-4;
-  }
-
   #logo > div img {
     @apply w-6 hover:brightness-125;
-  }
-
-  nav {
-    @apply flex justify-end gap-24 px-16;
-  }
-
-  nav div {
-    @apply flex flex-col gap-6;
-  }
-
-  nav p {
-    @apply font-bold text-neutral-400;
-  }
-
-  nav a {
-    @apply text-neutral-400 no-underline transition-colors duration-300 hover:text-neutral-100;
   }
 
   footer > p {

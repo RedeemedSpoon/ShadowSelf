@@ -6,6 +6,7 @@
   $: id = $notification.id;
   $: type = $notification.type;
   $: message = $notification.message;
+
   const icons = {
     alert: alert,
     info: info,
@@ -17,7 +18,7 @@
 
 {#if id}
   <div class="notification {type}" transition:slide={{axis: 'x'}} on:click={handleClick} aria-hidden>
-    <img src={icons[type]} alt={type} width="48px" height="48px" />
+    <img class="mr-4" src={icons[type]} alt={type} width="48px" height="48px" />
     <p>{message}</p>
   </div>
 {/if}
@@ -30,10 +31,6 @@
 
   p {
     @apply text-clip text-nowrap text-xl;
-  }
-
-  img {
-    @apply mr-4;
   }
 
   .alert {

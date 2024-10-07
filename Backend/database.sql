@@ -3,7 +3,7 @@
 -- Environment Variables
 \set USER_NAME `echo $DB_USERNAME`
 \set USER_PASSWORD `echo $DB_PASSWORD`
-\set DATABASE `echo $DB_NAME`
+\set DATABASE `echo $DB_SERVER`
 
 -- Create Database
 DROP DATABASE IF EXISTS :DATABASE;
