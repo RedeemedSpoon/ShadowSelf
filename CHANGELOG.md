@@ -10,12 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Create Tmux session config for development
+- Made simplex community
 
 ### Changed
 
 - Change environment variables name for db
 - Move some style to 'app.css'
 - Implement some css-inline styles
+
+### Removed
+
+- Remove session community
 
 ## [0.0.5] - 2024-10-06
 

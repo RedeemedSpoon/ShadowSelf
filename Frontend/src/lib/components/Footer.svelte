@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {logo, github, tor, session} from '$images';
+  import {logo, github, tor, simplex} from '$images';
   import {notify} from '$lib';
 
   const year = new Date().getFullYear();
@@ -20,8 +20,8 @@
         <a href="/" on:click|preventDefault={() => notify('Onion Website Coming Soon!', 'info')}>
           <img src={tor} alt="Onion Website" />
         </a>
-        <a href="/" on:click|preventDefault={() => notify('Session Community Coming Soon!', 'info')}>
-          <img src={session} alt="Session Community" />
+        <a href="/" on:click|preventDefault={() => notify('SimpleX Community Coming Soon!', 'info')}>
+          <img src={simplex} alt="SimpleX Community" />
         </a>
       </div>
     </div>
