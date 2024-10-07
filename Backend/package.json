@@ -4,13 +4,14 @@
   "license": "GPL-3.0",
   "private": true,
   "scripts": {
-    "dev": "bun run --watch src/index.ts",
+    "dev": "bun run --watch --env-file=.env src/index.ts",
     "build": "bun run build src/index.ts"
   },
   "devDependencies": {
+    "bun-types": "latest",
     "elysia": "latest",
-    "bun-types": "latest"
+    "postgres": "^3.4.4"
   },
   "type": "module",
-  "module": "src/index.js"
+  "module": "src/index.ts"
 }

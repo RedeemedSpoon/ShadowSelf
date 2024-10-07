@@ -1,5 +1,17 @@
 import {Elysia} from 'elysia';
+import attempt from './attempt';
+import sql from './db-connect';
 
-const app = new Elysia().get('/', () => 'Hello Elysia').listen(3000);
+const app = new Elysia({prefix: '/api'})
+  .post('/join', async ({body}: {body: {email: string}}) => {
+    const email = body.email.toLowerCase();
+
+    if (email.match(/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm) === null) {
+      return {message: 'Please enter a valid email address.', type: 'alert'};
+    }
+
+    return attempt(sql`INSERT INTO users (email) VALUES (${email})`, 'Thank you for joining!');
+  })
+  .listen(3000);
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);

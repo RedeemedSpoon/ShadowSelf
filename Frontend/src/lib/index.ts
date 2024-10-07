@@ -11,3 +11,13 @@ export function notify(message: Notification['message'], type: Notification['typ
     }
   }, 5000);
 }
+
+export async function fetchApi(url: string, method = 'GET', body?: Record<string, unknown>) {
+  return await fetch('http://localhost:3000' + url, {
+    method,
+    headers: {'Content-Type': 'application/json'},
+    body: body ? JSON.stringify(body) : undefined,
+  })
+    .then((res) => res.json())
+    .catch(() => ({message: 'An error occurred. Please try again later.', type: 'alert'}));
+}
