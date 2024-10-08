@@ -4,12 +4,16 @@
 
 @layer base {
   html {
-    @apply overflow-x-hidden bg-neutral-900 font-sans text-neutral-300 antialiased;
+    @apply overflow-x-hidden bg-neutral-900 font-sans text-neutral-300 antialiased scroll-smooth;
   }
 
   button {
     @apply bg-primary-700 cursor-pointer rounded-md px-4 py-3 text-xl text-neutral-300 transition-all;
-    @apply shadow-primary-900 hover:bg-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
+    @apply shadow-primary-900 hover:bg-primary-800 hover:shadow-primary-950 shadow-lg transition-all duration-300;
+  }
+
+  button.alt {
+    @apply bg-transparent text-primary-600 shadow-none hover:text-primary-700;
   }
 
   p {
@@ -17,7 +21,7 @@
   }
 
   a {
-    @apply text-primary-700 hover:text-primary-900 cursor-pointer underline transition-colors duration-300;
+    @apply text-primary-700 hover:text-primary-800 cursor-pointer underline transition-colors duration-300;
   }
 
   header a,

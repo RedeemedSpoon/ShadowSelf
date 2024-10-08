@@ -22,7 +22,7 @@
       {#if $authenticated}
         <a href="/dashboard">Account Name</a>
       {:else}
-        <a class="text-primary-700 hover:text-primary-900 underline" href="/login">Log In</a>
+        <a class="text-primary-700 hover:text-primary-800 underline" href="/login">Log In</a>
         <a href="/signup"><button>Sign Up</button></a>
       {/if}
     </div>
