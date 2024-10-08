@@ -54,7 +54,7 @@
   <h1>Join The Waitlist</h1>
   <p>
     Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates in the Github repository
-    that can be found <a href="https://github.com/RedeemedSpoon/ShadowSelf">Here.</a> We are just as exited as you are about
+    that can be found <a href="https://github.com/RedeemedSpoon/ShadowSelf">Here</a>. We are just as exited as you are about
     this project and we are committed to make the world a safer and freer place.
   </p>
   <form use:enhance method="post" class="z-10 mt-4 flex w-1/3">

@@ -21,7 +21,7 @@
   }
 
   a {
-    @apply text-primary-700 hover:text-primary-800 cursor-pointer underline transition-colors duration-300;
+    @apply text-primary-700 hover:text-primary-800 cursor-pointer transition-colors duration-300;
   }
 
   header a,
