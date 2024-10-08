@@ -8,9 +8,16 @@
   $: if (form?.message) notify(form?.message, form?.type);
 </script>
 
+<svelte:head>
+  <title>ShadowSelf - Create & Manage Fake Identities</title>
+  <meta
+    name="description"
+    content="ShadowSelf is a platform that safeguard you and your sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your actual identity from being at risk of misuse, breach, theft, or fraud." />
+</svelte:head>
+
 <section id="catch">
-  <h1 class="-mb-8 text-neutral-300">Your Privacy,</h1>
-  <h1 class="relative text-9xl leading-tight">Our Priority.</h1>
+  <h1 class="-mb-10 text-neutral-300">Your Privacy,</h1>
+  <h1 class="relative text-9xl">Our Priority.</h1>
   <div class="relative -mt-6 h-40 w-1/3">
     <div class="light !h-[3px] blur-sm" />
     <div class="light" />
@@ -32,7 +39,7 @@
 
 <!-- 3D Card Effect -->
 <section id="product"><h1>Product</h1></section>
- <!-- Sticky Scroll Reveal + Beams-->
+<!-- Sticky Scroll Reveal + Beams -->
 <section id="features"><h1>Features</h1></section>
 <!-- Unknown -->
 <section id="comparaisons"><h1>Comparaisons</h1></section>
@@ -56,7 +63,11 @@
 
 <style lang="postcss">
   section {
-    @apply w-2/3 py-16 text-center;
+    @apply w-full py-16 text-center;
+  }
+
+  section:nth-child(even) {
+    @apply bg-neutral-950;
   }
 
   .light {

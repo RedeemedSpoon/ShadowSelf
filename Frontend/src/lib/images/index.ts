@@ -9,3 +9,6 @@ export {default as tor} from './tor.svg';
 export {default as info} from './info.svg';
 export {default as alert} from './alert.svg';
 export {default as success} from './success.svg';
+
+export {default as circuitBoard} from './circuit-board.svg'
+export {default as itCrowd} from './IT-Crowd.gif'

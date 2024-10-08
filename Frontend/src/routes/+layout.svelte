@@ -14,9 +14,3 @@
 </main>
 <Footer />
 <Notification />
-
-<style lang="postcss">
-  main {
-    @apply mx-auto flex max-w-screen-xl flex-col items-center gap-4;
-  }
-</style>
