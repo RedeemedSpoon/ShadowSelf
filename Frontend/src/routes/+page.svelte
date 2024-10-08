@@ -8,25 +8,37 @@
   $: if (form?.message) notify(form?.message, form?.type);
 </script>
 
-<div id="join-the-waitlist">
+<section id="catch"><h1>Catch</h1></section>
+<section id="product"><h1>Product</h1></section>
+<section id="features"><h1>Features</h1></section>
+<section id="comparaisons"><h1>Comparaisons</h1></section>
+<section id="pricing"><h1>Pricing</h1></section>
+<section id="reflexion"><h1>Reflexion</h1></section>
+
+<section id="waitlist">
   <h1>Join The Waitlist</h1>
   <p>
-    Welcome to ShadowSelf, the platform that is firmly grounded in privacy and security. We safeguard you and your
-    sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your
-    actual identity from being at risk of misuse, breach, theft, or fraud.
+    We are firmly grounded in privacy and security. We provide you with the tools to safeguard you and your sensitive
+    data. We allow you to creating sythetic identities that can be used to register and authenticate while concealing
+    your actual identity from being at risk of misuse, breach, theft, or fraud. We are committed to make the world a
+    safer and freer place.
   </p>
   <form use:enhance method="post" class="z-10 mt-4 flex w-1/3">
     <input name="email" type="email" placeholder="Enter your email" />
   </form>
   <BackgroundBeams />
-</div>
+</section>
 
 <style lang="postcss">
-  #join-the-waitlist {
+  section {
+    @apply w-2/3 py-16 text-center;
+  }
+
+  #waitlist {
     @apply relative flex h-screen w-screen flex-col items-center justify-center gap-6;
   }
 
-  p {
+  #waitlist p {
     @apply z-10 w-1/3 hyphens-none text-balance text-center text-lg text-neutral-400;
   }
 
