@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {Notification} from '$types';
-  import {BackgroundBeams, Sparkles} from '$components';
+  import {BackgroundBeams, Sparkles, Cheveron} from '$components';
   import {enhance} from '$app/forms';
   import {notify} from '$lib';
 
@@ -16,7 +16,7 @@
 </svelte:head>
 
 <section id="catch">
-  <h1 class="-mb-10 text-neutral-300">Your Privacy,</h1>
+  <h1 class="mt-28 -mb-10 text-neutral-300">Your Privacy,</h1>
   <h1 class="relative text-9xl">Our Priority.</h1>
   <div class="relative -mt-6 h-40 w-1/3">
     <div class="light !h-[3px] blur-sm" />
@@ -26,14 +26,16 @@
     <Sparkles minSize={0.5} maxSize={2} particleDensity={400} className="w-full h-full" particleColor="#DDDDDD" />
     <div class="mask"></div>
   </div>
-  <p class="-mt-8 w-1/2">
+  <p class="-mt-6 w-1/2">
     Welcome to ShadowSelf, the platform that is firmly grounded in privacy and security. We safeguard you and your
     sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your
     actual identity from being at risk of misuse, breach, theft, or fraud.
   </p>
   <div class="flex gap-8">
-    <a href="#product"><button class="alt">Learn More</button></a>
-    <a href="/signup"><button>Get Started</button></a>
+    <a href="#product" class="no-underline">
+      <button class="alt flex items-center gap-2">Learn More<Cheveron rotation={90} /></button>
+    </a>
+    <a href="/signup"><button>Get Started!</button></a>
   </div>
 </section>
 
@@ -84,7 +86,7 @@
 
   #catch,
   #waitlist {
-    @apply relative flex h-screen w-screen flex-col items-center justify-center gap-6;
+    @apply relative flex h-screen flex-col items-center justify-center gap-6;
   }
 
   #waitlist p {

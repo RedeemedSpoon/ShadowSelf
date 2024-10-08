@@ -1,6 +1,7 @@
 <script lang="ts">
   import {page} from '$app/stores';
   import {circuitBoard, itCrowd} from '$images';
+  import {Cheveron} from '$components';
 </script>
 
 <svelte:head>
@@ -9,11 +10,11 @@
   <meta name="description" content="ShadowSelf - Error 404 Page" />
 </svelte:head>
 
-<section style="background-size: 25%; background-image: url({circuitBoard}); background-repeat: repeat">
-  <img alt="{$page.error?.message}" src="{itCrowd}" />
+<section style="background-size: 20%; background-image: url({circuitBoard}); background-repeat: repeat">
+  <img alt={$page.error?.message} src={itCrowd} />
   <h1 class="text-7xl">Page Not Found.</h1>
-  <p>Oops, looks like you hit a dead end. That's not a big deal, Let's get you back on track.</p>
-  <a href="/"><button class="text-2xl px-6 py-5">Go Home</button></a>
+  <p>Oops, looks like you hit a dead end! That's not a big deal, Let's get you back on track.</p>
+  <a href="/"><button>Go Home<Cheveron /></button></a>
 </section>
 
 <style lang="postcss">
@@ -22,10 +23,14 @@
   }
 
   img {
-    @apply w-auto shadow-2xl rounded-lg border-8 border-neutral-950;
+    @apply w-auto rounded-sm border border-neutral-300 shadow-2xl;
   }
 
   p {
     @apply w-1/3 text-center text-2xl leading-loose;
+  }
+
+  button {
+    @apply flex items-center gap-2 px-6 py-5 text-2xl;
   }
 </style>
