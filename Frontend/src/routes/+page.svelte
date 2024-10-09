@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {Notification} from '$types';
-  import {BackgroundBeams, Sparkles, Cheveron} from '$components';
+  import {BackgroundBeams, Cheveron} from '$components';
   import {enhance} from '$app/forms';
   import {notify} from '$lib';
 
@@ -16,16 +16,8 @@
 </svelte:head>
 
 <section id="catch">
-  <h1 class="mt-28 -mb-10 text-neutral-300">Your Privacy,</h1>
-  <h1 class="relative text-9xl">Our Priority.</h1>
-  <div class="relative -mt-6 h-40 w-1/3">
-    <div class="light !h-[3px] blur-sm" />
-    <div class="light" />
-    <div class="spot !h-[5px] blur-sm" />
-    <div class="spot" />
-    <Sparkles minSize={0.5} maxSize={2} particleDensity={400} className="w-full h-full" particleColor="#DDDDDD" />
-    <div class="mask"></div>
-  </div>
+  <h1 class="-mb-6 mt-28 text-neutral-300">Your Privacy,</h1>
+  <h1 class="text-9xl">Our Priority.</h1>
   <p class="-mt-6 w-1/2">
     Welcome to ShadowSelf, the platform that is firmly grounded in privacy and security. We safeguard you and your
     sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your
@@ -54,8 +46,8 @@
   <h1>Join The Waitlist</h1>
   <p>
     Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates in the Github repository
-    that can be found <a href="https://github.com/RedeemedSpoon/ShadowSelf">Here</a>. We are just as exited as you are about
-    this project and we are committed to make the world a safer and freer place.
+    that can be found <a href="https://github.com/RedeemedSpoon/ShadowSelf">Here</a>. We are just as exited as you are
+    about this project and we are committed to make the world a safer and freer place.
   </p>
   <form use:enhance method="post" class="z-10 mt-4 flex w-1/3">
     <input name="email" type="email" placeholder="Enter your email" />
@@ -70,18 +62,6 @@
 
   section:nth-child(even) {
     @apply bg-neutral-950;
-  }
-
-  .light {
-    @apply via-primary-500 absolute inset-x-20 top-0 h-px w-3/4 bg-gradient-to-r from-transparent to-transparent;
-  }
-
-  .spot {
-    @apply via-primary-500 absolute inset-x-60 top-0 h-px w-1/4 bg-gradient-to-r from-transparent to-transparent;
-  }
-
-  .mask {
-    @apply absolute inset-0 h-full w-full bg-neutral-900 [mask-image:radial-gradient(300px_125px_at_top,transparent_20%,white)];
   }
 
   #catch,

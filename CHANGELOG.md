@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.7] - 2024-10-08
+
+### Added
+
+- Make 404 page
+- Add cheveron icon
+- Add catch section
+- Add circuit board pattern
+
+### Changed
+
+- Change home section text
+- Disable links until it's ready
+
+### Removed
+
+- Remove sparkle component
+
 ## [0.0.6] - 2024-10-07
 
 ### Added

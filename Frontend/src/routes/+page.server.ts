@@ -5,6 +5,6 @@ export const actions = {
   default: async ({request}) => {
     const data = await request.formData();
     const email = data.get('email') as string;
-    return await fetchApi('/api/join', 'POST', {email});
+    return await fetchApi('/join', 'POST', {email});
   },
 } satisfies Actions;

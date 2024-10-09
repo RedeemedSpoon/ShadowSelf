@@ -13,7 +13,7 @@ export function notify(message: Notification['message'], type: Notification['typ
 }
 
 export async function fetchApi(url: string, method = 'GET', body?: Record<string, unknown>) {
-  return await fetch('http://localhost:3000' + url, {
+  return await fetch('http://localhost:3000/api' + url, {
     method,
     headers: {'Content-Type': 'application/json'},
     body: body ? JSON.stringify(body) : undefined,

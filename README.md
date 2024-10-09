@@ -42,7 +42,7 @@ bun dev
 If you want to build the project and preview it locally, run the following command:
 
 ```bash
-bun build
+bun make-build
 bun preview
 ```
 
