@@ -19,6 +19,7 @@
       if (link.getAttribute('href') === '#product') return;
 
       link.addEventListener('click', (e) => {
+        e.stopPropagation();
         e.preventDefault();
         notify('Website Still Under Development', 'info');
       });

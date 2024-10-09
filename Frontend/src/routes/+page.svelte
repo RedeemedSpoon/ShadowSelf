@@ -3,6 +3,25 @@
   import {BackgroundBeams, Cheveron} from '$components';
   import {enhance} from '$app/forms';
   import {notify} from '$lib';
+  import {onMount} from 'svelte';
+
+  onMount(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('!opacity-100', '!translate-y-0');
+        } else {
+          entry.target.classList.remove('!opacity-100', '!translate-y-0');
+        }
+      });
+    });
+
+    document.querySelectorAll('section').forEach((element) => {
+      observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  });
 
   export let form: Notification;
   $: if (form?.message) notify(form?.message, form?.type);
@@ -18,14 +37,14 @@
 <section id="catch">
   <h1 class="-mb-6 mt-28 text-neutral-300">Your Privacy,</h1>
   <h1 class="text-9xl">Our Priority.</h1>
-  <p class="-mt-6 w-1/2">
+  <p class="my-6 w-1/2 text-center">
     Welcome to ShadowSelf, the platform that is firmly grounded in privacy and security. We safeguard you and your
     sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your
     actual identity from being at risk of misuse, breach, theft, or fraud.
   </p>
   <div class="flex gap-8">
     <a href="#product" class="no-underline">
-      <button class="alt flex items-center gap-2">Learn More<Cheveron rotation={90} /></button>
+      <button class="alt flex items-center gap-2">Learn More<Cheveron /></button>
     </a>
     <a href="/signup"><button>Get Started!</button></a>
   </div>
@@ -57,7 +76,7 @@
 
 <style lang="postcss">
   section {
-    @apply w-full py-16 text-center;
+    @apply w-full translate-y-32 py-16 opacity-0 transition-all duration-[1500ms] ease-in-out;
   }
 
   section:nth-child(even) {

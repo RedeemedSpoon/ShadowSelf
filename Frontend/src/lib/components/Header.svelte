@@ -1,13 +1,13 @@
 <script lang="ts">
   import {logoBeside} from '$images';
-  import {authenticated, headerScroll} from '$store';
+  import {authenticated, scrollY} from '$store';
   import {page} from '$app/stores';
 
   $: isHome = $page.url.pathname === '/';
-  $: shouldFocus = isHome && $headerScroll < 100;
+  $: shouldFocus = isHome && $scrollY < 150;
 </script>
 
-<svelte:window bind:scrollY={$headerScroll} />
+<svelte:window bind:scrollY={$scrollY} />
 <header class:focused={shouldFocus}>
   <a href="/">
     <img id="logo" src={logoBeside} alt="App" width="256px" />

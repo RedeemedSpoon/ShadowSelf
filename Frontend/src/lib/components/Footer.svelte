@@ -12,7 +12,7 @@
 </script>
 
 <footer>
-  <section>
+  <div>
     <div id="logo">
       <a href="/"><img src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div class="flex justify-center gap-4">
@@ -36,7 +36,7 @@
         </div>
       {/each}
     </nav>
-  </section>
+  </div>
   <p>&copy; {year} - ShadowSelf. All rights reserved</p>
 </footer>
 
@@ -45,7 +45,7 @@
     @apply sticky z-50 flex w-full flex-col bg-neutral-950 bg-opacity-75 pt-24;
   }
 
-  section {
+  footer > div {
     @apply mx-auto flex items-center gap-16 px-4;
   }
 

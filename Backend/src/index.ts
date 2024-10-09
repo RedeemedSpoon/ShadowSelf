@@ -10,7 +10,13 @@ const app = new Elysia({prefix: '/api'})
       return {message: 'Please enter a valid email address.', type: 'alert'};
     }
 
-    return attempt(sql`INSERT INTO users (email) VALUES (${email})`, 'Thank you for joining!');
+    const result = await attempt(sql`INSERT INTO users (email) VALUES (${email})`, '🥳 Thank you for joining!');
+
+    if (result.message.match(/unique.*constraint/)) {
+      return {message: 'You have already joined :)', type: 'info'};
+    }
+
+    return result;
   })
   .listen(3000);
 
