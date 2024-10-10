@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    @apply overflow-x-hidden no-scrollbar scroll-smooth bg-neutral-900 font-sans text-neutral-300 antialiased;
+    @apply no-scrollbar overflow-x-hidden scroll-smooth bg-neutral-900 font-sans text-neutral-300 antialiased;
   }
 
   button {
