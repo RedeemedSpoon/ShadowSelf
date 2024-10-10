@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {notification} from '$store';
   import {alert, info, success} from '$images';
   import {slide} from 'svelte/transition';
+  import {notification} from '$store';
 
   $: id = $notification.id;
   $: type = $notification.type;

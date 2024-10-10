@@ -1,10 +1,10 @@
 <script lang="ts">
   import type {Notification} from '$types';
   import {BackgroundBeams, Cheveron} from '$components';
-  import {enhance} from '$app/forms';
-  import {notify} from '$lib';
-  import {onMount} from 'svelte';
   import {satisfaction} from '$images';
+  import {enhance} from '$app/forms';
+  import {onMount} from 'svelte';
+  import {notify} from '$lib';
 
   onMount(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -88,7 +88,6 @@
   </div>
   <img class="w-4/5" src={satisfaction} alt="Balance of positive and negative" />
 </section>
-
 <section id="waitlist">
   <h1>Join The Waitlist</h1>
   <p>

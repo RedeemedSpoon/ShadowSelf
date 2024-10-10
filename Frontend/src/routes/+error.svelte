@@ -1,6 +1,6 @@
 <script lang="ts">
   import {page} from '$app/stores';
-  import {circuitBoard, itCrowd} from '$images';
+  import {circuitPattern, itCrowdGif} from '$images';
   import {Cheveron} from '$components';
 </script>
 
@@ -10,8 +10,8 @@
   <meta name="description" content="ShadowSelf - Error 404 Page" />
 </svelte:head>
 
-<section style="background-size: 20%; background-image: url({circuitBoard}); background-repeat: repeat">
-  <img alt={$page.error?.message} src={itCrowd} />
+<section style="background-size: 20%; background-image: url({circuitPattern}); background-repeat: repeat">
+  <img alt={$page.error?.message} src={itCrowdGif} />
   <h1 class="text-7xl">Page Not Found.</h1>
   <p>Oops, looks like you hit a dead end! That's not a big deal, Let's get you back on track.</p>
   <a href="/"><button>Go Home<Cheveron /></button></a>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {logoBeside} from '$images';
+  import {logoBesideText} from '$images';
   import {authenticated, scrollY} from '$store';
   import {page} from '$app/stores';
 
@@ -10,7 +10,7 @@
 <svelte:window bind:scrollY={$scrollY} />
 <header class:focused={shouldFocus}>
   <a href="/">
-    <img id="logo" src={logoBeside} alt="App" width="256px" />
+    <img id="logo" src={logoBesideText} alt="App" width="256px" />
   </a>
   <div class="flex gap-4">
     <div id="navigation-links">

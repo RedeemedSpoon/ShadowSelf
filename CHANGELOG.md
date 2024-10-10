@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add no script client support
 - Create highlight and underline effect on homepage
 
+### Changed
+
+- Optimize images size for performance
+
 ## [0.0.8] - 2024-10-09
 
 ### Added

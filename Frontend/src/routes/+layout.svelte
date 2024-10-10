@@ -22,7 +22,7 @@
       link.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        notify('Coming Soon!', 'info');
+        notify('We still didn\'t launch yet!', 'info');
       });
     });
   });
