@@ -21,7 +21,7 @@
       link.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        notify('Website Still Under Development', 'info');
+        notify('Coming Soon!', 'info');
       });
     });
   });
