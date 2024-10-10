@@ -17,7 +17,7 @@
   }
 
   p {
-    @apply truncate hyphens-auto whitespace-normal text-pretty text-xl font-normal leading-loose antialiased;
+    @apply truncate whitespace-normal text-pretty text-xl font-normal leading-loose antialiased;
   }
 
   a {

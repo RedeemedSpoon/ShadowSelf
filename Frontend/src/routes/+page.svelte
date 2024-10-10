@@ -1,9 +1,10 @@
 <script lang="ts">
   import type {Notification} from '$types';
-  import {BackgroundBeams, Cheveron, CardBody, CardContainer, CardItem} from '$components';
+  import {BackgroundBeams, Cheveron} from '$components';
   import {enhance} from '$app/forms';
   import {notify} from '$lib';
   import {onMount} from 'svelte';
+  import {satisfaction} from '$images';
 
   onMount(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -38,7 +39,6 @@
     return () => observer.disconnect();
   });
 
-  let isMouseEntered = false;
   export let form: Notification;
   $: if (form?.message) notify(form?.message, form?.type);
 </script>
@@ -62,7 +62,7 @@
     <div id="highlight"></div>
     <h1 class="text-9xl">.</h1>
   </div>
-  <p class="my-6 w-1/2 text-center">
+  <p class="my-6 w-1/2 text-balance text-center">
     Welcome to ShadowSelf, the platform that is firmly grounded in privacy and security. We safeguard you and your
     sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your
     actual identity from being at risk of misuse, breach, theft, or fraud.
@@ -74,51 +74,20 @@
     <a href="/signup"><button>Get Started!</button></a>
   </div>
 </section>
-
-<section id="product">
-  <CardContainer bind:isMouseEntered className="inter-var">
-    <CardBody
-      className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border  ">
-      <CardItem {isMouseEntered} translateZ="50" className="text-xl font-bold text-neutral-600 dark:text-white">
-        Make things float in air
-      </CardItem>
-      <CardItem
-        {isMouseEntered}
-        translateZ="60"
-        className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300">
-        Hover over this card to unleash the power of CSS perspective
-      </CardItem>
-      <CardItem {isMouseEntered} translateZ="100" className="w-full mt-4">
-        <img
-          src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          height="1000"
-          width="1000"
-          class="h-60 w-full rounded-xl object-cover group-hover/card:shadow-xl"
-          alt="thumbnail" />
-      </CardItem>
-      <div class="mt-20 flex items-center justify-between">
-        <CardItem {isMouseEntered} translateZ={20} className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white">
-          Try now →
-        </CardItem>
-        <CardItem
-          {isMouseEntered}
-          translateZ={20}
-          className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold">
-          Sign up
-        </CardItem>
-      </div>
-    </CardBody>
-  </CardContainer>
-</section>
-
-<!-- Sticky Scroll Reveal + Beams -->
+<section id="product"><h1>Product</h1></section>
 <section id="features"><h1>Features</h1></section>
-<!-- Unknown -->
 <section id="comparaisons"><h1>Comparaisons</h1></section>
-<!-- Table -->
 <section id="pricing"><h1>Pricing</h1></section>
-<!-- Raw Text -->
-<section id="reflexion"><h1>Reflexion</h1></section>
+<section id="reflection" class="flex !flex-row gap-24 px-64">
+  <div class="flex flex-col items-start gap-4">
+    <h1>Reflexion</h1>
+    <p class="w-3/5">
+      Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas vero reiciendis quo commodi. Accusantium earum
+      assumenda sequi alias, aliquam doloribus voluptate hic enim quisquam, eum amet vero id esse. Perspiciatis.
+    </p>
+  </div>
+  <img class="w-4/5" src={satisfaction} alt="Balance of positive and negative" />
+</section>
 
 <section id="waitlist">
   <h1>Join The Waitlist</h1>
