@@ -8,6 +8,19 @@ export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
     extend: {
+      animation: {
+        'shake-up': 'shake-up-bottom 8s ease-in-out infinite',
+      },
+      keyframes: {
+        'shake-up-bottom': {
+          '0%, 100%': {
+            transform: 'translateY(0)',
+          },
+          '50%': {
+            transform: 'translateY(-50px)',
+          },
+        },
+      },
       colors: {
         primary: colors.indigo,
         neutral: colors.slate,

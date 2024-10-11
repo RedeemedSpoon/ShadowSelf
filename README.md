@@ -1,7 +1,7 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./Frontend//src/lib/images/logo.svg">
-  <img alt="ShadowSelf" src="./Frontend/src/lib/images/light-logo.svg" width="60%">
+  <source media="(prefers-color-scheme: dark)" srcset="./Frontend/src/lib/images/logo/logo-white-text.svg">
+  <img alt="ShadowSelf" src="./Frontend/src/lib/images/logo/logo-black-text.svg" width="60%">
 </picture>
 </p>
 

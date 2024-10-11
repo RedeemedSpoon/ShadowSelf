@@ -74,20 +74,26 @@
     <a href="/signup"><button>Get Started!</button></a>
   </div>
 </section>
+
 <section id="product"><h1>Product</h1></section>
+
 <section id="features"><h1>Features</h1></section>
+
 <section id="comparaisons"><h1>Comparaisons</h1></section>
+
 <section id="pricing"><h1>Pricing</h1></section>
-<section id="reflection" class="flex !flex-row gap-24 px-64">
+
+<section id="reflection" class="flex !flex-row gap-32 px-56">
   <div class="flex flex-col items-start gap-4">
-    <h1>Reflexion</h1>
-    <p class="w-3/5">
+    <h1>Reflection</h1>
+    <p class="w-5/6">
       Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas vero reiciendis quo commodi. Accusantium earum
       assumenda sequi alias, aliquam doloribus voluptate hic enim quisquam, eum amet vero id esse. Perspiciatis.
     </p>
   </div>
-  <img class="w-4/5" src={satisfaction} alt="Balance of positive and negative" />
+  <img class="w-full animate-shake-up" src={satisfaction} alt="Customer satisfaction" />
 </section>
+
 <section id="waitlist">
   <h1>Join The Waitlist</h1>
   <p>
