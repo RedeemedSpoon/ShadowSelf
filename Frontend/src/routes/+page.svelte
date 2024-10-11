@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {Notification} from '$types';
-  import {BackgroundBeams, Cheveron} from '$components';
+  import {BackgroundBeams, CheveronImg, QuestionImg} from '$components';
   import {satisfaction} from '$images';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
@@ -69,7 +69,8 @@
   </p>
   <div class="flex gap-8">
     <a href="#product" class="no-underline">
-      <button class="alt flex items-center gap-2">Learn More<Cheveron /></button>
+      <button class="alt group flex items-center gap-2">
+        Learn More<CheveronImg className="group-hover:rotate-90" /></button>
     </a>
     <a href="/signup"><button>Get Started!</button></a>
   </div>
@@ -81,7 +82,32 @@
 
 <section id="comparaisons"><h1>Comparaisons</h1></section>
 
-<section id="pricing"><h1>Pricing</h1></section>
+<section id="pricing">
+  <div id="pricing-card">
+    <h3>Monthly</h3>
+    <div class="flex flex-col gap-4 px-16 py-10 text-center">
+      <p class="-mb-6 text-neutral-600 line-through">$7.99</p>
+      <h1 class="from-primary-600 to-primary-700 text-6xl">$5.99</h1>
+      <p class="-mt-6 text-neutral-400">per month</p>
+      <p class="text-xl">What will be included :</p>
+      <div class="flex gap-8 py-4 text-left text-xl leading-loose">
+        <ul class="list-inside list-disc">
+          <li>Custom Identity</li>
+          <li>Email Address</li>
+          <li>Phone Number</li>
+          <li>Log Files</li>
+        </ul>
+        <ul class="list-inside list-disc">
+          <li>Virtual Card</li>
+          <li>Crypto Wallet</li>
+          <li>VPN Access</li>
+          <li>24/7 Support</li>
+        </ul>
+      </div>
+      <button>Checkout</button>
+    </div>
+  </div>
+</section>
 
 <section id="reflection" class="flex !flex-row gap-32 px-56">
   <div class="flex flex-col items-start gap-4">
@@ -91,7 +117,7 @@
       assumenda sequi alias, aliquam doloribus voluptate hic enim quisquam, eum amet vero id esse. Perspiciatis.
     </p>
   </div>
-  <img class="w-full animate-shake-up" src={satisfaction} alt="Customer satisfaction" />
+  <img class="animate-shake-up w-full" src={satisfaction} alt="Customer satisfaction" />
 </section>
 
 <section id="waitlist">
@@ -127,6 +153,15 @@
 
   #highlighted-text {
     @apply px-2 text-9xl transition-all duration-1000 ease-in-out;
+  }
+
+  #pricing-card {
+    @apply rounded-2xl border-2 border-neutral-400 shadow-2xl shadow-neutral-950;
+    @apply transition-all duration-500 ease-in-out hover:-translate-y-6;
+  }
+
+  h3 {
+    @apply bg-primary-700 w-full rounded-t-xl border-b border-neutral-400 p-8 text-center text-3xl font-bold;
   }
 
   #waitlist p {

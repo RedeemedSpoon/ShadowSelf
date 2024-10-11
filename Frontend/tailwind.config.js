@@ -9,7 +9,7 @@ export default {
   theme: {
     extend: {
       animation: {
-        'shake-up': 'shake-up-bottom 8s ease-in-out infinite',
+        'shake-up': 'shake-up-bottom 6s ease-in-out infinite',
       },
       keyframes: {
         'shake-up-bottom': {
