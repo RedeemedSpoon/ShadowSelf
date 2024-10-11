@@ -1,6 +1,6 @@
 <script lang="ts">
+  import {BackgroundBeams, CheveronImg, CardBody, CardItem, CardContainer} from '$components';
   import type {Notification} from '$types';
-  import {BackgroundBeams, CheveronImg, QuestionImg} from '$components';
   import {satisfaction} from '$images';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
@@ -38,7 +38,7 @@
 
     return () => observer.disconnect();
   });
-
+  let isMouseEntered = false;
   export let form: Notification;
   $: if (form?.message) notify(form?.message, form?.type);
 </script>
@@ -63,9 +63,9 @@
     <h1 class="text-9xl">.</h1>
   </div>
   <p class="my-6 w-1/2 text-balance text-center">
-    Welcome to ShadowSelf, the platform that is firmly grounded in privacy and security. We safeguard you and your
-    sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your
-    actual identity from being at risk of misuse, breach, theft, or fraud.
+    Experience the freedom of online interactions without the fear of compromise. Our platform provides the tools to
+    craft synthetic identities, shielding your personal information from malicious threats. Step into a realm where your
+    digital profile is cloaked in security with ShadowSelf.
   </p>
   <div class="flex gap-8">
     <a href="#product" class="no-underline">
@@ -76,7 +76,50 @@
   </div>
 </section>
 
-<section id="product"><h1>Product</h1></section>
+<section id="product">
+  <CardContainer bind:isMouseEntered className="inter-var">
+    <CardBody
+      className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border  ">
+      <CardItem {isMouseEntered} translateZ="50" className="text-xl font-bold text-neutral-600 dark:text-white">
+        Make things float in air
+      </CardItem>
+      <CardItem
+        {isMouseEntered}
+        translateZ="60"
+        className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300">
+        Hover over this card to unleash the power of CSS perspective
+      </CardItem>
+      <CardItem {isMouseEntered} translateZ="100" className="w-full mt-4">
+        <img
+          src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          height="1000"
+          width="1000"
+          class="h-60 w-full rounded-xl object-cover group-hover/card:shadow-xl"
+          alt="thumbnail" />
+      </CardItem>
+      <div class="mt-20 flex items-center justify-between">
+        <CardItem {isMouseEntered} translateZ={20} className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white">
+          Try now →
+        </CardItem>
+        <CardItem
+          {isMouseEntered}
+          translateZ={20}
+          className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold">
+          Sign up
+        </CardItem>
+      </div>
+    </CardBody>
+  </CardContainer>
+  <div class="flex flex-col items-start gap-4">
+    <h1 class="text-6xl">Reclaim control of your data.</h1>
+    <p>
+      Unlike profit-hungry conglomerates, we’re a open-source driven initiative dedicated to fighting back. Our mission
+      is to protect individuals by providing the necessary tools against data breaches, misuse, and theft. We’ve
+      developed a platform that lets you create synthetic identities, effectively confusing trackers and protecting your
+      personal information.
+    </p>
+  </div>
+</section>
 
 <section id="features"><h1>Features</h1></section>
 
@@ -109,15 +152,17 @@
   </div>
 </section>
 
-<section id="reflection" class="flex !flex-row gap-32 px-56">
+<section id="reflection">
   <div class="flex flex-col items-start gap-4">
-    <h1>Reflection</h1>
-    <p class="w-5/6">
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas vero reiciendis quo commodi. Accusantium earum
-      assumenda sequi alias, aliquam doloribus voluptate hic enim quisquam, eum amet vero id esse. Perspiciatis.
+    <h1 class="text-6xl">We are not perfect but...</h1>
+    <p>
+      We believe we offer the most balanced solution for your online needs, despite the fact that we "monitize" what
+      should have been a fundamental human right. We provide a cost-effective easy-to-use option without compromising
+      your privacy (and wallet) entirely. Think of us as your digital Swiss Army knife: versatile, reliable, secure but
+      still convenient to use.
     </p>
   </div>
-  <img class="animate-shake-up w-full" src={satisfaction} alt="Customer satisfaction" />
+  <img class="animate-shake-up w-full min-w-[30vw]" src={satisfaction} alt="Customer satisfaction" />
 </section>
 
 <section id="waitlist">
@@ -141,6 +186,11 @@
 
   section:nth-child(even) {
     @apply bg-neutral-950;
+  }
+
+  #product,
+  #reflection {
+    @apply flex !flex-row gap-36 px-52;
   }
 
   #underline-text {
