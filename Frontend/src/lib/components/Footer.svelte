@@ -4,10 +4,10 @@
 
   const year = new Date().getFullYear();
   const links = {
-    Product: ['Homepage', 'Extension', 'Pricing'],
+    Product: ['Homepage', 'Extension', 'Purchase'],
     Account: ['Dashboard', 'Settings', 'Docs'],
     Support: ['Contact', 'About', 'FAQ'],
-    Legal: ['Terms of Service', 'Privacy Policy'],
+    Legal: ['Terms of Service', 'Privacy Policy', 'Refund Policy'],
   };
 </script>
 

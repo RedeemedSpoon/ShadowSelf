@@ -1,6 +1,13 @@
-import {notification} from '$store';
+import {notification, pricingModel} from '$store';
 import type {Notification} from '$types';
+import {allPricingModel} from '$types';
 import {get} from 'svelte/store';
+
+export function changePricingModel(model: keyof typeof allPricingModel) {
+  document.querySelector(model.toString())?.classList.add('selected');
+  const titleCaseModel = model.charAt(0).toUpperCase() + model.slice(1);
+  pricingModel.set({name: titleCaseModel, ...allPricingModel[model]});
+}
 
 export function notify(message: Notification['message'], type: Notification['type'] = 'info') {
   const id = Math.floor(Math.random() * 10000);

@@ -22,13 +22,13 @@
       link.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        notify('We still didn\'t launch yet!', 'info');
+        notify("We still didn't launch yet!", 'info');
       });
     });
   });
 </script>
 
-<div class='hidden' id="app">
+<div class="hidden" id="app">
   <Header />
   <main>
     <slot />

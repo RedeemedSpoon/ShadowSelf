@@ -11,11 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add pricing section on homepage
 - Add products section on homepage
+- Add pricing model
 
 ### Changed
 
 - Change home section text
 - Change icon images to components
+- Change slogan to another components
 
 ## [0.0.9] - 2024-10-10
 

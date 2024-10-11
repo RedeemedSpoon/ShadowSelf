@@ -15,7 +15,7 @@
   <div class="flex gap-4">
     <div id="navigation-links">
       <a href="/extension">Extension</a>
-      <a href="/pricing">Pricing</a>
+      <a href="/purchase">Purchase</a>
       <a href="/docs">Docs</a>
     </div>
     <div id="auth-buttons">

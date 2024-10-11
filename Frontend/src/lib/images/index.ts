@@ -24,4 +24,3 @@ export {default as phone} from './features/phone.png';
 export {default as server} from './features/server.png';
 export {default as unknown} from './features/unknown.png';
 export {default as identity} from './features/identity.png';
-

@@ -1,6 +1,8 @@
 import {writable, type Writable} from 'svelte/store';
-import type {Notification} from '$types';
+import type {Notification, PricingModel} from '$types';
+import {allPricingModel} from '$types';
 
-export const authenticated: Writable<boolean> = writable(false);
-export const notification: Writable<Notification> = writable({id: null, message: '', type: 'info'});
 export const scrollY: Writable<number> = writable(0);
+export const authenticated: Writable<boolean> = writable(false);
+export const pricingModel: Writable<PricingModel> = writable({name: 'Monthly', ...allPricingModel.monthly});
+export const notification: Writable<Notification> = writable({id: null, message: '', type: 'info'});
