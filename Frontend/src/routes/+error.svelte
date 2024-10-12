@@ -31,6 +31,6 @@
   }
 
   button {
-    @apply flex items-center gap-3 px-6 py-5 text-2xl;
+    @apply flex items-center gap-1 px-6 py-5 text-2xl;
   }
 </style>

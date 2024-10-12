@@ -1,13 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 import colors from 'tailwindcss/colors';
 import defaultTheme from 'tailwindcss/defaultTheme';
-import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette';
 import aspectRatio from '@tailwindcss/aspect-ratio';
+import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette';
 
 export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
     extend: {
+      backgroundSize: {'size-200': '200% 200%'},
+      backgroundPosition: {'pos-0': '0% 0%', 'pos-100': '100% 100%'},
       boxShadow: {'8xl': '0 0 30px 30px rgba(0, 0, 0, 0.20)'},
       animation: {'shake-up': 'shake-up-bottom 6s ease-in-out infinite'},
       keyframes: {
@@ -33,7 +35,5 @@ function addVariablesForColors({addBase, theme}) {
   let allColors = flattenColorPalette(theme('colors'));
   let newVars = Object.fromEntries(Object.entries(allColors).map(([key, val]) => [`--${key}`, val]));
 
-  addBase({
-    ':root': newVars,
-  });
+  addBase({':root': newVars});
 }
