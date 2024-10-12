@@ -8,17 +8,12 @@ export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
     extend: {
-      animation: {
-        'shake-up': 'shake-up-bottom 6s ease-in-out infinite',
-      },
+      boxShadow: {'8xl': '0 0 30px 30px rgba(0, 0, 0, 0.20)'},
+      animation: {'shake-up': 'shake-up-bottom 6s ease-in-out infinite'},
       keyframes: {
         'shake-up-bottom': {
-          '0%, 100%': {
-            transform: 'translateY(0)',
-          },
-          '50%': {
-            transform: 'translateY(-50px)',
-          },
+          '0%, 100%': {transform: 'translateY(0)'},
+          '50%': {transform: 'translateY(-50px)'},
         },
       },
       colors: {
@@ -29,9 +24,7 @@ export default {
         alert: colors.red,
       },
     },
-    fontFamily: {
-      sans: ['Inter', ...defaultTheme.fontFamily.sans],
-    },
+    fontFamily: {sans: ['Inter', ...defaultTheme.fontFamily.sans]},
   },
   plugins: [aspectRatio, addVariablesForColors],
 };

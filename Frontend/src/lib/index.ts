@@ -4,7 +4,11 @@ import {allPricingModel} from '$types';
 import {get} from 'svelte/store';
 
 export function changePricingModel(model: keyof typeof allPricingModel) {
-  document.querySelector(model.toString())?.classList.add('selected');
+  document.querySelectorAll('#pricing-model button').forEach((element) => {
+    element.classList.remove('selected');
+  });
+
+  document.querySelector(`#${model}`)?.classList.add('selected');
   const titleCaseModel = model.charAt(0).toUpperCase() + model.slice(1);
   pricingModel.set({name: titleCaseModel, ...allPricingModel[model]});
 }

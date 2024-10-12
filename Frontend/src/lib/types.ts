@@ -6,6 +6,7 @@ export interface Notification {
 
 export interface PricingModel {
   name: string;
+  title: string;
   price: number;
   afterDiscount: number;
   description: string;
@@ -13,7 +14,27 @@ export interface PricingModel {
 }
 
 export const allPricingModel = {
-  monthly: {price: 5.99, afterDiscount: 4.99, days: 30, description: 'per month'},
-  annually: {price: 59.99, afterDiscount: 49.99, days: 365, description: 'per year'},
-  lifetime: {price: 249.99, afterDiscount: 199.99, days: Infinity, description: 'forever'},
+  monthly: {
+    title: 'Monthly Subscription',
+    description: 'per month',
+    days: 30,
+    price: 5.99,
+    afterDiscount: 4.99,
+  },
+
+  annually: {
+    title: 'Annual Subscription',
+    description: 'per year',
+    days: 365,
+    price: 59.99,
+    afterDiscount: 49.99,
+  },
+
+  lifetime: {
+    title: 'Lifetime Access',
+    description: 'forever',
+    days: Infinity,
+    price: 249.99,
+    afterDiscount: 199.99,
+  },
 };

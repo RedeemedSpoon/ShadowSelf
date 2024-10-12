@@ -34,7 +34,7 @@
 </section>
 
 <section id="product">
-  <div class="flex flex-col items-start gap-4">
+  <div class="flex flex-col items-start gap-8">
     <h1 class="text-6xl">Reclaim Control of Your Data.</h1>
     <p>
       Unlike profit-hungry conglomerates, we’re a open-source driven project dedicated to fighting back. Our mission is
@@ -51,14 +51,14 @@
 
 <section id="pricing">
   <div id="pricing-model">
-    <button id="monthly" on:click={() => changePricingModel('monthly')}>Monthly</button>
+    <button id="monthly" class="selected" on:click={() => changePricingModel('monthly')}>Monthly</button>
     <button id="annually" on:click={() => changePricingModel('annually')}>Annually</button>
     <button id="lifetime" on:click={() => changePricingModel('lifetime')}>Lifetime</button>
   </div>
   <div id="pricing-card">
-    <h3 class="text-3xl">{$pricingModel.name}</h3>
-    <div class="flex flex-col gap-4 px-16 py-10 text-center">
-      <p class="-mb-6 text-neutral-600 line-through">${$pricingModel.price}</p>
+    <h3>{$pricingModel.title}</h3>
+    <div class="flex flex-col gap-4 px-24 py-10 text-center">
+      <p class="-mb-7 text-neutral-600 line-through">${$pricingModel.price}</p>
       <h1 class="from-primary-600 to-primary-700 text-6xl">${$pricingModel.afterDiscount}</h1>
       <p class="-mt-6 mb-8 text-neutral-400">{$pricingModel.description}</p>
       <p class="text-xl">What will be included :</p>
@@ -79,13 +79,15 @@
           <li>Money-Back Guarantee</li>
         </ul>
       </div>
-      <button>Checkout</button>
+      <a href="/signup">
+        <button id="purchase">Purchase<CheveronImg /></button>
+      </a>
     </div>
   </div>
 </section>
 
 <section id="reflection">
-  <div class="flex flex-col items-start gap-4">
+  <div class="flex flex-col items-start gap-8">
     <h1 class="text-6xl">The simple, secure, and affordable way to do it all.</h1>
     <p>
       While we may not be flawless, we firmly believe that we offer one of the most well-rounded solution for your
@@ -120,22 +122,35 @@
     @apply bg-neutral-950;
   }
 
+  h3 {
+    @apply bg-primary-700 w-full rounded-none rounded-t-xl border-b border-neutral-400 p-8 text-center text-3xl font-bold;
+  }
+
   #product,
   #reflection {
     @apply flex !flex-row gap-36 px-52;
   }
 
-  #pricing-model { }
-
-  .selected { }
-
-  #pricing-card {
-    @apply rounded-2xl border-2 border-neutral-400 shadow-2xl shadow-neutral-950;
-    @apply transition-all duration-500 ease-in-out hover:-translate-y-6;
+  #pricing-model {
+    @apply mb-8 flex gap-0 rounded-xl border-2 border-neutral-300 bg-neutral-300 shadow-xl shadow-neutral-900;
   }
 
-  h3 {
-    @apply bg-primary-700 w-full rounded-t-xl border-b border-neutral-400 p-8 text-center text-3xl font-bold;
+  #pricing-model button.selected {
+    @apply text-primary-700 bg-neutral-300 hover:bg-neutral-300;
+  }
+
+  #pricing-model button {
+    @apply bg-primary-700 hover:bg-primary-800 rounded-none p-4 px-8 py-6 text-2xl font-bold shadow-none;
+    @apply first:rounded-l-xl first:border-r last:rounded-r-xl last:border-l;
+  }
+
+  #pricing-card {
+    @apply rounded-2xl border-2 border-neutral-400 shadow-2xl shadow-neutral-900;
+    @apply hover:shadow-8xl transition-all duration-500 ease-in-out hover:-translate-y-4;
+  }
+
+  #purchase {
+    @apply mb-12 mt-4 flex w-full items-center justify-center gap-4 p-8 text-3xl font-bold;
   }
 
   #waitlist p {
