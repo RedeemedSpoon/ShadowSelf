@@ -51,10 +51,16 @@
 <section id="features"><FeatureGrid /></section>
 
 <section id="pricing">
-  <div id="pricing-model">
-    <button id="monthly" class="selected" on:click={() => changePricingModel('monthly')}>Monthly</button>
-    <button id="annually" on:click={() => changePricingModel('annually')}>Annually</button>
-    <button id="lifetime" on:click={() => changePricingModel('lifetime')}>Lifetime</button>
+  <div class="flex flex-col items-center gap-4">
+    <h1>Select Your Plan</h1>
+    <p class="text-balance text-center">
+      We're not fans of subscriptions either, but someone's gotta pay the bills. Our lifetime plan is a fair deal.
+    </p>
+    <div id="pricing-model">
+      <button id="monthly" class="selected" on:click={() => changePricingModel('monthly')}>Monthly</button>
+      <button id="annually" on:click={() => changePricingModel('annually')}>Annually</button>
+      <button id="lifetime" on:click={() => changePricingModel('lifetime')}>Lifetime</button>
+    </div>
   </div>
   <PricingTable />
 </section>
@@ -96,12 +102,13 @@
   }
 
   #product,
+  #pricing,
   #reflection {
-    @apply flex !flex-row gap-36 px-52;
+    @apply flex !flex-row gap-32 px-36;
   }
 
   #pricing-model {
-    @apply mb-10 flex gap-0 rounded-xl border-2 border-neutral-300 bg-neutral-300 shadow-xl shadow-neutral-900;
+    @apply m-4 mb-12 flex w-fit gap-0 rounded-xl border-2 border-neutral-300 bg-neutral-300 shadow-xl shadow-neutral-900;
   }
 
   #pricing-model button {

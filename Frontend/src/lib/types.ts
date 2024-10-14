@@ -8,9 +8,8 @@ export interface PricingModel {
   name: string;
   title: string;
   price: number;
-  afterDiscount: number;
-  description: string;
   days: number;
+  description: string;
 }
 
 export const allPricingModel = {
@@ -18,23 +17,20 @@ export const allPricingModel = {
     title: 'Monthly Subscription',
     description: 'per month',
     days: 30,
-    price: 5.99,
-    afterDiscount: 4.99,
+    price: 4.99,
   },
 
   annually: {
     title: 'Annual Subscription',
     description: 'per year',
     days: 365,
-    price: 59.99,
-    afterDiscount: 49.99,
+    price: 49.99,
   },
 
   lifetime: {
     title: 'Lifetime Access',
-    description: 'forever',
+    description: 'one time purchase',
     days: Infinity,
-    price: 249.99,
-    afterDiscount: 199.99,
+    price: 199.99,
   },
 };

@@ -1,34 +1,30 @@
 <script lang="ts">
   import {CardBody, CardContainer, CardItem} from '$components';
+  import {dashboard} from '$images';
 
   let isMouseEntered = false;
 </script>
 
 <CardContainer bind:isMouseEntered className="inter-var">
   <CardBody
-    className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border  ">
-    <CardItem {isMouseEntered} translateZ="50" className="text-xl font-bold text-neutral-600 dark:text-white">
-      Make things float in air
+    className="shadow-2xl shadow-primary-900/[0.5] animate-shake relative group/card hover:shadow-8xl hover:shadow-primary-900/[0.3] border-black/[0.1] w-[600px] h-[550px] rounded-xl p-12 border border-neutral-500 bg-[#030923] transition-all duration-500">
+    <CardItem {isMouseEntered} translateZ="70" className="text-xl font-bold text-neutral-200">
+      Make Yourself Invulnerable to the Internet
     </CardItem>
-    <CardItem {isMouseEntered} translateZ="60" className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300">
-      Hover over this card to unleash the power of CSS perspective
+    <CardItem {isMouseEntered} translateZ="80" className="text-neutral-500 text-sm my-3 leading-relaxed">
+      Via our intitive dashboard, you can create your own profile and see your online presence. You can also customize
+      your profile to your preferences (name, location, etc.). With us, you no longer fear mass-surveillance and other
+      potential threats to you.
     </CardItem>
-    <CardItem {isMouseEntered} translateZ="100" className="w-full mt-4">
+    <CardItem {isMouseEntered} translateZ="100" className="w-full mt-8 border border-neutral-600 rounded-lg">
       <img
-        src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        height="1000"
-        width="1000"
+        src={dashboard}
         class="h-60 w-full rounded-xl object-cover group-hover/card:shadow-xl"
-        alt="thumbnail" />
+        alt="Dashboard Simplified" />
     </CardItem>
-    <div class="mt-20 flex items-center justify-between">
-      <CardItem {isMouseEntered} translateZ={20} className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white">
-        Try now →
-      </CardItem>
-      <CardItem
-        {isMouseEntered}
-        translateZ={20}
-        className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold">
+    <div class="mt-10 flex items-center justify-between px-4 text-neutral-200">
+      <CardItem {isMouseEntered} translateZ={50} className="rounded-xl text-sm">Try now →</CardItem>
+      <CardItem {isMouseEntered} translateZ={50} className="px-4 py-2 rounded-md bg-primary-700 text-sm">
         Sign up
       </CardItem>
     </div>

@@ -12,18 +12,18 @@
     const {left, top, width, height} = containerRef.getBoundingClientRect();
     const x = (e.clientX - left - width / 2) / 25;
     const y = (e.clientY - top - height / 2) / 25;
-    containerRef.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+    containerRef.style.transform = `rotateY(${x}deg) rotateX(${y}deg) rotateZ(0deg)`;
   };
 
-  const handleMouseEnter = (e: MouseEvent) => {
+  const handleMouseEnter = (_e: MouseEvent) => {
     isMouseEntered = true;
     if (!containerRef) return;
   };
 
-  const handleMouseLeave = (e: MouseEvent) => {
+  const handleMouseLeave = (_e: MouseEvent) => {
     if (!containerRef) return;
     isMouseEntered = false;
-    containerRef.style.transform = `rotateY(0deg) rotateX(0deg)`;
+    containerRef.style.transform = `rotateY(0deg) rotateX(0deg) rotateZ(0deg)`;
   };
 </script>
 

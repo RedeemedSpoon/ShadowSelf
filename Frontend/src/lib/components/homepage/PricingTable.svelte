@@ -1,18 +1,22 @@
 <script lang="ts">
   import {pricingModel} from '$store';
   import {CheckmarkImg, CheveronImg} from '$components';
+  import {fly} from 'svelte/transition';
 </script>
 
 <div id="pricing-table">
-  <h3>{$pricingModel.title}</h3>
-  <div class="flex flex-col items-center gap-4 px-16 py-6 text-center">
-    <p class="-mb-7 text-neutral-600 line-through">${$pricingModel.price}</p>
-    <h1 class="flex items-start text-6xl">
-      <span class="mt-3 text-4xl">$</span>
-      {$pricingModel.afterDiscount}
-    </h1>
-    <p class="-mt-6 mb-8 text-neutral-400">{$pricingModel.description}</p>
-    <p>What will be included :</p>
+  <div class="flex flex-col items-start gap-8 px-16 py-6 text-center">
+    {#key $pricingModel.price}
+      <div in:fly={{x: -30, duration: 300, opacity: 1}}>
+        <h3 class="mb-4 mt-8 text-left text-4xl font-bold text-neutral-300">{$pricingModel.title}</h3>
+        <div class="flex items-baseline gap-3">
+          <h1 class="flex items-start gap-1 text-6xl">
+            <span class="mt-6 text-4xl">$</span>{$pricingModel.price}
+          </h1>
+          <p class="text-xl text-neutral-400">{$pricingModel.description}</p>
+        </div>
+      </div>
+    {/key}
     <div class="flex gap-8 py-4 text-left text-xl leading-10">
       <ul class="list-inside">
         <li><CheckmarkImg />Custom Identity</li>
@@ -30,30 +34,27 @@
         <li><CheckmarkImg />24/7 Support</li>
       </ul>
     </div>
-    <a href="/signup">
-      <button id="purchase">Purchase<CheveronImg /></button>
-    </a>
-    <p class="text-neutral-500">All major crypto currencies are supported.</p>
+    <p class="-my-4 text-sm text-neutral-500">All major crypto currencies are supported.</p>
   </div>
+  <a href="/signup">
+    <button id="purchase">Purchase<CheveronImg /></button>
+  </a>
 </div>
 
 <style lang="postcss">
-  h3 {
-    @apply from-primary-600 to-primary-700 bg-gradient-to-b shadow-md shadow-neutral-950;
-    @apply w-full rounded-none rounded-t-xl border-b border-neutral-400 p-8 text-center text-3xl font-bold;
-  }
-
-  li {
-    @apply flex items-center gap-4;
-  }
-
   #pricing-table {
-    @apply rounded-2xl border-4 border-neutral-400 shadow-2xl shadow-neutral-900;
-    @apply bg-gradient-to-br from-[#0e1526] to-[#0a0f1b];
-    @apply hover:shadow-8xl transition-all duration-500 ease-in-out hover:-translate-y-4;
+    @apply rounded-2xl border-4 border-neutral-400 duration-500 ease-in-out hover:-translate-y-4;
+    @apply bg-gradient-to-br from-[#0e1526] to-[#0a0f1b] transition-all duration-500;
+    @apply shadow-primary-900/[0.5] hover:shadow-8xl hover:shadow-primary-900/[0.3] shadow-2xl; 
   }
 
   #purchase {
-    @apply my-4 flex w-full items-center justify-center gap-2 p-6 text-3xl font-bold;
+    @apply from-primary-600 to-primary-700 bg-gradient-to-b shadow-sm shadow-neutral-950;
+    @apply w-full rounded-none rounded-b-xl border-t-2 border-neutral-400 text-center text-3xl font-bold;
+    @apply mt-8 flex w-full items-center justify-center gap-2 p-6 text-3xl font-bold;
+  }
+
+  li {
+    @apply flex items-center justify-start gap-4 text-nowrap;
   }
 </style>

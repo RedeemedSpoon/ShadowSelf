@@ -5,11 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.11] - 2024-10-13
+## [0.0.12] - 2024-10-14
 
 ### Added
 
 - Add products section on homepage
+- Add border component
+- Add tab event to scroll
+
+### Changed
+
+- Change pricing section style
+
+## [0.0.11] - 2024-10-13
+
+### Added
+
 - Add feature layout on homepage
 - Add icons on homepage
 

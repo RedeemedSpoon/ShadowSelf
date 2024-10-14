@@ -23,7 +23,7 @@
     },
     {
       title: 'Extensive & Flexible',
-      description: 'We designed our service to adapt to your unique needs and workflows.',
+      description: 'We designed our service to adapt to your unique needs and workflows, ensuring the best experience.',
       image: cog,
       index: 4,
     },
