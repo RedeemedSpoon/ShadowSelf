@@ -5,12 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.11] - 2024-10-13
+
+### Added
+
+- Add products section on homepage
+- Add feature layout on homepage
+- Add icons on homepage
+
+### Changed
+
+- Destructure homepage into some external components
+- Change frontend structure
+
 ## [0.0.10] - 2024-10-11
 
 ### Added
 
 - Add pricing section on homepage
-- Add products section on homepage
 - Add pricing model
 
 ### Changed
@@ -18,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change home section text
 - Change icon images to components
 - Change slogan to another components
+- Made buttons have gradients
 
 ## [0.0.9] - 2024-10-10
 
@@ -48,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Make 404 page
 - Add cheveron icon
-- Add catch section
+- Add slogan section
 - Add circuit board pattern
 
 ### Changed

@@ -9,7 +9,7 @@
 
   button {
     @apply cursor-pointer rounded-md px-4 py-3 text-xl text-neutral-300 transition-all;
-    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-gradient-to-t from-primary-800 to-primary-700;
+    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 from-primary-800 to-primary-700 bg-gradient-to-t;
     @apply shadow-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
   }
 
@@ -55,4 +55,10 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+@property --border-angle {
+  inherits: false;
+  initial-value: 0deg;
+  syntax: '<angle>';
 }

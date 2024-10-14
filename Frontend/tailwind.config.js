@@ -11,9 +11,13 @@ export default {
       backgroundSize: {'size-200': '200% 200%'},
       backgroundPosition: {'pos-0': '0% 0%', 'pos-100': '100% 100%'},
       boxShadow: {'8xl': '0 0 30px 30px rgba(0, 0, 0, 0.20)'},
-      animation: {'shake-up': 'shake-up-bottom 6s ease-in-out infinite'},
+      animation: {
+        border: 'border 4s linear infinite',
+        shake: 'shake-up-bottom 6s ease-in-out infinite',
+      },
       keyframes: {
-        'shake-up-bottom': {
+        border: {to: {'--border-angle': '360deg'}},
+        shake: {
           '0%, 100%': {transform: 'translateY(0)'},
           '50%': {transform: 'translateY(-50px)'},
         },
