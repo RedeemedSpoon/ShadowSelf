@@ -4,6 +4,20 @@
   import type {Notification} from '$types';
   import {satisfaction} from '$images';
   import {enhance} from '$app/forms';
+  import {onMount} from 'svelte';
+
+  onMount(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('!opacity-100', '!translate-y-0');
+        }
+      });
+    });
+
+    document.querySelectorAll('section').forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  });
 
   export let form: Notification;
   $: if (form?.message) notify(form?.message, form?.type);

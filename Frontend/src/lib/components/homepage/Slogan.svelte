@@ -2,18 +2,6 @@
   import {onMount} from 'svelte';
 
   onMount(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('!opacity-100', '!translate-y-0');
-        }
-      });
-    });
-
-    document.querySelectorAll('section').forEach((element) => {
-      observer.observe(element);
-    });
-
     setTimeout(() => {
       const underlineText = document.querySelector('#underline-text');
       underlineText?.classList.add('!max-w-full');
@@ -30,8 +18,6 @@
       highlightedText?.classList.add('!text-neutral-300');
       highlight?.classList.add('!max-w-full');
     }, 2000);
-
-    return () => observer.disconnect();
   });
 </script>
 

@@ -7,7 +7,7 @@
 <div id="pricing-table">
   <div class="flex flex-col items-start gap-8 px-16 py-6 text-center">
     {#key $pricingModel.price}
-      <div in:fly={{x: -30, duration: 300, opacity: 1}}>
+      <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
         <h3 class="mb-4 mt-8 text-left text-4xl font-bold text-neutral-300">{$pricingModel.title}</h3>
         <div class="flex items-baseline gap-3">
           <h1 class="flex items-start gap-1 text-6xl">
