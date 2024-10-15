@@ -1,24 +1,74 @@
-<div
-  class="animate-border w-full max-w-[422px] rounded-2xl border border-transparent [background:linear-gradient(45deg,#172033,theme(colors.slate.800)_50%,#172033)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.slate.600/.48)_80%,_theme(colors.indigo.500)_86%,_theme(colors.indigo.300)_90%,_theme(colors.indigo.500)_94%,_theme(colors.slate.600/.48))_border-box]">
-  <div class="p-5">
-    <div class="flex items-center justify-between">
-      <div>
-        <div class="mb-0.5 flex items-center space-x-2">
-          <div class="mb-1 text-2xl font-bold text-slate-200">17,479</div>
-          <div class="text-xs font-medium text-emerald-500">+48%</div>
-        </div>
-        <div class="text-sm font-medium text-slate-500">Monthly visits</div>
-      </div>
-      <button class="flex h-8 w-8 items-center justify-center text-slate-500 hover:text-slate-400">
-        <span class="sr-only">Open menu</span>
-        <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="16" height="4" fill="none">
-          <path
-            d="M8 4a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM2 4a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM14 4a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
-        </svg>
-      </button>
-    </div>
+<script lang="ts">
+  import {card, wifi, cloud, email, globe, money, phone, server, unknown, identity} from '$images';
+  import {StickyScrollReveal} from '$components';
+
+  const content = [
+    {
+      title: 'Identity Services',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+      images: [unknown, identity],
+    },
+    {
+      title: 'Email Services',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+      images: [email, globe],
+    },
+    {
+      title: 'Phone Services',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+      images: [phone, wifi],
+    },
+    {
+      title: 'Payment Services',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+      images: [money, card],
+    },
+    {
+      title: 'Proxy Services',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+      images: [server, cloud],
+    },
+  ];
+</script>
+
+<StickyScrollReveal {content}>
+  <div id="text" slot="text" let:item class:opacity-30={item.activeCard !== item.index}>
+    <h1 class="text-7xl font-normal">{item.title}</h1>
+    <p>{item.description}</p>
   </div>
-  <div class="px-5">
-    <img src="https://images.unsplash.com/photo-1500917293891-ef795e70e1f6" width="380" height="173" alt="Card" />
+
+  <div id="box" slot="image" let:item >
+    <img src={item.images[0]} alt={item.title} />
+    <img src={item.images[1]} alt={item.title} />
   </div>
-</div>
+</StickyScrollReveal>
+
+<style lang="postcss">
+  #text {
+    @apply flex h-5/6 flex-col justify-center gap-8 text-balance text-2xl leading-relaxed;
+    @apply last:mb-32;
+  }
+
+  #box {
+    @apply animate-border sticky top-32 h-2/3 w-1/3 rounded-2xl border-4 border-transparent p-8;
+    @apply [background:linear-gradient(45deg,#172033,theme(colors.neutral.800)_50%,#172033)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.neutral.600/.48)_80%,_theme(colors.primary.500)_86%,_theme(colors.primary.300)_90%,_theme(colors.primary.500)_94%,_theme(colors.neutral.600/.48))_border-box];
+  }
+
+  #box img {
+    @apply animate-shake relative h-2/5 object-contain transition-all duration-300 ease-in-out;
+    @apply drop-shadow-[5px_15px_20px_rgba(2,6,23,0.75)] hover:drop-shadow-[5px_15px_35px_rgba(2,6,23,1)];
+
+    &:nth-child(1) {
+      @apply left-1/2 top-80 translate-x-[-50%];
+    }
+
+    &:nth-child(2) {
+      @apply bottom-36 translate-x-[50%];
+    }
+  }
+</style>

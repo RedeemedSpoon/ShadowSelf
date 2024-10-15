@@ -2,11 +2,26 @@
   import {BackgroundBeams, CheveronImg, Slogan, Card3D, PricingTable, FeatureGrid, Capabilities} from '$components';
   import {notify, changePricingModel} from '$lib';
   import type {Notification} from '$types';
+  import {scrollY} from '$store';
   import {satisfaction} from '$images';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
+  import {goto} from '$app/navigation';
 
   onMount(() => {
+    const sectionsIds: string[] = [];
+    const sections = document.querySelectorAll('section');
+    sections.forEach((section) => sectionsIds.push(section.id));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        let currentSection = Math.ceil(($scrollY + 10) / window.innerHeight);
+        currentSection = e.shiftKey ? currentSection - 2 : currentSection;
+        goto(`#${sectionsIds[currentSection]}`);
+      }
+    });
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -15,7 +30,7 @@
       });
     });
 
-    document.querySelectorAll('section').forEach((element) => observer.observe(element));
+    sections.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
   });
 
@@ -33,9 +48,9 @@
 <section id="slogan">
   <Slogan />
   <p class="my-6 w-1/2 text-balance text-center">
-    Experience the freedom of online interactions without the fear of compromise. Our platform provides the tools to
-    craft synthetic identities, shielding your personal information from malicious threats. Step into a realm where your
-    digital profile is cloaked in security with ShadowSelf.
+    Step into the shadows. Emerge as someone new. Our platform lets you create synthetic personas, ensuring your
+    personal information remains hidden, far away from malicious threats. Experience the freedom of online interactions
+    without the fear of compromise.
   </p>
   <div class="flex gap-8">
     <a href="#product" class="no-underline">

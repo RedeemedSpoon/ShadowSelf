@@ -45,7 +45,7 @@
   #pricing-table {
     @apply rounded-2xl border-4 border-neutral-400 duration-500 ease-in-out hover:-translate-y-4;
     @apply bg-gradient-to-br from-[#0e1526] to-[#0a0f1b] transition-all duration-500;
-    @apply shadow-primary-900/[0.5] hover:shadow-8xl hover:shadow-primary-900/[0.3] shadow-2xl; 
+    @apply shadow-primary-900/[0.5] hover:shadow-8xl hover:shadow-primary-900/[0.3] shadow-2xl;
   }
 
   #purchase {
