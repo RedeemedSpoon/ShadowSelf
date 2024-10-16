@@ -26,12 +26,12 @@ export {default as terminal} from './homepage/features/terminal.svg';
 export {default as openSource} from './homepage/features/open-source.svg';
 
 export {default as card} from './homepage/cards/card.png';
-export {default as wifi} from './homepage/cards/wifi.png';
 export {default as cloud} from './homepage/cards/cloud.png';
 export {default as email} from './homepage/cards/email.png';
 export {default as globe} from './homepage/cards/globe.png';
 export {default as money} from './homepage/cards/money.png';
-export {default as phone} from './homepage/cards/phone.png';
+export {default as tower} from './homepage/cards/tower.png';
+export {default as router} from './homepage/cards/router.png';
 export {default as server} from './homepage/cards/server.png';
-export {default as unknown} from './homepage/cards/unknown.png';
+export {default as message} from './homepage/cards/message.png';
 export {default as identity} from './homepage/cards/identity.png';

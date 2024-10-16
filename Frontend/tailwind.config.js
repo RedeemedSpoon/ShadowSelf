@@ -12,11 +12,11 @@ export default {
       backgroundPosition: {'pos-0': '0% 0%', 'pos-100': '100% 100%'},
       boxShadow: {'8xl': '0 0 30px 30px rgba(0, 0, 0, 0.20)'},
       animation: {
-        border: 'border 4s linear infinite',
+        border: 'border 7s linear infinite',
         shake: 'shake 6s ease-in-out infinite',
       },
       keyframes: {
-        border: {to: {'--border-angle': '360deg'}},
+        border: {'100%': {transform: 'rotate(-360deg)'}},
         shake: {
           '0%, 100%': {transform: 'translateY(0)'},
           '50%': {transform: 'translateY(-50px)'},

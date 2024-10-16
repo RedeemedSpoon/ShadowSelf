@@ -40,25 +40,22 @@
   textarea {
     @apply rounded-xl border p-4 !outline-none placeholder:text-neutral-700;
   }
-
-  svg#small-icon {
-    @apply h-8 w-8 fill-current outline-none transition-all duration-500;
-  }
 }
 
-@layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+.card {
+  @apply rounded-2xl bg-gradient-to-br from-[#0d1526] to-[#0a0f1c] transition-all duration-500 ease-in-out;
+  @apply shadow-primary-900/[0.5] hover:shadow-8xl hover:shadow-primary-900/[0.3] shadow-2xl;
 }
 
-@property --border-angle {
-  inherits: false;
-  initial-value: 0deg;
-  syntax: '<angle>';
+.small-icon {
+  @apply h-8 w-8 fill-current outline-none transition-all duration-500;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

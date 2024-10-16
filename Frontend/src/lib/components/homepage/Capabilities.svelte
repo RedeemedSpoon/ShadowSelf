@@ -1,25 +1,26 @@
 <script lang="ts">
-  import {card, wifi, cloud, email, globe, money, phone, server, unknown, identity} from '$images';
+  import {card, tower, cloud, email, globe, money, message, server, router, identity} from '$images';
   import {StickyScrollReveal} from '$components';
+  import {blur} from 'svelte/transition';
 
   const content = [
     {
       title: 'Identity Services',
       description:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
-      images: [unknown, identity],
-    },
-    {
-      title: 'Email Services',
-      description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
-      images: [email, globe],
+      images: [identity, globe],
     },
     {
       title: 'Phone Services',
       description:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
-      images: [phone, wifi],
+      images: [message, tower],
+    },
+    {
+      title: 'Email Services',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+      images: [email, router],
     },
     {
       title: 'Payment Services',
@@ -42,7 +43,7 @@
     <p>{item.description}</p>
   </div>
 
-  <div id="box" slot="image" let:item >
+  <div id="box" slot="image" let:item in:blur={{opacity: 1, amount: 5, duration: 500}}>
     <img src={item.images[0]} alt={item.title} />
     <img src={item.images[1]} alt={item.title} />
   </div>
@@ -50,25 +51,23 @@
 
 <style lang="postcss">
   #text {
-    @apply flex h-5/6 flex-col justify-center gap-8 text-balance text-2xl leading-relaxed;
-    @apply last:mb-32;
+    @apply flex h-full snap-center flex-col justify-center gap-4 text-balance text-2xl leading-relaxed;
   }
 
   #box {
-    @apply animate-border sticky top-32 h-2/3 w-1/3 rounded-2xl border-4 border-transparent p-8;
-    @apply [background:linear-gradient(45deg,#172033,theme(colors.neutral.800)_50%,#172033)_padding-box,conic-gradient(from_var(--border-angle),theme(colors.neutral.600/.48)_80%,_theme(colors.primary.500)_86%,_theme(colors.primary.300)_90%,_theme(colors.primary.500)_94%,_theme(colors.neutral.600/.48))_border-box];
+    @apply card sticky h-full w-full rounded-2xl p-12;
   }
 
   #box img {
-    @apply animate-shake relative h-2/5 object-contain transition-all duration-300 ease-in-out;
-    @apply drop-shadow-[5px_15px_20px_rgba(2,6,23,0.75)] hover:drop-shadow-[5px_15px_35px_rgba(2,6,23,1)];
+    @apply animate-shake absolute h-1/3 object-contain transition-all duration-300 ease-in-out;
+    @apply drop-shadow-[5px_5px_15px_rgba(148,163,184,0.20)] hover:drop-shadow-[10px_15px_25px_rgba(148,163,184,0.25)];
 
     &:nth-child(1) {
-      @apply left-1/2 top-80 translate-x-[-50%];
+      @apply bottom-12 right-20;
     }
 
     &:nth-child(2) {
-      @apply bottom-36 translate-x-[50%];
+      @apply left-16 top-24;
     }
   }
 </style>

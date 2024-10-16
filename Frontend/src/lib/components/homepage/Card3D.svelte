@@ -6,8 +6,7 @@
 </script>
 
 <CardContainer bind:isMouseEntered className="inter-var">
-  <CardBody
-    className="shadow-2xl shadow-primary-900/[0.5] animate-shake relative group/card hover:shadow-8xl hover:shadow-primary-900/[0.3] border-black/[0.1] w-[600px] h-[550px] rounded-xl p-12 border border-neutral-500 bg-[#030923] transition-all duration-500">
+  <CardBody className="animate-shake relative group/card w-[600px] h-[550px] p-12 border border-neutral-500 card">
     <CardItem {isMouseEntered} translateZ="70" className="text-xl font-bold text-neutral-200">
       Make Yourself Invulnerable to the Internet
     </CardItem>

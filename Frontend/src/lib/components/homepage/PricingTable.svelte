@@ -43,13 +43,11 @@
 
 <style lang="postcss">
   #pricing-table {
-    @apply rounded-2xl border-4 border-neutral-400 duration-500 ease-in-out hover:-translate-y-4;
-    @apply bg-gradient-to-br from-[#0e1526] to-[#0a0f1b] transition-all duration-500;
-    @apply shadow-primary-900/[0.5] hover:shadow-8xl hover:shadow-primary-900/[0.3] shadow-2xl;
+    @apply card border-4 border-neutral-400 hover:-translate-y-4;
   }
 
   #purchase {
-    @apply from-primary-600 to-primary-700 bg-gradient-to-b shadow-sm shadow-neutral-950;
+    @apply from-primary-700 to-primary-800 bg-gradient-to-b shadow-sm shadow-neutral-950;
     @apply w-full rounded-none rounded-b-xl border-t-2 border-neutral-400 text-center text-3xl font-bold;
     @apply mt-8 flex w-full items-center justify-center gap-2 p-6 text-3xl font-bold;
   }

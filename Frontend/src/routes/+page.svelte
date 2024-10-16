@@ -2,11 +2,11 @@
   import {BackgroundBeams, CheveronImg, Slogan, Card3D, PricingTable, FeatureGrid, Capabilities} from '$components';
   import {notify, changePricingModel} from '$lib';
   import type {Notification} from '$types';
-  import {scrollY} from '$store';
   import {satisfaction} from '$images';
-  import {enhance} from '$app/forms';
-  import {onMount} from 'svelte';
   import {goto} from '$app/navigation';
+  import {enhance} from '$app/forms';
+  import {scrollY} from '$store';
+  import {onMount} from 'svelte';
 
   onMount(() => {
     const sectionsIds: string[] = [];
@@ -150,10 +150,10 @@
   }
 
   #waitlist p {
-    @apply z-10 w-1/3 hyphens-none text-balance text-center text-lg text-neutral-400;
+    @apply z-10 w-1/3 hyphens-none text-balance text-center text-xl leading-relaxed text-neutral-400;
   }
 
   input {
-    @apply border-primary-800 focus:ring-primary-600 z-10 w-full bg-neutral-950 focus:ring-2;
+    @apply border-primary-800 focus:ring-primary-600 z-10 w-full bg-[#0a0f1c] focus:ring-2;
   }
 </style>
