@@ -141,7 +141,7 @@
   }
 
   #pricing-model button {
-    @apply rounded-none px-8 py-6 text-2xl font-bold text-neutral-300 shadow-none;
+    @apply rounded-none px-8 py-6 text-2xl font-bold text-neutral-300 shadow-xl;
     @apply first:rounded-l-xl first:border-r last:rounded-r-xl last:border-l;
   }
 

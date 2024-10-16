@@ -5,33 +5,33 @@
 
   const content = [
     {
-      title: 'Identity Services',
+      title: 'Fake a Person',
       description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+        'Easily generate and manage anonymous profiles to shield your personal information online. Use these profiles to sign up for accounts, authenticate services, and maintain privacy. Customize profiles with names, bios, photos, and more, and link them to online account to make it less burdensome.',
       images: [identity, globe],
     },
     {
       title: 'Phone Services',
       description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+        'Generate a functional permanent phone number to use for your profile. Receive and send text messages (SMS) without revealing your personal number. Protect your privacy and avoid unwanted calls or spam. Please note that you cannot make phone calls with a virtual number.',
       images: [message, tower],
     },
     {
       title: 'Email Services',
       description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+        'Generate a private permanent email address and use it for all types of your online activities, including sending, receiving, and registering for accounts. Keep yourself from unwanted emails, spams and phishing attempts.',
       images: [email, router],
     },
     {
       title: 'Payment Services',
       description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+        'Securely manage your finances with anonymous virtual cards and crypto wallets. Enjoy the convenience and privacy of these digital tools. Make online payments, store cryptocurrency, and preserve your very sentitive banking details.',
       images: [money, card],
     },
     {
-      title: 'Proxy Services',
+      title: 'VPN Services',
       description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec nibh et massa aliquam pharetra sit amet sit amet ante. Sed arcu sapien, convallis a dui eget, porta lacinia purus. Cras euismod nunc ut enim hendrerit varius. Quisque ac malesuada ligula. Morbi lorem nibh, vehicula nec elit et, mattis blandit massa. Vivamus aliquet magna et metus auctor mollis.',
+        'No solution would be complete without robust privacy measures. Indeed, you can safeguard your online activities with our VPN/proxy services. Generate a unique IP address to mask your location and route your traffic through our secure servers. Enjoy enhanced privacy, bypass censorship, and access geo-restricted content.',
       images: [server, cloud],
     },
   ];

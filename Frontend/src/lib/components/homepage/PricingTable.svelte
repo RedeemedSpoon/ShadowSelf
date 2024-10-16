@@ -1,14 +1,20 @@
 <script lang="ts">
+  import {CheckmarkImg, CheveronImg, QuestionImg} from '$components';
   import {pricingModel} from '$store';
-  import {CheckmarkImg, CheveronImg} from '$components';
   import {fly} from 'svelte/transition';
+
+  const title = [
+    'You can manage your identities and online account linked to it such as passwords and credentials',
+    'You get a 14-day money-back guarantee, during which you can request a refund.',
+    'You can email us at anytime and we will assist you with any questions or issues you may have.',
+  ];
 </script>
 
 <div id="pricing-table">
   <div class="flex flex-col items-start gap-8 px-16 py-6 text-center">
     {#key $pricingModel.price}
       <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
-        <h3 class="mb-4 mt-8 text-left text-4xl font-bold text-neutral-300">{$pricingModel.title}</h3>
+        <h3 class="mb-4 mt-9 text-left text-4xl font-bold text-neutral-300">{$pricingModel.title}</h3>
         <div class="flex items-baseline gap-3">
           <h1 class="flex items-start gap-1 text-6xl">
             <span class="mt-6 text-4xl">$</span>{$pricingModel.price}
@@ -17,7 +23,7 @@
         </div>
       </div>
     {/key}
-    <div class="flex gap-8 py-4 text-left text-xl leading-10">
+    <div class="flex gap-8 py-6 text-left text-xl leading-10">
       <ul class="list-inside">
         <li><CheckmarkImg />Custom Identity</li>
         <li><CheckmarkImg />Email Address</li>
@@ -29,15 +35,15 @@
         <li><CheckmarkImg />VPN Access</li>
       </ul>
       <ul class="list-inside">
-        <li><CheckmarkImg />Account Management</li>
-        <li><CheckmarkImg />Money-Back Guarantee</li>
-        <li><CheckmarkImg />24/7 Support</li>
+        <li><CheckmarkImg />Account Management<span title={title[0]}><QuestionImg /></span></li>
+        <li><CheckmarkImg />Money-Back Guarantee<span title={title[1]}><QuestionImg /></span></li>
+        <li><CheckmarkImg />24/7 Support<span title={title[2]}><QuestionImg /></span></li>
       </ul>
     </div>
     <p class="-my-4 text-sm text-neutral-500">All major crypto currencies are supported.</p>
   </div>
   <a href="/signup">
-    <button id="purchase">Purchase<CheveronImg /></button>
+    <button id="purchase">Purchase<CheveronImg className="!w-10 !h-10" /></button>
   </a>
 </div>
 
@@ -49,10 +55,14 @@
   #purchase {
     @apply from-primary-700 to-primary-800 bg-gradient-to-b shadow-sm shadow-neutral-950;
     @apply w-full rounded-none rounded-b-xl border-t-2 border-neutral-400 text-center text-3xl font-bold;
-    @apply mt-8 flex w-full items-center justify-center gap-2 p-6 text-3xl font-bold;
+    @apply mt-8 flex w-full items-center justify-center gap-1 p-8 text-4xl font-bold;
   }
 
   li {
     @apply flex items-center justify-start gap-4 text-nowrap;
+  }
+
+  span {
+    @apply cursor-pointer;
   }
 </style>
