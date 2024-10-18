@@ -14,6 +14,7 @@ export {default as circuitPattern} from './404/circuit-pattern.svg';
 export {default as itCrowdGif} from './404/IT-Crowd.gif';
 
 export {default as satisfaction} from './homepage/satisfaction.png';
+export {default as background} from './homepage/background.png';
 export {default as dashboard} from './homepage/dashboard.png';
 
 export {default as cog} from './homepage/features/cog.svg';

@@ -14,12 +14,17 @@ export default {
       animation: {
         border: 'border 7s linear infinite',
         shake: 'shake 6s ease-in-out infinite',
+        scroll: 'scroll 180s linear infinite',
       },
       keyframes: {
         border: {'100%': {transform: 'rotate(-360deg)'}},
         shake: {
           '0%, 100%': {transform: 'translateY(0)'},
           '50%': {transform: 'translateY(-50px)'},
+        },
+        scroll: {
+          '0%': {'background-position-x': '0'},
+          '100%': {'background-position-x': '10000px'},
         },
       },
       colors: {

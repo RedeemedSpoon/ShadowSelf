@@ -72,11 +72,11 @@
 
   #cell {
     @apply flex flex-col items-baseline justify-center gap-4 border-l border-neutral-700 p-8 transition-all duration-500 ease-in-out;
-    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-gradient-to-t from-neutral-900 to-neutral-950;
+    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-gradient-to-t from-neutral-800 to-neutral-900;
   }
 
   #cell.bottom-cells {
     @apply border-t border-neutral-700;
-    @apply bg-size-200 bg-pos-100 hover:bg-pos-0 bg-gradient-to-b from-neutral-900 to-neutral-950;
+    @apply bg-size-200 bg-pos-100 hover:bg-pos-0 bg-gradient-to-b from-neutral-800 to-neutral-900;
   }
 </style>

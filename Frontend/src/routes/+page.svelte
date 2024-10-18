@@ -1,8 +1,8 @@
 <script lang="ts">
   import {BackgroundBeams, CheveronImg, Slogan, Card3D, PricingTable, FeatureGrid, Capabilities} from '$components';
+  import {satisfaction, background} from '$images';
   import {notify, changePricingModel} from '$lib';
   import type {Notification} from '$types';
-  import {satisfaction} from '$images';
   import {goto} from '$app/navigation';
   import {enhance} from '$app/forms';
   import {scrollY} from '$store';
@@ -45,7 +45,7 @@
     content="ShadowSelf is a platform that safeguard you and your sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your actual identity from being at risk of misuse, breach, theft, or fraud." />
 </svelte:head>
 
-<section id="slogan">
+<section id="slogan" style="background-image: url({background});">
   <Slogan />
   <p class="my-6 w-1/2 text-balance text-center">
     Step into the shadows. Emerge as someone new. Our platform lets you create synthetic personas, ensuring your
@@ -126,14 +126,14 @@
     @apply relative flex h-screen flex-col items-center justify-center gap-6;
   }
 
-  section:nth-child(even) {
-    @apply bg-neutral-950;
-  }
-
   #product,
   #pricing,
   #reflection {
     @apply flex !flex-row gap-32 px-36;
+  }
+
+  #slogan {
+    @apply animate-scroll bg-cover bg-center bg-repeat-x;
   }
 
   #pricing-model {
