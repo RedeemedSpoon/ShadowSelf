@@ -3,14 +3,11 @@ import type {Notification} from '$types';
 import {allPricingModel} from '$types';
 import {get} from 'svelte/store';
 
-export function changePricingModel(model: keyof typeof allPricingModel) {
-  document.querySelectorAll('#pricing-model button').forEach((element) => {
-    element.classList.remove('selected');
-  });
-
-  document.querySelector(`#${model}`)?.classList.add('selected');
-  const titleCaseModel = model.charAt(0).toUpperCase() + model.slice(1);
-  pricingModel.set({name: titleCaseModel, ...allPricingModel[model]});
+export function changePricingModel(model: string) {
+  // @ts-expect-error ts(2322): Some svelte bug prevent type assertion smh
+  pricingModel.set({name: model, ...allPricingModel[model.toLowerCase()]});
+  const margin = model === 'Monthly' ? '0%' : model === 'Annually' ? '33%' : '66%';
+  document.querySelector('#select-model-box').style.left = margin;
 }
 
 export function notify(message: Notification['message'], type: Notification['type'] = 'info') {

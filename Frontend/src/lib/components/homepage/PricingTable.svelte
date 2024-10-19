@@ -17,9 +17,12 @@
     We're not fans of subscriptions either, but someone's gotta pay the bills. Our lifetime plan is a fair deal.
   </p>
   <div id="pricing-model">
-    <button id="monthly" class="selected" on:click={() => changePricingModel('monthly')}>Monthly</button>
-    <button id="annually" on:click={() => changePricingModel('annually')}>Annually</button>
-    <button id="lifetime" on:click={() => changePricingModel('lifetime')}>Lifetime</button>
+    <div id="select-model-box"></div>
+    {#each ['Monthly', 'Annually', 'Lifetime'] as model}
+      <button class:!text-neutral-300={model === $pricingModel.name} on:click={() => changePricingModel(model)}>
+        {model}
+      </button>
+    {/each}
   </div>
 </div>
 <div id="pricing-table">
@@ -71,16 +74,15 @@
   }
 
   #pricing-model {
-    @apply m-4 mb-12 flex w-fit gap-0 rounded-xl border-2 border-neutral-300 bg-neutral-300 shadow-xl shadow-neutral-900;
+    @apply relative m-4 flex rounded-full border-2 border-neutral-300 bg-neutral-950/50 shadow-xl shadow-neutral-900;
   }
 
   #pricing-model button {
-    @apply rounded-none px-8 py-6 text-2xl font-bold text-neutral-300 shadow-xl;
-    @apply first:rounded-l-xl first:border-r last:rounded-r-xl last:border-l;
+    @apply bg-none px-10 py-6 text-2xl font-medium text-neutral-500 shadow-xl hover:text-neutral-600;
   }
 
-  #pricing-model button.selected {
-    @apply text-primary-700 from-neutral-300 to-[#b3bdcc];
+  #select-model-box {
+    @apply absolute left-0 -z-10 h-full w-1/3 rounded-full bg-neutral-300 bg-opacity-25 transition-all duration-300 ease-in-out;
   }
 
   li {
