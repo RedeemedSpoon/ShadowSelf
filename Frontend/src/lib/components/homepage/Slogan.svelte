@@ -29,8 +29,8 @@
 <div class="flex">
   <h1 class="mr-6 text-9xl">Our</h1>
   <h1 id="highlighted-text">Priority</h1>
+  <h1 class="ml-2 text-9xl">.</h1>
   <div id="highlight"></div>
-  <h1 class="text-9xl">.</h1>
 </div>
 
 <style lang="postcss">
@@ -44,5 +44,8 @@
 
   #highlighted-text {
     @apply px-2 text-9xl transition-all duration-1000 ease-in-out;
+  }
+  h1 {
+    @apply font-semibold;
   }
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import {CheckmarkImg, CheveronImg, QuestionImg} from '$components';
+  import {changePricingModel} from '$lib';
   import {pricingModel} from '$store';
   import {fly} from 'svelte/transition';
 
@@ -10,6 +11,17 @@
   ];
 </script>
 
+<div class="flex flex-col items-center gap-4">
+  <h1>Select Your Plan</h1>
+  <p class="text-balance text-center">
+    We're not fans of subscriptions either, but someone's gotta pay the bills. Our lifetime plan is a fair deal.
+  </p>
+  <div id="pricing-model">
+    <button id="monthly" class="selected" on:click={() => changePricingModel('monthly')}>Monthly</button>
+    <button id="annually" on:click={() => changePricingModel('annually')}>Annually</button>
+    <button id="lifetime" on:click={() => changePricingModel('lifetime')}>Lifetime</button>
+  </div>
+</div>
 <div id="pricing-table">
   <div class="flex flex-col items-start gap-8 px-16 py-6 text-center">
     {#key $pricingModel.price}
@@ -56,6 +68,19 @@
     @apply from-primary-700 to-primary-800 bg-gradient-to-b shadow-sm shadow-neutral-950;
     @apply w-full rounded-none rounded-b-xl border-t-2 border-neutral-400 text-center text-3xl font-bold;
     @apply mt-8 flex w-full items-center justify-center gap-1 p-8 text-4xl font-bold;
+  }
+
+  #pricing-model {
+    @apply m-4 mb-12 flex w-fit gap-0 rounded-xl border-2 border-neutral-300 bg-neutral-300 shadow-xl shadow-neutral-900;
+  }
+
+  #pricing-model button {
+    @apply rounded-none px-8 py-6 text-2xl font-bold text-neutral-300 shadow-xl;
+    @apply first:rounded-l-xl first:border-r last:rounded-r-xl last:border-l;
+  }
+
+  #pricing-model button.selected {
+    @apply text-primary-700 from-neutral-300 to-[#b3bdcc];
   }
 
   li {
