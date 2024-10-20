@@ -11,22 +11,23 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "devDependencies": {
-    "@sveltejs/adapter-auto": "^3.0.0",
-    "@sveltejs/kit": "^2.0.0",
-    "@sveltejs/vite-plugin-svelte": "^3.0.0",
+    "@sveltejs/adapter-auto": "^3.2.5",
+    "@sveltejs/kit": "^2.7.2",
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@tailwindcss/aspect-ratio": "^0.4.2",
+    "mini-svg-data-uri": "^1.4.4",
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",
-    "globals": "^15.0.0",
+    "globals": "^15.11.0",
     "postcss": "^8.4.47",
-    "svelte": "^4.2.7",
+    "svelte": "^4.2.19",
     "svelte-adapter-bun": "^0.5.2",
-    "svelte-check": "^4.0.0",
+    "svelte-check": "^4.0.5",
     "svelte-motion": "^0.12.2",
-    "tailwind-merge": "^2.5.3",
-    "tailwindcss": "^3.4.13",
-    "typescript": "^5.0.0",
-    "vite": "^5.0.3"
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.9"
   },
   "type": "module"
 }

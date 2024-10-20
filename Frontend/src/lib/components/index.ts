@@ -14,6 +14,7 @@ export {default as QuestionImg} from './icons/Question.svelte';
 export {default as CheckmarkImg} from './icons/checkmark.svelte';
 
 export {default as StickyScrollReveal} from './aceternity/StickyScrollReveal.svelte';
+export {default as GridAndDotBackgrounds} from './aceternity/GridAndDotBackgrounds.svelte';
 export {default as CardContainer} from './aceternity/CardContainer.svelte';
 export {default as BGBeams} from './aceternity/BackgroundBeams.svelte';
 export {default as CardBody} from './aceternity/CardBody.svelte';
