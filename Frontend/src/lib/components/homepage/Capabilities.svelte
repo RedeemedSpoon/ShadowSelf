@@ -63,8 +63,7 @@
   }
 
   #box img {
-    @apply animate-shake absolute h-1/3 object-contain transition-all duration-300 ease-in-out;
-    @apply drop-shadow-[5px_5px_15px_rgba(148,163,184,0.20)] hover:drop-shadow-[10px_15px_25px_rgba(148,163,184,0.25)];
+    @apply animate-shake image-shadow absolute h-1/3 object-contain transition-all duration-300 ease-in-out;
 
     &:nth-child(1) {
       @apply bottom-12 right-20;

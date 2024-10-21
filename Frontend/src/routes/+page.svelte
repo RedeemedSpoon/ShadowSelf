@@ -1,5 +1,6 @@
 <script lang="ts">
-  import {BGBeams, CheveronImg, Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Capabilities} from '$components';
+  import {GridAndDotBackgrounds, Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Capabilities} from '$components';
+  import {CheveronImg, BackgroundBeams} from '$components';
   import {satisfaction, background} from '$images';
   import type {Notification} from '$types';
   import {goto} from '$app/navigation';
@@ -74,6 +75,7 @@
   </div>
 </section>
 <section id="capabilities"><Capabilities /></section>
+<section id="benefits"><GridAndDotBackgrounds></GridAndDotBackgrounds></section>
 <section id="features"><FeatureGrid /></section>
 <section id="pricing"><PricingTable /></section>
 <section id="reflection">
@@ -85,7 +87,7 @@
       without compromising your privacy (and wallet), just like a Swiss Army knife!
     </p>
   </div>
-  <img class="animate-shake w-full min-w-[30vw]" src={satisfaction} alt="Customer satisfaction" />
+  <img class="animate-shake w-full min-w-[30vw] image-shadow" src={satisfaction} alt="Customer satisfaction" />
 </section>
 <section id="waitlist" class="border-t-4 border-[#131b2d]">
   <h1>Join The Waitlist</h1>
@@ -97,7 +99,7 @@
   <form use:enhance method="post" class="z-10 mt-4 flex w-1/3">
     <input name="email" type="email" placeholder="Enter your email" />
   </form>
-  <BGBeams />
+  <BackgroundBeams />
 </section>
 
 <style lang="postcss">

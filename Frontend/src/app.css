@@ -52,6 +52,10 @@
     @apply h-8 w-8 fill-current outline-none transition-all duration-500;
   }
 
+  .image-shadow {
+    @apply drop-shadow-[5px_5px_15px_rgba(148,163,184,0.10)] hover:drop-shadow-[10px_15px_25px_rgba(148,163,184,0.15)];
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

@@ -15,8 +15,9 @@ export {default as CheckmarkImg} from './icons/checkmark.svelte';
 
 export {default as GridAndDotBackgrounds} from './aceternity/GridAndDotBackgrounds.svelte';
 export {default as StickyScrollReveal} from './aceternity/StickyScrollReveal.svelte';
-export {default as CardContainer} from './aceternity/CardContainer.svelte';
+export {default as BackgroundBeams} from './aceternity/BackgroundBeams.svelte';
 export {default as TracingBeam} from './aceternity/TracingBeam.svelte';
-export {default as BGBeams} from './aceternity/BackgroundBeams.svelte';
+
+export {default as CardContainer} from './aceternity/CardContainer.svelte';
 export {default as CardBody} from './aceternity/CardBody.svelte';
 export {default as CardItem} from './aceternity/CardItem.svelte';

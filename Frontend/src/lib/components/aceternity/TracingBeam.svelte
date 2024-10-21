@@ -5,17 +5,15 @@
   import {onMount} from 'svelte';
 
   let svgHeight = 0;
-  let velo = 0.5;
   let y1 = tweened(50, {duration: 500, easing: cubicOut});
   let y2 = tweened(50, {duration: 500, easing: cubicOut});
 
   $: {
-    velo = $scrollYProgress - velo;
-    y1.set($scrollYProgress * (svgHeight - velo * 500));
-    y2.set($scrollYProgress * (svgHeight - velo * 2000));
+    y1.set($scrollYProgress * 900);
+    y2.set($scrollYProgress * 500);
   }
 
-  onMount(() => (svgHeight = window?.innerHeight * 0.75));
+  onMount(() => (svgHeight = window?.innerHeight * 0.65));
 </script>
 
 <div class="flex h-full w-full justify-center">
