@@ -1,8 +1,8 @@
 <script lang="ts">
   import {onMount} from 'svelte';
+  import {scrollYProgress} from '$store';
 
   let activeCard = 0;
-  let scrollYProgress = 0;
   let ref: HTMLDivElement;
 
   export let content: {title: string; description: string; images: string[]}[];
@@ -12,9 +12,9 @@
   onMount(() => {
     const handleScroll = (e: Event) => {
       const target = e.target as HTMLDivElement;
-      scrollYProgress = target.scrollTop / target.scrollHeight;
+      $scrollYProgress = target.scrollTop / target.scrollHeight;
       cardsBreakpoints.forEach((breakpoint, index) => {
-        if (scrollYProgress + 0.1 > breakpoint && scrollYProgress <= breakpoint) {
+        if ($scrollYProgress + 0.1 > breakpoint && $scrollYProgress <= breakpoint) {
           activeCard = index;
         }
       });

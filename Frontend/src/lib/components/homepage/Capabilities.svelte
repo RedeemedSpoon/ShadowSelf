@@ -1,6 +1,6 @@
 <script lang="ts">
   import {card, tower, cloud, email, globe, money, message, server, router, identity, hideout} from '$images';
-  import {StickyScrollReveal} from '$components';
+  import {StickyScrollReveal, TracingBeam} from '$components';
   import {blur} from 'svelte/transition';
 
   const content = [
@@ -37,19 +37,21 @@
   ];
 </script>
 
-<StickyScrollReveal {content}>
-  <div id="text" slot="text" let:item class:opacity-30={item.activeCard !== item.index}>
-    <h1 class="text-7xl font-normal">{item.title}</h1>
-    <p>{item.description}</p>
-  </div>
-
-  <div id="box" slot="image" let:item in:blur={{opacity: 1, amount: 5, duration: 500}}>
-    <div style='background-image : url({hideout})' class='bg-repeat w-full h-full rounded-2xl'>
-      <img src={item.images[0]} alt={item.title} />
-      <img src={item.images[1]} alt={item.title} />
+<TracingBeam>
+  <StickyScrollReveal {content}>
+    <div id="text" slot="text" let:item class:opacity-30={item.activeCard !== item.index}>
+      <h1 class="text-7xl font-normal">{item.title}</h1>
+      <p>{item.description}</p>
     </div>
-  </div>
-</StickyScrollReveal>
+
+    <div id="box" slot="image" let:item in:blur={{opacity: 1, amount: 5, duration: 500}}>
+      <div style="background-image : url({hideout})" class="h-full w-full rounded-2xl bg-repeat">
+        <img src={item.images[0]} alt={item.title} />
+        <img src={item.images[1]} alt={item.title} />
+      </div>
+    </div>
+  </StickyScrollReveal>
+</TracingBeam>
 
 <style lang="postcss">
   #text {
@@ -57,7 +59,7 @@
   }
 
   #box {
-    @apply card sticky h-full w-full rounded-2xl;
+    @apply card relative h-full w-full rounded-2xl;
   }
 
   #box img {
