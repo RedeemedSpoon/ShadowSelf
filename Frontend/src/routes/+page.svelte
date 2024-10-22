@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {GridAndDotBackgrounds, Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Capabilities} from '$components';
-  import {CheveronImg, BackgroundBeams} from '$components';
-  import {satisfaction, background} from '$images';
+  import {Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Capabilities} from '$components';
+  import {CheveronImg, BackgroundBeams, GridAndDotBackgrounds} from '$components';
+  import {satisfaction, background, registration, management} from '$images';
   import type {Notification} from '$types';
   import {goto} from '$app/navigation';
   import {enhance} from '$app/forms';
@@ -49,7 +49,7 @@
 <section id="slogan" style="background-image: url({background});">
   <Slogan />
   <p class="my-6 w-1/2 text-balance text-center">
-    Step into the shadows. Emerge as someone new. Our platform lets you create synthetic personas, ensuring your
+    Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your
     personal information remains hidden, far away from malicious threats. Experience the freedom of online interactions
     without the fear of compromise.
   </p>
@@ -75,7 +75,29 @@
   </div>
 </section>
 <section id="capabilities"><Capabilities /></section>
-<section id="benefits"><GridAndDotBackgrounds></GridAndDotBackgrounds></section>
+<section id="benefits">
+  <GridAndDotBackgrounds>
+    <h1 class="mt-32 text-6xl">Less Burdens, Less Expenses.</h1>
+    <div class="mt-10 flex w-full items-center justify-center gap-32 text-balance text-center">
+      <div class="flex w-[30rem] flex-col items-center gap-8">
+        <img src={registration} width="200" alt="Account Registration" />
+        <h3>Account Registration</h3>
+        <p>
+          Use our service to create untrackable accounts and register for services while still concealing your actual
+          identity from being at risk.
+        </p>
+      </div>
+      <div class="flex w-[30rem] flex-col items-center gap-8">
+        <img src={management} width="200" alt="Account Managenent" />
+        <h3>Account Managenent</h3>
+        <p>
+          Add, delete, and update entries to manage your online accounts. Create, generate and store
+          passwords/usernames, implement TOTP, etc.
+        </p>
+      </div>
+    </div>
+  </GridAndDotBackgrounds>
+</section>
 <section id="features"><FeatureGrid /></section>
 <section id="pricing"><PricingTable /></section>
 <section id="reflection">
@@ -87,7 +109,7 @@
       without compromising your privacy (and wallet), just like a Swiss Army knife!
     </p>
   </div>
-  <img class="animate-shake w-full min-w-[30vw] image-shadow" src={satisfaction} alt="Customer satisfaction" />
+  <img class="animate-shake image-shadow w-full min-w-[30vw]" src={satisfaction} alt="Customer satisfaction" />
 </section>
 <section id="waitlist" class="border-t-4 border-[#131b2d]">
   <h1>Join The Waitlist</h1>
@@ -116,6 +138,10 @@
   #pricing,
   #reflection {
     @apply flex !flex-row gap-32 px-36;
+  }
+
+  h3 {
+    @apply from-primary-600 to-primary-700 bg-gradient-to-r bg-clip-text text-4xl font-bold text-transparent;
   }
 
   input {

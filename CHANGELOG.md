@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.17] - 2024-10-21
+
+### Added
+
+- New benefits sections
+- New grid background component
+
+### Changed
+
+- Change structure a bit
+- Change the text to be more coherent
+
 ## [0.0.16] - 2024-10-20
 
 ### Added

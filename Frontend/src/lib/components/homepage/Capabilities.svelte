@@ -7,19 +7,19 @@
     {
       title: 'Fake a Person',
       description:
-        'Easily generate and manage anonymous profiles to shield your personal information online. Use these profiles to sign up for accounts, authenticate services, and maintain privacy. Customize profiles with names, bios, photos, and more, and link them to online account to make it less burdensome.',
+        'Create and manage anonymous identities to shield your personal information online. Customize them with names, bios, photos, etc. Then use them to sign up for accounts, authenticate to services, and maintain your sensitive data from the public eye...',
       images: [identity, globe],
     },
     {
       title: 'Phone Services',
       description:
-        'Generate a functional permanent phone number to use for your profile. Receive and send text messages (SMS) without revealing your personal number. Protect your privacy and avoid unwanted calls or spam. Please note that you cannot make phone calls with a virtual number.',
+        'Generate a functional permanent phone number to use for your profile. Use them to receive and send text messages (SMS). Protect yourself and avoid annoying calls or scams. Please note that you cannot make phone calls with a virtual number.',
       images: [message, tower],
     },
     {
       title: 'Email Services',
       description:
-        'Generate a private permanent email address and use it for all types of your online activities, including sending, receiving, and registering for accounts. Keep yourself from unwanted emails, spams and phishing attempts.',
+        'Generate a private permanent email address and use it for your online activities, including sending and receiving and confirming emails. Keep yourself from unwanted emails, advertisements, spams and phishing attempts.',
       images: [email, router],
     },
     {
@@ -31,7 +31,7 @@
     {
       title: 'VPN Services',
       description:
-        'No solution would be complete without robust privacy measures. Indeed, you can safeguard your online activities with our VPN/proxy services. Generate a unique IP address to mask your location and route your traffic through our secure servers. Enjoy enhanced privacy, bypass censorship, and access geo-restricted content.',
+        'No solution would be complete without a vpn. As expected, you can use our vpn/proxy service to mask your location and route your traffic through our secure servers. Enjoy enhanced privacy, bypass censorship, and access geo-restricted content.',
       images: [server, cloud],
     },
   ];
