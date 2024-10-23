@@ -32,8 +32,7 @@
 
   h1,
   h2 {
-    @apply z-10 bg-clip-text text-7xl font-medium !leading-tight text-transparent;
-    @apply from-primary-600 to-primary-800 bg-gradient-to-b;
+    @apply primary-style z-10 text-7xl font-medium !leading-tight;
   }
 
   input,
@@ -43,6 +42,10 @@
 }
 
 @layer components {
+  .primary-style {
+    @apply from-primary-700 to-primary-800 bg-gradient-to-br bg-clip-text text-transparent;
+  }
+
   .card {
     @apply rounded-2xl bg-gradient-to-br from-[#0d1526] to-[#0a0f1c] transition-all duration-500 ease-in-out;
     @apply shadow-primary-900/[0.5] hover:shadow-8xl hover:shadow-primary-900/[0.3] shadow-2xl;

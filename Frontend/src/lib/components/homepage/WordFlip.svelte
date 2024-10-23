@@ -5,7 +5,7 @@
   const words = ['Simple', 'Affordable', 'Secure', 'Reliable', 'Fast', 'Private'];
   const colors = ['sky', 'red', 'green', 'yellow', 'fuchsia', 'orange'];
 
-  setInterval(() => (index = (index + 1) % words.length), 3500);
+  setInterval(() => (index = (index + 1) % words.length), 2500);
 </script>
 
 <div>

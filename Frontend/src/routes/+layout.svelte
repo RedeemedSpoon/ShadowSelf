@@ -36,8 +36,8 @@
   <Footer />
   <Notification />
 </div>
-<noscript class="mx-auto my-32 flex flex-col gap-8 text-center">
+<noscript class="w-full h-screen flex flex-col gap-8 justify-center items-center text-center">
   <h1>It looks like you <br />disabled JavaScript!</h1>
   <p>That's totally normal! Please visit this page on our <a href="/">dark web</a> site instead.</p>
-  <p class="text-xs">It's coming soon! we promise.</p>
+  <p class="text-sm">It's coming soon! we promise.</p>
 </noscript>

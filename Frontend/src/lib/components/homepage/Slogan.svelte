@@ -45,6 +45,7 @@
   #highlighted-text {
     @apply px-2 text-9xl transition-all duration-1000 ease-in-out;
   }
+
   h1 {
     @apply font-semibold;
   }

@@ -7,12 +7,12 @@ const config = {
   kit: {
     adapter: adapter(),
     alias: {
-      $lib: 'src/lib/index.ts',
-      $cn: 'src/lib/cn.ts',
-      $store: 'src/lib/store.ts',
       $components: 'src/lib/components',
       $images: 'src/lib/images',
+      $lib: 'src/lib/index.ts',
       $types: 'src/lib/types.ts',
+      $store: 'src/lib/store.ts',
+      $cn: 'src/lib/cn.ts',
     },
   },
 };
