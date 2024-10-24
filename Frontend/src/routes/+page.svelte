@@ -65,26 +65,25 @@
 <section id="product">
   <Card3D />
   <div class="flex flex-col items-start gap-6">
-    <h4 class="-mb-5 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h4>
+    <h4 class="-mb-5 ml-2 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h4>
     <h1 class="text-5xl text-neutral-300">
       <span class="primary-style text-8xl">Reclaim Back</span><br />Control of Your Data.
     </h1>
     <p>
-      Unlike profit-hungry corporations, we’re a open-source project dedicated to fighting back. Our mission is
-      to protect individuals by providing the necessary tools against data breaches, misuse, and theft. We’ve developed
-      a platform that lets you create synthetic identities, effectively confusing trackers and protecting your personal
-      information.
+      Unlike profit-hungry conglomerates, we’re a open-source project dedicated to fighting back. We’ve developed a
+      platform that allow individuals to create synthetic identities, effectively confusing trackers and protecting your
+      personal information from misuse, fraud, or theft.
     </p>
   </div>
 </section>
 <section id="capabilities"><Capabilities /></section>
 <section id="benefits">
   <GridAndDotBackgrounds>
-    <h1 class="mt-32 text-6xl">Less Burdens, Less Expenses.</h1>
-    <div class="mt-10 flex w-full items-center justify-center gap-32 text-balance text-center">
+    <h1 class="mt-28 text-6xl">Less Burdens, Less Expenses.</h1>
+    <div class="mt-6 flex w-full items-center justify-center gap-32 text-balance text-center">
       <div class="flex w-[30rem] flex-col items-center gap-8">
         <img src={registration} width="200" alt="Account Registration" />
-        <h3 class="text-4xl font-bold primary-style">Account Registration</h3>
+        <h3 class="primary-style text-4xl font-bold">Account Registration</h3>
         <p>
           Use our service to create untrackable accounts and register for services while still concealing your actual
           identity from being at risk.
@@ -92,7 +91,7 @@
       </div>
       <div class="flex w-[30rem] flex-col items-center gap-8">
         <img src={management} width="200" alt="Account Managenent" />
-        <h3 class="text-4xl font-bold primary-style">Account Managenent</h3>
+        <h3 class="primary-style text-4xl font-bold">Account Managenent</h3>
         <p>
           Add, delete, and update entries to manage your online accounts. Create, generate and store
           passwords/usernames, implement TOTP, etc.
@@ -107,12 +106,12 @@
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
     <p class="w-5/6">
-      While we may not be flawless, we firmly believe that we offer you one of the most well-rounded solution for your
-      online needs, even though we monetize what should have been a basic human right. Our service provides a great option
-      without compromising your privacy (and wallet), just like a Swiss Army knife!
+      While we may not be flawless, we firmly believe that we offer one of the most well-rounded solution for your
+      online needs. Our service provides a great option without compromising on both your privacy and wallet, just like
+      a Swiss Army knife.
     </p>
   </div>
-  <img class="animate-shake image-shadow w-full min-w-[30vw]" src={satisfaction} alt="Customer satisfaction" />
+  <img class="animate-shake w-full min-w-[30vw]" src={satisfaction} alt="Customer satisfaction" />
 </section>
 <section id="waitlist" class="border-t-4 border-[#131b2d]">
   <h1>Join The Waitlist</h1>
@@ -140,7 +139,7 @@
   #product,
   #pricing,
   #reflection {
-    @apply flex !flex-row gap-32 px-[11.5vw];
+    @apply flex !flex-row gap-32 px-[10vw];
   }
 
   input {

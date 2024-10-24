@@ -1,5 +1,6 @@
 <script lang="ts">
   import {cog, tag, shield, support, handTap, customer, terminal, openSource} from '$images';
+
   const features = [
     {
       title: 'Open Source',

@@ -14,7 +14,7 @@ export default {
       boxShadow: {'8xl': '0 0 30px 30px rgba(0, 0, 0, 0.20)'},
       animation: {
         border: 'border 7s linear infinite',
-        shake: 'shake 6s ease-in-out infinite',
+        shake: 'shake 8s ease-in-out infinite',
         scroll: 'scroll 180s linear infinite',
       },
       keyframes: {

@@ -7,7 +7,7 @@
 
 <CardContainer bind:isMouseEntered className="inter-var">
   <CardBody className="animate-shake relative group/card w-[600px] h-[550px] p-12 border border-neutral-500 card">
-    <CardItem {isMouseEntered} translateZ="70" className="text-xl font-bold text-primary-200" >
+    <CardItem {isMouseEntered} translateZ="70" className="text-xl font-bold text-primary-200">
       Make Yourself Invulnerable to the Internet
     </CardItem>
     <CardItem {isMouseEntered} translateZ="80" className="text-neutral-400 text-sm my-3 leading-relaxed">

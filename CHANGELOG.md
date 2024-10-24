@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.18] - 2024-10-22
+
+### Changed
+
+- Change product/reflection section titles
+- Change minor styles
+
+### Removed
+
+- Remove hideout svg
+
 ## [0.0.17] - 2024-10-21
 
 ### Added

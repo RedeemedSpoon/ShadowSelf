@@ -37,6 +37,5 @@ export {default as money} from './homepage/capabilities/money.png';
 export {default as tower} from './homepage/capabilities/tower.png';
 export {default as router} from './homepage/capabilities/router.png';
 export {default as server} from './homepage/capabilities/server.png';
-export {default as hideout} from './homepage/capabilities/hideout.svg';
 export {default as message} from './homepage/capabilities/message.png';
 export {default as identity} from './homepage/capabilities/identity.png';

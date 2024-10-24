@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {card, tower, cloud, email, globe, money, message, server, router, identity, hideout} from '$images';
+  import {card, tower, cloud, email, globe, money, message, server, router, identity} from '$images';
   import {StickyScrollReveal, TracingBeam} from '$components';
   import {blur} from 'svelte/transition';
 
@@ -45,10 +45,8 @@
     </div>
 
     <div id="box" slot="image" let:item in:blur={{opacity: 1, amount: 5, duration: 500}}>
-      <div style="background-image : url({hideout})" class="h-full w-full rounded-2xl bg-repeat">
-        <img src={item.images[0]} alt={item.title} />
-        <img src={item.images[1]} alt={item.title} />
-      </div>
+      <img src={item.images[0]} alt={item.title} />
+      <img src={item.images[1]} alt={item.title} />
     </div>
   </StickyScrollReveal>
 </TracingBeam>
