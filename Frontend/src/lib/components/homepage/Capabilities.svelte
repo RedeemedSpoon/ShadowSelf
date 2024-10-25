@@ -57,7 +57,7 @@
   }
 
   #box {
-    @apply card relative h-full w-full rounded-2xl;
+    @apply bg-neutral-950 relative h-full w-full rounded-2xl;
   }
 
   #box img {

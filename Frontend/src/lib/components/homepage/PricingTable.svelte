@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {CheckmarkImg, CheveronImg, QuestionImg} from '$components';
+  import {Card, CheckmarkImg, CheveronImg, QuestionImg} from '$components';
   import {changePricingModel} from '$lib';
   import {pricingModel} from '$store';
   import {fly} from 'svelte/transition';
@@ -25,13 +25,14 @@
     {/each}
   </div>
 </div>
-<div id="pricing-table">
+
+<Card className="!border-2 !border-neutral-400" upperClass="hover:-translate-y-4">
   <div class="flex flex-col items-start gap-8 px-16 py-6 text-center">
     {#key $pricingModel.price}
       <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
         <h3 class="mb-4 mt-9 text-left text-4xl font-bold text-neutral-300">{$pricingModel.title}</h3>
         <div class="flex items-baseline gap-3">
-          <h1 class="flex items-start gap-1 text-6xl text-primary-600">
+          <h1 class="text-primary-600 flex items-start gap-1 text-6xl">
             <span class="mt-6 text-4xl">$</span>{$pricingModel.price}
           </h1>
           <p class="text-xl text-neutral-400">{$pricingModel.description}</p>
@@ -60,15 +61,11 @@
   <a href="/signup">
     <button id="purchase">Purchase<CheveronImg className="!w-10 !h-10" /></button>
   </a>
-</div>
+</Card>
 
 <style lang="postcss">
-  #pricing-table {
-    @apply card border-4 border-neutral-400 hover:-translate-y-4;
-  }
-
   #purchase {
-    @apply from-primary-700 to-primary-800 bg-gradient-to-b shadow-sm shadow-neutral-950;
+    @apply from-primary-700 to-primary-800 bg-gradient-to-b shadow-none;
     @apply w-full rounded-none rounded-b-xl border-t-2 border-neutral-400 text-center text-3xl font-bold;
     @apply mt-8 flex w-full items-center justify-center gap-1 p-8 text-4xl font-bold;
   }

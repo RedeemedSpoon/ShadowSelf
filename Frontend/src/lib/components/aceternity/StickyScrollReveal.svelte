@@ -1,6 +1,7 @@
 <script lang="ts">
-  import {onMount} from 'svelte';
   import {scrollYProgress} from '$store';
+  import {Card} from '$components';
+  import {onMount} from 'svelte';
 
   let activeCard = 0;
   let ref: HTMLDivElement;
@@ -44,7 +45,7 @@
   }
 
   #wrapper {
-    @apply sticky top-32 h-2/3 w-1/3 overflow-hidden rounded-2xl bg-gradient-to-b from-slate-700 to-slate-800 p-[5px];
+    @apply sticky top-32 h-2/3 w-1/3 overflow-hidden rounded-2xl bg-neutral-700/30 p-[5px];
   }
 
   #wrapper::before {

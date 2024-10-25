@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {tweened} from 'svelte/motion';
   import {cubicOut} from 'svelte/easing';
   import {scrollYProgress} from '$store';
+  import {tweened} from 'svelte/motion';
   import {onMount} from 'svelte';
 
   let svgHeight = 0;
