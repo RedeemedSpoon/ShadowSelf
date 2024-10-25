@@ -22,7 +22,7 @@
   }
 
   a {
-    @apply text-primary-700 hover:text-primary-800 cursor-pointer transition-colors duration-300;
+    @apply text-primary-700 hover:opacity-90 opacity-100 cursor-pointer transition-colors duration-300;
   }
 
   header a,
@@ -32,7 +32,7 @@
 
   h1,
   h2 {
-    @apply primary-style z-10 text-7xl font-medium !leading-tight;
+    @apply pretty-style z-10 text-7xl font-medium !leading-tight;
   }
 
   input,
@@ -42,8 +42,8 @@
 }
 
 @layer components {
-  .primary-style {
-    @apply from-primary-700 to-primary-800 bg-gradient-to-br bg-clip-text text-transparent;
+  .pretty-style {
+    @apply from-sky-500 via-primary-600 via-30% to-purple-700 bg-gradient-to-br bg-clip-text text-transparent;
   }
 
   .card {

@@ -65,9 +65,9 @@
 <section id="product">
   <Card3D />
   <div class="flex flex-col items-start gap-6">
-    <h4 class="-mb-5 ml-2 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h4>
+    <h4 class="-mb-4 ml-2 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h4>
     <h1 class="text-5xl text-neutral-300">
-      <span class="primary-style text-8xl">Reclaim Back</span><br />Control of Your Data.
+      <span class="pretty-style text-8xl">Reclaim Back</span><br />Control of Your Data.
     </h1>
     <p>
       Unlike profit-hungry conglomerates, we’re a open-source project dedicated to fighting back. We’ve developed a
@@ -83,7 +83,7 @@
     <div class="mt-6 flex w-full items-center justify-center gap-32 text-balance text-center">
       <div class="flex w-[30rem] flex-col items-center gap-8">
         <img src={registration} width="200" alt="Account Registration" />
-        <h3 class="primary-style text-4xl font-bold">Account Registration</h3>
+        <h2 class="from-red-500 to-rose-600 text-4xl font-bold">Account Registration</h2>
         <p>
           Use our service to create untrackable accounts and register for services while still concealing your actual
           identity from being at risk.
@@ -91,7 +91,7 @@
       </div>
       <div class="flex w-[30rem] flex-col items-center gap-8">
         <img src={management} width="200" alt="Account Managenent" />
-        <h3 class="primary-style text-4xl font-bold">Account Managenent</h3>
+        <h2 class="from-green-500 to-emerald-600 text-4xl font-bold">Account Managenent</h2>
         <p>
           Add, delete, and update entries to manage your online accounts. Create, generate and store
           passwords/usernames, implement TOTP, etc.

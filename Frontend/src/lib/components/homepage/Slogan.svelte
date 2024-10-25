@@ -47,6 +47,6 @@
   }
 
   h1 {
-    @apply font-semibold;
+    @apply font-semibold from-primary-600 to-primary-800;
   }
 </style>

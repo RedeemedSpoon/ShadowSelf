@@ -31,7 +31,7 @@
       <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
         <h3 class="mb-4 mt-9 text-left text-4xl font-bold text-neutral-300">{$pricingModel.title}</h3>
         <div class="flex items-baseline gap-3">
-          <h1 class="flex items-start gap-1 text-6xl">
+          <h1 class="flex items-start gap-1 text-6xl text-primary-600">
             <span class="mt-6 text-4xl">$</span>{$pricingModel.price}
           </h1>
           <p class="text-xl text-neutral-400">{$pricingModel.description}</p>
