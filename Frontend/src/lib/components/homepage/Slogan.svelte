@@ -47,6 +47,6 @@
   }
 
   h1 {
-    @apply font-semibold from-primary-600 to-primary-800;
+    @apply from-primary-600 to-primary-800 bg-gradient-to-br font-semibold;
   }
 </style>

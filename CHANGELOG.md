@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.19] - 2024-10-23
+
+### Added
+
+- Add card component
+
+### Changed
+
+- Change text gradients
+- Change card gradient
+- Change styles to be more colorful
+
 ## [0.0.18] - 2024-10-22
 
 ### Changed
@@ -139,7 +151,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Create Tmux session config for development
+- Create tmux session config for development
 - Made simplex community
 
 ### Changed
@@ -169,7 +181,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add Notification component
+- Add notification component
 - Add info/success/error icons
 - Add svelte alias for ease of use
 - Add stores.ts for stores
@@ -189,15 +201,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Create Header component
-- Create Footer component
-- Create Layout component
+- Create header component
+- Create footer component
+- Create layout component
 - Add Icons : GitHub, Session, Tor
 
 ## Changed
 
 - Header logo has text beside it instead of under it
-- 'App.css' has global styles
+- App.css has global styles
 
 ### Removed
 
@@ -207,7 +219,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add meta-tags to the <head>
+- Add meta-tags to the head
 - Support for 'prettier' for formatting code
 
 ### Changed
@@ -224,6 +236,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add favicon
 - Add GPL-v3 license
 - Add README.md
-- Add support for 'bun'
-- Add support for 'tailwindcss'
+- Add support for bun
+- Add support for tailwindcss
 - Add configuration files to suit my needs

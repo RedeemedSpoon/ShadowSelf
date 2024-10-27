@@ -25,7 +25,7 @@ export default {
         },
         scroll: {
           '0%': {'background-position-x': '0'},
-          '100%': {'background-position-x': '10000px'},
+          '100%': {'background-position-x': '9600px'},
         },
       },
       colors: {

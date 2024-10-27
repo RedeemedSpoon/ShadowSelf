@@ -8,7 +8,7 @@
 
   export let content: {title: string; description: string; images: string[]}[];
   const cardsBreakpoints = content.map((_, index) => index / content.length);
-  const gradient = ['purple', 'orange', 'blue', 'green', 'red'];
+  const gradient = ['purple', 'red', 'blue', 'green', 'orange'];
 
   onMount(() => {
     const handleScroll = (e: Event) => {
@@ -32,11 +32,13 @@
       <slot name="text" item={{...item, activeCard, index}} />
     {/each}
   </div>
-  <div id="wrapper" class={gradient[activeCard]}>
-    {#key activeCard}
-      <slot name="image" item={content[activeCard]} />
-    {/key}
-  </div>
+  <Card upperClass={'w-1/3 h-2/3 top-32 sticky'} color={gradient[activeCard]}>
+    <div id="wrapper" class={gradient[activeCard]}>
+      {#key activeCard}
+        <slot name="image" item={content[activeCard]} />
+      {/key}
+    </div>
+  </Card>
 </div>
 
 <style lang="postcss">
@@ -45,7 +47,7 @@
   }
 
   #wrapper {
-    @apply sticky top-32 h-2/3 w-1/3 overflow-hidden rounded-2xl bg-neutral-700/30 p-[5px];
+    @apply relative h-full w-full overflow-hidden rounded-2xl p-[5px];
   }
 
   #wrapper::before {

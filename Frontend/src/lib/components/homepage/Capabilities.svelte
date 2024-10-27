@@ -57,7 +57,7 @@
   }
 
   #box {
-    @apply bg-neutral-950 relative h-full w-full rounded-2xl;
+    @apply relative h-full w-full rounded-2xl bg-[#070d1f];
   }
 
   #box img {

@@ -1,17 +1,19 @@
 <script lang="ts">
+  export let color: string = '';
   export let className: string = '';
-  export let animate: boolean = false;
   export let upperClass: string = '';
+  export let animate: boolean = false;
+  export let isMouseEntered: boolean = false;
 </script>
 
 {#if animate}
-  <div id="gradient" class:animate-shake={animate} />
-  <div id="card" class:animate-shake={animate} class={className}>
+  <div id="gradient" class:scale-[1.02]={isMouseEntered}></div>
+  <div id="card" class={className}>
     <slot />
   </div>
 {:else}
-  <div class="relative transition-all duration-500 ease-in-out {upperClass}">
-    <div id="gradient" />
+  <div class="group relative transition-all duration-500 ease-in-out {upperClass}">
+    <div id="gradient" class={color}></div>
     <div id="card" class={className}>
       <slot />
     </div>
@@ -20,10 +22,31 @@
 
 <style lang="postcss">
   #gradient {
-    @apply via-primary-600 absolute -inset-2 rounded-2xl bg-gradient-to-r from-sky-500 via-30% to-purple-700 opacity-75 blur;
+    @apply via-primary-600 absolute -inset-1 rounded-2xl bg-gradient-to-r from-sky-500 via-30% to-purple-700;
+    @apply opacity-90 blur transition-all duration-500 ease-in-out group-hover:scale-[1.02];
   }
 
   #card {
-    @apply relative flex h-full w-full flex-col rounded-2xl border border-neutral-500 bg-neutral-950;
+    @apply relative flex h-full w-full flex-col rounded-2xl border-neutral-500 bg-[#070d1f];
+  }
+
+  .purple {
+    @apply !via-primary-600 !from-blue-500 !to-purple-700;
+  }
+
+  .orange {
+    @apply !from-orange-500 !via-amber-600 !to-orange-700;
+  }
+
+  .blue {
+    @apply !from-teal-500 !via-sky-600 !to-blue-700;
+  }
+
+  .red {
+    @apply !from-pink-500 !via-rose-600 !to-red-700;
+  }
+
+  .green {
+    @apply !from-lime-500 !via-green-600 !to-emerald-700;
   }
 </style>

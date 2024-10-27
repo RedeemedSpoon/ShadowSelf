@@ -17,7 +17,7 @@
 </script>
 
 {#if id}
-  <div class="notification {type}" transition:slide={{axis: 'x'}} on:click={handleClick} aria-hidden>
+  <div class="notification {type}" transition:slide={{axis: 'x'}} on:click={handleClick} aria-hidden="true">
     <img class="mr-4" src={icons[type]} alt={type} width="48px" height="48px" />
     <p>{message}</p>
   </div>

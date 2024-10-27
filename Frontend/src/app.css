@@ -22,7 +22,7 @@
   }
 
   a {
-    @apply text-primary-700 hover:opacity-90 opacity-100 cursor-pointer transition-colors duration-300;
+    @apply text-primary-700 cursor-pointer opacity-100 transition-colors duration-300 hover:opacity-90;
   }
 
   header a,
@@ -43,7 +43,7 @@
 
 @layer components {
   .pretty-style {
-    @apply from-sky-600 via-primary-600 via-30% to-purple-600 bg-gradient-to-r bg-clip-text text-transparent;
+    @apply via-primary-600 bg-gradient-to-r from-sky-600 via-30% to-purple-600 bg-clip-text text-transparent;
   }
 
   .small-icon {
@@ -51,7 +51,7 @@
   }
 
   .image-shadow {
-    @apply drop-shadow-[5px_5px_15px_rgba(148,163,184,0.10)] hover:drop-shadow-[10px_15px_25px_rgba(148,163,184,0.15)];
+    @apply drop-shadow-[5px_5px_15px_rgba(148,163,184,0.15)] hover:drop-shadow-[10px_15px_25px_rgba(148,163,184,0.25)];
   }
 
   .no-scrollbar::-webkit-scrollbar {

@@ -21,7 +21,7 @@
     <div
       class="ml-[27px] flex h-4 w-4 items-center justify-center rounded-full border border-neutral-200 shadow-sm"
       style="box-shadow: {$scrollYProgress > 0 ? 'none' : 'rgba(0, 0, 0, 0.24) 0px 3px 8px'}">
-      <div class="h-2 w-2 rounded-full border border-neutral-300 bg-neutral-300" />
+      <div class="h-2 w-2 rounded-full border border-neutral-300 bg-neutral-300"></div>
     </div>
     <svg viewBox={`0 0 20 ${svgHeight}`} width="20" height={svgHeight} class="ml-4" aria-hidden="true">
       <path
@@ -32,11 +32,10 @@
       <path
         d={`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`}
         fill="none"
-        stroke="url(#gradient)"
-        stroke-width="4"
-        class="motion-reduce:hidden" />
+        stroke="url(#tracing-gradient)"
+        stroke-width="4" />
       <defs>
-        <linearGradient id="gradient" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={$y1} y2={$y2}>
+        <linearGradient id="tracing-gradient" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={$y1} y2={$y2}>
           <stop stop-color="#18CCFC" stop-opacity="0"></stop>
           <stop stop-color="#18CCFC"></stop>
           <stop offset="0.325" stop-color="#6344F5"></stop>
