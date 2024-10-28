@@ -11,8 +11,8 @@
 </svelte:head>
 
 <section style="background-size: 20%; background-image: url({circuitPattern}); background-repeat: repeat">
-  <img alt={$page.error?.message} src={itCrowdGif} />
   <h1 class="text-7xl">Page Not Found.</h1>
+  <img alt={$page.error?.message} src={itCrowdGif} />
   <p>Oops, looks like you hit a dead end! That's not a big deal, Let's get you back on track.</p>
   <a href="/"><button>Go Home<CheveronImg /></button></a>
 </section>
@@ -23,7 +23,7 @@
   }
 
   img {
-    @apply w-auto rounded-sm border border-neutral-400 shadow-2xl;
+    @apply w-auto rounded-sm border border-2 border-neutral-400 shadow-2xl;
   }
 
   p {

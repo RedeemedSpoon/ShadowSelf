@@ -4,6 +4,7 @@
   import {onMount} from 'svelte';
 
   let activeCard = 0;
+  let direction = 'down';
   let ref: HTMLDivElement;
 
   export let content: {title: string; description: string; images: string[]}[];
@@ -14,6 +15,7 @@
     const handleScroll = (e: Event) => {
       const target = e.target as HTMLDivElement;
       $scrollYProgress = target.scrollTop / target.scrollHeight;
+
       cardsBreakpoints.forEach((breakpoint, index) => {
         if ($scrollYProgress + 0.1 > breakpoint && $scrollYProgress <= breakpoint) {
           activeCard = index;
@@ -22,11 +24,12 @@
     };
 
     ref.addEventListener('scroll', handleScroll);
+    ref.addEventListener('wheel', (e) => (direction = e.deltaY > 0 ? 'down' : 'up'));
     return () => ref.removeEventListener('scroll', handleScroll);
   });
 </script>
 
-<div bind:this={ref} id="main">
+<div bind:this={ref} id="main" class:overflow-y-hidden={direction === 'down' && $scrollYProgress >= 0.79}>
   <div class="max-w-2xl">
     {#each content as item, index (index)}
       <slot name="text" item={{...item, activeCard, index}} />

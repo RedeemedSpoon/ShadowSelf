@@ -4,7 +4,7 @@
   const words = ['Effective', 'Simple', 'Affordable', 'Secure', 'Superior', 'Reliable', 'Trusted', 'Private', 'Fast'];
   let index = 0;
 
-  setInterval(() => (index = (index + 1) % words.length), 3250);
+  setInterval(() => (index = (index + 1) % words.length), 3000);
 </script>
 
 <div>

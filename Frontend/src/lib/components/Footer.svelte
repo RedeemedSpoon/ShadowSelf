@@ -54,7 +54,7 @@
   }
 
   #logo > div img {
-    @apply w-6 hover:brightness-125;
+    @apply w-6 transition-all duration-300 hover:brightness-125;
   }
 
   footer > p {

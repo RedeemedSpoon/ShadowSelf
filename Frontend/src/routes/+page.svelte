@@ -34,7 +34,7 @@
     without the fear of compromise.
   </p>
   <div class="flex gap-8">
-    <a href={data.ids[1]} class="no-underline">
+    <a href={'#' + data.ids[1]} class="no-underline">
       <button class="alt group flex items-center gap-1">
         Learn More<CheveronImg className="group-hover:rotate-90" />
       </button>
@@ -82,7 +82,7 @@
 </section>
 <section id={data.ids[4]}><FeatureGrid /></section>
 <section id={data.ids[5]}><PricingTable /></section>
-<section id={data.ids[6]}>
+<section id={data.ids[6]} class="!mb-0 bg-gradient-to-b from-neutral-900 from-25% to-neutral-950/25">
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
     <p class="w-5/6">
@@ -91,9 +91,11 @@
       a Swiss Army knife.
     </p>
   </div>
-  <img class="animate-shake w-full min-w-[30vw]" src={satisfaction} alt="Customer satisfaction" />
+  <div class="h-fit w-fit">
+    <img class="animate-shake w-full min-w-[30vw]" src={satisfaction} alt="Customer satisfaction" />
+  </div>
 </section>
-<section id={data.ids[7]} class="border-t-4 border-[#131b2d]">
+<section id={data.ids[7]} class="mt-0">
   <h1>Join The Waitlist</h1>
   <p class="z-10 w-1/3 text-center leading-relaxed text-neutral-400">
     Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates in the Github repository

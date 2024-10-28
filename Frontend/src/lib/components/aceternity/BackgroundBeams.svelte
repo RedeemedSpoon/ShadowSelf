@@ -118,7 +118,7 @@
         gradientTransform="translate(352 34) rotate(90) scale(555 1560.62)">
         <stop offset="0.0666667" stop-color="var(--neutral-300)"></stop>
         <stop offset="0.243243" stop-color="var(--neutral-300)"></stop>
-        <stop offset="0.43594" stop-color="white" stop-opacity="0"></stop>
+        <stop offset="0.43594" stop-color="white" stop-opacity="0.2"></stop>
       </radialGradient>
     </defs>
   </svg>

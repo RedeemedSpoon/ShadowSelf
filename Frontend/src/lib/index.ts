@@ -50,13 +50,16 @@ export function addTabScrollEvent(sectionsIds: string[]) {
 }
 
 export function addAnimation(elements: AnimationSelector[]) {
+  function returnTranslate(type: AnimationNode['type']) {
+    return type === 'left' ? '!-translate-x-24' : type === 'right' ? '!translate-x-24' : '!translate-y-24';
+  }
+
   const nodes = elements.map((element) => {
     const query = document.querySelectorAll(element.selector) as NodeListOf<HTMLElement>;
     const object: AnimationNode[] = [];
 
     query.forEach((node, key) => {
-      const translate =
-        element.type === 'left' ? '-translate-x-24' : element.type === 'right' ? 'translate-x-24' : 'translate-y-24';
+      const translate = returnTranslate(element.type);
 
       node.classList.add('transition-all', '!duration-1000', 'ease-in-out', 'opacity-0', translate);
       object.push({
@@ -71,13 +74,17 @@ export function addAnimation(elements: AnimationSelector[]) {
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
+      const target = animatedNodes.find((node) => node.node === entry.target) as AnimationNode;
+      const translate = returnTranslate(target?.type);
+
       if (entry.isIntersecting) {
-        const target = animatedNodes.find((node) => node.node === entry.target);
-        const translate = entry.target.classList[entry.target.classList.length - 1];
         setTimeout(() => {
-          if (translate.includes('translate')) entry.target.classList.remove(translate);
-          entry.target.classList.remove('opacity-0');
+          entry.target.classList.add('!duration-1000');
+          entry.target.classList.remove('opacity-0', translate);
         }, target?.delay);
+      } else {
+        entry.target.classList.remove('!duration-1000');
+        entry.target.classList.add('opacity-0', translate);
       }
     });
   });

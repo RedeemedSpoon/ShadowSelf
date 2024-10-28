@@ -14,7 +14,7 @@
   }
 
   button.alt {
-    @apply text-primary-600 hover:text-primary-700 bg-none shadow-none;
+    @apply text-primary-600 hover:!text-primary-700 bg-none shadow-none;
   }
 
   p {
@@ -22,7 +22,7 @@
   }
 
   a {
-    @apply text-primary-700 cursor-pointer opacity-100 transition-colors duration-300 hover:opacity-90;
+    @apply text-primary-700 hover:text-primary-800 cursor-pointer transition-colors duration-300;
   }
 
   header a,
