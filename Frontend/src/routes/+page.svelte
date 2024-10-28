@@ -1,42 +1,22 @@
 <script lang="ts">
-  import {Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Capabilities} from '$components';
+  import {Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Services} from '$components';
   import {CheveronImg, BackgroundBeams, GridAndDotBackgrounds} from '$components';
-  import {satisfaction, background, registration, management} from '$images';
+  import {satisfaction, registration, management} from '$images';
+  import {notify, addAnimation, addTabScrollEvent} from '$lib';
   import type {Notification} from '$types';
-  import {goto} from '$app/navigation';
+  import type {PageData} from './$types';
   import {enhance} from '$app/forms';
-  import {scrollY} from '$store';
   import {onMount} from 'svelte';
-  import {notify} from '$lib';
 
-  onMount(() => {
-    const sectionsIds: string[] = [];
-    const sections = document.querySelectorAll('section');
-    sections.forEach((section) => sectionsIds.push(section.id));
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        let currentSection = Math.ceil(($scrollY + 10) / window.innerHeight);
-        currentSection = e.shiftKey ? currentSection - 2 : currentSection;
-        goto(`#${sectionsIds[currentSection]}`);
-      }
-    });
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('!opacity-100', '!translate-y-0');
-        }
-      });
-    });
-
-    sections.forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
-  });
-
+  export let data: PageData;
   export let form: Notification;
   $: if (form?.message) notify(form?.message, form?.type);
+
+  onMount(() => {
+    addTabScrollEvent(data.ids);
+    const disconnect = addAnimation(data.animations);
+    return () => disconnect();
+  });
 </script>
 
 <svelte:head>
@@ -46,7 +26,7 @@
     content="ShadowSelf is a platform that safeguard you and your sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your actual identity from being at risk of misuse, breach, theft, or fraud." />
 </svelte:head>
 
-<section id="slogan" style="background-image: url({background});">
+<section id={data.ids[0]}>
   <Slogan />
   <p class="my-6 w-1/2 text-balance text-center">
     Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your
@@ -54,7 +34,7 @@
     without the fear of compromise.
   </p>
   <div class="flex gap-8">
-    <a href="#product" class="no-underline">
+    <a href={data.ids[1]} class="no-underline">
       <button class="alt group flex items-center gap-1">
         Learn More<CheveronImg className="group-hover:rotate-90" />
       </button>
@@ -62,7 +42,7 @@
     <a href="/signup"><button>Get Started!</button></a>
   </div>
 </section>
-<section id="product">
+<section id={data.ids[1]}>
   <Card3D />
   <div class="flex flex-col items-start gap-6">
     <h4 class="-mb-4 ml-2 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h4>
@@ -76,8 +56,8 @@
     </p>
   </div>
 </section>
-<section id="capabilities"><Capabilities /></section>
-<section id="benefits">
+<section id={data.ids[2]}><Services /></section>
+<section id={data.ids[3]}>
   <GridAndDotBackgrounds>
     <h1 class="mt-28 text-6xl">Less Burdens, Less Expenses.</h1>
     <div class="mt-6 flex w-full items-center justify-center gap-32 text-balance text-center">
@@ -100,9 +80,9 @@
     </div>
   </GridAndDotBackgrounds>
 </section>
-<section id="features"><FeatureGrid /></section>
-<section id="pricing"><PricingTable /></section>
-<section id="reflection">
+<section id={data.ids[4]}><FeatureGrid /></section>
+<section id={data.ids[5]}><PricingTable /></section>
+<section id={data.ids[6]}>
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
     <p class="w-5/6">
@@ -113,7 +93,7 @@
   </div>
   <img class="animate-shake w-full min-w-[30vw]" src={satisfaction} alt="Customer satisfaction" />
 </section>
-<section id="waitlist" class="border-t-4 border-[#131b2d]">
+<section id={data.ids[7]} class="border-t-4 border-[#131b2d]">
   <h1>Join The Waitlist</h1>
   <p class="z-10 w-1/3 text-center leading-relaxed text-neutral-400">
     Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates in the Github repository
@@ -128,21 +108,18 @@
 
 <style lang="postcss">
   section {
-    @apply w-full translate-y-32 py-16 opacity-0 transition-all duration-[1500ms] ease-in-out;
+    @apply w-full py-16 opacity-100 transition-all duration-[1500ms] ease-in-out;
     @apply relative flex h-screen flex-col items-center justify-center gap-6;
-  }
 
-  #slogan {
-    @apply animate-scroll bg-cover bg-center bg-repeat-x;
-  }
-
-  #product,
-  #pricing,
-  #reflection {
-    @apply flex !flex-row gap-32 px-[10vw];
+    &:nth-child(2),
+    &:nth-child(6),
+    &:nth-child(7) {
+      @apply !flex-row gap-32 px-[10vw];
+    }
   }
 
   input {
-    @apply border-primary-800 focus:ring-primary-600 z-10 w-full bg-[#0a0f1c] focus:ring-2;
+    @apply z-10 w-full bg-[#070d1f] transition-all duration-300 ease-in-out;
+    @apply border-primary-800 focus:ring-primary-600 focus:ring-2;
   }
 </style>

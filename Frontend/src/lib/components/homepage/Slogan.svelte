@@ -1,5 +1,6 @@
 <script lang="ts">
   import {onMount} from 'svelte';
+  import {background} from '$images';
 
   onMount(() => {
     setTimeout(() => {
@@ -21,6 +22,7 @@
   });
 </script>
 
+<div id="background" style="background-image: url({background})"></div>
 <div class="-mb-2 mt-32 flex">
   <h1 class="mr-5 text-neutral-300">Your</h1>
   <h1 class="text-neutral-300">Privacy<span id="underline-text"></span></h1>
@@ -34,6 +36,10 @@
 </div>
 
 <style lang="postcss">
+  #background {
+    @apply animate-scroll absolute inset-0 -z-10 h-full w-full bg-cover bg-center bg-repeat-x;
+  }
+
   #underline-text {
     @apply from-primary-600 to-primary-800 mt-1 block h-1 max-w-0 bg-gradient-to-br transition-all duration-500;
   }

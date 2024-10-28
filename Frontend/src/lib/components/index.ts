@@ -6,8 +6,8 @@ export {default as Card} from './Card.svelte';
 export {default as Slogan} from './homepage/Slogan.svelte';
 export {default as Card3D} from './homepage/Card3D.svelte';
 export {default as WordFlip} from './homepage/WordFlip.svelte';
+export {default as Services} from './homepage/Services.svelte';
 export {default as FeatureGrid} from './homepage/FeatureGrid.svelte';
-export {default as Capabilities} from './homepage/Capabilities.svelte';
 export {default as PricingTable} from './homepage/PricingTable.svelte';
 
 export {default as CheveronImg} from './icons/Cheveron.svelte';

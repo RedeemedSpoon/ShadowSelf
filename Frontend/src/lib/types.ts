@@ -4,6 +4,12 @@ export interface Notification {
   type: 'success' | 'alert' | 'info';
 }
 
+export interface Animation {
+  element: HTMLElement;
+  duration: number;
+  type: 'left' | 'right' | 'top' | 'bottom';
+}
+
 export interface PricingModel {
   name: string;
   title: string;
