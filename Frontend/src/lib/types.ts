@@ -4,10 +4,16 @@ export interface Notification {
   type: 'success' | 'alert' | 'info';
 }
 
-export interface Animation {
-  element: HTMLElement;
-  duration: number;
-  type: 'left' | 'right' | 'top' | 'bottom';
+export interface AnimationNode {
+  node: HTMLElement;
+  type: 'left' | 'right' | 'bottom';
+  delay: number;
+}
+
+export interface AnimationSelector {
+  selector: string;
+  delay?: number;
+  type: 'left' | 'right' | 'bottom';
 }
 
 export interface PricingModel {

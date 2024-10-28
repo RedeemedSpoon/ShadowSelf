@@ -1,5 +1,5 @@
+import type {Notification, AnimationNode, AnimationSelector} from '$types';
 import {notification, pricingModel} from '$store';
-import type {Notification, Animation} from '$types';
 import {allPricingModel} from '$types';
 import {goto} from '$app/navigation';
 import {get} from 'svelte/store';
@@ -49,15 +49,40 @@ export function addTabScrollEvent(sectionsIds: string[]) {
   });
 }
 
-export function addAnimation(elements: Animation[]) {
+export function addAnimation(elements: AnimationSelector[]) {
+  const nodes = elements.map((element) => {
+    const query = document.querySelectorAll(element.selector) as NodeListOf<HTMLElement>;
+    const object: AnimationNode[] = [];
+
+    query.forEach((node, key) => {
+      const translate =
+        element.type === 'left' ? '-translate-x-24' : element.type === 'right' ? 'translate-x-24' : 'translate-y-24';
+
+      node.classList.add('transition-all', '!duration-1000', 'ease-in-out', 'opacity-0', translate);
+      object.push({
+        node: node,
+        delay: element.delay || 125 * key,
+        type: element.type,
+      });
+    });
+
+    return object;
+  });
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('!opacity-100', '!translate-y-0');
+        const target = animatedNodes.find((node) => node.node === entry.target);
+        const translate = entry.target.classList[entry.target.classList.length - 1];
+        setTimeout(() => {
+          if (translate.includes('translate')) entry.target.classList.remove(translate);
+          entry.target.classList.remove('opacity-0');
+        }, target?.delay);
       }
     });
   });
 
-  elements.forEach((element) => observer.observe(element.element));
+  const animatedNodes = nodes.flat(1);
+  animatedNodes.forEach((node) => observer.observe(node.node));
   return () => observer.disconnect();
 }

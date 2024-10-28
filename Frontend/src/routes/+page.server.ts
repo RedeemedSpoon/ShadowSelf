@@ -1,10 +1,64 @@
 import type {Actions, PageServerLoad} from './$types';
+import type {AnimationSelector} from '$types';
 import {fetchApi} from '$lib';
 
 export const load: PageServerLoad = () => {
   return {
     ids: ['welcome', 'product', 'services', 'usecases', 'features', 'pricing', 'solution', 'waitlist'],
-    animations: [],
+    animations: [
+      {
+        selector: '#welcome > *:not(#background)',
+        type: 'bottom',
+      },
+      {
+        selector: '#product > *',
+        type: 'left',
+      },
+      {
+        selector: '#main:last-child',
+        type: 'right',
+      },
+      {
+        selector: '#main:first-child',
+        type: 'right',
+        delay: 125,
+      },
+      {
+        selector: '#services > div > div:first-child',
+        type: 'right',
+        delay: 250,
+      },
+      {
+        selector: '#usecases h1',
+        type: 'bottom',
+      },
+      {
+        selector: '#account > div:first-child',
+        type: 'left',
+        delay: 250,
+      },
+      {
+        selector: '#account > div:last-child',
+        type: 'right',
+        delay: 250,
+      },
+      {
+        selector: '#features',
+        type: 'bottom',
+      },
+      {
+        selector: '#pricing > *',
+        type: 'left',
+      },
+      {
+        selector: '#solution > *',
+        type: 'right',
+      },
+      {
+        selector: '#waitlist > *:not(div)',
+        type: 'bottom',
+      },
+    ] satisfies AnimationSelector[],
   };
 };
 

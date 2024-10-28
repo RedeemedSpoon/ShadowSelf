@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {logoBesideText} from '$images';
   import {authenticated, scrollY} from '$store';
+  import {logoBesideText} from '$images';
   import {page} from '$app/stores';
 
   $: isHome = $page.url.pathname === '/';

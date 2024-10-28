@@ -60,7 +60,7 @@
 <section id={data.ids[3]}>
   <GridAndDotBackgrounds>
     <h1 class="mt-28 text-6xl">Less Burdens, Less Expenses.</h1>
-    <div class="mt-6 flex w-full items-center justify-center gap-32 text-balance text-center">
+    <div id="account" class="mt-6 flex w-full items-center justify-center gap-32 text-balance text-center">
       <div class="flex w-[30rem] flex-col items-center gap-8">
         <img src={registration} width="200" alt="Account Registration" />
         <h2 class="from-red-500 to-rose-600 text-4xl font-bold">Account Registration</h2>
@@ -108,7 +108,7 @@
 
 <style lang="postcss">
   section {
-    @apply w-full py-16 opacity-100 transition-all duration-[1500ms] ease-in-out;
+    @apply mb-16 w-full transition-all duration-[1500ms] ease-in-out last:mb-0;
     @apply relative flex h-screen flex-col items-center justify-center gap-6;
 
     &:nth-child(2),
