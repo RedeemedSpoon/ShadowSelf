@@ -13,6 +13,7 @@
 
   onMount(() => {
     const handleScroll = (e: Event) => {
+      if ($scrollYProgress >= 0.79 && direction === 'down') window.scrollBy(0, 150);
       const target = e.target as HTMLDivElement;
       $scrollYProgress = target.scrollTop / target.scrollHeight;
 

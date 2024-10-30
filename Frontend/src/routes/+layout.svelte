@@ -1,8 +1,8 @@
 <script lang="ts">
   import '../app.css';
   import {Header, Footer, Notification} from '$components';
+  import {authenticated, selectionMenuOpen} from '$store';
   import type {LayoutData} from './$types';
-  import {authenticated} from '$store';
   import {onMount} from 'svelte';
   import {notify} from '$lib';
 
@@ -30,14 +30,27 @@
 
 <div class="hidden" id="app">
   <Header />
-  <main>
+  <main class="sm:bg-blue-500 md:bg-red-500 lg:bg-green-500 xl:bg-yellow-500 2xl:bg-neutral-900">
     <slot />
   </main>
   <Footer />
   <Notification />
+  <div
+    id="overlay"
+    aria-hidden="true"
+    class={$selectionMenuOpen ? '!visible !opacity-35' : ''}
+    on:click={() => ($selectionMenuOpen = false)}>
+  </div>
 </div>
+
 <noscript class="flex h-screen w-full flex-col items-center justify-center gap-8 text-center">
   <h1>It looks like you <br />disabled JavaScript!</h1>
   <p>That's totally normal! Please visit this page on our <a href="/">dark web</a> site instead.</p>
   <p class="text-sm">It's coming soon! we promise.</p>
 </noscript>
+
+<style lang="postcss">
+  #overlay {
+    @apply invisible fixed inset-0 z-40 h-screen w-screen bg-black opacity-0 transition-all duration-300 ease-in-out;
+  }
+</style>

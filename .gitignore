@@ -8,6 +8,9 @@ Thumbs.db
 .output
 .env
 
-certificates
 node_modules
 .svelte-kit
+
+*.crt
+*.key
+*.pem

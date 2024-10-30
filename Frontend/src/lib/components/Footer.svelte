@@ -12,11 +12,13 @@
 </script>
 
 <footer>
-  <div>
-    <div id="logo">
+  <div class="mx-auto flex flex-col-reverse items-center gap-16 px-4 lg:flex-row">
+    <div class="flex flex-col items-center gap-6">
       <a href="/"><img src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div class="flex justify-center gap-4">
-        <a href="https://github.com/RedeemedSpoon/ShadowSelf"><img src={github} alt="Source Code" /></a>
+        <a href="https://github.com/RedeemedSpoon/ShadowSelf">
+          <img src={github} alt="Source Code" />
+        </a>
         <a href="/" on:click|preventDefault={() => notify('Onion Website Coming Soon!', 'info')}>
           <img src={tor} alt="Onion Website" />
         </a>
@@ -25,7 +27,7 @@
         </a>
       </div>
     </div>
-    <nav class="flex justify-end gap-24 px-16">
+    <nav class="flex flex-wrap justify-start gap-12 px-8 xl:gap-24">
       {#each Object.entries(links) as [key, value]}
         <div class="flex flex-col gap-6">
           <p class="font-bold text-neutral-400">{key}</p>
@@ -45,16 +47,8 @@
     @apply sticky z-50 flex w-full flex-col bg-neutral-950 bg-opacity-75 pt-24;
   }
 
-  footer > div {
-    @apply mx-auto flex items-center gap-16 px-4;
-  }
-
-  #logo {
-    @apply flex flex-col items-center gap-6;
-  }
-
-  #logo > div img {
-    @apply w-6 transition-all duration-300 hover:brightness-125;
+  img:not([alt='ShadowSelf']) {
+    @apply h-6 transition-all duration-300 hover:brightness-125;
   }
 
   footer > p {

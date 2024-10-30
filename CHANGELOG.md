@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New nginx config
-- Add firewall & security messures
+- Add firewall & security measures
 - Bought a domain for shadowself
 - Bought a production server
 

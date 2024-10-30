@@ -1,3 +1,4 @@
+export {default as HamburgerMenu} from './Hamburger-menu.svelte';
 export {default as Notification} from './Notification.svelte';
 export {default as Header} from './Header.svelte';
 export {default as Footer} from './Footer.svelte';
@@ -12,7 +13,7 @@ export {default as PricingTable} from './homepage/PricingTable.svelte';
 
 export {default as CheveronImg} from './icons/Cheveron.svelte';
 export {default as QuestionImg} from './icons/Question.svelte';
-export {default as CheckmarkImg} from './icons/checkmark.svelte';
+export {default as CheckmarkImg} from './icons/Checkmark.svelte';
 
 export {default as GridAndDotBackgrounds} from './aceternity/GridAndDotBackgrounds.svelte';
 export {default as StickyScrollReveal} from './aceternity/StickyScrollReveal.svelte';

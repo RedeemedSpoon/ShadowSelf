@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {browser} from '$app/environment';
   import {cubicOut} from 'svelte/easing';
   import {scrollYProgress} from '$store';
   import {tweened} from 'svelte/motion';
@@ -9,8 +10,10 @@
   let y2 = tweened(50, {duration: 500, easing: cubicOut});
 
   $: {
-    y1.set($scrollYProgress * 900);
-    y2.set($scrollYProgress * 500);
+    if (browser) {
+      y1.set($scrollYProgress * window?.innerHeight * 0.85);
+      y2.set($scrollYProgress * window?.innerHeight * 0.5);
+    }
   }
 
   onMount(() => (svgHeight = window?.innerHeight * 0.65));

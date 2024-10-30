@@ -19,7 +19,7 @@
 {#if id}
   <div class="notification {type}" transition:slide={{axis: 'x'}} on:click={handleClick} aria-hidden="true">
     <img class="mr-4" src={icons[type]} alt={type} width="48px" height="48px" />
-    <p>{message}</p>
+    <p class="text-clip text-nowrap text-xl">{message}</p>
   </div>
 {/if}
 
@@ -27,10 +27,7 @@
   .notification {
     @apply fixed bottom-12 left-8 z-[999] flex items-center border-l-8 bg-neutral-800 bg-opacity-90 p-6;
     @apply cursor-pointer shadow-md shadow-neutral-950 hover:bg-neutral-900;
-  }
-
-  p {
-    @apply text-clip text-nowrap text-xl;
+    @apply max-sm:bottom-4 max-sm:left-0 max-sm:scale-90;
   }
 
   .alert {

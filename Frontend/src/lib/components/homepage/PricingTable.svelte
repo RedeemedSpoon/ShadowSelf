@@ -79,7 +79,7 @@
   }
 
   #select-model-box {
-    @apply absolute left-0 -z-10 h-full w-1/3 rounded-full bg-neutral-300 bg-opacity-25 transition-all duration-300 ease-in-out;
+    @apply absolute left-0 h-full w-1/3 rounded-full bg-neutral-300 bg-opacity-15 transition-all duration-300 ease-in-out;
   }
 
   li {

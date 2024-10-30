@@ -41,13 +41,17 @@
   }
 }
 
-@layer components {
+@layer base {
+  .small-icon {
+    @apply h-8 w-8 cursor-pointer fill-current outline-none transition-all duration-500;
+  }
+
   .pretty-style {
     @apply via-primary-600 bg-gradient-to-r from-sky-600 via-30% to-purple-600 bg-clip-text text-transparent;
   }
 
-  .small-icon {
-    @apply h-8 w-8 fill-current outline-none transition-all duration-500;
+  .small-aura {
+    @apply rounded-full bg-transparent p-2 hover:bg-neutral-300/15;
   }
 
   .image-shadow {
