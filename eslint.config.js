@@ -32,7 +32,17 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.svelte'],
+    files: [
+      '**/*.svelte',
+      '**/*.ts',
+      '**/*.js',
+      '**/*.conf',
+      '**/*.json',
+      '**/*.html',
+      '**/*.css',
+      '**/*.md',
+      '**/*.yaml',
+    ],
     languageOptions: {
       parserOptions: {
         parser: tseslint.parser,
