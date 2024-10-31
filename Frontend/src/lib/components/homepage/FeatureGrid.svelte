@@ -56,7 +56,8 @@
   ];
 </script>
 
-<div>
+<div
+  class="grid h-3/4 w-full grid-cols-2 border-r border-neutral-700 px-[6vw] max-lg:mt-48 xl:grid-cols-4 xl:max-2xl:px-[3vw]">
   {#each features as feature (feature.index)}
     <div id="cell" class:bottom-cells={feature.index > 4} class:border-r={feature.index % 4 === 0}>
       <img src={feature.image} alt={feature.title} />
@@ -67,10 +68,6 @@
 </div>
 
 <style lang="postcss">
-  div:not(#cell) {
-    @apply grid h-3/4 w-full grid-cols-2 border-r border-neutral-700 px-[6vw] max-lg:mt-48 xl:grid-cols-4 xl:max-2xl:px-[3vw];
-  }
-
   #cell {
     @apply flex flex-col items-baseline justify-center gap-4 border-l border-neutral-700 p-8 transition-all duration-500 ease-in-out;
     @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-gradient-to-t from-neutral-800/75 to-neutral-900 max-xl:border;

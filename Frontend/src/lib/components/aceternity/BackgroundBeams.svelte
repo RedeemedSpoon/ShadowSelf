@@ -2,7 +2,11 @@
   import {cn} from '$cn';
   import {Motion} from 'svelte-motion';
 
-  export let className: string | undefined = undefined;
+  interface Props {
+    className?: string | undefined;
+  }
+
+  let {className = undefined}: Props = $props();
 
   const paths = [
     'M-380 -189C-380 -189 -312 216 152 343C616 470 684 875 684 875',
@@ -78,16 +82,17 @@
       stroke-width="0.5"></path>
 
     {#each paths as path, index (index)}
-      <Motion isSVG={true} let:motion>
-        <path use:motion d={path} stroke={`url(#linearGradient-${index})`} stroke-opacity="0.4" stroke-width="0.5"
-        ></path>
+      <Motion isSVG={true}>
+        {#snippet children({motion})}
+          <path use:motion d={path} stroke={`url(#linearGradient-${index})`} stroke-opacity="0.4" stroke-width="0.5"
+          ></path>
+        {/snippet}
       </Motion>
     {/each}
     <defs>
       {#each paths as _, index (`gradient-${index}`)}
         <Motion
           isSVG={true}
-          let:motion
           animate={{
             x1: ['0%', '100%'],
             x2: ['0%', '95%'],
@@ -100,12 +105,14 @@
             repeat: Infinity,
             delay: Math.random() * 10,
           }}>
-          <linearGradient use:motion id={`linearGradient-${index}`} x1="100%" x2="100%" y1="100%" y2="100%">
-            <stop stop-color="#18CCFC" stop-opacity="0"></stop>
-            <stop stop-color="#18CCFC"></stop>
-            <stop offset="32.5%" stop-color="#6344F5"></stop>
-            <stop offset="100%" stop-color="#AE48FF" stop-opacity="0"></stop>
-          </linearGradient>
+          {#snippet children({motion})}
+            <linearGradient use:motion id={`linearGradient-${index}`} x1="100%" x2="100%" y1="100%" y2="100%">
+              <stop stop-color="#18CCFC" stop-opacity="0"></stop>
+              <stop stop-color="#18CCFC"></stop>
+              <stop offset="32.5%" stop-color="#6344F5"></stop>
+              <stop offset="100%" stop-color="#AE48FF" stop-opacity="0"></stop>
+            </linearGradient>
+          {/snippet}
         </Motion>
       {/each}
 

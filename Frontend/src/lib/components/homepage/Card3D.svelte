@@ -2,7 +2,7 @@
   import {Card, CardBody, CardContainer, CardItem} from '$components';
   import {dashboard} from '$images';
 
-  let isMouseEntered = false;
+  let isMouseEntered = $state(false);
 </script>
 
 <CardContainer bind:isMouseEntered className="inter-var">

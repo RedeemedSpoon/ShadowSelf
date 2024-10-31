@@ -39,15 +39,19 @@
 
 <TracingBeam>
   <StickyScrollReveal {content}>
-    <div id="text" slot="text" let:item class:opacity-30={item.activeCard !== item.index}>
-      <h1 class="text-5xl font-normal md:text-7xl 2xl:text-nowrap">{item.title}</h1>
-      <p>{item.description}</p>
-    </div>
+    {#snippet text({item})}
+      <div id="text" class:opacity-30={item.activeCard !== item.index}>
+        <h1 class="text-5xl font-normal md:text-7xl 2xl:text-nowrap">{item.title}</h1>
+        <p>{item.description}</p>
+      </div>
+    {/snippet}
 
-    <div id="box" slot="image" let:item in:blur={{opacity: 1, amount: 5, duration: 500}}>
-      <img src={item.images[0]} alt={item.title} />
-      <img src={item.images[1]} alt={item.title} />
-    </div>
+    {#snippet image({item})}
+      <div id="box" in:blur={{opacity: 1, amount: 5, duration: 500}}>
+        <img src={item.images[0]} alt={item.title} />
+        <img src={item.images[1]} alt={item.title} />
+      </div>
+    {/snippet}
   </StickyScrollReveal>
 </TracingBeam>
 

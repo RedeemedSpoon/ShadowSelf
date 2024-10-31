@@ -2,11 +2,16 @@
   import '../app.css';
   import {Header, Footer, Notification} from '$components';
   import {authenticated, selectionMenuOpen} from '$store';
-  import type {LayoutData} from './$types';
-  import {onMount} from 'svelte';
+  import {type LayoutData} from './$types';
+  import {onMount, type Snippet} from 'svelte';
   import {notify} from '$lib';
 
-  export let data: LayoutData;
+  interface Props {
+    data: LayoutData;
+    children?: Snippet;
+  }
+
+  let {data, children}: Props = $props();
   $authenticated = data.authenticated;
 
   onMount(() => {
@@ -31,7 +36,7 @@
 <div class="hidden" id="app">
   <Header />
   <main>
-    <slot />
+    {@render children?.()}
   </main>
   <Footer />
   <Notification />
@@ -39,13 +44,13 @@
     id="overlay"
     aria-hidden="true"
     class={$selectionMenuOpen ? '!visible !opacity-35' : ''}
-    on:click={() => ($selectionMenuOpen = false)}>
+    onclick={() => ($selectionMenuOpen = false)}>
   </div>
 </div>
 
 <noscript class="flex h-screen w-full flex-col items-center justify-center gap-8 text-center">
   <h1>It looks like you <br />disabled JavaScript!</h1>
-  <p>That's totally normal! Please visit this page on our <a href="/">dark web</a> site instead.</p>
+  <p>That's totally fine. Tho please visit this page on our <a href="/">dark web</a> site instead.</p>
   <p class="text-sm">It's coming soon! we promise.</p>
 </noscript>
 

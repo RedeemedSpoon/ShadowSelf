@@ -1,5 +1,11 @@
 <script lang="ts">
-  export let showFade: boolean = true;
+  import type {Snippet} from 'svelte';
+  interface Props {
+    showFade?: boolean;
+    children?: Snippet;
+  }
+
+  let {showFade = true, children}: Props = $props();
 </script>
 
 <div class="bg-grid-neutral-700 relative flex h-[125&vh] w-[85vw] justify-center bg-transparent lg:h-[70vh]">
@@ -8,6 +14,6 @@
     </div>
   {/if}
   <div class="relative flex h-3/4 w-2/3 flex-col items-center justify-center gap-4">
-    <slot />
+    {@render children?.()}
   </div>
 </div>

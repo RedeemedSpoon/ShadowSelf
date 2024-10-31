@@ -1,13 +1,17 @@
 <script lang="ts">
   import {logo, github, tor, simplex} from '$images';
-  import {notify} from '$lib';
 
   const year = new Date().getFullYear();
-  const links = {
+  const navLinks = {
     Product: ['Homepage', 'Extension', 'Purchase'],
     Account: ['Dashboard', 'Settings', 'Docs'],
     Support: ['Contact', 'About', 'FAQ'],
     Legal: ['Terms of Service', 'Privacy Policy', 'Refund Policy'],
+  };
+  const socialLinks = {
+    Github: github,
+    Tor: tor,
+    Simplex: simplex,
   };
 </script>
 
@@ -16,24 +20,20 @@
     <div class="flex flex-col items-center gap-6">
       <a href="/"><img src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div class="flex justify-center gap-4">
-        <a href="https://github.com/RedeemedSpoon/ShadowSelf">
-          <img src={github} alt="Source Code" />
-        </a>
-        <a href="/" on:click|preventDefault={() => notify('Onion Website Coming Soon!', 'info')}>
-          <img src={tor} alt="Onion Website" />
-        </a>
-        <a href="/" on:click|preventDefault={() => notify('SimpleX Community Coming Soon!', 'info')}>
-          <img src={simplex} alt="SimpleX Community" />
-        </a>
+        {#each Object.entries(socialLinks) as [key, value]}
+          <a href={value} target="_blank">
+            <img src={value} alt={key} height="32" />
+          </a>
+        {/each}
       </div>
     </div>
     <nav class="flex flex-wrap justify-start gap-12 px-8 xl:gap-24">
-      {#each Object.entries(links) as [key, value]}
+      {#each Object.entries(navLinks) as [key, value]}
         <div class="flex flex-col gap-6">
           <p class="font-bold text-neutral-400">{key}</p>
           {#each value as link}
             {@const url = link === 'Homepage' ? '/' : `/${link.toLowerCase().replace(' ', '-')}`}
-            <a class="alt" href={url}>{link}</a>
+            <a class="alt" target="_blank" href={url}>{link}</a>
           {/each}
         </div>
       {/each}

@@ -1,18 +1,36 @@
 <script lang="ts">
+  import type {Snippet} from 'svelte';
   import {cn} from '$cn';
 
-  export let className: string | undefined = undefined;
-  export let translateX: number | string | undefined = 0;
-  export let translateY: number | string | undefined = 0;
-  export let translateZ: number | string | undefined = 0;
-  export let rotateX: number | string | undefined = 0;
-  export let rotateY: number | string | undefined = 0;
-  export let rotateZ: number | string | undefined = 0;
-  export let isMouseEntered: boolean = false;
+  interface Props {
+    className?: string | undefined;
+    translateX?: number | undefined;
+    translateY?: number | undefined;
+    translateZ?: number | undefined;
+    rotateX?: number | undefined;
+    rotateY?: number | undefined;
+    rotateZ?: number | undefined;
+    isMouseEntered?: boolean;
+    children?: Snippet;
+  }
 
-  let ref: HTMLDivElement;
+  let {
+    className = undefined,
+    translateX = $bindable(0),
+    translateY = $bindable(0),
+    translateZ = $bindable(0),
+    rotateX = $bindable(0),
+    rotateY = $bindable(0),
+    rotateZ = $bindable(0),
+    isMouseEntered = $bindable(false),
+    children,
+    ...rest
+  }: Props = $props();
 
-  $: if (isMouseEntered) handleAnimations();
+  let ref: HTMLDivElement | undefined = $state();
+  $effect(() => {
+    if (isMouseEntered) handleAnimations();
+  });
 
   const handleAnimations = () => {
     if (!ref) return;
@@ -24,6 +42,6 @@
   };
 </script>
 
-<div bind:this={ref} class={cn('w-fit transition duration-200 ease-linear', className)} {...$$props}>
-  <slot />
+<div bind:this={ref} class={cn('w-fit transition duration-200 ease-linear', className)} {...rest}>
+  {@render children?.()}
 </div>

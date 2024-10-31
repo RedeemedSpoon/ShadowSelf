@@ -19,7 +19,7 @@
   <div id="pricing-model">
     <div id="select-model-box"></div>
     {#each ['Monthly', 'Annually', 'Lifetime'] as model}
-      <button class:!text-neutral-300={model === $pricingModel.name} on:click={() => changePricingModel(model)}>
+      <button class:!text-neutral-300={model === $pricingModel.name} onclick={() => changePricingModel(model)}>
         {model}
       </button>
     {/each}

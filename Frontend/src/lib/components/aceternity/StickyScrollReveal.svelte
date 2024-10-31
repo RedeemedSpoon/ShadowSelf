@@ -3,11 +3,17 @@
   import {Card} from '$components';
   import {onMount} from 'svelte';
 
-  let activeCard = 0;
-  let direction = 'down';
-  let ref: HTMLDivElement;
+  let activeCard = $state(0);
+  let direction = $state('down');
+  let ref: HTMLDivElement | undefined = $state();
 
-  export let content: {title: string; description: string; images: string[]}[];
+  interface Props {
+    content: {title: string; description: string; images: string[]}[];
+    text?: import('svelte').Snippet<[any]>;
+    image?: import('svelte').Snippet<[any]>;
+  }
+
+  let {content, text, image}: Props = $props();
   const cardsBreakpoints = content.map((_, index) => index / content.length);
   const gradient = ['purple', 'red', 'blue', 'green', 'orange'];
 
@@ -24,16 +30,16 @@
       });
     };
 
-    ref.addEventListener('scroll', handleScroll);
-    ref.addEventListener('wheel', (e) => (direction = e.deltaY > 0 ? 'down' : 'up'));
-    return () => ref.removeEventListener('scroll', handleScroll);
+    ref?.addEventListener('scroll', handleScroll);
+    ref?.addEventListener('wheel', (e) => (direction = e.deltaY > 0 ? 'down' : 'up'));
+    return () => ref?.removeEventListener('scroll', handleScroll);
   });
 </script>
 
 <div bind:this={ref} id="main" class:overflow-y-hidden={direction === 'down' && $scrollYProgress >= 0.79}>
   <div class="max-w-xl">
     {#each content as item, index (index)}
-      <slot name="text" item={{...item, activeCard, index}} />
+      {@render text?.({item: {...item, activeCard, index}})}
     {/each}
   </div>
   <Card
@@ -41,7 +47,7 @@
     color={gradient[activeCard]}>
     <div id="wrapper" class={gradient[activeCard]}>
       {#key activeCard}
-        <slot name="image" item={content[activeCard]} />
+        {@render image?.({item: content[activeCard]})}
       {/key}
     </div>
   </Card>

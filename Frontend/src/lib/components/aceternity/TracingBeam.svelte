@@ -3,18 +3,25 @@
   import {cubicOut} from 'svelte/easing';
   import {scrollYProgress} from '$store';
   import {tweened} from 'svelte/motion';
+  import type {Snippet} from 'svelte';
   import {onMount} from 'svelte';
 
-  let svgHeight = 0;
+  interface Props {
+    children?: Snippet;
+  }
+
+  let {children}: Props = $props();
+
+  let svgHeight = $state(0);
   let y1 = tweened(50, {duration: 500, easing: cubicOut});
   let y2 = tweened(50, {duration: 500, easing: cubicOut});
 
-  $: {
+  $effect(() => {
     if (browser) {
       y1.set($scrollYProgress * window?.innerHeight * 0.85);
       y2.set($scrollYProgress * window?.innerHeight * 0.5);
     }
-  }
+  });
 
   onMount(() => (svgHeight = window?.innerHeight * 0.65));
 </script>
@@ -48,6 +55,6 @@
     </svg>
   </div>
   <div class="flex h-5/6 w-full justify-center xl:w-5/6">
-    <slot />
+    {@render children?.()}
   </div>
 </div>

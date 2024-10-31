@@ -1,11 +1,22 @@
 <script lang="ts">
+  import type {Snippet} from 'svelte';
   import {cn} from '$cn';
 
-  export let className: string | undefined = undefined;
-  export let containerClassName: string | undefined = undefined;
-  export let isMouseEntered = false;
+  interface Props {
+    className?: string | undefined;
+    containerClassName?: string | undefined;
+    isMouseEntered?: boolean;
+    children?: Snippet;
+  }
 
-  let containerRef: HTMLDivElement;
+  let {
+    className = undefined,
+    containerClassName = undefined,
+    isMouseEntered = $bindable(false),
+    children,
+  }: Props = $props();
+
+  let containerRef: HTMLDivElement | undefined = $state();
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!containerRef) return;
@@ -31,11 +42,11 @@
   <div
     aria-hidden="true"
     bind:this={containerRef}
-    on:mouseenter={handleMouseEnter}
-    on:mousemove={handleMouseMove}
-    on:mouseleave={handleMouseLeave}
+    onmouseenter={handleMouseEnter}
+    onmousemove={handleMouseMove}
+    onmouseleave={handleMouseLeave}
     class={cn('relative flex items-center justify-center transition-all duration-200 ease-linear', className)}
     style="transform-style: preserve-3d;">
-    <slot />
+    {@render children?.()}
   </div>
 </div>

@@ -1,21 +1,27 @@
 <script lang="ts">
-  export let color: string = '';
-  export let className: string = '';
-  export let upperClass: string = '';
-  export let animate: boolean = false;
-  export let isMouseEntered: boolean = false;
+  import type {Snippet} from 'svelte';
+  interface Props {
+    color?: string;
+    className?: string;
+    upperClass?: string;
+    animate?: boolean;
+    isMouseEntered?: boolean;
+    children?: Snippet;
+  }
+
+  let {color, className, upperClass, animate, isMouseEntered, children}: Props = $props();
 </script>
 
 {#if animate}
   <div id="gradient" class:scale-[1.02]={isMouseEntered}></div>
   <div id="card" class={className}>
-    <slot />
+    {@render children?.()}
   </div>
 {:else}
   <div class="group relative transition-all duration-500 ease-in-out {upperClass}">
     <div id="gradient" class={color}></div>
     <div id="card" class={className}>
-      <slot />
+      {@render children?.()}
     </div>
   </div>
 {/if}

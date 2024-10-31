@@ -4,8 +4,8 @@
   import {logoBesideText} from '$images';
   import {page} from '$app/stores';
 
-  $: isHome = $page.url.pathname === '/';
-  $: shouldFocus = isHome && $scrollY < 150;
+  let isHome = $derived($page.url.pathname === '/');
+  let shouldFocus = $derived(isHome && $scrollY < 150);
 </script>
 
 <svelte:window bind:scrollY={$scrollY} />

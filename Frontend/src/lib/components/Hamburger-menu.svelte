@@ -1,12 +1,18 @@
 <script lang="ts">
   import {selectionMenuOpen} from '$store';
+  import type {Snippet} from 'svelte';
 
-  export let className: string | undefined = undefined;
+  interface Props {
+    className?: string | undefined;
+    children?: Snippet;
+  }
+
+  let {className = undefined, children}: Props = $props();
 </script>
 
 <div class="hidden max-lg:block">
   <svg
-    on:click={() => ($selectionMenuOpen = !$selectionMenuOpen)}
+    onclick={() => ($selectionMenuOpen = !$selectionMenuOpen)}
     aria-hidden="true"
     xmlns="http://www.w3.org/2000/svg"
     class={'small-icon small-aura ' + className}
@@ -22,11 +28,11 @@
     <path d="M4 18l16 0" />
   </svg>
   <div class={$selectionMenuOpen ? '!visible !-translate-x-12 !opacity-100' : ''} id="humberger-menu-container">
-    <slot />
+    {@render children?.()}
   </div>
 </div>
 <div class="ml-6 flex gap-4 max-lg:hidden">
-  <slot />
+  {@render children?.()}
 </div>
 
 <style lang="postcss">

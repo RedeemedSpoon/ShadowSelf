@@ -1,5 +1,9 @@
 <script lang="ts">
-  export let className: string | undefined = '-ml-2 !w-4 !h-4 !fill-neutral-700';
+  interface Props {
+    className?: string | undefined;
+  }
+
+  let {className = '-ml-2 !w-4 !h-4 !fill-neutral-700'}: Props = $props();
 </script>
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class={className + ' small-icon'}>

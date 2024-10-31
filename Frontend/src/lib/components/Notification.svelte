@@ -3,9 +3,9 @@
   import {slide} from 'svelte/transition';
   import {notification} from '$store';
 
-  $: id = $notification.id;
-  $: type = $notification.type;
-  $: message = $notification.message;
+  let id = $derived($notification.id);
+  let type = $derived($notification.type);
+  let message = $derived($notification.message);
 
   const icons = {
     alert: alert,
@@ -17,7 +17,7 @@
 </script>
 
 {#if id}
-  <div class="notification {type}" transition:slide={{axis: 'x'}} on:click={handleClick} aria-hidden="true">
+  <div class="notification {type}" transition:slide={{axis: 'x'}} onclick={handleClick} aria-hidden="true">
     <img class="mr-4" src={icons[type]} alt={type} width="48px" height="48px" />
     <p class="text-clip text-nowrap text-xl">{message}</p>
   </div>
