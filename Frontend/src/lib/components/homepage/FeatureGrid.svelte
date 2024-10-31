@@ -56,28 +56,32 @@
   ];
 </script>
 
-<div class="grid h-3/4 w-full grid-cols-4 border-r border-neutral-700 px-[6vw]">
+<div>
   {#each features as feature (feature.index)}
     <div id="cell" class:bottom-cells={feature.index > 4} class:border-r={feature.index % 4 === 0}>
       <img src={feature.image} alt={feature.title} />
-      <h3 class="text-3xl font-bold">{feature.title}</h3>
-      <p class="text-lg !leading-8 text-neutral-400">{feature.description}</p>
+      <h3 class="text-2xl font-bold md:text-3xl">{feature.title}</h3>
+      <p class="hidden text-lg !leading-8 text-neutral-400 lg:block">{feature.description}</p>
     </div>
   {/each}
 </div>
 
 <style lang="postcss">
-  img {
-    @apply h-14 w-14;
+  div:not(#cell) {
+    @apply grid h-3/4 w-full grid-cols-2 border-r border-neutral-700 px-[6vw] max-lg:mt-48 xl:grid-cols-4 xl:max-2xl:px-[3vw];
   }
 
   #cell {
     @apply flex flex-col items-baseline justify-center gap-4 border-l border-neutral-700 p-8 transition-all duration-500 ease-in-out;
-    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-gradient-to-t from-neutral-800/75 to-neutral-900;
+    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-gradient-to-t from-neutral-800/75 to-neutral-900 max-xl:border;
   }
 
   #cell.bottom-cells {
-    @apply border-t border-neutral-700;
     @apply bg-size-200 bg-pos-100 hover:bg-pos-0 bg-gradient-to-b from-neutral-800/75 to-neutral-900;
+    @apply border-t border-neutral-700;
+  }
+
+  img {
+    @apply h-14 w-14;
   }
 </style>

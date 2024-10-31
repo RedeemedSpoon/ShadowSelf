@@ -28,7 +28,7 @@
 
 <section id={data.ids[0]}>
   <Slogan />
-  <p class="my-6 w-1/2 text-balance text-center">
+  <p class="my-6 w-3/4 text-balance text-center lg:w-1/2">
     Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your
     personal information remains hidden, far away from malicious threats. Experience the freedom of online interactions
     without the fear of compromise.
@@ -42,12 +42,13 @@
     <a href="/signup"><button>Get Started!</button></a>
   </div>
 </section>
-<section id={data.ids[1]}>
+<section id={data.ids[1]} class="!flex-col-reverse 2xl:!flex-row">
   <Card3D />
-  <div class="flex flex-col items-start gap-6">
+  <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-0">
     <h4 class="-mb-4 ml-2 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h4>
-    <h1 class="text-5xl text-neutral-300">
-      <span class="pretty-style text-8xl">Reclaim Back</span><br />Control of Your Data.
+    <h1 class="text-4xl text-neutral-300 md:text-5xl">
+      <span class="pretty-style text-nowrap text-6xl md:text-8xl">Reclaim Back</span>
+      <br />Control of Your Data.
     </h1>
     <p>
       Unlike profit-hungry conglomerates, we’re a open-source project dedicated to fighting back. We’ve developed a
@@ -56,11 +57,15 @@
     </p>
   </div>
 </section>
-<section id={data.ids[2]}><Services /></section>
+<section id={data.ids[2]} class="relative max-md:!h-[75vh]">
+  <Services />
+</section>
 <section id={data.ids[3]}>
   <GridAndDotBackgrounds>
-    <h1 class="mt-28 text-6xl">Less Burdens, Less Expenses.</h1>
-    <div id="account" class="mt-6 flex w-full items-center justify-center gap-32 text-balance text-center">
+    <h1 class="mt-48 text-center text-5xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
+    <div
+      id="account"
+      class="mt-6 flex items-center justify-center gap-16 text-balance text-center max-lg:flex-col xl:gap-32">
       <div class="flex w-[30rem] flex-col items-center gap-8">
         <img src={registration} width="200" alt="Account Registration" />
         <h2 class="from-red-500 to-rose-600 text-4xl font-bold">Account Registration</h2>
@@ -80,9 +85,13 @@
     </div>
   </GridAndDotBackgrounds>
 </section>
-<section id={data.ids[4]}><FeatureGrid /></section>
-<section id={data.ids[5]}><PricingTable /></section>
-<section id={data.ids[6]} class="!mb-0 bg-gradient-to-b from-neutral-900 from-25% to-neutral-950/25">
+<section id={data.ids[4]} class="max-xl:!h-fit">
+  <FeatureGrid />
+</section>
+<section id={data.ids[5]}>
+  <PricingTable />
+</section>
+<section id={data.ids[6]} class="xl:!flex-row xl:gap-x-16">
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
     <p class="w-5/6">
@@ -92,17 +101,17 @@
     </p>
   </div>
   <div class="h-fit w-fit">
-    <img class="animate-shake w-full min-w-[30vw]" src={satisfaction} alt="Customer satisfaction" />
+    <img class="animate-shake hidden min-w-[30vw] xl:block" src={satisfaction} alt="Customer satisfaction" />
   </div>
 </section>
-<section id={data.ids[7]} class="mt-0">
-  <h1>Join The Waitlist</h1>
-  <p class="z-10 w-1/3 text-center leading-relaxed text-neutral-400">
+<section id={data.ids[7]} class="relative mt-0">
+  <h1 class="text-center text-6xl md:text-7xl">Join The Waitlist</h1>
+  <p class="z-10 w-3/5 text-center leading-relaxed text-neutral-400 lg:w-1/2 xl:w-1/3">
     Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates in the Github repository
     that can be found <a href="https://github.com/RedeemedSpoon/ShadowSelf">Here</a>. We are just as exited as you are
     about this project and we are committed to make the world a safer and freer place.
   </p>
-  <form use:enhance method="post" class="z-10 mt-4 flex w-1/3">
+  <form use:enhance method="post" class="xl:w-1/3 z-10 mt-4 flex w-3/5 lg:w-1/2">
     <input name="email" type="email" placeholder="Enter your email" />
   </form>
   <BackgroundBeams />
@@ -111,12 +120,20 @@
 <style lang="postcss">
   section {
     @apply mb-16 w-full transition-all duration-[1500ms] ease-in-out last:mb-0;
-    @apply relative flex h-screen flex-col items-center justify-center gap-6;
+    @apply flex h-screen flex-col items-center justify-center gap-6;
 
     &:nth-child(2),
     &:nth-child(6),
     &:nth-child(7) {
-      @apply !flex-row gap-32 px-[10vw];
+      @apply px-[10vw] max-lg:my-32 xl:gap-x-16 2xl:gap-x-32 2xl:max-2xl:px-[5vw];
+    }
+
+    &:nth-child(7) {
+      @apply !mb-0 bg-gradient-to-b from-neutral-900 from-25% to-neutral-950/25 max-2xl:pb-32 max-xl:!h-fit;
+    }
+
+    &:nth-child(6) {
+      @apply max-xl:!my-[25vh] max-lg:!my-0 2xl:!flex-row min-[1536px]:max-[1700px]:!flex-col;
     }
   }
 

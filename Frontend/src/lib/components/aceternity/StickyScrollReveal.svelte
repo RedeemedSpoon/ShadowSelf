@@ -31,12 +31,14 @@
 </script>
 
 <div bind:this={ref} id="main" class:overflow-y-hidden={direction === 'down' && $scrollYProgress >= 0.79}>
-  <div class="max-w-2xl">
+  <div class="max-w-xl">
     {#each content as item, index (index)}
       <slot name="text" item={{...item, activeCard, index}} />
     {/each}
   </div>
-  <Card upperClass={'w-1/3 h-2/3 top-32 sticky'} color={gradient[activeCard]}>
+  <Card
+    upperClass={'w-1/3 h-2/3 min-w-[450px] top-32 hidden xl:max-2xl:scale-90  max-xl:scale-75 lg:block sticky'}
+    color={gradient[activeCard]}>
     <div id="wrapper" class={gradient[activeCard]}>
       {#key activeCard}
         <slot name="image" item={content[activeCard]} />
@@ -47,7 +49,8 @@
 
 <style lang="postcss">
   #main {
-    @apply no-scrollbar relative flex h-full w-full snap-y snap-mandatory justify-center gap-x-24 overflow-y-auto;
+    @apply no-scrollbar relative flex h-full w-full snap-y snap-mandatory;
+    @apply justify-evenly overflow-y-auto max-xl:justify-center xl:gap-x-2 xl:p-8;
   }
 
   #wrapper {

@@ -24,14 +24,14 @@
 
 <div id="background" style="background-image: url({background})"></div>
 <div class="-mb-2 mt-32 flex">
-  <h1 class="mr-5 text-neutral-300">Your</h1>
-  <h1 class="text-neutral-300">Privacy<span id="underline-text"></span></h1>
-  <h1 class="text-neutral-300">,</h1>
+  <h2 class="mr-5">Your</h2>
+  <h2>Privacy<span id="underline-text"></span></h2>
+  <h2>,</h2>
 </div>
 <div class="flex">
-  <h1 class="mr-6 text-9xl">Our</h1>
+  <h1 class="mr-6">Our</h1>
   <h1 id="highlighted-text">Priority</h1>
-  <h1 class="ml-2 text-9xl">.</h1>
+  <h1 class="ml-2">.</h1>
   <div id="highlight"></div>
 </div>
 
@@ -41,18 +41,22 @@
   }
 
   #underline-text {
-    @apply from-primary-600 to-primary-800 mt-1 block h-1 max-w-0 bg-gradient-to-br transition-all duration-500;
+    @apply basic-style mt-1 block h-1 max-w-0 transition-all duration-500;
   }
 
   #highlight {
-    @apply from-primary-600 to-primary-800 absolute ml-64 max-w-0 bg-gradient-to-br transition-all duration-1000 ease-in-out;
+    @apply basic-style absolute ml-[9.5rem] max-w-0 transition-all duration-1000 ease-in-out sm:ml-48 md:ml-64;
   }
 
   #highlighted-text {
-    @apply px-2 text-9xl transition-all duration-1000 ease-in-out;
+    @apply px-2 transition-all duration-1000 ease-in-out;
   }
 
   h1 {
-    @apply from-primary-600 to-primary-800 bg-gradient-to-br font-semibold;
+    @apply basic-style text-7xl font-semibold sm:text-8xl md:text-9xl;
+  }
+
+  h2 {
+    @apply text-5xl text-neutral-300 sm:text-6xl md:text-7xl;
   }
 </style>

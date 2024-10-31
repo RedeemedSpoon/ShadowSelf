@@ -30,7 +30,7 @@
 
 <div class="hidden" id="app">
   <Header />
-  <main class="sm:bg-blue-500 md:bg-red-500 lg:bg-green-500 xl:bg-yellow-500 2xl:bg-neutral-900">
+  <main>
     <slot />
   </main>
   <Footer />

@@ -40,7 +40,7 @@
 <TracingBeam>
   <StickyScrollReveal {content}>
     <div id="text" slot="text" let:item class:opacity-30={item.activeCard !== item.index}>
-      <h1 class="text-7xl font-normal">{item.title}</h1>
+      <h1 class="text-5xl font-normal md:text-7xl 2xl:text-nowrap">{item.title}</h1>
       <p>{item.description}</p>
     </div>
 
@@ -53,7 +53,7 @@
 
 <style lang="postcss">
   #text {
-    @apply flex h-full snap-center flex-col justify-center gap-4 text-balance text-2xl leading-relaxed;
+    @apply flex h-full min-w-[325px] snap-center flex-col justify-center gap-4 text-balance max-xl:ml-32 max-md:mx-[10vw];
   }
 
   #box {

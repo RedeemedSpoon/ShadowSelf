@@ -11,9 +11,9 @@
   ];
 </script>
 
-<div class="flex flex-col items-center gap-4">
+<div class="mb-12 flex flex-col items-center gap-4 max-lg:-mb-12 max-sm:scale-90">
   <h1>Select Your Plan</h1>
-  <p class="text-balance text-center">
+  <p class="max-w-xl text-balance text-center">
     We're not fans of subscriptions either, but someone's gotta pay the bills. Our lifetime plan is a fair deal.
   </p>
   <div id="pricing-model">
@@ -26,12 +26,12 @@
   </div>
 </div>
 
-<Card className="!border-2 !border-neutral-400" upperClass="hover:-translate-y-4">
-  <div class="flex flex-col items-start gap-8 px-16 py-6 text-center">
+<Card className="!border-2 !border-neutral-400" upperClass="max-sm:scale-[0.65] max-lg:scale-75 hover:-translate-y-4">
+  <div class="flex flex-col items-center gap-8 px-8 py-6 text-center md:items-start md:px-16">
     {#key $pricingModel.price}
       <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
-        <h3 class="mb-4 mt-9 text-left text-4xl font-bold text-neutral-300">{$pricingModel.title}</h3>
-        <div class="flex items-baseline gap-3">
+        <h3 class="mb-4 mt-9 text-4xl font-bold text-neutral-300 md:text-left">{$pricingModel.title}</h3>
+        <div class="flex items-baseline gap-3 max-md:justify-center">
           <h1 class="text-primary-600 flex items-start gap-1 text-6xl">
             <span class="mt-6 text-4xl">$</span>{$pricingModel.price}
           </h1>
@@ -45,7 +45,7 @@
         <li><CheckmarkImg />Email Address</li>
         <li><CheckmarkImg />Phone Number</li>
       </ul>
-      <ul class="mx-8 list-inside">
+      <ul class="list-inside md:mx-8">
         <li><CheckmarkImg />Virtual Card</li>
         <li><CheckmarkImg />Crypto Wallet</li>
         <li><CheckmarkImg />VPN Access</li>
