@@ -7,7 +7,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "HOST=127.0.0.1 PORT=5000 ORIGIN=https://shadowself.io bun ./build/index.js",
+    "start": "HOST=127.0.0.1 PORT=5000 bun ./build/index.js",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },

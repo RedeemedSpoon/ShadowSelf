@@ -117,7 +117,7 @@
     that can be found <a href="https://github.com/RedeemedSpoon/ShadowSelf">Here</a>. We are just as exited as you are
     about this project and we are committed to make the world a safer and freer place.
   </p>
-  <form use:enhance method="post" class="z-10 mt-4 flex w-3/5 lg:w-1/2 xl:w-1/3">
+  <form use:enhance method="POST" class="z-10 mt-4 flex w-3/5 lg:w-1/2 xl:w-1/3">
     <input name="email" type="email" placeholder="Enter your email" />
   </form>
   <BackgroundBeams />

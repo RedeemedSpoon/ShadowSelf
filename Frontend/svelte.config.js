@@ -8,13 +8,13 @@ const config = {
     adapter: adapter({
       out: 'build',
       assets: true,
+      development: false,
+      dynamic_origins: true,
+      xff_depth: 1,
       precompress: {
-        brotli: true,
         gzip: true,
+        brotli: false,
         files: ['html', 'js', 'json', 'css', 'svg', 'xml', 'wasm'],
-        development: false,
-        dynamic_origins: true,
-        xff_depth: 1,
       },
     }),
     alias: {
