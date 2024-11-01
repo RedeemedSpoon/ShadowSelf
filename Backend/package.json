@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch --env-file=.env src/index.ts",
-    "make-build": "bun run build src/index.ts"
+    "build": "bun build ./src/index.ts --target=bun --compile  --outfile=server"
   },
   "devDependencies": {
     "bun-types": "latest",

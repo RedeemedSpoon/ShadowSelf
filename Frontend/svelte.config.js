@@ -5,7 +5,18 @@ import {vitePreprocess} from '@sveltejs/vite-plugin-svelte';
 const config = {
   preprocess: vitePreprocess(),
   kit: {
-    adapter: adapter(),
+    adapter: adapter({
+      out: 'build',
+      assets: true,
+      precompress: {
+        brotli: true,
+        gzip: true,
+        files: ['html', 'js', 'json', 'css', 'svg', 'xml', 'wasm'],
+        development: false,
+        dynamic_origins: true,
+        xff_depth: 1,
+      },
+    }),
     alias: {
       $components: 'src/lib/components',
       $images: 'src/lib/images',

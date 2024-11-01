@@ -14,7 +14,7 @@
       <CardItem
         {isMouseEntered}
         translateZ="80"
-        className="text-neutral-400 text-sm my-3 leading-relaxed max-h-[150px] overflow-scroll">
+        className="text-neutral-400 text-sm my-3 leading-relaxed max-h-[150px] overflow-hidden">
         Via our intitive dashboard, you can create and manage your identities. You can also customize your them to your
         likings (name, location, etc.) and rest easy knowing that you no longer fear mass-surveillance, fraud and other
         potential threats to you.

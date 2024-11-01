@@ -10,8 +10,7 @@ export {default as info} from './status/info.svg';
 export {default as alert} from './status/alert.svg';
 export {default as success} from './status/success.svg';
 
-export {default as circuitPattern} from './404/circuit-pattern.svg';
-export {default as itCrowdGif} from './404/IT-Crowd.gif';
+export {default as circuitPattern} from './patterns/circuit-pattern.svg';
 
 export {default as satisfaction} from './homepage/satisfaction.png';
 export {default as background} from './homepage/background.png';

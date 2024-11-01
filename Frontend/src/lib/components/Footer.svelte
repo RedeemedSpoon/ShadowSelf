@@ -9,9 +9,9 @@
     Legal: ['Terms of Service', 'Privacy Policy', 'Refund Policy'],
   };
   const socialLinks = {
-    Github: github,
-    Tor: tor,
-    Simplex: simplex,
+    'Github Repository': {href: 'https://github.com/RedeemedSpoon/ShadowSelf', img: github},
+    'Onion Website': {href: 'https://onion.torproject.org/', img: tor},
+    'SimpleX Community': {href: 'https://simplex.torproject.org/', img: simplex},
   };
 </script>
 
@@ -21,8 +21,8 @@
       <a href="/"><img src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div class="flex justify-center gap-4">
         {#each Object.entries(socialLinks) as [key, value]}
-          <a href={value} target="_blank">
-            <img src={value} alt={key} height="32" />
+          <a href={value.href} target="_blank">
+            <img src={value.img} alt={key} height="32" />
           </a>
         {/each}
       </div>

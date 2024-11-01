@@ -15,81 +15,42 @@ The project is still in beta phase and is still under heavy development. You can
 
 ## Running Locally
 
-To get started, clone the repository and change the directory with the following command:
+### Requirements
 
-```bash
-git clone https://github.com/RedeemedSpoon/ShadowSelf.git
-cd ShadowSelf
-```
+- `Bun` as the runtime, dependency manager and bundler, needed for the backend
+- `PostgreSQL` as the database, configured for the backend
 
 ### Frontend
 
-Install the dependencies:
+- `bun install` To install all the dependencies
 
-```bash
-cd Frontend
-bun install # or npm install
-```
+- `bun dev` To start the development server
 
-Start the server:
+- `bun run build` To build the project
 
-```bash
-bun dev # or npm run dev
-```
+- `bun preview` To preview the project locally
 
-If you want to build the project and preview it locally, run the following command:
-
-```bash
-bun make-build # or npm run make-build
-bun preview # or npm run preview
-```
+- `bun start` To start a production-ready server
 
 ### Backend
 
-Install the dependencies: (Note that [bun](https://bun.sh/) is required to run the backend)
+- `bun install` To install all the dependencies
 
-```bash
-cd Backend
-bun install
-```
+- `psql -U postgres -f database.sql` To initialize the database
 
-Initialize the PostgreSQL database:
+- `bun dev` To start the development backend server
 
-```bash
-psql -U postgres -f database.sql
-```
+- `bun run build` To build and compile the project
 
-Start the server:
-
-```bash
-bun dev
-```
-
-To build the project and compile it, run the following command:
-
-```bash
-bun make-build
-```
+- `./server` To start a production-ready server
 
 ### Linting/Formatting
 
-Install the dependencies:
+- `bun install` To install the both eslint and prettier
 
-```bash
-bun install
-```
+- `bun lint` To run the linter
 
-Run the linter:
-
-```bash
-bun lint # or npm run lint
-```
-
-Run the formatter:
-
-```bash
-bun format # or npm run format
-```
+- `bun format` To run the formatter
 
 ### Quick Tmux Session
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import {page} from '$app/stores';
   import {CheveronImg} from '$components';
-  import {circuitPattern, itCrowdGif} from '$images';
+  import {circuitPattern} from '$images';
 </script>
 
 <svelte:head>
@@ -12,7 +12,7 @@
 
 <section style="background-size: 20%; background-image: url({circuitPattern}); background-repeat: repeat">
   <h1 class="text-5xl md:text-7xl">Page Not Found.</h1>
-  <img alt={$page.error?.message} src={itCrowdGif} />
+  <img alt={$page.error?.message} src="404-error.gif" />
   <p>Oops, looks like you hit a dead end! That's not a big deal, Let's get you back on track.</p>
   <a href="/"><button>Go Home<CheveronImg /></button></a>
 </section>
