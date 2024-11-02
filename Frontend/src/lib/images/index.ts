@@ -12,12 +12,12 @@ export {default as success} from './status/success.svg';
 
 export {default as circuitPattern} from './patterns/circuit-pattern.svg';
 
-export {default as satisfaction} from './homepage/satisfaction.png';
-export {default as background} from './homepage/background.png';
-export {default as dashboard} from './homepage/dashboard.png';
+export {default as satisfaction} from './homepage/satisfaction.webp';
+export {default as background} from './homepage/background.webp';
+export {default as dashboard} from './homepage/dashboard.webp';
 
-export {default as registration} from './homepage/benefits/registration.svg';
-export {default as management} from './homepage/benefits/management.svg';
+export {default as registration} from './homepage/usecases/registration.svg';
+export {default as management} from './homepage/usecases/management.svg';
 
 export {default as cog} from './homepage/features/cog.svg';
 export {default as tag} from './homepage/features/tag.svg';
@@ -28,13 +28,13 @@ export {default as customer} from './homepage/features/customer.svg';
 export {default as terminal} from './homepage/features/terminal.svg';
 export {default as openSource} from './homepage/features/open-source.svg';
 
-export {default as card} from './homepage/capabilities/card.png';
-export {default as cloud} from './homepage/capabilities/cloud.png';
-export {default as email} from './homepage/capabilities/email.png';
-export {default as globe} from './homepage/capabilities/globe.png';
-export {default as money} from './homepage/capabilities/money.png';
-export {default as tower} from './homepage/capabilities/tower.png';
-export {default as router} from './homepage/capabilities/router.png';
-export {default as server} from './homepage/capabilities/server.png';
-export {default as message} from './homepage/capabilities/message.png';
-export {default as identity} from './homepage/capabilities/identity.png';
+export {default as card} from './homepage/services/card.webp';
+export {default as cloud} from './homepage/services/cloud.webp';
+export {default as email} from './homepage/services/email.webp';
+export {default as globe} from './homepage/services/globe.webp';
+export {default as money} from './homepage/services/money.webp';
+export {default as tower} from './homepage/services/tower.webp';
+export {default as router} from './homepage/services/router.webp';
+export {default as server} from './homepage/services/server.webp';
+export {default as message} from './homepage/services/message.webp';
+export {default as identity} from './homepage/services/identity.webp';
