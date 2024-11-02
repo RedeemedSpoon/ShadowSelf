@@ -16,6 +16,12 @@ export interface AnimationSelector {
   type: 'left' | 'right' | 'bottom';
 }
 
+export interface ServicesContent {
+  title: string;
+  description: string;
+  images: string[];
+}
+
 export interface PricingModel {
   name: string;
   title: string;

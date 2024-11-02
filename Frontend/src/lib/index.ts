@@ -64,7 +64,7 @@ export function addAnimation(elements: AnimationSelector[]) {
       node.classList.add('transition-all', '!duration-1000', 'ease-in-out', 'opacity-0', translate);
       object.push({
         node: node,
-        delay: element.delay || 125 * key,
+        delay: element.delay || 100 * key,
         type: element.type,
       });
     });

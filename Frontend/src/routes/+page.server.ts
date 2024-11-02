@@ -21,12 +21,12 @@ export const load: PageServerLoad = () => {
       {
         selector: '#main:first-child',
         type: 'right',
-        delay: 125,
+        delay: 100,
       },
       {
         selector: '#services > div > div:first-child',
         type: 'right',
-        delay: 250,
+        delay: 200,
       },
       {
         selector: '#usecases h1',
@@ -35,12 +35,12 @@ export const load: PageServerLoad = () => {
       {
         selector: '#account > div:first-child',
         type: 'left',
-        delay: 250,
+        delay: 200,
       },
       {
         selector: '#account > div:last-child',
         type: 'right',
-        delay: 250,
+        delay: 200,
       },
       {
         selector: '#features',

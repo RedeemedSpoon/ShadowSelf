@@ -1,16 +1,17 @@
 <script lang="ts">
+  import {onMount, type Snippet} from 'svelte';
+  import type {ServicesContent} from '$types';
   import {scrollYProgress} from '$store';
   import {Card} from '$components';
-  import {onMount} from 'svelte';
 
   let activeCard = $state(0);
   let direction = $state('down');
   let ref: HTMLDivElement | undefined = $state();
 
   interface Props {
-    content: {title: string; description: string; images: string[]}[];
-    text?: import('svelte').Snippet<[any]>;
-    image?: import('svelte').Snippet<[any]>;
+    content: ServicesContent[];
+    text?: Snippet<[{item: ServicesContent & {activeCard: number; index: number}}]>;
+    image?: Snippet<[{item: ServicesContent}]>;
   }
 
   let {content, text, image}: Props = $props();

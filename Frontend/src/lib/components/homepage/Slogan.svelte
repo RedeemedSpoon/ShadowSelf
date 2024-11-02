@@ -18,6 +18,12 @@
 
       highlightedText?.classList.add('!text-neutral-300');
       highlight?.classList.add('!max-w-full');
+
+      window.addEventListener('resize', () => {
+        const rect = highlightedText?.getBoundingClientRect();
+        highlight?.style.setProperty('height', `${rect?.height}px`);
+        highlight?.style.setProperty('width', `${rect?.width}px`);
+      });
     }, 2000);
   });
 </script>

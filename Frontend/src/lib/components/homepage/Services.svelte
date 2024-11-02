@@ -1,9 +1,10 @@
 <script lang="ts">
   import {card, tower, cloud, email, globe, money, message, server, router, identity} from '$images';
   import {StickyScrollReveal, TracingBeam} from '$components';
+  import type {ServicesContent} from '$types';
   import {blur} from 'svelte/transition';
 
-  const content = [
+  const content: ServicesContent[] = [
     {
       title: 'Fake a Person',
       description:
