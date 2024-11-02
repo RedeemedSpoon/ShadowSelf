@@ -39,7 +39,7 @@
     personal information remains hidden, far away from malicious threats. Experience the freedom of online interactions
     without the fear of compromise.
   </p>
-  <div class="flex gap-8">
+  <div class="flex gap-16">
     <a href={'#' + data.ids[1]} class="no-underline">
       <button class="alt group flex items-center gap-1">
         Learn More<CheveronImg className="group-hover:rotate-90" />
@@ -51,7 +51,7 @@
 <section id={data.ids[1]} class="!flex-col-reverse 2xl:!flex-row">
   <Card3D />
   <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-0">
-    <h4 class="-mb-4 ml-2 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h4>
+    <h6 class="-mb-4 ml-2 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h6>
     <h1 class="text-4xl text-neutral-300 md:text-5xl">
       <span class="pretty-style text-nowrap text-6xl md:text-8xl">Reclaim Back</span>
       <br />Control of Your Data.
@@ -107,14 +107,18 @@
     </p>
   </div>
   <div class="h-fit w-fit">
-    <img class="animate-shake hidden min-w-[30vw] xl:block" src={satisfaction} alt="Customer satisfaction" />
+    <img
+      loading="lazy"
+      class="animate-shake hidden min-w-[30vw] xl:block"
+      src={satisfaction}
+      alt="Customer satisfaction" />
   </div>
 </section>
 <section id={data.ids[7]} class="relative mt-0">
   <h1 class="text-center text-6xl md:text-7xl">Join The Waitlist</h1>
   <p class="z-10 w-3/5 text-center leading-relaxed text-neutral-400 lg:w-1/2 xl:w-1/3">
-    Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates in the Github repository
-    that can be found <a href="https://github.com/RedeemedSpoon/ShadowSelf">Here</a>. We are just as exited as you are
+    Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates and new exiting features
+    in the <a href="https://github.com/RedeemedSpoon/ShadowSelf">Github</a> Repository. We are just as exited as you are
     about this project and we are committed to make the world a safer and freer place.
   </p>
   <form use:enhance method="POST" class="z-10 mt-4 flex w-3/5 lg:w-1/2 xl:w-1/3">

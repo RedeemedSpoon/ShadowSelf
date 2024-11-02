@@ -30,7 +30,7 @@
   <div class="flex flex-col items-center gap-8 px-8 py-6 text-center md:items-start md:px-16">
     {#key $pricingModel.price}
       <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
-        <h3 class="mb-4 mt-9 text-4xl font-bold text-neutral-300 md:text-left">{$pricingModel.title}</h3>
+        <h2 class="mb-4 mt-9 text-4xl font-bold text-neutral-300 md:text-left">{$pricingModel.title}</h2>
         <div class="flex items-baseline gap-3 max-md:justify-center">
           <h1 class="text-primary-600 flex items-start gap-1 text-6xl">
             <span class="mt-6 text-4xl">$</span>{$pricingModel.price}

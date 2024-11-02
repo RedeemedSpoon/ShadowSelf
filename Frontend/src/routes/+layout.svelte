@@ -16,6 +16,8 @@
 
   onMount(() => {
     document.querySelector('#app')?.classList.remove('hidden');
+    document.addEventListener('touchstart', (e) => e.preventDefault(), {passive: true});
+
     // Temporary, will be removed after official release
     const links = document.querySelectorAll('a');
 

@@ -11,7 +11,7 @@
 <svelte:window bind:scrollY={$scrollY} />
 <header class:focused={shouldFocus}>
   <a href="/">
-    <img id="logo" src={logoBesideText} alt="Shadowself Logo" />
+    <img id="logo" src={logoBesideText} alt="Shadowself Logo" width="276" />
   </a>
   <div id="nav-container" class="translate-x-0 transition-transform duration-1000 ease-in-out">
     <HamburgerMenu className="!w-16 !h-16">
@@ -39,7 +39,7 @@
   }
 
   #logo {
-    @apply min-h-[3rem] transition-transform duration-1000 ease-in-out md:min-h-[3.75rem];
+    @apply transition-transform duration-1000 ease-in-out;
   }
 
   #auth-buttons,

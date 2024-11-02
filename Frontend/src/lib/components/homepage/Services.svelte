@@ -48,8 +48,8 @@
 
     {#snippet image({item})}
       <div id="box" in:blur={{opacity: 1, amount: 5, duration: 500}}>
-        <img src={item.images[0]} alt={item.title} />
-        <img src={item.images[1]} alt={item.title} />
+        <img loading="lazy" src={item.images[0]} alt={item.title} />
+        <img loading="lazy" src={item.images[1]} alt={item.title} />
       </div>
     {/snippet}
   </StickyScrollReveal>

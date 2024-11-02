@@ -18,7 +18,7 @@
 <footer>
   <div class="mx-auto flex flex-col-reverse items-center gap-16 px-4 lg:flex-row">
     <div class="flex flex-col items-center gap-6">
-      <a href="/"><img src={logo} alt="ShadowSelf" width="216" height="216" /></a>
+      <a href="/"><img loading="lazy" src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div class="flex justify-center gap-4">
         {#each Object.entries(socialLinks) as [key, value]}
           <a href={value.href} target="_blank">
