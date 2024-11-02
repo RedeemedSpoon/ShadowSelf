@@ -41,6 +41,7 @@ export default tseslint.config(
       '**/*.html',
       '**/*.css',
       '**/*.md',
+      '**/*.xml',
       '**/*.yaml',
     ],
     languageOptions: {
@@ -50,6 +51,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['Frontend/build/', 'Frontend/.svelte-kit/', 'Frontend/dist/'],
+    ignores: ['Frontend/build/', 'Frontend/.svelte-kit/'],
   },
 );

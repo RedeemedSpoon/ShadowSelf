@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.02] - 2024-11-01
+
+### Added
+
+- Add sitemap.xml
+- Add robots.xml
+
+### Changed
+
+- Fix bad page responsiveness
+- Fix sections overlap
+
 ## [0.1.01] - 2024-11-01
 
 ### Added
@@ -23,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Launch the website finally
-- Add Responsiveness to website
+- Add responsiveness to website
 
 ### Changed
 

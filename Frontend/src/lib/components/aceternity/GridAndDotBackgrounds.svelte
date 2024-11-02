@@ -1,5 +1,6 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
+
   interface Props {
     showFade?: boolean;
     children?: Snippet;

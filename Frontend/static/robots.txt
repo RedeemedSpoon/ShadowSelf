@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /identity/
+Disallow: /settings/
+
+Sitemap: https://shadowself.io/sitemap.xml
