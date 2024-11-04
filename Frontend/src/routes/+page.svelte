@@ -14,6 +14,7 @@
   }
 
   let {data, form}: Props = $props();
+
   $effect(() => {
     if (form?.message) notify(form?.message, form?.type);
   });

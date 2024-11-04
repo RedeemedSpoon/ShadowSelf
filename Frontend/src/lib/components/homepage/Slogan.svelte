@@ -11,19 +11,9 @@
     setTimeout(() => {
       const highlight = document.querySelector('#highlight') as HTMLDivElement;
       const highlightedText = document.querySelector('#highlighted-text');
-      const rect = highlightedText?.getBoundingClientRect();
-
-      highlight?.style.setProperty('height', `${rect?.height}px`);
-      highlight?.style.setProperty('width', `${rect?.width}px`);
 
       highlightedText?.classList.add('!text-neutral-300');
       highlight?.classList.add('!max-w-full');
-
-      window.addEventListener('resize', () => {
-        const rect = highlightedText?.getBoundingClientRect();
-        highlight?.style.setProperty('height', `${rect?.height}px`);
-        highlight?.style.setProperty('width', `${rect?.width}px`);
-      });
     }, 2000);
   });
 </script>
@@ -36,9 +26,11 @@
 </div>
 <div class="flex">
   <h1 class="mr-6">Our</h1>
-  <h1 id="highlighted-text">Priority</h1>
+  <h1 id="highlighted-text">
+    <span>Priority</span>
+    <div id="highlight"></div>
+  </h1>
   <h1 class="ml-2">.</h1>
-  <div id="highlight"></div>
 </div>
 
 <style lang="postcss">
@@ -51,11 +43,11 @@
   }
 
   #highlight {
-    @apply basic-style absolute ml-[9.5rem] max-w-0 transition-all duration-1000 ease-in-out sm:ml-48 md:ml-64;
+    @apply basic-style absolute inset-0 top-2 -z-10 max-w-0 transition-all duration-1000 ease-in-out;
   }
 
   #highlighted-text {
-    @apply px-2 transition-all duration-1000 ease-in-out;
+    @apply relative p-2 transition-all duration-1000 ease-in-out;
   }
 
   h1 {

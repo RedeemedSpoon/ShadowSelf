@@ -39,7 +39,7 @@
         </div>
       </div>
     {/key}
-    <div class="flex gap-8 py-6 text-left text-xl leading-10">
+    <div class="flex gap-6 py-6 text-left text-xl leading-10">
       <ul class="list-inside">
         <li><CheckmarkImg />Custom Identity</li>
         <li><CheckmarkImg />Email Address</li>
@@ -52,7 +52,7 @@
       </ul>
       <ul class="list-inside">
         <li><CheckmarkImg />Account Management<span title={title[0]}><QuestionImg /></span></li>
-        <li><CheckmarkImg />Money-Back Guarantee<span title={title[1]}><QuestionImg /></span></li>
+        <li><CheckmarkImg />14 Day Refund<span title={title[1]}><QuestionImg /></span></li>
         <li><CheckmarkImg />24/7 Support<span title={title[2]}><QuestionImg /></span></li>
       </ul>
     </div>
@@ -83,7 +83,7 @@
   }
 
   li {
-    @apply flex items-center justify-start gap-4 text-nowrap;
+    @apply inline-flex flex-nowrap items-center justify-start gap-4 text-nowrap;
   }
 
   span {
