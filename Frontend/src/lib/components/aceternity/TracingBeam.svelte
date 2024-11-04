@@ -54,7 +54,7 @@
       </defs>
     </svg>
   </div>
-  <div class="flex h-5/6 w-full justify-center xl:w-5/6">
+  <div class="flex w-full justify-center xl:w-5/6">
     {@render children?.()}
   </div>
 </div>

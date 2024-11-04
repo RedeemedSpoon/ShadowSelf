@@ -58,7 +58,7 @@
 
 <style lang="postcss">
   #text {
-    @apply flex h-full min-w-[325px] snap-center flex-col justify-center gap-4 text-balance max-xl:ml-32 max-md:mx-[10vw];
+    @apply flex h-full min-w-[325px] snap-center flex-col justify-start gap-4 text-balance pt-16 max-xl:ml-32 max-md:mx-[10vw];
   }
 
   #box {

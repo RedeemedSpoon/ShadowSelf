@@ -37,14 +37,14 @@
   });
 </script>
 
-<div bind:this={ref} id="main" class:overflow-y-hidden={direction === 'down' && $scrollYProgress >= 0.79}>
+<div bind:this={ref} id="main" class:!overflow-y-hidden={direction === 'down' && $scrollYProgress >= 0.79}>
   <div class="max-w-xl">
     {#each content as item, index (index)}
       {@render text?.({item: {...item, activeCard, index}})}
     {/each}
   </div>
   <Card
-    upperClass={'w-1/3 h-2/3 min-w-[450px] top-32 hidden xl:max-2xl:scale-90  max-xl:scale-75 lg:block sticky'}
+    upperClass={'h-[435px] w-[450px] hidden top-0 xl:max-2xl:scale-90 max-xl:scale-75 lg:block sticky'}
     color={gradient[activeCard]}>
     <div id="wrapper" class={gradient[activeCard]}>
       {#key activeCard}

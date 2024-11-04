@@ -40,17 +40,17 @@
       </div>
     {/key}
     <div class="flex gap-6 py-6 text-left text-xl leading-10">
-      <ul class="list-inside">
+      <ul>
         <li><CheckmarkImg />Custom Identity</li>
         <li><CheckmarkImg />Email Address</li>
         <li><CheckmarkImg />Phone Number</li>
       </ul>
-      <ul class="list-inside md:mx-8">
+      <ul>
         <li><CheckmarkImg />Virtual Card</li>
         <li><CheckmarkImg />Crypto Wallet</li>
         <li><CheckmarkImg />VPN Access</li>
       </ul>
-      <ul class="list-inside">
+      <ul>
         <li><CheckmarkImg />Account Management<span title={title[0]}><QuestionImg /></span></li>
         <li><CheckmarkImg />14 Day Refund<span title={title[1]}><QuestionImg /></span></li>
         <li><CheckmarkImg />24/7 Support<span title={title[2]}><QuestionImg /></span></li>
@@ -80,6 +80,10 @@
 
   #select-model-box {
     @apply absolute left-0 h-full w-1/3 rounded-full bg-neutral-300 bg-opacity-15 transition-all duration-300 ease-in-out;
+  }
+
+  ul {
+    @apply mx-8 flex list-inside flex-col flex-nowrap;
   }
 
   li {

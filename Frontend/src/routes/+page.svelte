@@ -33,9 +33,9 @@
     content="ShadowSelf is a platform that safeguard you and your sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your actual identity from being at risk of misuse, breach, theft, or fraud." />
 </svelte:head>
 
-<section id={data.ids[0]}>
+<section id={data.ids[0]} class="!h-screen !p-8">
   <Slogan />
-  <p class="my-6 w-3/4 text-balance text-center lg:w-1/2">
+  <p class="my-4 w-3/4 text-balance text-center lg:w-1/2">
     Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your
     personal information remains hidden, far away from malicious threats. Experience the freedom of online interactions
     without the fear of compromise.
@@ -49,7 +49,7 @@
     <a href="/signup"><button>Get Started!</button></a>
   </div>
 </section>
-<section id={data.ids[1]} class="!flex-col-reverse 2xl:!flex-row">
+<section id={data.ids[1]} class="!flex-col-reverse !px-[15vw] 2xl:!flex-row">
   <Card3D />
   <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-0">
     <h6 class="-mb-4 ml-2 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h6>
@@ -64,12 +64,12 @@
     </p>
   </div>
 </section>
-<section id={data.ids[2]} class="relative max-md:!h-[75vh]">
+<section id={data.ids[2]} class="relative !h-screen min-h-[680px]">
   <Services />
 </section>
 <section id={data.ids[3]}>
   <GridAndDotBackgrounds>
-    <h1 class="mt-48 text-center text-5xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
+    <h1 class="text-center text-5xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
     <div
       id="account"
       class="mt-6 flex items-center justify-center gap-16 text-balance text-center max-lg:flex-col xl:gap-32">
@@ -92,7 +92,7 @@
     </div>
   </GridAndDotBackgrounds>
 </section>
-<section id={data.ids[4]} class="max-xl:!h-fit">
+<section id={data.ids[4]}>
   <FeatureGrid />
 </section>
 <section id={data.ids[5]}>
@@ -102,9 +102,8 @@
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
     <p class="w-5/6">
-      While we may not be flawless, we firmly believe that we offer one of the most well-rounded solution for your
-      online needs. Our service provides a great option without compromising on both your privacy and wallet, just like
-      a Swiss Army knife.
+      We believe that we offer one of the most well-rounded solution for your online needs. Our service provides a great
+      option without compromising on both your privacy and wallet
     </p>
   </div>
   <div class="h-fit w-fit">
@@ -115,7 +114,7 @@
       alt="Customer satisfaction" />
   </div>
 </section>
-<section id={data.ids[7]} class="relative mt-0">
+<section id={data.ids[7]} class="relative !mt-0 !h-screen">
   <h1 class="text-center text-6xl md:text-7xl">Join The Waitlist</h1>
   <p class="z-10 w-3/5 text-center leading-relaxed text-neutral-400 lg:w-1/2 xl:w-1/3">
     Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates and new exiting features
@@ -130,21 +129,21 @@
 
 <style lang="postcss">
   section {
-    @apply mb-16 w-full transition-all duration-[1500ms] ease-in-out last:mb-0;
-    @apply flex h-screen flex-col items-center justify-center gap-6;
+    @apply h-fit w-full transition-all duration-[1500ms] ease-in-out last:mb-0;
+    @apply flex flex-col items-center justify-center gap-6 py-16 2xl:py-32;
 
     &:nth-child(2),
     &:nth-child(6),
     &:nth-child(7) {
-      @apply px-[10vw] max-lg:my-32 xl:gap-x-16 2xl:gap-x-32 2xl:max-2xl:px-[5vw];
+      @apply px-[10vw] xl:gap-x-16 2xl:gap-x-32 2xl:max-2xl:px-[10vw];
     }
 
     &:nth-child(7) {
-      @apply !mb-0 bg-gradient-to-b from-neutral-900 from-25% to-neutral-950/25 max-2xl:pb-32 max-xl:!h-fit;
+      @apply !mb-0 bg-gradient-to-b from-neutral-900 from-25% to-neutral-950/25;
     }
 
     &:nth-child(6) {
-      @apply max-xl:!my-[25vh] max-lg:!my-0 2xl:!flex-row min-[1536px]:max-[1700px]:!flex-col;
+      @apply max-lg:!my-0 2xl:!flex-row min-[1536px]:max-[1700px]:!flex-col;
     }
   }
 

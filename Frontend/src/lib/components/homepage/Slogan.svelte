@@ -19,7 +19,7 @@
 </script>
 
 <div id="background" style="background-image: url({background})"></div>
-<div class="-mb-2 mt-32 flex">
+<div class="-mb-2 mt-[5vh] flex">
   <h2 class="mr-5">Your</h2>
   <h2>Privacy<span id="underline-text"></span></h2>
   <h2>,</h2>

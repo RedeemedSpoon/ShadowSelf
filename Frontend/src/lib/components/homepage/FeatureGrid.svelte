@@ -56,8 +56,7 @@
   ];
 </script>
 
-<div
-  class="grid h-3/4 w-full grid-cols-2 border-r border-neutral-700 px-[6vw] max-lg:mt-48 xl:grid-cols-4 xl:max-2xl:px-[3vw]">
+<div class="grid grid-cols-2 border-r border-neutral-700 px-[6vw] xl:grid-cols-4 xl:max-2xl:px-[3vw]">
   {#each features as feature (feature.index)}
     <div id="cell" class:bottom-cells={feature.index > 4} class:border-r={feature.index % 4 === 0}>
       <img src={feature.image} alt={feature.title} />
