@@ -18,7 +18,8 @@
   }
 
   p {
-    @apply truncate whitespace-normal text-pretty text-lg font-normal leading-[1.85] antialiased md:text-xl md:leading-loose;
+    @apply truncate whitespace-normal text-pretty text-lg font-normal leading-[1.85] antialiased;
+    @apply max-sm:text-lg max-sm:leading-7 md:text-xl md:leading-loose;
   }
 
   a {

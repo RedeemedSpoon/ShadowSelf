@@ -35,7 +35,7 @@
 
 <section id={data.ids[0]} class="!h-screen !p-8">
   <Slogan />
-  <p class="my-4 w-3/4 text-balance text-center lg:w-1/2">
+  <p class="my-4 w-3/4 text-balance text-center max-sm:w-full lg:w-1/2">
     Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your
     personal information remains hidden, far away from malicious threats. Experience the freedom of online interactions
     without the fear of compromise.
@@ -51,10 +51,10 @@
 </section>
 <section id={data.ids[1]} class="!flex-col-reverse !px-[15vw] 2xl:!flex-row">
   <Card3D />
-  <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-0">
-    <h6 class="-mb-4 ml-2 text-lg text-neutral-500">World's Most Advanced Identity Masking Tool</h6>
-    <h1 class="text-4xl text-neutral-300 md:text-5xl">
-      <span class="pretty-style text-nowrap text-6xl md:text-8xl">Reclaim Back</span>
+  <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-20">
+    <h6 class="-mb-4 ml-2 text-lg text-neutral-500 max-sm:text-sm">The Most Advanced Identity Masking Tool</h6>
+    <h1 class="text-3xl text-neutral-300 sm:text-4xl md:text-5xl">
+      <span class="pretty-style text-nowrap text-5xl sm:text-6xl md:text-8xl">Reclaim Back</span>
       <br />Control of Your Data.
     </h1>
     <p>
@@ -64,27 +64,27 @@
     </p>
   </div>
 </section>
-<section id={data.ids[2]} class="relative !h-screen min-h-[680px]">
+<section id={data.ids[2]} class="relative sm:!h-screen">
   <Services />
 </section>
 <section id={data.ids[3]}>
   <GridAndDotBackgrounds>
-    <h1 class="text-center text-5xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
+    <h1 class="text-center text-4xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
     <div
       id="account"
       class="mt-6 flex items-center justify-center gap-16 text-balance text-center max-lg:flex-col xl:gap-32">
-      <div class="flex w-[30rem] flex-col items-center gap-8">
-        <img src={registration} width="200" alt="Account Registration" />
-        <h2 class="from-red-500 to-rose-600 text-4xl font-bold">Account Registration</h2>
-        <p>
+      <div class="flex flex-col items-center gap-8 sm:w-[30rem]">
+        <img src={registration} width="200" alt="Account Registration" class="max-sm:w-[150px]" />
+        <h2 class="from-red-500 to-rose-600 text-3xl font-bold sm:text-4xl">Account Registration</h2>
+        <p class="max-sm:px-8">
           Use our service to create untrackable accounts and register for services while still concealing your actual
           identity from being at risk.
         </p>
       </div>
-      <div class="flex w-[30rem] flex-col items-center gap-8">
-        <img src={management} width="200" alt="Account Managenent" />
-        <h2 class="from-green-500 to-emerald-600 text-4xl font-bold">Account Managenent</h2>
-        <p>
+      <div class="flex flex-col items-center gap-8 sm:w-[30rem]">
+        <img src={management} width="200" alt="Account Managenent" class="max-sm:w-[150px]" />
+        <h2 class="from-green-500 to-emerald-600 text-3xl font-bold sm:text-4xl">Account Managenent</h2>
+        <p class="max-sm:px-8">
           Add, delete, and update entries to manage your online accounts. Create, generate and store
           passwords/usernames, implement TOTP, etc.
         </p>
@@ -101,7 +101,7 @@
 <section id={data.ids[6]} class="xl:!flex-row xl:gap-x-16">
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
-    <p class="w-5/6">
+    <p class="mb-24 w-5/6">
       We believe that we offer one of the most well-rounded solution for your online needs. Our service provides a great
       option without compromising on both your privacy and wallet
     </p>
@@ -114,7 +114,7 @@
       alt="Customer satisfaction" />
   </div>
 </section>
-<section id={data.ids[7]} class="relative !mt-0 !h-screen">
+<section id={data.ids[7]} class="relative !mt-0 !h-screen overflow-hidden">
   <h1 class="text-center text-6xl md:text-7xl">Join The Waitlist</h1>
   <p class="z-10 w-3/5 text-center leading-relaxed text-neutral-400 lg:w-1/2 xl:w-1/3">
     Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates and new exiting features
@@ -130,12 +130,12 @@
 <style lang="postcss">
   section {
     @apply h-fit w-full transition-all duration-[1500ms] ease-in-out last:mb-0;
-    @apply flex flex-col items-center justify-center gap-6 py-16 2xl:py-32;
+    @apply flex flex-col items-center justify-center gap-6 sm:py-16 2xl:py-32;
 
     &:nth-child(2),
     &:nth-child(6),
     &:nth-child(7) {
-      @apply px-[10vw] xl:gap-x-16 2xl:gap-x-32 2xl:max-2xl:px-[10vw];
+      @apply px-[10vw] xl:gap-x-16 2xl:gap-x-32;
     }
 
     &:nth-child(7) {
@@ -143,7 +143,7 @@
     }
 
     &:nth-child(6) {
-      @apply max-lg:!my-0 2xl:!flex-row min-[1536px]:max-[1700px]:!flex-col;
+      @apply max-lg:!my-0 2xl:!flex-row min-[1536px]:max-[1720px]:!flex-col;
     }
   }
 

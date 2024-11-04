@@ -38,7 +38,7 @@
 </script>
 
 <div bind:this={ref} id="main" class:!overflow-y-hidden={direction === 'down' && $scrollYProgress >= 0.79}>
-  <div class="max-w-xl">
+  <div class="max-w-xl max-sm:!h-[40rem]">
     {#each content as item, index (index)}
       {@render text?.({item: {...item, activeCard, index}})}
     {/each}

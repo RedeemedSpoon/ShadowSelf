@@ -51,7 +51,8 @@ export function addTabScrollEvent(sectionsIds: string[]) {
 
 export function addAnimation(elements: AnimationSelector[]) {
   function returnTranslate(type: AnimationNode['type']) {
-    return type === 'left' ? '!-translate-x-24' : type === 'right' ? '!translate-x-24' : '!translate-y-24';
+    if (window.innerWidth < 640 || type === 'bottom') return '!translate-y-24';
+    return type === 'left' ? 'sm:!-translate-x-24' : 'sm:!translate-x-24';
   }
 
   const nodes = elements.map((element) => {

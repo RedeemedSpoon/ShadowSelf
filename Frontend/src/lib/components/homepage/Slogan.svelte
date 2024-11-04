@@ -7,7 +7,6 @@
       const underlineText = document.querySelector('#underline-text');
       underlineText?.classList.add('!max-w-full');
     }, 1250);
-
     setTimeout(() => {
       const highlight = document.querySelector('#highlight') as HTMLDivElement;
       const highlightedText = document.querySelector('#highlighted-text');
@@ -19,12 +18,12 @@
 </script>
 
 <div id="background" style="background-image: url({background})"></div>
-<div class="-mb-2 mt-[5vh] flex">
+<div class="-mb-2 mt-[5vh] flex max-sm:-mb-4 max-sm:scale-90">
   <h2 class="mr-5">Your</h2>
   <h2>Privacy<span id="underline-text"></span></h2>
   <h2>,</h2>
 </div>
-<div class="flex">
+<div class="flex max-sm:scale-75">
   <h1 class="mr-6">Our</h1>
   <h1 id="highlighted-text">
     <span>Priority</span>

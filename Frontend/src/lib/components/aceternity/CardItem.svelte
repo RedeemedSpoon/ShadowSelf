@@ -4,9 +4,9 @@
 
   interface Props {
     className?: string | undefined;
-    translateX?: number | undefined;
-    translateY?: number | undefined;
-    translateZ?: number | undefined;
+    translateX?: number | string | undefined;
+    translateY?: number | string | undefined;
+    translateZ?: number | string | undefined;
     rotateX?: number | undefined;
     rotateY?: number | undefined;
     rotateZ?: number | undefined;

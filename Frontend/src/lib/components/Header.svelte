@@ -10,7 +10,7 @@
 
 <svelte:window bind:scrollY={$scrollY} />
 <header class:focused={shouldFocus}>
-  <a href="/">
+  <a href="/" class="max-sm:ml-6">
     <img id="logo" src={logoBesideText} alt="Shadowself Logo" width="276" />
   </a>
   <div id="nav-container" class="translate-x-0 transition-transform duration-1000 ease-in-out">
@@ -34,12 +34,12 @@
 
 <style lang="postcss">
   header {
-    @apply fixed top-0 z-50 flex w-full items-center justify-evenly bg-neutral-950 bg-opacity-75 py-4 backdrop-blur-md md:px-20;
-    @apply transition-all duration-1000 ease-in-out;
+    @apply fixed top-0 z-50 flex w-full items-center justify-start py-4 backdrop-blur-md sm:justify-evenly md:px-20;
+    @apply bg-neutral-950 bg-opacity-75 transition-all duration-1000 ease-in-out;
   }
 
   #logo {
-    @apply transition-transform duration-1000 ease-in-out;
+    @apply transition-transform duration-1000 ease-in-out max-sm:h-12;
   }
 
   #auth-buttons,
@@ -54,11 +54,11 @@
   .focused {
     @apply bg-transparent backdrop-blur-none;
     & #nav-container {
-      @apply translate-x-[8.5vw];
+      @apply sm:translate-x-[8.5vw];
     }
 
     & #logo {
-      @apply -translate-x-[8.5vw];
+      @apply sm:-translate-x-[8.5vw];
     }
   }
 </style>

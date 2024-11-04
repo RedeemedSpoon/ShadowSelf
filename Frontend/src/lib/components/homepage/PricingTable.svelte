@@ -11,7 +11,7 @@
   ];
 </script>
 
-<div class="mb-12 flex flex-col items-center gap-4 max-lg:-mb-12 max-sm:scale-90">
+<div class="mb-8 flex flex-col items-center gap-4 max-sm:-mb-48 max-sm:scale-[65%]">
   <h1>Select Your Plan</h1>
   <p class="max-w-xl text-balance text-center">
     We're not fans of subscriptions either, but someone's gotta pay the bills. Our lifetime plan is a fair deal.
@@ -27,7 +27,7 @@
 </div>
 
 <Card className="!border-2 !border-neutral-400" upperClass="max-sm:scale-[0.65] max-lg:scale-75 hover:-translate-y-4">
-  <div class="flex flex-col items-center gap-8 px-8 py-6 text-center md:items-start md:px-16">
+  <div class="flex flex-col items-center gap-8 px-8 py-6 text-center max-sm:px-16 md:items-start md:px-16">
     {#key $pricingModel.price}
       <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
         <h2 class="mb-4 mt-9 text-4xl font-bold text-neutral-300 md:text-left">{$pricingModel.title}</h2>
@@ -39,7 +39,7 @@
         </div>
       </div>
     {/key}
-    <div class="flex gap-6 py-6 text-left text-xl leading-10">
+    <div class="flex gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
       <ul>
         <li><CheckmarkImg />Custom Identity</li>
         <li><CheckmarkImg />Email Address</li>
@@ -83,7 +83,7 @@
   }
 
   ul {
-    @apply mx-8 flex list-inside flex-col flex-nowrap;
+    @apply flex list-inside flex-col flex-nowrap md:mx-8;
   }
 
   li {
