@@ -7,7 +7,7 @@
 <svelte:head>
   <title>ShadowSelf - Error</title>
   <meta name="robots" content="noindex" />
-  <meta name="description" content="ShadowSelf - Error 404 Page" />
+  <meta name="description" content="Error 404 page not found" />
 </svelte:head>
 
 <section style="background-size: 20%; background-image: url({circuitPattern}); background-repeat: repeat">

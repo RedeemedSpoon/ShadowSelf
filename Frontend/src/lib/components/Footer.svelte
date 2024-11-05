@@ -32,7 +32,7 @@
         <div class="flex flex-col gap-6">
           <p class="font-bold text-neutral-400">{key}</p>
           {#each value as link}
-            {@const url = link === 'Homepage' ? '/' : `/${link.toLowerCase().replace(' ', '-')}`}
+            {@const url = link === 'Homepage' ? '/' : `/${link.toLowerCase().replace(/ /g, '-')}`}
             <a class="alt" target="_blank" href={url}>{link}</a>
           {/each}
         </div>

@@ -2,9 +2,8 @@
   import '../app.css';
   import {Header, Footer, Notification} from '$components';
   import {authenticated, selectionMenuOpen} from '$store';
-  import {type LayoutData} from './$types';
   import {onMount, type Snippet} from 'svelte';
-  import {notify} from '$lib';
+  import {type LayoutData} from './$types';
 
   interface Props {
     data: LayoutData;
@@ -17,21 +16,6 @@
   onMount(() => {
     document.querySelector('#app')?.classList.remove('hidden');
     document.addEventListener('touchstart', (e) => e.preventDefault(), {passive: true});
-
-    // Temporary, will be removed after official release
-    const links = document.querySelectorAll('a');
-
-    links.forEach((link) => {
-      if (link.getAttribute('href') === '/') return;
-      if (link.getAttribute('href') === 'https://github.com/RedeemedSpoon/ShadowSelf') return;
-      if (link.getAttribute('href') === '#product') return;
-
-      link.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        notify("We still didn't launch yet!", 'info');
-      });
-    });
   });
 </script>
 
