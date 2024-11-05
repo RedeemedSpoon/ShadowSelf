@@ -11,7 +11,7 @@
 </svelte:head>
 
 <section style="background-size: 20%; background-image: url({circuitPattern}); background-repeat: repeat">
-  <h1 class="text-5xl md:text-7xl">Page Not Found.</h1>
+  <h1 class="mt-24 text-5xl md:text-7xl">Page Not Found.</h1>
   <img alt={$page.error?.message} src="/404-error.gif" />
   <p>Oops, looks like you hit a dead end! That's not a big deal, Let's get you back on track.</p>
   <a href="/"><button>Go Home<CheveronImg /></button></a>
@@ -19,7 +19,7 @@
 
 <style lang="postcss">
   section {
-    @apply flex h-screen w-screen flex-col items-center justify-center gap-8 text-center;
+    @apply flex h-fit w-screen flex-col items-center justify-center gap-8 text-center max-2xl:mb-24 2xl:h-screen;
   }
 
   img {

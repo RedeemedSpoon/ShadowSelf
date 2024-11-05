@@ -46,7 +46,7 @@ The project is still in beta phase and is still under heavy development. You can
 
 ### Linting/Formatting
 
-- `bun install` To install the both eslint and prettier
+- `bun install` To install both eslint and prettier
 
 - `bun lint` To run the linter
 
@@ -64,7 +64,7 @@ chmod +x tmux.sh # if script does not work
 You can add the script to your $PATH to run it from anywhere with the following command:
 
 ```bash
-cp tmux.sh /usr/bin/{script} # Change {script} to the name of script you want to call it
+sudo cp tmux.sh /usr/bin/{script} # Change {script} to the name of script you want to call it
 ```
 
 ## Contribution

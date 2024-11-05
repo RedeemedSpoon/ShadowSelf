@@ -48,7 +48,7 @@
   }
 
   .basic-style {
-    @apply from-primary-600 to-primary-800 bg-gradient-to-br;
+    @apply from-primary-600 to-primary-700 bg-gradient-to-b;
   }
 
   .small-icon {
