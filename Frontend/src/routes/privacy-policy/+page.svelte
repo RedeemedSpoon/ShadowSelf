@@ -1,6 +1,3 @@
-<script lang="ts">
-</script>
-
 <svelte:head>
   <title>ShadowSelf - Privacy Policy</title>
   <meta name="description" content="Get to know how we handle your data and privacy." />
@@ -22,7 +19,6 @@
     regarding the collection, use, disclosure, and protection of user information in connection with our website,
     located at <a href="https://shadowself.io">shadowself.io</a> (the "Website").
   </p>
-
   <h3>Information Collection</h3>
   <p>
     We adhere to a minimalist data collection approach, gathering only the essential information required for service

@@ -1,52 +1,75 @@
-<script lang="ts">
-</script>
-
 <svelte:head>
   <title>ShadowSelf - Refund Policy</title>
   <meta name="description" content="Want a refund? Read our refund policy first please." />
 </svelte:head>
 
-<div class="mx-auto my-[10rem] flex h-screen w-1/2 flex-col items-center justify-center gap-8">
+<div>
   <h1>Refund Policy</h1>
+  <h6>Want a refund? Read our refund policy first please.</h6>
+  <section>
+    <p>
+      <span>TLDR</span> Want to try Shadowself but not sure if it's for you? No worries! You've got 14 days to change your
+      mind and get a full refund. Just shoot us a message on our contact page and we'll take care of it within a week.
+    </p>
+  </section>
   <p>
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed consectetur maximus mattis. Vestibulum ante ipsum
-    primis in faucibus orci luctus et ultrices posuere cubilia curae; Etiam non est felis. Pellentesque porttitor justo
-    ac elementum hendrerit. Aliquam feugiat dui quis urna porta tristique. Pellentesque sed tempus ipsum. Vivamus
-    bibendum, turpis vitae fermentum consequat, odio neque blandit velit, at ornare lorem quam non magna. Sed elementum
-    orci neque, id sollicitudin nulla ultrices quis. Cras pharetra dignissim sollicitudin. Cras iaculis consequat metus,
-    condimentum interdum nibh feugiat sit amet. Vestibulum metus nulla, euismod eu finibus eget, finibus id nisl. Nunc
-    in nisl a mi varius scelerisque quis laoreet magna. Sed turpis tellus, condimentum quis imperdiet id, fermentum nec
-    lectus.
+    We, Shadowself, are committed to providing you with the highest services quality and customer satisfaction. That's
+    why we offer a refund policy for anyone who finds our service unsatisfactory.
   </p>
+  <h3>Refund Eligibility</h3>
   <p>
-    Aenean ac urna at dolor vehicula condimentum ut eget sapien. Pellentesque sodales risus a justo dictum dapibus.
-    Praesent nunc turpis, blandit eget egestas sit amet, pharetra ut nulla. Curabitur lacus metus, tempor nec augue ut,
-    laoreet placerat felis. Proin tellus libero, finibus sed augue eget, efficitur mollis nunc. Cras malesuada viverra
-    ligula, quis ultricies dui gravida ac. In leo diam, congue condimentum odio varius, pellentesque dapibus enim. Cras
-    faucibus arcu at metus lacinia, at ullamcorper dui lobortis. Fusce eleifend ultricies turpis, vitae eleifend mauris.
-    Vestibulum vitae enim mauris. Donec ipsum quam, aliquam sit amet dui ut, ultricies molestie nisi. Pellentesque
-    habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Mauris tempus a augue sit amet
-    consectetur.
+    To ensure your satisfaction, we offer a 14-day, no-questions-asked refund policy. This means you may request a full
+    refund within 14 days of your initial purchase, provided that you have not violated any of our terms and conditions.
   </p>
+  <h3>How to Request a Refund</h3>
   <p>
-    Nam vitae dui ac dolor sagittis maximus nec mollis ligula. Maecenas sed fermentum odio. Nunc eu massa a risus auctor
-    tempus. Nullam eget interdum diam, vitae malesuada orci. Cras ut maximus turpis, eu iaculis justo. Nulla vehicula
-    erat eget justo vehicula, id rutrum risus ullamcorper. Nulla facilisi. Vestibulum eu tempor sem, at placerat lacus.
+    To initiate a refund request, please contact us via our designated <a href="/contact">contact</a> page. Please provide
+    your identity ID, Your username and a brief explanation of the reason for your refund request.
   </p>
+  <h3>Refund Processing Time</h3>
   <p>
-    Sed sed molestie mauris. Phasellus tortor dui, dignissim vel elit sed, luctus efficitur sapien. Curabitur nec nunc
-    id quam varius iaculis malesuada congue lorem. Ut pretium dictum nulla, ut suscipit arcu tempor in. Aliquam congue
-    laoreet metus, ut aliquam dui efficitur vitae. Sed a ultrices lectus. Phasellus vel elementum eros. Quisque
-    fringilla quam nec lacus tristique varius. Aenean faucibus nunc eu commodo iaculis. Aenean arcu risus, molestie et
-    accumsan vitae, scelerisque ut nunc. Etiam dignissim nibh finibus dignissim congue. Mauris lacinia sodales dolor id
-    egestas. Nulla hendrerit justo tincidunt sapien consectetur faucibus. Nullam pharetra nisl sed sem facilisis
-    scelerisque. Aliquam feugiat lacus at ullamcorper egestas. Cras finibus leo nibh, at laoreet ante iaculis non. Fusce
-    eu sollicitudin tortor, non tempus quam. Nam iaculis pretium orci, at congue orci suscipit at. Ut laoreet nisi est,
-    rhoncus eleifend metus hendrerit luctus. Pellentesque eros sapien, ultricies a purus in, vestibulum ullamcorper
-    lorem. Vestibulum aliquam tortor non risus accumsan, non dapibus libero imperdiet. Vestibulum ante ipsum primis in
-    faucibus orci luctus et ultrices posuere cubilia curae; Morbi non fringilla odio.
+    Upon receipt of your refund request, we will process it promptly. You can expect your refund to be credited to your
+    original payment method within 7 business days.
   </p>
+  <h3>Data Privacy</h3>
+  <p>
+    Rest assured that any personal information provided during the refund process will be handled with the utmost care
+    and in accordance with our Privacy Policy.
+  </p>
+  <h3>Contact Us</h3>
+  <p>
+    Should you have any questions or concerns regarding our refund policy or service, please do not hesitate to contact
+    us and we will get back to you as soon as possible.
+  </p>
+  <small class="text-lg text-neutral-500">Last updated: November 5, 2024</small>
 </div>
 
 <style lang="postcss">
+  div {
+    @apply mx-auto my-[10rem] flex h-fit w-11/12 flex-col gap-6 text-neutral-400 md:w-3/4 xl:w-1/2;
+  }
+
+  h1 {
+    @apply text-5xl text-neutral-300 sm:text-6xl md:text-7xl;
+  }
+
+  h3 {
+    @apply mt-4 text-3xl text-neutral-300 md:text-5xl;
+  }
+
+  h6 {
+    @apply text-primary-700 -mt-6 text-xl font-light md:mb-4 md:text-2xl;
+  }
+
+  section {
+    @apply border-primary-700 ml-8 border-l-4 pl-4;
+
+    & span {
+      @apply text-primary-700 pr-2 font-bold;
+    }
+
+    & p {
+      @apply text-neutral-300;
+    }
+  }
 </style>
