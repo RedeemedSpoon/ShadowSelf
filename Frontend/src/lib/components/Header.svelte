@@ -35,7 +35,7 @@
 <style lang="postcss">
   header {
     @apply fixed top-0 z-50 flex w-full items-center justify-start py-4 backdrop-blur-md sm:justify-evenly md:px-20;
-    @apply bg-neutral-950 bg-opacity-75 transition-all duration-1000 ease-in-out;
+    @apply select-none bg-neutral-950 bg-opacity-75 transition-all duration-1000 ease-in-out;
   }
 
   #logo {

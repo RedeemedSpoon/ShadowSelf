@@ -6,11 +6,7 @@
   import type {Snippet} from 'svelte';
   import {onMount} from 'svelte';
 
-  interface Props {
-    children?: Snippet;
-  }
-
-  let {children}: Props = $props();
+  let {children}: {children?: Snippet} = $props();
 
   let svgHeight = $state(0);
   let y1 = tweened(50, {duration: 500, easing: cubicOut});

@@ -5,15 +5,15 @@ export interface Notification {
 }
 
 export interface AnimationNode {
-  node: HTMLElement;
   type: 'left' | 'right' | 'bottom';
+  node: HTMLElement;
   delay: number;
 }
 
 export interface AnimationSelector {
+  type: 'left' | 'right' | 'bottom';
   selector: string;
   delay?: number;
-  type: 'left' | 'right' | 'bottom';
 }
 
 export interface ServicesContent {

@@ -2,11 +2,7 @@
   import {cn} from '$cn';
   import {Motion} from 'svelte-motion';
 
-  interface Props {
-    className?: string | undefined;
-  }
-
-  let {className = undefined}: Props = $props();
+  let {className}: {className: string | undefined} = $props();
 
   const paths = [
     'M-380 -189C-380 -189 -312 216 152 343C616 470 684 875 684 875',
