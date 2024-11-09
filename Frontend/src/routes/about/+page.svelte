@@ -1,52 +1,72 @@
-<script lang="ts">
-</script>
-
 <svelte:head>
   <title>ShadowSelf - About</title>
   <meta name="description" content="Learn more about us, ShadowSelf and our mission." />
 </svelte:head>
 
-<div class="mx-auto my-[10rem] flex h-screen w-1/2 flex-col items-center justify-center gap-8">
-  <h1>About Us</h1>
+<div>
+  <h1>Who We Are</h1>
   <p>
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed consectetur maximus mattis. Vestibulum ante ipsum
-    primis in faucibus orci luctus et ultrices posuere cubilia curae; Etiam non est felis. Pellentesque porttitor justo
-    ac elementum hendrerit. Aliquam feugiat dui quis urna porta tristique. Pellentesque sed tempus ipsum. Vivamus
-    bibendum, turpis vitae fermentum consequat, odio neque blandit velit, at ornare lorem quam non magna. Sed elementum
-    orci neque, id sollicitudin nulla ultrices quis. Cras pharetra dignissim sollicitudin. Cras iaculis consequat metus,
-    condimentum interdum nibh feugiat sit amet. Vestibulum metus nulla, euismod eu finibus eget, finibus id nisl. Nunc
-    in nisl a mi varius scelerisque quis laoreet magna. Sed turpis tellus, condimentum quis imperdiet id, fermentum nec
-    lectus.
+    We're not a faceless corporation or a team funded by venture capitalists. ShadowSelf is a privacy tool built and
+    maintained by a single developer, but we welcome contributions from anyone who can offer their skills and knowledge.
+    To keep this project running smoothly, we rely on monetary transactions to cover essential costs like server
+    maintenance and API usage.
+  </p>
+  <h1>Our Mission</h1>
+  <p>
+    We're here to revolutionize online privacy and anonymity. We believe that everyone deserves the right to a digital
+    life free from surveillance and intrusion. With ShadowSelf, you can reclaim your online freedom and protect your
+    identity from prying eyes.
+  </p>
+  <h1>How We Do It</h1>
+  <p>
+    ShadowSelf offers a comprehensive suite of tools to help you create and manage synthetic identities. These digital
+    aliases can be used to:
+  </p>
+  <ul>
+    <li>
+      <b>Protect Your True Identity :</b> Shield your personal information from prying eyes, reducing your vulnerability
+      to cyber threats.
+    </li>
+    <li>
+      <b>Enhance Online Security :</b> Create multiple layers of defense, making it significantly harder for malicious actors
+      to compromise your security.
+    </li>
+    <li>
+      <b>Experience Digital Freedom :</b> Explore the internet without limitations, unburdened by the fear of being tracked
+      or profiled.
+    </li>
+  </ul>
+  <h1>Our Commitment</h1>
+  <p>
+    We're committed to protecting your privacy and anonymity online. We employ state-of-the-art security measures to
+    safeguard your data and ensure that your synthetic identities remain secure. Your trust is our priority.
+  </p>
+  <h1>Join the Movement</h1>
+  <p>
+    Join a growing community that values digital privacy and anonymity. With ShadowSelf, you can take control of your
+    online identity and experience the internet on your terms.
   </p>
   <p>
-    Aenean ac urna at dolor vehicula condimentum ut eget sapien. Pellentesque sodales risus a justo dictum dapibus.
-    Praesent nunc turpis, blandit eget egestas sit amet, pharetra ut nulla. Curabitur lacus metus, tempor nec augue ut,
-    laoreet placerat felis. Proin tellus libero, finibus sed augue eget, efficitur mollis nunc. Cras malesuada viverra
-    ligula, quis ultricies dui gravida ac. In leo diam, congue condimentum odio varius, pellentesque dapibus enim. Cras
-    faucibus arcu at metus lacinia, at ullamcorper dui lobortis. Fusce eleifend ultricies turpis, vitae eleifend mauris.
-    Vestibulum vitae enim mauris. Donec ipsum quam, aliquam sit amet dui ut, ultricies molestie nisi. Pellentesque
-    habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Mauris tempus a augue sit amet
-    consectetur.
-  </p>
-  <p>
-    Nam vitae dui ac dolor sagittis maximus nec mollis ligula. Maecenas sed fermentum odio. Nunc eu massa a risus auctor
-    tempus. Nullam eget interdum diam, vitae malesuada orci. Cras ut maximus turpis, eu iaculis justo. Nulla vehicula
-    erat eget justo vehicula, id rutrum risus ullamcorper. Nulla facilisi. Vestibulum eu tempor sem, at placerat lacus.
-  </p>
-  <p>
-    Sed sed molestie mauris. Phasellus tortor dui, dignissim vel elit sed, luctus efficitur sapien. Curabitur nec nunc
-    id quam varius iaculis malesuada congue lorem. Ut pretium dictum nulla, ut suscipit arcu tempor in. Aliquam congue
-    laoreet metus, ut aliquam dui efficitur vitae. Sed a ultrices lectus. Phasellus vel elementum eros. Quisque
-    fringilla quam nec lacus tristique varius. Aenean faucibus nunc eu commodo iaculis. Aenean arcu risus, molestie et
-    accumsan vitae, scelerisque ut nunc. Etiam dignissim nibh finibus dignissim congue. Mauris lacinia sodales dolor id
-    egestas. Nulla hendrerit justo tincidunt sapien consectetur faucibus. Nullam pharetra nisl sed sem facilisis
-    scelerisque. Aliquam feugiat lacus at ullamcorper egestas. Cras finibus leo nibh, at laoreet ante iaculis non. Fusce
-    eu sollicitudin tortor, non tempus quam. Nam iaculis pretium orci, at congue orci suscipit at. Ut laoreet nisi est,
-    rhoncus eleifend metus hendrerit luctus. Pellentesque eros sapien, ultricies a purus in, vestibulum ullamcorper
-    lorem. Vestibulum aliquam tortor non risus accumsan, non dapibus libero imperdiet. Vestibulum ante ipsum primis in
-    faucibus orci luctus et ultrices posuere cubilia curae; Morbi non fringilla odio.
+    Make sure to star us on <a href="https://github.com/ShadowSelf" target="_blank" rel="noopener noreferrer">GitHub</a>
+    and Join our community on
+    <a href="https://simplex.torproject.org/" target="_blank" rel="noopener noreferrer">SimpleX</a>
   </p>
 </div>
 
 <style lang="postcss">
+  div {
+    @apply mx-auto my-[10rem] flex h-fit w-11/12 flex-col gap-6 md:w-3/4 xl:w-1/2;
+  }
+
+  img {
+    @apply m-4 rounded-xl border-2 border-neutral-300 md:m-8 md:mb-[12.5vh];
+  }
+
+  h1 {
+    @apply basic-style text-4xl md:text-5xl;
+  }
+
+  li {
+    @apply mb-3 ml-6 list-disc;
+  }
 </style>

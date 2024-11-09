@@ -10,7 +10,7 @@
 <div>
   <h6 class="text-lg text-neutral-500 max-sm:text-sm">Powered by You, and The Community.</h6>
   <div class="relative flex">
-    <h2 class="mt-2 !text-6xl max-sm:!text-4xl md:!text-8xl">The</h2>
+    <h2 class="!text-6xl max-sm:!text-4xl md:!text-8xl">The</h2>
     {#key index}
       <h1 in:fly={{y: 30, duration: 1000, delay: 300}} out:blur={{duration: 500, amount: 10}}>
         {words[index]}
@@ -22,7 +22,7 @@
 
 <style lang="postcss">
   h1 {
-    @apply pretty-style absolute ml-32 mt-1 text-6xl max-sm:ml-20 max-sm:text-4xl md:ml-[195px] md:text-8xl;
+    @apply pretty-style absolute ml-[120px] text-6xl max-sm:ml-[70px] max-sm:mt-1 max-sm:text-4xl md:-mt-1 md:ml-[185px] md:text-8xl;
   }
 
   h2 {

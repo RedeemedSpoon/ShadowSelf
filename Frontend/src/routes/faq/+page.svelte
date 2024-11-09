@@ -18,9 +18,11 @@
     const answer = elements[index].children[1] as HTMLParagraphElement;
 
     if (answer.style.maxHeight === answer.scrollHeight + 'px') {
+      answer.style.marginTop = '0px';
       answer.style.maxHeight = '0px';
       icon.classList.add('rotate-180');
     } else {
+      answer.style.marginTop = '20px';
       answer.style.maxHeight = answer.scrollHeight + 'px';
       icon.classList.remove('rotate-180');
     }
@@ -63,7 +65,7 @@
   }
 
   h1 {
-    @apply my-8 text-center text-4xl text-neutral-300;
+    @apply my-8 text-center text-5xl text-neutral-300;
   }
 
   h3 {
