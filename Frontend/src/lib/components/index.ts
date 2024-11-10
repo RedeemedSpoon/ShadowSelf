@@ -4,6 +4,7 @@ export {default as Header} from './layout/Header.svelte';
 export {default as Footer} from './layout/Footer.svelte';
 
 export {default as Card} from './main/Card.svelte';
+export {default as SelectMenu} from './main/SelectMenu.svelte';
 
 export {default as Slogan} from './homepage/Slogan.svelte';
 export {default as Card3D} from './homepage/Card3D.svelte';

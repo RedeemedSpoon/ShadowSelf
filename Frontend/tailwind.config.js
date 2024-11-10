@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+import forms from '@tailwindcss/forms';
 import colors from 'tailwindcss/colors';
 import defaultTheme from 'tailwindcss/defaultTheme';
 import aspectRatio from '@tailwindcss/aspect-ratio';
@@ -38,7 +39,7 @@ export default {
     },
     fontFamily: {sans: ['Inter', ...defaultTheme.fontFamily.sans]},
   },
-  plugins: [aspectRatio, addVariablesForColors, GridAndDotBackgrounds],
+  plugins: [forms, aspectRatio, addVariablesForColors, GridAndDotBackgrounds],
 };
 
 function GridAndDotBackgrounds({matchUtilities, theme}) {

@@ -21,7 +21,7 @@
       <a href="/"><img loading="lazy" src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div class="flex justify-center gap-4">
         {#each Object.entries(socialLinks) as [key, value]}
-          <a href={value.href} target="_blank">
+          <a href={value.href} target="_blank" rel="noopener noreferrer">
             <img src={value.img} alt={key} height="32" />
           </a>
         {/each}

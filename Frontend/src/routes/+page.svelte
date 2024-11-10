@@ -148,7 +148,6 @@
   }
 
   input {
-    @apply z-10 w-full bg-[#070d1f] transition-all duration-300 ease-in-out;
-    @apply border-primary-800 focus:ring-primary-600 focus:ring-2;
+    @apply border-primary-800 z-10 w-full bg-[#070d1f];
   }
 </style>
