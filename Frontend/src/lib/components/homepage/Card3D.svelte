@@ -7,7 +7,7 @@
 
 <CardContainer bind:isMouseEntered className="inter-var">
   <CardBody
-    className="max-sm:hidden animate-shake relative flex w-[60vw] h-[35vh] md:w-[600px] md:h-[550px] group/card">
+    className="max-md:hidden animate-shake relative flex w-[60vw] h-[35vh] md:w-[600px] md:h-[550px] group/card">
     <Card {isMouseEntered} animate={true} className="p-8 md:p-12">
       <CardItem {isMouseEntered} translateZ="70" className="text-xl font-bold text-primary-200">
         Make Yourself Invulnerable to the Internet

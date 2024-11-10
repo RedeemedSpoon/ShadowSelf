@@ -22,8 +22,8 @@
   onMount(() => (svgHeight = window?.innerHeight * 0.65));
 </script>
 
-<div class="flex w-full justify-center md:h-full">
-  <div class="absolute left-[6vw] top-32 hidden md:block">
+<div class="flex h-full w-full justify-center">
+  <div class="absolute left-[6vw] top-32 hidden max-h-[40rem] md:block">
     <div
       class="ml-[27px] flex h-4 w-4 items-center justify-center rounded-full border border-neutral-200 shadow-sm"
       style="box-shadow: {$scrollYProgress > 0 ? 'none' : 'rgba(0, 0, 0, 0.24) 0px 3px 8px'}">

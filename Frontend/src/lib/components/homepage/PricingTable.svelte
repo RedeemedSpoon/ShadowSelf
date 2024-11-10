@@ -11,7 +11,7 @@
   ];
 </script>
 
-<div class="mb-8 flex flex-col items-center gap-4 max-sm:-mb-48 max-sm:scale-[65%]">
+<div class="mb-16 flex flex-col items-center gap-4 max-sm:-mb-48 max-sm:scale-[65%]">
   <h1>Select Your Plan</h1>
   <p class="max-w-xl text-balance text-center">
     We're not fans of subscriptions either, but someone's gotta pay the bills. Our lifetime plan is a fair deal.

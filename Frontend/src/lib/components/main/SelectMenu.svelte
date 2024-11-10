@@ -3,23 +3,17 @@
   import {selectionInputOpen} from '$store';
   import {onMount} from 'svelte';
 
-  // props
-
   interface Props {
     name: string;
-    options: {
-      value: string;
-      label: string;
-    }[];
+    options: {value: string; label: string}[];
   }
 
   let {name, options}: Props = $props();
-
   let btn: HTMLButtonElement;
   let select: HTMLDivElement;
   let input: HTMLInputElement;
 
-  function handleBtnSelect(e: Event) {
+  function handleBtnSelect(e: MouseEvent) {
     e.stopPropagation();
     if ($selectionInputOpen) btn.blur();
     $selectionInputOpen = !$selectionInputOpen;
