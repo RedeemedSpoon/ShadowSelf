@@ -1,11 +1,11 @@
 <svelte:head>
   <title>ShadowSelf - Terms of Service</title>
-  <meta name="description" content="Due to legal stuff, you have to agree to our terms of service :(" />
+  <meta name="description" content="Gotta agree to our rules first, then we can get started!" />
 </svelte:head>
 
 <div>
   <h1>Terms of Service</h1>
-  <h6>Due to legal stuff, you have to agree to our terms of service :(</h6>
+  <h6>Gotta agree to our rules first, then we can get started!</h6>
   <section>
     <p>
       <span>TLDR</span> Basically, don't use Shadowself for illegal stuff (or at least don't get caught). You're responsible
@@ -72,7 +72,7 @@
   }
 
   h1 {
-    @apply text-5xl text-neutral-300 sm:text-6xl md:text-7xl;
+    @apply basic-style text-5xl sm:text-6xl md:text-7xl;
   }
 
   h3 {
@@ -80,7 +80,7 @@
   }
 
   h6 {
-    @apply text-primary-700 -mt-6 text-xl font-light md:mb-4 md:text-2xl;
+    @apply -mt-6 text-xl text-neutral-300 md:mb-4 md:text-2xl;
   }
 
   section {

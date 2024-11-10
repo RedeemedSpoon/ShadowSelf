@@ -1,11 +1,11 @@
 <svelte:head>
   <title>ShadowSelf - Refund Policy</title>
-  <meta name="description" content="Want a refund? Read our refund policy first please." />
+  <meta name="description" content="Want a refund? Cool, just check out our refund policy first" />
 </svelte:head>
 
 <div>
   <h1>Refund Policy</h1>
-  <h6>Want a refund? Read our refund policy first please.</h6>
+  <h6>Want a refund? Cool, just check out our refund policy first.</h6>
   <section>
     <p>
       <span>TLDR</span> Want to try Shadowself but not sure if it's for you? No worries! You've got 14 days to change your
@@ -50,7 +50,7 @@
   }
 
   h1 {
-    @apply text-5xl text-neutral-300 sm:text-6xl md:text-7xl;
+    @apply basic-style text-5xl sm:text-6xl md:text-7xl;
   }
 
   h3 {
@@ -58,7 +58,7 @@
   }
 
   h6 {
-    @apply text-primary-700 -mt-6 text-xl font-light md:mb-4 md:text-2xl;
+    @apply -mt-6 text-xl text-neutral-300 md:mb-4 md:text-2xl;
   }
 
   section {

@@ -138,7 +138,7 @@
   }
 
   h1 {
-    @apply text-5xl text-neutral-300 sm:text-6xl md:text-7xl;
+    @apply basic-style text-5xl sm:text-6xl md:text-7xl;
   }
 
   h3 {
@@ -146,7 +146,7 @@
   }
 
   h6 {
-    @apply text-primary-700 -mt-6 text-xl font-light md:mb-4 md:text-2xl;
+    @apply -mt-6 text-xl text-neutral-300 md:mb-4 md:text-2xl;
   }
 
   li {
