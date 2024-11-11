@@ -46,7 +46,7 @@
         Learn More<CheveronImg className="group-hover:rotate-90" />
       </button>
     </a>
-    <a href="/signup"><button>Get Started!</button></a>
+    <a href="/"><button>Get Started!</button></a>
   </div>
 </section>
 <section id={data.ids[1]} class="!flex-col-reverse !px-[15vw] 2xl:!flex-row">

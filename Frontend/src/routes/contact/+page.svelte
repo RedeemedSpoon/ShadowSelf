@@ -1,13 +1,20 @@
 <script lang="ts">
-  import {enhance} from '$app/forms';
+  import type {Notification} from '$types';
   import {SelectMenu} from '$components';
   import type {PageData} from './$types';
+  import {enhance} from '$app/forms';
+  import {notify} from '$lib';
 
   interface Props {
     data: PageData;
+    form: Notification;
   }
 
-  let {data}: Props = $props();
+  let {data, form}: Props = $props();
+
+  $effect(() => {
+    if (form?.message) notify(form?.message, form?.type);
+  });
 </script>
 
 <svelte:head>

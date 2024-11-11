@@ -39,8 +39,56 @@ export default {
     },
     fontFamily: {sans: ['Inter', ...defaultTheme.fontFamily.sans]},
   },
-  plugins: [forms, aspectRatio, addVariablesForColors, GridAndDotBackgrounds],
+  plugins: [forms, aspectRatio, addVariablesForColors, GridAndDotBackgrounds, addCustomClasses],
 };
+
+function addCustomClasses({addComponents}) {
+  addComponents({
+    '.basic-style': {
+      backgroundImage:
+        'linear-gradient(to bottom,var(--tw-gradient-stops)); --tw-gradient-from: #4f46e5 var(--tw-gradient-from-position); --tw-gradient-to: rgba(79,70,229,0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from),var(--tw-gradient-to); --tw-gradient-to: #4338ca var(--tw-gradient-to-position); ',
+    },
+    '.pretty-style': {
+      backgroundImage:
+        'linear-gradient(to right,var(--tw-gradient-stops)); --tw-gradient-from: #0284c7 var(--tw-gradient-from-position); --tw-gradient-to: rgba(2,132,199,0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from),var(--tw-gradient-to); --tw-gradient-to: rgba(79,70,229,0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from),#4f46e5 var(--tw-gradient-via-position),var(--tw-gradient-to); --tw-gradient-via-position: 30%; --tw-gradient-to: #9333ea var(--tw-gradient-to-position);',
+      color: 'transparent',
+      backgroundClip: 'text',
+      webkitBackgroundClip: 'text',
+    },
+    '.small-icon': {
+      height: '2rem',
+      width: '2rem',
+      cursor: 'pointer',
+      fill: 'currentColor',
+      outline: 'none',
+      transition: 'all 0.5s',
+    },
+    '.small-aura': {
+      borderRadius: '100%',
+      backgroundColor: 'transparent',
+      padding: '0.5rem',
+      transition: 'background - color 0.5s',
+    },
+    '.small-aura:hover': {
+      backgroundColor: 'rgba(153, 153, 153, 0.15)',
+    },
+
+    '.image-shadow': {
+      filter: 'drop-shadow(0 5px 15px rgba(148, 163, 184, 0.15))',
+      transition: 'all 0.5s',
+    },
+    '.image-shadow:hover': {
+      filter: 'drop-shadow(10px 10px 25px rgba(148, 163, 184, 0.25))',
+    },
+    '.no-scrollbar': {
+      msOverflowStyle: 'none',
+      scrollbarWidth: 'none',
+    },
+    '.no-scrollbar::-webkit-scrollbar': {
+      display: 'none',
+    },
+  });
+}
 
 function GridAndDotBackgrounds({matchUtilities, theme}) {
   matchUtilities(

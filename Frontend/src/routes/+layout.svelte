@@ -4,6 +4,7 @@
   import {authenticated, selectionMenuOpen} from '$store';
   import {onMount, type Snippet} from 'svelte';
   import {type LayoutData} from './$types';
+  import {notify} from '$lib';
 
   interface Props {
     data: LayoutData;
@@ -16,6 +17,32 @@
   onMount(() => {
     document.querySelector('#app')?.classList.remove('hidden');
     document.addEventListener('touchstart', (e) => e.preventDefault(), {passive: true});
+
+    const links = document.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>;
+
+    links.forEach((link) => {
+      const href = link.getAttribute('href');
+      if (href === '/') return;
+      if (href === '/privacy-policy') return;
+      if (href === '/terms-of-service') return;
+      if (href === '/refund-policy') return;
+      if (href === '/contact') return;
+      if (href === '/about') return;
+      if (href === '/faq') return;
+      if (href === '#product') return;
+      if (href === 'https://github.com/RedeemedSpoon/ShadowSelf') return;
+      if (
+        href ===
+        'https://simplex.chat/contact#/?v=2-7&smp=smp%3A%2F%2F0YuTwO05YJWS8rkjn9eLJDjQhFKvIYd8d4xG8X1blIU%3D%40smp8.simplex.im%2FBeFzdR4Kf7Q02gL-WYj4ARNuq-4w38La%23%2F%3Fv%3D1-3%26dh%3DMCowBQYDK2VuAyEARpdiglYHg8sSwh75mzI5PP8qMG-n8i1kD8_wjHATxzI%253D%26srv%3Dbeccx4yfxxbvyhqypaavemqurytl6hozr47wfc7uuecacjqdvwpw2xid.onion&data=%7B%22type%22%3A%22group%22%2C%22groupLinkId%22%3A%227l53Rzu4TIgWzfqdJrFRuA%3D%3D%22%7D'
+      )
+        return;
+
+      link.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        notify("We still didn't launch yet!", 'info');
+      });
+    });
   });
 </script>
 
