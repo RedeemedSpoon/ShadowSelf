@@ -1,6 +1,5 @@
-import type {Actions, PageServerLoad} from './$types';
+import type {PageServerLoad} from './$types';
 import type {AnimationSelector} from '$types';
-import {fetchApi} from '$lib';
 
 export const load: PageServerLoad = () => {
   return {
@@ -60,12 +59,4 @@ export const load: PageServerLoad = () => {
       },
     ] satisfies AnimationSelector[],
   };
-};
-
-export const actions: Actions = {
-  default: async ({request}) => {
-    const data = await request.formData();
-    const email = data.get('email') as string;
-    return await fetchApi('/join', 'POST', {email});
-  },
 };

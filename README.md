@@ -11,8 +11,6 @@
 
 By utilizing such fabricated identities, you can register for online services while concealing you true identity, offering a significant step toward protecting you privacy & right to remain anonymous online.
 
-The project is still in beta phase and is still under heavy development. You can subscribe to our [waitlist](https://shadowself.io/#waitlist) to get notified when it's ready.
-
 ## Running Locally
 
 ### Requirements

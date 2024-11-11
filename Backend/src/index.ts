@@ -4,21 +4,6 @@ import {sql} from './connection';
 import {Elysia} from 'elysia';
 
 const app = new Elysia({prefix: '/api'})
-  .post('/join', async ({body}: {body: {email: string}}) => {
-    const email = body.email.toLowerCase();
-
-    if (email.match(/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm) === null) {
-      return {message: 'Please enter a valid email address.', type: 'alert'};
-    }
-
-    const result = await attempt(sql`INSERT INTO users (email) VALUES (${email})`, '🥳 Thank you for joining!');
-
-    if (result.message.match(/unique.*constraint/)) {
-      return {message: 'You have already joined :)', type: 'info'};
-    }
-
-    return result;
-  })
   .post('/contact', async ({body}: {body: ContactDetail}) => {
     for (const [key, value] of Object.entries(body)) {
       if (!['category', 'subject', 'message', 'email'].includes(key)) {

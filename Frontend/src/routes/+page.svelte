@@ -5,7 +5,6 @@
   import {notify, addAnimation, addTabScrollEvent} from '$lib';
   import type {Notification} from '$types';
   import type {PageData} from './$types';
-  import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
 
   interface Props {
@@ -121,9 +120,6 @@
     in the <a href="https://github.com/RedeemedSpoon/ShadowSelf">Github</a> Repository. We are just as exited as you are
     about this project and we are committed to make the world a safer and freer place.
   </p>
-  <form use:enhance method="POST" class="z-10 mt-4 flex w-3/5 lg:w-1/2 xl:w-1/3">
-    <input name="email" type="email" placeholder="Enter your email" />
-  </form>
   <BackgroundBeams />
 </section>
 
@@ -145,9 +141,5 @@
     &:nth-child(6) {
       @apply max-lg:!my-0 2xl:!flex-row min-[1536px]:max-[1720px]:!flex-col;
     }
-  }
-
-  input {
-    @apply border-primary-800 z-10 w-full bg-[#070d1f];
   }
 </style>
