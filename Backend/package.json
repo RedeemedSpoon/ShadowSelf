@@ -8,8 +8,10 @@
     "build": "bun build ./src/index.ts --target=bun --compile  --outfile=server"
   },
   "devDependencies": {
+    "@types/nodemailer": "^6.4.16",
     "bun-types": "latest",
     "elysia": "latest",
+    "nodemailer": "^6.9.16",
     "postgres": "^3.4.5"
   },
   "type": "module",
