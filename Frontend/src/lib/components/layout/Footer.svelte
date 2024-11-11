@@ -24,7 +24,7 @@
       <a href="/"><img loading="lazy" src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div class="flex justify-center gap-4">
         {#each Object.entries(socialLinks) as [key, value]}
-          <a href={value.href} target="_blank" rel="noopener noreferrer">
+          <a rel="external" href={value.href}>
             <img src={value.img} alt={key} height="32" />
           </a>
         {/each}
@@ -36,7 +36,7 @@
           <p class="font-bold text-neutral-400">{key}</p>
           {#each value as link}
             {@const url = link === 'Homepage' ? '/' : `/${link.toLowerCase().replace(/ /g, '-')}`}
-            <a class="alt" target="_blank" href={url}>{link}</a>
+            <a class="alt" href={url}>{link}</a>
           {/each}
         </div>
       {/each}

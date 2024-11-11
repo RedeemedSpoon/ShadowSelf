@@ -30,7 +30,14 @@
       from you!
     </p>
   </section>
-  <form use:enhance method="POST">
+  <form
+    use:enhance={() => {
+      return async ({update, result}) => {
+        if (result.data.type !== 'success') update({reset: false});
+        update({reset: true});
+      };
+    }}
+    method="POST">
     <label for="subject">Subject</label>
     <input type="text" required placeholder="I am looking for..." name="subject" id="subject" />
     <SelectMenu name="Category" options={data.options} />
