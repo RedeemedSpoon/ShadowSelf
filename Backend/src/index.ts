@@ -1,9 +1,19 @@
 import type {ContactDetail} from './types';
-import {attempt, toTitleCase, sendEmail} from './utils';
-import {sql} from './connection';
+import {toTitleCase, sendEmail} from './utils';
 import {Elysia} from 'elysia';
 
-const app = new Elysia({prefix: '/api'})
+import account from './routes/account';
+import billing from './routes/billing';
+import identity from './routes/identity';
+import extension from './routes/extension';
+import api from './routes/api';
+
+const app = new Elysia()
+  .use(account)
+  .use(billing)
+  .use(identity)
+  .use(extension)
+  .use(api)
   .post('/contact', async ({body}: {body: ContactDetail}) => {
     for (const [key, value] of Object.entries(body)) {
       if (!['category', 'subject', 'message', 'email'].includes(key)) {

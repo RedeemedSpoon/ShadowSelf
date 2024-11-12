@@ -13,10 +13,6 @@ export async function attempt(func: Promise<unknown>, SuccessMessage: string): P
   }
 }
 
-export function toTitleCase(str: string): string {
-  return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
-}
-
 export async function sendEmail(body: ContactDetail) {
   const mailOptions = {
     from: 'contact@shadowself.io',
@@ -26,4 +22,8 @@ export async function sendEmail(body: ContactDetail) {
   };
 
   return await attempt(transporter.sendMail(mailOptions), 'Your message has been sent!');
+}
+
+export function toTitleCase(str: string): string {
+  return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
 }

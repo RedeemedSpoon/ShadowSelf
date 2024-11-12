@@ -32,11 +32,12 @@
   }
 
   onMount(() => {
-    document.addEventListener('click', (e) => {
-      if (!select.contains(e.target as Node)) {
-        $selectionInputOpen = false;
-      }
-    });
+    function handleClick(e: MouseEvent) {
+      if (!select.contains(e.target as Node)) $selectionInputOpen = false;
+    }
+
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
   });
 </script>
 
