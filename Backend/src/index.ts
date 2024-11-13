@@ -14,7 +14,9 @@ const app = new Elysia()
   .use(identity)
   .use(extension)
   .use(api)
-  .post('/contact', async ({body}: {body: ContactDetail}) => {
+  .post('/contact', async (Context) => {
+    const body = Context.body as ContactDetail;
+
     for (const [key, value] of Object.entries(body)) {
       if (!['category', 'subject', 'message', 'email'].includes(key)) {
         return {message: toTitleCase(key) + ' is not a valid field.', type: 'info'};

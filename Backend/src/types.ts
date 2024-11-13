@@ -9,3 +9,8 @@ export interface ContactDetail {
   subject: string;
   email: string;
 }
+
+export interface BodyAccount {
+  username: string;
+  password: string;
+}

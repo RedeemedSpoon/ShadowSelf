@@ -23,13 +23,12 @@ ALTER USER :USER_NAME SUPERUSER;
 DROP TABLE IF EXISTS "users";
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
-  "username" varchar(25) UNIQUE NOT NULL
-  "password" varchar(96) NOT NULL
-  "picture" bytea NOT NULL
+  "username" varchar(25) UNIQUE NOT NULL,
+  "password" varchar(96) NOT NULL,
+  "totp_auth" varchar(32),
+  "backup_codes" text[],
+  "credit_card" varchar(64),
+  "crypto_wallet" varchar(64),
   "api_key" varchar(96)
-  "totp" varchar(32)
-  "backups" text[]
-  "credit_card" varchar(64)
-  "crypto_wallet" varchar(64)
   -- other options
 );
