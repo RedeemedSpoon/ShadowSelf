@@ -1,5 +1,6 @@
 import type {Message, ContactDetail} from './types';
 import {transporter} from './connection';
+import * as bcrypt from 'bcrypt';
 
 export async function attempt(func: Promise<unknown>): Promise<unknown> {
   try {
@@ -30,6 +31,11 @@ export async function sendEmail(body: ContactDetail) {
   };
 
   return await attemptMessage(transporter.sendMail(mailOptions), 'Your message has been sent!');
+}
+
+export async function hashAndSaltPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
 }
 
 export function toTitleCase(str: string): string {
