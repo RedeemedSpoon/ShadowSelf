@@ -1,8 +1,8 @@
 import type {Message, ContactDetail} from './types';
 import {transporter} from './connection';
-import * as bcrypt from 'bcrypt';
+import {genSalt, hash} from 'bcrypt';
 
-export async function attempt(func: Promise<unknown>): Promise<unknown> {
+export async function attemptQuery(func: Promise<unknown>): Promise<unknown> {
   try {
     return await func;
   } catch (error: unknown) {
@@ -10,15 +10,13 @@ export async function attempt(func: Promise<unknown>): Promise<unknown> {
   }
 }
 
-export async function attemptMessage(func: Promise<unknown>, SuccessMessage: string): Promise<Message> {
+export async function attempt(func: Promise<unknown>, SuccessMessage: string): Promise<Message> {
   try {
     await func;
-    return {message: SuccessMessage, type: 'success'};
+    return msg(SuccessMessage, 'success');
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      return {message: error.message, type: 'alert'};
-    }
-    return {message: 'Something went horribly wrong.', type: 'alert'};
+    if (error instanceof Error) return msg(error.message, 'alert');
+    return msg('Something went horribly wrong.', 'alert');
   }
 }
 
@@ -30,14 +28,17 @@ export async function sendEmail(body: ContactDetail) {
     text: `${body.message}\n\nEmail: ${body.email || 'N/A'}`,
   };
 
-  return await attemptMessage(transporter.sendMail(mailOptions), 'Your message has been sent!');
+  return await attempt(transporter.sendMail(mailOptions), 'Your message has been sent!');
 }
 
 export async function hashAndSaltPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
+  return await hash(password, await genSalt(5));
 }
 
 export function toTitleCase(str: string): string {
   return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+}
+
+export function msg(message: Message['message'], type: Message['type']): Message {
+  return {message, type};
 }

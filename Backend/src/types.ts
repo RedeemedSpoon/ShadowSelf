@@ -1,6 +1,6 @@
 export interface Message {
   message: string;
-  type: 'success' | 'alert';
+  type: 'success' | 'alert' | 'info';
 }
 
 export interface ContactDetail {
@@ -8,9 +8,14 @@ export interface ContactDetail {
   message: string;
   subject: string;
   email: string;
+  err: string;
 }
 
-export interface BodyAccount {
+export interface BodyField {
+  [key: string]: string;
   username: string;
   password: string;
+  totpAuth: string;
+  backups: string;
+  err: string;
 }

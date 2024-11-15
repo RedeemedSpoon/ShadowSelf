@@ -9,6 +9,7 @@ export const actions: Actions = {
     const password = data.get('password');
 
     const response = await fetchApi('/account/signup', 'POST', {username, password});
+    if (response.type == 'alert') return response;
 
     cookies.set('token', response.cookie, {
       path: '/',

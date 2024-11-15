@@ -1,9 +1,14 @@
 <script lang="ts">
+  import type {Notification} from '$types';
   import {enhance} from '$app/forms';
   import {Card} from '$components';
-  import {blur} from 'svelte/transition';
+  import {notify} from '$lib';
 
-  const {form}: {form: unknown} = $props();
+  const {form}: {form: Notification} = $props();
+
+  $effect(() => {
+    if (form?.message) notify(form?.message, form?.type);
+  });
 </script>
 
 <svelte:head>
@@ -26,9 +31,6 @@
       <button type="submit">Sign Up</button>
     </form>
   </Card>
-  {#key form}
-    <p class="absolute bottom-4 left-0 w-full text-center" transition:blur>{form && JSON.stringify(form)}</p>
-  {/key}
 </div>
 
 <style lang="postcss">
