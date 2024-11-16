@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {authenticated, scrollY} from '$store';
+  import {scrollY, user} from '$store';
   import {HamburgerMenu} from '$components';
   import {logoBesideText} from '$images';
   import {page} from '$app/stores';
@@ -21,8 +21,8 @@
         <a href="/docs">Docs</a>
       </div>
       <div id="auth-buttons">
-        {#if $authenticated}
-          <a href="/dashboard">Account Name</a>
+        {#if $user}
+          <a href="/dashboard">{$user}</a>
         {:else}
           <a class="text-primary-600 hover:text-primary-700 underline max-xl:mr-2" href="/login">Log In</a>
           <a href="/signup"><button>Sign Up</button></a>

@@ -1,8 +1,8 @@
 <script lang="ts">
   import {Card, CheckmarkImg, CheveronImg, QuestionImg} from '$components';
   import {changePricingModel} from '$lib';
-  import {pricingModel} from '$store';
   import {fly} from 'svelte/transition';
+  import {pricingModel} from '$store';
 
   const title = [
     'You can manage your identities and online account linked to it such as passwords and credentials',

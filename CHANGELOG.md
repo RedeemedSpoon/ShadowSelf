@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.03] - 2024-11-15
+
+### Added
+
+- Add token & user stores
+- Add cookies authentication
+- Add header authentication bearer
+- Add jwt onbefore handler
+- Add layout.server.ts
+
 ## [0.2.02] - 2024-11-14
 
 ### Added
@@ -55,11 +65,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add FAQ page
-- Add About page
+- Add about page
 
 ### Changed
 
-- Change Design of Legal pages
+- Change design of legal pages
 
 ## [0.1.05] - 2024-11-06
 
@@ -121,7 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Migrate to svelte 5
-- Rewrote README.md run locally section
+- Rewrote README.md and run locally section
 
 ## [0.0.20] - 2024-10-29
 
@@ -204,7 +214,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add Capabilities Section
+- Add Capabilities section
 - Add tab event to scroll sections
 - Add question to pricing section
 

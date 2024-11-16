@@ -10,8 +10,7 @@ import identity from './routes/identity';
 import extension from './routes/extension';
 
 const app = new Elysia()
-  .post('/contact', async (Context) => {
-    const body = Context.body as ContactDetail;
+  .post('/contact', async ({body}: {body: ContactDetail}) => {
     const {err} = checkContact(body);
     if (err) return msg(err, 'alert');
     return await sendEmail(body);

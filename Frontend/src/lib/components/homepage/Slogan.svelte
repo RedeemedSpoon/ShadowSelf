@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {onMount} from 'svelte';
   import {background} from '$images';
+  import {onMount} from 'svelte';
 
   onMount(() => {
     setTimeout(() => {

@@ -1,17 +1,17 @@
 <script lang="ts">
   import '../app.css';
   import {Header, Footer, Notification} from '$components';
-  import {authenticated, selectionMenuOpen} from '$store';
+  import {selectionMenuOpen, user} from '$store';
   import {onMount, type Snippet} from 'svelte';
-  import {type LayoutData} from './$types';
+  import type {LayoutData} from './$types';
 
   interface Props {
+    children: Snippet;
     data: LayoutData;
-    children?: Snippet;
   }
 
   let {data, children}: Props = $props();
-  $authenticated = data.authenticated;
+  user.set(data.user);
 
   onMount(() => {
     document.querySelector('#app')?.classList.remove('hidden');

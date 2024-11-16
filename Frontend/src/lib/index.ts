@@ -1,9 +1,9 @@
 import type {Notification, AnimationNode, AnimationSelector} from '$types';
 import {notification, pricingModel} from '$store';
 import {allPricingModel} from '$types';
+import {scrollY, token} from '$store';
 import {goto} from '$app/navigation';
 import {get} from 'svelte/store';
-import {scrollY} from '$store';
 
 export function changePricingModel(model: string) {
   // @ts-expect-error ts(2322): Some svelte bug prevent type assertion smh
@@ -25,7 +25,7 @@ export function notify(message: Notification['message'], type: Notification['typ
 
 export async function fetchApi(url: string, method = 'GET', body?: Record<string, unknown>) {
   return await fetch('http://localhost:3000' + url, {
-    headers: {'Content-Type': 'application/json'},
+    headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
     body: body ? JSON.stringify(body) : undefined,
     method,
   })

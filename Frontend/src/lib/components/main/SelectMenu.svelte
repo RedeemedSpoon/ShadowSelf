@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {CheveronImg} from '$components';
   import {selectionInputOpen} from '$store';
+  import {CheveronImg} from '$components';
   import {onMount} from 'svelte';
 
   interface Props {
