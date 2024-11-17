@@ -3,12 +3,12 @@ import {dev} from '$app/environment';
 import {fetchApi} from '$lib';
 
 export const actions: Actions = {
-  signup: async ({request, cookies}) => {
+  login: async ({request, cookies}) => {
     const data = await request.formData();
     const username = data.get('username');
     const password = data.get('password');
 
-    const response = await fetchApi('/account/signup', 'POST', {username, password});
+    const response = await fetchApi('/account/login', 'POST', {username, password});
     if (!response.cookie) return response;
 
     cookies.set('token', response.cookie, {

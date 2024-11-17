@@ -1,6 +1,6 @@
 import type {Message, ContactDetail} from './types';
+import {genSalt, hash, compare} from 'bcrypt';
 import {transporter} from './connection';
-import {genSalt, hash} from 'bcrypt';
 
 export async function attemptQuery(func: Promise<unknown>): Promise<unknown> {
   try {
@@ -32,7 +32,12 @@ export async function sendEmail(body: ContactDetail) {
 }
 
 export async function hashAndSaltPassword(password: string): Promise<string> {
-  return await hash(password, await genSalt(5));
+  const salt = await genSalt(5);
+  return await hash(password, salt);
+}
+
+export async function comparePassword(password: string, hash: string): Promise<boolean> {
+  return await compare(password, hash);
 }
 
 export function toTitleCase(str: string): string {

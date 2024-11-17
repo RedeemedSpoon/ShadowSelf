@@ -22,6 +22,7 @@
       </div>
       <div id="auth-buttons">
         {#if $user}
+          <a href="/logout">Logout</a>
           <a href="/dashboard">{$user}</a>
         {:else}
           <a class="text-primary-600 hover:text-primary-700 underline max-xl:mr-2" href="/login">Log In</a>

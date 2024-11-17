@@ -30,5 +30,4 @@ CREATE TABLE "users" (
   "credit_card" varchar(64),
   "crypto_wallet" varchar(64),
   "api_key" varchar(32)
-  -- other options
 );

@@ -11,7 +11,7 @@
   }
 
   let {data, children}: Props = $props();
-  user.set(data.user);
+  $effect(() => user.set(data.user));
 
   onMount(() => {
     document.querySelector('#app')?.classList.remove('hidden');
