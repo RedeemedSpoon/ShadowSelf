@@ -2,21 +2,11 @@
   import {Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Services} from '$components';
   import {CheveronImg, BackgroundBeams, GridAndDotBackgrounds} from '$components';
   import {satisfaction, registration, management} from '$images';
-  import {notify, addAnimation, addTabScrollEvent} from '$lib';
-  import type {Notification} from '$types';
+  import {addAnimation, addTabScrollEvent} from '$lib';
   import type {PageData} from './$types';
   import {onMount} from 'svelte';
 
-  interface Props {
-    data: PageData;
-    form: Notification;
-  }
-
-  let {data, form}: Props = $props();
-
-  $effect(() => {
-    if (form?.message) notify(form?.message, form?.type);
-  });
+  let {data}: {data: PageData} = $props();
 
   onMount(() => {
     addTabScrollEvent(data.ids);
@@ -35,9 +25,9 @@
 <section id={data.ids[0]} class="!h-screen !p-8">
   <Slogan />
   <p class="my-4 w-3/4 text-balance text-center max-sm:w-full lg:w-1/2">
-    Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your
-    personal information remains hidden, far away from malicious threats. Experience the freedom of online interactions
-    without the fear of compromise.
+    Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your personal
+    information remains hidden, far away from malicious threats. Experience the freedom of online interactions without the fear of
+    compromise.
   </p>
   <div class="flex gap-16">
     <a href={'#' + data.ids[1]} class="no-underline">
@@ -57,9 +47,9 @@
       <br />Control of Your Data.
     </h1>
     <p>
-      Unlike profit-hungry conglomerates, we’re a open-source project dedicated to fighting back. We’ve developed a
-      platform that allow individuals to create synthetic identities, effectively confusing trackers and protecting your
-      personal information from misuse, fraud, or theft.
+      Unlike profit-hungry conglomerates, we’re a open-source project dedicated to fighting back. We’ve developed a platform that
+      allow individuals to create synthetic identities, effectively confusing trackers and protecting your personal information
+      from misuse, fraud, or theft.
     </p>
   </div>
 </section>
@@ -69,23 +59,21 @@
 <section id={data.ids[3]}>
   <GridAndDotBackgrounds>
     <h1 class="text-center text-4xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
-    <div
-      id="account"
-      class="mt-6 flex items-center justify-center gap-16 text-balance text-center max-lg:flex-col xl:gap-32">
+    <div id="account" class="mt-6 flex items-center justify-center gap-16 text-balance text-center max-lg:flex-col xl:gap-32">
       <div class="flex flex-col items-center gap-8 sm:w-[30rem]">
         <img src={registration} width="200" alt="Account Registration" class="max-sm:w-[150px]" />
         <h2 class="from-red-500 to-rose-600 text-3xl font-bold sm:text-4xl">Account Registration</h2>
         <p class="max-sm:px-8">
-          Use our service to create untrackable accounts and register for services while still concealing your actual
-          identity from being at risk.
+          Use our service to create untrackable accounts and register for services while still concealing your actual identity
+          from being at risk.
         </p>
       </div>
       <div class="flex flex-col items-center gap-8 sm:w-[30rem]">
         <img src={management} width="200" alt="Account Managenent" class="max-sm:w-[150px]" />
         <h2 class="from-green-500 to-emerald-600 text-3xl font-bold sm:text-4xl">Account Managenent</h2>
         <p class="max-sm:px-8">
-          Add, delete, and update entries to manage your online accounts. Create, generate and store
-          passwords/usernames, implement TOTP, etc.
+          Add, delete, and update entries to manage your online accounts. Create, generate and store passwords/usernames,
+          implement TOTP, etc.
         </p>
       </div>
     </div>
@@ -101,24 +89,20 @@
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
     <p class="mb-24 w-5/6">
-      We believe that we offer one of the most well-rounded solution for your online needs. Our service provides a great
-      option without compromising on both your privacy and wallet
+      We believe that we offer one of the most well-rounded solution for your online needs. Our service provides a great option
+      without compromising on both your privacy and wallet
     </p>
   </div>
   <div class="h-fit w-fit">
-    <img
-      loading="lazy"
-      class="animate-shake hidden min-w-[30vw] xl:block"
-      src={satisfaction}
-      alt="Customer satisfaction" />
+    <img loading="lazy" class="animate-shake hidden min-w-[30vw] xl:block" src={satisfaction} alt="Customer satisfaction" />
   </div>
 </section>
 <section id={data.ids[7]} class="relative !mt-0 !h-screen overflow-hidden">
   <h1 class="text-center text-6xl md:text-7xl">Join The Waitlist</h1>
   <p class="z-10 w-3/5 text-center leading-relaxed text-neutral-400 lg:w-1/2 xl:w-1/3">
-    Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates and new exiting features
-    in the <a href="https://github.com/RedeemedSpoon/ShadowSelf">Github</a> Repository. We are just as exited as you are
-    about this project and we are committed to make the world a safer and freer place.
+    Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates and new exiting features in the <a
+      href="https://github.com/RedeemedSpoon/ShadowSelf">Github</a> Repository. We are just as exited as you are about this project
+    and we are committed to make the world a safer and freer place.
   </p>
   <BackgroundBeams />
 </section>

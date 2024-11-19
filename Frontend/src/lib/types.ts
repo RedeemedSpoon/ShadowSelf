@@ -4,6 +4,11 @@ export interface Notification {
   type: 'success' | 'alert' | 'info';
 }
 
+export interface OTP {
+  secret: string;
+  qr: string;
+}
+
 export interface AnimationNode {
   type: 'left' | 'right' | 'bottom';
   node: HTMLElement;

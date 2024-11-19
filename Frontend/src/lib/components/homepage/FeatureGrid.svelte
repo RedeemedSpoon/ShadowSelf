@@ -4,8 +4,7 @@
   const features = [
     {
       title: 'Open Source',
-      description:
-        'Our service is built on transparency, ensuring reliability, security, and long-term sustainability.',
+      description: 'Our service is built on transparency, ensuring reliability, security, and long-term sustainability.',
       image: openSource,
     },
     {
@@ -31,8 +30,7 @@
     },
     {
       title: 'Build-in API',
-      description:
-        'Our built-in API provides a powerful tool for developers to programmatically interact with our service.',
+      description: 'Our built-in API provides a powerful tool for developers to programmatically interact with our service.',
       image: terminal,
     },
     {

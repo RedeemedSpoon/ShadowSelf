@@ -13,7 +13,7 @@
   let {data, form}: Props = $props();
 
   $effect(() => {
-    if (form?.message) notify(form?.message, form?.type);
+    if (form?.message) notify(form.message, form.type);
   });
 </script>
 
@@ -26,8 +26,7 @@
   <section>
     <h1 class="basic-style max-md:text-5xl">Contact Us</h1>
     <p class="text-center sm:w-3/4 lg:w-1/2">
-      If you have any questions, concerns, or feedback, please don't hesitate to contact us. We look forward to hearing
-      from you!
+      If you have any questions, concerns, or feedback, please don't hesitate to contact us. We look forward to hearing from you!
     </p>
   </section>
   <form

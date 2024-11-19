@@ -1,3 +1,5 @@
+export type User = {username: string; password: string} | undefined;
+
 export interface Message {
   message: string;
   type: 'success' | 'alert' | 'info';
@@ -15,8 +17,8 @@ export interface BodyField {
   [key: string]: string;
   username: string;
   password: string;
-  totpAuth: string;
-  backups: string;
+  backup: string;
+  code: string;
   err: string;
 }
 
@@ -24,7 +26,7 @@ export interface QueryResult {
   id: number;
   username: string;
   password: string;
-  totp_auth: string;
+  otp_auth: string;
   backup_codes: string;
   credit_card: string;
   crypto_wallet: string;

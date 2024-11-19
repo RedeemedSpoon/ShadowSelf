@@ -1,13 +1,15 @@
 <script lang="ts">
-  import type {Notification} from '$types';
+  import type {Notification, OTP} from '$types';
   import {enhance} from '$app/forms';
   import {Card} from '$components';
   import {notify} from '$lib';
 
-  const {form}: {form: Notification} = $props();
+  const {form}: {form: Notification & OTP} = $props();
+  let QRCodeImg: string | undefined = $state();
 
   $effect(() => {
-    if (form?.message) notify(form?.message, form?.type);
+    if (form?.message) notify(form.message, form.type);
+    else if (form?.secret) QRCodeImg = form.qr;
   });
 </script>
 
@@ -31,15 +33,40 @@
       <button type="submit">Sign Up</button>
     </form>
   </Card>
+  <Card upperClass="w-fit flex self-center">
+    <form method="POST" action="?/otp" use:enhance>
+      <h1>Add 2FA to your account</h1>
+      {#if QRCodeImg}
+        <img src={QRCodeImg} alt="QR Code" width="300" />
+        <div class="flex w-full flex-col gap-4">
+          <p>Scan the QR code with your authenticator app to add 2 factor authentication:</p>
+          <p>alternatively, you can use the code: <b>{form.secret}</b></p>
+          <p class="text-red-500">make sure to use 'SHA512' as the algorithm</p>
+        </div>
+      {/if}
+      <button type="submit">Yes Indeed</button>
+    </form>
+  </Card>
+  <Card upperClass="w-fit flex self-center">
+    <form method="POST" action="?/check" use:enhance>
+      <h1>Enter the verification code</h1>
+      <input type="number" name="code" class="w-full" required />
+      <button type="submit">Verify</button>
+    </form>
+  </Card>
 </div>
 
 <style lang="postcss">
   #signup {
-    @apply mx-auto flex h-screen w-2/3 flex-col justify-center gap-12;
+    @apply mx-auto flex h-screen w-2/3 justify-center gap-12;
   }
 
   h1 {
     @apply -mt-4 mb-4 self-center text-4xl font-bold text-neutral-300;
+  }
+
+  img {
+    @apply self-center shadow-lg shadow-white/15;
   }
 
   form {

@@ -7,7 +7,7 @@
   const {form}: {form: Notification} = $props();
 
   $effect(() => {
-    if (form?.message) notify(form?.message, form?.type);
+    if (form?.message) notify(form.message, form.type);
   });
 </script>
 

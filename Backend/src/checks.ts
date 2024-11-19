@@ -5,7 +5,7 @@ export function check(body: BodyField, fields: string[], ignore?: boolean): Body
   for (const field of fields) {
     if (!Object.prototype.hasOwnProperty.call(body, field)) {
       return {err: `${toTitleCase(field)} is a required field`} as BodyField;
-    } else if (!ignore && field === 'username' && checkName(body.username)) {
+    } else if (ignore && field === 'username' && checkName(body.username)) {
       return {err: 'Username can only contain letters, numbers and spaces'} as BodyField;
     }
   }

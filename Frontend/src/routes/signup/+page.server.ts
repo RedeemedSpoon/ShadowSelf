@@ -1,6 +1,7 @@
 import type {Actions} from './$types';
 import {dev} from '$app/environment';
 import {fetchApi} from '$lib';
+import QRCode from 'qrcode';
 
 export const actions: Actions = {
   signup: async ({request, cookies}) => {
@@ -21,5 +22,19 @@ export const actions: Actions = {
       sameSite: 'strict',
       priority: 'high',
     });
+  },
+  otp: async () => {
+    const response = await fetchApi('/account/otp', 'POST');
+    if (!response.uri) return response;
+
+    const secret = response.secret;
+    const qr = await QRCode.toDataURL(response.uri);
+    return {qr, secret};
+  },
+  check: async ({request}) => {
+    const data = await request.formData();
+    const code = data.get('code');
+
+    return await fetchApi('/account/otp-check', 'POST', {code});
   },
 };

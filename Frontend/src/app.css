@@ -43,9 +43,14 @@
 
   input[type='text'],
   input[type='email'],
+  input[type='number'],
   input[type='password'],
   textarea {
     @apply rounded-xl border p-4 !outline-none transition-all duration-300 placeholder:text-neutral-700;
     @apply focus:ring-primary-600 border-neutral-700/50 bg-neutral-800/30 text-lg focus:ring-2;
+  }
+
+  input[type='number'] {
+    @apply [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none;
   }
 }
