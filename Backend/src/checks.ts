@@ -1,28 +1,46 @@
-import type {BodyField, ContactDetail, Message} from './types';
-import {msg, toTitleCase} from './utils';
+import type {BodyField, ContactDetail} from './types';
+import {toTitleCase} from './utils';
 
 export function check(body: BodyField, fields: string[], ignore?: boolean): BodyField {
   for (const field of fields) {
     if (!Object.prototype.hasOwnProperty.call(body, field)) {
       return {err: `${toTitleCase(field)} is a required field`} as BodyField;
-    } else if (ignore && field === 'username' && checkName(body.username)) {
-      return {err: 'Username can only contain letters, numbers and spaces'} as BodyField;
+    }
+
+    if (ignore) continue;
+    switch (field) {
+      case 'username':
+        if (!/^[a-zA-Z0-9\s]+$/.test(body.username)) {
+          return {err: 'Username can only contain letters, numbers and spaces'} as BodyField;
+        }
+        if (body.username.length > 25) {
+          return {err: 'Username is too long (<25 characters)'} as BodyField;
+        }
+        break;
+      case 'password':
+        if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(body.password)) {
+          return {err: 'Password is too weak. Get a better one'} as BodyField;
+        }
+        break;
+      case 'secret':
+        if (body.secret.length > 32 && !/^[A-Z0-9]+$/.test(body.secret)) {
+          return {err: 'OTP secret is invalid. Get a new one'} as BodyField;
+        }
+        break;
+      case 'code':
+        if (!/^\d{6}$/.test(body.code)) {
+          return {err: 'Validation code must be a 6 digit number'} as BodyField;
+        }
+        break;
+      case 'backup':
+        if (!/^\d{9}$/.test(body.backup)) {
+          return {err: 'Backup codes must be a 9 digit number'} as BodyField;
+        }
+        break;
     }
   }
 
   return body;
-}
-
-export function checkError(error: Error, field?: string): Message {
-  if (field && error.message.match(/unique.*constraint/)) {
-    return msg(`This ${field} is already taken`, 'alert');
-  }
-
-  if (error.message.match(/too long/)) {
-    return msg(`${field} is too long (<${error.message.match(/\d+/)} characters)`, 'alert');
-  }
-
-  return msg(error.message, 'alert');
 }
 
 export function checkContact(body: ContactDetail): ContactDetail {
@@ -32,7 +50,7 @@ export function checkContact(body: ContactDetail): ContactDetail {
     }
   }
 
-  if (body.email && !checkEmail(body.email)) {
+  if (body.email && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
     return {err: 'Please enter a valid email'} as ContactDetail;
   }
 
@@ -41,12 +59,4 @@ export function checkContact(body: ContactDetail): ContactDetail {
   }
 
   return body;
-}
-
-function checkEmail(email: string): boolean {
-  return /^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(email);
-}
-
-function checkName(name: string): boolean {
-  return !/^[a-zA-Z0-9\s]+$/.test(name);
 }

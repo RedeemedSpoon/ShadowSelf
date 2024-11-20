@@ -1,6 +1,6 @@
 import {msg, attemptQuery, comparePassword, hashAndSaltPassword, generateBackupCodes} from '../utils';
 import {BodyField, QueryResult, User} from '../types';
-import {check, checkError} from '../checks';
+import {check} from '../checks';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
 import * as OTPAuth from 'otpauth';
@@ -14,66 +14,80 @@ export default new Elysia({prefix: '/account'})
     const user = (await jwt.verify(token)) as User;
     return {user};
   })
-  .get('/', async ({user}) => user)
-  .post('/signup', async ({jwt, body, user}) => {
-    if (user) return msg('You are already logged in', 'info');
+  .onBeforeHandle(({user, path}) => {
+    const relativePath = path.slice(8);
+    const notLog = ['/login', '/login-otp', '/login-backup', '/signup', '/dry-run', '/dry-run-otp', '/dry-run-backup'];
+    const mustLog = ['/settings', '/otp', '/full'];
 
-    const {password, username, err} = check(body as BodyField, ['password', 'username']);
+    if (notLog.some((p) => relativePath === p) && user) {
+      return msg('You are already logged in', 'info');
+    }
+
+    if (mustLog.some((p) => relativePath === p) && !user) {
+      return msg('You are not logged in', 'info');
+    }
+  })
+  .get('/', async ({user}) => user)
+  .get('/login', async () => {})
+  .get('/login-otp', async () => {})
+  .get('/login-backup', async () => {})
+  .post('/signup-first-step', async ({body}) => {
+    const {username, err} = check(body as BodyField, ['password', 'username']);
     if (err) return msg(err, 'alert');
 
+    const result = (await attemptQuery(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
+    if (result.length) return msg('This username is already taken', 'alert');
+    return {username};
+  })
+  .post('/signup-second-step', async ({user}) => {
+    const secret = new OTPAuth.Secret({size: 20}).base32;
+    const totp = new OTPAuth.TOTP({
+      issuer: 'ShadowSelf',
+      label: user?.username,
+      algorithm: 'SHA512',
+      digits: 6,
+      period: 30,
+      secret,
+    });
+
+    const uri = totp.toString();
+    return {uri, secret};
+  })
+  .post('/signup-third-step', async ({body, user}) => {
+    const {code, secret, err} = check(body as BodyField, ['code', 'secret']);
+    if (err) return msg(err, 'alert');
+
+    const totp = new OTPAuth.TOTP({
+      issuer: 'ShadowSelf',
+      label: user?.username,
+      algorithm: 'SHA512',
+      digits: 6,
+      period: 30,
+      secret,
+    });
+
+    const isValid = totp.generate() === code;
+    if (!isValid) return msg('Incorrect validation code. Please try again', 'alert');
+
+    const backupCodes = generateBackupCodes();
+    return {backup: backupCodes};
+  })
+  .post('/signup-final-step', async ({jwt, body}) => {
+    const {password, username, secret, backup} = body as BodyField;
+
     const newPassword = await hashAndSaltPassword(password);
-    const result = await attemptQuery(sql`INSERT INTO users (username, password) VALUES (${username}, ${newPassword})`);
-    if (result instanceof Error) return checkError(result, 'Username');
+    await attemptQuery(sql`INSERT INTO users (username, password) VALUES (${username}, ${newPassword})`);
+    await attemptQuery(sql`UPDATE users SET otp_auth = ${secret} WHERE username = ${username}`);
+    await attemptQuery(sql`UPDATE users SET backup_codes = ${backup} WHERE username = ${username}`);
 
     const cookieValue = await jwt.sign({password, username});
     return {cookie: cookieValue};
   })
-  .post('/otp', async ({user}) => {
-    if (!user) return msg('You are not logged in', 'info');
+  .patch('/settings', async () => {})
+  .delete('/full', async () => {})
+  .delete('/otp', async () => {})
 
-    const secret = new OTPAuth.Secret({size: 20}).base32;
-    await attemptQuery(sql`UPDATE users SET otp_auth = ${secret} WHERE username = ${user.username}`);
-
-    const totp = new OTPAuth.TOTP({
-      issuer: 'ShadowSelf',
-      label: user.username,
-      algorithm: 'SHA512',
-      digits: 6,
-      period: 30,
-      secret,
-    });
-
-    return {uri: totp.toString(), secret};
-  })
-  .post('otp-check', async ({body, user}) => {
-    if (!user) return msg('You are not logged in', 'info');
-
-    const {code, err} = check(body as BodyField, ['code'], true);
-    if (err) return msg(err, 'alert');
-
-    const result = (await attemptQuery(sql`SELECT otp_auth FROM users WHERE username = ${user.username}`)) as QueryResult[];
-    const secret = result[0].otp_auth;
-
-    const totp = new OTPAuth.TOTP({
-      issuer: 'ShadowSelf',
-      label: user.username,
-      algorithm: 'SHA512',
-      digits: 6,
-      period: 30,
-      secret,
-    });
-
-    if (totp.generate() !== code) {
-      return msg('Invalid validation code. Please try again', 'alert');
-    }
-
-    const backupCodes = generateBackupCodes();
-    await attemptQuery(sql`UPDATE users SET backup_codes = ${backupCodes} WHERE username = ${user.username}`);
-    return {backup: backupCodes};
-  })
-  .post('/login', async ({jwt, body, user}) => {
-    if (user) return msg('You are already logged in', 'info');
-
+  .post('/login', async ({jwt, body}) => {
     const {password, username, err} = check(body as BodyField, ['password', 'username'], true);
     if (err) return msg(err, 'alert');
 

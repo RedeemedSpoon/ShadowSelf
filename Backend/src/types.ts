@@ -14,9 +14,9 @@ export interface ContactDetail {
 }
 
 export interface BodyField {
-  [key: string]: string;
   username: string;
   password: string;
+  secret: string;
   backup: string;
   code: string;
   err: string;
