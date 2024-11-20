@@ -31,9 +31,18 @@ export async function sendEmail(body: ContactDetail) {
   return await attempt(transporter.sendMail(mailOptions), 'Your message has been sent!');
 }
 
+export function generateBackupCodes(): string[] {
+  const backupCodes: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const code = Math.floor(Math.random() * 900_000_000) + 100_000_000;
+    backupCodes.push(code.toString());
+  }
+
+  return backupCodes;
+}
+
 export async function hashAndSaltPassword(password: string): Promise<string> {
-  const salt = await genSalt(5);
-  return await hash(password, salt);
+  return await hash(password, await genSalt(10));
 }
 
 export async function comparePassword(password: string, hash: string): Promise<boolean> {

@@ -1,4 +1,4 @@
-import {attemptQuery, comparePassword, hashAndSaltPassword, msg} from '../utils';
+import {msg, attemptQuery, comparePassword, hashAndSaltPassword, generateBackupCodes} from '../utils';
 import {BodyField, QueryResult, User} from '../types';
 import {check, checkError} from '../checks';
 import {sql} from '../connection';
@@ -63,11 +63,13 @@ export default new Elysia({prefix: '/account'})
       secret,
     });
 
-    if (totp.generate() === code) {
-      return msg('Successfully logged in', 'success');
-    } else {
+    if (totp.generate() !== code) {
       return msg('Invalid validation code. Please try again', 'alert');
     }
+
+    const backupCodes = generateBackupCodes();
+    await attemptQuery(sql`UPDATE users SET backup_codes = ${backupCodes} WHERE username = ${user.username}`);
+    return {backup: backupCodes};
   })
   .post('/login', async ({jwt, body, user}) => {
     if (user) return msg('You are already logged in', 'info');

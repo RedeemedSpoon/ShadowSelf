@@ -35,6 +35,9 @@ export const actions: Actions = {
     const data = await request.formData();
     const code = data.get('code');
 
-    return await fetchApi('/account/otp-check', 'POST', {code});
+    const response = await fetchApi('/account/otp-check', 'POST', {code});
+    if (!response.backup) return response;
+
+    return {backup: response.backup};
   },
 };

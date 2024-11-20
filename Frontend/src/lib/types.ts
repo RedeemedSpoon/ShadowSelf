@@ -5,6 +5,7 @@ export interface Notification {
 }
 
 export interface OTP {
+  backup: string[];
   secret: string;
   qr: string;
 }

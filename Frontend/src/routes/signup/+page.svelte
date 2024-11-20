@@ -6,10 +6,14 @@
 
   const {form}: {form: Notification & OTP} = $props();
   let QRCodeImg: string | undefined = $state();
+  let secret: string | undefined = $state();
+  let backup: string[] | undefined = $state();
 
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
-    else if (form?.secret) QRCodeImg = form.qr;
+    if (form?.qr) QRCodeImg = form.qr;
+    if (form?.secret) secret = form.secret;
+    if (form?.backup) backup = form.backup;
   });
 </script>
 
@@ -36,11 +40,11 @@
   <Card upperClass="w-fit flex self-center">
     <form method="POST" action="?/otp" use:enhance>
       <h1>Add 2FA to your account</h1>
-      {#if QRCodeImg}
+      {#if QRCodeImg && secret}
         <img src={QRCodeImg} alt="QR Code" width="300" />
         <div class="flex w-full flex-col gap-4">
           <p>Scan the QR code with your authenticator app to add 2 factor authentication:</p>
-          <p>alternatively, you can use the code: <b>{form.secret}</b></p>
+          <p>alternatively, you can use the code: <b>{secret}</b></p>
           <p class="text-red-500">make sure to use 'SHA512' as the algorithm</p>
         </div>
       {/if}
@@ -54,6 +58,17 @@
       <button type="submit">Verify</button>
     </form>
   </Card>
+  <Card upperClass="w-fit flex self-center">
+    <h1>Please Store these Backup Codes Safely</h1>
+    <div class="flex flex-col gap-4 rounded-xl bg-slate-900/50 p-4">
+      {#if backup}
+        {#each backup as code}
+          <p>{code}</p>
+        {/each}
+      {/if}
+      <button>Copy</button>
+      <button>Download</button>
+    </div></Card>
 </div>
 
 <style lang="postcss">
