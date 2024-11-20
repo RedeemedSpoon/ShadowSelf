@@ -38,7 +38,7 @@
   }
 
   #underline-text {
-    @apply basic-style mt-1 block h-1 max-w-0 transition-all duration-500;
+    @apply basic-style mt-1 block h-1 max-w-0 transition-all duration-500 ease-in-out;
   }
 
   #highlight {

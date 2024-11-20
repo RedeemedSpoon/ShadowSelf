@@ -1,6 +1,6 @@
 <script lang="ts">
   import {scrollY, user} from '$store';
-  import {HamburgerMenu} from '$components';
+  import {HamburgerMenu, CheveronImg} from '$components';
   import {logoBesideText} from '$images';
   import {page} from '$app/stores';
 
@@ -13,17 +13,17 @@
   <a href="/" class="max-sm:ml-6">
     <img id="logo" src={logoBesideText} alt="Shadowself Logo" width="276" />
   </a>
-  <div id="nav-container" class="translate-x-0 transition-transform duration-1000 ease-in-out">
+  <div id="nav-container">
     <HamburgerMenu className="!w-16 !h-16">
-      <div id="navigation-links">
+      <div id="navigation-links" class="xl:mr-4">
         <a href="/extension">Extension</a>
-        <a href="/purchase">Purchase</a>
+        <a href="/contact">Contact</a>
         <a href="/docs">Docs</a>
       </div>
       <div id="auth-buttons">
         {#if $user}
-          <a href="/logout">Logout</a>
-          <a href="/dashboard">{$user}</a>
+          <a href="/dashboard" class="group" id="username">{$user}<span id="username-underline"></span></a>
+          <input id="header-alt-auth" type="checkbox" class="hidden" checked={$user ? true : false} />
         {:else}
           <a class="text-primary-600 hover:text-primary-700 underline max-xl:mr-2" href="/login">Log In</a>
           <a href="/signup"><button>Sign Up</button></a>
@@ -39,6 +39,18 @@
     @apply select-none bg-neutral-950 bg-opacity-75 transition-all duration-1000 ease-in-out;
   }
 
+  #nav-container {
+    @apply translate-x-0 transition-transform duration-1000 ease-in-out;
+  }
+
+  #username {
+    @apply text-primary-600 cursor-pointer font-semibold;
+  }
+
+  span {
+    @apply basic-style block h-[2px] max-w-0 transition-all duration-300 ease-in-out group-hover:!max-w-full;
+  }
+
   #logo {
     @apply transition-transform duration-1000 ease-in-out max-sm:h-12;
   }
@@ -46,6 +58,9 @@
   #auth-buttons,
   #navigation-links {
     @apply flex items-center gap-4 text-nowrap text-xl xl:gap-8;
+    #header-alt-auth:checked ~ & {
+      @apply items-baseline;
+    }
   }
 
   #auth-buttons {

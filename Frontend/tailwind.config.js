@@ -61,7 +61,7 @@ function addCustomClasses({addComponents}) {
       cursor: 'pointer',
       fill: 'currentColor',
       outline: 'none',
-      transition: 'all 0.5s',
+      transition: 'transform 0.5s',
     },
     '.small-aura': {
       borderRadius: '100%',
@@ -72,7 +72,6 @@ function addCustomClasses({addComponents}) {
     '.small-aura:hover': {
       backgroundColor: 'rgba(153, 153, 153, 0.15)',
     },
-
     '.image-shadow': {
       filter: 'drop-shadow(0 5px 15px rgba(148, 163, 184, 0.15))',
       transition: 'all 0.5s',
