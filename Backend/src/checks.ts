@@ -37,6 +37,11 @@ export function check(body: BodyField, fields: string[], ignore?: boolean): Body
           return {err: 'Backup codes must be a 9 digit number'} as BodyField;
         }
         break;
+      case 'backups':
+        if (!Array.isArray(body.backups) || !body.backups.every((b) => /^\d{9}$/.test(b))) {
+          return {err: 'Wrong backup codes. Generate new ones'} as BodyField;
+        }
+        break;
     }
   }
 

@@ -37,6 +37,7 @@ export default new Elysia({prefix: '/account'})
 
     const result = (await attemptQuery(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
     if (result.length) return msg('This username is already taken', 'alert');
+
     return {username};
   })
   .post('/signup-second-step', async ({user}) => {
@@ -73,7 +74,12 @@ export default new Elysia({prefix: '/account'})
     return {backup: backupCodes};
   })
   .post('/signup-final-step', async ({jwt, body}) => {
-    const {password, username, secret, backup} = body as BodyField;
+    const fields = ['password', 'username', 'secret', 'backups'];
+    const {password, username, secret, backup, err} = check(body as BodyField, fields);
+    if (err) return msg(err, 'alert');
+
+    const isTaken = (await attemptQuery(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
+    if (isTaken.length) return msg('This username is already taken', 'alert');
 
     const newPassword = await hashAndSaltPassword(password);
     await attemptQuery(sql`INSERT INTO users (username, password) VALUES (${username}, ${newPassword})`);
