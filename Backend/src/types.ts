@@ -28,7 +28,7 @@ export interface QueryResult {
   username: string;
   password: string;
   otp_auth: string;
-  backup_codes: string;
+  backup_codes: string[];
   credit_card: string;
   crypto_wallet: string;
   api_key: string;

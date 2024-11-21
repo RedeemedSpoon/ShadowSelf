@@ -28,9 +28,54 @@ export default new Elysia({prefix: '/account'})
     }
   })
   .get('/', async ({user}) => user)
-  .get('/login', async () => {})
-  .get('/login-otp', async () => {})
-  .get('/login-backup', async () => {})
+  .post('/login', async ({jwt, body}) => {
+    const {password, username, err} = check(body as BodyField, ['password', 'username'], true);
+    if (err) return msg(err, 'alert');
+
+    const result = (await attemptQuery(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
+    if (result.length === 0) return msg('Invalid credentials. Please try again', 'alert');
+
+    const hashedPassword = result[0].password;
+    const isPasswordCorrect = await comparePassword(password, hashedPassword);
+    if (!isPasswordCorrect) return msg('Invalid credentials. Please try again', 'alert');
+
+    const has2fa = result[0].otp_auth;
+    if (has2fa) return {username};
+
+    const cookieValue = await jwt.sign({password, username});
+    return {cookie: cookieValue};
+  })
+  .post('/login-otp', async ({body, jwt}) => {
+    const {code, username, password, err} = check(body as BodyField, ['code', 'username', 'password']);
+    if (err) return msg(err, 'alert');
+
+    const secret = (await attemptQuery(sql`SELECT otp_auth FROM users WHERE username = ${username}`)) as QueryResult[];
+    const totp = new OTPAuth.TOTP({
+      label: username,
+      issuer: 'ShadowSelf',
+      algorithm: 'SHA512',
+      digits: 6,
+      period: 30,
+      secret: secret[0].otp_auth,
+    });
+
+    const isValid = totp.generate() === code;
+    if (!isValid) return msg('Incorrect validation code. Please try again', 'alert');
+
+    const cookieValue = await jwt.sign({username, password});
+    return {cookie: cookieValue};
+  })
+  .post('/login-backup', async ({body, jwt}) => {
+    const {backup, username, password, err} = check(body as BodyField, ['backup', 'username', 'password']);
+    if (err) return msg(err, 'alert');
+
+    const allBackups = (await attemptQuery(sql`SELECT backup_codes FROM users WHERE username = ${username}`)) as QueryResult[];
+    const isValid = allBackups[0].backup_codes.some((b) => b === backup);
+    if (!isValid) return msg('Incorrect backup code. Try another one', 'alert');
+
+    const cookieValue = await jwt.sign({username, password});
+    return {cookie: cookieValue};
+  })
   .post('/signup-first-step', async ({body}) => {
     const {username, err} = check(body as BodyField, ['password', 'username']);
     if (err) return msg(err, 'alert');
@@ -83,27 +128,26 @@ export default new Elysia({prefix: '/account'})
 
     const newPassword = await hashAndSaltPassword(password);
     await attemptQuery(sql`INSERT INTO users (username, password) VALUES (${username}, ${newPassword})`);
-    await attemptQuery(sql`UPDATE users SET otp_auth = ${secret} WHERE username = ${username}`);
-    await attemptQuery(sql`UPDATE users SET backup_codes = ${backup} WHERE username = ${username}`);
+
+    if (secret && backup) {
+      await attemptQuery(sql`UPDATE users SET otp_auth = ${secret} WHERE username = ${username}`);
+      await attemptQuery(sql`UPDATE users SET backup_codes = ${backup} WHERE username = ${username}`);
+    }
 
     const cookieValue = await jwt.sign({password, username});
     return {cookie: cookieValue};
   })
-  .patch('/settings', async () => {})
-  .delete('/full', async () => {})
-  .delete('/otp', async () => {})
+  .delete('/full', async ({user}) => {
+    const costumer = attemptQuery(sql`DELETE FROM users WHERE username = ${user!.username}`);
+    if (!user) return msg('Something went wrong', 'alert');
 
-  .post('/login', async ({jwt, body}) => {
-    const {password, username, err} = check(body as BodyField, ['password', 'username'], true);
-    if (err) return msg(err, 'alert');
+    return costumer;
+  })
+  .delete('/otp', async ({user}) => {
+    const customer = (await attemptQuery(
+      sql`UPDATE users SET otp_auth = NULL, backup_codes = NULL WHERE username = ${user!.username}`,
+    )) as QueryResult[];
+    if (!customer) return msg('Something went wrong', 'alert');
 
-    const result = (await attemptQuery(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
-    if (result.length === 0) return msg('Invalid credentials. Please try again', 'alert');
-
-    const hashedPassword = result[0].password;
-    const isPasswordCorrect = await comparePassword(password, hashedPassword);
-    if (!isPasswordCorrect) return msg('Invalid credentials. Please try again', 'alert');
-
-    const cookieValue = await jwt.sign({password, username});
-    return {cookie: cookieValue};
+    return customer;
   });
