@@ -12,8 +12,7 @@ export function check(body: BodyField, fields: string[], ignore?: boolean): Body
       case 'username':
         if (!/^[a-zA-Z0-9\s]+$/.test(body.username)) {
           return {err: 'Username can only contain letters, numbers and spaces'} as BodyField;
-        }
-        if (body.username.length > 25) {
+        } else if (body.username.length > 25) {
           return {err: 'Username is too long (<25 characters)'} as BodyField;
         }
         break;
@@ -39,7 +38,7 @@ export function check(body: BodyField, fields: string[], ignore?: boolean): Body
         break;
       case 'backups':
         if (!Array.isArray(body.backups) || !body.backups.every((b) => /^\d{9}$/.test(b))) {
-          return {err: 'Wrong backup codes. Generate new ones'} as BodyField;
+          return {err: 'Wrong backup codes structure. Generate new ones'} as BodyField;
         }
         break;
     }

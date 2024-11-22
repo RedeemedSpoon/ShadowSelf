@@ -1,19 +1,19 @@
 <script lang="ts">
-  import type {Notification, OTP} from '$types';
+  import type {Notification, Registration} from '$types';
   import {enhance} from '$app/forms';
   import {Card} from '$components';
   import {notify} from '$lib';
 
-  const {form}: {form: Notification & OTP} = $props();
-  let QRCodeImg: string | undefined = $state();
-  let secret: string | undefined = $state();
-  let backup: string[] | undefined = $state();
+  const {form}: {form: Notification & Registration} = $props();
+
+  let username = $derived(form?.username);
+  let backup = $derived(form?.backup);
+  let secret = $derived(form?.secret);
+  let step = $derived(form?.step);
+  let qr = $derived(form?.qr);
 
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
-    if (form?.qr) QRCodeImg = form.qr;
-    if (form?.secret) secret = form.secret;
-    if (form?.backup) backup = form.backup;
   });
 </script>
 
@@ -24,7 +24,7 @@
 
 <div id="signup">
   <Card upperClass="w-fit flex self-center">
-    <form method="POST" action="?/signup" use:enhance>
+    <form method="POST" action="?/init" use:enhance>
       <h1>Create an account</h1>
       <div>
         <label for="username">Username</label>
@@ -38,17 +38,18 @@
     </form>
   </Card>
   <Card upperClass="w-fit flex self-center">
-    <form method="POST" action="?/otp" use:enhance>
-      <h1>Add 2FA to your account</h1>
-      {#if QRCodeImg && secret}
-        <img src={QRCodeImg} alt="QR Code" width="300" />
+    <form method="POST" action="?/askOTP" use:enhance>
+      <h1>hello {username}, Add 2FA to your account</h1>
+      {#if qr && secret}
+        <img src={qr} alt="QR Code" width="300" />
         <div class="flex w-full flex-col gap-4">
           <p>Scan the QR code with your authenticator app to add 2 factor authentication:</p>
           <p>alternatively, you can use the code: <b>{secret}</b></p>
           <p class="text-red-500">make sure to use 'SHA512' as the algorithm</p>
         </div>
       {/if}
-      <button type="submit">Yes Indeed</button>
+      <button name="add" type="submit">Add</button>
+      <button name="skip" type="submit">Skip</button>
     </form>
   </Card>
   <Card upperClass="w-fit flex self-center">

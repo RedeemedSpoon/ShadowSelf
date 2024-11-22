@@ -4,7 +4,9 @@ export interface Notification {
   type: 'success' | 'alert' | 'info';
 }
 
-export interface OTP {
+export interface Registration {
+  step: string;
+  username: string;
   backup: string[];
   secret: string;
   qr: string;

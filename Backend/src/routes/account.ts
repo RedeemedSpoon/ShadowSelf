@@ -77,7 +77,7 @@ export default new Elysia({prefix: '/account'})
     return {cookie: cookieValue};
   })
   .post('/signup-first-step', async ({body}) => {
-    const {username, err} = check(body as BodyField, ['password', 'username']);
+    const {username, err} = check(body as BodyField, ['username', 'password']);
     if (err) return msg(err, 'alert');
 
     const result = (await attemptQuery(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
@@ -100,7 +100,7 @@ export default new Elysia({prefix: '/account'})
     return {uri, secret};
   })
   .post('/signup-third-step', async ({body, user}) => {
-    const {code, secret, err} = check(body as BodyField, ['code', 'secret']);
+    const {code, secret, err} = check(body as BodyField, ['secret', 'code']);
     if (err) return msg(err, 'alert');
 
     const totp = new OTPAuth.TOTP({
@@ -119,7 +119,7 @@ export default new Elysia({prefix: '/account'})
     return {backup: backupCodes};
   })
   .post('/signup-final-step', async ({jwt, body}) => {
-    const fields = ['password', 'username', 'secret', 'backups'];
+    const fields = ['username', 'password', 'secret', 'backups'];
     const {password, username, secret, backup, err} = check(body as BodyField, fields);
     if (err) return msg(err, 'alert');
 
