@@ -5,12 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.07] - 2024-11-22
+
+### Added
+
+- Add Step component
+- Add signup server actions
+- Add control buttons to signup
+
+### Changed
+
+- Move crytographic function from utils.ts to crypto.ts
+- Move repetitive code into functions
+
 ## [0.2.06] - 2024-11-20
 
 ### Changed
 
 - Change signup to a step by step process
-- Change signup backend to be divided
+- Change signup backend to be more divided
 
 ## [0.2.05] - 2024-11-19
 

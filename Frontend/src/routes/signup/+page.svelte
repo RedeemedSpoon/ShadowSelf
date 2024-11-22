@@ -53,7 +53,7 @@
     </form>
   </Card>
   <Card upperClass="w-fit flex self-center">
-    <form method="POST" action="?/check" use:enhance>
+    <form method="POST" action="?/checkOTP" use:enhance>
       <h1>Enter the verification code</h1>
       <input type="number" name="code" class="w-full" required />
       <button type="submit">Verify</button>
@@ -69,7 +69,14 @@
       {/if}
       <button>Copy</button>
       <button>Download</button>
-    </div></Card>
+    </div>
+  </Card>
+  <Card upperClass="w-fit flex self-center">
+    <form method="POST" action="?/create" use:enhance>
+      <h1>Create account</h1>
+      <button type="submit">Create</button>
+    </form>
+  </Card>
 </div>
 
 <style lang="postcss">

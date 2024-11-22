@@ -5,7 +5,6 @@ import {Elysia} from 'elysia';
 
 import api from './routes/api';
 import account from './routes/account';
-import billing from './routes/billing';
 import identity from './routes/identity';
 import extension from './routes/extension';
 
@@ -17,7 +16,6 @@ const app = new Elysia()
   })
   .use(api)
   .use(account)
-  .use(billing)
   .use(identity)
   .use(extension)
   .listen(3000);

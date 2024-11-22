@@ -1,9 +1,9 @@
-import {msg, attemptQuery, comparePassword, hashAndSaltPassword, generateBackupCodes} from '../utils';
+import {comparePWD, hashPWD, createTOTP, getSecret, getBackupCodes} from '../crypto';
 import {BodyField, QueryResult, User} from '../types';
-import {check} from '../checks';
+import {msg, attemptQuery} from '../utils';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
-import * as OTPAuth from 'otpauth';
+import {check} from '../checks';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/account'})
@@ -16,7 +16,7 @@ export default new Elysia({prefix: '/account'})
   })
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(8);
-    const notLog = ['/login', '/login-otp', '/login-backup', '/signup', '/dry-run', '/dry-run-otp', '/dry-run-backup'];
+    const notLog = ['/login', '/login-otp', '/login-backup', '/signup', '/signup-otp', '/signup-backup', '/signup-create'];
     const mustLog = ['/settings', '/otp', '/full'];
 
     if (notLog.some((p) => relativePath === p) && user) {
@@ -36,7 +36,7 @@ export default new Elysia({prefix: '/account'})
     if (result.length === 0) return msg('Invalid credentials. Please try again', 'alert');
 
     const hashedPassword = result[0].password;
-    const isPasswordCorrect = await comparePassword(password, hashedPassword);
+    const isPasswordCorrect = await comparePWD(password, hashedPassword);
     if (!isPasswordCorrect) return msg('Invalid credentials. Please try again', 'alert');
 
     const has2fa = result[0].otp_auth;
@@ -50,16 +50,9 @@ export default new Elysia({prefix: '/account'})
     if (err) return msg(err, 'alert');
 
     const secret = (await attemptQuery(sql`SELECT otp_auth FROM users WHERE username = ${username}`)) as QueryResult[];
-    const totp = new OTPAuth.TOTP({
-      label: username,
-      issuer: 'ShadowSelf',
-      algorithm: 'SHA512',
-      digits: 6,
-      period: 30,
-      secret: secret[0].otp_auth,
-    });
-
+    const totp = createTOTP(secret[0].otp_auth, username);
     const isValid = totp.generate() === code;
+
     if (!isValid) return msg('Incorrect validation code. Please try again', 'alert');
 
     const cookieValue = await jwt.sign({username, password});
@@ -71,12 +64,13 @@ export default new Elysia({prefix: '/account'})
 
     const allBackups = (await attemptQuery(sql`SELECT backup_codes FROM users WHERE username = ${username}`)) as QueryResult[];
     const isValid = allBackups[0].backup_codes.some((b) => b === backup);
+
     if (!isValid) return msg('Incorrect backup code. Try another one', 'alert');
 
     const cookieValue = await jwt.sign({username, password});
     return {cookie: cookieValue};
   })
-  .post('/signup-first-step', async ({body}) => {
+  .post('/signup', async ({body}) => {
     const {username, err} = check(body as BodyField, ['username', 'password']);
     if (err) return msg(err, 'alert');
 
@@ -85,53 +79,38 @@ export default new Elysia({prefix: '/account'})
 
     return {username};
   })
-  .post('/signup-second-step', async ({user}) => {
-    const secret = new OTPAuth.Secret({size: 20}).base32;
-    const totp = new OTPAuth.TOTP({
-      issuer: 'ShadowSelf',
-      label: user?.username,
-      algorithm: 'SHA512',
-      digits: 6,
-      period: 30,
-      secret,
-    });
-
+  .post('/signup-otp', async ({user}) => {
+    const secret = getSecret();
+    const totp = createTOTP(secret, user!.username);
     const uri = totp.toString();
     return {uri, secret};
   })
-  .post('/signup-third-step', async ({body, user}) => {
+  .post('/signup-backup', async ({body, user}) => {
     const {code, secret, err} = check(body as BodyField, ['secret', 'code']);
     if (err) return msg(err, 'alert');
 
-    const totp = new OTPAuth.TOTP({
-      issuer: 'ShadowSelf',
-      label: user?.username,
-      algorithm: 'SHA512',
-      digits: 6,
-      period: 30,
-      secret,
-    });
-
+    const totp = createTOTP(secret, user!.username);
     const isValid = totp.generate() === code;
+
     if (!isValid) return msg('Incorrect validation code. Please try again', 'alert');
 
-    const backupCodes = generateBackupCodes();
+    const backupCodes = getBackupCodes();
     return {backup: backupCodes};
   })
-  .post('/signup-final-step', async ({jwt, body}) => {
+  .post('/signup-create', async ({jwt, body}) => {
     const fields = ['username', 'password', 'secret', 'backups'];
-    const {password, username, secret, backup, err} = check(body as BodyField, fields);
+    const {password, username, secret, backups, err} = check(body as BodyField, fields);
     if (err) return msg(err, 'alert');
 
     const isTaken = (await attemptQuery(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
     if (isTaken.length) return msg('This username is already taken', 'alert');
 
-    const newPassword = await hashAndSaltPassword(password);
+    const newPassword = await hashPWD(password);
     await attemptQuery(sql`INSERT INTO users (username, password) VALUES (${username}, ${newPassword})`);
 
-    if (secret && backup) {
+    if (secret && backups) {
       await attemptQuery(sql`UPDATE users SET otp_auth = ${secret} WHERE username = ${username}`);
-      await attemptQuery(sql`UPDATE users SET backup_codes = ${backup} WHERE username = ${username}`);
+      await attemptQuery(sql`UPDATE users SET backup_codes = ${backups} WHERE username = ${username}`);
     }
 
     const cookieValue = await jwt.sign({password, username});

@@ -17,7 +17,7 @@ export function check(body: BodyField, fields: string[], ignore?: boolean): Body
         }
         break;
       case 'password':
-        if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(body.password)) {
+        if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
           return {err: 'Password is too weak. Get a better one'} as BodyField;
         }
         break;

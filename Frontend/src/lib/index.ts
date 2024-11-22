@@ -1,7 +1,9 @@
 import type {Notification, AnimationNode, AnimationSelector} from '$types';
 import {notification, pricingModel} from '$store';
+import type {Cookies} from '@sveltejs/kit';
 import {allPricingModel} from '$types';
 import {scrollY, token} from '$store';
+import {dev} from '$app/environment';
 import {goto} from '$app/navigation';
 import {get} from 'svelte/store';
 
@@ -31,6 +33,19 @@ export async function fetchApi(url: string, method = 'GET', body?: Record<string
   })
     .then((res) => res.json())
     .catch(() => ({message: 'An error occurred. Please try again later.', type: 'alert'}));
+}
+
+export function createCookie(cookies: Cookies, name: string, value: string, short: boolean = false) {
+  return cookies.set(name, value, {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    domain: dev ? 'localhost' : 'shadowself.io',
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    maxAge: short ? 3_600_000 : 2_592_000_000,
+    sameSite: 'strict',
+    priority: 'high',
+  });
 }
 
 export function addTabScrollEvent(sectionsIds: string[]) {

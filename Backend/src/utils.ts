@@ -1,5 +1,4 @@
 import type {Message, ContactDetail} from './types';
-import {genSalt, hash, compare} from 'bcrypt';
 import {transporter} from './connection';
 
 export async function attemptQuery(func: Promise<unknown>): Promise<unknown> {
@@ -29,24 +28,6 @@ export async function sendEmail(body: ContactDetail) {
   };
 
   return await attempt(transporter.sendMail(mailOptions), 'Your message has been sent!');
-}
-
-export function generateBackupCodes(): string[] {
-  const backupCodes: string[] = [];
-  for (let i = 0; i < 6; i++) {
-    const code = Math.floor(Math.random() * 900_000_000) + 100_000_000;
-    backupCodes.push(code.toString());
-  }
-
-  return backupCodes;
-}
-
-export async function hashAndSaltPassword(password: string): Promise<string> {
-  return await hash(password, await genSalt(10));
-}
-
-export async function comparePassword(password: string, hash: string): Promise<boolean> {
-  return await compare(password, hash);
 }
 
 export function toTitleCase(str: string): string {

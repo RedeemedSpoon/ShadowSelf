@@ -1,26 +1,31 @@
+import {createCookie, fetchApi} from '$lib';
 import type {Actions} from './$types';
-import {dev} from '$app/environment';
-import {fetchApi} from '$lib';
 import QRCode from 'qrcode';
 
 export const actions: Actions = {
-  init: async ({request}) => {
+  init: async ({request, cookies}) => {
     const form = await request.formData();
-    const username = form.get('username');
-    const password = form.get('password');
+    const username = form.get('username') as string;
+    const password = form.get('password') as string;
 
-    const response = await fetchApi('/account/signup-first-step', 'POST', {username, password});
+    const response = await fetchApi('/account/signup', 'POST', {username, password});
     if (!response.username) return {step: 1, ...response};
+
+    const concat = `${username}&&${password}`;
+    createCookie(cookies, 'signup', concat, true);
 
     return {step: 2, ...response};
   },
-  askOTP: async ({request}) => {
+  askOTP: async ({request, cookies}) => {
     const form = await request.formData();
     const wantOTP = form.has('add');
 
     if (wantOTP) {
-      const response = await fetchApi('/account/signup-second-step', 'POST');
+      const response = await fetchApi('/account/signup-otp', 'POST');
       if (!response.secret) return {step: 2, ...response};
+
+      const concat = `${cookies.get('signup')}&&${response.secret}`;
+      createCookie(cookies, 'signup', concat, true);
 
       const qr = await QRCode.toDataURL(response.uri);
       return {step: 3, secret: response.secret, qr};
@@ -28,22 +33,20 @@ export const actions: Actions = {
 
     return {step: 6};
   },
-  showOTP: async () => {
-    return {step: 4};
-  },
-  checkOTP: async ({request}) => {
+  showOTP: async () => ({step: 4}),
+  checkOTP: async ({request, cookies}) => {
     const form = await request.formData();
     const code = form.get('code');
-    const secret = form.get('secret');
 
-    const response = await fetchApi('/account/signup-third-step', 'POST', {code, secret});
+    const secret = cookies.get('signup')?.split('&&')[2];
+    const response = await fetchApi('/account/signup-backup', 'POST', {code, secret});
     if (!response.backup) return {step: 4, ...response};
 
+    const concat = `${cookies.get('signup')}&&${response.backup}`;
+    createCookie(cookies, 'signup', concat, true);
     return {step: 5, ...response};
   },
-  showBackup: async () => {
-    return {step: 6};
-  },
+  showBackup: async () => ({step: 6}),
   askBilling: async ({request}) => {
     const form = await request.formData();
     const wantBilling = form.has('add');
@@ -61,25 +64,15 @@ export const actions: Actions = {
 
     return {step: 8};
   },
-  create: async ({request, cookies}) => {
-    const form = await request.formData();
-    const username = form.get('username');
-    const password = form.get('password');
-    const secret = form.get('secret');
-    const backup = form.get('backup');
+  create: async ({cookies}) => {
+    const concat = cookies.get('signup');
+    const [username, password, secret, rawBackups] = concat?.split('&&') ?? [];
+    const backups = rawBackups?.split(',');
 
-    const response = await fetchApi('/account/signup-final-step', 'POST', {username, password, secret, backup});
+    const response = await fetchApi('/account/signup-create', 'POST', {username, password, secret, backups});
     if (!response.cookie) return {step: 8, ...response};
 
-    cookies.set('token', response.cookie, {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      domain: dev ? 'localhost' : 'shadowself.io',
-      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      sameSite: 'strict',
-      priority: 'high',
-    });
+    createCookie(cookies, 'token', response.cookie);
+    cookies.delete('signup', {path: '/'});
   },
 };
