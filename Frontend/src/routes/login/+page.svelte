@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type {Notification} from '$types';
+  import type {Notification} from '$type';
   import {enhance} from '$app/forms';
-  import {Card} from '$components';
+  import {Card} from '$component';
   import {notify} from '$lib';
 
   const {form}: {form: Notification} = $props();

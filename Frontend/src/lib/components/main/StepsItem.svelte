@@ -1,8 +1,8 @@
 <script lang="ts">
-  import {Card} from '$components';
-  import {currentStep} from '$store';
   import type {Snippet} from 'svelte';
+  import {currentStep} from '$store';
   import {enhance} from '$app/forms';
+  import {Card} from '$component';
 
   interface Props {
     children: Snippet;

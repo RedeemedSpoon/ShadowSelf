@@ -55,6 +55,6 @@
   }
 
   form > * {
-    @apply w-full self-center text-center;
+    @apply w-full self-center;
   }
 }

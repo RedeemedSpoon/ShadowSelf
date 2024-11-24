@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type {Notification} from '$types';
-  import {SelectMenu} from '$components';
+  import type {Notification} from '$type';
   import type {PageData} from './$types';
+  import {SelectMenu} from '$component';
   import {enhance} from '$app/forms';
   import {notify} from '$lib';
 

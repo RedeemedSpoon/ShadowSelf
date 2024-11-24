@@ -1,6 +1,6 @@
-import type {Notification, PricingModel} from '$types';
+import type {Notification, PricingModel} from '$type';
 import {writable, type Writable} from 'svelte/store';
-import {allPricingModel} from '$types';
+import {allPricingModel} from '$type';
 
 export const user: Writable<string> = writable('');
 export const token: Writable<string> = writable('');

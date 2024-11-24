@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {alert, info, success} from '$images';
+  import {AlertIcon, InfoIcon, SuccessIcon} from '$icon';
   import {slide} from 'svelte/transition';
   import {notification} from '$store';
 
@@ -7,18 +7,18 @@
   let type = $derived($notification.type);
   let message = $derived($notification.message);
 
-  const icons = {
-    alert: alert,
-    info: info,
-    success: success,
-  };
-
   const handleClick = () => ($notification = {id: null, type: 'info', message: ''});
 </script>
 
 {#if id}
   <div class="notification {type}" transition:slide={{axis: 'x'}} onclick={handleClick} aria-hidden="true">
-    <img class="mr-4" src={icons[type]} alt={type} width="48px" height="48px" />
+    {#if type === 'alert'}
+      <AlertIcon />
+    {:else if type === 'info'}
+      <InfoIcon />
+    {:else if type === 'success'}
+      <SuccessIcon />
+    {/if}
     <p class="text-clip text-nowrap text-xl">{message}</p>
   </div>
 {/if}

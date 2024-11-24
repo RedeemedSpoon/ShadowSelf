@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.08] - 2024-11-24
+## [0.2.07] - 2024-11-24
 
 - Add Step component
 - Add StepItem component
@@ -19,10 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix reactivity issue with signup derived variables
 - Fix lifecycle issue with signup when error occurs
 - Rename backup to recovery & code to token
+- Change icons component function to $icon
 - Change index.ts dom function to $dom
 - Change error page text and style
 
-## [0.2.07] - 2024-11-22
+## [0.2.06] - 2024-11-22
 
 ### Added
 
@@ -33,19 +34,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Move crytographic function from utils.ts to crypto.ts
 - Move repetitive code into functions
 
-## [0.2.06] - 2024-11-20
-
-### Changed
-
-- Change signup to a step by step process
-- Change signup backend to be more divided
-
 ## [0.2.05] - 2024-11-19
 
 ### Added
 
 - Add two factor authentication
 - Add recovery code
+
+### Changed
+
+- Change signup to a step by step process
+- Change signup backend to be more divided
 
 ## [0.2.04] - 2024-11-17
 

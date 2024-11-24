@@ -15,10 +15,6 @@ export {default as Services} from './homepage/Services.svelte';
 export {default as FeatureGrid} from './homepage/FeatureGrid.svelte';
 export {default as PricingTable} from './homepage/PricingTable.svelte';
 
-export {default as CheveronImg} from './icons/Cheveron.svelte';
-export {default as QuestionImg} from './icons/Question.svelte';
-export {default as CheckmarkImg} from './icons/Checkmark.svelte';
-
 export {default as GridAndDotBackgrounds} from './aceternity/GridAndDotBackgrounds.svelte';
 export {default as StickyScrollReveal} from './aceternity/StickyScrollReveal.svelte';
 export {default as BackgroundBeams} from './aceternity/BackgroundBeams.svelte';

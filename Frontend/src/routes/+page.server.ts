@@ -1,5 +1,5 @@
 import type {PageServerLoad} from './$types';
-import type {AnimationSelector} from '$types';
+import type {AnimationSelector} from '$type';
 
 export const load: PageServerLoad = () => {
   return {

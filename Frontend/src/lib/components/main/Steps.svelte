@@ -1,8 +1,8 @@
 <script lang="ts">
-  import {currentStep} from '$store';
-  import type {Snippet} from 'svelte';
+  import {circuitPattern} from '$image';
   import {fly} from 'svelte/transition';
-  import {circuitPattern} from '$images';
+  import type {Snippet} from 'svelte';
+  import {currentStep} from '$store';
 
   let {children}: {children: Snippet} = $props();
 </script>

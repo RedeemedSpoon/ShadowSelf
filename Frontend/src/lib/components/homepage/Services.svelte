@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {card, tower, cloud, email, globe, money, message, server, router, identity} from '$images';
-  import {StickyScrollReveal, TracingBeam} from '$components';
-  import type {ServicesContent} from '$types';
+  import {card, tower, cloud, email, globe, money, message, server, router, identity} from '$image';
+  import {StickyScrollReveal, TracingBeam} from '$component';
+  import type {ServicesContent} from '$type';
   import {blur} from 'svelte/transition';
 
   const content: ServicesContent[] = [

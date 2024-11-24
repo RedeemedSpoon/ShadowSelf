@@ -1,9 +1,10 @@
 <script lang="ts">
-  import {Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Services} from '$components';
-  import {CheveronImg, BackgroundBeams, GridAndDotBackgrounds} from '$components';
-  import {satisfaction, registration, management} from '$images';
+  import {Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Services} from '$component';
+  import {BackgroundBeams, GridAndDotBackgrounds} from '$component';
+  import {satisfaction, registration, management} from '$image';
   import {addAnimation, addTabScrollEvent} from '$dom';
   import type {PageData} from './$types';
+  import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
 
   let {data}: {data: PageData} = $props();
@@ -32,7 +33,7 @@
   <div class="flex gap-16">
     <a href={'#' + data.ids[1]} class="no-underline">
       <button class="alt group flex items-center gap-1">
-        Learn More<CheveronImg className="group-hover:rotate-90" />
+        Learn More<ChevronIcon className="group-hover:rotate-90" />
       </button>
     </a>
     <a href="/"><button>Get Started!</button></a>

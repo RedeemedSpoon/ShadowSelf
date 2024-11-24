@@ -1,9 +1,9 @@
 <script lang="ts">
-  import '../app.css';
-  import {Header, Footer, Notification} from '$components';
+  import {Header, Footer, Notification} from '$component';
   import {selectionMenuOpen, user} from '$store';
   import {onMount, type Snippet} from 'svelte';
   import type {LayoutData} from './$types';
+  import '../app.css';
 
   interface Props {
     children: Snippet;

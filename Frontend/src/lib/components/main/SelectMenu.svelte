@@ -1,6 +1,6 @@
 <script lang="ts">
   import {selectionInputOpen} from '$store';
-  import {CheveronImg} from '$components';
+  import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
 
   interface Props {
@@ -46,7 +46,7 @@
 
 <div bind:this={select} id="select-input" class="relative">
   <button type="button" bind:this={btn} onclick={handleBtnSelect}>
-    <span>{options[0].label}</span><CheveronImg className="rotate-90" />
+    <span>{options[0].label}</span><ChevronIcon className="rotate-90" />
   </button>
   <ul onclick={handleSltClick} class:hidden={!$selectionInputOpen} aria-hidden={!$selectionInputOpen}>
     {#each options as option}

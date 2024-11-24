@@ -1,7 +1,7 @@
 <script lang="ts">
+  import {HamburgerMenu} from '$component';
+  import {logoBesideText} from '$image';
   import {scrollY, user} from '$store';
-  import {HamburgerMenu, CheveronImg} from '$components';
-  import {logoBesideText} from '$images';
   import {page} from '$app/stores';
 
   let isHome = $derived($page.url.pathname === '/');

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type {Notification, Registration} from '$types';
-  import {Steps, StepsItem} from '$components';
+  import type {Notification, Registration} from '$type';
+  import {Steps, StepsItem} from '$component';
   import {currentStep} from '$store';
   import {notify} from '$lib';
 

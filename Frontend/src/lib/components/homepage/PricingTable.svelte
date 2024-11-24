@@ -1,8 +1,9 @@
 <script lang="ts">
-  import {Card, CheckmarkImg, CheveronImg, QuestionImg} from '$components';
+  import {CheckmarkIcon, ChevronIcon, QuestionIcon} from '$icon';
   import {changePricingModel} from '$lib';
   import {fly} from 'svelte/transition';
   import {pricingModel} from '$store';
+  import {Card} from '$component';
 
   const title = [
     'You can manage your identities and online account linked to it such as passwords and credentials',
@@ -41,25 +42,25 @@
     {/key}
     <div class="flex gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
       <ul>
-        <li><CheckmarkImg />Custom Identity</li>
-        <li><CheckmarkImg />Email Address</li>
-        <li><CheckmarkImg />Phone Number</li>
+        <li><CheckmarkIcon />Custom Identity</li>
+        <li><CheckmarkIcon />Email Address</li>
+        <li><CheckmarkIcon />Phone Number</li>
       </ul>
       <ul>
-        <li><CheckmarkImg />Virtual Card</li>
-        <li><CheckmarkImg />Crypto Wallet</li>
-        <li><CheckmarkImg />VPN Access</li>
+        <li><CheckmarkIcon />Virtual Card</li>
+        <li><CheckmarkIcon />Crypto Wallet</li>
+        <li><CheckmarkIcon />VPN Access</li>
       </ul>
       <ul>
-        <li><CheckmarkImg />Account Management<span title={title[0]}><QuestionImg /></span></li>
-        <li><CheckmarkImg />14 Day Refund<span title={title[1]}><QuestionImg /></span></li>
-        <li><CheckmarkImg />24/7 Support<span title={title[2]}><QuestionImg /></span></li>
+        <li><CheckmarkIcon />Account Management<span title={title[0]}><QuestionIcon /></span></li>
+        <li><CheckmarkIcon />14 Day Refund<span title={title[1]}><QuestionIcon /></span></li>
+        <li><CheckmarkIcon />24/7 Support<span title={title[2]}><QuestionIcon /></span></li>
       </ul>
     </div>
     <p class="-my-4 text-sm text-neutral-500">All major crypto currencies are supported.</p>
   </div>
   <a href="/signup">
-    <button id="purchase">Purchase<CheveronImg className="!w-10 !h-10" /></button>
+    <button id="purchase">Purchase<ChevronIcon className="!w-10 !h-10" /></button>
   </a>
 </Card>
 

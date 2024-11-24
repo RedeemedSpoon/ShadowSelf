@@ -1,7 +1,7 @@
 import {notification, pricingModel} from '$store';
 import type {Cookies} from '@sveltejs/kit';
-import type {Notification} from '$types';
-import {allPricingModel} from '$types';
+import type {Notification} from '$type';
+import {allPricingModel} from '$type';
 import {dev} from '$app/environment';
 import {get} from 'svelte/store';
 import {token} from '$store';

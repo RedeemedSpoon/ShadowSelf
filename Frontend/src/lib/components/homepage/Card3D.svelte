@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {Card, CardBody, CardContainer, CardItem} from '$components';
-  import {dashboard} from '$images';
+  import {Card, CardBody, CardContainer, CardItem} from '$component';
+  import {dashboard} from '$image';
 
   let isMouseEntered = $state(false);
 </script>

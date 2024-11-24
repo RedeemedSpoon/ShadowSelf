@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {logo, github, tor, simplex} from '$images';
+  import {logo, github, tor, simplex} from '$image';
 
   const year = new Date().getFullYear();
   const navLinks = {

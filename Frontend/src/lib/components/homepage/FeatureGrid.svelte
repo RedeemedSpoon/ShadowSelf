@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {cog, tag, shield, support, handTap, customer, terminal, openSource} from '$images';
+  import {cog, tag, shield, support, handTap, customer, terminal, openSource} from '$image';
 
   const features = [
     {

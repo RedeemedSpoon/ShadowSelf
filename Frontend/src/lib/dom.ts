@@ -1,4 +1,4 @@
-import type {AnimationNode, AnimationSelector} from '$types';
+import type {AnimationNode, AnimationSelector} from '$type';
 import {goto} from '$app/navigation';
 import {get} from 'svelte/store';
 import {scrollY} from '$store';

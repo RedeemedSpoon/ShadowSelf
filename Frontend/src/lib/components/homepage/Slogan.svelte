@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {background} from '$images';
+  import {background} from '$image';
   import {onMount} from 'svelte';
 
   onMount(() => {

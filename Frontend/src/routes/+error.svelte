@@ -1,6 +1,6 @@
 <script lang="ts">
+  import {ChevronIcon} from '$icon';
   import {page} from '$app/stores';
-  import {CheveronImg} from '$components';
 </script>
 
 <svelte:head>
@@ -16,7 +16,7 @@
     It appears the page you're looking for doesn’t exist. This could be a spelling typo, a small mistake in the URL or a broken
     link. Let’s go back and give it another shot.
   </p>
-  <a href="/"><button>Go Home<CheveronImg /></button></a>
+  <a href="/"><button>Go Home<ChevronIcon /></button></a>
 </section>
 
 <style lang="postcss">
