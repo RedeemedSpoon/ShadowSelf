@@ -17,7 +17,7 @@
     <HamburgerMenu className="!w-16 !h-16">
       <div id="navigation-links" class="xl:mr-4">
         <a href="/extension">Extension</a>
-        <a href="/contact">Contact</a>
+        <a href="/purchase">Purchase</a>
         <a href="/docs">Docs</a>
       </div>
       <div id="auth-buttons">

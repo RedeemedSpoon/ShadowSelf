@@ -11,14 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add StepItem component
 - Add optional field to check function
 - Add next/back control button to signup
+- Add copy/download function to signup
 - Add signup text content
+
+### Changed
+
+- Fix reactivity issue with signup derived variables
+- Fix lifecycle issue with signup when error occurs
+- Change error page text and style
 
 ## [0.2.07] - 2024-11-22
 
 ### Added
 
 - Add signup server actions
-- Add control buttons to signup
 
 ### Changed
 

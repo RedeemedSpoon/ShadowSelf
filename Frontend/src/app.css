@@ -53,4 +53,8 @@
   input[type='number'] {
     @apply [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none;
   }
+
+  form > * {
+    @apply w-full self-center text-center;
+  }
 }

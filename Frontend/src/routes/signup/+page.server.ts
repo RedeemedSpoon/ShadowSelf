@@ -18,7 +18,7 @@ export const actions: Actions = {
   },
   askOTP: async ({request, cookies}) => {
     const form = await request.formData();
-    const wantOTP = form.has('add');
+    const wantOTP = form.has('enable');
 
     if (wantOTP) {
       const response = await fetchApi('/account/signup-otp', 'POST');
@@ -55,15 +55,7 @@ export const actions: Actions = {
 
     return {step: 8};
   },
-  addBilling: async ({request}) => {
-    const form = await request.formData();
-    const plan = form.get('plan');
-
-    const response = {stripe: plan === 'lifetime'};
-    if (!response.stripe) return {step: 7, ...response};
-
-    return {step: 8};
-  },
+  addBilling: async () => ({step: 8}),
   create: async ({cookies}) => {
     const concat = cookies.get('signup');
     const [username, password, secret, rawBackups] = concat?.split('&&') ?? [];
