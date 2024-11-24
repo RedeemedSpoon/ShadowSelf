@@ -55,7 +55,7 @@ export const actions: Actions = {
 
     return {step: 8};
   },
-  checkBilling: async ({request}) => {
+  addBilling: async ({request}) => {
     const form = await request.formData();
     const plan = form.get('plan');
 

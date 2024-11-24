@@ -98,7 +98,7 @@ export default new Elysia({prefix: '/account'})
     return {backup: backupCodes};
   })
   .post('/signup-create', async ({jwt, body}) => {
-    const fields = ['username', 'password', 'secret', 'backups'];
+    const fields = ['username', 'password', '?secret', '?backups'];
     const {password, username, secret, backups, err} = check(body as BodyField, fields);
     if (err) return msg(err, 'alert');
 

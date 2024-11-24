@@ -3,12 +3,17 @@ import {toTitleCase} from './utils';
 
 export function check(body: BodyField, fields: string[], ignore?: boolean): BodyField {
   for (const field of fields) {
-    if (!Object.prototype.hasOwnProperty.call(body, field)) {
+    const isOptional = field.startsWith('?');
+    const fieldType = isOptional ? field.slice(1) : field;
+
+    if (!Object.prototype.hasOwnProperty.call(body, field) && !isOptional) {
       return {err: `${toTitleCase(field)} is a required field`} as BodyField;
     }
 
     if (ignore) continue;
-    switch (field) {
+    if (isOptional && !body[fieldType as keyof BodyField]) continue;
+
+    switch (fieldType) {
       case 'username':
         if (!/^[a-zA-Z0-9\s]+$/.test(body.username)) {
           return {err: 'Username can only contain letters, numbers and spaces'} as BodyField;
