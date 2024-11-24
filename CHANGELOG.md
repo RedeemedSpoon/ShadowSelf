@@ -178,7 +178,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Launch the website finally
+- Launch the website in waitlist mode
 - Add responsiveness to website
 
 ### Changed
@@ -308,7 +308,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change slogan to another components
 - Made buttons have gradients
 
-## [0.0.9] - 2024-10-10
+## [0.0.09] - 2024-10-10
 
 ### Added
 
@@ -320,7 +320,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Optimize images size for performance
 
-## [0.0.8] - 2024-10-09
+## [0.0.08] - 2024-10-09
 
 ### Added
 
@@ -331,7 +331,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change message on duplicate and join
 - Darken background on even sections in homepage
 
-## [0.0.7] - 2024-10-08
+## [0.0.07] - 2024-10-08
 
 ### Added
 
@@ -349,7 +349,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove sparkle component
 
-## [0.0.6] - 2024-10-07
+## [0.0.06] - 2024-10-07
 
 ### Added
 
@@ -366,7 +366,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove session community
 
-## [0.0.5] - 2024-10-06
+## [0.0.05] - 2024-10-06
 
 ### Added
 
@@ -379,7 +379,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Move database name and username to an environment variable
 - Fix small mistakes in frontend
 
-## [0.0.4] - 2024-10-03
+## [0.0.04] - 2024-10-03
 
 ### Added
 
@@ -399,7 +399,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove svelte contextAPI in favor of stores
 
-## [0.0.3] - 2024-10-02
+## [0.0.03] - 2024-10-02
 
 ### Added
 
@@ -417,7 +417,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove light mode
 
-## [0.0.2] - 2024-10-01
+## [0.0.02] - 2024-10-01
 
 ### Added
 
@@ -430,7 +430,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modify logo & favicon
 - Restructure the 'static' directory
 
-## [0.0.1] - 2024-9-30
+## [0.0.01] - 2024-9-30
 
 ### Added
 

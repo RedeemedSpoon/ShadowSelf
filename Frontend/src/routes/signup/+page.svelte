@@ -10,8 +10,6 @@
   let secret = $state() as string;
   let username = $state() as string;
   let recovery = $state() as string[];
-
-  let url = $state() as string;
   let anchor = $state() as HTMLAnchorElement;
 
   $effect(() => {
@@ -31,7 +29,7 @@
   function downloadRecovery() {
     const text = recovery.join('\n');
     const blob = new Blob([text], {type: 'text/plain'});
-    url = URL.createObjectURL(blob);
+    anchor.href = URL.createObjectURL(blob);
     anchor.click();
   }
 </script>
@@ -46,11 +44,11 @@
     <h1>Create an account</h1>
     <div class="flex gap-6">
       <label for="username">Username</label>
-      <input type="text" name="username" required id="username" />
+      <input type="text" placeholder="mountain eagle" name="username" required id="username" />
     </div>
     <div class="flex gap-6">
       <label for="password">Password</label>
-      <input type="password" name="password" required id="password" />
+      <input type="password" placeholder="correct horse battery staple" name="password" required id="password" />
     </div>
     <p>Already have an account? <a href="/login">Login</a></p>
     <button type="submit">Next</button>
@@ -95,7 +93,7 @@
     <div class="flex justify-evenly">
       <button type="button" onclick={copyRecovery} class="alt">Copy to clipboard</button>
       <button type="button" onclick={downloadRecovery} class="alt">Download as txt</button>
-      <a bind:this={anchor} aria-label="Download" href={url} download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
+      <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
     </div>
     <button type="submit">Next</button>
   </StepsItem>

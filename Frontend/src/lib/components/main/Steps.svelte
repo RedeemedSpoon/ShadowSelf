@@ -1,10 +1,11 @@
 <script lang="ts">
   import {circuitPattern} from '$image';
   import {fly} from 'svelte/transition';
-  import type {Snippet} from 'svelte';
+  import {onMount, type Snippet} from 'svelte';
   import {currentStep} from '$store';
 
   let {children}: {children: Snippet} = $props();
+  onMount(() => currentStep.set(1));
 </script>
 
 <div style="background-image: url({circuitPattern}); background-repeat: repeat">
