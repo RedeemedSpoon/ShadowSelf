@@ -7,17 +7,13 @@
   let {children}: {children: Snippet} = $props();
 </script>
 
-{#key $currentStep}
-  <div
-    style="background-image: url({circuitPattern})"
-    in:fly={{delay: 500, x: 100, opacity: 0, duration: 500}}
-    out:fly={{x: -100, opacity: 0, duration: 500}}>
-    {@render children?.()}
-  </div>
-{/key}
-
-<style lang="postcss">
-  div {
-    @apply mx-auto flex h-screen w-full justify-center gap-12 bg-repeat;
-  }
-</style>
+<div style="background-image: url({circuitPattern}); background-repeat: repeat">
+  {#key $currentStep}
+    <div
+      class="gap-12; mx-auto flex h-screen w-1/3 justify-center"
+      in:fly={{delay: 500, x: 100, opacity: 0, duration: 500}}
+      out:fly={{x: -100, opacity: 0, duration: 500}}>
+      {@render children?.()}
+    </div>
+  {/key}
+</div>

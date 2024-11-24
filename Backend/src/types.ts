@@ -16,9 +16,9 @@ export interface ContactDetail {
 export interface BodyField {
   username: string;
   password: string;
-  backups: string[];
+  recovery: string[];
   secret: string;
-  backup: string;
+  token: string;
   code: string;
   err: string;
 }
@@ -27,8 +27,8 @@ export interface QueryResult {
   id: number;
   username: string;
   password: string;
-  otp_auth: string;
-  backup_codes: string[];
+  totp: string;
+  recovery: string[];
   credit_card: string;
   crypto_wallet: string;
   api_key: string;

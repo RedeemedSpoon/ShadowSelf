@@ -21,9 +21,10 @@ const config = {
     alias: {
       $components: 'src/lib/components',
       $images: 'src/lib/images',
-      $lib: 'src/lib/index.ts',
       $types: 'src/lib/types.ts',
       $store: 'src/lib/store.ts',
+      $lib: 'src/lib/index.ts',
+      $dom: 'src/lib/dom.ts',
       $cn: 'src/lib/cn.ts',
     },
   },

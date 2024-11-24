@@ -25,8 +25,8 @@ CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
   "username" varchar(25) UNIQUE NOT NULL,
   "password" varchar(60) NOT NULL,
-  "otp_auth" varchar(32),
-  "backup_codes" text[],
+  "totp" varchar(32),
+  "recovery" text[],
   "credit_card" varchar(64),
   "crypto_wallet" varchar(64),
   "api_key" varchar(32)

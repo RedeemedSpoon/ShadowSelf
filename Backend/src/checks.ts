@@ -21,29 +21,34 @@ export function check(body: BodyField, fields: string[], ignore?: boolean): Body
           return {err: 'Username is too long (<25 characters)'} as BodyField;
         }
         break;
+
       case 'password':
         if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
           return {err: 'Password is too weak. Get a better one'} as BodyField;
         }
         break;
+
       case 'secret':
         if (body.secret.length > 32 && !/^[A-Z0-9]+$/.test(body.secret)) {
           return {err: 'OTP secret is invalid. Get a new one'} as BodyField;
         }
         break;
+
+      case 'token':
+        if (!/^\d{6}$/.test(body.token)) {
+          return {err: 'Validation token must be a 6 digit number'} as BodyField;
+        }
+        break;
+
       case 'code':
-        if (!/^\d{6}$/.test(body.code)) {
-          return {err: 'Validation code must be a 6 digit number'} as BodyField;
+        if (!/^\d{9}$/.test(body.code)) {
+          return {err: 'recovery codes must be a 9 digit number'} as BodyField;
         }
         break;
-      case 'backup':
-        if (!/^\d{9}$/.test(body.backup)) {
-          return {err: 'Backup codes must be a 9 digit number'} as BodyField;
-        }
-        break;
-      case 'backups':
-        if (!Array.isArray(body.backups) || !body.backups.every((b) => /^\d{9}$/.test(b))) {
-          return {err: 'Wrong backup codes structure. Generate new ones'} as BodyField;
+
+      case 'recovery':
+        if (!Array.isArray(body.recovery) || !body.recovery.every((b) => /^\d{9}$/.test(b))) {
+          return {err: 'Wrong recovery codes structure. Generate new ones'} as BodyField;
         }
         break;
     }

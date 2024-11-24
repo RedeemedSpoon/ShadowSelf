@@ -7,7 +7,7 @@ export interface Notification {
 export interface Registration {
   step: string;
   username: string;
-  backup: string[];
+  recovery: string[];
   secret: string;
   qr: string;
 }

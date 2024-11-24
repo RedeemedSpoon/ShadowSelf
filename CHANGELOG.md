@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix reactivity issue with signup derived variables
 - Fix lifecycle issue with signup when error occurs
+- Rename backup to recovery & code to token
+- Change index.ts dom function to $dom
 - Change error page text and style
 
 ## [0.2.07] - 2024-11-22
@@ -42,8 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add TOTP 2 factor authentication
-- Add Backup recovery code
+- Add two factor authentication
+- Add recovery code
 
 ## [0.2.04] - 2024-11-17
 

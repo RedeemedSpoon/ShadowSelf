@@ -2,7 +2,7 @@
   import {Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Services} from '$components';
   import {CheveronImg, BackgroundBeams, GridAndDotBackgrounds} from '$components';
   import {satisfaction, registration, management} from '$images';
-  import {addAnimation, addTabScrollEvent} from '$lib';
+  import {addAnimation, addTabScrollEvent} from '$dom';
   import type {PageData} from './$types';
   import {onMount} from 'svelte';
 

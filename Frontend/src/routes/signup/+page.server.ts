@@ -36,17 +36,17 @@ export const actions: Actions = {
   showOTP: async () => ({step: 4}),
   checkOTP: async ({request, cookies}) => {
     const form = await request.formData();
-    const code = form.get('code');
+    const token = form.get('token');
 
     const secret = cookies.get('signup')?.split('&&')[2];
-    const response = await fetchApi('/account/signup-backup', 'POST', {code, secret});
-    if (!response.backup) return {step: 4, ...response};
+    const response = await fetchApi('/account/signup-recovery', 'POST', {token, secret});
+    if (!response.recovery) return {step: 4, ...response};
 
-    const concat = `${cookies.get('signup')}&&${response.backup}`;
+    const concat = `${cookies.get('signup')}&&${response.recovery}`;
     createCookie(cookies, 'signup', concat, true);
     return {step: 5, ...response};
   },
-  showBackup: async () => ({step: 6}),
+  showRecovery: async () => ({step: 6}),
   askBilling: async ({request}) => {
     const form = await request.formData();
     const wantBilling = form.has('add');
@@ -58,10 +58,10 @@ export const actions: Actions = {
   addBilling: async () => ({step: 8}),
   create: async ({cookies}) => {
     const concat = cookies.get('signup');
-    const [username, password, secret, rawBackups] = concat?.split('&&') ?? [];
-    const backups = rawBackups?.split(',');
+    const [username, password, secret, arrRecovery] = concat?.split('&&') ?? [];
+    const recovery = arrRecovery?.split(',');
 
-    const response = await fetchApi('/account/signup-create', 'POST', {username, password, secret, backups});
+    const response = await fetchApi('/account/signup-create', 'POST', {username, password, secret, recovery});
     if (!response.cookie) return {step: 8, ...response};
 
     createCookie(cookies, 'token', response.cookie);

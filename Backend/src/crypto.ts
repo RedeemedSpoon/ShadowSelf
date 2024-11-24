@@ -12,14 +12,14 @@ export function createTOTP(secret: string, username: string): OTPAuth.TOTP {
   });
 }
 
-export function getBackupCodes(): string[] {
-  const backupCodes: string[] = [];
+export function getRecovery(): string[] {
+  const recovery: string[] = [];
   for (let i = 0; i < 6; i++) {
     const code = Math.floor(Math.random() * 900_000_000) + 100_000_000;
-    backupCodes.push(code.toString());
+    recovery.push(code.toString());
   }
 
-  return backupCodes;
+  return recovery;
 }
 
 export function getSecret(): string {
