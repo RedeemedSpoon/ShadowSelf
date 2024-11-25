@@ -17,9 +17,9 @@
     if (form?.message) notify(form.message, form.type);
     if (form?.step) currentStep.set(Number(form?.step));
 
+    if (form?.secret || form?.secret === '') secret = form.secret;
     if (form?.username) username = form.username;
     if (form?.recovery) recovery = form.recovery;
-    if (form?.secret) secret = form.secret;
     if (form?.qr) qr = form.qr;
   });
 

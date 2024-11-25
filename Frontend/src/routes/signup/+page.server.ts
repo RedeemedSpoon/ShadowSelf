@@ -25,14 +25,17 @@ export const actions: Actions = {
       const response = await fetchApi('/account/signup-otp', 'POST');
       if (!response.secret) return response;
 
-      const concat = `${cookies.get('signup')}&&${response.secret}`;
+      const cookie = cookies.get('signup')?.split('&&').slice(0, 2).join('&&');
+      const concat = `${cookie}&&${response.secret}`;
       createCookie(cookies, 'signup', concat, true);
 
       const qr = await QRCode.toDataURL(response.uri);
       return {step: 3, secret: response.secret, qr};
     }
 
-    return {step: 6};
+    const concat = cookies.get('signup')?.split('&&').slice(0, 2).join('&&') as string;
+    createCookie(cookies, 'signup', concat, true);
+    return {step: 6, secret: ''};
   },
 
   showOTP: async () => ({step: 4}),
@@ -45,7 +48,8 @@ export const actions: Actions = {
     const response = await fetchApi('/account/signup-recovery', 'POST', {token, secret});
     if (!response.recovery) return response;
 
-    const concat = `${cookies.get('signup')}&&${response.recovery}`;
+    const cookie = cookies.get('signup')?.split('&&').slice(0, 3).join('&&');
+    const concat = `${cookie}&&${response.recovery}`;
     createCookie(cookies, 'signup', concat, true);
     return {step: 5, ...response};
   },
