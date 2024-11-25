@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Step component
 - Add StepItem component
 - Add optional field to check function
-- Add next/back control button to signup
 - Add copy/download function to signup
+- Add back control button to signup
 - Add signup text content
 
 ### Changed

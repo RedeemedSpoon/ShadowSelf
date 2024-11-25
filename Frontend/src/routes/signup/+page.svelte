@@ -1,6 +1,7 @@
 <script lang="ts">
   import type {Notification, Registration} from '$type';
-  import {Steps, StepsItem} from '$component';
+  import {Steps, StepsItem, Input} from '$component';
+  import {UserIcon, PasswordIcon} from '$icon';
   import {currentStep} from '$store';
   import {get} from 'svelte/store';
   import {notify} from '$lib';
@@ -51,11 +52,11 @@
     <h1>Create an account</h1>
     <div class="flex justify-end gap-6">
       <label for="username">Username</label>
-      <input type="text" placeholder="mountain eagle" name="username" required id="username" />
+      <Input type="text" icon={UserIcon} name="username" placeholder="mountain eagle" />
     </div>
     <div class="flex justify-end gap-6">
       <label for="password">Password</label>
-      <input type="password" placeholder="correct horse battery staple" name="password" required id="password" />
+      <Input type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
     </div>
     <p>Already have an account? <a href="/login">Login</a></p>
     <button type="submit">Next</button>
@@ -134,9 +135,5 @@
 <style lang="postcss">
   h1 {
     @apply -mt-4 mb-4 text-4xl font-bold text-neutral-300;
-  }
-
-  input {
-    @apply bg-slate-900/50;
   }
 </style>
