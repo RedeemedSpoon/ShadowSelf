@@ -1,7 +1,7 @@
 <script lang="ts">
+  import {onMount, type Snippet} from 'svelte';
   import {circuitPattern} from '$image';
   import {fly} from 'svelte/transition';
-  import {onMount, type Snippet} from 'svelte';
   import {currentStep} from '$store';
 
   let {children}: {children: Snippet} = $props();
