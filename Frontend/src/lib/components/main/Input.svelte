@@ -15,7 +15,7 @@
   <label title={name} for={name}>
     {#if icon}
       {@const SvelteComponent = icon}
-      <SvelteComponent className="w-8 h-8 fill-neutral-800 stroke-neutral-800" />
+      <SvelteComponent className="!w-8 !h-8 fill-neutral-800 stroke-neutral-800" />
     {/if}
   </label>
   <input id={name} {name} {type} {placeholder} class="!rounded-l-none" required />

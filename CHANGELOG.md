@@ -11,8 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add Input component
 - Add Styling to signup
-- Add progress bar to signup
-- Add loading animation to signup
+- Add waiting animation to signup
 - Add pretty create animation to signup
 
 ## [0.2.07] - 2024-11-24
@@ -32,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change icons component function to $icon
 - Change index.ts dom function to $dom
 - Change error page text and style
+- Change contact page form
 
 ## [0.2.06] - 2024-11-22
 

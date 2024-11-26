@@ -4,11 +4,12 @@ import {allPricingModel} from '$type';
 
 export const user: Writable<string> = writable('');
 export const token: Writable<string> = writable('');
-export const currentStep: Writable<number> = writable(1);
 
 export const scrollY: Writable<number> = writable(0);
 export const scrollYProgress: Writable<number> = writable(0);
+export const currentStep: Writable<number> = writable(1);
 
+export const isFetching: Writable<boolean> = writable(false);
 export const selectionMenuOpen: Writable<boolean> = writable(false);
 export const selectionInputOpen: Writable<boolean> = writable(false);
 

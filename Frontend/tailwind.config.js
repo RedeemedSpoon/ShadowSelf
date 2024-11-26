@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 import forms from '@tailwindcss/forms';
 import colors from 'tailwindcss/colors';
+import svgToDataUri from 'mini-svg-data-uri';
 import defaultTheme from 'tailwindcss/defaultTheme';
 import aspectRatio from '@tailwindcss/aspect-ratio';
 import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette';
-import svgToDataUri from 'mini-svg-data-uri';
 
 export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
@@ -17,6 +17,7 @@ export default {
         border: 'border 7s linear infinite',
         shake: 'shake 8s ease-in-out infinite',
         scroll: 'scroll 180s linear infinite',
+        orbit: 'orbit 1.5s ease-in-out calc(var(--index) * 0.1s) infinite',
       },
       keyframes: {
         border: {'100%': {transform: 'rotate(-360deg)'}},
@@ -27,6 +28,11 @@ export default {
         scroll: {
           '0%': {'background-position-x': '0'},
           '100%': {'background-position-x': '9600px'},
+        },
+        orbit: {
+          '0%': {transform: 'rotate(0deg)'},
+          '80%': {transform: 'rotate(360deg)'},
+          '100%': {transform: 'rotate(360deg)'},
         },
       },
       colors: {

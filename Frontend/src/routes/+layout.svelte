@@ -43,6 +43,7 @@
 
 <style lang="postcss">
   #overlay {
-    @apply invisible fixed inset-0 z-40 h-screen w-screen bg-black opacity-0 transition-all duration-300 ease-in-out;
+    @apply invisible fixed inset-0 z-40 h-screen w-screen;
+    @apply bg-black opacity-0 transition-all duration-300 ease-in-out;
   }
 </style>
