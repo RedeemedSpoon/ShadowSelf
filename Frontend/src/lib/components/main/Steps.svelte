@@ -9,13 +9,20 @@
   onMount(() => currentStep.set(1));
 </script>
 
-<div style="background-image: url({circuitPattern}); background-repeat: repeat">
+<div style="background-image: url({circuitPattern})">
   {#key $currentStep}
-    <section
-      class="mx-auto flex h-fit w-1/3 justify-center gap-12 pb-[10rem] pt-[15rem]"
-      in:fly={{delay: 500, x: 100, opacity: 0, duration: 500}}
-      out:fly={{x: -100, opacity: 0, duration: 500}}>
+    <section in:fly={{delay: 500, x: 100, opacity: 0, duration: 500}} out:fly={{x: -100, opacity: 0, duration: 500}}>
       {@render children?.()}
     </section>
   {/key}
 </div>
+
+<style lang="postcss">
+  div {
+    @apply h-full bg-repeat pb-[10rem] pt-[15rem];
+  }
+
+  section {
+    @apply mx-auto flex h-fit w-1/3 justify-center gap-12;
+  }
+</style>

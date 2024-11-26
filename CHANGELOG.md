@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add style to signup
 - Add Input component
-- Add Styling to signup
+- Add ReactiveButton component
 - Add waiting animation to signup
 - Add pretty create animation to signup
 

@@ -10,6 +10,12 @@
     'You get a 14-day money-back guarantee, during which you can request a refund.',
     'You can email us at anytime and we will assist you with any questions or issues you may have.',
   ];
+
+  const sections = [
+    ['Custom Identity', 'Email Address', 'Phone Number'],
+    ['Virtual Card', 'Crypto Wallet', 'VPN Access'],
+    ['Account Management', '14 Day Refund', '24/7 Support'],
+  ];
 </script>
 
 <div class="mb-16 flex flex-col items-center gap-4 max-sm:-mb-48 max-sm:scale-[65%]">
@@ -40,22 +46,21 @@
         </div>
       </div>
     {/key}
-    <div class="flex gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
-      <ul>
-        <li><CheckmarkIcon />Custom Identity</li>
-        <li><CheckmarkIcon />Email Address</li>
-        <li><CheckmarkIcon />Phone Number</li>
-      </ul>
-      <ul>
-        <li><CheckmarkIcon />Virtual Card</li>
-        <li><CheckmarkIcon />Crypto Wallet</li>
-        <li><CheckmarkIcon />VPN Access</li>
-      </ul>
-      <ul>
-        <li><CheckmarkIcon />Account Management<span title={title[0]}><QuestionIcon /></span></li>
-        <li><CheckmarkIcon />14 Day Refund<span title={title[1]}><QuestionIcon /></span></li>
-        <li><CheckmarkIcon />24/7 Support<span title={title[2]}><QuestionIcon /></span></li>
-      </ul>
+    <div class="flex w-full gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
+      {#each sections as section, index (index)}
+        <ul>
+          {#each section as item}
+            <li>
+              <CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />
+              {item}
+              {#if index === 2}
+                <span class="cursor-pointer" title={title[index]}
+                  ><QuestionIcon className="-ml-2 !w-4 !h-4 !fill-neutral-700" /></span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      {/each}
     </div>
     <p class="-my-4 text-sm text-neutral-500">All major crypto currencies are supported.</p>
   </div>
@@ -66,8 +71,7 @@
 
 <style lang="postcss">
   #purchase {
-    @apply from-primary-700 to-primary-800 bg-gradient-to-b shadow-none;
-    @apply w-full rounded-none rounded-b-xl border-t-2 border-neutral-400 text-center text-3xl font-bold;
+    @apply rounded-none rounded-b-xl border-t-2 border-neutral-400 shadow-md;
     @apply mt-8 flex w-full items-center justify-center gap-1 p-8 text-4xl font-bold;
   }
 
@@ -89,9 +93,5 @@
 
   li {
     @apply inline-flex flex-nowrap items-center justify-start gap-4 text-nowrap;
-  }
-
-  span {
-    @apply cursor-pointer;
   }
 </style>

@@ -4,7 +4,9 @@ export {default as InfoIcon} from './Info.svelte';
 
 export {default as VerificationIcon} from './Verification.svelte';
 export {default as PasswordIcon} from './Password.svelte';
+export {default as DownloadIcon} from './Download.svelte';
 export {default as UserIcon} from './User.svelte';
+export {default as CopyIcon} from './Copy.svelte';
 
 export {default as CheckmarkIcon} from './Checkmark.svelte';
 export {default as QuestionIcon} from './Question.svelte';

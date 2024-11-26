@@ -19,7 +19,7 @@
 
 <style lang="postcss">
   button {
-    @apply flex items-center justify-center gap-3;
-    @apply disabled:hover:bg-pos-0 disabled:hover:shadow-primary-900 disabled:opacity-80;
+    @apply disabled:shadow-primary-950 flex items-center justify-center gap-3 disabled:cursor-not-allowed;
+    @apply disabled:hover:bg-pos-0 disabled:hover:shadow-primary-950 disabled:opacity-80;
   }
 </style>
