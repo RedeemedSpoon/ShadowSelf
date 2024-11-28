@@ -26,7 +26,7 @@
           <input id="header-alt-auth" type="checkbox" class="hidden" checked={$user ? true : false} />
         {:else}
           <a class="text-primary-600 hover:text-primary-700 underline max-xl:mr-2" href="/login">Log In</a>
-          <a href="/signup"><button>Sign Up</button></a>
+          <a href="/signup"><button class="px-5 py-3">Sign Up</button></a>
         {/if}
       </div>
     </HamburgerMenu>

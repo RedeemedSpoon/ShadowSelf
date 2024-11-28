@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {UserIcon, PasswordIcon, VerificationIcon, DownloadIcon, CopyIcon} from '$icon';
+  import {UserIcon, PasswordIcon, VerificationIcon, DownloadIcon, CopyIcon, HappyIcon} from '$icon';
   import {Steps, StepsItem, Input, Button, ReactiveButton} from '$component';
   import type {Notification, Registration} from '$type';
   import {currentStep} from '$store';
@@ -73,12 +73,11 @@
     </div>
   </StepsItem>
   <StepsItem {backStep} index={3} action="showOTP">
-    <div class="mb-14 flex flex-row gap-16">
+    <div class="mb-14 flex flex-row items-center gap-24 px-10">
       <div class="flex flex-col items-center gap-6">
         <h1>Scan the QR code</h1>
         <img src={qr} alt="QR Code" width="200" class="w-full shadow-xl shadow-white/15" />
       </div>
-      <div class="-my-6 w-[2px] bg-neutral-500"></div>
       <div class="flex w-full flex-col gap-2">
         <h1>Or enter the secret key</h1>
         <p class="mb-2">Alternatively, you can paste this secret key into your authenticator app if you don't have a phone:</p>
@@ -96,16 +95,16 @@
   </StepsItem>
   <StepsItem {backStep} index={5} action="showRecovery">
     <h1>Store safely these recovery codes</h1>
-    <p>
-      Store these recovery codes somewhere safe, you will need<br />
-      them to restore your account in case you lose access to your 2FA method.
+    <p class="-mt-6">
+      Store these recovery codes somewhere safe, you will need them to restore your account in case you lose access to your 2FA
+      method somehow.
     </p>
-    <div class="grid grid-cols-2 gap-4 rounded-xl bg-neutral-800/50 p-4">
+    <div id="recovery">
       {#each recovery as code, index (index)}
         <p>{code}</p>
       {/each}
     </div>
-    <div id="recovery-actions-buttons" class="flex justify-evenly">
+    <div id="recovery-actions-buttons" class="-mt-4 flex justify-evenly">
       <ReactiveButton icon={CopyIcon} text="Copy to clipboard" newText="Copied!" callback={copyRecovery} />
       <ReactiveButton icon={DownloadIcon} text="Download as .txt" newText="Downloaded!" callback={downloadRecovery} />
       <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
@@ -113,13 +112,12 @@
     <button type="submit">Next →</button>
   </StepsItem>
   <StepsItem {backStep} index={6} action="askBilling">
-    <h1>Would you like to add a billing method now?</h1>
-    <p>
-      You will need a payment method to use ShadowSelf<br />
-      We accept both credit cards and crypto currency
-    </p>
-    <button name="add" type="submit">Add Payment →</button>
-    <button class="alt" name="skip" type="submit">Skip for now</button>
+    <h1 class="!-mb-2">Would you like to addk a billing method?</h1>
+    <p>You will need a payment method to use ShadowSelf in it full capacity. We accept both credit cards and crypto currencies</p>
+    <div class="flex w-full justify-between gap-2 px-8">
+      <button class="alt" name="skip" type="submit">Skip for now</button>
+      <button name="add" type="submit">Add Payment →</button>
+    </div>
   </StepsItem>
   <StepsItem {backStep} index={7} action="addBilling">
     <h1>Add a billing method</h1>
@@ -127,14 +125,14 @@
     <button type="submit">Add Billing</button>
   </StepsItem>
   <StepsItem shouldWait={true} {backStep} index={8} action="create">
-    <h1>And we're done!</h1>
-    <p>
-      Just click the button below<br />
-      to finish setting up your account
+    <h1 class="!-mb-2 text-center">And we're done, <span class="pretty-style">{username}</span></h1>
+    <HappyIcon className="w-36 h-36" />
+    <p class="-mt-2 text-center">
+      Just click the button below to finish setting up your account. You can still go back to make changes.
     </p>
     <Button>Create the account</Button>
-    <p class="-mb-6 text-sm text-neutral-400">
-      By continuing, you agree to both our <br />
+    <p class="-mb-6 text-center text-sm text-neutral-400">
+      By continuing, you agree to our
       <a href="/terms">Terms of Service</a> and <a href="/privacy-policy">Privacy Policy</a>
     </p>
   </StepsItem>
@@ -147,5 +145,9 @@
 
   #recovery-actions-buttons > * {
     @apply inline-flex items-center gap-2;
+  }
+
+  #recovery {
+    @apply grid grid-cols-3 place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider;
   }
 </style>
