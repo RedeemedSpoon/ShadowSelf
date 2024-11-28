@@ -1,4 +1,5 @@
 import {createCookie, fetchApi} from '$lib';
+import {redirect} from '@sveltejs/kit';
 import type {Actions} from './$types';
 import QRCode from 'qrcode';
 
@@ -74,5 +75,6 @@ export const actions: Actions = {
 
     createCookie(cookies, 'token', response.cookie);
     cookies.delete('signup', {path: '/'});
+    redirect(302, '/dashboard');
   },
 };

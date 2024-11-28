@@ -48,6 +48,6 @@
   }
 
   .mono {
-    @apply font-mono font-medium tracking-wider;
+    @apply font-mono font-medium tracking-wider max-md:break-all;
   }
 </style>

@@ -38,11 +38,11 @@
 
 <style lang="postcss">
   form {
-    @apply flex flex-col items-end gap-8 p-16;
+    @apply flex flex-col items-end gap-4 px-8 py-12 md:gap-8 md:p-16;
   }
 
   button {
-    @apply z-10 -mb-8 ml-9 mt-9 w-fit text-left;
+    @apply z-10 -mb-8 ml-0 mt-4 w-fit text-left md:ml-9 md:mt-9;
   }
 
   span {

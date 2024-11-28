@@ -11,7 +11,7 @@
 
 <div style="background-image: url({circuitPattern})">
   {#key $currentStep}
-    <section in:fly={{delay: 500, x: 100, opacity: 0, duration: 500}} out:fly={{x: -100, opacity: 0, duration: 500}}>
+    <section in:fly={{delay: 500, x: 35, opacity: 0, duration: 500}} out:fly={{x: -35, opacity: 0, duration: 500}}>
       {@render children?.()}
     </section>
   {/key}
@@ -19,10 +19,10 @@
 
 <style lang="postcss">
   div {
-    @apply h-full bg-repeat pb-[10rem] pt-[15rem];
+    @apply h-full bg-repeat pb-[6rem] pt-[9rem] md:pb-[10rem] md:pt-[15rem];
   }
 
   section {
-    @apply mx-auto flex h-fit w-1/3 justify-center gap-12;
+    @apply mx-auto flex h-fit w-4/5 justify-center gap-12 lg:w-1/3;
   }
 </style>

@@ -50,37 +50,37 @@
 <Steps>
   <StepsItem shouldWait={true} {backStep} index={1} action="init">
     <h1>Create an account</h1>
-    <div class="flex items-center justify-end gap-6">
+    <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="username">Username</label>
       <Input type="text" icon={UserIcon} name="username" placeholder="mountain eagle" />
     </div>
-    <div class="flex items-center justify-end gap-6">
+    <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="password">Password</label>
       <Input type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
     </div>
-    <p class="mt-4">Already have an account? <a href="/login">Login</a></p>
+    <p class="mt-4 max-md:text-sm">Already have an account? <a href="/login">Login</a></p>
     <Button>Next</Button>
   </StepsItem>
   <StepsItem {backStep} index={2} action="askOTP">
     <h1>Hello <span class="pretty-style">{username}</span>,<br /> Would you like to enable 2FA now?</h1>
-    <p class="-mt-4 mb-4">
-      Two-Factor Authentication (2FA) is a common security feature<br />
-      that adds an extra layer of protection to your account when trying to logging in.
+    <p class="-mt-4 mb-8">
+      Two-Factor Authentication (2FA) is a common security feature that adds an extra layer of protection to your account when
+      trying to logging in.
     </p>
-    <div class="flex w-full justify-between gap-2 px-8">
+    <div class="flex w-full justify-between gap-2 px-8 max-md:flex-col-reverse">
       <button class="alt" name="skip" type="submit">Skip this step</button>
       <button name="enable" type="submit">Enable 2FA →</button>
     </div>
   </StepsItem>
   <StepsItem {backStep} index={3} action="showOTP">
-    <div class="mb-14 flex flex-row items-center gap-24 px-10">
+    <div class="mb-10 flex flex-row items-center gap-12 max-xl:flex-col md:gap-24 md:px-10">
       <div class="flex flex-col items-center gap-6">
         <h1>Scan the QR code</h1>
-        <img src={qr} alt="QR Code" width="200" class="w-full shadow-xl shadow-white/15" />
+        <img src={qr} alt="QR Code" width="200" class="w-11/12 shadow-xl shadow-white/15" />
       </div>
       <div class="flex w-full flex-col gap-2">
         <h1>Or enter the secret key</h1>
-        <p class="mb-2">Alternatively, you can paste this secret key into your authenticator app if you don't have a phone:</p>
+        <p class="mb-2">Alternatively, you can paste this secret key into your auth app if you don't have a phone:</p>
         <ReactiveButton isBox={true} icon={CopyIcon} text={secret} callback={() => navigator.clipboard.writeText(secret)} />
         <p class="ml-1 mt-2 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
       </div>
@@ -96,15 +96,14 @@
   <StepsItem {backStep} index={5} action="showRecovery">
     <h1>Store safely these recovery codes</h1>
     <p class="-mt-6">
-      Store these recovery codes somewhere safe, you will need them to restore your account in case you lose access to your 2FA
-      method somehow.
+      Store these recovery codes somewhere safe, you will need them to restore your account if you lose your 2FA method.
     </p>
     <div id="recovery">
       {#each recovery as code, index (index)}
         <p>{code}</p>
       {/each}
     </div>
-    <div id="recovery-actions-buttons" class="-mt-4 flex justify-evenly">
+    <div id="recovery-actions-buttons" class="-mt-4 flex justify-evenly max-md:flex-col max-md:items-center">
       <ReactiveButton icon={CopyIcon} text="Copy to clipboard" newText="Copied!" callback={copyRecovery} />
       <ReactiveButton icon={DownloadIcon} text="Download as .txt" newText="Downloaded!" callback={downloadRecovery} />
       <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
@@ -112,9 +111,12 @@
     <button type="submit">Next →</button>
   </StepsItem>
   <StepsItem {backStep} index={6} action="askBilling">
-    <h1 class="!-mb-2">Would you like to addk a billing method?</h1>
-    <p>You will need a payment method to use ShadowSelf in it full capacity. We accept both credit cards and crypto currencies</p>
-    <div class="flex w-full justify-between gap-2 px-8">
+    <h1 class="!-mb-2">Want to add a payment option?</h1>
+    <p>
+      You will need a payment method to use ShadowSelf in it full capacity. We accept both credit cards and crypto currencies and
+      store them safely.
+    </p>
+    <div class="mt-8 flex justify-between gap-2 px-8 max-md:flex-col-reverse">
       <button class="alt" name="skip" type="submit">Skip for now</button>
       <button name="add" type="submit">Add Payment →</button>
     </div>
@@ -140,7 +142,7 @@
 
 <style lang="postcss">
   h1 {
-    @apply -mt-4 mb-4 text-nowrap text-4xl font-bold text-neutral-300;
+    @apply -mt-4 mb-4 text-4xl font-bold text-neutral-300 max-md:text-2xl md:text-nowrap;
   }
 
   #recovery-actions-buttons > * {
@@ -148,6 +150,6 @@
   }
 
   #recovery {
-    @apply grid grid-cols-3 place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider;
+    @apply grid place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider md:grid-cols-3;
   }
 </style>
