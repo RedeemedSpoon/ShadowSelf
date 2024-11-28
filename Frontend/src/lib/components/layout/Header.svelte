@@ -22,7 +22,7 @@
       </div>
       <div id="auth-buttons">
         {#if $user}
-          <a href="/dashboard" class="group" id="username">{$user}<span id="username-underline"></span></a>
+          <a href="/dashboard" class="group" id="username">{$user}<span></span></a>
           <input id="header-alt-auth" type="checkbox" class="hidden" checked={$user ? true : false} />
         {:else}
           <a class="text-primary-600 hover:text-primary-700 underline max-xl:mr-2" href="/login">Log In</a>
@@ -58,9 +58,6 @@
   #auth-buttons,
   #navigation-links {
     @apply flex items-center gap-4 text-nowrap text-xl xl:gap-8;
-    #header-alt-auth:checked ~ & {
-      @apply items-baseline;
-    }
   }
 
   #auth-buttons {

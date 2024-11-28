@@ -38,7 +38,7 @@
   }
 
   label {
-    @apply mt-3 text-xl font-semibold;
+    @apply text-xl font-semibold;
   }
 
   input[type='text'],

@@ -43,7 +43,10 @@ export default {
         alert: colors.red,
       },
     },
-    fontFamily: {sans: ['Inter', ...defaultTheme.fontFamily.sans]},
+    fontFamily: {
+      sans: ['Inter', ...defaultTheme.fontFamily.sans],
+      mono: ['Fira Code', ...defaultTheme.fontFamily.mono],
+    },
   },
   plugins: [forms, aspectRatio, addVariablesForColors, GridAndDotBackgrounds, addCustomClasses],
 };

@@ -28,7 +28,7 @@
 {#if $currentStep === index}
   <Card upperClass="w-fit flex self-center">
     {#if index !== 1}
-      <button class="alt" type="button" onclick={backStep}>← Back</button>
+      <button class="alt group" type="button" onclick={backStep}>← Back<span></span></button>
     {/if}
     <form method="POST" action="?/{action}" use:enhance={sendFrom}>
       {@render children?.()}
@@ -42,6 +42,10 @@
   }
 
   button {
-    @apply z-10 -mb-8 ml-8 mt-8 text-left;
+    @apply z-10 -mb-8 ml-9 mt-9 w-fit text-left;
+  }
+
+  span {
+    @apply basic-style block h-[2px] max-w-0 transition-all duration-300 ease-in-out group-hover:!max-w-full;
   }
 </style>

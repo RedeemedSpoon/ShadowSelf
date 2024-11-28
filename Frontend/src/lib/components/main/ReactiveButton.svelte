@@ -3,13 +3,14 @@
   import {CheckmarkIcon} from '$icon';
 
   interface Props {
-    icon: Component;
-    text: string;
-    newText: string;
     callback: () => void;
+    icon: Component;
+    isBox?: boolean;
+    newText?: string;
+    text: string;
   }
 
-  const {callback, icon, text, newText}: Props = $props();
+  const {callback, icon, text, newText, isBox}: Props = $props();
 
   let button = $state() as HTMLButtonElement;
   let buttonText = $state() as HTMLParagraphElement;
@@ -18,7 +19,7 @@
   function handleClick() {
     callback();
     isActivated = true;
-    buttonText.innerText = newText;
+    buttonText.innerText = newText ? newText : text;
 
     setTimeout(() => {
       buttonText.innerText = text;
@@ -27,12 +28,26 @@
   }
 </script>
 
-<button bind:this={button} type="button" onclick={handleClick} class="alt flex items-center gap-2">
+<button bind:this={button} type="button" onclick={handleClick} class={isBox ? 'box' : 'alt'}>
   <div>
     {#if icon}
       {@const SvelteComponent = isActivated ? CheckmarkIcon : icon}
       <SvelteComponent />
     {/if}
   </div>
-  <p bind:this={buttonText}>{isActivated ? newText : text}</p>
+  <p class:mono={isBox} bind:this={buttonText}>{isActivated ? newText : text}</p>
 </button>
+
+<style lang="postcss">
+  button {
+    @apply flex items-center gap-2;
+  }
+
+  .box {
+    @apply from-neutral-900 to-neutral-800 shadow-inner;
+  }
+
+  .mono {
+    @apply font-mono font-medium tracking-wider;
+  }
+</style>

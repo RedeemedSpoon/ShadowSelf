@@ -11,19 +11,23 @@
   let {icon, name, type, placeholder}: Props = $props();
 </script>
 
-<div class="flex items-end">
+<div class="flex flex-initial">
   <label title={name} for={name}>
     {#if icon}
       {@const SvelteComponent = icon}
-      <SvelteComponent className="!w-8 !h-8 fill-neutral-800 stroke-neutral-800" />
+      <SvelteComponent className="mx-4 fill-neutral-800 stroke-neutral-800" />
     {/if}
   </label>
-  <input id={name} {name} {type} {placeholder} class="!rounded-l-none" required />
+  <input id={name} {name} {type} {placeholder} class="ml-[1px] w-full !rounded-l-none" required />
 </div>
 
 <style lang="postcss">
   label {
-    @apply flex h-full w-full items-center justify-center px-3;
-    @apply rounded-l-xl border border-neutral-800 border-r-transparent;
+    @apply flex items-center justify-center transition-all duration-300 ease-in-out;
+    @apply rounded-l-xl border border-neutral-800 border-r-transparent bg-transparent;
+  }
+
+  div:focus-within label {
+    @apply ring-primary-600 ring-2;
   }
 </style>
