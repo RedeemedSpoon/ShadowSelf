@@ -58,7 +58,7 @@
       <label for="password">Password</label>
       <Input type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
     </div>
-    <p class="mt-4 max-md:text-sm">Already have an account? <a href="/login">Login</a></p>
+    <p class="mt-4 max-md:text-sm">Already have an account? <a href="/login">Log in</a></p>
     <Button>Next</Button>
   </StepsItem>
   <StepsItem {backStep} index={2} action="askOTP">

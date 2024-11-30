@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {UserIcon, PasswordIcon, VerificationIcon} from '$icon';
+  import {UserIcon, PasswordIcon, VerificationIcon, RecoveryIcon} from '$icon';
   import {Steps, StepsItem, Input, Button} from '$component';
   import type {Notification} from '$type';
   import {currentStep} from '$store';
@@ -35,8 +35,7 @@
       <label for="password">Password</label>
       <Input type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
     </div>
-    <p class="max-md:text-sm">Don't have an account? <a href="/signup">Sign up</a></p>
-    <p class="-mt-4 max-md:text-sm">Forgot your password? <a href="/forgot">Well, that's tough.</a></p>
+    <p class="mt-4 max-md:text-sm">Don't have an account? <a href="/signup">Sign up</a></p>
     <Button>Next</Button>
   </StepsItem>
   <StepsItem shouldWait={true} {backStep} index={2} action="checkOTP">
@@ -52,7 +51,7 @@
   <StepsItem shouldWait={true} {backStep} index={3} action="checkRecovery">
     <h1 class="!-mb-2">Enter one of your recovery codes</h1>
     <p>Use one of the recovery tokens we gave when you first created your account to verify your authenticity</p>
-    <Input type="number" name="code" icon={VerificationIcon} placeholder="123456789" />
+    <Input type="number" name="code" icon={RecoveryIcon} placeholder="123456789" />
     <Button className="mt-2">Check</Button>
   </StepsItem>
 </Steps>
