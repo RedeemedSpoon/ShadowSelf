@@ -1,58 +1,68 @@
 <script lang="ts">
+  import {UserIcon, PasswordIcon, VerificationIcon} from '$icon';
+  import {Steps, StepsItem, Input, Button} from '$component';
   import type {Notification} from '$type';
-  import {enhance} from '$app/forms';
-  import {Card} from '$component';
+  import {currentStep} from '$store';
+  import {get} from 'svelte/store';
   import {notify} from '$lib';
 
-  const {form}: {form: Notification} = $props();
+  const {form}: {form: Notification & {step?: number}} = $props();
 
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
+    if (form?.step) currentStep.set(Number(form.step));
   });
+
+  function backStep() {
+    let step = get(currentStep) - 1;
+    currentStep.set(step);
+  }
 </script>
 
 <svelte:head>
-  <title>ShadowSelf - Login</title>
-  <meta name="description" content="Login to your account and start using ShadowSelf!" />
+  <title>ShadowSelf - Log in</title>
+  <meta name="description" content="Log in to your account to make the most of ShadowSelf" />
 </svelte:head>
 
-<div id="login">
-  <Card upperClass="w-fit flex self-center">
-    <form method="POST" action="?/login" use:enhance>
-      <h1>Login to your account</h1>
-      <div>
-        <label for="username">Username</label>
-        <input type="text" name="username" required id="username" />
-      </div>
-      <div>
-        <label for="password">Password</label>
-        <input type="password" name="password" required id="password" />
-      </div>
-      <button type="submit">Login</button>
-    </form>
-  </Card>
-</div>
+<Steps>
+  <StepsItem shouldWait={true} {backStep} index={1} action="checkCredentials">
+    <h1>Login to your account</h1>
+    <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
+      <label for="username">Username</label>
+      <Input type="text" icon={UserIcon} name="username" placeholder="mountain eagle" />
+    </div>
+    <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
+      <label for="password">Password</label>
+      <Input type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
+    </div>
+    <p class="max-md:text-sm">Don't have an account? <a href="/signup">Sign up</a></p>
+    <p class="-mt-4 max-md:text-sm">Forgot your password? <a href="/forgot">Well, that's tough.</a></p>
+    <Button>Next</Button>
+  </StepsItem>
+  <StepsItem shouldWait={true} {backStep} index={2} action="checkOTP">
+    <h1 class="!-mb-2">Enter the verification token</h1>
+    <p>Open your two-factor authentication app to view your verification token and verify your identity</p>
+    <Input type="number" name="token" icon={VerificationIcon} placeholder="123456" />
+    <p class="-mt-4 max-md:text-sm">
+      Lost your 2FA method?
+      <span aria-hidden="true" onclick={() => currentStep.set(3)}>Switch to recovery codes</span>
+    </p>
+    <Button className="mt-2">Verify</Button>
+  </StepsItem>
+  <StepsItem shouldWait={true} {backStep} index={3} action="checkRecovery">
+    <h1 class="!-mb-2">Enter one of your recovery codes</h1>
+    <p>Use one of the recovery tokens we gave when you first created your account to verify your authenticity</p>
+    <Input type="number" name="code" icon={VerificationIcon} placeholder="123456789" />
+    <Button className="mt-2">Check</Button>
+  </StepsItem>
+</Steps>
 
 <style lang="postcss">
-  #login {
-    @apply mx-auto flex h-screen w-2/3 flex-col justify-center gap-12;
-  }
-
   h1 {
-    @apply -mt-4 mb-4 self-center text-4xl font-bold text-neutral-300;
+    @apply -mt-4 mb-4 text-4xl font-bold text-neutral-300 max-md:text-2xl md:text-nowrap;
   }
 
-  form {
-    @apply flex flex-col items-end gap-8 px-12 py-16;
-
-    & input {
-      @apply bg-slate-900/50;
-    }
-    & div {
-      @apply flex gap-6;
-    }
-    & button {
-      @apply w-full self-end;
-    }
+  span {
+    @apply text-primary-600 hover:text-primary-700 cursor-pointer transition-colors duration-300;
   }
 </style>

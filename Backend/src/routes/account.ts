@@ -46,12 +46,13 @@ export default new Elysia({prefix: '/account'})
     return {cookie: cookieValue};
   })
   .post('/login-otp', async ({body, jwt}) => {
-    const {token, username, password, err} = check(body as BodyField, ['token', 'username', 'password']);
+    const {token, username, password, err} = check(body as BodyField, ['token', 'username', 'password'], true);
     if (err) return msg(err, 'alert');
 
     const secret = (await attemptQuery(sql`SELECT totp FROM users WHERE username = ${username}`)) as QueryResult[];
-    const totp = createTOTP(secret[0].totp, username);
+    if (secret.length === 0) return msg('Incorrect validation token. Please try again', 'alert');
 
+    const totp = createTOTP(secret[0].totp, username);
     const isValid = totp.generate() === token;
     if (!isValid) return msg('Incorrect validation token. Please try again', 'alert');
 
@@ -59,11 +60,13 @@ export default new Elysia({prefix: '/account'})
     return {cookie: cookieValue};
   })
   .post('/login-recovery', async ({body, jwt}) => {
-    const {code, username, password, err} = check(body as BodyField, ['code', 'username', 'password']);
+    const {code, username, password, err} = check(body as BodyField, ['code', 'username', 'password'], true);
     if (err) return msg(err, 'alert');
 
-    const result = (await attemptQuery(sql`SELECT recovery FROM users WHERE username = ${username}`)) as QueryResult[];
-    const isValid = result[0].recovery.some((b) => b === code);
+    const recovery = (await attemptQuery(sql`SELECT recovery FROM users WHERE username = ${username}`)) as QueryResult[];
+    if (recovery.length === 0) return msg('Incorrect recovery code. Try another one', 'alert');
+
+    const isValid = recovery[0].recovery.some((b) => b === code);
     if (!isValid) return msg('Incorrect recovery code. Try another one', 'alert');
 
     const cookieValue = await jwt.sign({username, password});
