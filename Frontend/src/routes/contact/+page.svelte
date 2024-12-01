@@ -15,6 +15,14 @@
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
   });
+
+  export function handleForm() {
+    // @ts-expect-error TS2322
+    return async ({update, result}) => {
+      if (result.data.type && result.data.type === 'success') update({reset: true});
+      update({reset: false});
+    };
+  }
 </script>
 
 <svelte:head>
@@ -29,14 +37,7 @@
       If you have any questions, concerns, or feedback, please don't hesitate to contact us. We look forward to hearing from you!
     </p>
   </section>
-  <form
-    use:enhance={() => {
-      return async ({update, result}) => {
-        if (result.data.type !== 'success') update({reset: false});
-        update({reset: true});
-      };
-    }}
-    method="POST">
+  <form use:enhance={handleForm} method="POST">
     <label for="subject">Subject</label>
     <input type="text" required placeholder="I am looking for..." name="subject" id="subject" />
     <SelectMenu name="Category" options={data.options} />
@@ -63,5 +64,9 @@
 
   form {
     @apply flex flex-col gap-4;
+  }
+
+  label {
+    @apply ml-2 mt-4;
   }
 </style>

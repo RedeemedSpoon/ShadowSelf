@@ -18,7 +18,7 @@ export const load: PageServerLoad = () => {
       },
       {
         value: 'refund',
-        label: 'I want a to get a refund',
+        label: 'I am here for a refund',
       },
       {
         value: 'bug',

@@ -8,8 +8,9 @@
   <h6>Want a refund? Cool, just check out our refund policy first.</h6>
   <section>
     <p>
-      <span>TLDR</span> Want to try Shadowself but not sure if it's for you? No worries! You've got 14 days to change your mind and
-      get a full refund. Just shoot us a message on our contact page and we'll take care of it within a week.
+      <span>TLDR</span> Not sure if Shadowself is right for you? No problem! You have 14 days to change your mind and receive a full
+      refund. Simply delete your identity in the identity settings, and if it was created less than 14 days ago, you’ll be eligible.
+      If you also want to help us, you can contact us directly with your identity ID, username, and reason for the request.
     </p>
   </section>
   <p>
@@ -23,8 +24,9 @@
   </p>
   <h3>How to Request a Refund</h3>
   <p>
-    To initiate a refund request, please contact us via our designated <a href="/contact">contact</a> page. Please provide your identity
-    ID, Your username and a brief explanation of the reason for your refund request.
+    To request a refund, please visit your identity page and delete your identity. If it was created less than 14 days ago, you
+    will be eligible for a full refund. And if you'd like to help us improve our service, you can <a href="/contact"
+      >contact us</a> directly with your identity ID, username, and a brief explanation of why you're requesting the refund.
   </p>
   <h3>Refund Processing Time</h3>
   <p>
@@ -41,7 +43,7 @@
     Should you have any questions or concerns regarding our refund policy or service, please do not hesitate to contact us and we
     will get back to you as soon as possible.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: November 5, 2024</small>
+  <small class="text-lg text-neutral-500">Last updated: December 1, 2024</small>
 </div>
 
 <style lang="postcss">

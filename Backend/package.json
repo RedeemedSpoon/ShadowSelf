@@ -10,8 +10,8 @@
   "devDependencies": {
     "@elysiajs/jwt": "^1.1.1",
     "@types/bcrypt": "^5.0.2",
-    "@types/bun": "^1.1.13",
-    "@types/nodemailer": "^6.4.16",
+    "@types/bun": "^1.1.14",
+    "@types/nodemailer": "^6.4.17",
     "bcrypt": "^5.1.1",
     "bun-types": "latest",
     "elysia": "latest",

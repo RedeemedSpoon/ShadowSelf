@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.00] - 2024-12-1
+
+### Added
+
+- Add correct status code to backend
+
+### Changed
+
+- Change refund policy
+- Change form submit to keep data
+- Change name check to allow unicode
+- Correct typescript errors
+
 ## [0.2.09] - 2024-11-28
 
 ### Added
@@ -432,10 +445,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Header logo has text beside it instead of under it
 - App.css has global styles
-
-### Removed
-
-- Remove light mode
 
 ## [0.0.02] - 2024-10-01
 

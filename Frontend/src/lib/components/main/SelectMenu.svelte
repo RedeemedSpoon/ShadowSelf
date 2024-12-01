@@ -41,7 +41,7 @@
   });
 </script>
 
-<label for={name.toLowerCase()}>{name}</label>
+<label class="ml-2 mt-4" for={name.toLowerCase()}>{name}</label>
 <input required bind:this={input} type="hidden" name={name.toLowerCase()} value={options[0].value} />
 
 <div bind:this={select} id="select-input" class="relative">

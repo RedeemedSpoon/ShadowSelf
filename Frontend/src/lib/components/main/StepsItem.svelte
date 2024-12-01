@@ -18,9 +18,9 @@
     isFetching.set(true);
     if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 750));
 
-    return async ({update}: {update: () => Promise<void>}) => {
+    return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
       isFetching.set(false);
-      await update();
+      update({reset: false});
     };
   };
 </script>
