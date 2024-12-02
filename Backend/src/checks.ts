@@ -1,7 +1,9 @@
 import type {BodyField, ContactDetail} from './types';
 import {toTitleCase} from './utils';
 
-export function check(body: BodyField, fields: string[], ignore?: boolean): BodyField {
+export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
+  const body = rawBody as BodyField;
+
   for (const field of fields) {
     const isOptional = field.startsWith('?');
     const fieldType = isOptional ? field.slice(1) : field;
@@ -15,7 +17,7 @@ export function check(body: BodyField, fields: string[], ignore?: boolean): Body
 
     switch (fieldType) {
       case 'username':
-        if (!/^[a-zA-Z0-9\s]+$/.test(body.username)) {
+        if (!/^[\p{L}\p{N}\s]+$/u.test(body.username)) {
           return {err: 'Username can only contain letters, numbers and spaces'} as BodyField;
         } else if (body.username.length > 25) {
           return {err: 'Username is too long (<25 characters)'} as BodyField;
@@ -57,7 +59,9 @@ export function check(body: BodyField, fields: string[], ignore?: boolean): Body
   return body;
 }
 
-export function checkContact(body: ContactDetail): ContactDetail {
+export function checkContact(Rawbody: unknown): ContactDetail {
+  const body = Rawbody as ContactDetail;
+
   for (const field of ['category', 'message', 'subject']) {
     if (!Object.prototype.hasOwnProperty.call(body, field)) {
       return {err: `${toTitleCase(field)} is a required field`} as ContactDetail;

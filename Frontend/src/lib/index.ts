@@ -31,8 +31,18 @@ export async function fetchApi(url: string, method = 'GET', body?: Record<string
     body: body ? JSON.stringify(body) : undefined,
     method,
   })
-    .then((res) => res.json())
-    .catch(() => ({message: 'An error occurred. Please try again later.', type: 'alert'}));
+    .then(async (res) => {
+      const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';
+
+      if (res.headers.get('Content-Type')?.includes('application/json')) {
+        const message = await res.json();
+        return {...message, type};
+      } else {
+        const message = await res.text();
+        return {message, type};
+      }
+    })
+    .catch(() => ({message: 'An error occurred. Please try again later', type: 'alert'}));
 }
 
 export function createCookie(cookies: Cookies, name: string, value: string, short: boolean = false) {

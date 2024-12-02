@@ -1,10 +1,5 @@
 export type User = {username: string; password: string} | undefined;
 
-export interface Message {
-  message: string;
-  type: 'success' | 'alert' | 'info';
-}
-
 export interface ContactDetail {
   category: 'question' | 'feedback' | 'collaboration' | 'refund' | 'bug' | 'help' | 'other';
   message: string;

@@ -1,21 +1,11 @@
-import type {Message, ContactDetail} from './types';
+import type {ContactDetail} from './types';
 import {transporter} from './connection';
 
-export async function attemptQuery(func: Promise<unknown>): Promise<unknown> {
+export async function attempt(func: Promise<unknown>): Promise<unknown> {
   try {
     return await func;
   } catch (error: unknown) {
     return error;
-  }
-}
-
-export async function attempt(func: Promise<unknown>, SuccessMessage: string): Promise<Message> {
-  try {
-    await func;
-    return msg(SuccessMessage, 'success');
-  } catch (error: unknown) {
-    if (error instanceof Error) return msg(error.message, 'alert');
-    return msg('Something went horribly wrong.', 'alert');
   }
 }
 
@@ -27,13 +17,16 @@ export async function sendEmail(body: ContactDetail) {
     text: `${body.message}\n\nEmail: ${body.email || 'N/A'}`,
   };
 
-  return await attempt(transporter.sendMail(mailOptions), 'Your message has been sent!');
+  try {
+    await transporter.sendMail(mailOptions);
+    return {message: 'Your message has been sent!', err: ''};
+  } catch {
+    return {message: '', err: 'Something went wrong with the server. Try again later.'};
+  }
 }
 
 export function toTitleCase(str: string): string {
-  return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
-}
-
-export function msg(message: Message['message'], type: Message['type']): Message {
-  return {message, type};
+  return str.replace(/\w\S*/g, (txt) => {
+    return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
+  });
 }

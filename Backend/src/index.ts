@@ -1,23 +1,21 @@
 import type {ContactDetail} from './types';
-import {msg, sendEmail} from './utils';
+import {sendEmail} from './utils';
 import {checkContact} from './checks';
-import {Elysia} from 'elysia';
+import {Elysia, error} from 'elysia';
 
-import api from './routes/api';
 import account from './routes/account';
-import identity from './routes/identity';
-import extension from './routes/extension';
 
 const app = new Elysia()
-  .post('/contact', async ({body}: {body: ContactDetail}) => {
+  .get('/', () => 'Hello from ShadowSelf.')
+  .post('/contact', async ({body}) => {
     const {err} = checkContact(body);
-    if (err) return msg(err, 'alert');
-    return await sendEmail(body);
+    if (err) return error(400, err);
+
+    const result = await sendEmail(body as ContactDetail);
+    if (result.err) return error(500, result.err);
+    return result.message;
   })
-  .use(api)
   .use(account)
-  .use(identity)
-  .use(extension)
   .listen(3000);
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);

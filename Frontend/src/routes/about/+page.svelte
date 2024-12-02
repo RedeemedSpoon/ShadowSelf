@@ -57,10 +57,6 @@
     @apply mx-auto my-[10rem] flex h-fit w-11/12 flex-col gap-6 md:w-3/4 xl:w-1/2;
   }
 
-  img {
-    @apply m-4 rounded-xl border-2 border-neutral-300 md:m-8 md:mb-[12.5vh];
-  }
-
   h1 {
     @apply basic-style text-4xl md:text-5xl;
   }

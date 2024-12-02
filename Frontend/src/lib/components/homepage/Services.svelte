@@ -65,15 +65,8 @@
     @apply relative h-full w-full rounded-2xl bg-[#070d1f];
   }
 
-  #box img {
+  #box > img {
     @apply animate-shake image-shadow absolute h-1/3 object-contain transition-all duration-300 ease-in-out;
-
-    &:nth-child(1) {
-      @apply bottom-12 right-20;
-    }
-
-    &:nth-child(2) {
-      @apply left-16 top-24;
-    }
+    @apply first:bottom-12 first:right-20 last:left-16 last:top-24;
   }
 </style>

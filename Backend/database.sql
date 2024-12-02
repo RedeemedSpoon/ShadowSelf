@@ -26,7 +26,7 @@ CREATE TABLE "users" (
   "username" varchar(25) UNIQUE NOT NULL,
   "password" varchar(60) NOT NULL,
   "totp" varchar(32),
-  "recovery" text[],
+  "recovery" varchar(9)[],
   "credit_card" varchar(64),
   "crypto_wallet" varchar(64),
   "api_key" varchar(32)
