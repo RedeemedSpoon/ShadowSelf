@@ -33,7 +33,7 @@ export default new Elysia({prefix: '/account'})
     if (err) return error(400, err);
 
     const result = (await attempt(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
-    if (result.length === 0) return error(400, 'Invalid credentials. Please try again');
+    if (!result.length) return error(400, 'Invalid credentials. Please try again');
 
     const hashedPassword = result[0].password;
     const isPasswordCorrect = await comparePWD(password, hashedPassword);
@@ -50,7 +50,7 @@ export default new Elysia({prefix: '/account'})
     if (err) return error(400, err);
 
     const secret = (await attempt(sql`SELECT totp FROM users WHERE username = ${username}`)) as QueryResult[];
-    if (secret.length === 0) return error(400, 'Incorrect validation token. Please try again');
+    if (!secret.length) return error(400, 'Incorrect validation token. Please try again');
 
     const totp = createTOTP(secret[0].totp, username);
     const isValid = totp.generate() === token;
@@ -64,10 +64,16 @@ export default new Elysia({prefix: '/account'})
     if (err) return error(400, err);
 
     const recovery = (await attempt(sql`SELECT recovery FROM users WHERE username = ${username}`)) as QueryResult[];
-    if (recovery.length === 0) return error(400, 'Incorrect recovery code. Try another one');
+    if (!recovery.length) return error(400, 'Incorrect recovery code. Try another one');
 
-    const isValid = recovery[0].recovery.some((b) => b === code);
+    const allCodes = recovery[0].recovery;
+    if (!allCodes.length) return error(400, 'Incorrect recovery code. Try another one');
+
+    const isValid = allCodes.includes(code);
     if (!isValid) return error(400, 'Incorrect recovery code. Try another one');
+
+    const newCodes = allCodes.filter((c) => c !== code);
+    await attempt(sql`UPDATE users SET recovery = ${newCodes} WHERE username = ${username}`);
 
     const cookieValue = await jwt.sign({username, password});
     return {cookie: cookieValue};

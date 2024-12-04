@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change header when user is logged in to have more links
+- Recovery code get deleted after one usage
 
 ## [0.3.00] - 2024-12-1
 
