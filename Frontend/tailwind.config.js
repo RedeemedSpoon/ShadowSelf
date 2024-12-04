@@ -53,6 +53,14 @@ export default {
 
 function addCustomClasses({addComponents}) {
   addComponents({
+    '.alt': {
+      color: '#4f46e5',
+      backgroundImage: 'none',
+      boxShadow: 'none',
+    },
+    '.alt:hover': {
+      color: '#4338ca',
+    },
     '.basic-style': {
       backgroundImage:
         'linear-gradient(to bottom,var(--tw-gradient-stops)); --tw-gradient-from: #4f46e5 var(--tw-gradient-from-position); --tw-gradient-to: rgba(79,70,229,0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from),var(--tw-gradient-to); --tw-gradient-to: #4338ca var(--tw-gradient-to-position); ',

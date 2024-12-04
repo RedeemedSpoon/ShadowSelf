@@ -8,16 +8,19 @@
   let message = $derived($notification.message);
 
   const handleClick = () => ($notification = {id: null, type: 'info', message: ''});
+
+  const icons = {
+    alert: AlertIcon,
+    info: InfoIcon,
+    success: SuccessIcon,
+  };
 </script>
 
 {#if id}
   <div class="notification {type}" transition:slide={{axis: 'x'}} onclick={handleClick} aria-hidden="true">
-    {#if type === 'alert'}
-      <AlertIcon />
-    {:else if type === 'info'}
-      <InfoIcon />
-    {:else if type === 'success'}
-      <SuccessIcon />
+    {#if type}
+      {@const SvelteComponent = icons[type]}
+      <SvelteComponent />
     {/if}
     <p class="text-clip text-xl sm:text-nowrap">{message}</p>
   </div>

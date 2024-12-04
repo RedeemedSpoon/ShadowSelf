@@ -17,10 +17,6 @@ export const load: PageServerLoad = () => {
         label: 'I want to collaborate with you',
       },
       {
-        value: 'refund',
-        label: 'I am here for a refund',
-      },
-      {
         value: 'bug',
         label: 'I found a bug or an issue',
       },

@@ -13,5 +13,4 @@ node_modules
 .svelte-kit
 server
 
-*.crt
-*.key
+*.pem

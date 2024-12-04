@@ -1,7 +1,7 @@
 export type User = {username: string; password: string} | undefined;
 
 export interface ContactDetail {
-  category: 'question' | 'feedback' | 'collaboration' | 'refund' | 'bug' | 'help' | 'other';
+  category: 'question' | 'feedback' | 'collaboration' | 'bug' | 'help' | 'other';
   message: string;
   subject: string;
   email: string;

@@ -13,10 +13,6 @@
     @apply shadow-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
   }
 
-  button.alt {
-    @apply text-primary-600 hover:!text-primary-700 bg-none shadow-none;
-  }
-
   p,
   li {
     @apply truncate whitespace-normal text-pretty text-lg font-normal leading-[1.85] antialiased;
@@ -28,7 +24,7 @@
   }
 
   header a,
-  a.alt {
+  footer a {
     @apply text-neutral-400 no-underline transition-colors duration-300 hover:text-neutral-100;
   }
 
@@ -43,6 +39,7 @@
 
   input[type='text'],
   input[type='email'],
+  input[type='search'],
   input[type='number'],
   input[type='password'],
   textarea {

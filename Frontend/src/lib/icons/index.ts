@@ -10,6 +10,11 @@ export {default as HappyIcon} from './Happy.svelte';
 export {default as UserIcon} from './User.svelte';
 export {default as CopyIcon} from './Copy.svelte';
 
+export {default as LogoutIcon} from './Logout.svelte';
+export {default as IssuesIcon} from './Issues.svelte';
+export {default as ChangelogIcon} from './Changelog.svelte';
+export {default as CommunityIcon} from './Community.svelte';
+
 export {default as CheckmarkIcon} from './Checkmark.svelte';
 export {default as QuestionIcon} from './Question.svelte';
 export {default as ChevronIcon} from './Chevron.svelte';

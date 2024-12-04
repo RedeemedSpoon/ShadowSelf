@@ -26,7 +26,7 @@
   <p>
     To request a refund, please visit your identity page and delete your identity. If it was created less than 14 days ago, you
     will be eligible for a full refund. And if you'd like to help us improve our service, you can <a href="/contact"
-      >contact us</a> directly with your identity ID, username, and a brief explanation of why you're requesting the refund.
+      >contact us</a> directly with a brief explanation of why you're requesting the refund.
   </p>
   <h3>Refund Processing Time</h3>
   <p>
