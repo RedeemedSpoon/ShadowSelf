@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon} from '$icon';
-  import {SearchForm} from '$component';
+  import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon} from '$icon';
+  import {SearchInput} from '$component';
   import type {PageData} from './$types';
   import type {Component} from 'svelte';
   import {user} from '$store';
@@ -13,8 +13,8 @@
     Community: ['https://github.com/RedeemedSpoon/ShadowSelf/blob/master/CONTRIBUTING.md', CommunityIcon],
   };
 
-  const keyword = {};
-  function handleSearch(result) {}
+  const keyword = data.identities;
+  function handleSearch(result: string[]) {}
 </script>
 
 <svelte:head>
@@ -24,9 +24,22 @@
 
 <div id="dashboard">
   <div class="m-8">
-    <div>
-      <h1 class="text-4xl text-neutral-300">Hello There, <span class="pretty-style">{$user}</span></h1>
-      <SearchForm {handleSearch} {keyword} />
+    <div class="flex items-center justify-between gap-4">
+      <h1 class="text-4xl text-neutral-300">Welcome back, <span class="pretty-style">{$user}</span></h1>
+      <div class="flex items-center gap-4">
+        <FilterIcon />
+        <SortIcon />
+        <SearchInput {handleSearch} {keyword} />
+      </div>
+    </div>
+    <div class="mt-16 flex justify-center gap-8">
+      {#each data.identities as identity}
+        <div class="flex flex-col gap-2">
+          <p>{identity.name}</p>
+          <p>{identity.email}</p>
+          <p>{identity.phone}</p>
+        </div>
+      {/each}
     </div>
   </div>
   <hr class="h-px border-0 bg-neutral-500" />

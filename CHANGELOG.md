@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add SearchInput component
 - Add empty dashboard interface
 - Add redirects when not logged in
 
