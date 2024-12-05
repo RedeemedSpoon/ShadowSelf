@@ -26,9 +26,9 @@
   <div class="m-8">
     <div class="flex items-center justify-between gap-4">
       <h1 class="text-4xl text-neutral-300">Welcome back, <span class="pretty-style">{$user}</span></h1>
-      <div class="flex items-center gap-4">
-        <FilterIcon />
-        <SortIcon />
+      <div class="flex items-center">
+        <button class="px-0"><FilterIcon /></button>
+        <button><SortIcon /></button>
         <SearchInput {handleSearch} {keyword} />
       </div>
     </div>

@@ -1,5 +1,7 @@
 <script lang="ts">
-  let {className = '!h-8 !w-8 fill-neutral-400 stroke-neutral-400'}: {className?: string | undefined} = $props();
+  let {
+    className = '!h-8 !w-8 fill-neutral-400 stroke-neutral-400 hover:stroke-neutral-300 hover:fill-neutral-300',
+  }: {className?: string | undefined} = $props();
   let isFtr = $state(true);
 </script>
 
