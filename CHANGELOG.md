@@ -9,14 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add dashboard page
+- Add more icons to $icon
 - Add SearchInput component
 - Add empty dashboard interface
-- Add redirects when not logged in
 
 ### Changed
 
-- Change header when user is logged in to have more links
-- Recovery code get deleted after one usage
+- Used recovery code get deleted automatically
+- Change buttons component
 
 ## [0.3.00] - 2024-12-1
 

@@ -3,13 +3,13 @@
   import {SearchIcon} from '$icon';
 
   interface Props {
-    keyword: string[];
+    keywords: {label: string; value: string}[];
     handleSearch: (result: string[]) => void;
   }
 
-  const {keyword, handleSearch}: Props = $props();
+  const {keywords, handleSearch}: Props = $props();
 
-  const handleInput = () => handleSearch(keyword);
+  const handleInput = () => handleSearch(keywords);
 
   const classes = {
     wrapper: '!flex-row-reverse',

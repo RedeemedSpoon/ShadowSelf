@@ -25,11 +25,11 @@
 
 <style lang="postcss">
   label {
-    @apply flex items-center justify-center transition-all duration-300 ease-in-out;
+    @apply ring-primary-600 flex items-center justify-center transition-all duration-300 ease-in-out group-focus-within:ring-2;
     @apply rounded-l-xl border border-neutral-800 border-r-transparent bg-transparent;
   }
 
   input {
-    @apply group-focus-within:ring-primary-600 ml-px w-full !rounded-l-none group-focus-within:ring-2;
+    @apply ring-primary-600 ml-px w-full !rounded-l-none group-focus-within:ring-2;
   }
 </style>

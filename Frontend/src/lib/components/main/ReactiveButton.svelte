@@ -4,9 +4,9 @@
 
   interface Props {
     callback: () => void;
-    icon: Component;
-    isBox?: boolean;
     newText?: string;
+    isBox?: boolean;
+    icon: Component;
     text: string;
   }
 
@@ -49,5 +49,9 @@
 
   .mono {
     @apply font-mono font-medium tracking-wider max-md:break-all;
+  }
+
+  p {
+    @apply text-nowrap;
   }
 </style>

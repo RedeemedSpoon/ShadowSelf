@@ -1,5 +1,6 @@
 <script lang="ts">
   import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon} from '$icon';
+  import {EmailIcon, PhoneIcon, CreditCardIcon, CryptoWalletIcon} from '$icon';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
   import type {Component} from 'svelte';
@@ -13,8 +14,7 @@
     Community: ['https://github.com/RedeemedSpoon/ShadowSelf/blob/master/CONTRIBUTING.md', CommunityIcon],
   };
 
-  const keyword = data.identities;
-  function handleSearch(result: string[]) {}
+  function handleSearch(_result: string[]) {}
 </script>
 
 <svelte:head>
@@ -23,29 +23,44 @@
 </svelte:head>
 
 <div id="dashboard">
-  <div class="m-8">
-    <div class="flex items-center justify-between gap-4">
-      <h1 class="text-4xl text-neutral-300">Welcome back, <span class="pretty-style">{$user}</span></h1>
-      <div class="flex items-center">
+  <div class="my-4 sm:max-md:mt-32 sm:max-md:scale-125 lg:mx-24">
+    <div class="flex items-center justify-between gap-4 max-md:flex-col">
+      <h1 class="max-xl:text:3xl text-[2.75rem] text-neutral-300 max-md:text-2xl">
+        Welcome back, <span class="pretty-style">{$user}</span>
+      </h1>
+      <div class="flex items-center max-md:scale-75">
         <button class="px-0"><FilterIcon /></button>
         <button><SortIcon /></button>
-        <SearchInput {handleSearch} {keyword} />
+        <SearchInput keywords={data.keywords} {handleSearch} />
       </div>
     </div>
-    <div class="mt-16 flex justify-center gap-8">
+    <section>
       {#each data.identities as identity}
-        <div class="flex flex-col gap-2">
-          <p>{identity.name}</p>
-          <p>{identity.email}</p>
-          <p>{identity.phone}</p>
-        </div>
+        {@const phone = identity.phone.toString().replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')}
+        {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
+        {@const walletNumber = identity.wallet.substring(0, 12)}
+        <a href="/identity/{identity.id}">
+          <img src={identity.avatar} alt="{identity.name}'s avatar" />
+          <div class="text-nowrap">
+            <p class="!text-neutral-300">{identity.name}</p>
+            <br />
+            <span class="inline-flex gap-2 text-sm text-neutral-500">
+              <img src="https://flagsapi.com/{identity.country}/flat/16.png" alt="country flag" />
+              {identity.location}
+            </span>
+          </div>
+          <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon />{identity.email}</p>
+          <p class="lg:max-xl:!flex"><PhoneIcon />{phone}</p>
+          <p><CreditCardIcon />{cardNumber}</p>
+          <p><CryptoWalletIcon />{walletNumber}...</p>
+        </a>
       {/each}
-    </div>
+    </section>
   </div>
-  <hr class="h-px border-0 bg-neutral-500" />
-  <div class="-my-8 mx-6 flex justify-between">
+  <hr class="h-px border-0 bg-neutral-500 max-md:hidden" />
+  <div class="-my-8 flex justify-between max-md:hidden lg:mx-6">
     <a href="/logout"> <button><LogoutIcon />Logout</button> </a>
-    <div class="flex gap-3">
+    <div class="flex lg:gap-3">
       {#each Object.entries(bottomLinks) as [name, [url, Icon]]}
         {@const SvelteComponent = Icon as Component}
         <a href={url as string} rel="external">
@@ -63,5 +78,27 @@
 
   button {
     @apply alt flex items-center gap-3 text-neutral-400 hover:text-neutral-300;
+  }
+
+  section {
+    @apply mt-10 h-fit min-h-[50vh] w-full max-md:flex max-md:flex-col max-md:items-center;
+  }
+
+  section > a {
+    @apply flex items-center max-md:gap-6 md:grid;
+    @apply md:grid-cols-[5rem_14rem_16.5rem_12rem_17rem_auto] 2xl:grid-cols-[5rem_19rem_16.5rem_12rem_17rem_auto];
+    @apply cursor-pointer px-8 py-6 transition-colors duration-300 ease-in-out hover:bg-neutral-300/10;
+  }
+
+  a > img {
+    @apply h-14 w-14 rounded-full border-2 border-neutral-100;
+  }
+
+  p {
+    @apply inline-flex items-center gap-2 text-neutral-400;
+  }
+
+  a > p {
+    @apply max-xl:hidden;
   }
 </style>

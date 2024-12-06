@@ -10,6 +10,11 @@ export {default as SearchIcon} from './Search.svelte';
 export {default as FilterIcon} from './Filter.svelte';
 export {default as SortIcon} from './Sort.svelte';
 
+export {default as EmailIcon} from './Email.svelte';
+export {default as PhoneIcon} from './Phone.svelte';
+export {default as CreditCardIcon} from './CreditCard.svelte';
+export {default as CryptoWalletIcon} from './CryptoWallet.svelte';
+
 export {default as VerificationIcon} from './Verification.svelte';
 export {default as RecoveryIcon} from './Recovery.svelte';
 export {default as PasswordIcon} from './Password.svelte';
