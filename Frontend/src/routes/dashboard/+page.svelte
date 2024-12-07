@@ -8,6 +8,7 @@
 
   const {data}: {data: PageData} = $props();
 
+  let table = $state() as HTMLElement;
   const bottomLinks = {
     Issues: ['https://github.com/RedeemedSpoon/ShadowSelf/issues', IssuesIcon],
     Changelog: ['https://github.com/RedeemedSpoon/ShadowSelf/blob/master/CHANGELOG.md', ChangelogIcon],
@@ -15,6 +16,22 @@
   };
 
   function handleSearch(_result: string[]) {}
+
+  function filterTable() {
+    if (table.style.maxHeight !== '40vh') {
+      table.style.maxHeight = '40vh';
+      table.style.overflowY = 'scroll';
+    } else {
+      table.style.maxHeight = 'none';
+      table.style.overflowY = 'hidden';
+    }
+  }
+
+  function sortTable() {
+    const children = Array.from(table.children);
+    const reverse = children.reverse();
+    table.replaceChildren(...reverse);
+  }
 </script>
 
 <svelte:head>
@@ -29,12 +46,12 @@
         Welcome back, <span class="pretty-style">{$user}</span>
       </h1>
       <div class="flex items-center max-md:scale-75">
-        <button class="px-0"><FilterIcon /></button>
-        <button><SortIcon /></button>
+        <button onclick={filterTable} class="px-0"><FilterIcon /></button>
+        <button onclick={sortTable}><SortIcon /></button>
         <SearchInput keywords={data.keywords} {handleSearch} />
       </div>
     </div>
-    <section>
+    <section bind:this={table}>
       {#each data.identities as identity}
         {@const phone = identity.phone.toString().replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')}
         {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
@@ -44,7 +61,7 @@
             <p class="!text-neutral-300">{identity.name}</p>
             <br />
             <span class="inline-flex gap-2 text-sm text-neutral-500">
-              <img src="https://flagsapi.com/{identity.country}/flat/16.png" alt="country flag" />
+              <img src="https://flagsapi.com/{identity.country}/flat/24.png" alt="country flag" />
               {identity.location}
             </span>
           </div>
@@ -92,7 +109,7 @@
   }
 
   a > img {
-    @apply h-14 w-14 rounded-full border-2 border-neutral-200 shadow-inner;
+    @apply h-14 rounded-full shadow-inner;
   }
 
   p {
