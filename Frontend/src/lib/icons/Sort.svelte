@@ -1,10 +1,11 @@
 <script lang="ts">
+  import {sortAsc} from '$store';
+
   let {className = '!h-8 !w-8 stroke-neutral-400 hover:stroke-neutral-300'}: {className?: string | undefined} = $props();
-  let isAsc = $state(true);
 </script>
 
-<div aria-hidden="true" onclick={() => (isAsc = !isAsc)}>
-  {#if isAsc}
+<div aria-hidden="true">
+  {#if $sortAsc}
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add search functionality
 - Add filter/sort functionality
+- Add storing of filtering dashboard table
 - Add new icons
 
 ## Changed

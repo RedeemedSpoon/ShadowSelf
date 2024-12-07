@@ -5,6 +5,9 @@ import {allPricingModel} from '$type';
 export const user: Writable<string> = writable('');
 export const token: Writable<string> = writable('');
 
+export const sortAsc: Writable<boolean> = writable(true);
+export const filterOverflow: Writable<boolean> = writable(false);
+
 export const scrollY: Writable<number> = writable(0);
 export const scrollYProgress: Writable<number> = writable(0);
 export const currentStep: Writable<number> = writable(1);

@@ -1,37 +1,56 @@
 <script lang="ts">
   import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon} from '$icon';
   import {EmailIcon, PhoneIcon, CreditCardIcon, AccountsIcon} from '$icon';
+  import {user, filterOverflow, sortAsc} from '$store';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
-  import type {Component} from 'svelte';
-  import {user} from '$store';
+  import {type Component} from 'svelte';
 
   const {data}: {data: PageData} = $props();
 
   let table = $state() as HTMLElement;
+  let errorText = $state() as HTMLParagraphElement;
+
   const bottomLinks = {
     Issues: ['https://github.com/RedeemedSpoon/ShadowSelf/issues', IssuesIcon],
     Changelog: ['https://github.com/RedeemedSpoon/ShadowSelf/blob/master/CHANGELOG.md', ChangelogIcon],
     Community: ['https://github.com/RedeemedSpoon/ShadowSelf/blob/master/CONTRIBUTING.md', CommunityIcon],
   };
 
-  function handleSearch(_result: string[]) {}
+  function handleSearch(result: string[]) {
+    const children = Array.from(table.children);
+    children.forEach((child) => child.classList.add('!hidden'));
 
-  function filterTable() {
-    if (table.style.maxHeight !== '40vh') {
+    if (!result.length) {
+      errorText.classList.remove('!hidden');
+      return;
+    }
+
+    errorText.classList.add('!hidden');
+    children.forEach((child) => child.classList.remove('!border-0'));
+
+    result.forEach((id, index) => {
+      const element = table.querySelector('#identity-' + id)!;
+      if (index === 0) element.classList.add('!border-0');
+      element.classList.remove('!hidden');
+    });
+  }
+
+  $effect(() => {
+    if ($filterOverflow) {
       table.style.maxHeight = '40vh';
       table.style.overflowY = 'scroll';
     } else {
       table.style.maxHeight = 'none';
       table.style.overflowY = 'hidden';
     }
-  }
 
-  function sortTable() {
-    const children = Array.from(table.children);
-    const reverse = children.reverse();
-    table.replaceChildren(...reverse);
-  }
+    if (!$sortAsc || $sortAsc) {
+      const children = Array.from(table.children);
+      const reverse = children.reverse();
+      table.replaceChildren(...reverse);
+    }
+  });
 </script>
 
 <svelte:head>
@@ -46,16 +65,17 @@
         Welcome back, <span class="pretty-style">{$user}</span>
       </h1>
       <div class="flex items-center max-md:scale-75">
-        <button onclick={filterTable} class="px-0"><FilterIcon /></button>
-        <button onclick={sortTable}><SortIcon /></button>
+        <button onclick={() => ($filterOverflow = !$filterOverflow)} class="px-0"><FilterIcon /></button>
+        <button onclick={() => ($sortAsc = !$sortAsc)}><SortIcon /></button>
         <SearchInput keywords={data.keywords} {handleSearch} />
       </div>
     </div>
-    <section bind:this={table}>
+    <p bind:this={errorText} class="mt-24 !hidden text-3xl !text-neutral-500">No results found.</p>
+    <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
       {#each data.identities as identity}
         {@const phone = identity.phone.toString().replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')}
         {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
-        <a href="/identity/{identity.id}">
+        <a href="/identity/{identity.id}" id="identity-{identity.id}">
           <img src={identity.avatar} alt="{identity.name}'s avatar" />
           <div class="text-nowrap">
             <p class="!text-neutral-300">{identity.name}</p>
@@ -97,12 +117,8 @@
     @apply alt flex items-center gap-3 text-neutral-400 hover:text-neutral-300;
   }
 
-  section {
-    @apply mt-10 h-fit min-h-[50vh] divide-y divide-neutral-500;
-  }
-
   section > a {
-    @apply flex items-center gap-2 md:grid;
+    @apply flex items-center gap-2 border-t border-neutral-500 first:border-none md:grid;
     @apply md:grid-cols-[5rem_14rem_auto_16.5rem] lg:grid-cols-[5rem_14rem_auto_16.5rem_12rem];
     @apply xl:grid-cols-[5rem_14rem_auto_16.5rem_12rem_17rem_auto] 2xl:grid-cols-[5rem_12.5rem_auto_17rem_12.5rem_18rem_6rem];
     @apply cursor-pointer px-8 py-6 transition-colors duration-300 ease-in-out hover:bg-neutral-300/10;

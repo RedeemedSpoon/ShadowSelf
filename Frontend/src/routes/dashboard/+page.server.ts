@@ -3,7 +3,48 @@ import type {PageServerLoad} from './$types';
 export const load: PageServerLoad = () => {
   // Fake placeholder data at the moment
   return {
-    keywords: [],
+    keywords: [
+      {
+        label: '18129fe791a1',
+        value: 'Torry Coleman US San Francisco, CA troy862@yahoo.com 726-555-5682 4826-1234-8901-2345 12',
+      },
+      {
+        label: 'dd2c249985de',
+        value: 'Sharlene Olson DE Stuttgart, Bavaria sharlene@google.com 156-806-7120 8293-5562-1822-7463 23',
+      },
+      {
+        label: 'cd9fa8bf72c3',
+        value: 'Carlos Rodriguez MX Cancun, Mexico carlosezzr@outlook.com 998-123-4567 2345-6789-1234-5678 3',
+      },
+      {
+        label: '6c2b104e134f',
+        value: 'Yuki Tanaka JP Kyoto, Japan yuki.tanaka@icloud.com 590-123-4567 3456-7890-1234-6789 8',
+      },
+      {
+        label: 'b2d5a40d8b8f',
+        value: 'Omar Al-Fahad AE Dubai, UAE omarfahad@gmail.com 960-234-5678 4567-8901-2345-7890 11',
+      },
+      {
+        label: 'df97f831c943',
+        value: 'Emma Johansson SE Stockholm, Sweden emma.john@gmail.com 235-234-5678 5678-9012-3456-8901 7',
+      },
+      {
+        label: 'abf1234ef67',
+        value: 'Amina Yusuf KE Nairobi, Kenya amina.yusuf@gmail.com 711-234-5678 1234-5678-9101-1121 6',
+      },
+      {
+        label: 'acf7a18abfd8',
+        value: 'Peter Ferguson FR Paris, Ile-de-France petfergus@venture.lol 642-852-4265 8523-2359-0756-8296 2',
+      },
+      {
+        label: 'd0f8d2a1b61a',
+        value: 'Maria Garcia ES Madrid, Spain mariagarcia@hotmail.com 912-345-6789 4321-9876-3451-1298 14',
+      },
+      {
+        label: 'f3d8a29d77b1',
+        value: 'Rajesh Patel IN Mumbai, India rajesh.patel@yahoo.com 988-765-4321 4921-8674-3629-7451 5',
+      },
+    ],
     identities: [
       {
         id: '18129fe791a1',

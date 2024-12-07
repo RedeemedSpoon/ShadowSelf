@@ -9,7 +9,11 @@
 
   const {keywords, handleSearch}: Props = $props();
 
-  const handleInput = () => handleSearch(keywords);
+  const handleInput = () => {
+    const input = document.getElementById('search') as HTMLInputElement;
+    const result = keywords.filter((keyword) => keyword.value.toLowerCase().includes(input.value.toLowerCase()));
+    handleSearch(result.map((keyword) => keyword.label));
+  };
 
   const classes = {
     wrapper: '!flex-row-reverse',
