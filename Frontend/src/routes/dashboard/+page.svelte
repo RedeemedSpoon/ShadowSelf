@@ -1,6 +1,6 @@
 <script lang="ts">
   import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon} from '$icon';
-  import {EmailIcon, PhoneIcon, CreditCardIcon, CryptoWalletIcon} from '$icon';
+  import {EmailIcon, PhoneIcon, CreditCardIcon, AccountsIcon} from '$icon';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
   import type {Component} from 'svelte';
@@ -23,7 +23,7 @@
 </svelte:head>
 
 <div id="dashboard">
-  <div class="my-4 sm:max-md:mt-32 sm:max-md:scale-125 lg:mx-24">
+  <div class="my-4 sm:max-md:mx-24 sm:max-md:mt-32 sm:max-md:scale-125 2xl:mx-[5vw]">
     <div class="flex items-center justify-between gap-4 max-md:flex-col">
       <h1 class="max-xl:text:3xl text-[2.75rem] text-neutral-300 max-md:text-2xl">
         Welcome back, <span class="pretty-style">{$user}</span>
@@ -38,7 +38,6 @@
       {#each data.identities as identity}
         {@const phone = identity.phone.toString().replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')}
         {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
-        {@const walletNumber = identity.wallet.substring(0, 12)}
         <a href="/identity/{identity.id}">
           <img src={identity.avatar} alt="{identity.name}'s avatar" />
           <div class="text-nowrap">
@@ -49,10 +48,11 @@
               {identity.location}
             </span>
           </div>
+          <br />
           <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon />{identity.email}</p>
           <p class="lg:max-xl:!flex"><PhoneIcon />{phone}</p>
           <p><CreditCardIcon />{cardNumber}</p>
-          <p><CryptoWalletIcon />{walletNumber}...</p>
+          <p><AccountsIcon />{identity.accounts}</p>
         </a>
       {/each}
     </section>
@@ -81,17 +81,18 @@
   }
 
   section {
-    @apply mt-10 h-fit min-h-[50vh] w-full max-md:flex max-md:flex-col max-md:items-center;
+    @apply mt-10 h-fit min-h-[50vh] divide-y divide-neutral-500;
   }
 
   section > a {
-    @apply flex items-center max-md:gap-6 md:grid;
-    @apply md:grid-cols-[5rem_14rem_16.5rem_12rem_17rem_auto] 2xl:grid-cols-[5rem_19rem_16.5rem_12rem_17rem_auto];
+    @apply flex items-center gap-2 md:grid;
+    @apply md:grid-cols-[5rem_14rem_auto_16.5rem] lg:grid-cols-[5rem_14rem_auto_16.5rem_12rem];
+    @apply xl:grid-cols-[5rem_14rem_auto_16.5rem_12rem_17rem_auto] 2xl:grid-cols-[5rem_12.5rem_auto_17rem_12.5rem_18rem_6rem];
     @apply cursor-pointer px-8 py-6 transition-colors duration-300 ease-in-out hover:bg-neutral-300/10;
   }
 
   a > img {
-    @apply h-14 w-14 rounded-full border-2 border-neutral-100;
+    @apply h-14 w-14 rounded-full border-2 border-neutral-200 shadow-inner;
   }
 
   p {

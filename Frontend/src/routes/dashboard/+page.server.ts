@@ -13,11 +13,11 @@ export const load: PageServerLoad = () => {
         avatar: 'https://randomuser.me/api/portraits/women/27.jpg',
         name: 'Sharlene Olson',
         country: 'DE',
-        location: 'Stuttgart, baden',
+        location: 'Stuttgart, Bavaria',
         email: 'sharlene@google.com',
         card: 8293_5562_1822_7463,
-        wallet: '16cZ4Qvd13ZuTGN6CsMJhJLUjoetvRDdPU',
         phone: 156_806_7120,
+        accounts: 125,
       },
       {
         id: 'acf7a18abfd8',
@@ -28,7 +28,7 @@ export const load: PageServerLoad = () => {
         email: 'fergus@venture.lol',
         phone: 642_852_4265,
         card: 8523_2359_0756_8296,
-        wallet: 'xqcZ4Q4513ZuTGzd5sMJhJLzjoetvRDdnE',
+        accounts: 26,
       },
       {
         id: '18129fe791a1',
@@ -39,7 +39,7 @@ export const load: PageServerLoad = () => {
         email: 'troy862@yahoo.com',
         phone: 726_555_5682,
         card: 4826_1234_8901_2345,
-        wallet: '86cZ4Qvd13ZuTGN6ssMJhJLUvfetvRDd89',
+        accounts: 12,
       },
     ],
   };

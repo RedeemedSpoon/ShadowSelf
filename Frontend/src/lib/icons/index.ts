@@ -12,6 +12,8 @@ export {default as SortIcon} from './Sort.svelte';
 
 export {default as EmailIcon} from './Email.svelte';
 export {default as PhoneIcon} from './Phone.svelte';
+export {default as AddressIcon} from './Address.svelte';
+export {default as AccountsIcon} from './Accounts.svelte';
 export {default as CreditCardIcon} from './CreditCard.svelte';
 export {default as CryptoWalletIcon} from './CryptoWallet.svelte';
 
