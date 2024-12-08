@@ -1,10 +1,10 @@
 <script lang="ts">
   import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon} from '$icon';
-  import {EmailIcon, PhoneIcon, CreditCardIcon, AccountsIcon} from '$icon';
+  import {EmailIcon, PhoneIcon, CreditCardIcon, AccountsIcon, AddUserIcon} from '$icon';
   import {user, filterOverflow, sortAsc} from '$store';
+  import {onMount, type Component} from 'svelte';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
-  import {type Component} from 'svelte';
 
   const {data}: {data: PageData} = $props();
 
@@ -19,24 +19,22 @@
 
   function handleSearch(result: string[]) {
     const children = Array.from(table.children);
-    children.forEach((child) => child.classList.add('!hidden'));
+    children.forEach((child) => {
+      child.classList.add('!hidden');
+      child.classList.remove('!border-0');
+    });
 
     if (!result.length) {
       errorText.classList.remove('!hidden');
       return;
     }
 
+    result.forEach((id) => table.querySelector('#identity-' + id)!.classList.remove('!hidden'));
     errorText.classList.add('!hidden');
-    children.forEach((child) => child.classList.remove('!border-0'));
-
-    result.forEach((id, index) => {
-      const element = table.querySelector('#identity-' + id)!;
-      if (index === 0) element.classList.add('!border-0');
-      element.classList.remove('!hidden');
-    });
+    fixBorder(children);
   }
 
-  $effect(() => {
+  function filterTable() {
     if ($filterOverflow) {
       table.style.maxHeight = '40vh';
       table.style.overflowY = 'scroll';
@@ -44,12 +42,24 @@
       table.style.maxHeight = 'none';
       table.style.overflowY = 'hidden';
     }
+  }
 
-    if (!$sortAsc || $sortAsc) {
-      const children = Array.from(table.children);
-      const reverse = children.reverse();
-      table.replaceChildren(...reverse);
-    }
+  function sortTable() {
+    const children = Array.from(table.children);
+    const reverse = children.reverse();
+    table.replaceChildren(...reverse);
+    fixBorder(children);
+  }
+
+  function fixBorder(children: Element[]) {
+    const allVisible = children.filter((child) => !child.classList.contains('!hidden'));
+    allVisible[allVisible.length - 1].classList.remove('!border-0');
+    allVisible[0].classList.add('!border-0');
+  }
+
+  onMount(() => {
+    if ($filterOverflow) filterTable();
+    if (!$sortAsc) sortTable();
   });
 </script>
 
@@ -65,8 +75,12 @@
         Welcome back, <span class="pretty-style">{$user}</span>
       </h1>
       <div class="flex items-center max-md:scale-75">
-        <button onclick={() => ($filterOverflow = !$filterOverflow)} class="px-0"><FilterIcon /></button>
-        <button onclick={() => ($sortAsc = !$sortAsc)}><SortIcon /></button>
+        <button onclick={() => (($filterOverflow = !$filterOverflow), filterTable())} class="px-0">
+          <FilterIcon />
+        </button>
+        <button onclick={() => (($sortAsc = !$sortAsc), sortTable())}>
+          <SortIcon />
+        </button>
         <SearchInput keywords={data.keywords} {handleSearch} />
       </div>
     </div>
@@ -92,11 +106,15 @@
           <p><AccountsIcon />{identity.accounts}</p>
         </a>
       {/each}
+      <a class="!flex !gap-6" href="/purchase">
+        <AddUserIcon />
+        <p class="text-2xl !text-neutral-300 max-xl:!block">Create a new identity</p>
+      </a>
     </section>
   </div>
   <hr class="h-px border-0 bg-neutral-500 max-md:hidden" />
   <div class="-my-8 flex justify-between max-md:hidden lg:mx-6">
-    <a href="/logout"> <button><LogoutIcon />Logout</button> </a>
+    <a href="/logout"><button><LogoutIcon />Logout</button></a>
     <div class="flex lg:gap-3">
       {#each Object.entries(bottomLinks) as [name, [url, Icon]]}
         {@const SvelteComponent = Icon as Component}
@@ -118,7 +136,7 @@
   }
 
   section > a {
-    @apply flex items-center gap-2 border-t border-neutral-500 first:border-none md:grid;
+    @apply flex items-center gap-2 border-t border-neutral-500 first:border-none max-md:gap-6 md:grid;
     @apply md:grid-cols-[5rem_14rem_auto_16.5rem] lg:grid-cols-[5rem_14rem_auto_16.5rem_12rem];
     @apply xl:grid-cols-[5rem_14rem_auto_16.5rem_12rem_17rem_auto] 2xl:grid-cols-[5rem_12.5rem_auto_17rem_12.5rem_18rem_6rem];
     @apply cursor-pointer px-8 py-6 transition-colors duration-300 ease-in-out hover:bg-neutral-300/10;

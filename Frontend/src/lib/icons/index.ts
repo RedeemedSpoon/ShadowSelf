@@ -20,6 +20,7 @@ export {default as CryptoWalletIcon} from './CryptoWallet.svelte';
 export {default as VerificationIcon} from './Verification.svelte';
 export {default as RecoveryIcon} from './Recovery.svelte';
 export {default as PasswordIcon} from './Password.svelte';
+export {default as AddUserIcon} from './AddUser.svelte';
 export {default as UserIcon} from './User.svelte';
 
 export {default as LogoutIcon} from './Logout.svelte';
