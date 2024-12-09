@@ -1,10 +1,11 @@
 <script lang="ts">
-  import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon} from '$icon';
+  import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon, ChevronIcon} from '$icon';
   import {EmailIcon, PhoneIcon, CreditCardIcon, AccountsIcon, AddUserIcon} from '$icon';
   import {user, filterOverflow, sortAsc} from '$store';
   import {onMount, type Component} from 'svelte';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
+  import {worldMap} from '$image';
 
   const {data}: {data: PageData} = $props();
 
@@ -18,6 +19,8 @@
   };
 
   function handleSearch(result: string[]) {
+    if (!data.identities.length) return;
+
     const children = Array.from(table.children);
     children.forEach((child) => {
       child.classList.add('!hidden');
@@ -35,6 +38,8 @@
   }
 
   function filterTable() {
+    if (!data.identities.length) return;
+
     if ($filterOverflow) {
       table.style.maxHeight = '40vh';
       table.style.overflowY = 'scroll';
@@ -45,6 +50,8 @@
   }
 
   function sortTable() {
+    if (!data.identities.length) return;
+
     const children = Array.from(table.children);
     const reverse = children.reverse();
     table.replaceChildren(...reverse);
@@ -69,61 +76,77 @@
 </svelte:head>
 
 <div id="dashboard">
-  <div class="my-4 sm:max-md:mx-24 sm:max-md:mt-32 sm:max-md:scale-125 2xl:mx-[5vw]">
-    <div class="flex items-center justify-between gap-4 max-md:flex-col">
-      <h1 class="max-xl:text:3xl text-[2.75rem] text-neutral-300 max-md:text-2xl">
-        Welcome back, <span class="pretty-style">{$user}</span>
-      </h1>
-      <div class="flex items-center max-md:scale-75">
-        <button onclick={() => (($filterOverflow = !$filterOverflow), filterTable())} class="px-0">
-          <FilterIcon />
-        </button>
-        <button onclick={() => (($sortAsc = !$sortAsc), sortTable())}>
-          <SortIcon />
-        </button>
-        <SearchInput keywords={data.keywords} {handleSearch} />
+  {#if data.identities.length}
+    <div class="my-4 sm:max-md:mx-24 sm:max-md:mt-32 sm:max-md:scale-125 2xl:mx-[5vw]">
+      <div class="flex items-center justify-between gap-4 max-md:flex-col">
+        <h1 class="max-xl:text:3xl text-[2.75rem] text-neutral-300 max-md:text-2xl">
+          Welcome back, <span class="pretty-style">{$user}</span>
+        </h1>
+        <div class="flex items-center max-md:scale-75">
+          <button onclick={() => (($filterOverflow = !$filterOverflow), filterTable())} class="px-0">
+            <FilterIcon />
+          </button>
+          <button onclick={() => (($sortAsc = !$sortAsc), sortTable())}>
+            <SortIcon />
+          </button>
+          <SearchInput keywords={data.keywords} {handleSearch} />
+        </div>
+      </div>
+      <p bind:this={errorText} class="mt-24 !hidden text-3xl !text-neutral-500">No results found.</p>
+      <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
+        {#each data.identities as identity}
+          {@const phone = identity.phone.toString().replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')}
+          {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
+          <a href="/identity/{identity.id}" id="identity-{identity.id}">
+            <img src={identity.avatar} alt="{identity.name}'s avatar" />
+            <div class="text-nowrap">
+              <p class="!text-neutral-300">{identity.name}</p>
+              <br />
+              <span class="inline-flex gap-2 text-sm text-neutral-500">
+                <img src="https://flagsapi.com/{identity.country}/flat/24.png" alt="country flag" />
+                {identity.location}
+              </span>
+            </div>
+            <br />
+            <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon />{identity.email}</p>
+            <p class="lg:max-xl:!flex"><PhoneIcon />{phone}</p>
+            <p><CreditCardIcon />{cardNumber}</p>
+            <p><AccountsIcon />{identity.accounts}</p>
+          </a>
+        {/each}
+        <a class="!flex !gap-6" href="/purchase">
+          <AddUserIcon />
+          <p class="text-2xl !text-neutral-300 max-xl:!block">Create a new identity</p>
+        </a>
+      </section>
+    </div>
+    <hr class="h-px border-0 bg-neutral-500 max-md:hidden" />
+    <div class="-my-8 flex justify-between max-md:hidden lg:mx-6">
+      <a href="/logout"><button><LogoutIcon />Logout</button></a>
+      <div class="flex lg:gap-3">
+        {#each Object.entries(bottomLinks) as [name, [url, Icon]]}
+          {@const SvelteComponent = Icon as Component}
+          <a href={url as string} rel="external">
+            <button><SvelteComponent />{name}</button>
+          </a>
+        {/each}
       </div>
     </div>
-    <p bind:this={errorText} class="mt-24 !hidden text-3xl !text-neutral-500">No results found.</p>
-    <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
-      {#each data.identities as identity}
-        {@const phone = identity.phone.toString().replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')}
-        {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
-        <a href="/identity/{identity.id}" id="identity-{identity.id}">
-          <img src={identity.avatar} alt="{identity.name}'s avatar" />
-          <div class="text-nowrap">
-            <p class="!text-neutral-300">{identity.name}</p>
-            <br />
-            <span class="inline-flex gap-2 text-sm text-neutral-500">
-              <img src="https://flagsapi.com/{identity.country}/flat/24.png" alt="country flag" />
-              {identity.location}
-            </span>
-          </div>
-          <br />
-          <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon />{identity.email}</p>
-          <p class="lg:max-xl:!flex"><PhoneIcon />{phone}</p>
-          <p><CreditCardIcon />{cardNumber}</p>
-          <p><AccountsIcon />{identity.accounts}</p>
-        </a>
-      {/each}
-      <a class="!flex !gap-6" href="/purchase">
-        <AddUserIcon />
-        <p class="text-2xl !text-neutral-300 max-xl:!block">Create a new identity</p>
+  {:else}
+    <div id="empty">
+      <h1 class="basic-style mt-16 max-md:text-5xl md:mt-28">Start by making an identity</h1>
+      <p class="mb-4 w-2/3 !text-neutral-300">
+        You can craft as many identities as you want. They are completely isolated from each other and can be used for a variety
+        of purposes.
+      </p>
+      <img src={worldMap} alt="world map" class="absolute -z-20 w-full max-xl:top-[3rem]" />
+      <a href="/purchase">
+        <button id="create-identity" class="flex items-center gap-1 font-semibold">
+          Create an identity <ChevronIcon />
+        </button>
       </a>
-    </section>
-  </div>
-  <hr class="h-px border-0 bg-neutral-500 max-md:hidden" />
-  <div class="-my-8 flex justify-between max-md:hidden lg:mx-6">
-    <a href="/logout"><button><LogoutIcon />Logout</button></a>
-    <div class="flex lg:gap-3">
-      {#each Object.entries(bottomLinks) as [name, [url, Icon]]}
-        {@const SvelteComponent = Icon as Component}
-        <a href={url as string} rel="external">
-          <button><SvelteComponent />{name}</button>
-        </a>
-      {/each}
     </div>
-  </div>
+  {/if}
 </div>
 
 <style lang="postcss">
@@ -131,7 +154,11 @@
     @apply mx-auto mb-[4rem] mt-[10rem] flex h-fit w-5/6 flex-col gap-12;
   }
 
-  button {
+  #empty {
+    @apply relative mx-auto mt-8 flex min-h-[30rem] max-w-[60rem] flex-col items-center gap-6 text-center md:min-h-[40rem] lg:w-2/3;
+  }
+
+  button:not(#create-identity) {
     @apply alt flex items-center gap-3 text-neutral-400 hover:text-neutral-300;
   }
 

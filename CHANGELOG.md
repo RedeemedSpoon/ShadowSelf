@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a new row to purchase an identity
 - Add an interface when dashboard is empty
 - Add redirect when logged in/out
+- Add worldmap pattern
 
 ### Changed
 

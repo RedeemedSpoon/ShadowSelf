@@ -7,6 +7,7 @@ export {default as github} from './links/github.svg';
 export {default as simplex} from './links/simplex.svg';
 
 export {default as circuitPattern} from './patterns/circuit-pattern.svg';
+export {default as worldMap} from './patterns/world-map.svg';
 
 export {default as registration} from './homepage/usecases/registration.svg';
 export {default as management} from './homepage/usecases/management.svg';

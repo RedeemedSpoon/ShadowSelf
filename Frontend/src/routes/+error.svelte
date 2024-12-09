@@ -33,6 +33,6 @@
   }
 
   button {
-    @apply flex items-center gap-1;
+    @apply flex items-center gap-1 font-semibold;
   }
 </style>

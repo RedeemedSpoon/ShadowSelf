@@ -6,6 +6,7 @@
   import type {PageData} from './$types';
   import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
+  import {user} from '$store';
 
   let {data}: {data: PageData} = $props();
 
@@ -36,7 +37,7 @@
         Learn More<ChevronIcon className="group-hover:rotate-90" />
       </button>
     </a>
-    <a href="/dashboard"><button>Get Started!</button></a>
+    <a href={$user ? '/dashboard' : '/signup'}><button>Get Started!</button></a>
   </div>
 </section>
 <section id={data.ids[1]} class="!flex-col-reverse !px-[15vw] 2xl:!flex-row">
