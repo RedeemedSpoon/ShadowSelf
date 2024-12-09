@@ -2,7 +2,16 @@ import type {Handle} from '@sveltejs/kit';
 import {redirect} from '@sveltejs/kit';
 
 export const handle: Handle = async ({event, resolve}) => {
+  const isLogged = event.cookies.get('token');
   const path = event.url.pathname;
+
+  if (['/login', '/signup'].includes(path) && isLogged) {
+    redirect(302, '/dashboard');
+  }
+
+  if (['/dashboard', '/settings', '/identity/', '/purchase'].includes(path) && !isLogged) {
+    redirect(302, '/login');
+  }
 
   if (path === '/logout') {
     event.cookies.delete('token', {path: '/'});
