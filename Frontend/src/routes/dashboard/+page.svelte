@@ -89,7 +89,7 @@
           <button onclick={() => (($sortAsc = !$sortAsc), sortTable())}>
             <SortIcon />
           </button>
-          <SearchInput keywords={data.keywords} {handleSearch} />
+          <SearchInput keywords={data.searchKeywords} {handleSearch} />
         </div>
       </div>
       <p bind:this={errorText} class="mt-24 !hidden text-3xl !text-neutral-500">No results found.</p>
@@ -114,13 +114,13 @@
             <p><AccountsIcon />{identity.accounts}</p>
           </a>
         {/each}
-        <a class="!flex !gap-6" href="/purchase">
+        <a class="!flex !gap-6 max-md:mb-24" href="/purchase">
           <AddUserIcon />
           <p class="text-2xl !text-neutral-300 max-xl:!block">Create a new identity</p>
         </a>
       </section>
     </div>
-    <hr class="h-px border-0 bg-neutral-500 max-md:hidden" />
+    <hr class="max-md:hidden" />
     <div class="-my-8 flex justify-between max-md:hidden lg:mx-6">
       <a href="/logout"><button><LogoutIcon />Logout</button></a>
       <div class="flex lg:gap-3">

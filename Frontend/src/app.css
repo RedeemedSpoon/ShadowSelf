@@ -33,6 +33,10 @@
     @apply pretty-style z-10 text-7xl font-medium !leading-tight;
   }
 
+  hr {
+    @apply h-px border-0 bg-neutral-500;
+  }
+
   label {
     @apply text-xl font-semibold;
   }
