@@ -31,3 +31,4 @@ export {default as CommunityIcon} from './Community.svelte';
 export {default as CheckmarkIcon} from './Checkmark.svelte';
 export {default as QuestionIcon} from './Question.svelte';
 export {default as ChevronIcon} from './Chevron.svelte';
+export {default as CogIcon} from './Cog.svelte';

@@ -31,7 +31,7 @@
     information remains hidden, far away from malicious threats. Experience the freedom of online interactions without the fear of
     compromise.
   </p>
-  <div class="flex gap-16">
+  <div class="flex gap-16 max-sm:flex-col-reverse max-sm:items-center max-sm:gap-8">
     <a href={'#' + data.ids[1]} class="no-underline">
       <button class="alt group flex items-center gap-1">
         Learn More<ChevronIcon className="group-hover:rotate-90" />

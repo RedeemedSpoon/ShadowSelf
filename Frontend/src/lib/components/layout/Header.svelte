@@ -3,6 +3,7 @@
   import {logoBesideText} from '$image';
   import {scrollY, user} from '$store';
   import {page} from '$app/stores';
+  import {CogIcon} from '$icon';
 
   let isHome = $derived($page.url.pathname === '/');
   let shouldFocus = $derived(isHome && $scrollY < 150);
@@ -22,8 +23,10 @@
       </div>
       <div id="auth-buttons">
         {#if $user}
-          <a href="/dashboard" class="group" id="username">{$user}<span></span></a>
-          <input id="header-alt-auth" type="checkbox" class="hidden" checked={$user ? true : false} />
+          <div class="flex gap-2">
+            <a href="/settings"><CogIcon className="stroke-primary-600 h-7 w-7" /></a>
+            <a href="/dashboard" class="group" id="username">{$user}<span></span></a>
+          </div>
         {:else}
           <a class="text-primary-600 hover:text-primary-700 underline max-xl:mr-2" href="/login">Log In</a>
           <a href="/signup"><button class="px-5 py-3">Sign Up</button></a>
@@ -35,7 +38,7 @@
 
 <style lang="postcss">
   header {
-    @apply fixed top-0 z-50 flex w-full items-center justify-start py-4 backdrop-blur-md sm:justify-evenly md:px-20;
+    @apply fixed top-0 z-50 flex w-full items-center justify-evenly py-4 backdrop-blur-md md:px-20;
     @apply select-none bg-neutral-950 bg-opacity-75 transition-all duration-1000 ease-in-out;
   }
 
