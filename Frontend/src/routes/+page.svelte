@@ -11,7 +11,7 @@
   let {data}: {data: PageData} = $props();
 
   onMount(() => {
-    addTabScrollEvent(data.ids);
+    addTabScrollEvent(data.homepageIds);
     const disconnect = addAnimation(data.animations);
     return () => disconnect();
   });
@@ -24,7 +24,7 @@
     content="ShadowSelf is a platform that safeguard you and your sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your actual identity from being at risk of misuse, breach, theft, or fraud." />
 </svelte:head>
 
-<section id={data.ids[0]} class="!h-screen !p-8">
+<section id={data.homepageIds[0]} class="!h-screen !p-8">
   <Slogan />
   <p class="my-4 w-3/4 text-balance text-center max-sm:w-full lg:w-1/2">
     Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your personal
@@ -32,7 +32,7 @@
     compromise.
   </p>
   <div class="flex gap-16 max-sm:flex-col-reverse max-sm:items-center max-sm:gap-8">
-    <a href={'#' + data.ids[1]} class="no-underline">
+    <a href={'#' + data.homepageIds[1]} class="no-underline">
       <button class="alt group flex items-center gap-1">
         Learn More<ChevronIcon className="group-hover:rotate-90" />
       </button>
@@ -40,7 +40,7 @@
     <a href={$user ? '/dashboard' : '/signup'}><button>Get Started!</button></a>
   </div>
 </section>
-<section id={data.ids[1]} class="!flex-col-reverse !px-[15vw] 2xl:!flex-row">
+<section id={data.homepageIds[1]} class="!flex-col-reverse !px-[15vw] 2xl:!flex-row">
   <Card3D />
   <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-20">
     <h6 class="-mb-4 ml-2 text-lg text-neutral-500 max-sm:text-sm">The Most Advanced Identity Masking Tool</h6>
@@ -55,10 +55,10 @@
     </p>
   </div>
 </section>
-<section id={data.ids[2]} class="relative sm:!h-screen">
+<section id={data.homepageIds[2]} class="relative sm:!h-screen">
   <Services />
 </section>
-<section id={data.ids[3]}>
+<section id={data.homepageIds[3]}>
   <GridAndDotBackgrounds>
     <h1 class="text-center text-4xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
     <div id="account" class="mt-6 flex items-center justify-center gap-16 text-balance text-center max-lg:flex-col xl:gap-32">
@@ -81,13 +81,13 @@
     </div>
   </GridAndDotBackgrounds>
 </section>
-<section id={data.ids[4]}>
+<section id={data.homepageIds[4]}>
   <FeatureGrid />
 </section>
-<section id={data.ids[5]}>
+<section id={data.homepageIds[5]}>
   <PricingTable />
 </section>
-<section id={data.ids[6]} class="xl:!flex-row xl:gap-x-16">
+<section id={data.homepageIds[6]} class="xl:!flex-row xl:gap-x-16">
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
     <p class="mb-24 w-5/6">
@@ -99,7 +99,7 @@
     <img loading="lazy" class="animate-shake hidden min-w-[30vw] xl:block" src={satisfaction} alt="Customer satisfaction" />
   </div>
 </section>
-<section id={data.ids[7]} class="relative !mt-0 !h-screen overflow-hidden">
+<section id={data.homepageIds[7]} class="relative !mt-0 !h-screen overflow-hidden">
   <h1 class="text-center text-6xl md:text-7xl">Join The Waitlist</h1>
   <p class="z-10 w-3/5 text-center leading-relaxed text-neutral-400 lg:w-1/2 xl:w-1/3">
     Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates and new exiting features in the <a

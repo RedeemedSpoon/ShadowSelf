@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.04] - 2024-12-9
+
+### Added
+
+- Add setting page (not functional yet)
+- Add temporary setting page Route
+- Add type to app.d.ts
+
 ## [0.3.03] - 2024-12-8
 
 ### Added
@@ -16,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Change header when logged in to show more links
+- Change header when logged in to show settings
 
 ## [0.3.02] - 2024-12-6
 

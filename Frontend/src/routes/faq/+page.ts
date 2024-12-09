@@ -1,4 +1,5 @@
 import type {PageLoad} from './$types';
+import type {Faq} from '$type';
 
 export const load: PageLoad = () => {
   return {
@@ -112,6 +113,6 @@ export const load: PageLoad = () => {
         answer:
           "Well, to be honest, yes. But we're also providing a valuable service. Running and maintaining a service like ShadowSelf costs money. We need to cover our expenses to keep the lights on. It's a balancing act between providing a service and making a profit. But hey, isn't that how most businesses work?",
       },
-    ] satisfies {question: string; answer: string}[],
+    ] satisfies Faq[],
   };
 };

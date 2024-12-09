@@ -54,8 +54,8 @@
               <CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />
               {item}
               {#if index === 2}
-                <span class="cursor-pointer" title={title[index]}
-                  ><QuestionIcon className="-ml-2 !w-4 !h-4 !fill-neutral-700" /></span>
+                <span class="cursor-pointer" title={title[index]}>
+                  <QuestionIcon className="-ml-2 !w-4 !h-4 !fill-neutral-700" /></span>
               {/if}
             </li>
           {/each}
@@ -65,14 +65,14 @@
     <p class="-my-4 text-sm text-neutral-500">All major crypto currencies are supported.</p>
   </div>
   <a href="/signup">
-    <button id="purchase">Purchase<ChevronIcon className="!w-10 !h-10" /></button>
+    <button id="purchase">Purchase<ChevronIcon /></button>
   </a>
 </Card>
 
 <style lang="postcss">
   #purchase {
     @apply rounded-none rounded-b-xl border-t-2 border-neutral-400 shadow-md;
-    @apply mt-8 flex w-full items-center justify-center gap-1 p-8 text-4xl font-bold;
+    @apply mt-8 flex w-full items-end justify-center gap-1 p-8 text-4xl font-semibold;
   }
 
   #pricing-model {

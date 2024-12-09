@@ -4,6 +4,28 @@ export interface Notification {
   type: 'success' | 'alert' | 'info';
 }
 
+export interface Faq {
+  question: string;
+  answer: string;
+}
+
+export interface Option {
+  label: string;
+  value: string;
+}
+
+export interface Identity {
+  id: string;
+  avatar: string;
+  name: string;
+  country: string;
+  location: string;
+  email: string;
+  phone: number;
+  card: number;
+  accounts: number;
+}
+
 export interface Registration {
   step: string;
   username: string;

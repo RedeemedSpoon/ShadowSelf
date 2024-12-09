@@ -1,11 +1,12 @@
 <script lang="ts">
   import {selectionInputOpen} from '$store';
+  import type {Option} from '$type';
   import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
 
   interface Props {
     name: string;
-    options: {value: string; label: string}[];
+    options: Option[];
   }
 
   let {name, options}: Props = $props();

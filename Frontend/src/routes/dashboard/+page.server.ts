@@ -1,9 +1,17 @@
 import type {PageServerLoad} from './$types';
 
 export const load: PageServerLoad = () => {
-  // Fake placeholder data at the moment
+  const flipCoins = Math.floor(Math.random() * 2);
+
+  if (flipCoins === 0) {
+    return {
+      searchKeywords: [],
+      identities: [],
+    };
+  }
+
   return {
-    keywords: [
+    searchKeywords: [
       {
         label: '18129fe791a1',
         value: 'Torry Coleman US San Francisco, CA troy862@yahoo.com 726-555-5682 4826-1234-8901-2345 12',

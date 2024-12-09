@@ -141,7 +141,7 @@
       </p>
       <img src={worldMap} alt="world map" class="absolute -z-20 w-full max-xl:top-[3rem]" />
       <a href="/purchase">
-        <button id="create-identity" class="flex items-center gap-1 font-semibold">
+        <button id="create-identity" class="flex items-center gap-1">
           Create an identity <ChevronIcon />
         </button>
       </a>

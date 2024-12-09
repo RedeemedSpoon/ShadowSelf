@@ -3,7 +3,7 @@ import {fetchApi} from '$lib';
 
 export const load: PageServerLoad = () => {
   return {
-    options: [
+    contactOptions: [
       {
         value: 'question',
         label: 'I have a question or a concern',
