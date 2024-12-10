@@ -40,6 +40,7 @@
   <form use:enhance={handleForm} method="POST">
     <label for="subject">Subject</label>
     <input type="text" required placeholder="I am looking for..." name="subject" id="subject" />
+    <label for="category">Category</label>
     <SelectMenu name="Category" options={data.contactOptions} />
     <label for="email">Email (optional)</label>
     <input type="email" placeholder="user@example.com" name="email" id="email" />
