@@ -1,6 +1,8 @@
 <script lang="ts">
+  import {InputWithButton} from '$component';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
+  import {sendFrom} from '$lib';
 
   let {data}: {data: PageData} = $props();
 
@@ -36,16 +38,15 @@
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
     <h2 id={sections[0].id}>{sections[0].title}</h2>
     <p>description</p>
-    <form use:enhance method="POST" action="?/username">
+    <form use:enhance={() => sendFrom(true)} method="POST">
       <label for="username">Username</label>
-      <input name="username" type="text" placeholder="Username" />
-      <button type="submit">Update</button>
+      <InputWithButton placeholder="Give new username" label="Change Username" name="username" type="text" value={data.user} />
     </form>
-    <form use:enhance method="POST" action="?/username">
+    <form use:enhance method="POST">
       <label for="oldPassword">Old Password</label>
-      <input name="oldPassword" type="password" placeholder="Old Password" />
+      <input name="oldPassword" type="password" placeholder="Old password" />
       <label for="newPassword">New Password</label>
-      <input name="newPassword" type="password" placeholder="New Password" />
+      <input name="newPassword" type="password" placeholder="New password" />
       <button type="submit">Change Password</button>
     </form>
     <hr />
@@ -54,7 +55,7 @@
     <button>Change 2FA</button>
     <button>Remove/Add 2FA</button>
     <label for="recovery">Recovery Codes</label>
-    <div class="grid grid-cols-2 place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider">
+    <div id="recovery">
       <p>456789123</p>
       <p>456789123</p>
       <p>456789123</p>
@@ -68,13 +69,13 @@
     <p>description</p>
     <button>Enable/Disable API Access</button>
     <p>4f8re64g6z84aefbkezf86qsc4ze8f4zezfze86zhzui48b682buokhpodercg35az9d5</p>
-    <form use:enhance method="POST" action="?/api">
+    <form use:enhance method="POST">
       <button>Generate New API Key</button>
     </form>
     <hr />
     <h2 id={sections[3].id}>{sections[3].title}</h2>
     <p>description</p>
-    <form use:enhance method="POST" action="?/billing">
+    <form use:enhance method="POST">
       <label for="billing">Billing 1</label>
       <input name="billing" type="text" placeholder="Billing" />
       <label for="billing">Billing 2</label>
@@ -88,7 +89,7 @@
     <hr />
     <h2 id={sections[4].id}>{sections[4].title}</h2>
     <p>description</p>
-    <form use:enhance method="POST" action="?/danger">
+    <form use:enhance method="POST">
       <label for="danger">Danger Zone</label>
       <button>Logout</button>
       <button>Revoke All Session</button>
@@ -109,6 +110,10 @@
 
   #title {
     @apply sticky top-36 py-3 pl-16 text-4xl font-semibold text-neutral-100;
+  }
+
+  #recovery {
+    @apply grid grid-cols-2 place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider;
   }
 
   a {

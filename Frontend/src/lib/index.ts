@@ -1,4 +1,4 @@
-import {notification, pricingModel} from '$store';
+import {notification, pricingModel, isFetching} from '$store';
 import type {Cookies} from '@sveltejs/kit';
 import type {Notification} from '$type';
 import {allPricingModel} from '$type';
@@ -23,6 +23,16 @@ export function notify(message: Notification['message'], type: Notification['typ
       notification.set({id: null, message: '', type: 'info'});
     }
   }, 5000);
+}
+
+export async function sendFrom(shouldWait = false) {
+  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 750));
+  isFetching.set(true);
+
+  return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
+    isFetching.set(false);
+    update({reset: false});
+  };
 }
 
 export async function fetchApi(url: string, method = 'GET', body?: Record<string, unknown>) {

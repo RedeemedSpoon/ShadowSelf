@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Input} from '$component';
+  import {InputWithIcon} from '$component';
   import {SearchIcon} from '$icon';
 
   interface Props {
@@ -24,5 +24,5 @@
 </script>
 
 <div class="group flex items-center">
-  <Input className={classes} type="text" placeholder="Search" icon={SearchIcon} name="search" {handleInput} />
+  <InputWithIcon className={classes} type="text" placeholder="Search" icon={SearchIcon} name="search" {handleInput} />
 </div>

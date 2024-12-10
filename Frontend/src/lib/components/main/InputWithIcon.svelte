@@ -29,7 +29,7 @@
     @apply rounded-l-xl border border-neutral-800 border-r-transparent bg-transparent;
   }
 
-  input {
+  input:not(.alternative) {
     @apply ring-primary-600 ml-px w-full !rounded-l-none group-focus-within:ring-2;
   }
 </style>

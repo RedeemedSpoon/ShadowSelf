@@ -1,6 +1,6 @@
 <script lang="ts">
   import {UserIcon, PasswordIcon, VerificationIcon, DownloadIcon, CopyIcon, HappyIcon} from '$icon';
-  import {Steps, StepsItem, Input, Button, ReactiveButton} from '$component';
+  import {Steps, StepsItem, InputWithIcon, LoadingButton, ReactiveButton} from '$component';
   import type {Notification, Registration} from '$type';
   import {currentStep} from '$store';
   import {get} from 'svelte/store';
@@ -52,14 +52,14 @@
     <h1>Create an account</h1>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="username">Username</label>
-      <Input type="text" icon={UserIcon} name="username" placeholder="mountain eagle" />
+      <InputWithIcon type="text" icon={UserIcon} name="username" placeholder="mountain eagle" />
     </div>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="password">Password</label>
-      <Input type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
+      <InputWithIcon type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
     </div>
     <p class="mt-4 max-md:text-sm">Already have an account? <a href="/login">Log in</a></p>
-    <Button>Next</Button>
+    <LoadingButton>Next</LoadingButton>
   </StepsItem>
   <StepsItem {backStep} index={2} action="askOTP">
     <h1>Hello <span class="pretty-style">{username}</span>,<br /> Would you like to enable 2FA now?</h1>
@@ -90,8 +90,8 @@
   <StepsItem shouldWait={true} {backStep} index={4} action="checkOTP">
     <h1 class="!-mb-2">Enter the verification token</h1>
     <p>Enter the verification token that was generated automatically by your authenticator app</p>
-    <Input type="number" name="token" icon={VerificationIcon} placeholder="123456" />
-    <Button className="mt-2">Verify</Button>
+    <InputWithIcon type="number" name="token" icon={VerificationIcon} placeholder="123456" />
+    <LoadingButton className="mt-2">Verify</LoadingButton>
   </StepsItem>
   <StepsItem {backStep} index={5} action="showRecovery">
     <h1>Store safely these recovery codes</h1>
@@ -132,7 +132,7 @@
     <p class="-mt-2 text-center">
       Just click the button below to finish setting up your account. You can still go back to make changes.
     </p>
-    <Button>Create the account</Button>
+    <LoadingButton>Create the account</LoadingButton>
     <p class="-mb-6 text-center text-sm text-neutral-400">
       By continuing, you agree to our
       <a href="/terms">Terms of Service</a> and <a href="/privacy-policy">Privacy Policy</a>

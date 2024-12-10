@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- New InputWithButton component
 - New Popup component
-- Add confirmation checks
-- Add server actions
+- New Confirm component
+
+### Changed
+
+- Rename components
+- Move sendForm to $lib
+- Change Settings page design
 
 ## [0.3.04] - 2024-12-9
 

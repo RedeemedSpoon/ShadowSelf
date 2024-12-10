@@ -1,6 +1,6 @@
 <script lang="ts">
   import {UserIcon, PasswordIcon, VerificationIcon, RecoveryIcon} from '$icon';
-  import {Steps, StepsItem, Input, Button} from '$component';
+  import {Steps, StepsItem, InputWithIcon, LoadingButton} from '$component';
   import type {Notification} from '$type';
   import {currentStep} from '$store';
   import {get} from 'svelte/store';
@@ -29,30 +29,30 @@
     <h1>Login to your account</h1>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="username">Username</label>
-      <Input type="text" icon={UserIcon} name="username" placeholder="mountain eagle" />
+      <InputWithIcon type="text" icon={UserIcon} name="username" placeholder="mountain eagle" />
     </div>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="password">Password</label>
-      <Input type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
+      <InputWithIcon type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
     </div>
     <p class="mt-4 max-md:text-sm">Don't have an account? <a href="/signup">Sign up</a></p>
-    <Button>Next</Button>
+    <LoadingButton>Next</LoadingButton>
   </StepsItem>
   <StepsItem shouldWait={true} {backStep} index={2} action="checkOTP">
     <h1 class="!-mb-2">Enter the verification token</h1>
     <p>Open your two-factor authentication app to view your verification token and verify your identity</p>
-    <Input type="number" name="token" icon={VerificationIcon} placeholder="123456" />
+    <InputWithIcon type="number" name="token" icon={VerificationIcon} placeholder="123456" />
     <p class="-mt-4 max-md:text-sm">
       Lost your 2FA method?
       <span aria-hidden="true" onclick={() => currentStep.set(3)}>Switch to recovery codes</span>
     </p>
-    <Button className="mt-2">Verify</Button>
+    <LoadingButton className="mt-2">Verify</LoadingButton>
   </StepsItem>
   <StepsItem shouldWait={true} {backStep} index={3} action="checkRecovery">
     <h1 class="!-mb-2">Enter one of your recovery codes</h1>
     <p>Use one of the recovery tokens we gave when you first created your account to verify your authenticity</p>
-    <Input type="number" name="code" icon={RecoveryIcon} placeholder="123456789" />
-    <Button className="mt-2">Check</Button>
+    <InputWithIcon type="number" name="code" icon={RecoveryIcon} placeholder="123456789" />
+    <LoadingButton className="mt-2">Check</LoadingButton>
   </StepsItem>
 </Steps>
 

@@ -1,8 +1,9 @@
 <script lang="ts">
-  import {currentStep, isFetching} from '$store';
+  import {currentStep} from '$store';
   import type {Snippet} from 'svelte';
   import {enhance} from '$app/forms';
   import {Card} from '$component';
+  import {sendFrom} from '$lib';
 
   interface Props {
     shouldWait?: boolean;
@@ -12,17 +13,7 @@
     index: number;
   }
 
-  const {shouldWait = false, backStep, children, index, action}: Props = $props();
-
-  const sendFrom = async () => {
-    isFetching.set(true);
-    if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 750));
-
-    return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
-      isFetching.set(false);
-      update({reset: false});
-    };
-  };
+  const {shouldWait, backStep, children, index, action}: Props = $props();
 </script>
 
 {#if $currentStep === index}
@@ -30,7 +21,7 @@
     {#if index !== 1}
       <button class="alt group" type="button" onclick={backStep}>← Back<span></span></button>
     {/if}
-    <form method="POST" action="?/{action}" use:enhance={sendFrom}>
+    <form method="POST" action="?/{action}" use:enhance={() => sendFrom(shouldWait)}>
       {@render children?.()}
     </form>
   </Card>
