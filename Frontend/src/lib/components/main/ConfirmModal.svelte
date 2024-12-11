@@ -1,0 +1,36 @@
+<script lang="ts">
+  import {showModal} from '$store';
+  import {Modal} from '$component';
+  import {ChevronIcon} from '$icon';
+
+  interface Props {
+    id: number;
+    text: string;
+  }
+
+  let {id, text}: Props = $props();
+</script>
+
+<Modal {id}>
+  <div class="flex flex-col gap-4">
+    <h1 class="ml-2 text-6xl font-semibold text-neutral-300">Are you sure?</h1>
+    <p class="mb-2 text-left">
+      {text} is irreversible and could lead to serious consequences.
+      <br class="max-md:hidden" /> Are you sure you want to proceed?
+    </p>
+    <div class="flex justify-end gap-4">
+      <button class="alt" type="button" onclick={() => ($showModal = 0)}>Cancel</button>
+      <button type="submit">Confirm <ChevronIcon /></button>
+    </div>
+  </div>
+</Modal>
+
+<style lang="postcss">
+  button {
+    @apply flex items-center gap-1 from-red-800 to-red-700 shadow-red-800 hover:shadow-red-900;
+  }
+
+  button.alt {
+    @apply text-red-700 hover:text-red-800;
+  }
+</style>

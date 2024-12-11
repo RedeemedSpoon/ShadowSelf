@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {InputWithButton, Modal} from '$component';
+  import {InputWithButton, ConfirmModal} from '$component';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
   import {showModal} from '$store';
@@ -46,17 +46,7 @@
       <label for="newPassword">New Password</label>
       <input name="newPassword" type="password" placeholder="New password" />
       <button type="button" onclick={() => ($showModal = 1)}>Change Password</button>
-      <Modal id={1}>
-        <div class="flex w-fit flex-col gap-12">
-          <h1 class="basic-style">Hello World</h1>
-          <p class="-mt-10 w-[30vw]">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquid sed illo, dignissimos quos vero deserunt cupiditate
-            asperiores voluptas fugiat, expedita aspernatur consequuntur, quisquam nobis tempora fuga voluptatem numquam accusamus
-            provident.
-          </p>
-          <button>Change Email</button>
-        </div>
-      </Modal>
+      <ConfirmModal id={1} text="Changing your password" />
     </form>
     <hr />
     <h2 id={sections[1].id}>{sections[1].title}</h2>
