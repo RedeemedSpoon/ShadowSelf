@@ -26,8 +26,8 @@ export function notify(message: Notification['message'], type: Notification['typ
 }
 
 export async function sendFrom(shouldWait = false) {
-  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 750));
   isFetching.set(true);
+  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 750));
 
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
     isFetching.set(false);

@@ -4,6 +4,7 @@ export {default as Header} from './layout/Header.svelte';
 export {default as Footer} from './layout/Footer.svelte';
 
 export {default as Card} from './main/Card.svelte';
+export {default as Modal} from './main/Modal.svelte';
 export {default as Loader} from './main/Loader.svelte';
 export {default as LoadingButton} from './main/LoadingButton.svelte';
 export {default as InputWithIcon} from './main/InputWithIcon.svelte';
