@@ -1,10 +1,10 @@
 <script lang="ts">
-  import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon} from '$icon';
-  import {InputWithButton, ConfirmModal} from '$component';
+  import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, CopyIcon} from '$icon';
+  import {InputWithButton, ConfirmModal, ReactiveButton} from '$component';
   import {enhance} from '$app/forms';
   import {showModal} from '$store';
   import {sendFrom} from '$lib';
-  import {user} from '$store';
+  import {onMount} from 'svelte';
 
   let list: HTMLElement;
   const sections = [
@@ -45,6 +45,8 @@
     array.forEach((item) => item.classList.remove('!bg-neutral-300/10', 'border-l-4', '!pl-24'));
     array[index + 1].classList.add('!bg-neutral-300/10', 'border-l-4', '!pl-24');
   }
+
+  onMount(() => handleClick(0));
 </script>
 
 <svelte:head>
@@ -64,68 +66,91 @@
       </a>
     {/each}
   </ul>
-  <section class="flex h-full w-full flex-col gap-8 px-24 pt-20">
+  <section class="mb-32 mt-20 flex h-full w-full flex-col gap-8 px-24">
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
-    <h2 id="credentials"><UserIcon className="!h-8 !w-8" />Basic Credentials</h2>
-    <p>description</p>
+    <hr />
+    <h2 id="credentials"><UserIcon className="!h-8 !w-8 cursor-default" />Basic Credentials</h2>
     <form use:enhance={() => sendFrom(true)} method="POST">
-      <label for="username">Username</label>
-      <InputWithButton placeholder="Give new username" label="Change Username" name="username" type="text" value={$user} />
+      <label class="w-fit" for="username">Username</label>
+      <InputWithButton placeholder="Give new username" label="Change Username" name="username" type="text" />
     </form>
-    <form use:enhance method="POST">
-      <label for="oldPassword">Old Password</label>
-      <input name="oldPassword" type="password" placeholder="Old password" />
-      <label for="newPassword">New Password</label>
-      <input name="newPassword" type="password" placeholder="New password" />
-      <button type="button" onclick={() => ($showModal = 1)}>Change Password</button>
+    <form class="mt-4 flex flex-col" use:enhance method="POST">
+      <div class="inline-grid grid-cols-2 gap-8">
+        <div class="flex flex-col gap-4">
+          <label for="currentPassword">Current Password</label>
+          <input name="newPassword" type="password" placeholder="New password" />
+        </div>
+        <div class="flex flex-col gap-4">
+          <label for="newPassword">New Password</label>
+          <input name="currentPassword" type="password" placeholder="Current password" />
+        </div>
+      </div>
+      <button class="w-fit self-end" type="button" onclick={() => ($showModal = 1)}>Change Password</button>
       <ConfirmModal id={1} text="Changing your password" />
     </form>
     <hr />
-    <h2 id="2fa"><KeylockIcon className="!h-8 !w-8" />Two Factor Authentication</h2>
-    <p>description</p>
-    <button>Change 2FA</button>
-    <button>Remove/Add 2FA</button>
-    <label for="recovery">Recovery Codes</label>
-    <div id="recovery">
-      <p>456789123</p>
-      <p>456789123</p>
-      <p>456789123</p>
-      <p>456789123</p>
-      <p>456789123</p>
-      <p>456789123</p>
-    </div>
-    <button>Generate New Recovery Codes</button>
-    <h2 id="api"><KeyIcon className="!h-8 !w-8" />API Access & Key</h2>
-    <hr />
-    <p>description</p>
-    <button>Enable/Disable API Access</button>
-    <p>4f8re64g6z84aefbkezf86qsc4ze8f4zezfze86zhzui48b682buokhpodercg35az9d5</p>
+    <h2 id="2fa"><KeylockIcon className="!h-8 !w-8 cursor-default" />Two Factor Authentication</h2>
     <form use:enhance method="POST">
+      <label for="totp">Time-based one-time password (TOTP) :</label>
+      <button>Change 2FA</button>
+      <button>Remove/Add 2FA</button>
+    </form>
+    <form class="flex-col" use:enhance method="POST">
+      <div class="flex items-center justify-between">
+        <label for="recovery">Remaining Recovery Codes :</label>
+        <button>Generate New Recovery Codes</button>
+      </div>
+      <div id="recovery">
+        <p>456789123</p>
+        <p>268484648</p>
+        <p>176154502</p>
+        <p>594108234</p>
+        <p>397075187</p>
+        <p>694152648</p>
+      </div>
+    </form>
+    <hr />
+    <h2 id="api"><KeyIcon className="!h-8 !w-8 cursor-default" />API Access & Key</h2>
+    <form use:enhance method="POST">
+      <label for="access">API Access :</label>
+      <button>Enable/Disable API Access</button>
+    </form>
+    <form use:enhance method="POST">
+      <div class="flex items-center gap-4">
+        <label class="w-fit" for="key">API Key :</label>
+        <ReactiveButton callback={() => navigator.clipboard.writeText('key')} icon={CopyIcon} text="ezfhzeuif" isBox={true} />
+      </div>
       <button>Generate New API Key</button>
     </form>
     <hr />
-    <h2 id="billing"><CreditCardIcon className="!h-8 !w-8" />Billing Information</h2>
-    <p>description</p>
-    <form use:enhance method="POST">
-      <label for="billing">Billing 1</label>
+    <h2 id="billing"><CreditCardIcon className="!h-8 !w-8 cursor-default" />Billing Information</h2>
+    <form class="flex-col" use:enhance method="POST">
+      <div class="inline-grid grid-cols-2 gap-8">
+        <div class="flex flex-col gap-4">
+          <label for="billing">Billing 1</label>
+          <input class="w-full" name="billing" type="text" placeholder="Billing" />
+        </div>
+        <div class="flex flex-col gap-4">
+          <label for="billing">Billing 2</label>
+          <input class="w-full" name="billing" type="text" placeholder="Billing" />
+        </div>
+      </div>
+      <label class="-mb-4" for="billing">Billing 3</label>
       <input name="billing" type="text" placeholder="Billing" />
-      <label for="billing">Billing 2</label>
+      <label class="-mb-4" for="billing">Billing 4</label>
       <input name="billing" type="text" placeholder="Billing" />
-      <label for="billing">Billing 3</label>
-      <input name="billing" type="text" placeholder="Billing" />
-      <label for="billing">Billing 4</label>
-      <input name="billing" type="text" placeholder="Billing" />
-      <button type="submit">Update</button>
+      <button class="w-fit self-end" type="submit">Update Billing</button>
     </form>
     <hr />
-    <h2 id="danger"><InfoIcon className="!h-8 !w-8" />Danger Zone</h2>
-    <p>description</p>
+    <h2 id="danger"><InfoIcon className="!h-8 !w-8 cursor-default" />Danger Zone</h2>
     <form use:enhance method="POST">
-      <label for="danger">Danger Zone</label>
-      <button>Logout</button>
+      <label for="logout">Session Management :</label>
+      <button class="alt -mr-4">Logout</button>
       <button>Revoke All Session</button>
-      <label for="danger">Danger Zone</label>
+    </form>
+    <form use:enhance method="POST">
+      <label for="delete">Account Deletion :</label>
       <button>Delete Account</button>
     </form>
   </section>
@@ -137,7 +162,7 @@
   }
 
   h2 {
-    @apply flex scroll-m-[12rem] items-center gap-2 text-3xl text-neutral-300;
+    @apply flex scroll-m-[12rem] items-center gap-2 text-4xl text-neutral-300;
   }
 
   #title {
@@ -145,19 +170,23 @@
   }
 
   #recovery {
-    @apply grid grid-cols-2 place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider;
+    @apply grid grid-cols-3 place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider;
   }
 
-  a {
+  ul a {
     @apply sticky py-3 pl-20 text-neutral-300 transition-all duration-200 ease-in-out hover:bg-neutral-300/5;
   }
 
   form {
-    @apply flex flex-col gap-4;
+    @apply flex justify-between gap-8;
   }
 
   label {
-    @apply ml-2 text-neutral-300;
+    @apply ml-2 text-nowrap text-neutral-300;
+  }
+
+  button {
+    @apply w-fit text-nowrap;
   }
 
   .red {

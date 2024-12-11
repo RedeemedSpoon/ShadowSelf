@@ -40,7 +40,7 @@
 
 <style lang="postcss">
   button {
-    @apply flex items-center gap-2;
+    @apply flex w-fit items-center gap-2;
   }
 
   .box {

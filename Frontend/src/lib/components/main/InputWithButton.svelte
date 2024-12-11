@@ -13,6 +13,6 @@
 </script>
 
 <div class="flex flex-initial">
-  <input class="alternative !rounded-r-none ring-inset" {placeholder} {name} {type} {value} required />
-  <LoadingButton className="rounded-l-none -ml-1">{label}</LoadingButton>
+  <input class="w-full !rounded-r-none ring-inset" {placeholder} {name} {type} {value} required />
+  <LoadingButton className="text-nowrap rounded-l-none -ml-1">{label}</LoadingButton>
 </div>
