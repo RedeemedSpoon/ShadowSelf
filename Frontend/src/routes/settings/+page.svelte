@@ -1,16 +1,44 @@
 <script lang="ts">
+  import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon} from '$icon';
   import {InputWithButton, ConfirmModal} from '$component';
-  import type {PageData} from './$types';
   import {enhance} from '$app/forms';
   import {showModal} from '$store';
   import {sendFrom} from '$lib';
-
-  let {data}: {data: PageData} = $props();
+  import {user} from '$store';
 
   let list: HTMLElement;
-  const sections = data.settings.map((item) => {
-    return {title: item, id: item.toLowerCase().split(' ').join('-')};
-  });
+  const sections = [
+    {
+      id: '#credentials',
+      title: 'Basic Credentials',
+      color: 'blue',
+      icon: UserIcon,
+    },
+    {
+      id: '#2fa',
+      title: 'Two Factor Authentication',
+      color: 'orange',
+      icon: KeylockIcon,
+    },
+    {
+      id: '#api',
+      title: 'API Access & Key',
+      color: 'yellow',
+      icon: KeyIcon,
+    },
+    {
+      id: '#billing',
+      title: 'Billing Information',
+      color: 'green',
+      icon: CreditCardIcon,
+    },
+    {
+      id: '#danger',
+      title: 'Danger Zone',
+      color: 'red',
+      icon: InfoIcon,
+    },
+  ];
 
   function handleClick(index: number) {
     const array = Array.from(list.children);
@@ -28,17 +56,22 @@
   <ul bind:this={list} class="flex flex-col bg-neutral-800/40 pt-24 max-lg:hidden">
     <li id="title">Sections</li>
     {#each sections as section, i}
-      <a onclick={() => handleClick(i)} href="#{section.id}" style="top: {(i + 3.25) * 4}rem"><li>{section.title}</li></a>
+      {@const SvelteComponent = section.icon}
+      <a class={section.color} onclick={() => handleClick(i)} href={section.id} style="top: {(i + 3.25) * 4}rem">
+        <li class="flex items-center gap-2">
+          <SvelteComponent className="!h-8 !w-8" /><span class="text-neutral-300">{section.title}</span>
+        </li>
+      </a>
     {/each}
   </ul>
   <section class="flex h-full w-full flex-col gap-8 px-24 pt-20">
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
-    <h2 id={sections[0].id}>{sections[0].title}</h2>
+    <h2 id="credentials"><UserIcon className="!h-8 !w-8" />Basic Credentials</h2>
     <p>description</p>
     <form use:enhance={() => sendFrom(true)} method="POST">
       <label for="username">Username</label>
-      <InputWithButton placeholder="Give new username" label="Change Username" name="username" type="text" value={data.user} />
+      <InputWithButton placeholder="Give new username" label="Change Username" name="username" type="text" value={$user} />
     </form>
     <form use:enhance method="POST">
       <label for="oldPassword">Old Password</label>
@@ -49,7 +82,7 @@
       <ConfirmModal id={1} text="Changing your password" />
     </form>
     <hr />
-    <h2 id={sections[1].id}>{sections[1].title}</h2>
+    <h2 id="2fa"><KeylockIcon className="!h-8 !w-8" />Two Factor Authentication</h2>
     <p>description</p>
     <button>Change 2FA</button>
     <button>Remove/Add 2FA</button>
@@ -63,8 +96,8 @@
       <p>456789123</p>
     </div>
     <button>Generate New Recovery Codes</button>
+    <h2 id="api"><KeyIcon className="!h-8 !w-8" />API Access & Key</h2>
     <hr />
-    <h2 id={sections[2].id}>{sections[2].title}</h2>
     <p>description</p>
     <button>Enable/Disable API Access</button>
     <p>4f8re64g6z84aefbkezf86qsc4ze8f4zezfze86zhzui48b682buokhpodercg35az9d5</p>
@@ -72,7 +105,7 @@
       <button>Generate New API Key</button>
     </form>
     <hr />
-    <h2 id={sections[3].id}>{sections[3].title}</h2>
+    <h2 id="billing"><CreditCardIcon className="!h-8 !w-8" />Billing Information</h2>
     <p>description</p>
     <form use:enhance method="POST">
       <label for="billing">Billing 1</label>
@@ -86,7 +119,7 @@
       <button type="submit">Update</button>
     </form>
     <hr />
-    <h2 id={sections[4].id}>{sections[4].title}</h2>
+    <h2 id="danger"><InfoIcon className="!h-8 !w-8" />Danger Zone</h2>
     <p>description</p>
     <form use:enhance method="POST">
       <label for="danger">Danger Zone</label>
@@ -104,11 +137,11 @@
   }
 
   h2 {
-    @apply scroll-m-[12rem] text-3xl text-neutral-300;
+    @apply flex scroll-m-[12rem] items-center gap-2 text-3xl text-neutral-300;
   }
 
   #title {
-    @apply sticky top-36 py-3 pl-16 text-4xl font-semibold text-neutral-100;
+    @apply sticky top-36 py-4 pl-16 text-4xl font-semibold text-neutral-100;
   }
 
   #recovery {
@@ -116,8 +149,7 @@
   }
 
   a {
-    @apply sticky py-3 pl-20 text-neutral-300 transition-all duration-200 ease-in-out;
-    @apply border-neutral-300 hover:bg-neutral-300/5 hover:text-neutral-300;
+    @apply sticky py-3 pl-20 text-neutral-300 transition-all duration-200 ease-in-out hover:bg-neutral-300/5;
   }
 
   form {
@@ -126,5 +158,25 @@
 
   label {
     @apply ml-2 text-neutral-300;
+  }
+
+  .red {
+    @apply border-red-500 !text-red-500;
+  }
+
+  .yellow {
+    @apply border-yellow-500 text-yellow-500;
+  }
+
+  .green {
+    @apply border-green-500 text-green-500;
+  }
+
+  .blue {
+    @apply border-blue-500 text-blue-500;
+  }
+
+  .orange {
+    @apply border-orange-500 text-orange-500;
   }
 </style>

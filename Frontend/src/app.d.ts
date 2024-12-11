@@ -4,7 +4,6 @@ declare global {
   namespace App {
     interface PageData {
       user: string;
-      settings?: string[];
       contactOptions?: Option[];
       homepageIds?: string[];
       animations?: AnimationSelector[];

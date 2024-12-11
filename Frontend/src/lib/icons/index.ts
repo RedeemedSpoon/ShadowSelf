@@ -13,13 +13,13 @@ export {default as SortIcon} from './Sort.svelte';
 export {default as EmailIcon} from './Email.svelte';
 export {default as PhoneIcon} from './Phone.svelte';
 export {default as AddressIcon} from './Address.svelte';
-export {default as AccountsIcon} from './Accounts.svelte';
+export {default as MultiUsersIcon} from './MultiUsers.svelte';
 export {default as CreditCardIcon} from './CreditCard.svelte';
 export {default as CryptoWalletIcon} from './CryptoWallet.svelte';
 
-export {default as VerificationIcon} from './Verification.svelte';
+export {default as KeyIcon} from './Key.svelte';
+export {default as KeylockIcon} from './Keylock.svelte';
 export {default as RecoveryIcon} from './Recovery.svelte';
-export {default as PasswordIcon} from './Password.svelte';
 export {default as AddUserIcon} from './AddUser.svelte';
 export {default as UserIcon} from './User.svelte';
 

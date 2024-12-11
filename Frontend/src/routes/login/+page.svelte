@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {UserIcon, PasswordIcon, VerificationIcon, RecoveryIcon} from '$icon';
+  import {UserIcon, KeyIcon, KeylockIcon, RecoveryIcon} from '$icon';
   import {Steps, StepsItem, InputWithIcon, LoadingButton} from '$component';
   import type {Notification} from '$type';
   import {currentStep} from '$store';
@@ -33,7 +33,7 @@
     </div>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="password">Password</label>
-      <InputWithIcon type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
+      <InputWithIcon type="password" icon={KeyIcon} name="password" placeholder="correct horse battery staple" />
     </div>
     <p class="mt-4 max-md:text-sm">Don't have an account? <a href="/signup">Sign up</a></p>
     <LoadingButton>Next</LoadingButton>
@@ -41,7 +41,7 @@
   <StepsItem shouldWait={true} {backStep} index={2} action="checkOTP">
     <h1 class="!-mb-2">Enter the verification token</h1>
     <p>Open your two-factor authentication app to view your verification token and verify your identity</p>
-    <InputWithIcon type="number" name="token" icon={VerificationIcon} placeholder="123456" />
+    <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
     <p class="-mt-4 max-md:text-sm">
       Lost your 2FA method?
       <span aria-hidden="true" onclick={() => currentStep.set(3)}>Switch to recovery codes</span>

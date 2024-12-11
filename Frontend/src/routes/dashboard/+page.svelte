@@ -1,6 +1,6 @@
 <script lang="ts">
   import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon, ChevronIcon} from '$icon';
-  import {EmailIcon, PhoneIcon, CreditCardIcon, AccountsIcon, AddUserIcon} from '$icon';
+  import {EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon, AddUserIcon} from '$icon';
   import {user, filterOverflow, sortAsc} from '$store';
   import {onMount, type Component} from 'svelte';
   import {SearchInput} from '$component';
@@ -111,7 +111,7 @@
             <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon />{identity.email}</p>
             <p class="lg:max-xl:!flex"><PhoneIcon />{phone}</p>
             <p><CreditCardIcon />{cardNumber}</p>
-            <p><AccountsIcon />{identity.accounts}</p>
+            <p><MultiUsersIcon />{identity.accounts}</p>
           </a>
         {/each}
         <a class="!flex !gap-6 max-md:mb-24" href="/purchase">

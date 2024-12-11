@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {UserIcon, PasswordIcon, VerificationIcon, DownloadIcon, CopyIcon, HappyIcon} from '$icon';
+  import {UserIcon, KeyIcon, KeylockIcon, DownloadIcon, CopyIcon, HappyIcon} from '$icon';
   import {Steps, StepsItem, InputWithIcon, LoadingButton, ReactiveButton} from '$component';
   import type {Notification, Registration} from '$type';
   import {currentStep} from '$store';
@@ -56,7 +56,7 @@
     </div>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="password">Password</label>
-      <InputWithIcon type="password" icon={PasswordIcon} name="password" placeholder="correct horse battery staple" />
+      <InputWithIcon type="password" icon={KeyIcon} name="password" placeholder="correct horse battery staple" />
     </div>
     <p class="mt-4 max-md:text-sm">Already have an account? <a href="/login">Log in</a></p>
     <LoadingButton>Next</LoadingButton>
@@ -90,7 +90,7 @@
   <StepsItem shouldWait={true} {backStep} index={4} action="checkOTP">
     <h1 class="!-mb-2">Enter the verification token</h1>
     <p>Enter the verification token that was generated automatically by your authenticator app</p>
-    <InputWithIcon type="number" name="token" icon={VerificationIcon} placeholder="123456" />
+    <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
     <LoadingButton className="mt-2">Verify</LoadingButton>
   </StepsItem>
   <StepsItem {backStep} index={5} action="showRecovery">
