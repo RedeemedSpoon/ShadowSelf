@@ -1,10 +1,11 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
   import {Loader} from '$component';
-  import {isFetching} from '$store';
+  import {fetching} from '$store';
 
   interface Props {
     name?: string;
+    index?: number;
     className?: string;
     formaction?: string;
     onclick?: () => void;
@@ -12,12 +13,12 @@
     type?: 'submit' | 'button' | 'reset';
   }
 
-  let {type = 'submit', name, className, formaction, onclick, children}: Props = $props();
+  let {type = 'submit', index = 1, name, className, formaction, onclick, children}: Props = $props();
 </script>
 
-<button {name} {onclick} {formaction} {type} class={className} disabled={$isFetching}>
+<button {name} {onclick} {formaction} {type} class={className} disabled={$fetching === index}>
   {@render children?.()}
-  <Loader />
+  <Loader {index} />
 </button>
 
 <style lang="postcss">

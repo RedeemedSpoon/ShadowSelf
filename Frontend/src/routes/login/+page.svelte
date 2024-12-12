@@ -38,6 +38,7 @@
     <p class="mt-4 max-md:text-sm">Don't have an account? <a href="/signup">Sign up</a></p>
     <LoadingButton>Next</LoadingButton>
   </StepsItem>
+
   <StepsItem shouldWait={true} {backStep} index={2} action="checkOTP">
     <h1 class="!-mb-2">Enter the verification token</h1>
     <p>Open your two-factor authentication app to view your verification token and verify your identity</p>
@@ -48,6 +49,7 @@
     </p>
     <LoadingButton className="mt-2">Verify</LoadingButton>
   </StepsItem>
+
   <StepsItem shouldWait={true} {backStep} index={3} action="checkRecovery">
     <h1 class="!-mb-2">Enter one of your recovery codes</h1>
     <p>Use one of the recovery tokens we gave when you first created your account to verify your authenticity</p>

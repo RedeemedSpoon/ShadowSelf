@@ -1,8 +1,9 @@
 <script lang="ts">
+  import {SelectMenu, LoadingButton} from '$component';
   import type {Notification} from '$type';
   import type {PageData} from './$types';
-  import {SelectMenu} from '$component';
   import {enhance} from '$app/forms';
+  import {fetching} from '$store';
   import {notify} from '$lib';
 
   interface Props {
@@ -16,9 +17,13 @@
     if (form?.message) notify(form.message, form.type);
   });
 
-  export function handleForm() {
+  async function handleForm() {
+    fetching.set(1);
+    await new Promise((resolve) => setTimeout(resolve, 750));
+
     // @ts-expect-error TS2322
     return async ({update, result}) => {
+      fetching.set(0);
       if (result.data.type && result.data.type === 'success') update({reset: true});
       update({reset: false});
     };
@@ -40,13 +45,17 @@
   <form use:enhance={handleForm} method="POST">
     <label for="subject">Subject</label>
     <input type="text" required placeholder="I am looking for..." name="subject" id="subject" />
+
     <label for="category">Category</label>
     <SelectMenu name="Category" options={data.contactOptions} />
+
     <label for="email">Email (optional)</label>
     <input type="email" placeholder="user@example.com" name="email" id="email" />
+
     <label for="message">Message</label>
     <textarea name="message" id="message" required placeholder="Your message goes here"></textarea>
-    <button type="submit">Submit</button>
+
+    <LoadingButton>Submit</LoadingButton>
   </form>
 </div>
 

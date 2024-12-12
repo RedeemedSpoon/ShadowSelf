@@ -1,14 +1,15 @@
 <script lang="ts">
-  import {showModal} from '$store';
-  import {Modal} from '$component';
+  import {Modal, LoadingButton} from '$component';
   import {ChevronIcon} from '$icon';
+  import {showModal} from '$store';
 
   interface Props {
     id: number;
     text: string;
+    fetch?: number;
   }
 
-  let {id, text}: Props = $props();
+  let {id, text, fetch}: Props = $props();
 </script>
 
 <Modal {id}>
@@ -20,7 +21,11 @@
     </p>
     <div class="flex justify-end gap-4">
       <button class="alt text-red-700 hover:text-red-800" type="button" onclick={() => ($showModal = 0)}>Cancel</button>
-      <button class="disable flex items-center gap-1" type="submit">Confirm <ChevronIcon /></button>
+      {#if fetch}
+        <LoadingButton index={fetch} className="text-nowrap disable">Confirm</LoadingButton>
+      {:else}
+        <button class="disable flex items-center gap-1" type="submit">Confirm <ChevronIcon /></button>
+      {/if}
     </div>
   </div>
 </Modal>

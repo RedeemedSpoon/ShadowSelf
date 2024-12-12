@@ -61,17 +61,19 @@
     <p class="mt-4 max-md:text-sm">Already have an account? <a href="/login">Log in</a></p>
     <LoadingButton>Next</LoadingButton>
   </StepsItem>
+
   <StepsItem {backStep} index={2} action="askOTP">
     <h1>Hello <span class="pretty-style">{username}</span>,<br /> Would you like to enable 2FA now?</h1>
     <p class="-mt-4 mb-8">
-      Two-Factor Authentication (2FA) is a common security feature that adds an extra layer of protection to your account when
-      trying to logging in.
+      Two-Factor Authentication (2FA) is a common security feature that adds an extra layer of protection to your account when trying
+      to logging in.
     </p>
     <div class="flex w-full justify-between gap-2 px-8 max-md:flex-col-reverse">
       <button class="alt" name="skip" type="submit">Skip this step</button>
       <button name="enable" type="submit">Enable 2FA →</button>
     </div>
   </StepsItem>
+
   <StepsItem {backStep} index={3} action="showOTP">
     <div class="mb-10 flex flex-row items-center gap-12 max-xl:flex-col md:gap-24 md:px-10">
       <div class="flex flex-col items-center gap-6">
@@ -87,12 +89,14 @@
     </div>
     <button type="submit">Next →</button>
   </StepsItem>
+
   <StepsItem shouldWait={true} {backStep} index={4} action="checkOTP">
     <h1 class="!-mb-2">Enter the verification token</h1>
     <p>Enter the verification token that was generated automatically by your authenticator app</p>
     <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
     <LoadingButton className="mt-2">Verify</LoadingButton>
   </StepsItem>
+
   <StepsItem {backStep} index={5} action="showRecovery">
     <h1>Store safely these recovery codes</h1>
     <p class="-mt-6">
@@ -110,27 +114,30 @@
     </div>
     <button type="submit">Next →</button>
   </StepsItem>
+
   <StepsItem {backStep} index={6} action="askBilling">
     <h1 class="!-mb-2">Want to add a payment option?</h1>
     <p>
-      You will need a payment method to use ShadowSelf in it full capacity. We accept both credit cards and crypto currencies and
-      store them safely.
+      You will need a payment method to use ShadowSelf in it full capacity. We accept both credit cards and crypto currencies and store
+      them safely.
     </p>
     <div class="mt-8 flex justify-between gap-2 px-8 max-md:flex-col-reverse">
       <button class="alt" name="skip" type="submit">Skip for now</button>
       <button name="add" type="submit">Add Payment →</button>
     </div>
   </StepsItem>
+
   <StepsItem {backStep} index={7} action="addBilling">
     <h1>Add a billing method</h1>
     <p>Not implemented yet.</p>
     <button type="submit">Add Billing</button>
   </StepsItem>
+
   <StepsItem shouldWait={true} {backStep} index={8} action="create">
     <h1 class="!-mb-2 text-center">And we're done, <span class="pretty-style">{username}</span></h1>
     <HappyIcon className="w-36 h-36" />
     <p class="-mt-2 text-center">
-      Just click the button below to finish setting up your account. You can still go back to make changes.
+      Just click the button below to finish setting up your account. You can still go back to make changes
     </p>
     <LoadingButton>Create the account</LoadingButton>
     <p class="-mb-6 text-center text-sm text-neutral-400">

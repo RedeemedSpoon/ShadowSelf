@@ -136,8 +136,8 @@
     <div id="empty">
       <h1 class="basic-style mt-16 max-md:text-5xl md:mt-28">Start by making an identity</h1>
       <p class="mb-4 w-2/3 !text-neutral-300">
-        You can craft as many identities as you want. They are completely isolated from each other and can be used for a variety
-        of purposes.
+        You can craft as many identities as you want. They are completely isolated from each other and can be used for a variety of
+        purposes.
       </p>
       <img src={worldMap} alt="world map" class="absolute -z-20 w-full max-xl:top-[3rem]" />
       <a href="/purchase">

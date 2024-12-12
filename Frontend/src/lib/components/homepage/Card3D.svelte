@@ -15,9 +15,8 @@
         {isMouseEntered}
         translateZ="80"
         className="text-neutral-400 text-sm my-3 leading-relaxed max-h-[150px] overflow-hidden">
-        Via our intitive dashboard, you can create and manage your identities. You can also customize your them to your likings
-        (name, location, etc.) and rest easy knowing that you no longer fear mass-surveillance, fraud and other potential threats
-        to you.
+        Via our intitive dashboard, you can create and manage your identities. You can also customize your them to your likings (name,
+        location, etc.) and rest easy knowing that you no longer fear mass-surveillance, fraud and other potential threats to you.
       </CardItem>
       <CardItem {isMouseEntered} translateZ="100" className="hidden md:block w-full mt-6 border border-neutral-600 rounded-lg">
         <img src={dashboard} class="h-60 w-full rounded-xl object-top group-hover/card:shadow-xl" alt="Dashboard Simplified" />

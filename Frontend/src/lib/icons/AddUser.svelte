@@ -1,7 +1,6 @@
 <script lang="ts">
-  let {
-    className = '!h-14 !w-14 !stroke-primary-700 !p-2 border-primary-700 border-2 rounded-full',
-  }: {className?: string | undefined} = $props();
+  let {className = '!h-14 !w-14 !stroke-primary-700 !p-2 border-primary-700 border-2 rounded-full'}: {className?: string | undefined} =
+    $props();
 </script>
 
 <svg

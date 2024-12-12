@@ -8,34 +8,33 @@
   <h6>Gotta agree to our rules first, then we can get started!</h6>
   <section>
     <p>
-      <span>TLDR</span> Basically, don't use Shadowself for illegal stuff (or at least don't get caught). You're responsible for how
-      you use it, and we're not liable if something goes wrong. If you break the rules, you're on the hook.
+      <span>TLDR</span> Basically, don't use Shadowself for illegal stuff (or at least don't get caught). You're responsible for how you
+      use it, and we're not liable if something goes wrong. If you break the rules, you're on the hook.
     </p>
   </section>
   <p>By accessing or using the Shadowself Service, you agree to be bound by these Terms of Service.</p>
   <h3>Prohibited Use</h3>
   <p>
     You agree not to use the Service for any illegal or unauthorized purpose, including but not limited to engaging in criminal
-    activities such as money laundering, identity theft, hacking, or any other illegal or fraudulent activity that may harm others
-    or violate applicable laws.
+    activities such as money laundering, identity theft, hacking, or any other illegal or fraudulent activity that may harm others or
+    violate applicable laws.
   </p>
   <h3>User Responsibility</h3>
   <p>
-    You are solely responsible for your use of the Service and any consequences arising from such use. You agree to comply with
-    all applicable laws and regulations.
+    You are solely responsible for your use of the Service and any consequences arising from such use. You agree to comply with all
+    applicable laws and regulations.
   </p>
   <h3>Limitation of Liability</h3>
   <p>
     To the maximum extent permitted by applicable law, Shadowself shall not be liable for any indirect, incidental, special,
-    consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss
-    of data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the
-    Service.
+    consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of
+    data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.
   </p>
   <h3>Indemnification</h3>
   <p>
-    You agree to indemnify and hold harmless Shadowself and its affiliates, officers, directors, employees, agents, and licensors
-    from any and all claims, liabilities, damages, losses, costs, and expenses, including reasonable attorneys' fees, arising out
-    of your use of the Service or your violation of these Terms of Service.
+    You agree to indemnify and hold harmless Shadowself and its affiliates, officers, directors, employees, agents, and licensors from
+    any and all claims, liabilities, damages, losses, costs, and expenses, including reasonable attorneys' fees, arising out of your
+    use of the Service or your violation of these Terms of Service.
   </p>
   <h3>Governing Law</h3>
   <p>
@@ -49,13 +48,13 @@
   </p>
   <h3>Severability</h3>
   <p>
-    If any provision of these Terms of Service is held to be invalid or unenforceable, such provision shall be struck from these
-    Terms of Service and shall not affect the validity and enforceability of the remaining provisions.
+    If any provision of these Terms of Service is held to be invalid or unenforceable, such provision shall be struck from these Terms
+    of Service and shall not affect the validity and enforceability of the remaining provisions.
   </p>
   <h3>Waiver</h3>
   <p>
-    The failure of Shadowself to exercise or enforce any right or provision of these Terms of Service shall not constitute a
-    waiver of such right or provision.
+    The failure of Shadowself to exercise or enforce any right or provision of these Terms of Service shall not constitute a waiver of
+    such right or provision.
   </p>
   <h3>Contact Information</h3>
   <p>

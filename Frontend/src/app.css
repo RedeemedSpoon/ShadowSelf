@@ -8,7 +8,7 @@
   }
 
   button {
-    @apply cursor-pointer rounded-md px-6 py-4 text-xl text-neutral-300 transition-all;
+    @apply cursor-pointer text-nowrap rounded-md px-6 py-4 text-xl text-neutral-300 transition-all;
     @apply bg-size-200 bg-pos-0 hover:bg-pos-100 from-primary-800 to-primary-600 bg-gradient-to-t;
     @apply shadow-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
   }

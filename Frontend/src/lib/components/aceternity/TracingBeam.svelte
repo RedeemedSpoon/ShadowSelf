@@ -30,11 +30,7 @@
       <div class="h-2 w-2 rounded-full border border-neutral-300 bg-neutral-300"></div>
     </div>
     <svg viewBox={`0 0 20 ${svgHeight}`} width="20" height={svgHeight} class="ml-4" aria-hidden="true">
-      <path
-        d={`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`}
-        fill="none"
-        stroke="#9091A0"
-        stroke-opacity="0.16" />
+      <path d={`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`} fill="none" stroke="#9091A0" stroke-opacity="0.16" />
       <path
         d={`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`}
         fill="none"

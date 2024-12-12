@@ -1,10 +1,15 @@
 <script lang="ts">
-  import {isFetching} from '$store';
+  import {fetching} from '$store';
 
-  const {type = 'button'}: {type?: 'card' | 'button'} = $props();
+  interface Props {
+    index: number;
+    type?: 'card' | 'button';
+  }
+
+  const {type = 'button', index = 1}: Props = $props();
 </script>
 
-{#if $isFetching}
+{#if $fetching === index}
   {#if type === 'card'}
     <div class="wrapper">
       <div class="loader">

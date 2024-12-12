@@ -1,4 +1,5 @@
 import type {Actions, PageServerLoad} from './$types';
+import type {Option} from '$type';
 import {fetchApi} from '$lib';
 
 export const load: PageServerLoad = () => {
@@ -28,7 +29,7 @@ export const load: PageServerLoad = () => {
         value: 'other',
         label: 'Other',
       },
-    ],
+    ] satisfies Option[],
   };
 };
 

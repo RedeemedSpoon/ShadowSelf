@@ -86,11 +86,11 @@
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
     <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials</h2>
-    <form use:enhance={() => sendFrom(true)} method="POST" action="?/username">
+    <form use:enhance={() => sendFrom(true, 1)} method="POST" action="?/username">
       <label class="w-fit" for="username">Username</label>
-      <InputWithButton placeholder="Give new username" value={data.user} label="Change Username" name="username" type="text" />
+      <InputWithButton placeholder="New username" value={data.user} index={1} label="Change Username" name="username" />
     </form>
-    <form class="mt-4 flex flex-col" use:enhance={() => sendFrom(true)} method="POST" action="?/password">
+    <form class="mt-4 flex flex-col" use:enhance={() => sendFrom(true, 2)} method="POST" action="?/password">
       <div class="inline-grid grid-cols-2 gap-8">
         <div class="flex flex-col gap-4">
           <label for="currentPassword">Current Password</label>
@@ -101,7 +101,7 @@
           <input name="newPassword" type="password" placeholder="New password" />
         </div>
       </div>
-      <LoadingButton className="w-fit self-end">Change Password</LoadingButton>
+      <LoadingButton index={2} className="w-fit self-end">Change Password</LoadingButton>
     </form>
     <hr />
 
@@ -109,16 +109,16 @@
     <form class="!gap-4" use:enhance method="POST" action="?/toggleOtp">
       <label for="totp">Time-based one-time password (TOTP) :</label>
       {#if data.userSettings.has2FA}
-        <LoadingButton formaction="?/otp" className="w-fit">Change 2FA</LoadingButton>
-        <LoadingButton name="remove" className="w-fit disable">Remove 2FA</LoadingButton>
+        <button type="button" formaction="?/otp" class="w-fit">Change 2FA</button>
+        <button type="submit" name="remove" class="disable w-fit">Remove 2FA</button>
       {:else}
-        <LoadingButton name="add" className="w-fit enable">Add 2FA</LoadingButton>
+        <button type="submit" name="add" class="enable w-fit">Add 2FA</button>
       {/if}
     </form>
-    <form class="flex-col" use:enhance={() => sendFrom(true)} method="POST" action="?/recovery">
+    <form class="flex-col" use:enhance={() => sendFrom(true, 3)} method="POST" action="?/recovery">
       <div class="flex items-center justify-between">
         <label for="recovery">Remaining Recovery Codes :</label>
-        <LoadingButton className="w-fit">Generate New Recovery Codes</LoadingButton>
+        <LoadingButton index={3} className="w-fit">Generate New Recovery Codes</LoadingButton>
       </div>
     </form>
     <div id="recovery" class={data.userSettings.recoveryCodes.length ? 'grid-cols-3' : 'grid-cols-1'}>
@@ -141,22 +141,22 @@
     <form use:enhance method="POST" action="?/toggleApi">
       <label for="access">API Access :</label>
       {#if data.userSettings.hasApiAccess}
-        <LoadingButton name="disable" className="disable w-fit">Disable API Access</LoadingButton>
+        <button name="disable" type="submit" class="disable w-fit">Disable API Access</button>
       {:else}
-        <LoadingButton name="enable" className="enable w-fit">Enable API Access</LoadingButton>
+        <button name="enable" type="submit" class="enable w-fit">Enable API Access</button>
       {/if}
     </form>
-    <form use:enhance={() => sendFrom(true)} method="POST" action="?/api">
+    <form use:enhance={() => sendFrom(true, 4)} method="POST" action="?/api">
       <div class="flex items-center gap-4">
         <label class="w-fit" for="key">API Key :</label>
         <ReactiveButton callback={() => navigator.clipboard.writeText('key')} icon={CopyIcon} text="ezfhzeuif" isBox={true} />
       </div>
-      <LoadingButton className="w-fit">Generate New API Key</LoadingButton>
+      <LoadingButton index={4} className="w-fit">Generate New API Key</LoadingButton>
     </form>
     <hr />
 
     <h2 id="billing"><CreditCardIcon className="!h-10 !w-10 cursor-default" />Billing Information</h2>
-    <form class="flex-col" use:enhance={() => sendFrom(true)} method="POST" action="?/billing">
+    <form class="flex-col" use:enhance={({formData}) => sendFrom(true, 5, formData.has('update'))} method="POST" action="?/billing">
       <div class="inline-grid grid-cols-2 gap-8">
         <div class="flex flex-col gap-4">
           <label for="billing">Billing 1</label>
@@ -172,8 +172,8 @@
       <label class="-mb-4" for="billing">Billing 4</label>
       <input name="billing" type="text" placeholder="Billing" />
       <div class="flex w-fit gap-4 self-end">
-        <LoadingButton>Update Billing</LoadingButton>
-        <LoadingButton formaction="?/deleteBilling">Delete Billing</LoadingButton>
+        <LoadingButton index={5} name="update" className="w-fit">Update Billing</LoadingButton>
+        <button type="submit" class="disable w-fit" formaction="?/deleteBilling">Delete Billing</button>
       </div>
     </form>
     <hr />
@@ -181,14 +181,13 @@
     <h2 id="danger"><InfoIcon className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone</h2>
     <form use:enhance method="POST" action="?/session">
       <label for="logout">Session Management :</label>
-      <LoadingButton name="logout" className="alt -mr-4 w-fit">Logout</LoadingButton>
-      <LoadingButton onclick={() => ($showModal = 1)} type="button" className="w-fit" name="revoke"
-        >Revoke All Session</LoadingButton>
+      <button type="submit" name="logout" class="alt -mr-4 w-fit">Logout</button>
+      <button type="button" onclick={() => ($showModal = 1)} class="w-fit" name="revoke">Revoke All Session</button>
       <ConfirmModal id={1} text="Revoking all sessions" />
     </form>
-    <form use:enhance={() => sendFrom(true)} method="POST" action="?/delete">
+    <form use:enhance method="POST" action="?/delete">
       <label for="delete">Account Deletion :</label>
-      <LoadingButton onclick={() => ($showModal = 2)} type="button" className="w-fit disable">Delete Account</LoadingButton>
+      <button onclick={() => ($showModal = 2)} type="button" class="disable w-fit">Delete Account</button>
       <ConfirmModal id={2} text="Deleting your account" />
     </form>
   </section>

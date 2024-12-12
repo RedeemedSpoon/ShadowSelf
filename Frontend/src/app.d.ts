@@ -1,11 +1,11 @@
-import type {Faq, Option, Identity, AnimationSelector} from '$type';
+import type {Faq, Settings, Option, Identity, AnimationSelector} from '$type';
 
 declare global {
   namespace App {
     interface PageData {
       user: string;
-      contactOptions?: Option[];
       homepageIds?: string[];
+      contactOptions?: Option[];
       animations?: AnimationSelector[];
       searchKeywords?: Option[];
       identities?: Identity[];
