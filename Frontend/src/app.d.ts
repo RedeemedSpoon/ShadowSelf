@@ -9,6 +9,7 @@ declare global {
       animations?: AnimationSelector[];
       searchKeywords?: Option[];
       identities?: Identity[];
+      userSettings: Settings;
       faqs?: Faq[];
     }
   }

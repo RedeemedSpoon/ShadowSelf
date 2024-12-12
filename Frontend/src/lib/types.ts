@@ -14,6 +14,14 @@ export interface Option {
   value: string;
 }
 
+export interface Settings {
+  has2FA: boolean;
+  hasApiAccess: boolean;
+  recoveryCodes: number[];
+  apiKey: string;
+  billing: string;
+}
+
 export interface Identity {
   id: string;
   avatar: string;

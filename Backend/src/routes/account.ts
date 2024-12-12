@@ -1,9 +1,9 @@
 import {comparePWD, hashPWD, createTOTP, getSecret, getRecovery} from '../crypto';
 import {QueryResult, User} from '../types';
 import {Elysia, error} from 'elysia';
-import {attempt} from '../utils';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
+import {attempt} from '../utils';
 import {check} from '../checks';
 
 export default new Elysia({prefix: '/account'})
@@ -17,14 +17,9 @@ export default new Elysia({prefix: '/account'})
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(8);
     const notLog = ['/login', '/login-otp', '/login-recovery', '/signup', '/signup-otp', '/signup-recovery', '/signup-create'];
-    const mustLog = ['/delete-otp', '/delete-full'];
 
     if (notLog.some((p) => relativePath === p) && user) {
       return error(401, 'You are already logged in');
-    }
-
-    if (mustLog.some((p) => relativePath === p) && !user) {
-      return error(401, 'You are not logged in');
     }
   })
   .get('/', async ({user}) => user?.username)
@@ -122,14 +117,4 @@ export default new Elysia({prefix: '/account'})
 
     const cookieValue = await jwt.sign({password, username});
     return {cookie: cookieValue};
-  })
-  .delete('/delete-full', async ({user}) => {
-    const client = attempt(sql`DELETE FROM users WHERE username = ${user!.username}`);
-    if (!client) return error(400, 'Something went wrong. Try again later.');
-    return client;
-  })
-  .delete('/delete-otp', async ({user}) => {
-    const client = await attempt(sql`UPDATE users SET totp = NULL, recovery = NULL WHERE username = ${user!.username}`);
-    if (!client) return error(400, 'Something went wrong. Try again later.');
-    return client;
   });

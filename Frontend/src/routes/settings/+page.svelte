@@ -1,10 +1,13 @@
 <script lang="ts">
   import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, CopyIcon} from '$icon';
   import {InputWithButton, ConfirmModal, ReactiveButton} from '$component';
+  import type {PageData} from './$types';
   import {enhance} from '$app/forms';
   import {showModal} from '$store';
-  import {sendFrom} from '$lib';
   import {onMount} from 'svelte';
+  import {sendFrom} from '$lib';
+
+  let {data}: {data: PageData} = $props();
 
   let list: HTMLElement;
   const sections = [
@@ -69,11 +72,11 @@
   <section class="mb-32 mt-20 flex h-full w-full flex-col gap-8 px-24">
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
-    <hr />
-    <h2 id="credentials"><UserIcon className="!h-8 !w-8 cursor-default" />Basic Credentials</h2>
+
+    <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials</h2>
     <form use:enhance={() => sendFrom(true)} method="POST">
       <label class="w-fit" for="username">Username</label>
-      <InputWithButton placeholder="Give new username" label="Change Username" name="username" type="text" />
+      <InputWithButton placeholder="Give new username" value={data.user} label="Change Username" name="username" type="text" />
     </form>
     <form class="mt-4 flex flex-col" use:enhance method="POST">
       <div class="inline-grid grid-cols-2 gap-8">
@@ -90,11 +93,16 @@
       <ConfirmModal id={1} text="Changing your password" />
     </form>
     <hr />
-    <h2 id="2fa"><KeylockIcon className="!h-8 !w-8 cursor-default" />Two Factor Authentication</h2>
+
+    <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" />Two Factor Authentication</h2>
     <form use:enhance method="POST">
       <label for="totp">Time-based one-time password (TOTP) :</label>
+      {#if data.userSettings.has2FA}
+        <button class="from-red-800 to-red-700 shadow-red-800 hover:shadow-red-900">Remove 2FA</button>
+      {:else}
+        <button class="from-green-800 to-green-700 shadow-green-800 hover:shadow-green-900">Add 2FA</button>
+      {/if}
       <button>Change 2FA</button>
-      <button>Remove/Add 2FA</button>
     </form>
     <form class="flex-col" use:enhance method="POST">
       <div class="flex items-center justify-between">
@@ -102,19 +110,21 @@
         <button>Generate New Recovery Codes</button>
       </div>
       <div id="recovery">
-        <p>456789123</p>
-        <p>268484648</p>
-        <p>176154502</p>
-        <p>594108234</p>
-        <p>397075187</p>
-        <p>694152648</p>
+        {#each data.userSettings.recoveryCodes as code}
+          <p>{code}</p>
+        {/each}
       </div>
     </form>
     <hr />
-    <h2 id="api"><KeyIcon className="!h-8 !w-8 cursor-default" />API Access & Key</h2>
+
+    <h2 id="api"><KeyIcon className="!h-10 !w-10 cursor-default" />API Access & Key</h2>
     <form use:enhance method="POST">
       <label for="access">API Access :</label>
-      <button>Enable/Disable API Access</button>
+      {#if data.userSettings.hasApiAccess}
+        <button class="from-red-800 to-red-700 shadow-red-800 hover:shadow-red-900">Disable API Access</button>
+      {:else}
+        <button class="from-green-800 to-green-700 shadow-green-800 hover:shadow-green-900">Enable API Access</button>
+      {/if}
     </form>
     <form use:enhance method="POST">
       <div class="flex items-center gap-4">
@@ -124,7 +134,8 @@
       <button>Generate New API Key</button>
     </form>
     <hr />
-    <h2 id="billing"><CreditCardIcon className="!h-8 !w-8 cursor-default" />Billing Information</h2>
+
+    <h2 id="billing"><CreditCardIcon className="!h-10 !w-10 cursor-default" />Billing Information</h2>
     <form class="flex-col" use:enhance method="POST">
       <div class="inline-grid grid-cols-2 gap-8">
         <div class="flex flex-col gap-4">
@@ -143,7 +154,8 @@
       <button class="w-fit self-end" type="submit">Update Billing</button>
     </form>
     <hr />
-    <h2 id="danger"><InfoIcon className="!h-8 !w-8 cursor-default" />Danger Zone</h2>
+
+    <h2 id="danger"><InfoIcon className="!h-9 !w-9 cursor-default" />Danger Zone</h2>
     <form use:enhance method="POST">
       <label for="logout">Session Management :</label>
       <button class="alt -mr-4">Logout</button>
