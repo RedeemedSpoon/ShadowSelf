@@ -19,18 +19,8 @@
       <br class="max-md:hidden" /> Are you sure you want to proceed?
     </p>
     <div class="flex justify-end gap-4">
-      <button class="alt" type="button" onclick={() => ($showModal = 0)}>Cancel</button>
-      <button type="submit">Confirm <ChevronIcon /></button>
+      <button class="alt text-red-700 hover:text-red-800" type="button" onclick={() => ($showModal = 0)}>Cancel</button>
+      <button class="disable flex items-center gap-1" type="submit">Confirm <ChevronIcon /></button>
     </div>
   </div>
 </Modal>
-
-<style lang="postcss">
-  button {
-    @apply flex items-center gap-1 from-red-800 to-red-700 shadow-red-800 hover:shadow-red-900;
-  }
-
-  button.alt {
-    @apply text-red-700 hover:text-red-800;
-  }
-</style>

@@ -1,4 +1,4 @@
-import type {PageServerLoad} from './$types';
+import type {PageServerLoad, Actions} from './$types';
 import type {Settings} from '$type';
 
 export const load: PageServerLoad = () => {
@@ -11,4 +11,18 @@ export const load: PageServerLoad = () => {
       billing: 'hfezehfezjz',
     } satisfies Settings,
   };
+};
+
+export const actions: Actions = {
+  username: async ({request}) => {},
+  password: async ({request}) => {},
+  toggleOtp: async ({request}) => {},
+  otp: async ({request}) => {},
+  recovery: async ({request}) => {},
+  toggleApi: async ({request}) => {},
+  api: async ({request}) => {},
+  billing: async ({request}) => {},
+  deleteBilling: async ({request}) => {},
+  session: async ({request}) => {},
+  delete: async ({request}) => {},
 };

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, CopyIcon} from '$icon';
-  import {InputWithButton, ConfirmModal, ReactiveButton} from '$component';
+  import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon} from '$icon';
+  import {InputWithButton, LoadingButton, ConfirmModal, ReactiveButton} from '$component';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
   import {showModal} from '$store';
@@ -9,7 +9,8 @@
 
   let {data}: {data: PageData} = $props();
 
-  let list: HTMLElement;
+  let anchor = $state() as HTMLAnchorElement;
+  let list = $state() as HTMLElement;
   const sections = [
     {
       id: '#credentials',
@@ -49,6 +50,17 @@
     array[index + 1].classList.add('!bg-neutral-300/10', 'border-l-4', '!pl-24');
   }
 
+  function copyRecovery() {
+    navigator.clipboard.writeText(data.userSettings.recoveryCodes.join('\n'));
+  }
+
+  function downloadRecovery() {
+    const text = data.userSettings.recoveryCodes.join('\n');
+    const blob = new Blob([text], {type: 'text/plain'});
+    anchor.href = URL.createObjectURL(blob);
+    anchor.click();
+  }
+
   onMount(() => handleClick(0));
 </script>
 
@@ -74,69 +86,77 @@
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
     <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials</h2>
-    <form use:enhance={() => sendFrom(true)} method="POST">
+    <form use:enhance={() => sendFrom(true)} method="POST" action="?/username">
       <label class="w-fit" for="username">Username</label>
       <InputWithButton placeholder="Give new username" value={data.user} label="Change Username" name="username" type="text" />
     </form>
-    <form class="mt-4 flex flex-col" use:enhance method="POST">
+    <form class="mt-4 flex flex-col" use:enhance={() => sendFrom(true)} method="POST" action="?/password">
       <div class="inline-grid grid-cols-2 gap-8">
         <div class="flex flex-col gap-4">
           <label for="currentPassword">Current Password</label>
-          <input name="newPassword" type="password" placeholder="New password" />
+          <input name="currentPassword" type="password" placeholder="Current password" />
         </div>
         <div class="flex flex-col gap-4">
           <label for="newPassword">New Password</label>
-          <input name="currentPassword" type="password" placeholder="Current password" />
+          <input name="newPassword" type="password" placeholder="New password" />
         </div>
       </div>
-      <button class="w-fit self-end" type="button" onclick={() => ($showModal = 1)}>Change Password</button>
-      <ConfirmModal id={1} text="Changing your password" />
+      <LoadingButton className="w-fit self-end">Change Password</LoadingButton>
     </form>
     <hr />
 
     <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" />Two Factor Authentication</h2>
-    <form use:enhance method="POST">
+    <form class="!gap-4" use:enhance method="POST" action="?/toggleOtp">
       <label for="totp">Time-based one-time password (TOTP) :</label>
       {#if data.userSettings.has2FA}
-        <button class="from-red-800 to-red-700 shadow-red-800 hover:shadow-red-900">Remove 2FA</button>
+        <LoadingButton formaction="?/otp" className="w-fit">Change 2FA</LoadingButton>
+        <LoadingButton name="remove" className="w-fit disable">Remove 2FA</LoadingButton>
       {:else}
-        <button class="from-green-800 to-green-700 shadow-green-800 hover:shadow-green-900">Add 2FA</button>
+        <LoadingButton name="add" className="w-fit enable">Add 2FA</LoadingButton>
       {/if}
-      <button>Change 2FA</button>
     </form>
-    <form class="flex-col" use:enhance method="POST">
+    <form class="flex-col" use:enhance={() => sendFrom(true)} method="POST" action="?/recovery">
       <div class="flex items-center justify-between">
         <label for="recovery">Remaining Recovery Codes :</label>
-        <button>Generate New Recovery Codes</button>
-      </div>
-      <div id="recovery">
-        {#each data.userSettings.recoveryCodes as code}
-          <p>{code}</p>
-        {/each}
+        <LoadingButton className="w-fit">Generate New Recovery Codes</LoadingButton>
       </div>
     </form>
+    <div id="recovery" class={data.userSettings.recoveryCodes.length ? 'grid-cols-3' : 'grid-cols-1'}>
+      {#each data.userSettings.recoveryCodes as code}
+        <p>{code}</p>
+      {:else}
+        <p>No Codes Left</p>
+      {/each}
+    </div>
+    {#if data.userSettings.recoveryCodes.length}
+      <div class="flex justify-evenly">
+        <ReactiveButton icon={CopyIcon} text="Copy to clipboard" newText="Copied!" callback={copyRecovery} />
+        <ReactiveButton icon={DownloadIcon} text="Download as .txt" newText="Downloaded!" callback={downloadRecovery} />
+        <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
+      </div>
+    {/if}
     <hr />
 
     <h2 id="api"><KeyIcon className="!h-10 !w-10 cursor-default" />API Access & Key</h2>
-    <form use:enhance method="POST">
+    <form use:enhance method="POST" action="?/toggleApi">
       <label for="access">API Access :</label>
       {#if data.userSettings.hasApiAccess}
-        <button class="from-red-800 to-red-700 shadow-red-800 hover:shadow-red-900">Disable API Access</button>
+        <LoadingButton name="disable" className="disable w-fit">Disable API Access</LoadingButton>
       {:else}
-        <button class="from-green-800 to-green-700 shadow-green-800 hover:shadow-green-900">Enable API Access</button>
+        <LoadingButton name="enable" className="enable w-fit">Enable API Access</LoadingButton>
       {/if}
     </form>
-    <form use:enhance method="POST">
+    <form use:enhance={() => sendFrom(true)} method="POST" action="?/api">
       <div class="flex items-center gap-4">
         <label class="w-fit" for="key">API Key :</label>
         <ReactiveButton callback={() => navigator.clipboard.writeText('key')} icon={CopyIcon} text="ezfhzeuif" isBox={true} />
       </div>
-      <button>Generate New API Key</button>
+      <LoadingButton className="w-fit">Generate New API Key</LoadingButton>
     </form>
     <hr />
 
     <h2 id="billing"><CreditCardIcon className="!h-10 !w-10 cursor-default" />Billing Information</h2>
-    <form class="flex-col" use:enhance method="POST">
+    <form class="flex-col" use:enhance={() => sendFrom(true)} method="POST" action="?/billing">
       <div class="inline-grid grid-cols-2 gap-8">
         <div class="flex flex-col gap-4">
           <label for="billing">Billing 1</label>
@@ -151,19 +171,25 @@
       <input name="billing" type="text" placeholder="Billing" />
       <label class="-mb-4" for="billing">Billing 4</label>
       <input name="billing" type="text" placeholder="Billing" />
-      <button class="w-fit self-end" type="submit">Update Billing</button>
+      <div class="flex w-fit gap-4 self-end">
+        <LoadingButton>Update Billing</LoadingButton>
+        <LoadingButton formaction="?/deleteBilling">Delete Billing</LoadingButton>
+      </div>
     </form>
     <hr />
 
-    <h2 id="danger"><InfoIcon className="!h-9 !w-9 cursor-default" />Danger Zone</h2>
-    <form use:enhance method="POST">
+    <h2 id="danger"><InfoIcon className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone</h2>
+    <form use:enhance method="POST" action="?/session">
       <label for="logout">Session Management :</label>
-      <button class="alt -mr-4">Logout</button>
-      <button>Revoke All Session</button>
+      <LoadingButton name="logout" className="alt -mr-4 w-fit">Logout</LoadingButton>
+      <LoadingButton onclick={() => ($showModal = 1)} type="button" className="w-fit" name="revoke"
+        >Revoke All Session</LoadingButton>
+      <ConfirmModal id={1} text="Revoking all sessions" />
     </form>
-    <form use:enhance method="POST">
+    <form use:enhance={() => sendFrom(true)} method="POST" action="?/delete">
       <label for="delete">Account Deletion :</label>
-      <button>Delete Account</button>
+      <LoadingButton onclick={() => ($showModal = 2)} type="button" className="w-fit disable">Delete Account</LoadingButton>
+      <ConfirmModal id={2} text="Deleting your account" />
     </form>
   </section>
 </div>
@@ -182,7 +208,11 @@
   }
 
   #recovery {
-    @apply grid grid-cols-3 place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider;
+    @apply grid place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8;
+  }
+
+  #recovery > * {
+    @apply font-mono font-medium tracking-wider text-neutral-300;
   }
 
   ul a {
@@ -195,10 +225,6 @@
 
   label {
     @apply ml-2 text-nowrap text-neutral-300;
-  }
-
-  button {
-    @apply w-fit text-nowrap;
   }
 
   .red {

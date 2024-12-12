@@ -72,6 +72,26 @@ function addCustomClasses({addComponents}) {
       backgroundClip: 'text',
       webkitBackgroundClip: 'text',
     },
+    '.enable': {
+      backgroundImage: 'linear-gradient(to bottom, var(--tw-gradient-stops));',
+      '--tw-gradient-from': '#16a34a',
+      '--tw-gradient-to': '#15803d',
+      '--tw-gradient-stops': 'var(--tw-gradient-from), var(--tw-gradient-to)',
+      boxShadow: '0 10px 15px rgba(22, 163, 74, 0.6)',
+      '&:hover': {
+        boxShadow: '0 10px 15px rgba(13, 148, 23, 0.6)',
+      },
+    },
+    '.disable': {
+      backgroundImage: 'linear-gradient(to bottom, var(--tw-gradient-stops));',
+      '--tw-gradient-from': '#b91c1c',
+      '--tw-gradient-to': '#991b1b',
+      '--tw-gradient-stops': 'var(--tw-gradient-from), var(--tw-gradient-to)',
+      boxShadow: '0 10px 15px rgba(185, 28, 28, 0.6)',
+      '&:hover': {
+        boxShadow: '0 10px 15px rgba(153, 27, 27, 0.6)',
+      },
+    },
     '.small-icon': {
       height: '2rem',
       width: '2rem',
