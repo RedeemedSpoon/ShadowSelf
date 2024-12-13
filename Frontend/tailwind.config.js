@@ -57,9 +57,9 @@ function addCustomClasses({addComponents}) {
       color: '#4f46e5',
       backgroundImage: 'none',
       boxShadow: 'none',
-    },
-    '.alt:hover': {
-      color: '#4338ca',
+      '&:hover': {
+        color: '#4338ca',
+      },
     },
     '.basic-style': {
       backgroundImage:
@@ -77,9 +77,9 @@ function addCustomClasses({addComponents}) {
       '--tw-gradient-from': '#16a34a',
       '--tw-gradient-to': '#15803d',
       '--tw-gradient-stops': 'var(--tw-gradient-from), var(--tw-gradient-to)',
-      boxShadow: '0 10px 15px rgba(22, 163, 74, 0.6)',
+      boxShadow: '0 10px 15px rgba(22, 163, 74, 0.5)',
       '&:hover': {
-        boxShadow: '0 10px 15px rgba(13, 148, 23, 0.6)',
+        boxShadow: '0 10px 15px rgba(13, 148, 23, 0.5)',
       },
     },
     '.disable': {
@@ -87,9 +87,9 @@ function addCustomClasses({addComponents}) {
       '--tw-gradient-from': '#b91c1c',
       '--tw-gradient-to': '#991b1b',
       '--tw-gradient-stops': 'var(--tw-gradient-from), var(--tw-gradient-to)',
-      boxShadow: '0 10px 15px rgba(185, 28, 28, 0.6)',
+      boxShadow: '0 10px 15px rgba(185, 28, 28, 0.5)',
       '&:hover': {
-        boxShadow: '0 10px 15px rgba(153, 27, 27, 0.6)',
+        boxShadow: '0 10px 15px rgba(153, 27, 27, 0.5)',
       },
     },
     '.small-icon': {

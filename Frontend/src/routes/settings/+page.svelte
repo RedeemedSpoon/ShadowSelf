@@ -11,37 +11,14 @@
 
   let anchor = $state() as HTMLAnchorElement;
   let list = $state() as HTMLElement;
+
+  const settings = data.settings;
   const sections = [
-    {
-      id: '#credentials',
-      title: 'Basic Credentials',
-      color: 'blue',
-      icon: UserIcon,
-    },
-    {
-      id: '#2fa',
-      title: 'Two Factor Authentication',
-      color: 'orange',
-      icon: KeylockIcon,
-    },
-    {
-      id: '#api',
-      title: 'API Access & Key',
-      color: 'yellow',
-      icon: KeyIcon,
-    },
-    {
-      id: '#billing',
-      title: 'Billing Information',
-      color: 'green',
-      icon: CreditCardIcon,
-    },
-    {
-      id: '#danger',
-      title: 'Danger Zone',
-      color: 'red',
-      icon: InfoIcon,
-    },
+    {id: 'credentials', title: 'Basic Credentials', icon: UserIcon},
+    {id: '2fa', title: 'Two Factor Authentication', icon: KeylockIcon},
+    {id: 'api', title: 'API Access & Key', icon: KeyIcon},
+    {id: 'billing', title: 'Billing Information', icon: CreditCardIcon},
+    {id: 'danger', title: 'Danger Zone', icon: InfoIcon},
   ];
 
   function handleClick(index: number) {
@@ -50,12 +27,16 @@
     array[index + 1].classList.add('!bg-neutral-300/10', 'border-l-4', '!pl-24');
   }
 
+  function copyKey() {
+    navigator.clipboard.writeText(settings.key);
+  }
+
   function copyRecovery() {
-    navigator.clipboard.writeText(data.userSettings.recoveryCodes.join('\n'));
+    navigator.clipboard.writeText(settings.recovery.join('\n'));
   }
 
   function downloadRecovery() {
-    const text = data.userSettings.recoveryCodes.join('\n');
+    const text = settings.recovery.join('\n');
     const blob = new Blob([text], {type: 'text/plain'});
     anchor.href = URL.createObjectURL(blob);
     anchor.click();
@@ -74,9 +55,9 @@
     <li id="title">Sections</li>
     {#each sections as section, i}
       {@const SvelteComponent = section.icon}
-      <a class={section.color} onclick={() => handleClick(i)} href={section.id} style="top: {(i + 3.25) * 4}rem">
+      <a onclick={() => handleClick(i)} href="#{section.id}" style="top: {(i + 3.25) * 4}rem">
         <li class="flex items-center gap-2">
-          <SvelteComponent className="!h-8 !w-8" /><span class="text-neutral-300">{section.title}</span>
+          <SvelteComponent className="!h-8 !w-8" /><span>{section.title}</span>
         </li>
       </a>
     {/each}
@@ -85,62 +66,55 @@
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
-    <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials</h2>
+    <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials :</h2>
     <form use:enhance={() => sendFrom(true, 1)} method="POST" action="?/username">
-      <label class="w-fit" for="username">Username</label>
+      <label class="w-[17.5%]" for="username">Username :</label>
       <InputWithButton placeholder="New username" value={data.user} index={1} label="Change Username" name="username" />
     </form>
-    <form class="mt-4 flex flex-col" use:enhance={() => sendFrom(true, 2)} method="POST" action="?/password">
-      <div class="inline-grid grid-cols-2 gap-8">
-        <div class="flex flex-col gap-4">
-          <label for="currentPassword">Current Password</label>
-          <input name="currentPassword" type="password" placeholder="Current password" />
-        </div>
-        <div class="flex flex-col gap-4">
-          <label for="newPassword">New Password</label>
-          <input name="newPassword" type="password" placeholder="New password" />
-        </div>
-      </div>
-      <LoadingButton index={2} className="w-fit self-end">Change Password</LoadingButton>
+    <form class="mt-4 flex" use:enhance={() => sendFrom(true, 2)} method="POST" action="?/password">
+      <label class="w-[17.5%]" for="newPassword">New Password :</label>
+      <InputWithButton placeholder="New password" index={2} label="Change Password" name="newPassword" />
     </form>
     <hr />
 
     <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" />Two Factor Authentication</h2>
-    <form class="!gap-4" use:enhance method="POST" action="?/toggleOtp">
+    <form class="!gap-4" use:enhance method="POST" action="?/otp">
       <label for="totp">Time-based one-time password (TOTP) :</label>
-      {#if data.userSettings.has2FA}
-        <button type="button" formaction="?/otp" class="w-fit">Change 2FA</button>
+      {#if settings.OTP}
+        <button type="button" class="w-fit">Change 2FA</button>
         <button type="submit" name="remove" class="disable w-fit">Remove 2FA</button>
       {:else}
-        <button type="submit" name="add" class="enable w-fit">Add 2FA</button>
+        <button type="button" class="enable w-fit">Add 2FA</button>
       {/if}
     </form>
     <form class="flex-col" use:enhance={() => sendFrom(true, 3)} method="POST" action="?/recovery">
       <div class="flex items-center justify-between">
         <label for="recovery">Remaining Recovery Codes :</label>
-        <LoadingButton index={3} className="w-fit">Generate New Recovery Codes</LoadingButton>
+        <LoadingButton disabled={!settings.OTP} index={3} className="w-fit">Generate New Recovery Codes</LoadingButton>
       </div>
     </form>
-    <div id="recovery" class={data.userSettings.recoveryCodes.length ? 'grid-cols-3' : 'grid-cols-1'}>
-      {#each data.userSettings.recoveryCodes as code}
-        <p>{code}</p>
-      {:else}
-        <p>No Codes Left</p>
-      {/each}
-    </div>
-    {#if data.userSettings.recoveryCodes.length}
-      <div class="flex justify-evenly">
-        <ReactiveButton icon={CopyIcon} text="Copy to clipboard" newText="Copied!" callback={copyRecovery} />
-        <ReactiveButton icon={DownloadIcon} text="Download as .txt" newText="Downloaded!" callback={downloadRecovery} />
-        <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
+    {#if settings.OTP}
+      <div id="recovery" class={settings.recovery.length ? 'grid-cols-3' : 'grid-cols-1'}>
+        {#each settings.recovery as code}
+          <p>{code}</p>
+        {:else}
+          <p>No Codes Left</p>
+        {/each}
       </div>
+      {#if settings.recovery.length}
+        <div class="flex justify-evenly">
+          <ReactiveButton icon={CopyIcon} text="Copy to clipboard" newText="Copied!" callback={copyRecovery} />
+          <ReactiveButton icon={DownloadIcon} text="Download as .txt" newText="Downloaded!" callback={downloadRecovery} />
+          <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
+        </div>
+      {/if}
     {/if}
     <hr />
 
     <h2 id="api"><KeyIcon className="!h-10 !w-10 cursor-default" />API Access & Key</h2>
     <form use:enhance method="POST" action="?/toggleApi">
       <label for="access">API Access :</label>
-      {#if data.userSettings.hasApiAccess}
+      {#if settings.API}
         <button name="disable" type="submit" class="disable w-fit">Disable API Access</button>
       {:else}
         <button name="enable" type="submit" class="enable w-fit">Enable API Access</button>
@@ -149,9 +123,11 @@
     <form use:enhance={() => sendFrom(true, 4)} method="POST" action="?/api">
       <div class="flex items-center gap-4">
         <label class="w-fit" for="key">API Key :</label>
-        <ReactiveButton callback={() => navigator.clipboard.writeText('key')} icon={CopyIcon} text="ezfhzeuif" isBox={true} />
+        {#if settings.API}
+          <ReactiveButton callback={copyKey} icon={CopyIcon} text="ezfhzeuif" isBox={true} />
+        {/if}
       </div>
-      <LoadingButton index={4} className="w-fit">Generate New API Key</LoadingButton>
+      <LoadingButton disabled={!settings.API} index={4} className="w-fit">Generate New API Key</LoadingButton>
     </form>
     <hr />
 
@@ -181,7 +157,7 @@
     <h2 id="danger"><InfoIcon className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone</h2>
     <form use:enhance method="POST" action="?/session">
       <label for="logout">Session Management :</label>
-      <button type="submit" name="logout" class="alt -mr-4 w-fit">Logout</button>
+      <button type="submit" name="logout" class="-mr-4 w-fit">Logout</button>
       <button type="button" onclick={() => ($showModal = 1)} class="w-fit" name="revoke">Revoke All Session</button>
       <ConfirmModal id={1} text="Revoking all sessions" />
     </form>
@@ -215,7 +191,7 @@
   }
 
   ul a {
-    @apply sticky py-3 pl-20 text-neutral-300 transition-all duration-200 ease-in-out hover:bg-neutral-300/5;
+    @apply border-primary-700 sticky py-3 pl-20 text-neutral-300 transition-all duration-200 ease-in-out hover:bg-neutral-300/5;
   }
 
   form {
@@ -224,25 +200,5 @@
 
   label {
     @apply ml-2 text-nowrap text-neutral-300;
-  }
-
-  .red {
-    @apply border-red-500 !text-red-500;
-  }
-
-  .yellow {
-    @apply border-yellow-500 text-yellow-500;
-  }
-
-  .green {
-    @apply border-green-500 text-green-500;
-  }
-
-  .blue {
-    @apply border-blue-500 text-blue-500;
-  }
-
-  .orange {
-    @apply border-orange-500 text-orange-500;
   }
 </style>

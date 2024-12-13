@@ -4,6 +4,7 @@ import {Elysia, error} from 'elysia';
 import {sendEmail} from './utils';
 
 import account from './routes/account';
+import settings from './routes/settings';
 
 const app = new Elysia()
   .get('/', () => 'Hello from ShadowSelf.')
@@ -16,6 +17,7 @@ const app = new Elysia()
     return result.message;
   })
   .use(account)
+  .use(settings)
   .listen(3000);
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);

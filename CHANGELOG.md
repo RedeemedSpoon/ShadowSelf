@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change setting page design
-- Change $isFetching store
+- Change $fetch store
 
 ## [0.3.05] - 2024-12-11
 

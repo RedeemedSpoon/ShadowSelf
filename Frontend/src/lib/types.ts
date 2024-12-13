@@ -15,11 +15,10 @@ export interface Option {
 }
 
 export interface Settings {
-  has2FA: boolean;
-  hasApiAccess: boolean;
-  recoveryCodes: number[];
-  apiKey: string;
-  billing: string;
+  OTP: boolean;
+  API: boolean;
+  key: string;
+  recovery: number[];
 }
 
 export interface Identity {

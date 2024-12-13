@@ -26,5 +26,6 @@ export interface QueryResult {
   recovery: string[];
   credit_card: string;
   crypto_wallet: string;
+  api_access: boolean;
   api_key: string;
 }
