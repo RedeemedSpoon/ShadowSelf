@@ -82,9 +82,12 @@ export default new Elysia({prefix: '/account'})
 
     return {username};
   })
-  .post('/signup-otp', async () => {
+  .post('/signup-otp', async ({body}) => {
+    const {username, err} = check(body, ['username'], true);
+    if (err) return error(400, err);
+
     const secret = getSecret();
-    const totp = createTOTP(secret, 'temporarily');
+    const totp = createTOTP(secret, username);
     const uri = totp.toString();
     return {uri, secret};
   })

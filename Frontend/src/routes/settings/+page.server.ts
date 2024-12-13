@@ -1,5 +1,4 @@
 import type {PageServerLoad, Actions} from './$types';
-import type {Settings} from '$type';
 import {fetchApi} from '$lib';
 
 export const load: PageServerLoad = async () => {

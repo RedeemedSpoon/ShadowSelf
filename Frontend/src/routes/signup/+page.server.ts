@@ -23,7 +23,8 @@ export const actions: Actions = {
     const wantOTP = form.has('enable');
 
     if (wantOTP) {
-      const response = await fetchApi('/account/signup-otp', 'POST');
+      const username = cookies.get('signup')?.split('&&')[0];
+      const response = await fetchApi('/account/signup-otp', 'POST', {username});
       if (!response.secret) return response;
 
       const cookie = cookies.get('signup')?.split('&&').slice(0, 2).join('&&');

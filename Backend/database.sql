@@ -29,6 +29,7 @@ CREATE TABLE "users" (
   "recovery" varchar(9)[],
   "credit_card" varchar(64),
   "crypto_wallet" varchar(64),
+  "revoke_session" boolean default false,
   "api_access" boolean default false,
   "api_key" varchar(32)
 );

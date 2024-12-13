@@ -1,14 +1,19 @@
 <script lang="ts">
   import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon} from '$icon';
   import {InputWithButton, LoadingButton, ConfirmModal, ReactiveButton} from '$component';
+  import type {Notification} from '$type';
   import type {PageData} from './$types';
+  import {notify, sendFrom} from '$lib';
   import {enhance} from '$app/forms';
   import {showModal} from '$store';
   import {onMount} from 'svelte';
-  import {sendFrom} from '$lib';
 
-  let {data}: {data: PageData} = $props();
+  interface Props {
+    data: PageData;
+    form: Notification;
+  }
 
+  let {data, form}: Props = $props();
   let anchor = $state() as HTMLAnchorElement;
   let list = $state() as HTMLElement;
 
@@ -20,6 +25,11 @@
     {id: 'billing', title: 'Billing Information', icon: CreditCardIcon},
     {id: 'danger', title: 'Danger Zone', icon: InfoIcon},
   ];
+
+  $effect(() => {
+    if (form?.message) notify(form.message, form.type);
+    if (settings?.message) notify(settings.message, settings.type);
+  });
 
   function handleClick(index: number) {
     const array = Array.from(list.children);
@@ -68,16 +78,16 @@
 
     <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials :</h2>
     <form use:enhance={() => sendFrom(true, 1)} method="POST" action="?/username">
-      <label class="w-[17.5%]" for="username">Username :</label>
+      <label class="w-[12.5%]" for="username">Username :</label>
       <InputWithButton placeholder="New username" value={data.user} index={1} label="Change Username" name="username" />
     </form>
-    <form class="mt-4 flex" use:enhance={() => sendFrom(true, 2)} method="POST" action="?/password">
-      <label class="w-[17.5%]" for="newPassword">New Password :</label>
-      <InputWithButton placeholder="New password" index={2} label="Change Password" name="newPassword" />
+    <form class="flex" use:enhance={() => sendFrom(true, 2)} method="POST" action="?/password">
+      <label class="w-[12.5%]" for="Password">Password :</label>
+      <InputWithButton placeholder="New password" index={2} label="Change Password" name="Password" />
     </form>
     <hr />
 
-    <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" />Two Factor Authentication</h2>
+    <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" />Two Factor Authentication :</h2>
     <form class="!gap-4" use:enhance method="POST" action="?/otp">
       <label for="totp">Time-based one-time password (TOTP) :</label>
       {#if settings.OTP}
@@ -111,7 +121,7 @@
     {/if}
     <hr />
 
-    <h2 id="api"><KeyIcon className="!h-10 !w-10 cursor-default" />API Access & Key</h2>
+    <h2 id="api"><KeyIcon className="!h-10 !w-10 cursor-default" />API Access & Key :</h2>
     <form use:enhance method="POST" action="?/toggleApi">
       <label for="access">API Access :</label>
       {#if settings.API}
@@ -131,7 +141,7 @@
     </form>
     <hr />
 
-    <h2 id="billing"><CreditCardIcon className="!h-10 !w-10 cursor-default" />Billing Information</h2>
+    <h2 id="billing"><CreditCardIcon className="!h-10 !w-10 cursor-default" />Billing Information :</h2>
     <form class="flex-col" use:enhance={({formData}) => sendFrom(true, 5, formData.has('update'))} method="POST" action="?/billing">
       <div class="inline-grid grid-cols-2 gap-8">
         <div class="flex flex-col gap-4">
@@ -154,7 +164,7 @@
     </form>
     <hr />
 
-    <h2 id="danger"><InfoIcon className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone</h2>
+    <h2 id="danger"><InfoIcon className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone :</h2>
     <form use:enhance method="POST" action="?/session">
       <label for="logout">Session Management :</label>
       <button type="submit" name="logout" class="-mr-4 w-fit">Logout</button>

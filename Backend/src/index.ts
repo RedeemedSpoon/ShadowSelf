@@ -7,6 +7,7 @@ import account from './routes/account';
 import settings from './routes/settings';
 
 const app = new Elysia()
+  .onError(({error}) => ({message: error.message}))
   .get('/', () => 'Hello from ShadowSelf.')
   .post('/contact', async ({body}) => {
     const {err} = checkContact(body);

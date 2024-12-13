@@ -1,5 +1,6 @@
 import {genSalt, hash, compare} from 'bcrypt';
 import * as OTPAuth from 'otpauth';
+import * as crypto from 'crypto';
 
 export function createTOTP(secret: string, username: string): OTPAuth.TOTP {
   return new OTPAuth.TOTP({
@@ -12,14 +13,14 @@ export function createTOTP(secret: string, username: string): OTPAuth.TOTP {
   });
 }
 
-export function getRecovery(): string[] {
-  const recovery: string[] = [];
-  for (let i = 0; i < 6; i++) {
-    const code = Math.floor(Math.random() * 900_000_000) + 100_000_000;
-    recovery.push(code.toString());
-  }
+export function getRecovery() {
+  return [...new Array(6)].map(() => {
+    return Math.floor(Math.random() * 900_000_000) + 100_000_000;
+  });
+}
 
-  return recovery;
+export function getAPIKey(): string {
+  return crypto.randomBytes(16).toString('hex');
 }
 
 export function getSecret(): string {
