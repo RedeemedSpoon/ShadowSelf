@@ -1,6 +1,6 @@
+import {getAPIKey, hashPWD} from '../crypto';
 import {QueryResult, User} from '../types';
 import {Elysia, error} from 'elysia';
-import {getAPIKey} from '../crypto';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
 import {attempt} from '../utils';
@@ -30,31 +30,46 @@ export default new Elysia({prefix: '/settings'})
   })
   .get('/toggleAPI', async ({user}) => {
     const access = (await attempt(sql`SELECT api_access FROM users WHERE username = ${user!.username}`)) as QueryResult[];
-    await attempt(sql`UPDATE users SET api_access = ${!access[0].api_access} WHERE username = ${user!.username}`);
+    const toggle = !access[0].api_access;
+
+    await attempt(sql`UPDATE users SET api_access = ${toggle} WHERE username = ${user!.username}`);
+    return {API: toggle};
   })
   .get('/api-key', async ({user}) => {
+    const access = (await attempt(sql`SELECT api_access FROM users WHERE username = ${user!.username}`)) as QueryResult[];
+    if (!access[0].api_access) return error(400, 'API access is disabled. Enable it to proceed');
+
     const key = getAPIKey();
     await attempt(sql`UPDATE users SET api_key = ${key} WHERE username = ${user!.username}`);
+    return {key};
   })
   .get('/revoke', async ({user}) => {
     await attempt(sql`UPDATE users SET revoke_session = true WHERE username = ${user!.username}`);
   })
-  .post('/otp', '')
-  .post('/recovery', '')
-  .put('/username', async ({user, body}) => {
+  .put('/username', async ({jwt, user, body}) => {
     const {err, username} = check(body, ['username']);
     if (err) return error(400, err);
 
+    if (user!.username !== username) {
+      const isTaken = (await attempt(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
+      if (isTaken.length) return error(409, 'This username is already taken');
+    }
+
     await attempt(sql`UPDATE users SET username = ${username} WHERE username = ${user!.username}`);
+
+    const cookieValue = await jwt.sign({password: user!.password, username});
+    return {cookie: cookieValue};
   })
-  .put('/password', async ({user, body}) => {
+  .put('/password', async ({jwt, user, body}) => {
     const {err, password} = check(body, ['password']);
     if (err) return error(400, err);
 
-    await attempt(sql`UPDATE users SET password = ${password} WHERE username = ${user!.username}`);
+    const hashedPassword = await hashPWD(password);
+    await attempt(sql`UPDATE users SET password = ${hashedPassword} WHERE username = ${user!.username}`);
+
+    const cookieValue = await jwt.sign({password, username: user!.username});
+    return {cookie: cookieValue};
   })
   .put('/billing', '')
   .delete('/billing', '')
-  .delete('/full', async ({user}) => {
-    await attempt(sql`DELETE FROM users WHERE username = ${user!.username}`);
-  });
+  .delete('/full', async ({user}) => await attempt(sql`DELETE FROM users WHERE username = ${user!.username}`));

@@ -22,7 +22,14 @@ export default new Elysia({prefix: '/account'})
       return error(401, 'You are already logged in');
     }
   })
-  .get('/', async ({user}) => user?.username)
+  .get('/', async ({user}) => {
+    if (!user) return;
+
+    const response = (await attempt(sql`SELECT revoke_session FROM users WHERE username = ${user!.username}`)) as QueryResult[];
+    if (response[0].revoke_session) return {logout: true};
+
+    return user?.username;
+  })
   .post('/login', async ({jwt, body}) => {
     const {password, username, err} = check(body, ['password', 'username'], true);
     if (err) return error(400, err);
@@ -37,6 +44,7 @@ export default new Elysia({prefix: '/account'})
     const has2fa = result[0].totp;
     if (has2fa) return {username};
 
+    await attempt(sql`UPDATE users SET revoke_session = false WHERE username = ${username}`);
     const cookieValue = await jwt.sign({password, username});
     return {cookie: cookieValue};
   })
@@ -51,6 +59,7 @@ export default new Elysia({prefix: '/account'})
     const isValid = totp.generate() === token;
     if (!isValid) return error(400, 'Incorrect validation token. Please try again');
 
+    await attempt(sql`UPDATE users SET revoke_session = false WHERE username = ${username}`);
     const cookieValue = await jwt.sign({username, password});
     return {cookie: cookieValue};
   })
@@ -70,6 +79,7 @@ export default new Elysia({prefix: '/account'})
     const newCodes = allCodes.filter((c) => c !== code);
     await attempt(sql`UPDATE users SET recovery = ${newCodes} WHERE username = ${username}`);
 
+    await attempt(sql`UPDATE users SET revoke_session = false WHERE username = ${username}`);
     const cookieValue = await jwt.sign({username, password});
     return {cookie: cookieValue};
   })

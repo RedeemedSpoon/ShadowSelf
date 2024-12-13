@@ -1,4 +1,4 @@
-import {notification, pricingModel, fetching} from '$store';
+import {notification, showModal, pricingModel, fetching} from '$store';
 import type {Cookies} from '@sveltejs/kit';
 import type {Notification} from '$type';
 import {allPricingModel} from '$type';
@@ -31,6 +31,13 @@ export async function sendFrom(shouldWait = false, index = 1, condition: boolean
 
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
     fetching.set(0);
+    update({reset: false});
+  };
+}
+
+export async function clearModal(index: number = 0) {
+  showModal.set(index);
+  return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
     update({reset: false});
   };
 }

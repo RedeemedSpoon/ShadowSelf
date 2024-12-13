@@ -1,23 +1,24 @@
 <script lang="ts">
   import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon} from '$icon';
   import {InputWithButton, LoadingButton, ConfirmModal, ReactiveButton} from '$component';
+  import {notify, sendFrom, clearModal} from '$lib';
   import type {Notification} from '$type';
   import type {PageData} from './$types';
-  import {notify, sendFrom} from '$lib';
   import {enhance} from '$app/forms';
   import {showModal} from '$store';
   import {onMount} from 'svelte';
 
   interface Props {
+    form: Notification & {OTP: boolean; API: boolean; key: string};
     data: PageData;
-    form: Notification;
   }
 
   let {data, form}: Props = $props();
+
   let anchor = $state() as HTMLAnchorElement;
   let list = $state() as HTMLElement;
+  const settings = $state(data.settings);
 
-  const settings = data.settings;
   const sections = [
     {id: 'credentials', title: 'Basic Credentials', icon: UserIcon},
     {id: '2fa', title: 'Two Factor Authentication', icon: KeylockIcon},
@@ -29,6 +30,10 @@
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
     if (settings?.message) notify(settings.message, settings.type);
+
+    if (form && Object.hasOwn(form, 'OTP')) settings.OTP = form.OTP;
+    if (form && Object.hasOwn(form, 'API')) settings.API = form.API;
+    if (form?.key) settings.key = form.key;
   });
 
   function handleClick(index: number) {
@@ -82,8 +87,8 @@
       <InputWithButton placeholder="New username" value={data.user} index={1} label="Change Username" name="username" />
     </form>
     <form class="flex" use:enhance={() => sendFrom(true, 2)} method="POST" action="?/password">
-      <label class="w-[12.5%]" for="Password">Password :</label>
-      <InputWithButton placeholder="New password" index={2} label="Change Password" name="Password" />
+      <label class="w-[12.5%]" for="password">Password :</label>
+      <InputWithButton placeholder="New password" type="password" index={2} label="Change Password" name="password" />
     </form>
     <hr />
 
@@ -134,7 +139,7 @@
       <div class="flex items-center gap-4">
         <label class="w-fit" for="key">API Key :</label>
         {#if settings.API}
-          <ReactiveButton callback={copyKey} icon={CopyIcon} text="ezfhzeuif" isBox={true} />
+          <ReactiveButton callback={copyKey} icon={CopyIcon} text={settings.key} isBox={true} />
         {/if}
       </div>
       <LoadingButton disabled={!settings.API} index={4} className="w-fit">Generate New API Key</LoadingButton>
@@ -165,16 +170,16 @@
     <hr />
 
     <h2 id="danger"><InfoIcon className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone :</h2>
-    <form use:enhance method="POST" action="?/session">
+    <form use:enhance={() => clearModal()} method="POST" action="?/session">
       <label for="logout">Session Management :</label>
       <button type="submit" name="logout" class="-mr-4 w-fit">Logout</button>
       <button type="button" onclick={() => ($showModal = 1)} class="w-fit" name="revoke">Revoke All Session</button>
-      <ConfirmModal id={1} text="Revoking all sessions" />
+      <ConfirmModal id={1} name="revoke" text="Revoking all sessions" />
     </form>
-    <form use:enhance method="POST" action="?/delete">
+    <form use:enhance={() => clearModal()} method="POST" action="?/delete">
       <label for="delete">Account Deletion :</label>
       <button onclick={() => ($showModal = 2)} type="button" class="disable w-fit">Delete Account</button>
-      <ConfirmModal id={2} text="Deleting your account" />
+      <ConfirmModal id={2} name="delete" text="Deleting your account" />
     </form>
   </section>
 </div>

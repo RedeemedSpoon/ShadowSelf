@@ -20,7 +20,7 @@ export function getRecovery() {
 }
 
 export function getAPIKey(): string {
-  return crypto.randomBytes(16).toString('hex');
+  return crypto.pseudoRandomBytes(16).toString('hex');
 }
 
 export function getSecret(): string {
