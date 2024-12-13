@@ -1,4 +1,4 @@
-export type User = {username: string; password: string} | undefined;
+export type User = {username: string; password: string; id: string} | undefined;
 
 export interface ContactDetail {
   category: 'question' | 'feedback' | 'collaboration' | 'bug' | 'help' | 'other';
@@ -26,7 +26,7 @@ export interface QueryResult {
   recovery: string[];
   credit_card: string;
   crypto_wallet: string;
-  revoke_session: boolean;
+  revoke_session: string[];
   api_access: boolean;
   api_key: string;
 }

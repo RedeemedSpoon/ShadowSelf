@@ -7,7 +7,7 @@ export const load: LayoutServerLoad = async ({cookies}) => {
   token.set(cookies.get('token') || '');
   const response = await fetchApi('/account');
 
-  if (response.logout) {
+  if (response.message === 'Not authorized') {
     cookies.delete('token', {path: '/'});
     redirect(302, '/');
   }

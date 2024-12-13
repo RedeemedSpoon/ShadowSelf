@@ -1,4 +1,4 @@
-import {comparePWD, hashPWD, createTOTP, getSecret, getRecovery} from '../crypto';
+import {comparePWD, hashPWD, genereteID, createTOTP, getSecret, getRecovery} from '../crypto';
 import {QueryResult, User} from '../types';
 import {Elysia, error} from 'elysia';
 import {sql} from '../connection';
@@ -25,8 +25,8 @@ export default new Elysia({prefix: '/account'})
   .get('/', async ({user}) => {
     if (!user) return;
 
-    const response = (await attempt(sql`SELECT revoke_session FROM users WHERE username = ${user!.username}`)) as QueryResult[];
-    if (response[0].revoke_session) return {logout: true};
+    const result = (await attempt(sql`SELECT revoke_session FROM users WHERE username = ${user.username}`)) as QueryResult[];
+    if (!result[0].revoke_session.includes(user.id)) return error(401, 'Not authorized');
 
     return user?.username;
   })
@@ -44,8 +44,10 @@ export default new Elysia({prefix: '/account'})
     const has2fa = result[0].totp;
     if (has2fa) return {username};
 
-    await attempt(sql`UPDATE users SET revoke_session = false WHERE username = ${username}`);
-    const cookieValue = await jwt.sign({password, username});
+    const id = genereteID();
+    await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE username = ${username}`);
+
+    const cookieValue = await jwt.sign({password, username, id});
     return {cookie: cookieValue};
   })
   .post('/login-otp', async ({body, jwt}) => {
@@ -59,8 +61,10 @@ export default new Elysia({prefix: '/account'})
     const isValid = totp.generate() === token;
     if (!isValid) return error(400, 'Incorrect validation token. Please try again');
 
-    await attempt(sql`UPDATE users SET revoke_session = false WHERE username = ${username}`);
-    const cookieValue = await jwt.sign({username, password});
+    const id = genereteID();
+    await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE username = ${username}`);
+
+    const cookieValue = await jwt.sign({username, password, id});
     return {cookie: cookieValue};
   })
   .post('/login-recovery', async ({body, jwt}) => {
@@ -79,8 +83,10 @@ export default new Elysia({prefix: '/account'})
     const newCodes = allCodes.filter((c) => c !== code);
     await attempt(sql`UPDATE users SET recovery = ${newCodes} WHERE username = ${username}`);
 
-    await attempt(sql`UPDATE users SET revoke_session = false WHERE username = ${username}`);
-    const cookieValue = await jwt.sign({username, password});
+    const id = genereteID();
+    await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE username = ${username}`);
+
+    const cookieValue = await jwt.sign({username, password, id});
     return {cookie: cookieValue};
   })
   .post('/signup', async ({body}) => {
@@ -128,6 +134,9 @@ export default new Elysia({prefix: '/account'})
       await attempt(sql`UPDATE users SET recovery = ${recovery} WHERE username = ${username}`);
     }
 
-    const cookieValue = await jwt.sign({password, username});
+    const id = genereteID();
+    await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE username = ${username}`);
+
+    const cookieValue = await jwt.sign({password, username, id});
     return {cookie: cookieValue};
   });

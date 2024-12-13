@@ -44,7 +44,7 @@ export default new Elysia({prefix: '/settings'})
     return {key};
   })
   .get('/revoke', async ({user}) => {
-    await attempt(sql`UPDATE users SET revoke_session = true WHERE username = ${user!.username}`);
+    await attempt(sql`UPDATE users SET revoke_session = ARRAY[]::varchar(8)[] WHERE username = ${user!.username}`);
   })
   .put('/username', async ({jwt, user, body}) => {
     const {err, username} = check(body, ['username']);
@@ -70,6 +70,4 @@ export default new Elysia({prefix: '/settings'})
     const cookieValue = await jwt.sign({password, username: user!.username});
     return {cookie: cookieValue};
   })
-  .put('/billing', '')
-  .delete('/billing', '')
   .delete('/full', async ({user}) => await attempt(sql`DELETE FROM users WHERE username = ${user!.username}`));
