@@ -1,4 +1,4 @@
-import {comparePWD, hashPWD, genereteID, createTOTP, getSecret, getRecovery} from '../crypto';
+import {comparePWD, hashPWD, genereteID, createTOTP, getAPIKey, getSecret, getRecovery} from '../crypto';
 import {QueryResult, User} from '../types';
 import {Elysia, error} from 'elysia';
 import {sql} from '../connection';
@@ -128,6 +128,9 @@ export default new Elysia({prefix: '/account'})
 
     const newPassword = await hashPWD(password);
     await attempt(sql`INSERT INTO users (username, password) VALUES (${username}, ${newPassword})`);
+
+    const apiKey = getAPIKey();
+    await attempt(sql`UPDATE users SET api_key = ${apiKey} WHERE username = ${username}`);
 
     if (secret && recovery) {
       await attempt(sql`UPDATE users SET totp = ${secret} WHERE username = ${username}`);

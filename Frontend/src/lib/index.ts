@@ -27,7 +27,7 @@ export function notify(message: Notification['message'], type: Notification['typ
 
 export async function sendFrom(shouldWait = false, index = 1, condition: boolean = true) {
   if (condition) fetching.set(index);
-  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 750));
+  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 600));
 
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
     fetching.set(0);
@@ -35,8 +35,9 @@ export async function sendFrom(shouldWait = false, index = 1, condition: boolean
   };
 }
 
-export async function clearModal(index: number = 0) {
-  showModal.set(index);
+export async function setModal(index: number = 1, condition: boolean = true) {
+  if (condition) showModal.set(0);
+  else showModal.set(index);
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
     update({reset: false});
   };

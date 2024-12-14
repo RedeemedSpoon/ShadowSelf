@@ -19,12 +19,7 @@
   function handleClick() {
     callback();
     isActivated = true;
-    buttonText.innerText = newText ? newText : text;
-
-    setTimeout(() => {
-      buttonText.innerText = text;
-      isActivated = false;
-    }, 2000);
+    setTimeout(() => (isActivated = false), 2000);
   }
 </script>
 
@@ -35,7 +30,7 @@
       <SvelteComponent />
     {/if}
   </div>
-  <p class:mono={isBox} bind:this={buttonText}>{isActivated ? newText : text}</p>
+  <p class:mono={isBox} bind:this={buttonText}>{isActivated ? newText || text : text}</p>
 </button>
 
 <style lang="postcss">
@@ -44,7 +39,7 @@
   }
 
   .box {
-    @apply from-neutral-900 to-neutral-800 shadow-inner;
+    @apply from-neutral-900 to-[#1a2437] shadow-inner;
   }
 
   .mono {

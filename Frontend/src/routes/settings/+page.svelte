@@ -1,23 +1,29 @@
 <script lang="ts">
+  import {Modal, InputWithButton, InputWithIcon, LoadingButton, ConfirmModal, ReactiveButton} from '$component';
   import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon} from '$icon';
-  import {InputWithButton, LoadingButton, ConfirmModal, ReactiveButton} from '$component';
-  import {notify, sendFrom, clearModal} from '$lib';
-  import type {Notification} from '$type';
+  import type {Notification, Settings} from '$type';
+  import {notify, sendFrom, setModal} from '$lib';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
   import {showModal} from '$store';
   import {onMount} from 'svelte';
 
   interface Props {
-    form: Notification & {OTP: boolean; API: boolean; key: string};
+    form: Notification & Settings & {qr: string; secret: string; step: number};
     data: PageData;
   }
 
   let {data, form}: Props = $props();
 
-  let anchor = $state() as HTMLAnchorElement;
   let list = $state() as HTMLElement;
+  let anchor = $state() as HTMLAnchorElement;
   const settings = $state(data.settings);
+
+  const className = {
+    label: '!bg-neutral-900/50 !border-neutral-700',
+    icon: 'fill-neutral-700 stroke-neutral-700',
+    input: 'placeholder-neutral-700 !bg-neutral-900/50 !border-neutral-700',
+  };
 
   const sections = [
     {id: 'credentials', title: 'Basic Credentials', icon: UserIcon},
@@ -33,7 +39,11 @@
 
     if (form && Object.hasOwn(form, 'OTP')) settings.OTP = form.OTP;
     if (form && Object.hasOwn(form, 'API')) settings.API = form.API;
+    if (form?.recovery) settings.recovery = form.recovery;
+    if (form?.secret) settings.secret = form.secret;
+    if (form?.step) settings.step = form.step;
     if (form?.key) settings.key = form.key;
+    if (form?.qr) settings.qr = form.qr;
   });
 
   function handleClick(index: number) {
@@ -42,22 +52,21 @@
     array[index + 1].classList.add('!bg-neutral-300/10', 'border-l-4', '!pl-24');
   }
 
-  function copyKey() {
-    navigator.clipboard.writeText(settings.key);
-  }
-
-  function copyRecovery() {
-    navigator.clipboard.writeText(settings.recovery.join('\n'));
-  }
-
-  function downloadRecovery() {
+  const copyKey = () => navigator.clipboard.writeText(settings.key);
+  const copyRecovery = () => navigator.clipboard.writeText(settings.recovery.join('\n'));
+  const copySecret = () => navigator.clipboard.writeText(settings.secret);
+  const downloadRecovery = () => {
     const text = settings.recovery.join('\n');
     const blob = new Blob([text], {type: 'text/plain'});
     anchor.href = URL.createObjectURL(blob);
     anchor.click();
-  }
+  };
 
-  onMount(() => handleClick(0));
+  onMount(() => {
+    handleClick(0);
+    $showModal = 0;
+    settings.step = 1;
+  });
 </script>
 
 <svelte:head>
@@ -93,16 +102,56 @@
     <hr />
 
     <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" />Two Factor Authentication :</h2>
-    <form class="!gap-4" use:enhance method="POST" action="?/otp">
+    <form
+      class="!gap-4"
+      use:enhance={({formData}) => setModal(1, formData.has('remove') || formData.has('cancel') || formData.has('finish'))}
+      method="POST"
+      action="?/generateOtp">
+      <input hidden name="secret" value={settings.secret} />
       <label for="totp">Time-based one-time password (TOTP) :</label>
       {#if settings.OTP}
-        <button type="button" class="w-fit">Change 2FA</button>
-        <button type="submit" name="remove" class="disable w-fit">Remove 2FA</button>
+        <button type="submit" class="w-fit">Change 2FA</button>
+        <button formaction="?/deleteOtp" type="submit" name="remove" class="disable w-fit">Remove 2FA</button>
       {:else}
-        <button type="button" class="enable w-fit">Add 2FA</button>
+        <button type="submit" class="enable w-fit">Add 2FA</button>
       {/if}
+      <Modal id={1}>
+        {#if settings.step === 1}
+          <div class="m-8 flex items-center gap-16">
+            <div class="flex flex-col items-center gap-6">
+              <h1>Scan the QR code</h1>
+              <img src={settings.qr} alt="QR Code" width="200" class="w-5/6 shadow-xl shadow-white/15" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <h1>Or enter the secret key</h1>
+              <p class="mb-2">Alternatively, you can paste this secret key into your auth app:</p>
+              <ReactiveButton isBox={true} icon={CopyIcon} text={settings.secret} callback={copySecret} />
+              <p class="ml-1 mt-2 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
+            </div>
+          </div>
+          <button type="submit" formaction="?/nextOtp" name="next" class="absolute bottom-12 right-16 w-fit">Next →</button>
+        {:else if settings.step === 2}
+          <div class="m-8 flex flex-col gap-8">
+            <h1 class="!-mb-2">Enter the verification token</h1>
+            <p>Enter the verification token generated by your authenticator app</p>
+            <InputWithIcon type="number" name="token" {className} icon={KeylockIcon} placeholder="123456" />
+            <LoadingButton className="mt-2" formaction="?/checkOtp">Verify</LoadingButton>
+          </div>
+        {:else}
+          <div class="m-8 flex flex-col gap-4">
+            <h1>2FA Setup Complete!</h1>
+            <p class="w-[40vw]">
+              You can now use 2FA to log into your account. We gave you the recovery codes below, please keep them safe
+            </p>
+            <div class="mx-8 mt-12 flex justify-between gap-4">
+              <button class="alt" onclick={() => (settings.step = 1)} name="cancel" type="button">Cancel</button>
+              <button type="submit" formaction="?/otp" name="finish">Finish →</button>
+            </div>
+          </div>
+        {/if}
+      </Modal>
     </form>
-    <form class="flex-col" use:enhance={() => sendFrom(true, 3)} method="POST" action="?/recovery">
+    <form class="flex-col" use:enhance method="POST" action="?/recovery">
       <div class="flex items-center justify-between">
         <label for="recovery">Remaining Recovery Codes :</label>
         <LoadingButton disabled={!settings.OTP} index={3} className="w-fit">Generate New Recovery Codes</LoadingButton>
@@ -135,7 +184,7 @@
         <button name="enable" type="submit" class="enable w-fit">Enable API Access</button>
       {/if}
     </form>
-    <form use:enhance={() => sendFrom(true, 4)} method="POST" action="?/api">
+    <form use:enhance method="POST" action="?/api">
       <div class="flex items-center gap-4">
         <label class="w-fit" for="key">API Key :</label>
         {#if settings.API}
@@ -170,16 +219,16 @@
     <hr />
 
     <h2 id="danger"><InfoIcon className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone :</h2>
-    <form use:enhance={() => clearModal()} method="POST" action="?/session">
+    <form use:enhance={() => setModal(0)} method="POST" action="?/session">
       <label for="logout">Session Management :</label>
       <button type="submit" name="logout" class="-mr-4 w-fit">Logout</button>
-      <button type="button" onclick={() => ($showModal = 1)} class="w-fit" name="revoke">Revoke All Session</button>
-      <ConfirmModal id={1} name="revoke" text="Revoking all sessions" />
+      <button type="button" onclick={() => ($showModal = 2)} class="w-fit" name="revoke">Revoke All Session</button>
+      <ConfirmModal id={2} name="revoke" text="Revoking all sessions" />
     </form>
-    <form use:enhance={() => clearModal()} method="POST" action="?/delete">
+    <form use:enhance={() => setModal(0)} method="POST" action="?/delete">
       <label for="delete">Account Deletion :</label>
-      <button onclick={() => ($showModal = 2)} type="button" class="disable w-fit">Delete Account</button>
-      <ConfirmModal id={2} name="delete" text="Deleting your account" />
+      <button onclick={() => ($showModal = 3)} type="button" class="disable w-fit">Delete Account</button>
+      <ConfirmModal id={3} name="delete" text="Deleting your account" />
     </form>
   </section>
 </div>
@@ -187,6 +236,10 @@
 <style lang="postcss">
   #settings {
     @apply grid h-full min-h-screen w-full grid-cols-[1fr_3fr] pt-[5rem] text-neutral-400;
+  }
+
+  h1 {
+    @apply text-[2.5rem] text-neutral-300;
   }
 
   h2 {

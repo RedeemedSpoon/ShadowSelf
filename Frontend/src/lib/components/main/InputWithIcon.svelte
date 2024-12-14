@@ -6,7 +6,7 @@
     type: string;
     icon?: Component;
     placeholder?: string;
-    className?: {wrapper?: string; input?: string; label: string; icon?: string};
+    className?: {wrapper?: string; input?: string; label?: string; icon?: string};
     handleInput?: (e: Event) => void;
   }
 
@@ -26,7 +26,7 @@
 <style lang="postcss">
   label {
     @apply ring-primary-600 flex items-center justify-center transition-all duration-300 ease-in-out group-focus-within:ring-2;
-    @apply rounded-l-xl border border-neutral-800 border-r-transparent bg-transparent;
+    @apply rounded-l-xl border border-neutral-800 !border-r-transparent bg-transparent;
   }
 
   input:not(.alternative) {
