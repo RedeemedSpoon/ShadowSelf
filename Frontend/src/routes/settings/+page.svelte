@@ -9,7 +9,7 @@
   import {onMount} from 'svelte';
 
   interface Props {
-    form: Notification & Settings & {qr: string; secret: string; step: number};
+    form: Notification & Settings & {qr: string; secret: string; step: number; message: string};
     data: PageData;
   }
 
@@ -48,8 +48,8 @@
 
   function handleClick(index: number) {
     const array = Array.from(list.children);
-    array.forEach((item) => item.classList.remove('!bg-neutral-300/10', 'border-l-4', '!pl-24'));
-    array[index + 1].classList.add('!bg-neutral-300/10', 'border-l-4', '!pl-24');
+    array.forEach((item) => item.classList.remove('!bg-neutral-300/10', 'border-l-4', '2xl:!pl-24'));
+    array[index + 1].classList.add('!bg-neutral-300/10', 'border-l-4', '2xl:!pl-24');
   }
 
   const copyKey = () => navigator.clipboard.writeText(settings.key);
@@ -75,7 +75,7 @@
 </svelte:head>
 
 <div id="settings">
-  <ul bind:this={list} class="flex flex-col bg-neutral-800/40 pt-24 max-lg:hidden">
+  <ul bind:this={list} class="flex flex-col bg-neutral-800/40 pt-24 max-xl:hidden">
     <li id="title">Sections</li>
     {#each sections as section, i}
       {@const SvelteComponent = section.icon}
@@ -86,38 +86,35 @@
       </a>
     {/each}
   </ul>
-  <section class="mb-32 mt-20 flex h-full w-full flex-col gap-8 px-24">
+  <section class="my-20 flex h-full w-full flex-col gap-8 px-6 xl:px-24">
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
     <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials :</h2>
     <form use:enhance={() => sendFrom(true, 1)} method="POST" action="?/username">
-      <label class="w-[12.5%]" for="username">Username :</label>
+      <label class="md:!w-fit" for="username">Username :</label>
       <InputWithButton placeholder="New username" value={data.user} index={1} label="Change Username" name="username" />
     </form>
-    <form class="flex" use:enhance={() => sendFrom(true, 2)} method="POST" action="?/password">
-      <label class="w-[12.5%]" for="password">Password :</label>
+    <form use:enhance={() => sendFrom(true, 2)} method="POST" action="?/password">
+      <label class="md:!w-fit" for="password">Password :</label>
       <InputWithButton placeholder="New password" type="password" index={2} label="Change Password" name="password" />
     </form>
     <hr />
 
     <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" />Two Factor Authentication :</h2>
-    <form
-      class="!gap-4"
-      use:enhance={({formData}) => setModal(1, formData.has('remove') || formData.has('cancel') || formData.has('finish'))}
-      method="POST"
-      action="?/generateOtp">
-      <input hidden name="secret" value={settings.secret} />
-      <label for="totp">Time-based one-time password (TOTP) :</label>
+    <form class="!gap-4" use:enhance={({formData}) => setModal(1, formData.has('remove'))} method="POST" action="?/checkOtp">
+      <label for="totp">Time-based one-time password :</label>
       {#if settings.OTP}
-        <button type="submit" class="w-fit">Change 2FA</button>
+        <button formaction="?/generateOtp" type="submit" class="w-fit">Change 2FA</button>
         <button formaction="?/deleteOtp" type="submit" name="remove" class="disable w-fit">Remove 2FA</button>
       {:else}
-        <button type="submit" class="enable w-fit">Add 2FA</button>
+        <button formaction="?/generateOtp" type="submit" class="enable w-fit">Add 2FA</button>
       {/if}
-      <Modal id={1}>
-        {#if settings.step === 1}
-          <div class="m-8 flex items-center gap-16">
+    </form>
+    <Modal id={1}>
+      {#if settings.step === 1}
+        <form use:enhance method="POST" action="?/nextOtp">
+          <div class="flex items-center gap-8 max-md:flex-col xl:m-8 xl:gap-16">
             <div class="flex flex-col items-center gap-6">
               <h1>Scan the QR code</h1>
               <img src={settings.qr} alt="QR Code" width="200" class="w-5/6 shadow-xl shadow-white/15" />
@@ -125,40 +122,51 @@
             <div class="flex flex-col gap-2">
               <h1>Or enter the secret key</h1>
               <p class="mb-2">Alternatively, you can paste this secret key into your auth app:</p>
-              <ReactiveButton isBox={true} icon={CopyIcon} text={settings.secret} callback={copySecret} />
+              <ReactiveButton
+                className="md:max-lg:max-w-[30vw]"
+                isBox={true}
+                icon={CopyIcon}
+                text={settings.secret}
+                callback={copySecret} />
               <p class="ml-1 mt-2 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
             </div>
           </div>
-          <button type="submit" formaction="?/nextOtp" name="next" class="absolute bottom-12 right-16 w-fit">Next →</button>
-        {:else if settings.step === 2}
-          <div class="m-8 flex flex-col gap-8">
+          <button type="submit" class="bottom-12 right-16 !w-fit md:absolute">Next →</button>
+        </form>
+      {:else if settings.step === 2}
+        <form use:enhance={() => sendFrom(true, 3)} method="POST" action="?/checkOtp">
+          <input hidden name="secret" value={settings.secret} />
+          <div class="flex flex-col gap-8 xl:m-8">
             <h1 class="!-mb-2">Enter the verification token</h1>
             <p>Enter the verification token generated by your authenticator app</p>
             <InputWithIcon type="number" name="token" {className} icon={KeylockIcon} placeholder="123456" />
-            <LoadingButton className="mt-2" formaction="?/checkOtp">Verify</LoadingButton>
+            <LoadingButton index={3} className="mt-2">Verify</LoadingButton>
           </div>
-        {:else}
-          <div class="m-8 flex flex-col gap-4">
+        </form>
+      {:else}
+        <form use:enhance={() => setModal(0)} method="POST" action="?/otp">
+          <input hidden name="secret" value={settings.secret} />
+          <div class="flex flex-col gap-4 xl:m-8">
             <h1>2FA Setup Complete!</h1>
-            <p class="w-[40vw]">
+            <p class="md:w-[40vw]">
               You can now use 2FA to log into your account. We gave you the recovery codes below, please keep them safe
             </p>
             <div class="mx-8 mt-12 flex justify-between gap-4">
               <button class="alt" onclick={() => (settings.step = 1)} name="cancel" type="button">Cancel</button>
-              <button type="submit" formaction="?/otp" name="finish">Finish →</button>
+              <button type="submit" name="finish">Finish →</button>
             </div>
           </div>
-        {/if}
-      </Modal>
-    </form>
+        </form>
+      {/if}
+    </Modal>
     <form class="flex-col" use:enhance method="POST" action="?/recovery">
-      <div class="flex items-center justify-between">
+      <div class="flex justify-between gap-4 max-md:flex-col md:items-center">
         <label for="recovery">Remaining Recovery Codes :</label>
-        <LoadingButton disabled={!settings.OTP} index={3} className="w-fit">Generate New Recovery Codes</LoadingButton>
+        <button disabled={!settings.OTP} type="submit" class="w-fit">Generate New Recovery Codes</button>
       </div>
     </form>
     {#if settings.OTP}
-      <div id="recovery" class={settings.recovery.length ? 'grid-cols-3' : 'grid-cols-1'}>
+      <div id="recovery" class={settings.recovery.length ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1'}>
         {#each settings.recovery as code}
           <p>{code}</p>
         {:else}
@@ -166,7 +174,7 @@
         {/each}
       </div>
       {#if settings.recovery.length}
-        <div class="flex justify-evenly">
+        <div class="flex justify-evenly max-md:flex-col max-md:items-center">
           <ReactiveButton icon={CopyIcon} text="Copy to clipboard" newText="Copied!" callback={copyRecovery} />
           <ReactiveButton icon={DownloadIcon} text="Download as .txt" newText="Downloaded!" callback={downloadRecovery} />
           <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
@@ -185,18 +193,18 @@
       {/if}
     </form>
     <form use:enhance method="POST" action="?/api">
-      <div class="flex items-center gap-4">
+      <div class="flex gap-4 max-md:flex-col md:items-center">
         <label class="w-fit" for="key">API Key :</label>
         {#if settings.API}
-          <ReactiveButton callback={copyKey} icon={CopyIcon} text={settings.key} isBox={true} />
+          <ReactiveButton className="md:max-lg:max-w-[20vw]" callback={copyKey} icon={CopyIcon} text={settings.key} isBox={true} />
         {/if}
       </div>
-      <LoadingButton disabled={!settings.API} index={4} className="w-fit">Generate New API Key</LoadingButton>
+      <button disabled={!settings.API} type="submit" class="w-fit">Generate New API Key</button>
     </form>
     <hr />
 
     <h2 id="billing"><CreditCardIcon className="!h-10 !w-10 cursor-default" />Billing Information :</h2>
-    <form class="flex-col" use:enhance={({formData}) => sendFrom(true, 5, formData.has('update'))} method="POST" action="?/billing">
+    <form class="flex-col" use:enhance={({formData}) => sendFrom(true, 4, formData.has('update'))} method="POST" action="?/billing">
       <div class="inline-grid grid-cols-2 gap-8">
         <div class="flex flex-col gap-4">
           <label for="billing">Billing 1</label>
@@ -212,7 +220,7 @@
       <label class="-mb-4" for="billing">Billing 4</label>
       <input name="billing" type="text" placeholder="Billing" />
       <div class="flex w-fit gap-4 self-end">
-        <LoadingButton index={5} name="update" className="w-fit">Update Billing</LoadingButton>
+        <LoadingButton index={4} name="update" className="w-fit">Update Billing</LoadingButton>
         <button type="submit" class="disable w-fit" formaction="?/deleteBilling">Delete Billing</button>
       </div>
     </form>
@@ -221,13 +229,13 @@
     <h2 id="danger"><InfoIcon className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone :</h2>
     <form use:enhance={() => setModal(0)} method="POST" action="?/session">
       <label for="logout">Session Management :</label>
-      <button type="submit" name="logout" class="-mr-4 w-fit">Logout</button>
-      <button type="button" onclick={() => ($showModal = 2)} class="w-fit" name="revoke">Revoke All Session</button>
+      <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>
+      <button type="button" onclick={() => ($showModal = 2)} class="md:w-fit" name="revoke">Revoke All Session</button>
       <ConfirmModal id={2} name="revoke" text="Revoking all sessions" />
     </form>
     <form use:enhance={() => setModal(0)} method="POST" action="?/delete">
       <label for="delete">Account Deletion :</label>
-      <button onclick={() => ($showModal = 3)} type="button" class="disable w-fit">Delete Account</button>
+      <button onclick={() => ($showModal = 3)} type="button" class="disable md:w-fit">Delete Account</button>
       <ConfirmModal id={3} name="delete" text="Deleting your account" />
     </form>
   </section>
@@ -235,11 +243,11 @@
 
 <style lang="postcss">
   #settings {
-    @apply grid h-full min-h-screen w-full grid-cols-[1fr_3fr] pt-[5rem] text-neutral-400;
+    @apply grid h-full min-h-screen w-full pt-[5rem] text-neutral-400 xl:grid-cols-[1fr_3fr];
   }
 
-  h1 {
-    @apply text-[2.5rem] text-neutral-300;
+  h1:not(.basic-style) {
+    @apply text-3xl text-neutral-300 lg:text-[2.5rem];
   }
 
   h2 {
@@ -259,11 +267,20 @@
   }
 
   ul a {
-    @apply border-primary-700 sticky py-3 pl-20 text-neutral-300 transition-all duration-200 ease-in-out hover:bg-neutral-300/5;
+    @apply border-primary-700 sticky py-3 pl-10 text-neutral-300 2xl:pl-20;
+    @apply transition-all duration-200 ease-in-out hover:bg-neutral-300/5;
+  }
+
+  ul a span {
+    @apply text-nowrap;
   }
 
   form {
-    @apply flex justify-between gap-8;
+    @apply flex gap-4 max-md:flex-col md:justify-between md:gap-8;
+  }
+
+  form > * {
+    @apply max-md:w-full max-md:self-center;
   }
 
   label {

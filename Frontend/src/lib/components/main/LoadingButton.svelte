@@ -24,7 +24,6 @@
 
 <style lang="postcss">
   button {
-    @apply disabled:shadow-primary-950 flex items-center justify-center gap-3 text-nowrap disabled:cursor-not-allowed;
-    @apply disabled:hover:bg-pos-0 disabled:hover:shadow-primary-950 disabled:opacity-60;
+    @apply flex items-center justify-center gap-3 text-nowrap;
   }
 </style>

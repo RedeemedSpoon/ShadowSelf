@@ -4,13 +4,14 @@
 
   interface Props {
     callback: () => void;
+    className?: string;
     newText?: string;
     isBox?: boolean;
     icon: Component;
     text: string;
   }
 
-  const {callback, icon, text, newText, isBox}: Props = $props();
+  const {callback, icon, className, text, newText, isBox}: Props = $props();
 
   let button = $state() as HTMLButtonElement;
   let buttonText = $state() as HTMLParagraphElement;
@@ -30,7 +31,7 @@
       <SvelteComponent />
     {/if}
   </div>
-  <p class:mono={isBox} bind:this={buttonText}>{isActivated ? newText || text : text}</p>
+  <p class="{className} {isBox ? 'mono' : ''}" bind:this={buttonText}>{isActivated ? newText || text : text}</p>
 </button>
 
 <style lang="postcss">
@@ -47,6 +48,6 @@
   }
 
   p {
-    @apply text-nowrap;
+    @apply md:text-nowrap;
   }
 </style>

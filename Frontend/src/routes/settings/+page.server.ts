@@ -41,7 +41,7 @@ export const actions: Actions = {
     const token = form.get('token');
 
     const response = await fetchApi('/settings/otp-check', 'POST', {token, secret});
-    if (response.type === 'alert') return response;
+    if (response.type === 'alert') return {step: 2, ...response};
     return {step: 3};
   },
   otp: async ({request}) => {

@@ -15,7 +15,7 @@ export function changePricingModel(model: string) {
   element.style.left = margin;
 }
 
-export function notify(message: Notification['message'], type: Notification['type'] = 'info') {
+export function notify(message: string, type: Notification['type'] = 'info') {
   const id = Math.floor(Math.random() * 10000);
   notification.set({message, type, id});
   setTimeout(() => {
@@ -25,7 +25,7 @@ export function notify(message: Notification['message'], type: Notification['typ
   }, 5000);
 }
 
-export async function sendFrom(shouldWait = false, index = 1, condition: boolean = true) {
+export async function sendFrom(shouldWait = false, index = 1, condition = true) {
   if (condition) fetching.set(index);
   if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 600));
 
@@ -35,9 +35,10 @@ export async function sendFrom(shouldWait = false, index = 1, condition: boolean
   };
 }
 
-export async function setModal(index: number = 1, condition: boolean = true) {
+export async function setModal(index = 1, condition = true) {
   if (condition) showModal.set(0);
   else showModal.set(index);
+
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
     update({reset: false});
   };
