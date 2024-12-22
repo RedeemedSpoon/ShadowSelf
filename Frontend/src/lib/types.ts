@@ -8,7 +8,6 @@ export interface Faq {
   question: string;
   answer: string;
 }
-
 export interface Option {
   label: string;
   value: string;

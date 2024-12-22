@@ -16,8 +16,9 @@ export default new Elysia({prefix: '/settings'})
   })
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(9);
-    const mustLog = ['/', '/toggleAPI', '/revoke', '/otp', '/recovery', '/api-key', '/username', '/password', '/billing', '/full'];
+    const mustLog = ['', '/', '/toggleAPI', '/revoke', '/otp', '/recovery', '/api-key', '/username', '/password', '/billing', '/full'];
 
+    console.log(user);
     if (mustLog.some((p) => relativePath === p) && !user) {
       return error(401, 'You are not logged in');
     }

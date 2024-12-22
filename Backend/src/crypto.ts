@@ -1,6 +1,6 @@
 import {genSalt, hash, compare} from 'bcrypt';
-import * as OTPAuth from 'otpauth';
 import {pseudoRandomBytes} from 'crypto';
+import * as OTPAuth from 'otpauth';
 
 export function createTOTP(secret: string, username: string): OTPAuth.TOTP {
   return new OTPAuth.TOTP({

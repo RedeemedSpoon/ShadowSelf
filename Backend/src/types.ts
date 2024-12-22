@@ -30,3 +30,20 @@ export interface QueryResult {
   api_access: boolean;
   api_key: string;
 }
+
+export const pricingModal = {
+  monthly: {
+    priceID: 'price_1QXH4eByRGrIIrNdMMiboZ9A',
+    price: 4.99,
+  },
+
+  annually: {
+    priceID: 'price_1QXH49ByRGrIIrNdkwyuVYve',
+    price: 49.99,
+  },
+
+  lifetime: {
+    priceID: 'price_1QXH3FByRGrIIrNdAbbNnwaO',
+    price: 199.99,
+  },
+};

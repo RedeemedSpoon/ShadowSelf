@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import postgres from 'postgres';
+import Stripe from 'stripe';
 
 const sql = postgres({
   host: 'localhost',
@@ -19,4 +20,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export {sql, transporter};
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: '2024-11-20.acacia; custom_checkout_beta=v1' as '2024-12-18.acacia',
+});
+
+export {sql, transporter, stripe};
