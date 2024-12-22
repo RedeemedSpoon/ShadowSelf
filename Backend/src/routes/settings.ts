@@ -1,10 +1,10 @@
 import {createTOTP, getSecret, getAPIKey, hashPWD, getRecovery} from '../crypto';
-import {QueryResult, User} from '../types';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
 import {attempt} from '../utils';
 import {check} from '../checks';
+import {User} from '../types';
 
 export default new Elysia({prefix: '/settings'})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -23,7 +23,7 @@ export default new Elysia({prefix: '/settings'})
     }
   })
   .get('/', async ({user}) => {
-    const result = (await attempt(sql`SELECT * FROM users WHERE username = ${user!.username}`)) as QueryResult[];
+    const result = await attempt(sql`SELECT * FROM users WHERE username = ${user!.username}`);
     const {recovery, totp, api_access, api_key} = result[0];
 
     return {recovery: recovery || [], key: api_key, API: api_access, OTP: totp && true};
@@ -35,7 +35,7 @@ export default new Elysia({prefix: '/settings'})
     return {uri, secret};
   })
   .get('/recovery', async ({user}) => {
-    const otp = (await attempt(sql`SELECT totp FROM users WHERE username = ${user!.username}`)) as QueryResult[];
+    const otp = await attempt(sql`SELECT totp FROM users WHERE username = ${user!.username}`);
     if (!otp[0].totp) return error(400, '2FA is disabled. Enable it to proceed');
 
     const recoveryCodes = getRecovery();
@@ -43,14 +43,14 @@ export default new Elysia({prefix: '/settings'})
     return {recovery: recoveryCodes};
   })
   .get('/toggleAPI', async ({user}) => {
-    const access = (await attempt(sql`SELECT api_access FROM users WHERE username = ${user!.username}`)) as QueryResult[];
+    const access = await attempt(sql`SELECT api_access FROM users WHERE username = ${user!.username}`);
     const toggle = !access[0].api_access;
 
     await attempt(sql`UPDATE users SET api_access = ${toggle} WHERE username = ${user!.username}`);
     return {API: toggle};
   })
   .get('/api-key', async ({user}) => {
-    const access = (await attempt(sql`SELECT api_access FROM users WHERE username = ${user!.username}`)) as QueryResult[];
+    const access = await attempt(sql`SELECT api_access FROM users WHERE username = ${user!.username}`);
     if (!access[0].api_access) return error(400, 'API access is disabled. Enable it to proceed');
 
     const key = getAPIKey();
@@ -82,7 +82,7 @@ export default new Elysia({prefix: '/settings'})
     if (err) return error(400, err);
 
     if (user!.username !== username) {
-      const isTaken = (await attempt(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
+      const isTaken = await attempt(sql`SELECT * FROM users WHERE username = ${username}`);
       if (isTaken.length) return error(409, 'This username is already taken');
     }
 

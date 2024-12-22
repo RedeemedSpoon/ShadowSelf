@@ -1,10 +1,10 @@
 import {comparePWD, hashPWD, genereteID, createTOTP, getAPIKey, getSecret, getRecovery} from '../crypto';
-import {QueryResult, User} from '../types';
 import {Elysia, error} from 'elysia';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 import {check} from '../checks';
+import {User} from '../types';
 
 export default new Elysia({prefix: '/account'})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -25,7 +25,7 @@ export default new Elysia({prefix: '/account'})
   .get('/', async ({user}) => {
     if (!user) return;
 
-    const result = (await attempt(sql`SELECT revoke_session FROM users WHERE username = ${user.username}`)) as QueryResult[];
+    const result = await attempt(sql`SELECT revoke_session FROM users WHERE username = ${user.username}`);
     if (!result[0].revoke_session.includes(user.id)) return error(401, 'Not authorized');
 
     return user?.username;
@@ -34,7 +34,7 @@ export default new Elysia({prefix: '/account'})
     const {password, username, err} = check(body, ['password', 'username'], true);
     if (err) return error(400, err);
 
-    const result = (await attempt(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
+    const result = await attempt(sql`SELECT * FROM users WHERE username = ${username}`);
     if (!result.length) return error(400, 'Invalid credentials. Please try again');
 
     const hashedPassword = result[0].password;
@@ -54,7 +54,7 @@ export default new Elysia({prefix: '/account'})
     const {token, username, password, err} = check(body, ['token', 'username', 'password'], true);
     if (err) return error(400, err);
 
-    const secret = (await attempt(sql`SELECT totp FROM users WHERE username = ${username}`)) as QueryResult[];
+    const secret = await attempt(sql`SELECT totp FROM users WHERE username = ${username}`);
     if (!secret.length) return error(400, 'Incorrect validation token. Please try again');
 
     const totp = createTOTP(secret[0].totp, username);
@@ -71,7 +71,7 @@ export default new Elysia({prefix: '/account'})
     const {code, username, password, err} = check(body, ['code', 'username', 'password'], true);
     if (err) return error(400, err);
 
-    const recovery = (await attempt(sql`SELECT recovery FROM users WHERE username = ${username}`)) as QueryResult[];
+    const recovery = await attempt(sql`SELECT recovery FROM users WHERE username = ${username}`);
     if (!recovery.length) return error(400, 'Incorrect recovery code. Try another one');
 
     const allCodes = recovery[0].recovery;
@@ -93,7 +93,7 @@ export default new Elysia({prefix: '/account'})
     const {username, err} = check(body, ['username', 'password']);
     if (err) return error(400, err);
 
-    const result = (await attempt(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
+    const result = await attempt(sql`SELECT * FROM users WHERE username = ${username}`);
     if (result.length) return error(409, 'This username is already taken');
 
     return {username};
@@ -105,6 +105,7 @@ export default new Elysia({prefix: '/account'})
     const secret = getSecret();
     const totp = createTOTP(secret, username);
     const uri = totp.toString();
+
     return {uri, secret};
   })
   .post('/signup-recovery', async ({body}) => {
@@ -123,7 +124,7 @@ export default new Elysia({prefix: '/account'})
     const {password, username, secret, recovery, err} = check(body, fields);
     if (err) return error(400, err);
 
-    const isTaken = (await attempt(sql`SELECT * FROM users WHERE username = ${username}`)) as QueryResult[];
+    const isTaken = await attempt(sql`SELECT * FROM users WHERE username = ${username}`);
     if (isTaken.length) return error(409, 'This username is already taken');
 
     const newPassword = await hashPWD(password);

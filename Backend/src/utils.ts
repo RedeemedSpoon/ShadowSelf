@@ -1,11 +1,11 @@
-import type {ContactDetail} from './types';
+import type {ContactDetail, QueryResult} from './types';
 import {transporter} from './connection';
 
-export async function attempt(func: Promise<unknown>): Promise<unknown> {
+export async function attempt(func: Promise<unknown>): Promise<QueryResult[]> {
   try {
-    return await func;
-  } catch (error: unknown) {
-    return error;
+    return (await func) as QueryResult[];
+  } catch (error) {
+    return error as QueryResult[];
   }
 }
 
@@ -21,7 +21,7 @@ export async function sendEmail(body: ContactDetail) {
     await transporter.sendMail(mailOptions);
     return {message: 'Your message has been sent!', err: ''};
   } catch {
-    return {message: '', err: 'Something went wrong with the server. Try again later.'};
+    return {message: '', err: 'Something went wrong. Try again later.'};
   }
 }
 
