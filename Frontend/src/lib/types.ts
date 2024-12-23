@@ -1,6 +1,6 @@
 export interface Notification {
   id: number | null;
-  message: string | Error;
+  message: string;
   type: 'success' | 'alert' | 'info';
 }
 

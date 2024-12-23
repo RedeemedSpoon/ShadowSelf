@@ -1,4 +1,5 @@
 import type {Faq, Settings, Option, Identity, AnimationSelector} from '$type';
+import {type Stripe} from '@stripe/stripe-js';
 
 declare global {
   namespace App {
@@ -9,7 +10,8 @@ declare global {
       animations?: AnimationSelector[];
       searchKeywords?: Option[];
       identities?: Identity[];
-      settings: Settings;
+      settings?: Settings;
+      stripe?: Stripe;
       faqs?: Faq[];
     }
   }

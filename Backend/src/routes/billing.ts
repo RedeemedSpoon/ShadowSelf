@@ -15,7 +15,7 @@ export default new Elysia({prefix: '/billing'})
     const relativePath = path.slice(8);
     const mustLog = ['', '/', '/portal', '/webhook'];
 
-    if (mustLog.some((p) => relativePath === p) && !user) {
+    if (mustLog.some((p) => relativePath === p) && user) {
       return error(401, 'You are not logged in');
     }
   })
@@ -27,9 +27,8 @@ export default new Elysia({prefix: '/billing'})
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
 
     const session = await stripe.checkout.sessions.create({
-      ui_mode: 'custom' as 'embedded',
+      ui_mode: 'embedded',
       mode: type === 'lifetime' ? 'payment' : 'subscription',
-      success_url: mode === 'dev' ? 'http://localhost:5173/success' : 'https://shadowself.io/success',
       return_url: mode === 'dev' ? 'http://localhost:5173/fail' : 'https://shadowself.io/fail',
       line_items: [
         {
@@ -38,5 +37,6 @@ export default new Elysia({prefix: '/billing'})
         },
       ],
     });
-    console.log(session);
+
+    return {clientSecret: session.client_secret};
   });
