@@ -32,18 +32,7 @@ export interface QueryResult {
 }
 
 export const pricingModal = {
-  monthly: {
-    priceID: 'price_1QXH4eByRGrIIrNdMMiboZ9A',
-    price: 4.99,
-  },
-
-  annually: {
-    priceID: 'price_1QXH49ByRGrIIrNdkwyuVYve',
-    price: 49.99,
-  },
-
-  lifetime: {
-    priceID: 'price_1QXH3FByRGrIIrNdAbbNnwaO',
-    price: 199.99,
-  },
+  monthly: 'price_1QZNn0ByRGrIIrNdokuzlOfL',
+  annually: 'price_1QZNnHByRGrIIrNd0NqxQLs2',
+  lifetime: 'price_1QZNmfByRGrIIrNd9lamxQJK',
 };

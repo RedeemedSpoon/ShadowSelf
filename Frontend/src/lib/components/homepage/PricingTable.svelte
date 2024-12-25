@@ -1,8 +1,8 @@
 <script lang="ts">
   import {CheckmarkIcon, ChevronIcon, QuestionIcon} from '$icon';
+  import {pricingModel, user} from '$store';
   import {changePricingModel} from '$lib';
   import {fly} from 'svelte/transition';
-  import {pricingModel} from '$store';
   import {Card} from '$component';
 
   const title = [
@@ -26,7 +26,7 @@
   <div id="pricing-model">
     <div id="select-model-box"></div>
     {#each ['Monthly', 'Annually', 'Lifetime'] as model}
-      <button class:!text-neutral-300={model === $pricingModel.name} onclick={() => changePricingModel(model)}>
+      <button type="button" class:!text-neutral-300={model === $pricingModel.name} onclick={() => changePricingModel(model)}>
         {model}
       </button>
     {/each}
@@ -64,7 +64,7 @@
     </div>
     <p class="-my-4 text-sm text-neutral-500">All major crypto currencies are supported.</p>
   </div>
-  <a href="/signup">
+  <a href={$user ? '/purchase' : '/login'}>
     <button id="purchase">Purchase<ChevronIcon /></button>
   </a>
 </Card>

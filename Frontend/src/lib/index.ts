@@ -25,18 +25,19 @@ export function notify(message: string, type: Notification['type'] = 'info') {
   }, 5000);
 }
 
-export async function sendFrom(shouldWait = false, index = 1, condition = true) {
+export async function sendFrom(shouldWait = false, index = 1, condition = true, func: () => void) {
   if (condition) fetching.set(index);
-  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 600));
+  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 650));
 
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
+    if (func) func();
     fetching.set(0);
     update({reset: false});
   };
 }
 
 export async function setModal(index = 1, condition = true) {
-  if (condition) showModal.set(0);
+  if (!condition) showModal.set(0);
   else showModal.set(index);
 
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {

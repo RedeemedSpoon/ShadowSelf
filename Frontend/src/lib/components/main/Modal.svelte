@@ -4,10 +4,10 @@
 
   interface Props {
     children: Snippet;
-    id: number;
+    id?: number;
   }
 
-  let {children, id}: Props = $props();
+  let {children, id = 1}: Props = $props();
   let hide = $state(true);
 
   $effect(() => {

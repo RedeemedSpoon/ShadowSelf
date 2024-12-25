@@ -8,7 +8,7 @@
     "build": "NODE_ENV=prod bun build --compile --minify-whitespace --minify-syntax --target bun --outfile server ./src/index.ts"
   },
   "devDependencies": {
-    "@elysiajs/jwt": "^1.1.1",
+    "@elysiajs/jwt": "^1.2.0",
     "@types/bcrypt": "^5.0.2",
     "@types/bun": "^1.1.14",
     "@types/nodemailer": "^6.4.17",
@@ -16,7 +16,7 @@
     "bun-types": "latest",
     "elysia": "latest",
     "nodemailer": "^6.9.16",
-    "otpauth": "^9.3.5",
+    "otpauth": "^9.3.6",
     "postgres": "^3.4.5",
     "stripe": "^17.5.0"
   },

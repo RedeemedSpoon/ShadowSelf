@@ -102,7 +102,7 @@
     <hr />
 
     <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" />Two Factor Authentication :</h2>
-    <form class="!gap-4" use:enhance={({formData}) => setModal(1, formData.has('remove'))} method="POST" action="?/checkOtp">
+    <form class="!gap-4" use:enhance={({formData}) => setModal(1, !formData.has('remove'))} method="POST" action="?/checkOtp">
       <label for="totp">Time-based one-time password :</label>
       {#if settings.OTP}
         <button formaction="?/generateOtp" type="submit" class="w-fit">Change 2FA</button>
