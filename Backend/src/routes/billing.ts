@@ -11,15 +11,24 @@ export default new Elysia({prefix: '/billing'})
     const user = (await jwt.verify(token)) as User;
     return {user};
   })
-  .onBeforeHandle(({user, path}) => {
-    const relativePath = path.slice(8);
-    const mustLog = ['', '/', '/portal', '/webhook'];
+  .post('/webhook', async ({request}) => {
+    const signature = request.headers.get('stripe-signature')!;
+    const secret = process.env.STRIPE_WEBHOOK_SECRET!;
+    const body = await request.text();
+    let event;
 
-    if (mustLog.some((p) => relativePath === p) && !user) {
-      return error(401, 'You are not logged in');
+    try {
+      event = await stripe.webhooks.constructEventAsync(body, signature, secret);
+    } catch (err) {
+      return error(400, err instanceof Error ? err.message : err);
     }
+
+    console.log(event);
+    return {received: true};
   })
-  .get('/', async ({query}) => {
+  .get('/', async ({user, query}) => {
+    if (!user) return error(401, 'You are not logged in');
+
     const type = query?.type as keyof typeof pricingModal;
     const mode = process.env.NODE_ENV;
 

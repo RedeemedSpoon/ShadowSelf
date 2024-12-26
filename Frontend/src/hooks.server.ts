@@ -18,6 +18,14 @@ export const handle: Handle = async ({event, resolve}) => {
     redirect(302, '/');
   }
 
+  if (path === '/webhook' && event.request.method === 'POST') {
+    const response = await fetch(`http://localhost:3000/billing/webhook`, event.request)
+      .then((res) => res.json())
+      .catch((error) => ({message: error.message}));
+
+    return new Response(JSON.stringify(response), {headers: {'Content-Type': 'application/json'}});
+  }
+
   if (path.startsWith('/api') || path.startsWith('/extension-api')) {
     const response = await fetch(`http://localhost:3000${event.url.pathname}`, event.request)
       .then((res) => res.json())

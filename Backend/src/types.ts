@@ -32,7 +32,7 @@ export interface QueryResult {
 }
 
 export const pricingModal = {
-  monthly: 'price_1QZNn0ByRGrIIrNdokuzlOfL',
-  annually: 'price_1QZNnHByRGrIIrNd0NqxQLs2',
-  lifetime: 'price_1QZNmfByRGrIIrNd9lamxQJK',
+  monthly: 'price_1QaM8sByRGrIIrNdSZuKcNV2',
+  annually: 'price_1QaM8iByRGrIIrNdlLpIn0cI',
+  lifetime: 'price_1QaM8JByRGrIIrNdDLtv6Gml',
 };
