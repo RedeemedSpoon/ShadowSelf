@@ -1,9 +1,9 @@
 <script lang="ts">
-  import {loadStripe, type Stripe} from '@stripe/stripe-js';
-  import {notify, changePricingModel, sendFrom} from '$lib';
-  import {EmbeddedCheckout} from 'svelte-stripe';
+  import {PaymentElement, Elements, LinkAuthenticationElement} from 'svelte-stripe';
+  import {loadStripe, type Stripe, type StripeElements} from '@stripe/stripe-js';
+  import {fetching, pricingModel, showModal} from '$store';
   import {LoadingButton, Modal} from '$component';
-  import {pricingModel, showModal} from '$store';
+  import {notify, changePricingModel} from '$lib';
   import type {Notification} from '$type';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
@@ -17,6 +17,7 @@
   let {data, form}: Props = $props();
   let clientSecret = $state() as string;
   let stripe = $state() as Stripe;
+  let elements = $state() as StripeElements;
 
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
@@ -24,8 +25,33 @@
   });
 
   onMount(async () => {
-    stripe = (await loadStripe(data.stripeKey)) as Stripe;
+    stripe = (await loadStripe(data.stripeKey!)) as Stripe;
   });
+
+  async function handleSubmit() {
+    fetching.set(1);
+    setTimeout(() => (fetching.set(0), showModal.set(1)), 1000);
+
+    return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
+      update({reset: false});
+    };
+  }
+
+  async function handlePay(event: Event) {
+    event.preventDefault();
+    showModal.set(2);
+
+    elements.submit();
+    const result = await stripe.confirmPayment({
+      elements,
+      clientSecret,
+      redirect: 'if_required',
+      confirmParams: {
+        return_url: window.location.origin + '/dashboard',
+      },
+    });
+    console.log(result);
+  }
 </script>
 
 <svelte:head>
@@ -34,7 +60,7 @@
 </svelte:head>
 
 <div id="purchase">
-  <form method="POST" use:enhance={() => sendFrom(true, 1, true, () => showModal.set(1))}>
+  <form method="POST" use:enhance={handleSubmit}>
     <h1 class="text-6xl">Purchase a new identity</h1>
     <p>Purchase an affordable identity to protect your privacy and safeguard your data.</p>
     <div id="pricing-model">
@@ -48,13 +74,17 @@
     <input hidden value={$pricingModel.name} name="type" type="hidden" />
     <LoadingButton className="w-fit px-16 py-6 text-2xl mt-4">Purchase</LoadingButton>
   </form>
-  {#key clientSecret}
-    <Modal id={1}>
-      <div id="checkout">
-        <EmbeddedCheckout {stripe} {clientSecret} />
-      </div>
-    </Modal>
-  {/key}
+  <Modal id={1}>
+    <form onsubmit={handlePay} method="POST">
+      {#if clientSecret}
+        <Elements {stripe} {clientSecret} bind:elements>
+          <LinkAuthenticationElement />
+          <PaymentElement />
+        </Elements>
+        <LoadingButton index={2}>Pay</LoadingButton>
+      {/if}
+    </form>
+  </Modal>
 </div>
 
 <style lang="postcss">

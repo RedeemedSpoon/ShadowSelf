@@ -25,12 +25,11 @@ export function notify(message: string, type: Notification['type'] = 'info') {
   }, 5000);
 }
 
-export async function sendFrom(shouldWait = false, index = 1, condition = true, func: () => void) {
+export async function sendFrom(shouldWait = false, index = 1, condition = true) {
   if (condition) fetching.set(index);
   if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 650));
 
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
-    if (func) func();
     fetching.set(0);
     update({reset: false});
   };

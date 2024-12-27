@@ -30,21 +30,14 @@ export default new Elysia({prefix: '/billing'})
     if (!user) return error(401, 'You are not logged in');
 
     const type = query?.type as keyof typeof pricingModal;
-    const mode = process.env.NODE_ENV;
 
     if (!type) return error(400, 'Missing or invalid query type. Try again');
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
 
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded',
-      mode: type === 'lifetime' ? 'payment' : 'subscription',
-      return_url: mode === 'dev' ? 'http://localhost:5173/fail' : 'https://shadowself.io/fail',
-      line_items: [
-        {
-          price: pricingModal[type],
-          quantity: 1,
-        },
-      ],
+    const session = await stripe.paymentIntents.create({
+      amount: pricingModal[type],
+      currency: 'USD',
+      description: `Purchase for ${user.username}`,
     });
 
     return {clientSecret: session.client_secret};
