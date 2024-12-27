@@ -35,9 +35,11 @@ export default new Elysia({prefix: '/billing'})
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
 
     const session = await stripe.paymentIntents.create({
-      amount: pricingModal[type],
       currency: 'USD',
-      description: `Purchase for ${user.username}`,
+      amount: pricingModal[type],
+      payment_method_types: ['card'],
+      receipt_email: 'contact@shadowself',
+      description: `ShadowSelf New Identity for ${user.username}`,
     });
 
     return {clientSecret: session.client_secret};

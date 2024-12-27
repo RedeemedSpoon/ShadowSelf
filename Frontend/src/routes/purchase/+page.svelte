@@ -1,11 +1,12 @@
 <script lang="ts">
-  import {PaymentElement, Elements, LinkAuthenticationElement} from 'svelte-stripe';
-  import {loadStripe, type Stripe, type StripeElements} from '@stripe/stripe-js';
-  import {fetching, pricingModel, showModal} from '$store';
+  import {loadStripe, type Stripe, type StripeCardElement, type StripeElementBase} from '@stripe/stripe-js';
+  import {Elements, CardNumber, CardExpiry, CardCvc} from 'svelte-stripe';
+  import {fetching, pricingModel, showModal, user} from '$store';
   import {LoadingButton, Modal} from '$component';
   import {notify, changePricingModel} from '$lib';
   import type {Notification} from '$type';
   import type {PageData} from './$types';
+  import {goto} from '$app/navigation';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
 
@@ -17,7 +18,7 @@
   let {data, form}: Props = $props();
   let clientSecret = $state() as string;
   let stripe = $state() as Stripe;
-  let elements = $state() as StripeElements;
+  let cardElement = $state() as StripeElementBase;
 
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
@@ -39,18 +40,21 @@
 
   async function handlePay(event: Event) {
     event.preventDefault();
-    showModal.set(2);
+    fetching.set(2);
+    setTimeout(() => (fetching.set(0), showModal.set(0)), 1000);
 
-    elements.submit();
-    const result = await stripe.confirmPayment({
-      elements,
-      clientSecret,
-      redirect: 'if_required',
-      confirmParams: {
-        return_url: window.location.origin + '/dashboard',
+    const result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: cardElement as StripeCardElement,
+        billing_details: {
+          email: 'contact@shadowself.io',
+          name: $user,
+        },
       },
     });
-    console.log(result);
+
+    if (result.error) notify(result.error.message!, 'alert');
+    else setTimeout(() => goto('/dashboard'), 500);
   }
 </script>
 
@@ -77,9 +81,10 @@
   <Modal id={1}>
     <form onsubmit={handlePay} method="POST">
       {#if clientSecret}
-        <Elements {stripe} {clientSecret} bind:elements>
-          <LinkAuthenticationElement />
-          <PaymentElement />
+        <Elements {stripe} {clientSecret}>
+          <CardNumber bind:element={cardElement} />
+          <CardExpiry />
+          <CardCvc />
         </Elements>
         <LoadingButton index={2}>Pay</LoadingButton>
       {/if}
