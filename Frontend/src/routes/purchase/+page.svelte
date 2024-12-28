@@ -1,12 +1,10 @@
 <script lang="ts">
-  import {loadStripe, type Stripe, type StripeCardElement, type StripeElementBase} from '@stripe/stripe-js';
-  import {Elements, CardNumber, CardExpiry, CardCvc} from 'svelte-stripe';
-  import {fetching, pricingModel, showModal, user} from '$store';
-  import {LoadingButton, Modal} from '$component';
+  import {loadStripe, type Stripe} from '@stripe/stripe-js';
+  import {fetching, pricingModel, showModal} from '$store';
   import {notify, changePricingModel} from '$lib';
+  import {LoadingButton, Modal} from '$component';
   import type {Notification} from '$type';
   import type {PageData} from './$types';
-  import {goto} from '$app/navigation';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
 
@@ -18,7 +16,6 @@
   let {data, form}: Props = $props();
   let clientSecret = $state() as string;
   let stripe = $state() as Stripe;
-  let cardElement = $state() as StripeElementBase;
 
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
@@ -26,35 +23,48 @@
   });
 
   onMount(async () => {
-    stripe = (await loadStripe(data.stripeKey!)) as Stripe;
+    stripe = (await loadStripe(data.stripeKey!, {betas: ['custom_checkout_beta_5']})) as Stripe;
   });
+
+  async function handleCheckout() {
+    stripe.initCheckout({clientSecret}).then((checkout) => {
+      const paymentElement = checkout.createElement('payment', {layout: 'tabs'});
+      paymentElement.mount('#payment-element');
+
+      const emailInput = document.getElementById('email')! as HTMLInputElement;
+      const emailErrors = document.getElementById('email-errors')! as HTMLDivElement;
+
+      emailInput.addEventListener('change', () => (emailErrors.textContent = ''));
+
+      emailInput.addEventListener('blur', () => {
+        const newEmail = emailInput.value;
+        checkout.updateEmail(newEmail).then((result) => {
+          // @ts-expect-error Error Assertion
+          if (result.error) emailErrors.textContent = result.error.message;
+        });
+      });
+
+      const button = document.getElementById('pay-button')!;
+      const errors = document.getElementById('confirm-errors')!;
+      button.addEventListener('click', () => {
+        errors.textContent = '';
+
+        checkout.confirm().then((result) => {
+          if (result.type === 'error') {
+            errors.textContent = result.error.message;
+          }
+        });
+      });
+    });
+  }
 
   async function handleSubmit() {
     fetching.set(1);
-    setTimeout(() => (fetching.set(0), showModal.set(1)), 1000);
+    setTimeout(() => (fetching.set(0), showModal.set(1), handleCheckout()), 1000);
 
     return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
       update({reset: false});
     };
-  }
-
-  async function handlePay(event: Event) {
-    event.preventDefault();
-    fetching.set(2);
-    setTimeout(() => (fetching.set(0), showModal.set(0)), 1000);
-
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement as StripeCardElement,
-        billing_details: {
-          email: 'contact@shadowself.io',
-          name: $user,
-        },
-      },
-    });
-
-    if (result.error) notify(result.error.message!, 'alert');
-    else setTimeout(() => goto('/dashboard'), 500);
   }
 </script>
 
@@ -70,7 +80,7 @@
     <div id="pricing-model">
       <div id="select-model-box"></div>
       {#each ['Monthly', 'Annually', 'Lifetime'] as model}
-        <button type="button" class:!text-neutral-300={model === $pricingModel.name} onclick={() => changePricingModel(model)}>
+        <button type="button" onclick={() => changePricingModel(model)}>
           {model}
         </button>
       {/each}
@@ -79,16 +89,11 @@
     <LoadingButton className="w-fit px-16 py-6 text-2xl mt-4">Purchase</LoadingButton>
   </form>
   <Modal id={1}>
-    <form onsubmit={handlePay} method="POST">
-      {#if clientSecret}
-        <Elements {stripe} {clientSecret}>
-          <CardNumber bind:element={cardElement} />
-          <CardExpiry />
-          <CardCvc />
-        </Elements>
-        <LoadingButton index={2}>Pay</LoadingButton>
-      {/if}
-    </form>
+    <input type="text" id="email" />
+    <div id="email-errors"></div>
+    <div id="payment-element"></div>
+    <button id="pay-button">Pay</button>
+    <div id="confirm-errors"></div>
   </Modal>
 </div>
 

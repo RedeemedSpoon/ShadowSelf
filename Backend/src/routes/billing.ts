@@ -23,23 +23,24 @@ export default new Elysia({prefix: '/billing'})
       return error(400, err instanceof Error ? err.message : err);
     }
 
-    console.log(event);
     return {received: true};
   })
   .get('/', async ({user, query}) => {
     if (!user) return error(401, 'You are not logged in');
 
+    const runtime = process.env.NODE_ENV;
     const type = query?.type as keyof typeof pricingModal;
+    const origin = runtime === 'dev' ? 'http://localhost:5173' : 'https://shadowself.io';
 
     if (!type) return error(400, 'Missing or invalid query type. Try again');
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
 
-    const session = await stripe.paymentIntents.create({
-      currency: 'USD',
-      amount: pricingModal[type],
+    const session = await stripe.checkout.sessions.create({
+      ui_mode: 'custom' as 'embedded',
+      return_url: `${origin}/dashboard`,
+      mode: type === 'lifetime' ? 'payment' : 'subscription',
+      line_items: [{price: pricingModal[type], quantity: 1}],
       payment_method_types: ['card'],
-      receipt_email: 'contact@shadowself',
-      description: `ShadowSelf New Identity for ${user.username}`,
     });
 
     return {clientSecret: session.client_secret};
