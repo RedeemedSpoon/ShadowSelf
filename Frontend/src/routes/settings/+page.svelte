@@ -62,11 +62,7 @@
     anchor.click();
   };
 
-  onMount(() => {
-    handleClick(0);
-    $showModal = 0;
-    settings.step = 1;
-  });
+  onMount(() => (handleClick(0), ($showModal = 0), (settings.step = 1)));
 </script>
 
 <svelte:head>

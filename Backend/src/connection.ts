@@ -11,7 +11,7 @@ const sql = postgres({
 });
 
 const transporter = nodemailer.createTransport({
-  host: 'mail.privateemail.com',
+  host: 'mail.shadowself.io',
   port: 465,
   secure: true,
   auth: {

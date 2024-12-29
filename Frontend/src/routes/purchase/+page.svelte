@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {loadStripe, type Stripe} from '@stripe/stripe-js';
   import {fetching, pricingModel, showModal} from '$store';
+  import {loadStripe, type Stripe} from '@stripe/stripe-js';
   import {notify, changePricingModel} from '$lib';
   import {LoadingButton, Modal} from '$component';
   import type {Notification} from '$type';

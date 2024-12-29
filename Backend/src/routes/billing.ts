@@ -1,7 +1,8 @@
 import {type User, pricingModal} from '../types';
 import {Elysia, error} from 'elysia';
-import {stripe} from '../connection';
+import {sql, stripe} from '../connection';
 import {jwt} from '@elysiajs/jwt';
+import {attempt} from '../utils';
 
 export default new Elysia({prefix: '/billing'})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -21,6 +22,12 @@ export default new Elysia({prefix: '/billing'})
       event = await stripe.webhooks.constructEventAsync(body, signature, secret);
     } catch (err) {
       return error(400, err instanceof Error ? err.message : err);
+    }
+
+    if (event.type === 'checkout.session.completed') {
+      const customer = event.data.object.customer! as string;
+      const username = event.data.object.customer_details?.name as string;
+      await attempt(sql`UPDATE users SET stripe_customer = ${customer} WHERE username = ${username}`);
     }
 
     return {received: true};

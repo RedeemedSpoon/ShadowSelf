@@ -23,13 +23,14 @@ ALTER USER :USER_NAME SUPERUSER;
 DROP TABLE IF EXISTS "users";
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
-  "username" varchar(25) UNIQUE NOT NULL,
+  "username" varchar(25) NOT NULL,
   "password" varchar(60) NOT NULL,
+  "email" varchar(32) UNIQUE NOT NULL,
   "totp" varchar(32),
   "recovery" varchar(9)[],
-  "credit_card" varchar(64),
-  "crypto_wallet" varchar(64),
+  "stripe_customer" varchar(18),
   "revoke_session" varchar(8)[],
+  "temporary_token" varchar(16),
   "api_access" boolean default false,
   "api_key" varchar(32)
 );
