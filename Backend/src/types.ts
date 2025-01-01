@@ -1,4 +1,4 @@
-export type User = {username: string; password: string; id: string} | undefined;
+export type User = {email: string; id: string} | undefined;
 
 export interface ContactDetail {
   category: 'question' | 'feedback' | 'collaboration' | 'bug' | 'help' | 'other';
@@ -9,6 +9,7 @@ export interface ContactDetail {
 }
 
 export interface BodyField {
+  email: string;
   username: string;
   password: string;
   recovery: string[];
@@ -22,10 +23,10 @@ export interface QueryResult {
   id: number;
   username: string;
   password: string;
+  email: string;
   totp: string;
   recovery: string[];
-  credit_card: string;
-  crypto_wallet: string;
+  stripe_customer: string;
   revoke_session: string[];
   api_access: boolean;
   api_key: string;

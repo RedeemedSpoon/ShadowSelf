@@ -24,6 +24,14 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         }
         break;
 
+      case 'email':
+        if (!/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
+          return {err: 'Invalid email address. Please try again'} as BodyField;
+        } else if (body.email.length > 48) {
+          return {err: 'Email is too long (<48 characters)'} as BodyField;
+        }
+        break;
+
       case 'password':
         if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
           return {err: 'Password is too weak. Get a better one'} as BodyField;
@@ -66,6 +74,10 @@ export function checkContact(Rawbody: unknown): ContactDetail {
     if (!Object.prototype.hasOwnProperty.call(body, field)) {
       return {err: `${toTitleCase(field)} is a required field`} as ContactDetail;
     }
+  }
+
+  if (body.subject.length > 120) {
+    return {err: 'Subject is too long (<120 characters)'} as ContactDetail;
   }
 
   if (body.email && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {

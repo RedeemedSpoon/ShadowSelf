@@ -26,8 +26,8 @@ export default new Elysia({prefix: '/billing'})
 
     if (event.type === 'checkout.session.completed') {
       const customer = event.data.object.customer! as string;
-      const username = event.data.object.customer_details?.name as string;
-      await attempt(sql`UPDATE users SET stripe_customer = ${customer} WHERE username = ${username}`);
+      const email = event.data.object.customer_details!.email! as string;
+      await attempt(sql`UPDATE users SET stripe_customer = ${customer} WHERE email = ${email}`);
     }
 
     return {received: true};

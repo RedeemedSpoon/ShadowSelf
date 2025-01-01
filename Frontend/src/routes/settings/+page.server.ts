@@ -4,29 +4,25 @@ import {redirect} from '@sveltejs/kit';
 import QRCode from 'qrcode';
 
 export const load: PageServerLoad = async () => {
-  const response = await fetchApi('/settings', 'GET');
+  const response = await fetchApi('/settings/', 'GET');
   return {settings: response};
 };
 
 export const actions: Actions = {
-  username: async ({request, cookies}) => {
+  username: async ({request}) => {
     const form = await request.formData();
     const username = form.get('username');
 
     const response = await fetchApi('/settings/username', 'PUT', {username});
     if (response.type === 'alert') return response;
-
-    createCookie(cookies, 'token', response.cookie);
     return {message: 'Successfully changed username', type: 'success'};
   },
-  password: async ({request, cookies}) => {
+  password: async ({request}) => {
     const form = await request.formData();
     const password = form.get('password');
 
     const response = await fetchApi('/settings/password', 'PUT', {password});
     if (response.type === 'alert') return response;
-
-    createCookie(cookies, 'token', response.cookie);
     return {message: 'Successfully changed password', type: 'success'};
   },
   generateOtp: async () => {
@@ -56,7 +52,7 @@ export const actions: Actions = {
     return {OTP: false, ...response};
   },
   recovery: async () => await fetchApi('/settings/recovery'),
-  toggleApi: async () => await fetchApi('/settings/toggleAPI'),
+  toggleApi: async () => await fetchApi('/settings/api-access'),
   api: async () => await fetchApi('/settings/api-key'),
   billing: async () => {},
   deleteBilling: async () => {},

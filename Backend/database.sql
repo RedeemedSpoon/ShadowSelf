@@ -25,12 +25,11 @@ CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
   "username" varchar(25) NOT NULL,
   "password" varchar(60) NOT NULL,
-  "email" varchar(32) UNIQUE NOT NULL,
+  "email" varchar(48) UNIQUE NOT NULL,
   "totp" varchar(32),
   "recovery" varchar(9)[],
   "stripe_customer" varchar(18),
   "revoke_session" varchar(8)[],
-  "temporary_token" varchar(16),
   "api_access" boolean default false,
   "api_key" varchar(32)
 );

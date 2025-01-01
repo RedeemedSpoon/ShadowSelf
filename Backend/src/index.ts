@@ -1,7 +1,7 @@
 import type {ContactDetail} from './types';
 import {checkContact} from './checks';
 import {Elysia, error} from 'elysia';
-import {sendEmail} from './utils';
+import {contact} from './utils';
 
 import settings from './routes/settings';
 import account from './routes/account';
@@ -14,7 +14,7 @@ const app = new Elysia()
     const {err} = checkContact(body);
     if (err) return error(400, err);
 
-    const result = await sendEmail(body as ContactDetail);
+    const result = await contact(body as ContactDetail);
     if (result.err) return error(500, result.err);
     return result.message;
   })
@@ -23,4 +23,4 @@ const app = new Elysia()
   .use(billing)
   .listen(3000);
 
-console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
+console.log(`Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
