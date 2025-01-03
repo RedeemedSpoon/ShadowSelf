@@ -16,9 +16,10 @@ export default new Elysia({prefix: '/settings'})
   })
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(9);
-    const mustLog = ['/', '/api-access', '/revoke', '/otp', '/recovery', '/api-key', '/username', '/password', '/billing', '/full'];
+    const putPaths = ['/email', '/username', '/password', '/billing'];
+    const otherPaths = ['/', '/revoke', '/otp', '/recovery', '/api-access', '/api-key', '/full'];
 
-    if (mustLog.some((p) => relativePath === p) && !user) {
+    if ((putPaths.some((p) => relativePath === p) || otherPaths.some((p) => relativePath === p)) && !user) {
       return error(401, 'You are not logged in');
     }
   })
@@ -43,7 +44,7 @@ export default new Elysia({prefix: '/settings'})
     if (!otp[0].totp) return error(400, '2FA is disabled. Enable it to proceed');
 
     const recoveryCodes = getRecovery();
-    await attempt(sql`UPDATE users SET recovery = ${recoveryCodes}  WHERE email = ${user!.email}`);
+    await attempt(sql`UPDATE users SET recovery = ${recoveryCodes} WHERE email = ${user!.email}`);
 
     return {recovery: recoveryCodes};
   })
@@ -82,6 +83,8 @@ export default new Elysia({prefix: '/settings'})
     await attempt(sql`UPDATE users SET totp = ${secret}, recovery = ${recoveryCodes} WHERE email = ${user!.email}`);
     return {recovery: recoveryCodes};
   })
+  .post('/email', async ({user, body}) => {})
+  .put('/email', async ({user, body}) => {})
   .put('/username', async ({user, body}) => {
     const {err, username} = check(body, ['username']);
     if (err) return error(400, err);

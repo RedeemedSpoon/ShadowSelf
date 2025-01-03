@@ -16,7 +16,7 @@ export default new Elysia({prefix: '/account'})
   })
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(8);
-    const signUp = ['/signup', 'signup-email', '/signup-otp', '/signup-recovery', '/signup-create'];
+    const signUp = ['/signup', 'signup-email', '/signup-username', '/signup-otp', '/signup-recovery', '/signup-create'];
     const logIn = ['/login', '/login-email', '/login-otp', '/login-recovery'];
 
     if ((signUp.some((p) => relativePath === p) || logIn.some((p) => relativePath === p)) && user) {
@@ -51,7 +51,7 @@ export default new Elysia({prefix: '/account'})
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};
   })
-  .post('/login-email', async () => {})
+  .post('/login-email', async ({body, jwt}) => {})
   .post('/login-otp', async ({body, jwt}) => {
     const {token, email, username, err} = check(body, ['token', 'username', 'email'], true);
     if (err) return error(400, err);
@@ -92,10 +92,14 @@ export default new Elysia({prefix: '/account'})
     return {cookie: cookieValue};
   })
   .post('/signup', async ({body}) => {
-    const {username, err} = check(body, ['username', 'password']);
-    return err ? error(400, err) : {username};
+    const {email, err} = check(body, ['email', 'password']);
+    return err ? error(400, err) : {email};
   })
   .post('/signup-email', async () => {})
+  .post('/signup-username', async ({body}) => {
+    const {username, err} = check(body, ['username']);
+    return err ? error(400, err) : {username};
+  })
   .post('/signup-otp', async ({body}) => {
     const {username, err} = check(body, ['username'], true);
     if (err) return error(400, err);
@@ -129,15 +133,15 @@ export default new Elysia({prefix: '/account'})
     await attempt(sql`INSERT INTO users (username, password) VALUES (${username}, ${newPassword})`);
 
     const apiKey = getAPIKey();
-    await attempt(sql`UPDATE users SET api_key = ${apiKey} WHERE email = ${username}`);
+    await attempt(sql`UPDATE users SET api_key = ${apiKey} WHERE email = ${email}`);
 
     if (secret && recovery) {
-      await attempt(sql`UPDATE users SET totp = ${secret} WHERE email = ${username}`);
-      await attempt(sql`UPDATE users SET recovery = ${recovery} WHERE email = ${username}`);
+      await attempt(sql`UPDATE users SET totp = ${secret} WHERE email = ${email}`);
+      await attempt(sql`UPDATE users SET recovery = ${recovery} WHERE email = ${email}`);
     }
 
     const id = genereteID();
-    await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${username}`);
+    await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);
 
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};
