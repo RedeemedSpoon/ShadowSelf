@@ -35,6 +35,7 @@ export interface Identity {
 
 export interface Registration {
   step: string;
+  email: string;
   username: string;
   recovery: string[];
   secret: string;

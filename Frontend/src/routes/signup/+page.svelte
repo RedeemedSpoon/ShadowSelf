@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {UserIcon, KeyIcon, KeylockIcon, DownloadIcon, CopyIcon, HappyIcon} from '$icon';
+  import {UserIcon, KeyIcon, KeylockIcon, DownloadIcon, CopyIcon, HappyIcon, EmailIcon} from '$icon';
   import {Steps, StepsItem, InputWithIcon, LoadingButton, ReactiveButton} from '$component';
   import type {Notification, Registration} from '$type';
   import {currentStep} from '$store';
@@ -51,8 +51,8 @@
   <StepsItem shouldWait={true} {backStep} index={1} action="init">
     <h1>Create an account</h1>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
-      <label for="username">Username</label>
-      <InputWithIcon type="text" icon={UserIcon} name="username" placeholder="mountain eagle" />
+      <label for="email">Email</label>
+      <InputWithIcon type="email" icon={EmailIcon} fill={true} name="email" placeholder="example@domain.tld" />
     </div>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="password">Password</label>
@@ -62,7 +62,21 @@
     <LoadingButton>Next</LoadingButton>
   </StepsItem>
 
-  <StepsItem {backStep} index={2} action="askOTP">
+  <StepsItem {backStep} index={2} action="checkEmail">
+    <h1 class="!-mb-2">Verify your email address</h1>
+    <p>We sent you an email with an access token. Enter it below</p>
+    <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
+    <LoadingButton className="mt-2">Continue</LoadingButton>
+  </StepsItem>
+
+  <StepsItem {backStep} index={3} action="checkUsername">
+    <h1 class="!-mb-2">Enter your username</h1>
+    <p>Enter a username for your account</p>
+    <InputWithIcon type="text" name="username" icon={UserIcon} placeholder="Greed" />
+    <LoadingButton className="mt-2">Continue</LoadingButton>
+  </StepsItem>
+
+  <StepsItem {backStep} index={4} action="askOTP">
     <h1>Hello <span class="pretty-style">{username}</span>,<br /> Would you like to enable 2FA now?</h1>
     <p class="-mt-4 mb-8">
       Two-Factor Authentication (2FA) is a common security feature that adds an extra layer of protection to your account when trying
@@ -74,7 +88,7 @@
     </div>
   </StepsItem>
 
-  <StepsItem {backStep} index={3} action="showOTP">
+  <StepsItem {backStep} index={5} action="showOTP">
     <div class="mb-10 flex flex-row items-center gap-12 max-xl:flex-col md:gap-24 md:px-10">
       <div class="flex flex-col items-center gap-6">
         <h1>Scan the QR code</h1>
@@ -90,14 +104,14 @@
     <button type="submit">Next →</button>
   </StepsItem>
 
-  <StepsItem shouldWait={true} {backStep} index={4} action="checkOTP">
+  <StepsItem shouldWait={true} {backStep} index={6} action="checkOTP">
     <h1 class="!-mb-2">Enter the verification token</h1>
     <p>Enter the verification token that was generated automatically by your authenticator app</p>
     <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
     <LoadingButton className="mt-2">Verify</LoadingButton>
   </StepsItem>
 
-  <StepsItem {backStep} index={5} action="showRecovery">
+  <StepsItem {backStep} index={7} action="showRecovery">
     <h1>Store safely these recovery codes</h1>
     <p class="-mt-6">
       Store these recovery codes somewhere safe, you will need them to restore your account if you lose your 2FA method.
@@ -115,7 +129,7 @@
     <button type="submit">Next →</button>
   </StepsItem>
 
-  <StepsItem {backStep} index={6} action="askBilling">
+  <StepsItem {backStep} index={8} action="askBilling">
     <h1 class="!-mb-2">Want to add a payment option?</h1>
     <p>
       You will need a payment method to use ShadowSelf in it full capacity. We accept both credit cards and crypto currencies and store
@@ -127,13 +141,13 @@
     </div>
   </StepsItem>
 
-  <StepsItem {backStep} index={7} action="addBilling">
+  <StepsItem {backStep} index={9} action="addBilling">
     <h1>Add a billing method</h1>
     <p>Not implemented yet.</p>
     <button type="submit">Add Billing</button>
   </StepsItem>
 
-  <StepsItem shouldWait={true} {backStep} index={8} action="create">
+  <StepsItem shouldWait={true} {backStep} index={10} action="create">
     <h1 class="!-mb-2 text-center">And we're done, <span class="pretty-style">{username}</span></h1>
     <HappyIcon className="w-36 h-36" />
     <p class="-mt-2 text-center">
