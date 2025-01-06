@@ -1,6 +1,6 @@
 import {type User, pricingModal} from '../types';
-import {Elysia, error} from 'elysia';
 import {sql, stripe} from '../connection';
+import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 

@@ -1,4 +1,4 @@
-import {createTOTP, getSecret, getAPIKey, hashPWD, getRecovery} from '../crypto';
+import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '../crypto';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
@@ -95,7 +95,7 @@ export default new Elysia({prefix: '/settings'})
     const {err, password} = check(body, ['password']);
     if (err) return error(400, err);
 
-    const hashedPassword = await hashPWD(password);
+    const hashedPassword = await createHash(password);
     await attempt(sql`UPDATE users SET password = ${hashedPassword} WHERE email = ${user!.email}`);
   })
   .delete('/otp', async ({user}) => {

@@ -82,9 +82,9 @@ export const actions: Actions = {
   askBilling: async ({request}) => {
     const form = await request.formData();
     const wantBilling = form.has('add');
-    return wantBilling ? {step: 7} : {step: 8};
+    return wantBilling ? {step: 9} : {step: 10};
   },
-  addBilling: async () => ({step: 8}),
+  addBilling: async () => ({step: 10}),
   create: async ({cookies}) => {
     const concat = cookies.get('signup');
     const [email, password, access, username, secret, arrRecovery] = concat?.split('&&') ?? [];

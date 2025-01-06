@@ -1,8 +1,8 @@
-import {comparePWD, hashPWD, genereteID, createTOTP, getAPIKey, getSecret, getRecovery} from '../crypto';
+import {compareHash, createHash, genereteID, createTOTP, getAPIKey, getSecret, getRecovery} from '../crypto';
+import {attempt, verifyEmail} from '../utils';
 import {Elysia, error} from 'elysia';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
-import {attempt} from '../utils';
 import {check} from '../checks';
 import {User} from '../types';
 
@@ -26,10 +26,10 @@ export default new Elysia({prefix: '/account'})
   .get('/', async ({user}) => {
     if (!user) return;
 
-    const result = await attempt(sql`SELECT revoke_session FROM users WHERE email = ${user.email}`);
+    const result = await attempt(sql`SELECT revoke_session, username FROM users WHERE email = ${user.email}`);
     if (!result[0].revoke_session.includes(user.id)) return error(401, 'Not authorized');
 
-    return result[0].email;
+    return result[0].username;
   })
   .post('/login', async ({jwt, body}) => {
     const {password, email, err} = check(body, ['password', 'email'], true);
@@ -39,7 +39,7 @@ export default new Elysia({prefix: '/account'})
     if (!result.length) return error(400, 'Invalid credentials. Please try again');
 
     const hashedPassword = result[0].password;
-    const isPasswordCorrect = await comparePWD(password, hashedPassword);
+    const isPasswordCorrect = await compareHash(password, hashedPassword);
     if (!isPasswordCorrect) return error(400, 'Invalid credentials. Please try again');
 
     const has2fa = result[0].totp;
@@ -91,11 +91,30 @@ export default new Elysia({prefix: '/account'})
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};
   })
-  .post('/signup', async ({body}) => {
+  .post('/signup', async ({body, jwt}) => {
     const {email, err} = check(body, ['email', 'password']);
-    return err ? error(400, err) : {email};
+    if (err) return error(400, err);
+
+    const isTaken = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
+    if (isTaken.length) return error(409, 'This email is already taken');
+
+    //@ts-expect-error JWT only accept objects
+    const accessToken = await jwt.sign(email + process.env.JWT_SECRET);
+    const response = await verifyEmail(email, accessToken.split('.')[2]);
+    if (response.err) return error(500, 'Failed to send verification email. Try later');
+
+    return {email};
   })
-  .post('/signup-email', async () => {})
+  .post('/signup-email', async ({body, jwt}) => {
+    const {email, access, err} = check(body, ['email', 'access']);
+    if (err) return error(400, err);
+
+    //@ts-expect-error JWT only accept objects
+    const accessToken = await jwt.sign(email + process.env.JWT_SECRET);
+    if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token. Please Try again');
+
+    return {email};
+  })
   .post('/signup-username', async ({body}) => {
     const {username, err} = check(body, ['username']);
     return err ? error(400, err) : {username};
@@ -122,15 +141,19 @@ export default new Elysia({prefix: '/account'})
     return {recovery};
   })
   .post('/signup-create', async ({jwt, body}) => {
-    const fields = ['username', 'password', 'email', '?secret', '?recovery'];
-    const {password, username, email, secret, recovery, err} = check(body, fields);
+    const fields = ['username', 'password', 'email', 'access', '?secret', '?recovery'];
+    const {password, username, email, access, secret, recovery, err} = check(body, fields);
     if (err) return error(400, err);
+
+    //@ts-expect-error JWT only accept objects
+    const accessToken = await jwt.sign(email + process.env.JWT_SECRET);
+    if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token');
 
     const isTaken = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
     if (isTaken.length) return error(409, 'This email is already taken');
 
-    const newPassword = await hashPWD(password);
-    await attempt(sql`INSERT INTO users (username, password) VALUES (${username}, ${newPassword})`);
+    const newPassword = await createHash(password);
+    await attempt(sql`INSERT INTO users (email, username, password) VALUES (${email}, ${username}, ${newPassword})`);
 
     const apiKey = getAPIKey();
     await attempt(sql`UPDATE users SET api_key = ${apiKey} WHERE email = ${email}`);

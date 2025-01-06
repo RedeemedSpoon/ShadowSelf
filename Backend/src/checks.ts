@@ -24,6 +24,12 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         }
         break;
 
+      case 'password':
+        if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
+          return {err: 'Password is too weak. Get a better one'} as BodyField;
+        }
+        break;
+
       case 'email':
         if (!/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
           return {err: 'Invalid email address. Please try again'} as BodyField;
@@ -32,9 +38,9 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         }
         break;
 
-      case 'password':
-        if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
-          return {err: 'Password is too weak. Get a better one'} as BodyField;
+      case 'access':
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/.test(body.access)) {
+          return {err: 'Invalid access token structure. Get a new one'} as BodyField;
         }
         break;
 

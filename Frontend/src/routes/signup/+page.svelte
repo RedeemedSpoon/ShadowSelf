@@ -37,7 +37,7 @@
 
   function backStep() {
     let step = get(currentStep) - 1;
-    step = step === 5 && !secret ? 2 : step;
+    step = step === 7 && !secret ? 4 : step;
     currentStep.set(step);
   }
 </script>
@@ -62,16 +62,16 @@
     <LoadingButton>Next</LoadingButton>
   </StepsItem>
 
-  <StepsItem {backStep} index={2} action="checkEmail">
+  <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
     <h1 class="!-mb-2">Verify your email address</h1>
-    <p>We sent you an email with an access token. Enter it below</p>
+    <p>We sent you an email with an access token. Enter it below to continue</p>
     <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 
-  <StepsItem {backStep} index={3} action="checkUsername">
+  <StepsItem shouldWait={true} {backStep} index={3} action="checkUsername">
     <h1 class="!-mb-2">Enter your username</h1>
-    <p>Enter a username for your account</p>
+    <p>Enter a username for your account. You can change it later</p>
     <InputWithIcon type="text" name="username" icon={UserIcon} placeholder="Greed" />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>

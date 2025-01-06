@@ -10,6 +10,7 @@ export interface ContactDetail {
 
 export interface BodyField {
   email: string;
+  access: string;
   username: string;
   password: string;
   recovery: string[];

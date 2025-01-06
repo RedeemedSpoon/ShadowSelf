@@ -1,5 +1,5 @@
 import type {ContactDetail, QueryResult} from './types';
-import {transporter} from './connection';
+import {contactTransporter, verificationTransporter} from './connection';
 
 export async function attempt(func: Promise<unknown>): Promise<QueryResult[]> {
   try {
@@ -18,23 +18,23 @@ export async function contact(body: ContactDetail) {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await contactTransporter.sendMail(mailOptions);
     return {message: 'Your message has been sent!', err: ''};
   } catch {
     return {message: '', err: 'Something went wrong. Try again later.'};
   }
 }
 
-export async function VerifyEmail(email: string, token: string, confirm: boolean) {
+export async function verifyEmail(email: string, token: string) {
   const mailOptions = {
     from: 'verification@shadowself.io',
     to: email,
     subject: 'Please confirm your email address',
-    text: `Please click the link below to confirm your email address:\n\nhttp://localhost:3000/confirm/${token}`,
+    text: `Please copy and paste the following access token: ${token}`,
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    await verificationTransporter.sendMail(mailOptions);
     return {message: 'Your message has been sent!', err: ''};
   } catch {
     return {message: '', err: 'Something went wrong. Try again later.'};

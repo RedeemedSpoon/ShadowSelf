@@ -13,6 +13,10 @@ export function createTOTP(secret: string, username: string): OTPAuth.TOTP {
   });
 }
 
+export function getSecret(): string {
+  return new OTPAuth.Secret({size: 20}).base32;
+}
+
 export function genereteID(): string {
   return pseudoRandomBytes(4).toString('hex');
 }
@@ -27,14 +31,10 @@ export function getRecovery() {
   });
 }
 
-export function getSecret(): string {
-  return new OTPAuth.Secret({size: 20}).base32;
+export async function createHash(string: string): Promise<string> {
+  return await hash(string, await genSalt(10));
 }
 
-export async function hashPWD(password: string): Promise<string> {
-  return await hash(password, await genSalt(10));
-}
-
-export async function comparePWD(password: string, hash: string): Promise<boolean> {
-  return await compare(password, hash);
+export async function compareHash(string: string, hash: string): Promise<boolean> {
+  return await compare(string, hash);
 }
