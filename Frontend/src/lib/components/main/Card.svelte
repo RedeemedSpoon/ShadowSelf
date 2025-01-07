@@ -3,9 +3,9 @@
 
   interface Props {
     color?: string;
+    animate?: boolean;
     className?: string;
     upperClass?: string;
-    animate?: boolean;
     isMouseEntered?: boolean;
     children: Snippet;
   }

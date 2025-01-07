@@ -26,7 +26,7 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
 
       case 'password':
         if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
-          return {err: 'Password is too weak. Get a better one'} as BodyField;
+          return {err: 'Password is too weak. Improve it a bit'} as BodyField;
         }
         break;
 
@@ -40,7 +40,7 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
 
       case 'access':
         if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/.test(body.access)) {
-          return {err: 'Invalid access token structure. Get a new one'} as BodyField;
+          return {err: 'Invalid access token. Please try again'} as BodyField;
         }
         break;
 

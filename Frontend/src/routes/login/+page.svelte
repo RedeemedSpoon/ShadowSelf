@@ -35,7 +35,10 @@
       <label for="password">Password</label>
       <InputWithIcon type="password" icon={KeyIcon} name="password" placeholder="correct horse battery staple" />
     </div>
-    <p class="mt-4 max-md:text-sm">Don't have an account? <a href="/signup">Sign up</a></p>
+    <div class="-mb-2 mt-4 flex justify-between px-3 max-md:flex-col md:items-center">
+      <a class="text-md max-md:text-sm" href="/signup">Don't have an account?</a>
+      <a class="text-md max-md:text-sm" href="/">Forgot password?</a>
+    </div>
     <LoadingButton>Next</LoadingButton>
   </StepsItem>
 
