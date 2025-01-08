@@ -25,9 +25,9 @@ export default new Elysia({prefix: '/settings'})
   })
   .get('/', async ({user}) => {
     const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
-    const {recovery, totp, api_access, api_key} = result[0];
+    const {email, recovery, totp, api_access, api_key} = result[0];
 
-    return {recovery: recovery || [], key: api_key, API: api_access, OTP: totp && true};
+    return {email, recovery: recovery || [], key: api_key, API: api_access, OTP: totp && true};
   })
   .get('/otp', async ({user}) => {
     const result = await attempt(sql`SELECT username FROM users WHERE email = ${user!.email}`);

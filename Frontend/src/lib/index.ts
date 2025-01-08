@@ -25,12 +25,13 @@ export function notify(message: string, type: Notification['type'] = 'info') {
   }, 5000);
 }
 
-export async function sendFrom(shouldWait = false, index = 1, condition = true) {
+export async function sendFrom(shouldWait = false, index = 1, condition = true, setModal = -1) {
   if (condition) fetching.set(index);
   if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 650));
 
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
     fetching.set(0);
+    if (setModal !== -1) showModal.set(setModal);
     update({reset: false});
   };
 }

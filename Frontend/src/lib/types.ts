@@ -19,6 +19,7 @@ export interface Settings {
   API: boolean;
   key: string;
   recovery: number[];
+  email: string;
 }
 
 export interface Identity {

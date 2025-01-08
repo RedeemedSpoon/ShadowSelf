@@ -1,5 +1,5 @@
 import type {PageServerLoad, Actions} from './$types';
-import {fetchApi, createCookie} from '$lib';
+import {fetchApi} from '$lib';
 import {redirect} from '@sveltejs/kit';
 import QRCode from 'qrcode';
 
@@ -9,6 +9,21 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
+  email: async ({request}) => {
+    const form = await request.formData();
+    const email = form.get('email');
+
+    const response = await fetchApi('/settings/email', 'PUT', {email});
+    if (response.type === 'alert') return response;
+  },
+  access: async ({request}) => {
+    const form = await request.formData();
+    const access = form.get('access');
+
+    const response = await fetchApi('/settings/email-access', 'POST', {access});
+    if (response.type === 'alert') return response;
+    return {message: 'Successfully changed email address', type: 'success'};
+  },
   username: async ({request}) => {
     const form = await request.formData();
     const username = form.get('username');
