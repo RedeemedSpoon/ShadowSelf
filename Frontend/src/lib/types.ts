@@ -22,6 +22,14 @@ export interface Settings {
   email: string;
 }
 
+export interface SettingsForm {
+  toggleModel: boolean;
+  message: string;
+  secret: string;
+  step: number;
+  qr: string;
+}
+
 export interface Identity {
   id: string;
   avatar: string;

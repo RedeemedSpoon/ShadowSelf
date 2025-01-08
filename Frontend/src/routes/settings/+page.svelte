@@ -1,7 +1,7 @@
 <script lang="ts">
   import {Modal, InputWithButton, InputWithIcon, LoadingButton, ConfirmModal, ReactiveButton} from '$component';
   import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon} from '$icon';
-  import type {Notification, Settings} from '$type';
+  import type {Notification, Settings, SettingsForm} from '$type';
   import {notify, sendFrom, setModal} from '$lib';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
@@ -9,7 +9,7 @@
   import {onMount} from 'svelte';
 
   interface Props {
-    form: Notification & Settings & {qr: string; secret: string; step: number; message: string};
+    form: Notification & Settings & SettingsForm;
     data: PageData;
   }
 
@@ -17,6 +17,8 @@
 
   let list = $state() as HTMLElement;
   let anchor = $state() as HTMLAnchorElement;
+  let newEmailValue = $state() as string;
+
   const settings = $state(data.settings);
 
   const className = {
@@ -37,10 +39,17 @@
     if (form?.message) notify(form.message, form.type);
     if (settings?.message) notify(settings.message, settings.type);
 
+    if (form && Object.hasOwn(form, 'toggleModel')) {
+      if (form.toggleModel) $showModal = 1;
+      else $showModal = 0;
+    }
+
     if (form && Object.hasOwn(form, 'OTP')) settings.OTP = form.OTP;
     if (form && Object.hasOwn(form, 'API')) settings.API = form.API;
+
     if (form?.recovery) settings.recovery = form.recovery;
     if (form?.secret) settings.secret = form.secret;
+    if (form?.email) newEmailValue = form.email;
     if (form?.step) settings.step = form.step;
     if (form?.key) settings.key = form.key;
     if (form?.qr) settings.qr = form.qr;
@@ -87,22 +96,17 @@
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
     <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials :</h2>
-    <form use:enhance={() => sendFrom(true, 1, true, 1)} method="POST" action="?/email">
+    <form use:enhance={() => sendFrom(true, 1, true)} method="POST" action="?/email">
       <label class="md:!w-fit" for="email">Email :</label>
-      <InputWithButton
-        value={data.settings.email}
-        placeholder="New email address"
-        type="email"
-        index={1}
-        label="Change Email"
-        name="email" />
+      <InputWithButton value={settings.email} placeholder="New address" type="email" index={1} label="Change Email" name="email" />
     </form>
     <Modal id={1}>
-      <form class="!flex-col p-8" use:enhance={() => sendFrom(true, 2, true, 0)} method="POST" action="?/access">
+      <form class="!flex-col p-8" use:enhance={() => sendFrom(true, 2, true)} method="POST" action="?/access">
         <h1 class="!-mb-2">Enter the access token</h1>
         <p>We sent an email with the access token to the new address. Enter it below to continue</p>
         <InputWithIcon {className} type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
         <LoadingButton index={2} className="mt-2">Confirm</LoadingButton>
+        <input hidden value={newEmailValue} name="email" />
       </form>
     </Modal>
     <form use:enhance={() => sendFrom(true, 3)} method="POST" action="?/username">

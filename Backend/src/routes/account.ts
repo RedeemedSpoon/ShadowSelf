@@ -82,8 +82,8 @@ export default new Elysia({prefix: '/account'})
     const id = genereteID();
     await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);
 
-    const cookieValue = await jwt.sign({email, id});
-    return {cookie: cookieValue};
+    const cookievalue = await jwt.sign({email, id});
+    return {cookie: cookievalue};
   })
   .post('/login-otp', async ({body, jwt}) => {
     const {token, email, err} = check(body, ['token', 'email'], true);

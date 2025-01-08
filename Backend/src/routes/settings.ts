@@ -1,8 +1,8 @@
 import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '../crypto';
+import {attempt, verifyEmail} from '../utils';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
-import {attempt} from '../utils';
 import {check} from '../checks';
 import {User} from '../types';
 
@@ -83,8 +83,33 @@ export default new Elysia({prefix: '/settings'})
     await attempt(sql`UPDATE users SET totp = ${secret}, recovery = ${recoveryCodes} WHERE email = ${user!.email}`);
     return {recovery: recoveryCodes};
   })
-  .post('/email', async ({user, body}) => {})
-  .put('/email', async ({user, body}) => {})
+  .post('/email', async ({user, jwt, body}) => {
+    const {err, email, access} = check(body, ['email', 'access']);
+    if (err) return error(400, err);
+
+    //@ts-expect-error JWT only accept objects
+    const accessToken = await jwt.sign(email + process.env.JWT_SECRET);
+    if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token. Please Try again');
+
+    await attempt(sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`);
+
+    const cookievalue = await jwt.sign({email, id: user!.id});
+    return {cookie: cookievalue};
+  })
+  .put('/email', async ({body, jwt}) => {
+    const {err, email} = check(body, ['email']);
+    if (err) return error(400, err);
+
+    const result = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
+    if (result.length) return error(400, 'Email address is already registered on our systems');
+
+    //@ts-expect-error JWT only accept objects
+    const accessToken = await jwt.sign(email + process.env.JWT_SECRET);
+    const response = await verifyEmail(email, accessToken.split('.')[2]);
+    if (response.err) return error(500, 'Failed to send verification email. Try later');
+
+    return {email};
+  })
   .put('/username', async ({user, body}) => {
     const {err, username} = check(body, ['username']);
     if (err) return error(400, err);
