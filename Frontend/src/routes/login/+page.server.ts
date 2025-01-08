@@ -5,11 +5,11 @@ import type {Actions} from './$types';
 export const actions: Actions = {
   checkCredentials: async ({request, cookies}) => {
     const form = await request.formData();
-    const username = form.get('username');
     const password = form.get('password');
+    const email = form.get('email');
 
-    const response = await fetchApi('/account/login', 'POST', {username, password});
-    if (!response.username && !response.cookie) return response;
+    const response = await fetchApi('/account/login', 'POST', {email, password});
+    if (!response.email && !response.cookie) return response;
 
     if (response.cookie) {
       if (cookies.get('login')) cookies.delete('login', {path: '/'});
@@ -17,16 +17,41 @@ export const actions: Actions = {
       redirect(302, '/dashboard');
     }
 
-    const concat = `${username}&&${password}`;
-    createCookie(cookies, 'login', concat);
-    return {step: 2};
+    createCookie(cookies, 'login', `${email}`);
+    return {step: 4};
+  },
+  checkEmail: async ({request, cookies}) => {
+    const form = await request.formData();
+    const email = form.get('email');
+
+    const response = await fetchApi('/account/login-email', 'POST', {email});
+    if (!response.email) return response;
+
+    createCookie(cookies, 'login', `${email}`);
+    return {step: 3};
+  },
+  checkAccess: async ({request, cookies}) => {
+    const form = await request.formData();
+    const access = form.get('access');
+    const email = cookies.get('login');
+
+    const response = await fetchApi('/account/login-access', 'POST', {email, access});
+    if (!response.email && !response.cookie) return response;
+
+    if (response.cookie) {
+      cookies.delete('login', {path: '/'});
+      createCookie(cookies, 'token', response.cookie);
+      redirect(302, '/dashboard');
+    }
+
+    return {step: 4};
   },
   checkOTP: async ({request, cookies}) => {
     const form = await request.formData();
     const token = form.get('token');
-    const [username, password] = cookies.get('login')!.split('&&');
+    const email = cookies.get('login');
 
-    const response = await fetchApi('/account/login-otp', 'POST', {token, username, password});
+    const response = await fetchApi('/account/login-otp', 'POST', {token, email});
     if (!response.cookie) return response;
 
     cookies.delete('login', {path: '/'});
@@ -36,9 +61,9 @@ export const actions: Actions = {
   checkRecovery: async ({request, cookies}) => {
     const form = await request.formData();
     const code = form.get('code');
-    const [username, password] = cookies.get('login')!.split('&&');
+    const email = cookies.get('login');
 
-    const response = await fetchApi('/account/login-recovery', 'POST', {code, username, password});
+    const response = await fetchApi('/account/login-recovery', 'POST', {code, email});
     if (!response.cookie) return response;
 
     cookies.delete('login', {path: '/'});

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {UserIcon, KeyIcon, KeylockIcon, RecoveryIcon} from '$icon';
   import {Steps, StepsItem, InputWithIcon, LoadingButton} from '$component';
+  import {KeyIcon, KeylockIcon, RecoveryIcon, EmailIcon} from '$icon';
   import type {Notification} from '$type';
   import {currentStep} from '$store';
   import {get} from 'svelte/store';
@@ -15,6 +15,7 @@
 
   function backStep() {
     let step = get(currentStep) - 1;
+    step = step === 3 ? 1 : step;
     currentStep.set(step);
   }
 </script>
@@ -28,32 +29,47 @@
   <StepsItem shouldWait={true} {backStep} index={1} action="checkCredentials">
     <h1>Login to your account</h1>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
-      <label for="username">Username</label>
-      <InputWithIcon type="text" icon={UserIcon} name="username" placeholder="mountain eagle" />
+      <label for="email">Email</label>
+      <InputWithIcon type="email" fill={true} icon={EmailIcon} name="email" placeholder="example@domain.tld" />
     </div>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="password">Password</label>
       <InputWithIcon type="password" icon={KeyIcon} name="password" placeholder="correct horse battery staple" />
     </div>
-    <div class="-mb-2 mt-4 flex justify-between px-3 max-md:flex-col md:items-center">
+
+    <div class="-mb-2 mt-4 flex justify-between text-nowrap px-3 max-md:flex-col md:items-center">
       <a class="text-md max-md:text-sm" href="/signup">Don't have an account?</a>
-      <a class="text-md max-md:text-sm" href="/">Forgot password?</a>
+      <span aria-hidden="true" class="text-md max-md:text-sm" onclick={() => currentStep.set(2)}>Forgot Password?</span>
     </div>
     <LoadingButton>Next</LoadingButton>
   </StepsItem>
 
-  <StepsItem shouldWait={true} {backStep} index={2} action="checkOTP">
+  <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
+    <h1 class="!-mb-2">Give us your Email</h1>
+    <p>Write below the account's email address and we will send a reset token to get access back</p>
+    <InputWithIcon type="email" name="email" placeholder="example@domain.tld" fill={true} icon={EmailIcon} />
+    <LoadingButton className="mt-2">Continue</LoadingButton>
+  </StepsItem>
+
+  <StepsItem shouldWait={true} {backStep} index={3} action="checkAccess">
+    <h1 class="!-mb-2">Enter the reset token</h1>
+    <p>We sent you an email with an reset token. Enter it below to continue</p>
+    <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
+    <LoadingButton className="mt-2">Continue</LoadingButton>
+  </StepsItem>
+
+  <StepsItem shouldWait={true} {backStep} index={4} action="checkOTP">
     <h1 class="!-mb-2">Enter the verification token</h1>
     <p>Open your two-factor authentication app to view your verification token and verify your identity</p>
     <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
     <p class="-mt-4 max-md:text-sm">
       Lost your 2FA method?
-      <span aria-hidden="true" onclick={() => currentStep.set(3)}>Switch to recovery codes</span>
+      <span aria-hidden="true" onclick={() => currentStep.set(5)}>Switch to recovery codes</span>
     </p>
     <LoadingButton className="mt-2">Verify</LoadingButton>
   </StepsItem>
 
-  <StepsItem shouldWait={true} {backStep} index={3} action="checkRecovery">
+  <StepsItem shouldWait={true} {backStep} index={5} action="checkRecovery">
     <h1 class="!-mb-2">Enter one of your recovery codes</h1>
     <p>Use one of the recovery tokens we gave when you first created your account to verify your authenticity</p>
     <InputWithIcon type="number" name="code" icon={RecoveryIcon} placeholder="123456789" />

@@ -58,12 +58,12 @@
       <label for="password">Password</label>
       <InputWithIcon type="password" icon={KeyIcon} name="password" placeholder="correct horse battery staple" />
     </div>
-    <div class="-mb-2 mt-4 flex justify-between px-3 max-md:flex-col md:items-center">
-      <a class="text-md max-md:text-sm" href="/login">Already have an account?</a>
+    <div class="-mb-2 mt-4 flex justify-between text-nowrap px-3 max-md:flex-col md:items-center">
+      <a class="text-md max-md:text-sm md:mr-8" href="/login">Already have an account?</a>
       <Tooltip tip="Password must be at least 8 characters long. It must contain 1 lowercase letter, 1 uppercase letter and 1 number">
-        <div class="group/tooltip-password flex cursor-context-menu select-none items-center gap-2">
-          <h6 class="text-md group-hover/tooltip-password:text-neutral-300/50 max-md:text-sm">Password requirements</h6>
-          <QuestionIcon className="w-5 h-5 fill-neutral-300 group-hover/tooltip-password:fill-neutral-300/50" />
+        <div class="group/tooltip-password flex cursor-context-menu select-none items-center gap-[2px]">
+          <h6 class="text-md group-hover/tooltip-password:text-neutral-400 max-md:text-sm">Password requirements</h6>
+          <QuestionIcon className="h-5 fill-neutral-300 group-hover/tooltip-password:fill-neutral-400" />
         </div>
       </Tooltip>
     </div>

@@ -51,15 +51,48 @@ export default new Elysia({prefix: '/account'})
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};
   })
-  .post('/login-email', async ({body, jwt}) => {})
+  .post('/login-email', async ({body, jwt}) => {
+    const {email, err} = check(body, ['email']);
+    if (err) return error(400, err);
+
+    const result = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
+    if (!result.length) return error(400, 'Email address is not registered on our systems');
+
+    //@ts-expect-error JWT only accept objects
+    const accessToken = await jwt.sign(email + process.env.JWT_SECRET);
+    const response = await verifyEmail(email, accessToken.split('.')[2]);
+    if (response.err) return error(500, 'Failed to send verification email. Try later');
+
+    return {email};
+  })
+  .post('/login-access', async ({body, jwt}) => {
+    const {email, access, err} = check(body, ['email', 'access']);
+    if (err) return error(400, err);
+
+    const result = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
+    if (!result.length) return error(400, 'Email address is not registered on our systems');
+
+    //@ts-expect-error JWT only accept objects
+    const accessToken = await jwt.sign(email + process.env.JWT_SECRET);
+    if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token. Please Try again');
+
+    const has2fa = result[0].totp;
+    if (has2fa) return {email};
+
+    const id = genereteID();
+    await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);
+
+    const cookieValue = await jwt.sign({email, id});
+    return {cookie: cookieValue};
+  })
   .post('/login-otp', async ({body, jwt}) => {
-    const {token, email, username, err} = check(body, ['token', 'username', 'email'], true);
+    const {token, email, err} = check(body, ['token', 'email'], true);
     if (err) return error(400, err);
 
     const secret = await attempt(sql`SELECT totp FROM users WHERE email = ${email}`);
     if (!secret.length) return error(400, 'Incorrect validation token. Please try again');
 
-    const totp = createTOTP(secret[0].totp, username);
+    const totp = createTOTP(secret[0].totp, 'temporarily');
     const isValid = totp.generate() === token;
     if (!isValid) return error(400, 'Incorrect validation token. Please try again');
 

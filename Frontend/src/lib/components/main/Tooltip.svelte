@@ -11,12 +11,12 @@
 </script>
 
 <div class="group/tooltip relative">
-  <div class="{onTop ? 'top-full' : 'bottom-full'} group-hover/tooltip:block">{tip}</div>
+  <span class="{onTop ? 'top-full' : 'bottom-full'} group-hover/tooltip:block">{tip}</span>
   {@render children?.()}
 </div>
 
 <style lang="postcss">
-  div > div {
-    @apply absolute z-20 my-2 hidden rounded-xl bg-neutral-900/95 px-4 py-3 text-sm;
+  span {
+    @apply absolute z-20 my-2 hidden text-wrap rounded-xl bg-neutral-900/95 px-4 py-3 text-sm;
   }
 </style>
