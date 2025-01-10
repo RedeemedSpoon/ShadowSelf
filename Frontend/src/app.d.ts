@@ -7,6 +7,7 @@ declare global {
       homepageIds?: string[];
       contactOptions?: Option[];
       animations?: AnimationSelector[];
+      recoveryRemaining?: number;
       searchKeywords?: Option[];
       identities?: Identity[];
       settings?: Settings;

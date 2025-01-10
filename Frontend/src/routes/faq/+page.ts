@@ -47,7 +47,7 @@ export const load: PageLoad = () => {
       {
         question: 'Can I permanently delete synthetic identities?',
         answer:
-          "Deleting your ShadowSelf account won't automatically delete your synthetic identities. To permanently erase them, press that dangerous red button in the corner. It's a one-way trip, so make sure you're absolutely certain before you press it.",
+          "Deleting your ShadowSelf account will automatically delete your synthetic identities automatically. But to permanently erase them manually, press the dangerous trashcan button in the corner. It's a one-way trip, so make sure you're absolutely certain before you press it.",
       },
       {
         question: 'What are the benefits of synthetic identities?',

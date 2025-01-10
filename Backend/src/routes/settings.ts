@@ -18,8 +18,9 @@ export default new Elysia({prefix: '/settings'})
     const relativePath = path.slice(9);
     const putPaths = ['/email', '/username', '/password', '/billing'];
     const otherPaths = ['/', '/revoke', '/otp', '/recovery', '/api-access', '/api-key', '/full'];
+    const mustLogIn = [...putPaths, ...otherPaths];
 
-    if ((putPaths.some((p) => relativePath === p) || otherPaths.some((p) => relativePath === p)) && !user) {
+    if (mustLogIn.some((p) => relativePath === p) && !user) {
       return error(401, 'You are not logged in');
     }
   })

@@ -6,6 +6,7 @@
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
   import {worldMap} from '$image';
+  import {notify} from '$lib';
 
   const {data}: {data: PageData} = $props();
 
@@ -65,6 +66,7 @@
   }
 
   onMount(() => {
+    if (data.recoveryRemaining === 0) notify('You have no recovery codes left. Please generate new ones', 'info');
     if ($filterOverflow) filterTable();
     if (!$sortAsc) sortTable();
   });

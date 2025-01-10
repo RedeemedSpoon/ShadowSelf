@@ -1,12 +1,12 @@
 <script lang="ts">
-  import {fetching, pricingModel, showModal} from '$store';
+  import {type Notification, allPricingModels} from '$type';
   import {loadStripe, type Stripe} from '@stripe/stripe-js';
-  import {notify, changePricingModel} from '$lib';
+  import {pricingModel, fetching, showModal} from '$store';
   import {LoadingButton, Modal} from '$component';
-  import type {Notification} from '$type';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
+  import {notify} from '$lib';
 
   interface Props {
     data: PageData;
@@ -26,23 +26,15 @@
     stripe = (await loadStripe(data.stripeKey!, {betas: ['custom_checkout_beta_5']})) as Stripe;
   });
 
+  function changeModel(model: string) {
+    const chosenModel = model.toLowerCase() as keyof typeof allPricingModels;
+    pricingModel.set({name: model, ...allPricingModels[chosenModel]});
+  }
+
   async function handleCheckout() {
     stripe.initCheckout({clientSecret}).then((checkout) => {
       const paymentElement = checkout.createElement('payment', {layout: 'tabs'});
       paymentElement.mount('#payment-element');
-
-      const emailInput = document.getElementById('email')! as HTMLInputElement;
-      const emailErrors = document.getElementById('email-errors')! as HTMLDivElement;
-
-      emailInput.addEventListener('change', () => (emailErrors.textContent = ''));
-
-      emailInput.addEventListener('blur', () => {
-        const newEmail = emailInput.value;
-        checkout.updateEmail(newEmail).then((result) => {
-          // @ts-expect-error Error Assertion
-          if (result.error) emailErrors.textContent = result.error.message;
-        });
-      });
 
       const button = document.getElementById('pay-button')!;
       const errors = document.getElementById('confirm-errors')!;
@@ -77,10 +69,9 @@
   <form method="POST" use:enhance={handleSubmit}>
     <h1 class="text-6xl">Purchase a new identity</h1>
     <p>Purchase an affordable identity to protect your privacy and safeguard your data.</p>
-    <div id="pricing-model">
-      <div id="select-model-box"></div>
+    <div class="flex justify-center p-8">
       {#each ['Monthly', 'Annually', 'Lifetime'] as model}
-        <button type="button" onclick={() => changePricingModel(model)}>
+        <button class:select-model={model === $pricingModel.name} type="button" onclick={() => changeModel(model)}>
           {model}
         </button>
       {/each}
@@ -89,8 +80,6 @@
     <LoadingButton className="w-fit px-16 py-6 text-2xl mt-4">Purchase</LoadingButton>
   </form>
   <Modal id={1}>
-    <input type="text" id="email" />
-    <div id="email-errors"></div>
     <div id="payment-element"></div>
     <button id="pay-button">Pay</button>
     <div id="confirm-errors"></div>
@@ -106,15 +95,7 @@
     @apply flex flex-col gap-8 text-center;
   }
 
-  #pricing-model {
-    @apply relative flex w-fit rounded-full border-2 border-neutral-300 bg-neutral-950/50 shadow-xl shadow-neutral-900;
-  }
-
-  #pricing-model button {
-    @apply bg-none px-10 py-6 text-2xl font-medium text-neutral-500 shadow-xl hover:text-neutral-600;
-  }
-
-  #select-model-box {
-    @apply absolute left-0 h-full w-1/3 rounded-full bg-neutral-300 bg-opacity-15 transition-all duration-300 ease-in-out;
+  .select-model {
+    @apply bg-gradient-to-br from-green-500 to-green-800 text-white;
   }
 </style>

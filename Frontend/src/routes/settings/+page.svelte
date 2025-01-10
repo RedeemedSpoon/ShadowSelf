@@ -86,7 +86,7 @@
       {@const SvelteComponent = section.icon}
       <a onclick={() => handleClick(i)} href="#{section.id}" style="top: {(i + 3.25) * 4}rem">
         <li class="flex items-center gap-2">
-          <SvelteComponent className="!h-8 !w-8" /><span>{section.title}</span>
+          <SvelteComponent fill={true} className="!h-8 !w-8" /><span>{section.title}</span>
         </li>
       </a>
     {/each}
@@ -221,7 +221,7 @@
     </form>
     <hr />
 
-    <h2 id="billing"><CreditCardIcon className="!h-10 !w-10 cursor-default" />Billing Information :</h2>
+    <h2 id="billing"><CreditCardIcon fill={true} className="!h-10 !w-10 cursor-default" />Billing Information :</h2>
     <form class="flex-col" use:enhance={({formData}) => sendFrom(true, 6, formData.has('update'))} method="POST" action="?/billing">
       <div class="inline-grid grid-cols-2 gap-8">
         <div class="flex flex-col gap-4">
@@ -244,7 +244,7 @@
     </form>
     <hr />
 
-    <h2 id="danger"><InfoIcon className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone :</h2>
+    <h2 id="danger"><InfoIcon fill={true} className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone :</h2>
     <form use:enhance={() => setModal(0)} method="POST" action="?/session">
       <label for="logout">Session Management :</label>
       <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>

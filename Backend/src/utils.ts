@@ -30,7 +30,7 @@ export async function verifyEmail(email: string, token: string) {
     from: 'verification@shadowself.io',
     to: email,
     subject: 'Please confirm your email address',
-    text: `Please copy and paste the following access token: ${token}`,
+    html: getEmailTemplate(token),
   };
 
   try {
@@ -45,4 +45,24 @@ export function toTitleCase(str: string): string {
   return str.replace(/\w\S*/g, (txt) => {
     return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
   });
+}
+
+function getEmailTemplate(token: string): string {
+  return `
+  <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="Confirm your email address for account activation.">
+      <meta name="author" content="Shadowself.io">
+      <title>Confirm Your Email Address</title>
+    </head>
+    <body>
+      <h1>Confirm Your Email Address</h1>
+      <p>Please Copy and paste the following access token to verify your email address</p>
+      <button>${token}</button>
+    </body>
+  </html>
+  `;
 }

@@ -1,16 +1,20 @@
 import type {PageServerLoad} from './$types';
+import {fetchApi} from '$lib';
 
-export const load: PageServerLoad = () => {
+export const load: PageServerLoad = async () => {
+  const remains = await fetchApi('/account/recovery-remaining', 'GET');
   const flipCoins = Math.floor(Math.random() * 2);
 
   if (flipCoins === 0) {
     return {
+      recoveryRemaining: remains.message,
       searchKeywords: [],
       identities: [],
     };
   }
 
   return {
+    recoveryRemaining: remains.message,
     searchKeywords: [
       {
         label: '18129fe791a1',

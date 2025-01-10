@@ -18,8 +18,9 @@ export default new Elysia({prefix: '/account'})
     const relativePath = path.slice(8);
     const signUp = ['/signup', 'signup-email', '/signup-username', '/signup-otp', '/signup-recovery', '/signup-create'];
     const logIn = ['/login', '/login-email', '/login-otp', '/login-recovery'];
+    const mustNotLogIn = [...signUp, ...logIn];
 
-    if ((signUp.some((p) => relativePath === p) || logIn.some((p) => relativePath === p)) && user) {
+    if (mustNotLogIn.some((p) => relativePath === p) && user) {
       return error(401, 'You are already logged in');
     }
   })
@@ -30,6 +31,12 @@ export default new Elysia({prefix: '/account'})
     if (!result[0].revoke_session.includes(user.id)) return error(401, 'Not authorized');
 
     return result[0].username;
+  })
+  .get('/recovery-remaining', async ({user}) => {
+    if (!user) return;
+
+    const result = await attempt(sql`SELECT recovery FROM users WHERE email = ${user.email}`);
+    return result[0]?.recovery.length;
   })
   .post('/login', async ({jwt, body}) => {
     const {password, email, err} = check(body, ['password', 'email'], true);

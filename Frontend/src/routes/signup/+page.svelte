@@ -156,9 +156,9 @@
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={10} action="create">
+    <HappyIcon className="w-36 h-36 -mt-12" />
     <h1 class="!-mb-2 text-center">And we're done, <span class="pretty-style">{username}</span></h1>
-    <HappyIcon className="w-36 h-36" />
-    <p class="-mt-2 text-center">
+    <p class="-mt-2 mb-4 text-center">
       Just click the button below to finish setting up your account. You can still go back to make changes
     </p>
     <LoadingButton>Create the account</LoadingButton>

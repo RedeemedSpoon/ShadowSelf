@@ -1,9 +1,18 @@
 <script lang="ts">
   import {CheckmarkIcon, ChevronIcon, QuestionIcon} from '$icon';
-  import {pricingModel, user} from '$store';
-  import {changePricingModel} from '$lib';
+  import {user, pricingModel} from '$store';
+  import {allPricingModels} from '$type';
   import {fly} from 'svelte/transition';
   import {Card} from '$component';
+
+  function changePricingModel(model: string) {
+    const chosenModel = model.toLowerCase() as keyof typeof allPricingModels;
+    pricingModel.set({name: model, ...allPricingModels[chosenModel]});
+
+    const margin = model === 'Monthly' ? '0%' : model === 'Annually' ? '33%' : '66%';
+    const element = document.querySelector('#select-model-box') as HTMLElement;
+    element.style.left = margin;
+  }
 
   const title = [
     'You can manage your identities and online account linked to it such as passwords and credentials',
@@ -62,7 +71,6 @@
         </ul>
       {/each}
     </div>
-    <p class="-my-4 text-sm text-neutral-500">All major crypto currencies are supported.</p>
   </div>
   <a href={$user ? '/purchase' : '/login'}>
     <button id="purchase">Purchase<ChevronIcon /></button>
