@@ -5,7 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.08] - 2024-1-06
+## [0.3.09] - 2025-1-10
+
+### Added
+
+- Add a different reset email template
+- Add rewind to generate new recovery codes in dashboard
+- Add a pretty email verification template
+- Add filled icons switch to some
+
+### Changed
+
+- Move changePricingModel to their respective places instead of $lib
+- Settings icon are now filled
+- Change purchase page design
+- Modify faq question
+
+## [0.3.08] - 2025-1-06
 
 ### Added
 

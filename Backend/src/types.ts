@@ -33,6 +33,26 @@ export interface QueryResult {
   api_key: string;
 }
 
+export const emailTemplate = {
+  confirm: {
+    title: 'Confirm Your Email Address',
+    description: 'Thank you for signing up for Shadowself. To create your account, you need to first verify your email address.',
+    type: 'access',
+    action: 'create your account & start using Shadowself',
+  },
+  change: {
+    title: 'Change Your Email Address',
+    description: 'To change the email address associated with your account, you need to first verify this new email address.',
+    type: 'access',
+    action: 'login to your account with the new email address',
+  },
+  recover: {
+    title: 'Recover Your Account',
+    description: 'Since you forgot your password, we will resort to using recovery token to get back your account.',
+    type: 'recovery',
+    action: 'login to your account & start using Shadowself',
+  },
+};
 export const pricingModal = {
   monthly: 'price_1QaM8sByRGrIIrNdSZuKcNV2',
   annually: 'price_1QaM8iByRGrIIrNdlLpIn0cI',

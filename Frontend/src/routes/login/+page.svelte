@@ -45,15 +45,15 @@
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
-    <h1 class="!-mb-2">Give us your Email</h1>
+    <h1 class="!-mb-2">Give us your email</h1>
     <p>Write below the account's email address and we will send a reset token to get access back</p>
     <InputWithIcon type="email" name="email" placeholder="example@domain.tld" fill={true} icon={EmailIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={3} action="checkAccess">
-    <h1 class="!-mb-2">Enter the reset token</h1>
-    <p>We sent you an email with an reset token. Enter it below to continue</p>
+    <h1 class="!-mb-2">Enter the recovery token</h1>
+    <p>We sent you an email with an recovery token. Enter it below to continue</p>
     <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>

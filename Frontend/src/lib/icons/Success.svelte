@@ -7,7 +7,7 @@
   let {fill = false, className = '!h-12 !w-12 mr-4 stroke-success-500'}: Props = $props();
 </script>
 
-{#if !fill}
+{#if fill}
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
