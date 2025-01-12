@@ -181,8 +181,8 @@ export default new Elysia({prefix: '/account'})
     return {recovery};
   })
   .post('/signup-create', async ({jwt, body}) => {
-    const fields = ['username', 'password', 'email', 'access', '?secret', '?recovery'];
-    const {password, username, email, access, secret, recovery, err} = check(body, fields);
+    const fields = ['username', 'password', 'email', 'access', '?secret', '?recovery', '?payment'];
+    const {password, username, email, access, secret, recovery, payment, err} = check(body, fields);
     if (err) return error(400, err);
 
     //@ts-expect-error JWT only accept objects
@@ -198,9 +198,17 @@ export default new Elysia({prefix: '/account'})
     const apiKey = getAPIKey();
     await attempt(sql`UPDATE users SET api_key = ${apiKey} WHERE email = ${email}`);
 
-    if (secret && recovery) {
+    if (secret && recovery.length) {
       await attempt(sql`UPDATE users SET totp = ${secret} WHERE email = ${email}`);
       await attempt(sql`UPDATE users SET recovery = ${recovery} WHERE email = ${email}`);
+    }
+
+    if (payment) {
+      await fetch('http://localhost:3000/billing/setup', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, payment}),
+      });
     }
 
     const id = genereteID();

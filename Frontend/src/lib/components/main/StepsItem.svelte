@@ -13,7 +13,7 @@
     index: number;
   }
 
-  const {shouldWait, backStep, children, index, action}: Props = $props();
+  const {backStep, children, shouldWait, index, action}: Props = $props();
 </script>
 
 {#if $currentStep === index}

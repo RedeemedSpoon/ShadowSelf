@@ -1,22 +1,27 @@
 <script lang="ts">
   import {UserIcon, KeyIcon, KeylockIcon, DownloadIcon, CopyIcon, HappyIcon, EmailIcon, QuestionIcon} from '$icon';
   import {Steps, StepsItem, InputWithIcon, LoadingButton, ReactiveButton, Tooltip} from '$component';
+  import {loadStripe, type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Registration} from '$type';
-  import {currentStep} from '$store';
+  import {currentStep, fetching} from '$store';
   import {get} from 'svelte/store';
   import {notify} from '$lib';
 
-  const {form}: {form: Notification & Registration} = $props();
+  const {form}: {form: Notification & Registration & {stripeKey?: string}} = $props();
 
   let qr = $state() as string;
   let secret = $state() as string;
   let username = $state() as string;
   let recovery = $state() as string[];
+
   let anchor = $state() as HTMLAnchorElement;
+  let card = $state() as StripeCardElement;
+  let stripe = $state() as Stripe;
 
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
     if (form?.step) currentStep.set(Number(form?.step));
+    if (form?.stripeKey) initStripe(form.stripeKey);
 
     if (form?.secret || form?.secret === '') secret = form.secret;
     if (form?.username) username = form.username;
@@ -35,9 +40,33 @@
     anchor.click();
   }
 
+  async function initStripe(stripeKey: string) {
+    stripe = (await loadStripe(stripeKey!)) as Stripe;
+    card = stripe!.elements().create('card', {hidePostalCode: true});
+    card.mount('#payment');
+  }
+
+  async function pay() {
+    fetching.set(1);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const {paymentMethod, error} = await stripe!.createPaymentMethod({type: 'card', card});
+    if (paymentMethod) {
+      const input = document.querySelector('input[name="paymentID"]') as HTMLInputElement;
+      const submit = document.querySelector('#submit-payment') as HTMLButtonElement;
+
+      input.value = paymentMethod.id;
+      submit.click();
+    } else {
+      notify(error!.message!, 'alert');
+      fetching.set(0);
+    }
+  }
+
   function backStep() {
     let step = get(currentStep) - 1;
     step = step === 7 && !secret ? 4 : step;
+    step = step === 9 && !card ? 8 : step;
     currentStep.set(step);
   }
 </script>
@@ -139,10 +168,7 @@
 
   <StepsItem {backStep} index={8} action="askBilling">
     <h1 class="!-mb-2">Want to add a payment option?</h1>
-    <p>
-      You will need a payment method to use ShadowSelf in it full capacity. We accept both credit cards and crypto currencies and store
-      them safely.
-    </p>
+    <p>You will need a payment method to use ShadowSelf in it full capacity. We currently only accept credit cards</p>
     <div class="mt-8 flex justify-between gap-2 px-8 max-md:flex-col-reverse">
       <button class="alt" name="skip" type="submit">Skip for now</button>
       <button name="add" type="submit">Add Payment →</button>
@@ -150,9 +176,11 @@
   </StepsItem>
 
   <StepsItem {backStep} index={9} action="addBilling">
-    <h1>Add a billing method</h1>
-    <p>Not implemented yet.</p>
-    <button type="submit">Add Billing</button>
+    <h1 class="!-mb-2">Enter your card details</h1>
+    <div id="payment"></div>
+    <input hidden name="paymentID" />
+    <LoadingButton type="button" onclick={pay}>Pay</LoadingButton>
+    <button hidden type="submit" id="submit-payment">Submit</button>
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={10} action="create">

@@ -25,7 +25,7 @@ export const actions: Actions = {
     const response = await fetchApi('/account/signup-email', 'POST', {access, email});
     if (!response.email) return response;
 
-    const cookie = cookies.get('signup')?.split('&&').slice(0, 2).join('&&');
+    const cookie = cookies.get('signup')?.split('&&').join('&&');
     const concat = `${cookie}&&${access}`;
     createCookie(cookies, 'signup', concat, true);
 
@@ -38,7 +38,7 @@ export const actions: Actions = {
     const response = await fetchApi('/account/signup-username', 'POST', {username});
     if (!response.username) return response;
 
-    const cookie = cookies.get('signup')?.split('&&').slice(0, 3).join('&&');
+    const cookie = cookies.get('signup')?.split('&&').join('&&');
     const concat = `${cookie}&&${username}`;
     createCookie(cookies, 'signup', concat, true);
 
@@ -53,7 +53,7 @@ export const actions: Actions = {
       const response = await fetchApi('/account/signup-otp', 'POST', {username});
       if (!response.secret) return response;
 
-      const cookie = cookies.get('signup')?.split('&&').slice(0, 4).join('&&');
+      const cookie = cookies.get('signup')?.split('&&').join('&&');
       const concat = `${cookie}&&${response.secret}`;
       createCookie(cookies, 'signup', concat, true);
 
@@ -72,7 +72,7 @@ export const actions: Actions = {
     const response = await fetchApi('/account/signup-recovery', 'POST', {token, secret});
     if (!response.recovery) return response;
 
-    const cookie = cookies.get('signup')?.split('&&').slice(0, 5).join('&&');
+    const cookie = cookies.get('signup')?.split('&&').join('&&');
     const concat = `${cookie}&&${response.recovery}`;
     createCookie(cookies, 'signup', concat, true);
 
@@ -82,15 +82,42 @@ export const actions: Actions = {
   askBilling: async ({request}) => {
     const form = await request.formData();
     const wantBilling = form.has('add');
-    return wantBilling ? {step: 9} : {step: 10};
-  },
-  addBilling: async () => ({step: 10}),
-  create: async ({cookies}) => {
-    const concat = cookies.get('signup');
-    const [email, password, access, username, secret, arrRecovery] = concat?.split('&&') ?? [];
-    const recovery = arrRecovery?.split(',');
 
-    const response = await fetchApi('/account/signup-create', 'POST', {email, access, username, password, secret, recovery});
+    if (wantBilling) {
+      const stripeKey = process.env.STRIPE_PUBLISHABLE_KEY;
+      return {step: 9, stripeKey};
+    }
+
+    return {step: 10};
+  },
+  addBilling: async ({request, cookies}) => {
+    const form = await request.formData();
+    const payment = form.get('paymentID');
+
+    const cookie = cookies.get('signup')?.split('&&').join('&&');
+    const concat = `${cookie}&&${payment}`;
+    createCookie(cookies, 'signup', concat, true);
+
+    return {step: 10};
+  },
+  create: async ({cookies}) => {
+    const object = cookies.get('signup')?.split('&&') as string[];
+    const [email, password, access, username] = object ?? [];
+    let [secret, recovery, payment] = ['', [], ''] as [string, string[], string];
+
+    const hasOTP = object[4]?.length === 32 && object[5].split(',')?.length === 6;
+    const hasBilling = object[4]?.length === 27 || object[6]?.length === 27;
+
+    if (hasOTP) {
+      secret = object[4];
+      recovery = object[5].split(',');
+    }
+
+    if (hasBilling) {
+      payment = hasOTP ? object[6] : object[4];
+    }
+
+    const response = await fetchApi('/account/signup-create', 'POST', {email, access, username, password, secret, recovery, payment});
     if (!response.cookie) return response;
 
     createCookie(cookies, 'token', response.cookie);

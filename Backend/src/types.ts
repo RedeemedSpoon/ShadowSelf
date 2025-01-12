@@ -14,6 +14,7 @@ export interface BodyField {
   username: string;
   password: string;
   recovery: string[];
+  payment: string;
   secret: string;
   token: string;
   code: string;

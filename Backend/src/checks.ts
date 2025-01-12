@@ -67,6 +67,12 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
           return {err: 'Wrong recovery codes structure. Generate new ones'} as BodyField;
         }
         break;
+
+      case 'payment':
+        if (body.payment.length !== 27 || !body.payment.startsWith('pm_')) {
+          return {err: 'Payment method is invalid. Please try again'} as BodyField;
+        }
+        break;
     }
   }
 
@@ -91,7 +97,7 @@ export function checkContact(Rawbody: unknown): ContactDetail {
   }
 
   if (!body.category.match(/^(question|feedback|collaboration|refund|bug|help|other)$/i)) {
-    return {err: 'Please enter a valid category.'} as ContactDetail;
+    return {err: 'Please enter a valid category'} as ContactDetail;
   }
 
   return body;

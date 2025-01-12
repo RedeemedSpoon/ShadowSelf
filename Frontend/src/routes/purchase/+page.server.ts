@@ -9,6 +9,6 @@ export const actions = {
   default: async ({request}) => {
     const formData = await request.formData();
     const type = formData.get('type')?.toString().toLowerCase();
-    return await fetchApi(`/billing?type=${type}`, 'GET');
+    return await fetchApi(`/billing/checkout?type=${type}`, 'GET');
   },
 } satisfies Actions;

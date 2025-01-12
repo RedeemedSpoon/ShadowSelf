@@ -34,10 +34,10 @@
   async function handleCheckout() {
     stripe.initCheckout({clientSecret}).then((checkout) => {
       const paymentElement = checkout.createElement('payment', {layout: 'tabs'});
-      paymentElement.mount('#payment-element');
-
       const button = document.getElementById('pay-button')!;
       const errors = document.getElementById('confirm-errors')!;
+
+      paymentElement.mount('#payment-element');
       button.addEventListener('click', () => {
         errors.textContent = '';
 

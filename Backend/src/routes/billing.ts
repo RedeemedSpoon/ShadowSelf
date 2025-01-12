@@ -28,11 +28,15 @@ export default new Elysia({prefix: '/billing'})
       const customer = event.data.object.customer! as string;
       const email = event.data.object.customer_details!.email! as string;
       await attempt(sql`UPDATE users SET stripe_customer = ${customer} WHERE email = ${email}`);
+      // Do something later
     }
 
     return {received: true};
   })
-  .get('/', async ({user, query}) => {
+  .post('/setup', async ({body}) => {
+    console.log(body);
+  })
+  .get('/checkout', async ({user, query}) => {
     if (!user) return error(401, 'You are not logged in');
 
     const runtime = process.env.NODE_ENV;
@@ -48,6 +52,7 @@ export default new Elysia({prefix: '/billing'})
       mode: type === 'lifetime' ? 'payment' : 'subscription',
       line_items: [{price: pricingModal[type], quantity: 1}],
       payment_method_types: ['card'],
+      customer_email: user!.email,
     });
 
     return {clientSecret: session.client_secret};
