@@ -85,15 +85,16 @@ export const actions: Actions = {
 
     if (wantBilling) {
       const stripeKey = process.env.STRIPE_PUBLISHABLE_KEY;
-      return {step: 9, stripeKey};
+      return {step: 9, stripeKey: stripeKey};
     }
 
-    return {step: 10};
+    return {step: 10, stripeKey: ''};
   },
   addBilling: async ({request, cookies}) => {
     const form = await request.formData();
     const payment = form.get('paymentID');
 
+    if (!payment) return {step: 9};
     const cookie = cookies.get('signup')?.split('&&').join('&&');
     const concat = `${cookie}&&${payment}`;
     createCookie(cookies, 'signup', concat, true);

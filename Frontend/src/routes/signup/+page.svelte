@@ -17,11 +17,14 @@
   let anchor = $state() as HTMLAnchorElement;
   let card = $state() as StripeCardElement;
   let stripe = $state() as Stripe;
+  let key = $state() as string | undefined;
 
   $effect(() => {
+    if (form && Object.hasOwn(form, 'stripeKey')) key = form.stripeKey;
+    if (key) initStripe(key);
+
     if (form?.message) notify(form.message, form.type);
     if (form?.step) currentStep.set(Number(form?.step));
-    if (form?.stripeKey) initStripe(form.stripeKey);
 
     if (form?.secret || form?.secret === '') secret = form.secret;
     if (form?.username) username = form.username;
@@ -42,8 +45,22 @@
 
   async function initStripe(stripeKey: string) {
     stripe = (await loadStripe(stripeKey!)) as Stripe;
-    card = stripe!.elements().create('card', {hidePostalCode: true});
-    card.mount('#payment');
+    card = stripe!.elements().create('card', {
+      classes: {
+        base: 'rounded-xl border p-4 transition-all duration-300 border-neutral-800 bg-neutral-800/30',
+        focus: 'ring-2 ring-primary-700',
+      },
+      style: {
+        base: {
+          color: '#cbd5e1',
+          iconColor: '#94a3b8',
+          '::placeholder': {color: '#94a3b8'},
+        },
+      },
+    });
+
+    setTimeout(() => card.mount('#payment'), 300);
+    return 9;
   }
 
   async function pay() {
@@ -63,10 +80,12 @@
     }
   }
 
-  function backStep() {
+  async function backStep() {
     let step = get(currentStep) - 1;
-    step = step === 7 && !secret ? 4 : step;
-    step = step === 9 && !card ? 8 : step;
+    if (step !== 8) {
+      step = step === 7 && !secret ? 4 : step;
+      step = step === 9 && !key ? 8 : await initStripe(key!);
+    }
     currentStep.set(step);
   }
 </script>
@@ -176,7 +195,8 @@
   </StepsItem>
 
   <StepsItem {backStep} index={9} action="addBilling">
-    <h1 class="!-mb-2">Enter your card details</h1>
+    <h1 class="!-mb-2">Enter your credit card details</h1>
+    <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
     <div id="payment"></div>
     <input hidden name="paymentID" />
     <LoadingButton type="button" onclick={pay}>Pay</LoadingButton>

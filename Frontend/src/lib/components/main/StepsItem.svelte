@@ -11,9 +11,10 @@
     children: Snippet;
     action: string;
     index: number;
+    name?: string;
   }
 
-  const {backStep, children, shouldWait, index, action}: Props = $props();
+  const {backStep, children, shouldWait, index, action, name}: Props = $props();
 </script>
 
 {#if $currentStep === index}
@@ -21,7 +22,7 @@
     {#if index !== 1}
       <button class="alt group" type="button" onclick={backStep}>← Back<span></span></button>
     {/if}
-    <form method="POST" action="?/{action}" use:enhance={() => sendFrom(shouldWait)}>
+    <form method="POST" action="?/{action}" {name} use:enhance={() => sendFrom(shouldWait)}>
       {@render children?.()}
     </form>
   </Card>

@@ -24,7 +24,7 @@
       <div id="auth-buttons">
         {#if $user}
           <div class="flex gap-2">
-            <a href="/settings"><CogIcon className="stroke-primary-600 h-7 w-7" /></a>
+            <a href="/settings"><CogIcon className="fill-primary-600 h-7 w-7" /></a>
             <a href="/dashboard" class="group" id="username">{$user}<span></span></a>
           </div>
         {:else}

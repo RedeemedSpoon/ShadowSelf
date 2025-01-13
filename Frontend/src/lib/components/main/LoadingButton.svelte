@@ -9,8 +9,8 @@
     className?: string;
     formaction?: string;
     disabled?: boolean;
-    onclick?: () => void;
     children?: Snippet;
+    onclick?: () => void;
     type?: 'submit' | 'button' | 'reset';
   }
 
