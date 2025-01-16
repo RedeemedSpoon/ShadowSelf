@@ -82,10 +82,8 @@
 
   async function backStep() {
     let step = get(currentStep) - 1;
-    if (step !== 8) {
-      step = step === 7 && !secret ? 4 : step;
-      step = step === 9 && !key ? 8 : await initStripe(key!);
-    }
+    step = step === 7 && !secret ? 4 : step;
+    step = step === 9 ? (!key ? 8 : await initStripe(key!)) : step;
     currentStep.set(step);
   }
 </script>

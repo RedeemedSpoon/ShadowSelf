@@ -40,11 +40,14 @@ export default new Elysia({prefix: '/billing'})
 
     const customer = await stripe.customers.create({email, payment_method: payment});
     if (!customer) return error(500, 'Failed to create customer');
+
+    await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
     await attempt(sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`);
   })
   .get('/checkout', async ({user, query}) => {
     if (!user) return error(401, 'You are not logged in');
 
+    let option;
     const runtime = process.env.NODE_ENV;
     const type = query?.type as keyof typeof pricingModal;
     const origin = runtime === 'dev' ? 'http://localhost:5173' : 'https://shadowself.io';
@@ -52,18 +55,31 @@ export default new Elysia({prefix: '/billing'})
     if (!type) return error(400, 'Missing or invalid query type. Try again');
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
 
-    const response = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
-    const customer = response[0].stripe_customer || '';
-    const option = customer ? {customer} : {customer_email: user.email};
+    const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
 
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: 'custom' as 'embedded',
-      return_url: `${origin}/dashboard`,
-      mode: type === 'lifetime' ? 'payment' : 'subscription',
-      line_items: [{price: pricingModal[type], quantity: 1}],
-      payment_method_types: ['card'],
-      ...option,
-    });
+    if (customer[0].stripe_customer) {
+      option = {
+        customer,
+        ui_mode: 'custom',
+        return_url: `${origin}/dashboard`,
+        mode: type === 'lifetime' ? 'payment' : 'subscription',
+        line_items: [{price: pricingModal[type], quantity: 1}],
+        saved_payment_method_options: {
+          payment_method_save: 'enabled',
+          allow_redisplay_filters: ['always'],
+        },
+      };
+    } else {
+      option = {
+        customer_email: user.email,
+        ui_mode: 'custom',
+        return_url: `${origin}/dashboard`,
+        mode: type === 'lifetime' ? 'payment' : 'subscription',
+        line_items: [{price: pricingModal[type], quantity: 1}],
+      };
+    }
 
+    // @ts-expect-error Stripe smh...
+    const session = await stripe.checkout.sessions.create(option);
     return {clientSecret: session.client_secret};
   });

@@ -93,8 +93,8 @@
 
 <div id="purchase">
   <form method="POST" use:enhance={handleSubmit}>
-    <h1 class="text-6xl">Purchase a new identity</h1>
-    <p>Purchase an affordable identity to protect your privacy and safeguard your data.</p>
+    <h1 class="text-6xl">Choose your plan</h1>
+    <p>All of our plans include a 14-day refund, 24/7 support and the same level of security.</p>
     <div class="flex justify-center gap-8 p-8">
       {#each ['Monthly', 'Annually', 'Lifetime'] as model}
         <button class:select-model={model === $pricingModel.name} type="button" onclick={() => changeModel(model)}>

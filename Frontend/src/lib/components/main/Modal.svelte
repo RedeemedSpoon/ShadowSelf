@@ -15,13 +15,13 @@
   });
 </script>
 
-<div id="modal-overlay" onclick={() => ($showModal = 0)} aria-hidden="true" class={hide ? 'hidden' : 'no-scroll'}></div>
+<div onclick={() => ($showModal = 0)} aria-hidden="true" class={hide ? 'hidden' : 'no-scroll'}></div>
 <div id="modal" class:!hidden={hide}>
   {@render children?.()}
 </div>
 
 <style lang="postcss">
-  #modal-overlay {
+  div:not(#modal) {
     @apply fixed inset-0 z-50 bg-black/40;
   }
 

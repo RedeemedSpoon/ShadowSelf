@@ -249,13 +249,13 @@
       <label for="logout">Session Management :</label>
       <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>
       <button type="button" onclick={() => ($showModal = 3)} class="md:w-fit" name="revoke">Revoke All Session</button>
-      <ConfirmModal id={3} name="revoke" text="Revoking all sessions" />
     </form>
     <form use:enhance={() => setModal(0)} method="POST" action="?/delete">
       <label for="delete">Account Deletion :</label>
       <button onclick={() => ($showModal = 4)} type="button" class="disable md:w-fit">Delete Account</button>
-      <ConfirmModal id={4} name="delete" text="Deleting your account" />
     </form>
+    <ConfirmModal id={3} name="revoke" text="Revoking all sessions" />
+    <ConfirmModal id={4} name="delete" text="Deleting your account" />
   </section>
 </div>
 
