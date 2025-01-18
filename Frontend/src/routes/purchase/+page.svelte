@@ -2,8 +2,10 @@
   import {type Notification, allPricingModels} from '$type';
   import {loadStripe, type Stripe} from '@stripe/stripe-js';
   import {pricingModel, fetching, showModal} from '$store';
-  import {LoadingButton, Modal} from '$component';
+  import {Card, LoadingButton, Modal} from '$component';
   import type {PageData} from './$types';
+  import {fly} from 'svelte/transition';
+  import {CheckmarkIcon} from '$icon';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
   import {notify} from '$lib';
@@ -16,6 +18,16 @@
   let {data, form}: Props = $props();
   let clientSecret = $state() as string;
   let stripe = $state() as Stripe;
+
+  const features = [
+    'Custom Identity',
+    'Email Address',
+    'Phone Number',
+    'Virtual Card',
+    'Crypto Wallet',
+    'VPN/Proxy Access',
+    'Account Management',
+  ];
 
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
@@ -92,19 +104,42 @@
 </svelte:head>
 
 <div id="purchase">
-  <form method="POST" use:enhance={handleSubmit}>
-    <h1 class="text-6xl">Choose your plan</h1>
-    <p>All of our plans include a 14-day refund, 24/7 support and the same level of security.</p>
-    <div class="flex justify-center gap-8 p-8">
+  <Card className="py-12 px-8" upperClass="text-center w-fit mx-auto">
+    <section id="header-text">
+      <h1 class="text-6xl">Choose your plan</h1>
+      <p>All plans include a 14-day refund, 24/7 support and the same level of security.</p>
+    </section>
+    <section id="plans" class="!flex-row">
       {#each ['Monthly', 'Annually', 'Lifetime'] as model}
-        <button class:select-model={model === $pricingModel.name} type="button" onclick={() => changeModel(model)}>
-          {model}
-        </button>
+        <button type="button" onclick={() => changeModel(model)}>{model}</button>
       {/each}
-    </div>
-    <input hidden value={$pricingModel.name} name="type" type="hidden" />
-    <LoadingButton className="w-fit px-16 py-6 text-2xl mt-4">Purchase</LoadingButton>
-  </form>
+    </section>
+    <section id="tier-table">
+      {#key $pricingModel.price}
+        <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
+          <h2 class="mb-4 mt-9 text-4xl font-bold text-neutral-300">{$pricingModel.title}</h2>
+          <div class="flex items-baseline gap-3">
+            <h1 class="text-primary-600 flex items-start gap-1 text-6xl">
+              <span class="mt-6 text-4xl">$</span>{$pricingModel.price}
+            </h1>
+            <p class="text-xl text-neutral-400">{$pricingModel.description}</p>
+          </div>
+        </div>
+      {/key}
+      <ul class="text-left">
+        {#each features as feature}
+          <li><CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />{feature}</li>
+        {/each}
+      </ul>
+    </section>
+    <section id="payment-methods">
+      <form class="flex gap-4 px-8" method="POST" use:enhance={handleSubmit}>
+        <input hidden value={$pricingModel.name} name="type" type="hidden" />
+        <LoadingButton className="px-10 py-5">Pay with card</LoadingButton>
+        <button disabled class="px-10 py-5">Pay with crypto</button>
+      </form>
+    </section>
+  </Card>
   <Modal id={1}>
     <div class="m-4 flex flex-col gap-8">
       <div id="payment" class="sm:w-80"></div>
@@ -118,11 +153,11 @@
     @apply mx-auto my-[12.5rem] flex h-fit w-1/2 flex-col gap-6;
   }
 
-  form {
-    @apply flex flex-col gap-8 text-center;
+  section {
+    @apply flex flex-col items-center justify-center gap-4 px-8 py-4;
   }
 
-  .select-model {
-    @apply bg-gradient-to-br from-green-500 to-green-700 text-white shadow-green-900 hover:shadow-green-950;
+  li {
+    @apply flex items-center gap-4;
   }
 </style>

@@ -71,6 +71,7 @@
         </ul>
       {/each}
     </div>
+    <p class="-my-4 text-sm text-neutral-500">Crypto currency will be supported in an upcoming update</p>
   </div>
   <a href={$user ? '/purchase' : '/login'}>
     <button id="purchase">Purchase<ChevronIcon /></button>
