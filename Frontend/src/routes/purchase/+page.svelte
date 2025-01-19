@@ -1,11 +1,11 @@
 <script lang="ts">
+  import {CheckmarkIcon, CreditCardIcon, CryptoWalletIcon} from '$icon';
   import {type Notification, allPricingModels} from '$type';
   import {loadStripe, type Stripe} from '@stripe/stripe-js';
   import {pricingModel, fetching, showModal} from '$store';
-  import {LoadingButton, Modal} from '$component';
+  import {LoadingButton, Modal, Tooltip} from '$component';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
-  import {CheckmarkIcon} from '$icon';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
   import {notify} from '$lib';
@@ -23,11 +23,11 @@
     'Personal Attributes',
     'Account Credentials',
     'Email Address',
-    'Phone Number',
     'Virtual Card',
+    'Phone Number',
     'Crypto Wallet',
     'VPN Access',
-    'And more...',
+    'And More...',
   ];
 
   $effect(() => {
@@ -78,7 +78,7 @@
 
       paymentElement.mount('#payment');
       document.querySelector('button[name="pay"]')!.addEventListener('click', async () => {
-        fetching.set(1);
+        fetching.set(2);
         await new Promise((resolve) => setTimeout(resolve, 650));
 
         checkout.confirm().then((result) => {
@@ -106,8 +106,8 @@
 
 <div id="purchase">
   <section id="top-text">
-    <h1 class="text-6xl">Choose your plan</h1>
-    <p>All plans include a 14-day refund, 24/7 support and the same level of security.</p>
+    <h1 class="text-4xl sm:text-6xl">Choose your plan</h1>
+    <p class="text-center">All plans include a 14-day refund, 24/7 support and the same level of security.</p>
   </section>
   <div id="purchase-box">
     <section id="plans" class="!flex-row !gap-0">
@@ -116,26 +116,28 @@
       {/each}
     </section>
     <section id="tier-table">
-      <h2 class="mt-8 text-4xl font-bold text-neutral-300">Complete Identity</h2>
+      <h2 class="mt-8 text-3xl font-bold text-neutral-300 md:text-5xl">Complete Identity</h2>
       {#key $pricingModel.price}
-        <div in:fly={{x: -30, duration: 1000, opacity: 0}} class="flex items-baseline gap-3">
+        <div in:fly={{x: -30, duration: 1000, opacity: 0}} class="my-1 flex flex-col items-center">
           <h1 class="text-primary-600 flex items-start gap-1 text-6xl">
-            <span class="mt-6 text-4xl">$</span>{$pricingModel.price}
+            <span class="mt-6 text-3xl sm:text-4xl">$</span>{$pricingModel.price}
           </h1>
           <p class="text-xl text-neutral-400">{$pricingModel.description}</p>
         </div>
       {/key}
-      <ul class="mt-4 grid grid-cols-2 gap-4 text-left">
+      <ul class="mt-4 grid gap-x-12 gap-y-4 text-left sm:grid-cols-2">
         {#each features as feature}
           <li><CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />{feature}</li>
         {/each}
       </ul>
     </section>
-    <section id="payment-methods" class="my-8">
-      <form class="flex gap-4 px-8" method="POST" use:enhance={handleSubmit}>
+    <section id="payment-methods" class="my-10">
+      <form class="flex gap-6 px-8 max-sm:flex-col" method="POST" use:enhance={handleSubmit}>
         <input hidden value={$pricingModel.name} name="type" type="hidden" />
-        <LoadingButton className="px-10 py-5">Pay with card</LoadingButton>
-        <button disabled class="px-10 py-5">Pay with crypto</button>
+        <LoadingButton className="px-8 py-5 enable"><CreditCardIcon className="!w-8 !h-8" />Pay with card</LoadingButton>
+        <Tooltip tip="Coming Soon..." onTop={false}>
+          <button disabled class="flex items-center gap-3 px-8 py-5"><CryptoWalletIcon className="!w-8 !h-8" />Pay with crypto</button>
+        </Tooltip>
       </form>
     </section>
   </div>
@@ -144,7 +146,7 @@
 <Modal id={1}>
   <div class="m-4 flex flex-col gap-8">
     <div id="payment" class="sm:w-80"></div>
-    <LoadingButton name="pay" index={1}>Pay</LoadingButton>
+    <LoadingButton name="pay" index={2}>Pay</LoadingButton>
   </div>
 </Modal>
 
@@ -154,17 +156,17 @@
   }
 
   #purchase-box {
-    @apply rounded-3xl border-2 border-neutral-400 bg-neutral-950/15;
+    @apply rounded-3xl border-2 border-neutral-400 bg-[#070d1f];
   }
 
   section {
-    @apply flex flex-col items-center justify-center gap-4 px-8 py-4;
+    @apply flex flex-col items-center justify-center gap-4 px-4 py-4 md:px-8;
   }
 
   #plans button {
-    @apply alt bg-[#0d1427] text-neutral-400 shadow-none hover:bg-[#0b1225] hover:text-neutral-300;
-    @apply z-20 -mt-14 rounded-none px-8 py-5 text-2xl font-semibold even:-mx-1;
+    @apply alt bg-[#070d1f] text-neutral-400 shadow-none hover:bg-[#2b3446] hover:text-neutral-300;
     @apply border-2 border-neutral-400 first:rounded-l-full last:rounded-r-full;
+    @apply z-20 -mt-14 rounded-none px-4 py-5 text-sm font-semibold even:-mx-1 sm:px-8 sm:text-2xl;
   }
 
   .active {

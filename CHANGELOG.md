@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add prefill when customer is already existing (partial fail)
 - Add design to payment form using stripe element
-- Add customer check in purchase page
 - Add payment to signup
 
 ## [0.3.09] - 2025-1-10

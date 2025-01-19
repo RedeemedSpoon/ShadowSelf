@@ -4,6 +4,7 @@
   import {allPricingModels} from '$type';
   import {fly} from 'svelte/transition';
   import {Card} from '$component';
+  import {onMount} from 'svelte';
 
   function changePricingModel(model: string) {
     const chosenModel = model.toLowerCase() as keyof typeof allPricingModels;
@@ -21,10 +22,12 @@
   ];
 
   const sections = [
-    ['Custom Identity', 'Email Address', 'Phone Number'],
+    ['Personal Attributes', 'Email Address', 'Phone Number'],
     ['Virtual Card', 'Crypto Wallet', 'VPN Access'],
-    ['Account Management', '14 Day Refund', '24/7 Support'],
+    ['Account Credentials', '14 Day Refund', '24/7 Support'],
   ];
+
+  onMount(() => changePricingModel($pricingModel.name));
 </script>
 
 <div class="mb-16 flex flex-col items-center gap-4 max-sm:-mb-48 max-sm:scale-[65%]">
@@ -63,7 +66,7 @@
               <CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />
               {item}
               {#if index === 2}
-                <span class="cursor-pointer" title={title[index]}>
+                <span class="cursor-pointer" title={title[section.indexOf(item)]}>
                   <QuestionIcon className="-ml-2 !w-4 !h-4 !fill-neutral-700" /></span>
               {/if}
             </li>
