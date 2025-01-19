@@ -2,7 +2,7 @@
   import {type Notification, allPricingModels} from '$type';
   import {loadStripe, type Stripe} from '@stripe/stripe-js';
   import {pricingModel, fetching, showModal} from '$store';
-  import {Card, LoadingButton, Modal} from '$component';
+  import {LoadingButton, Modal} from '$component';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
   import {CheckmarkIcon} from '$icon';
@@ -20,13 +20,14 @@
   let stripe = $state() as Stripe;
 
   const features = [
-    'Custom Identity',
+    'Personal Attributes',
+    'Account Credentials',
     'Email Address',
     'Phone Number',
     'Virtual Card',
     'Crypto Wallet',
-    'VPN/Proxy Access',
-    'Account Management',
+    'VPN Access',
+    'And more...',
   ];
 
   $effect(() => {
@@ -104,57 +105,70 @@
 </svelte:head>
 
 <div id="purchase">
-  <Card className="py-12 px-8" upperClass="text-center w-fit mx-auto">
-    <section id="header-text">
-      <h1 class="text-6xl">Choose your plan</h1>
-      <p>All plans include a 14-day refund, 24/7 support and the same level of security.</p>
-    </section>
-    <section id="plans" class="!flex-row">
+  <section id="top-text">
+    <h1 class="text-6xl">Choose your plan</h1>
+    <p>All plans include a 14-day refund, 24/7 support and the same level of security.</p>
+  </section>
+  <div id="purchase-box">
+    <section id="plans" class="!flex-row !gap-0">
       {#each ['Monthly', 'Annually', 'Lifetime'] as model}
-        <button type="button" onclick={() => changeModel(model)}>{model}</button>
+        <button class:active={$pricingModel.name === model} type="button" onclick={() => changeModel(model)}>{model}</button>
       {/each}
     </section>
     <section id="tier-table">
+      <h2 class="mt-8 text-4xl font-bold text-neutral-300">Complete Identity</h2>
       {#key $pricingModel.price}
-        <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
-          <h2 class="mb-4 mt-9 text-4xl font-bold text-neutral-300">{$pricingModel.title}</h2>
-          <div class="flex items-baseline gap-3">
-            <h1 class="text-primary-600 flex items-start gap-1 text-6xl">
-              <span class="mt-6 text-4xl">$</span>{$pricingModel.price}
-            </h1>
-            <p class="text-xl text-neutral-400">{$pricingModel.description}</p>
-          </div>
+        <div in:fly={{x: -30, duration: 1000, opacity: 0}} class="flex items-baseline gap-3">
+          <h1 class="text-primary-600 flex items-start gap-1 text-6xl">
+            <span class="mt-6 text-4xl">$</span>{$pricingModel.price}
+          </h1>
+          <p class="text-xl text-neutral-400">{$pricingModel.description}</p>
         </div>
       {/key}
-      <ul class="text-left">
+      <ul class="mt-4 grid grid-cols-2 gap-4 text-left">
         {#each features as feature}
           <li><CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />{feature}</li>
         {/each}
       </ul>
     </section>
-    <section id="payment-methods">
+    <section id="payment-methods" class="my-8">
       <form class="flex gap-4 px-8" method="POST" use:enhance={handleSubmit}>
         <input hidden value={$pricingModel.name} name="type" type="hidden" />
         <LoadingButton className="px-10 py-5">Pay with card</LoadingButton>
         <button disabled class="px-10 py-5">Pay with crypto</button>
       </form>
     </section>
-  </Card>
-  <Modal id={1}>
-    <div class="m-4 flex flex-col gap-8">
-      <div id="payment" class="sm:w-80"></div>
-      <LoadingButton name="pay" index={1}>Pay</LoadingButton>
-    </div>
-  </Modal>
+  </div>
 </div>
+
+<Modal id={1}>
+  <div class="m-4 flex flex-col gap-8">
+    <div id="payment" class="sm:w-80"></div>
+    <LoadingButton name="pay" index={1}>Pay</LoadingButton>
+  </div>
+</Modal>
 
 <style lang="postcss">
   #purchase {
-    @apply mx-auto my-[12.5rem] flex h-fit w-1/2 flex-col gap-6;
+    @apply mx-auto my-[9rem] flex h-fit w-fit flex-col gap-16;
+  }
+
+  #purchase-box {
+    @apply rounded-3xl border-2 border-neutral-400 bg-neutral-950/15;
   }
 
   section {
     @apply flex flex-col items-center justify-center gap-4 px-8 py-4;
+  }
+
+  #plans button {
+    @apply alt bg-[#0d1427] text-neutral-400 shadow-none hover:bg-[#0b1225] hover:text-neutral-300;
+    @apply z-20 -mt-14 rounded-none px-8 py-5 text-2xl font-semibold even:-mx-1;
+    @apply border-2 border-neutral-400 first:rounded-l-full last:rounded-r-full;
+  }
+
+  .active {
+    @apply !bg-neutral-400 !text-neutral-950 hover:!text-neutral-950;
   }
 
   li {
