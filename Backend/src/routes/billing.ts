@@ -66,10 +66,11 @@ export default new Elysia({prefix: '/billing'})
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
 
     const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
+    const customerId = customer[0]?.stripe_customer;
 
-    if (customer[0]?.stripe_customer) {
+    if (customerId) {
       option = {
-        customer,
+        customer: customerId,
         ui_mode: 'custom',
         return_url: `${origin}/dashboard`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
@@ -89,6 +90,7 @@ export default new Elysia({prefix: '/billing'})
       };
     }
 
+    console.log(option);
     // @ts-expect-error Stripe smh...
     const session = await stripe.checkout.sessions.create(option);
     return {clientSecret: session.client_secret};

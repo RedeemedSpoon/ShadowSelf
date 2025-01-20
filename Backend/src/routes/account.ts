@@ -1,6 +1,7 @@
 import {compareHash, createHash, genereteID, createTOTP, getAPIKey, getSecret, getRecovery} from '../crypto';
-import {attempt, request, sendEmail} from '../utils';
+import {attempt, request} from '../utils';
 import {Elysia, error} from 'elysia';
+import {sendEmail} from '../email';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
 import {check} from '../checks';

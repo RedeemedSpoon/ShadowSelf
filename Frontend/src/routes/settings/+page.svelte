@@ -165,10 +165,10 @@
     <hr />
 
     <h2 id="billing"><CreditCardIcon fill={true} className="!h-10 !w-10 cursor-default" />Billing Information :</h2>
-    <div class="flex items-center justify-between gap-4">
-      <p class="font-semibold text-neutral-300">Your Stripe account :</p>
+    <form>
+      <p class="text-xl font-semibold text-neutral-300">Your Stripe account :</p>
       <a href={settings.sessionUrl} target="_blank" rel="noopener noreferrer" id="stripe-link">Manage<ExternalLinkIcon /></a>
-    </div>
+    </form>
     <hr />
 
     <h2 id="danger"><InfoIcon fill={true} className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone :</h2>
@@ -254,7 +254,7 @@
 
   #stripe-link {
     @apply shadow-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
-    @apply flex w-fit gap-1 rounded-md px-6 py-4 text-xl text-neutral-300 transition-all;
+    @apply flex justify-center gap-1 rounded-md px-6 py-4 text-xl text-neutral-300 transition-all md:w-fit;
     @apply bg-size-200 bg-pos-0 hover:bg-pos-100 from-primary-800 to-primary-600 bg-gradient-to-t;
   }
 

@@ -1,7 +1,7 @@
 import type {ContactDetail} from './types';
 import {checkContact} from './checks';
 import {Elysia, error} from 'elysia';
-import {contact} from './utils';
+import {contact} from './email';
 
 import settings from './routes/settings';
 import account from './routes/account';
