@@ -1,5 +1,5 @@
 import {compareHash, createHash, genereteID, createTOTP, getAPIKey, getSecret, getRecovery} from '../crypto';
-import {attempt, sendEmail} from '../utils';
+import {attempt, request, sendEmail} from '../utils';
 import {Elysia, error} from 'elysia';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
@@ -203,13 +203,7 @@ export default new Elysia({prefix: '/account'})
       await attempt(sql`UPDATE users SET recovery = ${recovery} WHERE email = ${email}`);
     }
 
-    if (payment) {
-      await fetch('http://localhost:3000/billing/setup', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, payment}),
-      });
-    }
+    if (payment) await request('/billing/setup', 'POST', {email, payment});
 
     const id = genereteID();
     await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);

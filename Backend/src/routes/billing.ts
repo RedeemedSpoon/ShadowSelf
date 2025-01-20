@@ -39,10 +39,20 @@ export default new Elysia({prefix: '/billing'})
     if (err) return error(400, err);
 
     const customer = await stripe.customers.create({email, payment_method: payment});
-    if (!customer) return error(500, 'Failed to create customer');
-
     await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
     await attempt(sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`);
+  })
+  .post('/portal', async ({body}) => {
+    const {email, err} = check(body, ['email']);
+    if (err) return error(400, err);
+
+    const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${email}`);
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customer[0].stripe_customer,
+      return_url: 'https://shadowself.io/dashboard',
+    });
+
+    return {sessionUrl: session.url};
   })
   .get('/checkout', async ({user, query}) => {
     if (!user) return error(401, 'You are not logged in');
@@ -57,7 +67,7 @@ export default new Elysia({prefix: '/billing'})
 
     const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
 
-    if (customer[0].stripe_customer) {
+    if (customer[0]?.stripe_customer) {
       option = {
         customer,
         ui_mode: 'custom',

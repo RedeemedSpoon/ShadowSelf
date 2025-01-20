@@ -9,6 +9,22 @@ export async function attempt(func: Promise<unknown>): Promise<QueryResult[]> {
   }
 }
 
+export function toTitleCase(str: string): string {
+  return str.replace(/\w\S*/g, (txt) => {
+    return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
+  });
+}
+
+export function request(url: string, method = 'GET', body?: object) {
+  return fetch('http://localhost:3000' + url, {
+    headers: {'Content-Type': 'application/json'},
+    body: body ? JSON.stringify(body) : undefined,
+    method,
+  })
+    .then((res) => res.json())
+    .catch((err) => err);
+}
+
 export async function contact(body: ContactDetail) {
   const mailOptions = {
     from: 'contact@shadowself.io',
@@ -39,12 +55,6 @@ export async function sendEmail(email: string, token: string, reason: keyof type
   } catch {
     return {message: '', err: 'Something went wrong. Try again later.'};
   }
-}
-
-export function toTitleCase(str: string): string {
-  return str.replace(/\w\S*/g, (txt) => {
-    return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
-  });
 }
 
 function getEmailTemplate(token: string, reason: keyof typeof emailTemplate): string {

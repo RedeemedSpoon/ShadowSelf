@@ -73,8 +73,6 @@ export const actions: Actions = {
   recovery: async () => await fetchApi('/settings/recovery'),
   toggleApi: async () => await fetchApi('/settings/api-access'),
   api: async () => await fetchApi('/settings/api-key'),
-  billing: async () => {},
-  deleteBilling: async () => {},
   session: async ({request, cookies}) => {
     const form = await request.formData();
     if (form.has('revoke')) await fetchApi('/settings/revoke', 'GET');

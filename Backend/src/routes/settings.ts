@@ -1,5 +1,5 @@
 import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '../crypto';
-import {attempt, sendEmail} from '../utils';
+import {attempt, sendEmail, request} from '../utils';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
@@ -28,7 +28,10 @@ export default new Elysia({prefix: '/settings'})
     const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
     const {email, recovery, totp, api_access, api_key} = result[0];
 
-    return {email, recovery: recovery || [], key: api_key, API: api_access, OTP: totp && true};
+    const res = await request('/billing/portal', 'POST', {email});
+    const sessionUrl = res.sessionUrl || '';
+
+    return {sessionUrl, email, recovery: recovery || [], key: api_key, API: api_access, OTP: totp && true};
   })
   .get('/otp', async ({user}) => {
     const result = await attempt(sql`SELECT username FROM users WHERE email = ${user!.email}`);

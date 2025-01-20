@@ -18,6 +18,7 @@ export interface Settings {
   OTP: boolean;
   API: boolean;
   key: string;
+  sessionUrl: string;
   recovery: number[];
   email: string;
 }

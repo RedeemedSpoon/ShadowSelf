@@ -28,6 +28,7 @@ export {default as IssuesIcon} from './Issues.svelte';
 export {default as ChangelogIcon} from './Changelog.svelte';
 export {default as CommunityIcon} from './Community.svelte';
 
+export {default as ExternalLinkIcon} from './ExternalLink.svelte';
 export {default as CheckmarkIcon} from './Checkmark.svelte';
 export {default as QuestionIcon} from './Question.svelte';
 export {default as ChevronIcon} from './Chevron.svelte';
