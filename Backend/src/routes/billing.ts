@@ -29,7 +29,6 @@ export default new Elysia({prefix: '/billing'})
       const customer = event.data.object.customer! as string;
       const email = event.data.object.customer_details!.email! as string;
       await attempt(sql`UPDATE users SET stripe_customer = ${customer} WHERE email = ${email}`);
-      // Do something later
     }
 
     return {received: true};
@@ -47,6 +46,8 @@ export default new Elysia({prefix: '/billing'})
     if (err) return error(400, err);
 
     const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${email}`);
+    if (!customer[0].stripe_customer) return {sessionUrl: ''};
+
     const session = await stripe.billingPortal.sessions.create({
       customer: customer[0].stripe_customer,
       return_url: 'https://shadowself.io/dashboard',
@@ -90,7 +91,6 @@ export default new Elysia({prefix: '/billing'})
       };
     }
 
-    console.log(option);
     // @ts-expect-error Stripe smh...
     const session = await stripe.checkout.sessions.create(option);
     return {clientSecret: session.client_secret};

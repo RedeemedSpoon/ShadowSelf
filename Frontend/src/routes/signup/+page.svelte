@@ -197,7 +197,7 @@
     <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
     <div id="payment"></div>
     <input hidden name="paymentID" />
-    <LoadingButton type="button" onclick={pay}>Pay</LoadingButton>
+    <LoadingButton type="button" onclick={pay}>Add Payment Method</LoadingButton>
     <button hidden type="submit" id="submit-payment">Submit</button>
   </StepsItem>
 

@@ -1,11 +1,12 @@
 <script lang="ts">
   import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon, ExternalLinkIcon} from '$icon';
   import {Modal, InputWithButton, InputWithIcon, LoadingButton, ConfirmModal, ReactiveButton} from '$component';
+  import {loadStripe, type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Settings, SettingsForm} from '$type';
   import {notify, sendFrom, setModal} from '$lib';
+  import {showModal, fetching} from '$store';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
-  import {showModal} from '$store';
   import {onMount} from 'svelte';
 
   interface Props {
@@ -17,13 +18,15 @@
 
   let list = $state() as HTMLElement;
   let anchor = $state() as HTMLAnchorElement;
+  let card = $state() as StripeCardElement;
   let newEmailValue = $state() as string;
+  let stripe = $state() as Stripe;
 
   const settings = $state(data.settings) as Settings & SettingsForm & Notification;
 
   const className = {
     label: '!bg-neutral-900/50 !border-neutral-700',
-    icon: 'fill-neutral-700 stroke-neutral-700',
+    icon: 'fiYour card numbll-neutral-700 stroke-neutral-700',
     input: 'placeholder-neutral-700 !bg-neutral-900/50 !border-neutral-700',
   };
 
@@ -42,6 +45,11 @@
     if (form && Object.hasOwn(form, 'toggleModel')) {
       if (form.toggleModel) $showModal = 1;
       else $showModal = 0;
+    }
+
+    if (form?.sessionUrl) {
+      settings.sessionUrl = form.sessionUrl;
+      $showModal = 0;
     }
 
     if (form && Object.hasOwn(form, 'OTP')) settings.OTP = form.OTP;
@@ -71,7 +79,49 @@
     anchor.click();
   };
 
-  onMount(() => (handleClick(0), ($showModal = 0), (settings.step = 1)));
+  async function initStripe(stripeKey: string) {
+    stripe = (await loadStripe(stripeKey!)) as Stripe;
+    card = stripe!.elements().create('card', {
+      classes: {
+        base: 'rounded-xl border p-4 transition-all duration-300 border-neutral-800 bg-neutral-800/30',
+        focus: 'ring-2 ring-primary-700',
+      },
+      style: {
+        base: {
+          color: '#cbd5e1',
+          iconColor: '#94a3b8',
+          '::placeholder': {color: '#94a3b8'},
+        },
+      },
+    });
+
+    setTimeout(() => card.mount('#payment'), 300);
+    return 9;
+  }
+
+  async function pay() {
+    fetching.set(5);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const {paymentMethod, error} = await stripe!.createPaymentMethod({type: 'card', card});
+    if (paymentMethod) {
+      const input = document.querySelector('input[name="paymentID"]') as HTMLInputElement;
+      const submit = document.querySelector('#submit-payment') as HTMLButtonElement;
+
+      input.value = paymentMethod.id;
+      submit.click();
+    } else {
+      notify(error!.message!, 'alert');
+      fetching.set(0);
+    }
+  }
+
+  onMount(() => {
+    handleClick(0);
+    $showModal = 0;
+    settings.step = 1;
+    if (data.stripeKey && !settings.sessionUrl) initStripe(data.stripeKey);
+  });
 </script>
 
 <svelte:head>
@@ -166,8 +216,12 @@
 
     <h2 id="billing"><CreditCardIcon fill={true} className="!h-10 !w-10 cursor-default" />Billing Information :</h2>
     <form>
-      <p class="text-xl font-semibold text-neutral-300">Your Stripe account :</p>
-      <a href={settings.sessionUrl} target="_blank" rel="noopener noreferrer" id="stripe-link">Manage<ExternalLinkIcon /></a>
+      <p class="text-xl font-semibold text-neutral-300">Payment Details :</p>
+      {#if settings.sessionUrl}
+        <a href={settings.sessionUrl} target="_blank" rel="noopener noreferrer" id="stripe-link">Manage<ExternalLinkIcon /></a>
+      {:else}
+        <button class="md:w-fit" type="button" onclick={() => ($showModal = 3)}>Add Payment Method</button>
+      {/if}
     </form>
     <hr />
 
@@ -175,11 +229,13 @@
     <form use:enhance={() => setModal(0)} method="POST" action="?/session">
       <label for="logout">Session Management :</label>
       <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>
-      <button type="button" onclick={() => ($showModal = 3)} class="md:w-fit" name="revoke">Revoke All Session</button>
+      <button type="button" onclick={() => ($showModal = 4)} class="md:w-fit" name="revoke">Revoke All Session</button>
+      <ConfirmModal id={4} name="revoke" text="Revoking all sessions" />
     </form>
     <form use:enhance={() => setModal(0)} method="POST" action="?/delete">
       <label for="delete">Account Deletion :</label>
-      <button onclick={() => ($showModal = 4)} type="button" class="disable md:w-fit">Delete Account</button>
+      <button onclick={() => ($showModal = 5)} type="button" class="disable md:w-fit">Delete Account</button>
+      <ConfirmModal id={5} name="delete" text="Deleting your account" />
     </form>
   </section>
 </div>
@@ -243,9 +299,16 @@
   {/if}
 </Modal>
 
-<ConfirmModal id={3} name="revoke" text="Revoking all sessions" />
-
-<ConfirmModal id={4} name="delete" text="Deleting your account" />
+<Modal id={3}>
+  <form class="!flex-col p-8" use:enhance={() => sendFrom(true, 5)} method="POST" action="?/payment">
+    <h1 class="!-mb-2">Enter your credit card details</h1>
+    <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
+    <div id="payment"></div>
+    <input hidden name="paymentID" />
+    <LoadingButton type="button" onclick={pay} index={5}>Add Payment Method</LoadingButton>
+    <button hidden type="submit" id="submit-payment">Submit</button>
+  </form>
+</Modal>
 
 <style lang="postcss">
   #settings {

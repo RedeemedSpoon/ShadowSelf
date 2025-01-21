@@ -5,7 +5,8 @@ import QRCode from 'qrcode';
 
 export const load: PageServerLoad = async () => {
   const response = await fetchApi('/settings/', 'GET');
-  return {settings: response};
+  const stripeKey = process.env.STRIPE_PUBLISHABLE_KEY;
+  return {settings: response, stripeKey};
 };
 
 export const actions: Actions = {
@@ -73,6 +74,14 @@ export const actions: Actions = {
   recovery: async () => await fetchApi('/settings/recovery'),
   toggleApi: async () => await fetchApi('/settings/api-access'),
   api: async () => await fetchApi('/settings/api-key'),
+  payment: async ({request}) => {
+    const form = await request.formData();
+    const payment = form.get('paymentID');
+
+    const response = await fetchApi('/settings/payment', 'POST', {payment});
+    if (!response.sessionUrl) return response;
+    return {sessionUrl: response.sessionUrl, message: 'Successfully Added payment method', type: 'success'};
+  },
   session: async ({request, cookies}) => {
     const form = await request.formData();
     if (form.has('revoke')) await fetchApi('/settings/revoke', 'GET');

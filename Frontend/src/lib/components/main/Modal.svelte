@@ -15,14 +15,14 @@
   });
 </script>
 
-<div onclick={() => ($showModal = 0)} aria-hidden="true" class={hide ? 'hidden' : 'no-scroll'}></div>
+<div id="backdrop" onclick={() => ($showModal = 0)} aria-hidden="true" class={hide ? 'hidden' : 'no-scroll'}></div>
 <div id="modal" class:!hidden={hide}>
   {@render children?.()}
 </div>
 
 <style lang="postcss">
-  div:not(#modal) {
-    @apply fixed inset-0 z-50 bg-black/40;
+  #backdrop {
+    @apply fixed inset-0 z-50 h-full w-full bg-black/40;
   }
 
   #modal {

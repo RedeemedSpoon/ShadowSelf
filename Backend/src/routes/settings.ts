@@ -88,6 +88,16 @@ export default new Elysia({prefix: '/settings'})
     await attempt(sql`UPDATE users SET totp = ${secret}, recovery = ${recoveryCodes} WHERE email = ${user!.email}`);
     return {recovery: recoveryCodes};
   })
+  .post('/payment', async ({body, user}) => {
+    const {err, payment} = check(body, ['payment']);
+    if (err) return error(400, err);
+
+    const email = user!.email;
+    await request('/billing/setup', 'POST', {email, payment});
+    const res = await request('/billing/portal', 'POST', {email});
+
+    return {sessionUrl: res.sessionUrl || ''};
+  })
   .post('/email', async ({user, jwt, body}) => {
     const {err, email, access} = check(body, ['email', 'access']);
     if (err) return error(400, err);
