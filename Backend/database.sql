@@ -20,8 +20,8 @@ ALTER DATABASE :DATABASE OWNER TO :USER_NAME;
 ALTER USER :USER_NAME SUPERUSER;
 
 -- Create Tables
-DROP TABLE IF EXISTS "users";
-CREATE TABLE "users" (
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
   "id" SERIAL PRIMARY KEY,
   "username" varchar(25) NOT NULL,
   "password" varchar(60) NOT NULL,
@@ -32,4 +32,12 @@ CREATE TABLE "users" (
   "revoke_session" varchar(8)[],
   "api_access" boolean default false,
   "api_key" varchar(32)
+);
+
+DROP TABLE IF EXISTS identities;
+CREATE TABLE identities (
+  "id" SERIAL PRIMARY KEY,
+  "owner" integer NOT NULL REFERENCES users(id),
+  "creation_date" timestamp NOT NULL,
+  "payment_intent" varchar(27) NOT NULL
 );

@@ -29,6 +29,14 @@ export default new Elysia({prefix: '/billing'})
       const customer = event.data.object.customer! as string;
       const email = event.data.object.customer_details!.email! as string;
       await attempt(sql`UPDATE users SET stripe_customer = ${customer} WHERE email = ${email}`);
+
+      const owner = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
+      const paymentIntent = event.data.object.payment_intent as string;
+      const creationTime = event.data.object.created as number;
+
+      await attempt(
+        sql`INSERT INTO identities (owner, creation_time, payment_intent) VALUES (${owner[0].id}, ${creationTime}, ${paymentIntent})`,
+      );
     }
 
     return {received: true};
