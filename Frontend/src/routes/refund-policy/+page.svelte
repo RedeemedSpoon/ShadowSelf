@@ -9,8 +9,8 @@
   <section>
     <p>
       <span>TLDR</span> Not sure if Shadowself is right for you? No problem! You have 14 days to change your mind and receive a full refund.
-      Simply delete your identity in the identity settings, and if it was created less than 14 days ago, you’ll be eligible. If you also
-      want to help us, you can contact us directly with your identity ID, username, and reason for the request.
+      Simply delete your identity in the identity settings or stripe customer portal in settings, and if it was created less than 14 days
+      ago, you’ll be eligible and get refunded automatically within a few short minutes.
     </p>
   </section>
   <p>
@@ -24,14 +24,14 @@
   </p>
   <h3>How to Request a Refund</h3>
   <p>
-    To request a refund, please visit your identity page and delete your identity. If it was created less than 14 days ago, you will be
-    eligible for a full refund. And if you'd like to help us improve our service, you can <a href="/contact">contact us</a> directly with
-    a brief explanation of why you're requesting the refund.
+    To request a refund, please visit your identity page and delete your identity. You can also go to settings, manage subscriptions
+    and cancel the payment there. If it was created less than 14 days ago, you will be eligible for a full refund. And if you'd like to
+    help us improve our service state a reason for the refund in either the stripe customer portal or our contact page
   </p>
   <h3>Refund Processing Time</h3>
   <p>
-    Upon receipt of your refund request, we will process it promptly. You can expect your refund to be credited to your original
-    payment method within 7 business days.
+    Upon receipt of your refund request, our systems will take care of request automatically. You can expect your refund to be complete
+    within a few minutes. there might be disputes with stripe but we will find a way to resolve them.
   </p>
   <h3>Data Privacy</h3>
   <p>
@@ -43,7 +43,7 @@
     Should you have any questions or concerns regarding our refund policy or service, please do not hesitate to contact us and we will
     get back to you as soon as possible.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: December 1, 2024</small>
+  <small class="text-lg text-neutral-500">Last updated: January 22, 2025</small>
 </div>
 
 <style lang="postcss">

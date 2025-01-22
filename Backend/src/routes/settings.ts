@@ -17,8 +17,8 @@ export default new Elysia({prefix: '/settings'})
   })
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(9);
-    const putPaths = ['/email', '/username', '/password', '/billing'];
-    const otherPaths = ['/', '/revoke', '/otp', '/recovery', '/api-access', '/api-key', '/full'];
+    const putPaths = ['/email', '/username', '/password'];
+    const otherPaths = ['/', '/revoke', '/otp', '/recovery', '/payment', '/api-access', '/api-key', '/full'];
     const mustLogIn = [...putPaths, ...otherPaths];
 
     if (mustLogIn.some((p) => relativePath === p) && !user) {
@@ -30,7 +30,7 @@ export default new Elysia({prefix: '/settings'})
     const {email, recovery, totp, api_access, api_key} = result[0];
 
     const res = await request('/billing/portal', 'POST', {email});
-    const sessionUrl = res.sessionUrl || '';
+    const sessionUrl = res?.sessionUrl || '';
 
     return {sessionUrl, email, recovery: recovery || [], key: api_key, API: api_access, OTP: totp && true};
   })
@@ -86,6 +86,7 @@ export default new Elysia({prefix: '/settings'})
 
     const recoveryCodes = getRecovery();
     await attempt(sql`UPDATE users SET totp = ${secret}, recovery = ${recoveryCodes} WHERE email = ${user!.email}`);
+
     return {recovery: recoveryCodes};
   })
   .post('/payment', async ({body, user}) => {
@@ -103,10 +104,10 @@ export default new Elysia({prefix: '/settings'})
     if (err) return error(400, err);
 
     //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.JWT_SECRET);
+    const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
     if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token. Please Try again');
 
-    await request('/billing/email', 'POST', {old: user!.email, new: email});
+    await request('/billing/email', 'POST', {email: user!.email, newEmail: email});
     await attempt(sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`);
 
     const cookievalue = await jwt.sign({email, id: user!.id});
@@ -120,7 +121,7 @@ export default new Elysia({prefix: '/settings'})
     if (result.length) return error(400, 'Email address is already registered on our systems');
 
     //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.JWT_SECRET);
+    const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
     const response = await sendEmail(email, accessToken.split('.')[2], 'change');
     if (response.err) return error(500, 'Failed to send verification email. Try later');
 

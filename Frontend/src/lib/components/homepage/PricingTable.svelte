@@ -66,8 +66,8 @@
               <CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />
               {item}
               {#if index === 2}
-                <span class="cursor-pointer" title={title[section.indexOf(item)]}>
-                  <QuestionIcon className="-ml-2 !w-4 !h-4 !fill-neutral-700" /></span>
+                <span title={title[section.indexOf(item)]}>
+                  <QuestionIcon className="cursor-help -ml-2 !w-4 !h-4 !fill-neutral-700" /></span>
               {/if}
             </li>
           {/each}
