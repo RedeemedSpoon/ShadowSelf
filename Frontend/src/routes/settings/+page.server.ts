@@ -80,7 +80,7 @@ export const actions: Actions = {
 
     const response = await fetchApi('/settings/payment', 'POST', {payment});
     if (!response.sessionUrl) return response;
-    return {sessionUrl: response.sessionUrl, message: 'Successfully Added payment method', type: 'success'};
+    return {sessionUrl: response.sessionUrl, message: 'Successfully added payment method', type: 'success'};
   },
   session: async ({request, cookies}) => {
     const form = await request.formData();

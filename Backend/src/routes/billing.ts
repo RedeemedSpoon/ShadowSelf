@@ -41,6 +41,14 @@ export default new Elysia({prefix: '/billing'})
     await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
     await attempt(sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`);
   })
+  .post('/email', async ({body}: {body: {old: string; new: string}}) => {
+    if (!body.new || !body.old) return error(400);
+
+    const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${body.old}`);
+    const id = customer[0]?.stripe_customer || '';
+
+    if (id) await stripe.customers.update(id, {email: body.new});
+  })
   .post('/portal', async ({body}) => {
     const {email, err} = check(body, ['email']);
     if (err) return error(400, err);
@@ -54,6 +62,15 @@ export default new Elysia({prefix: '/billing'})
     });
 
     return {sessionUrl: session.url};
+  })
+  .delete('/delete', async ({body}) => {
+    const {email, err} = check(body, ['email']);
+    if (err) return error(400, err);
+
+    const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${email}`);
+    const id = customer[0]?.stripe_customer || '';
+
+    if (id) await stripe.customers.del(customer[0].stripe_customer);
   })
   .get('/checkout', async ({user, query}) => {
     if (!user) return error(401, 'You are not logged in');
