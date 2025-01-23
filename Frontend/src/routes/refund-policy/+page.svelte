@@ -24,9 +24,8 @@
   </p>
   <h3>How to Request a Refund</h3>
   <p>
-    To request a refund, please visit your identity page and delete your identity. If it is a subscription, You can also go to
-    settings, manage subscriptions and cancel the plan there. If it was created less than 14 days ago, you will be eligible for a full
-    refund. And if you'd like to help us improve our service state a reason for the refund.
+    To request a refund, please visit your individual identity page and delete it. If it was created less than 14 days ago, you will be
+    eligible for a full refund. And if you'd like to help us improve our service state a reason for the refund.
   </p>
   <h3>Refund Processing Time</h3>
   <p>
@@ -43,7 +42,7 @@
     Should you have any questions or concerns regarding our refund policy or service, please do not hesitate to contact us and we will
     get back to you as soon as possible.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: January 22, 2025</small>
+  <small class="text-lg text-neutral-500">Last updated: January 23, 2025</small>
 </div>
 
 <style lang="postcss">

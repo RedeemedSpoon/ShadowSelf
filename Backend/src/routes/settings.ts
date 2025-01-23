@@ -94,7 +94,7 @@ export default new Elysia({prefix: '/settings'})
     if (err) return error(400, err);
 
     const email = user!.email;
-    await request('/billing/setup', 'POST', {email, payment});
+    await request('/billing/customer', 'POST', {email, payment});
     const res = await request('/billing/portal', 'POST', {email});
 
     return {sessionUrl: res.sessionUrl || ''};
@@ -107,7 +107,7 @@ export default new Elysia({prefix: '/settings'})
     const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
     if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token. Please Try again');
 
-    await request('/billing/email', 'POST', {email: user!.email, newEmail: email});
+    await request('/billing/customer', 'PUT', {email: user!.email, newEmail: email});
     await attempt(sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`);
 
     const cookievalue = await jwt.sign({email, id: user!.id});
@@ -145,6 +145,6 @@ export default new Elysia({prefix: '/settings'})
     await attempt(sql`UPDATE users SET recovery = ARRAY[]::varchar(9)[] WHERE email = ${user!.email}`);
   })
   .delete('/full', async ({user}) => {
-    await request('/billing/delete', 'DELETE', {email: user!.email});
+    await request('/billing/customer', 'DELETE', {email: user!.email});
     await attempt(sql`DELETE FROM users WHERE email = ${user!.email}`);
   });
