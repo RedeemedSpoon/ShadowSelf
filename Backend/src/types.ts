@@ -54,8 +54,9 @@ export const emailTemplate = {
     action: 'login to your account & start using Shadowself',
   },
 };
+
 export const pricingModal = {
-  monthly: 'price_1QaM8sByRGrIIrNdSZuKcNV2',
-  annually: 'price_1QaM8iByRGrIIrNdlLpIn0cI',
-  lifetime: 'price_1QaM8JByRGrIIrNdDLtv6Gml',
+  monthly: process.env.MONTHLY_PRICE_ID,
+  annually: process.env.ANNUAL_PRICE_ID,
+  lifetime: process.env.LIFETIME_PRICE_ID,
 };

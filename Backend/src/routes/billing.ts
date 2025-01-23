@@ -31,12 +31,11 @@ export default new Elysia({prefix: '/billing'})
       await attempt(sql`UPDATE users SET stripe_customer = ${customer} WHERE email = ${email}`);
 
       const owner = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
-      const paymentIntent = event.data.object.payment_intent as string;
-      const creationTime = event.data.object.created as number;
+      const intent = event.data.object.payment_intent as string;
+      const date = event.data.object.created as number;
+      const id = owner[0].id;
 
-      await attempt(
-        sql`INSERT INTO identities (owner, creation_time, payment_intent) VALUES (${owner[0].id}, ${creationTime}, ${paymentIntent})`,
-      );
+      await attempt(sql`INSERT INTO identities (owner, creation_date, payment_intent) VALUES (${id}, ${date}, ${intent})`);
     }
 
     return {received: true};
