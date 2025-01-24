@@ -1,4 +1,4 @@
-import {type User, pricingModal} from '../types';
+import {QueryResult, type User, pricingModal} from '../types';
 import {sql, stripe} from '../connection';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
@@ -100,6 +100,37 @@ export default new Elysia({prefix: '/billing'})
     // @ts-expect-error Stripe smh...
     const session = await stripe.checkout.sessions.create(option);
     return {clientSecret: session.client_secret};
+  })
+  .delete('/cancel', async ({body, user}) => {
+    if (!user) return error(401, 'You are not logged in');
+
+    const {subscription, intent, err} = check(body, ['?subscription', '?intent']);
+    if (err) return error(400, err);
+
+    let identity: QueryResult[];
+    const result = await attempt(sql`SELECT id FROM users WHERE email = ${user.email}`);
+    const owner = result[0].id;
+
+    if (intent) identity = await attempt(sql`SELECT * FROM identities WHERE payment_intent = ${intent || 'nothing'}`);
+    else identity = await attempt(sql`SELECT * FROM identities WHERE subscription_id = ${subscription || 'nothing'}`);
+
+    if (!identity[0]?.owner) return error(400, 'Subscription not found. Please try again');
+    if (identity[0]?.owner !== owner) return error(400, 'Subscription not found. Please try again');
+    if (subscription) await stripe.subscriptions.cancel(subscription);
+
+    const date = identity[0].creation_date;
+    const difference = new Date().getTime() - new Date(date).getTime();
+    const differenceInDays = difference / (1000 * 3600 * 24);
+
+    if (differenceInDays <= 14) {
+      if (intent) await stripe.refunds.create({payment_intent: intent});
+      else {
+        const invoices = await stripe.invoices.list({subscription: subscription, limit: 1});
+        await stripe.refunds.create({payment_intent: invoices.data[0]?.payment_intent?.toString()});
+      }
+    }
+
+    await attempt(sql`DELETE FROM identities WHERE id = ${identity[0].id}`);
   })
   .group('/customer', (app) =>
     app

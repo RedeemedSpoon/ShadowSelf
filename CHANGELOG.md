@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.00] - 2025-1-23
+
+### Added
+
+- Add identities table in database
+- Add cancelation & auto refund system
+- Add purchase page markup & full design
+- Add payment method to settings when not registered yet
+- Add stripe portal page to settings when user has payment method
+- Add delete stripe customer and change stripe customer email
+- Add external link icon
+
+### Changed
+
+- Change customer backend billing paths
+- Change email salt from $JWT_SECRET to $EMAIL_SALT
+- Fix modal markup not showing black background overlay
+- Change price id from fixed value to env variable
+- Move email function in backend to email.ts
+- Update faq answer & refund policy
+- Update packages
+
 ## [0.3.10] - 2025-1-14
 
 ### Added

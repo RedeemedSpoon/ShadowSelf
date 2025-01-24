@@ -15,6 +15,8 @@ export interface BodyField {
   username: string;
   password: string;
   recovery: string[];
+  subscription: string;
+  intent: string;
   payment: string;
   secret: string;
   token: string;
@@ -37,8 +39,8 @@ export interface QueryResultUser {
 
 export interface QueryResultIdentify {
   id: number;
-  owner: string;
-  creation_date: string;
+  owner: number;
+  creation_date: Date;
   payment_intent: string;
   subscription_id: string;
   plan: 'monthly' | 'annually' | 'lifetime';

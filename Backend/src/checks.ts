@@ -73,6 +73,18 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
           return {err: 'Payment method is invalid. Please try again'} as BodyField;
         }
         break;
+
+      case 'intent':
+        if (body.intent.length !== 27 || !body.intent.startsWith('pi_')) {
+          return {err: 'Payment Intent is invalid. Please try again'} as BodyField;
+        }
+        break;
+
+      case 'subscription':
+        if (body.subscription.length !== 28 || !body.subscription.startsWith('sub_')) {
+          return {err: 'Subscription ID is invalid. Please try again'} as BodyField;
+        }
+        break;
     }
   }
 
