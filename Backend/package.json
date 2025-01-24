@@ -10,12 +10,12 @@
   "devDependencies": {
     "@elysiajs/jwt": "^1.2.0",
     "@types/bcrypt": "^5.0.2",
-    "@types/bun": "^1.1.14",
+    "@types/bun": "^1.2.0",
     "@types/nodemailer": "^6.4.17",
     "bcrypt": "^5.1.1",
     "bun-types": "latest",
     "elysia": "latest",
-    "nodemailer": "^6.9.16",
+    "nodemailer": "^6.10.0",
     "otpauth": "^9.3.6",
     "postgres": "^3.4.5",
     "stripe": "^17.5.0"

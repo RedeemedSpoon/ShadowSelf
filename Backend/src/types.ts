@@ -1,4 +1,5 @@
 export type User = {email: string; id: string} | undefined;
+export type QueryResult = QueryResultUser & QueryResultIdentify;
 
 export interface ContactDetail {
   category: 'question' | 'feedback' | 'collaboration' | 'bug' | 'help' | 'other';
@@ -21,7 +22,7 @@ export interface BodyField {
   err: string;
 }
 
-export interface QueryResult {
+export interface QueryResultUser {
   id: number;
   username: string;
   password: string;
@@ -32,6 +33,16 @@ export interface QueryResult {
   revoke_session: string[];
   api_access: boolean;
   api_key: string;
+}
+
+export interface QueryResultIdentify {
+  id: number;
+  owner: string;
+  creation_date: string;
+  payment_intent: string;
+  subscription_id: string;
+  plan: 'monthly' | 'annually' | 'lifetime';
+  active: boolean;
 }
 
 export const emailTemplate = {

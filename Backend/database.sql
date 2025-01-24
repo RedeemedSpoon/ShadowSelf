@@ -39,5 +39,8 @@ CREATE TABLE identities (
   "id" SERIAL PRIMARY KEY,
   "owner" integer NOT NULL REFERENCES users(id),
   "creation_date" timestamp NOT NULL,
-  "payment_intent" varchar(27) NOT NULL
+  "payment_intent" varchar(27),
+  "subscription_id" varchar(28),
+  "plan" varchar(8) CHECK ("plan" IN ('monthly', 'annually', 'lifetime')),
+  "active" boolean default true
 );

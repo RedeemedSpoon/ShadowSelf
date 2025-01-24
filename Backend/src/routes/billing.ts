@@ -26,16 +26,23 @@ export default new Elysia({prefix: '/billing'})
     }
 
     if (event.type === 'checkout.session.completed') {
-      const customer = event.data.object.customer! as string;
-      const email = event.data.object.customer_details!.email! as string;
+      const result = event.data.object;
+      const customer = result.customer! as string;
+      const email = result.customer_details!.email! as string;
       await attempt(sql`UPDATE users SET stripe_customer = ${customer} WHERE email = ${email}`);
 
+      const subscription = result.subscription as string;
+      const intent = result.payment_intent as string;
+      const date = new Date(result.created * 1000);
+      const price = result.amount_subtotal!;
+
+      const plan = price <= 500 ? 'monthly' : price <= 5_000 ? 'annually' : 'lifetime';
       const owner = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
-      const intent = event.data.object.payment_intent as string;
-      const date = event.data.object.created as number;
       const id = owner[0].id;
 
-      await attempt(sql`INSERT INTO identities (owner, creation_date, payment_intent) VALUES (${id}, ${date}, ${intent})`);
+      await attempt(sql`INSERT INTO identities (owner, creation_date, plan) VALUES (${id}, ${date}, ${plan})`);
+      if (intent) await attempt(sql`UPDATE identities SET payment_intent = ${intent} WHERE creation_date = ${date}`);
+      else await attempt(sql`UPDATE identities SET subscription_id = ${subscription} WHERE creation_date = ${date}`);
     }
 
     return {received: true};
