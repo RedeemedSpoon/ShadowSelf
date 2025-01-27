@@ -5,6 +5,9 @@ import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 import {check} from '../checks';
 
+const runtime = process.env.NODE_ENV;
+const origin = runtime === 'dev' ? 'http://localhost:5173' : 'https://shadowself.io';
+
 export default new Elysia({prefix: '/billing'})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
   .derive(async ({headers, jwt}) => {
@@ -56,7 +59,7 @@ export default new Elysia({prefix: '/billing'})
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customer[0].stripe_customer,
-      return_url: 'https://shadowself.io/settings',
+      return_url: `${origin}/settings`,
     });
 
     return {sessionUrl: session.url};
@@ -65,9 +68,7 @@ export default new Elysia({prefix: '/billing'})
     if (!user) return error(401, 'You are not logged in');
 
     let option;
-    const runtime = process.env.NODE_ENV;
     const type = query?.type as keyof typeof pricingModal;
-    const origin = runtime === 'dev' ? 'http://localhost:5173' : 'https://shadowself.io';
 
     if (!type) return error(400, 'Missing or invalid query type. Try again');
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
@@ -79,7 +80,7 @@ export default new Elysia({prefix: '/billing'})
       option = {
         customer: customerId,
         ui_mode: 'custom',
-        return_url: `${origin}/dashboard`,
+        return_url: `${origin}/help`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
         line_items: [{price: pricingModal[type], quantity: 1}],
         saved_payment_method_options: {
@@ -91,7 +92,7 @@ export default new Elysia({prefix: '/billing'})
       option = {
         customer_email: user.email,
         ui_mode: 'custom',
-        return_url: `${origin}/dashboard`,
+        return_url: `${origin}/help`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
         line_items: [{price: pricingModal[type], quantity: 1}],
       };

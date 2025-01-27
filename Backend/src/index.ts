@@ -3,6 +3,7 @@ import {checkContact} from './checks';
 import {Elysia, error} from 'elysia';
 import {contact} from './email';
 
+import websocket from './routes/websocket';
 import settings from './routes/settings';
 import account from './routes/account';
 import billing from './routes/billing';
@@ -18,6 +19,7 @@ const app = new Elysia()
     if (result.err) return error(500, result.err);
     return result.message;
   })
+  .use(websocket)
   .use(settings)
   .use(account)
   .use(billing)
