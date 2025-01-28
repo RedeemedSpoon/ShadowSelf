@@ -80,7 +80,7 @@ export default new Elysia({prefix: '/billing'})
       option = {
         customer: customerId,
         ui_mode: 'custom',
-        return_url: `${origin}/help`,
+        return_url: `${origin}/create`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
         line_items: [{price: pricingModal[type], quantity: 1}],
         saved_payment_method_options: {
@@ -92,7 +92,7 @@ export default new Elysia({prefix: '/billing'})
       option = {
         customer_email: user.email,
         ui_mode: 'custom',
-        return_url: `${origin}/help`,
+        return_url: `${origin}/create`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
         line_items: [{price: pricingModal[type], quantity: 1}],
       };

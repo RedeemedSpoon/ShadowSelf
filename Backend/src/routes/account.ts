@@ -67,7 +67,7 @@ export default new Elysia({prefix: '/account'})
     if (!result.length) return error(400, 'Email address is not registered on our systems');
 
     //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
+    const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
     const response = await sendEmail(email, accessToken.split('.')[2], 'recover');
     if (response.err) return error(500, 'Failed to send verification email. Try later');
 
@@ -81,7 +81,7 @@ export default new Elysia({prefix: '/account'})
     if (!result.length) return error(400, 'Email address is not registered on our systems');
 
     //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
+    const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
     if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token. Please Try again');
 
     const has2fa = result[0].totp;
@@ -140,7 +140,7 @@ export default new Elysia({prefix: '/account'})
     if (isTaken.length) return error(409, 'This email is already taken');
 
     //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
+    const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
     const response = await sendEmail(email, accessToken.split('.')[2], 'confirm');
     if (response.err) return error(500, 'Failed to send verification email. Try later');
 
@@ -151,7 +151,7 @@ export default new Elysia({prefix: '/account'})
     if (err) return error(400, err);
 
     //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
+    const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
     if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token. Please Try again');
 
     return {email};
@@ -187,7 +187,7 @@ export default new Elysia({prefix: '/account'})
     if (err) return error(400, err);
 
     //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
+    const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
     if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token');
 
     const isTaken = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);

@@ -104,7 +104,7 @@ export default new Elysia({prefix: '/settings'})
     if (err) return error(400, err);
 
     //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
+    const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
     if (access !== accessToken.split('.')[2]) return error(400, 'Invalid access token. Please Try again');
 
     await request('/billing/customer', 'PUT', {email: user!.email, newEmail: email});
@@ -121,7 +121,7 @@ export default new Elysia({prefix: '/settings'})
     if (result.length) return error(400, 'Email address is already registered on our systems');
 
     //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.EMAIL_SALT);
+    const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
     const response = await sendEmail(email, accessToken.split('.')[2], 'change');
     if (response.err) return error(500, 'Failed to send verification email. Try later');
 

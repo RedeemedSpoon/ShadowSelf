@@ -9,7 +9,7 @@ export const handle: Handle = async ({event, resolve}) => {
     redirect(302, '/dashboard');
   }
 
-  if (['/dashboard', '/settings', '/identity/', '/purchase'].includes(path) && !isLogged) {
+  if (['/dashboard', '/settings', '/identity/', '/purchase', '/create'].includes(path) && !isLogged) {
     redirect(302, '/login');
   }
 
@@ -26,8 +26,8 @@ export const handle: Handle = async ({event, resolve}) => {
     return new Response(JSON.stringify(response), {headers: {'Content-Type': 'application/json'}});
   }
 
-  if (path.startsWith('/api') || path.startsWith('/extension-api')) {
-    const response = await fetch(`http://localhost:3000${event.url.pathname}`, event.request)
+  if (path.startsWith('/api') || path.startsWith('/extension')) {
+    const response = await fetch(`http://localhost:3000${path}`, event.request)
       .then((res) => res.json())
       .catch((error) => ({message: error.message, type: 'alert'}));
 
