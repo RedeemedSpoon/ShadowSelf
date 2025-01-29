@@ -17,8 +17,12 @@ export function getSecret(): string {
   return new OTPAuth.Secret({size: 20}).base32;
 }
 
-export function genereteID(): string {
+export function generateID(): string {
   return pseudoRandomBytes(4).toString('hex');
+}
+
+export function generateCheckoutToken(): string {
+  return pseudoRandomBytes(8).toString('hex');
 }
 
 export function getAPIKey(): string {

@@ -1,4 +1,4 @@
-import {compareHash, createHash, genereteID, createTOTP, getAPIKey, getSecret, getRecovery} from '../crypto';
+import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, getRecovery} from '../crypto';
 import {attempt, request} from '../utils';
 import {Elysia, error} from 'elysia';
 import {sendEmail} from '../email';
@@ -53,7 +53,7 @@ export default new Elysia({prefix: '/account'})
     const has2fa = result[0].totp;
     if (has2fa) return {email};
 
-    const id = genereteID();
+    const id = generateID();
     await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);
 
     const cookieValue = await jwt.sign({email, id});
@@ -87,7 +87,7 @@ export default new Elysia({prefix: '/account'})
     const has2fa = result[0].totp;
     if (has2fa) return {email};
 
-    const id = genereteID();
+    const id = generateID();
     await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);
 
     const cookievalue = await jwt.sign({email, id});
@@ -104,7 +104,7 @@ export default new Elysia({prefix: '/account'})
     const isValid = totp.generate() === token;
     if (!isValid) return error(400, 'Incorrect validation token. Please try again');
 
-    const id = genereteID();
+    const id = generateID();
     await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);
 
     const cookieValue = await jwt.sign({email, id});
@@ -126,7 +126,7 @@ export default new Elysia({prefix: '/account'})
     const newCodes = allCodes.filter((c) => c !== code);
     await attempt(sql`UPDATE users SET recovery = ${newCodes} WHERE email = ${email}`);
 
-    const id = genereteID();
+    const id = generateID();
     await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);
 
     const cookieValue = await jwt.sign({email, id});
@@ -206,7 +206,7 @@ export default new Elysia({prefix: '/account'})
 
     if (payment) await request('/billing/customer', 'POST', {email, payment});
 
-    const id = genereteID();
+    const id = generateID();
     await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);
 
     const cookieValue = await jwt.sign({email, id});

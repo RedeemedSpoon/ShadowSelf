@@ -30,6 +30,7 @@ CREATE TABLE users (
   "recovery" varchar(9)[],
   "stripe_customer" varchar(18),
   "revoke_session" varchar(8)[],
+  "checkout_token" varchar(16),
   "api_access" boolean default false,
   "api_key" varchar(32)
 );

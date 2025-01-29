@@ -33,6 +33,7 @@ export interface QueryResultUser {
   recovery: string[];
   stripe_customer: string;
   revoke_session: string[];
+  checkout_token: string;
   api_access: boolean;
   api_key: string;
 }

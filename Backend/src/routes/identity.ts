@@ -1,13 +1,15 @@
-import {Elysia} from 'elysia';
+import {WSConnections} from '../connection';
+import {Elysia, t} from 'elysia';
 
 export default new Elysia().ws('/websocket', {
+  params: t.Object({token: t.String()}),
   open(ws) {
-    ws.send('Connected');
-  },
-  message(ws, data) {
-    ws.send(data);
+    WSConnections.set(ws.data.params.token, ws);
   },
   close(ws) {
-    ws.close();
+    WSConnections.delete(ws.data.params.token);
+  },
+  message(ws, body) {
+    console.log(body);
   },
 });

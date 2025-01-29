@@ -4,13 +4,18 @@
 
   let ws: WebSocket | undefined = $state();
 
-  // onMount(() => {
-  //   const host = page.url.host;
-  //   ws = new WebSocket(`wss://${host}/websocket`);
-  //   ws.onopen = () => {
-  //     console.log('connected');
-  //   }
-  // });
+  onMount(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    ws = new WebSocket(`ws://${page.url.host}/websocket`);
+
+    ws.onopen = () => {
+      ws?.send('help');
+    };
+
+    ws.onmessage = (e) => {
+      ws?.send(e.data);
+    };
+  });
 </script>
 
 <svelte:head>
@@ -20,11 +25,11 @@
 
 <div id="create-identity">
   {#key ws}
-    <div>
+    <div class="flex items-center justify-center">
       {#if ws}
-        <p>test</p>
+        <h1>Connected</h1>
       {:else}
-        <p>loading</p>
+        <h1>Loading</h1>
       {/if}
     </div>
   {/key}

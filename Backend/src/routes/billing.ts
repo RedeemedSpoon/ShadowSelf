@@ -1,12 +1,13 @@
 import {QueryResult, type User, pricingModal} from '../types';
-import {sql, stripe} from '../connection';
+import {sql, stripe, WSConnections} from '../connection';
+import {generateCheckoutToken} from '../crypto';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 import {check} from '../checks';
 
 const runtime = process.env.NODE_ENV;
-const origin = runtime === 'dev' ? 'http://localhost:5173' : 'https://shadowself.io';
+const origin = runtime === 'dev' ? 'http://localhost:5000' : 'https://shadowself.io';
 
 export default new Elysia({prefix: '/billing'})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -76,11 +77,14 @@ export default new Elysia({prefix: '/billing'})
     const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
     const customerId = customer[0]?.stripe_customer;
 
+    const token = generateCheckoutToken();
+    await attempt(sql`UPDATE users SET checkout_token = ${token} WHERE email = ${user.email}`);
+
     if (customerId) {
       option = {
         customer: customerId,
         ui_mode: 'custom',
-        return_url: `${origin}/create`,
+        return_url: `${origin}/create?token=${token}`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
         line_items: [{price: pricingModal[type], quantity: 1}],
         saved_payment_method_options: {
@@ -92,7 +96,7 @@ export default new Elysia({prefix: '/billing'})
       option = {
         customer_email: user.email,
         ui_mode: 'custom',
-        return_url: `${origin}/create`,
+        return_url: `${origin}/create?token=${token}`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
         line_items: [{price: pricingModal[type], quantity: 1}],
       };

@@ -1,6 +1,9 @@
+import {ElysiaWS} from 'elysia/ws';
 import nodemailer from 'nodemailer';
 import postgres from 'postgres';
 import Stripe from 'stripe';
+
+export const WSConnections = new Map<string, ElysiaWS>();
 
 export const sql = postgres({
   host: 'localhost',
