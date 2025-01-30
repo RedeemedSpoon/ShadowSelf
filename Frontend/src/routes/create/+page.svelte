@@ -1,19 +1,18 @@
 <script lang="ts">
+  import type {PageData} from './$types';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
 
   let ws: WebSocket | undefined = $state();
+  let {data}: {data: PageData} = $props();
 
   onMount(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    ws = new WebSocket(`ws://${page.url.host}/websocket`);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    ws = new WebSocket(`wss://${page.url.host}/ws`);
 
     ws.onopen = () => {
-      ws?.send('help');
-    };
-
-    ws.onmessage = (e) => {
-      ws?.send(e.data);
+      console.log('open');
+      ws?.send(JSON.stringify({kind: 'auth', token: data.token}));
     };
   });
 </script>
