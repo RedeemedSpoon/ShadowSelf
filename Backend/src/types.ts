@@ -38,7 +38,7 @@ export interface QueryResultUser {
 }
 
 export interface QueryResultIdentify {
-  id: number;
+  id: string;
   owner: number;
   creation_date: Date;
   payment_intent: string;

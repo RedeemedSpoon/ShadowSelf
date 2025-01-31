@@ -8,13 +8,10 @@
   let {data}: {data: PageData} = $props();
 
   onMount(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     ws = new WebSocket(`wss://${page.url.hostname}/ws?id=${data.id}`);
 
-    ws.onopen = () => {
-      ws?.send(JSON.stringify({type: 'create'}));
-    };
     ws.onmessage = (event) => {
+      console.log(event.data);
       notify(event.data, 'info');
     };
   });

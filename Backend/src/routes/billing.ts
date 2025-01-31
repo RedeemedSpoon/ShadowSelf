@@ -48,8 +48,10 @@ export default new Elysia({prefix: '/billing'})
       if (intent) await attempt(sql`UPDATE identities SET payment_intent = ${intent} WHERE creation_date = ${date}`);
       else await attempt(sql`UPDATE identities SET subscription_id = ${subscription} WHERE creation_date = ${date}`);
 
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       WSConnections.forEach(async (connection) => {
-        connection.send(JSON.stringify({canContinue: 'success'}));
+        console.log(connection.id, id);
+        if (connection.id === id) connection.send('well look like you can continue...');
       });
     }
 
