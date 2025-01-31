@@ -12,8 +12,8 @@ declare global {
       identities?: Identity[];
       settings?: Settings;
       stripeKey?: string;
-      token: string;
       faqs?: Faq[];
+      id?: string;
     }
   }
 }

@@ -1,13 +1,13 @@
 import {QueryResult, type User, pricingModal} from '../types';
 import {sql, stripe, WSConnections} from '../connection';
-import {generateCheckoutToken} from '../crypto';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 import {check} from '../checks';
+import {generateIdentityID} from '../crypto';
 
 const runtime = process.env.NODE_ENV;
-const origin = runtime === 'dev' ? 'http://localhost:5000' : 'https://shadowself.io';
+const origin = runtime === 'dev' ? 'https://localhost' : 'https://shadowself.io';
 
 export default new Elysia({prefix: '/billing'})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -38,15 +38,19 @@ export default new Elysia({prefix: '/billing'})
       const subscription = result.subscription as string;
       const intent = result.payment_intent as string;
       const date = new Date(result.created * 1000);
-      const price = result.amount_subtotal!;
+      const plan = result.metadata!.type;
+      const id = result.metadata!.id;
 
-      const plan = price <= 500 ? 'monthly' : price <= 5_000 ? 'annually' : 'lifetime';
-      const owner = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
-      const id = owner[0].id;
+      const query = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
+      const owner = query[0].id;
 
-      await attempt(sql`INSERT INTO identities (owner, creation_date, plan) VALUES (${id}, ${date}, ${plan})`);
+      await attempt(sql`INSERT INTO identities (id, owner, creation_date, plan) VALUES (${id}, ${owner}, ${date}, ${plan})`);
       if (intent) await attempt(sql`UPDATE identities SET payment_intent = ${intent} WHERE creation_date = ${date}`);
       else await attempt(sql`UPDATE identities SET subscription_id = ${subscription} WHERE creation_date = ${date}`);
+
+      WSConnections.forEach(async (connection) => {
+        connection.send(JSON.stringify({canContinue: 'success'}));
+      });
     }
 
     return {received: true};
@@ -68,8 +72,9 @@ export default new Elysia({prefix: '/billing'})
   .get('/checkout', async ({user, query}) => {
     if (!user) return error(401, 'You are not logged in');
 
-    let option;
     const type = query?.type as keyof typeof pricingModal;
+    const identityID = generateIdentityID();
+    let option;
 
     if (!type) return error(400, 'Missing or invalid query type. Try again');
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
@@ -77,14 +82,12 @@ export default new Elysia({prefix: '/billing'})
     const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
     const customerId = customer[0]?.stripe_customer;
 
-    const token = generateCheckoutToken();
-    await attempt(sql`UPDATE users SET checkout_token = ${token} WHERE email = ${user.email}`);
-
     if (customerId) {
       option = {
         customer: customerId,
         ui_mode: 'custom',
-        return_url: `${origin}/create?token=${token}`,
+        metadata: {id: identityID, type},
+        return_url: `${origin}/create?id=${identityID}`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
         line_items: [{price: pricingModal[type], quantity: 1}],
         saved_payment_method_options: {
@@ -96,7 +99,8 @@ export default new Elysia({prefix: '/billing'})
       option = {
         customer_email: user.email,
         ui_mode: 'custom',
-        return_url: `${origin}/create?token=${token}`,
+        metadata: {id: identityID, type},
+        return_url: `${origin}/create?id=${identityID}`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
         line_items: [{price: pricingModal[type], quantity: 1}],
       };

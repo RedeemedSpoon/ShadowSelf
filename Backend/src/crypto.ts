@@ -21,8 +21,8 @@ export function generateID(): string {
   return pseudoRandomBytes(4).toString('hex');
 }
 
-export function generateCheckoutToken(): string {
-  return pseudoRandomBytes(8).toString('hex');
+export function generateIdentityID(): string {
+  return pseudoRandomBytes(6).toString('hex');
 }
 
 export function getAPIKey(): string {

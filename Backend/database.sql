@@ -30,14 +30,13 @@ CREATE TABLE users (
   "recovery" varchar(9)[],
   "stripe_customer" varchar(18),
   "revoke_session" varchar(8)[],
-  "checkout_token" varchar(16),
   "api_access" boolean default false,
   "api_key" varchar(32)
 );
 
 DROP TABLE IF EXISTS identities;
 CREATE TABLE identities (
-  "id" SERIAL PRIMARY KEY,
+  "id" varchar(12) PRIMARY KEY,
   "owner" integer NOT NULL REFERENCES users(id),
   "creation_date" timestamp NOT NULL,
   "payment_intent" varchar(27),

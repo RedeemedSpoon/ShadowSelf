@@ -2,17 +2,20 @@
   import type {PageData} from './$types';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
+  import {notify} from '$lib';
 
   let ws: WebSocket | undefined = $state();
   let {data}: {data: PageData} = $props();
 
   onMount(async () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    ws = new WebSocket(`wss://${page.url.host}/ws`);
+    ws = new WebSocket(`wss://${page.url.hostname}/ws?id=${data.id}`);
 
     ws.onopen = () => {
-      console.log('open');
-      ws?.send(JSON.stringify({kind: 'auth', token: data.token}));
+      ws?.send(JSON.stringify({type: 'create'}));
+    };
+    ws.onmessage = (event) => {
+      notify(event.data, 'info');
     };
   });
 </script>
