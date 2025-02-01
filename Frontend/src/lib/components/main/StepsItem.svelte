@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {currentStep} from '$store';
   import type {Snippet} from 'svelte';
   import {enhance} from '$app/forms';
+  import {currentStep} from '$store';
   import {Card} from '$component';
   import {sendFrom} from '$lib';
 

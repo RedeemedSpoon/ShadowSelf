@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.01] - 2025-2-1
+
+### Added
+
+- Add new route /create
+- Add new elysiaJS router for the identity creation process
+- Add new nginx websocket redirect reverse proxy
+- Add secure websocket communication between client & server
+- Add new column to identity table
+
+### Changed
+
+- Fixed some typo in name function
+- Change $EMAIL_SALT to $SECRET_SAUCE
+- Change tmux.sh to launch stripe instead of ssh, also onefetch
+
 ## [0.4.00] - 2025-1-23
 
 ### Added

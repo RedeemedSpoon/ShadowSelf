@@ -3,7 +3,7 @@ import {checkContact} from './checks';
 import {Elysia, error} from 'elysia';
 import {contact} from './email';
 
-import identity from './routes/identity';
+import creaionProcess from './routes/creation-process';
 import settings from './routes/settings';
 import account from './routes/account';
 import billing from './routes/billing';
@@ -19,7 +19,7 @@ const app = new Elysia()
     if (result.err) return error(500, result.err);
     return result.message;
   })
-  .use(identity)
+  .use(creaionProcess)
   .use(settings)
   .use(account)
   .use(billing)

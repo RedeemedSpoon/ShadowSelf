@@ -17,7 +17,7 @@ export default new Elysia({prefix: '/billing'})
     const user = (await jwt.verify(token)) as User;
     return {user};
   })
-  .post('/webhook', async ({request}) => {
+  .post('/webhook', async ({request, jwt}) => {
     const signature = request.headers.get('stripe-signature')!;
     const secret = process.env.STRIPE_WEBHOOK_SECRET!;
     const body = await request.text();
@@ -48,10 +48,13 @@ export default new Elysia({prefix: '/billing'})
       if (intent) await attempt(sql`UPDATE identities SET payment_intent = ${intent} WHERE creation_date = ${date}`);
       else await attempt(sql`UPDATE identities SET subscription_id = ${subscription} WHERE creation_date = ${date}`);
 
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      WSConnections.forEach(async (connection) => {
-        console.log(connection.id, id);
-        if (connection.id === id) connection.send('well look like you can continue...');
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      WSConnections.forEach(async (connection, websocketID) => {
+        if (websocketID === id) {
+          //@ts-expect-error JWT only accept objects
+          const cookie = await jwt.sign(id + process.env.SECRET_SAUCE);
+          connection.send(JSON.stringify({cookie: cookie.split('.')[2]}));
+        }
       });
     }
 

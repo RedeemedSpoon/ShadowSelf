@@ -1,19 +1,31 @@
 <script lang="ts">
   import type {PageData} from './$types';
+  import {enhance} from '$app/forms';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
   import {notify} from '$lib';
 
+  let cookie = $state();
   let ws: WebSocket | undefined = $state();
+
   let {data}: {data: PageData} = $props();
 
   onMount(async () => {
-    ws = new WebSocket(`wss://${page.url.hostname}/ws?id=${data.id}`);
+    await new Promise((resolve) => setTimeout(resolve, 750));
+    ws = new WebSocket(`wss://${page.url.hostname}/ws-creation-process?id=${data.id}`);
 
-    ws.onmessage = (event) => {
-      console.log(event.data);
-      notify(event.data, 'info');
+    ws.onmessage = async (event) => {
+      const response = JSON.parse(event.data);
+      if (response?.cookie) {
+        cookie = response.cookie;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        const button = document.querySelector('button[name="cookie"]') as HTMLButtonElement;
+        button.click();
+      }
     };
+
+    ws.onclose = (ws) => ws.code === 1014 && notify(ws.reason, 'alert');
   });
 </script>
 
@@ -25,14 +37,19 @@
 <div id="create-identity">
   {#key ws}
     <div class="flex items-center justify-center">
-      {#if ws}
-        <h1>Connected</h1>
+      {#if cookie}
+        <h1>You are successfully connected</h1>
       {:else}
-        <h1>Loading</h1>
+        <h1>Still loading...</h1>
       {/if}
     </div>
   {/key}
 </div>
+
+<form method="POST" use:enhance>
+  <button hidden type="submit" name="cookie" formaction="?/cookie">Submit</button>
+  <input type="hidden" name="cookie-value" bind:value={cookie} />
+</form>
 
 <style lang="postcss">
   #create-identity {

@@ -30,7 +30,7 @@ CREATE TABLE users (
   "recovery" varchar(9)[],
   "stripe_customer" varchar(18),
   "revoke_session" varchar(8)[],
-  "api_access" boolean default false,
+  "api_access" boolean DEFAULT false,
   "api_key" varchar(32)
 );
 
@@ -42,5 +42,5 @@ CREATE TABLE identities (
   "payment_intent" varchar(27),
   "subscription_id" varchar(28),
   "plan" varchar(8) CHECK ("plan" IN ('monthly', 'annually', 'lifetime')),
-  "active" boolean default true
+  "status" varchar(8) CHECK ("status" IN ('active', 'inactive', 'frozen')) DEFAULT 'inactive'
 );
