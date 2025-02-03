@@ -1,5 +1,5 @@
 import {QueryResult, type User, pricingModal} from '../types';
-import {sql, stripe, WSConnections} from '../connection';
+import {sql, stripe} from '../connection';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
@@ -17,7 +17,7 @@ export default new Elysia({prefix: '/billing'})
     const user = (await jwt.verify(token)) as User;
     return {user};
   })
-  .post('/webhook', async ({request, jwt}) => {
+  .post('/webhook', async ({request}) => {
     const signature = request.headers.get('stripe-signature')!;
     const secret = process.env.STRIPE_WEBHOOK_SECRET!;
     const body = await request.text();
@@ -47,15 +47,6 @@ export default new Elysia({prefix: '/billing'})
       await attempt(sql`INSERT INTO identities (id, owner, creation_date, plan) VALUES (${id}, ${owner}, ${date}, ${plan})`);
       if (intent) await attempt(sql`UPDATE identities SET payment_intent = ${intent} WHERE creation_date = ${date}`);
       else await attempt(sql`UPDATE identities SET subscription_id = ${subscription} WHERE creation_date = ${date}`);
-
-      await new Promise((resolve) => setTimeout(resolve, 4000));
-      WSConnections.forEach(async (connection, websocketID) => {
-        if (websocketID === id) {
-          //@ts-expect-error JWT only accept objects
-          const cookie = await jwt.sign(id + process.env.SECRET_SAUCE);
-          connection.send(JSON.stringify({cookie: cookie.split('.')[2]}));
-        }
-      });
     }
 
     return {received: true};

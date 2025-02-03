@@ -81,7 +81,7 @@
         fetching.set(2);
         await new Promise((resolve) => setTimeout(resolve, 650));
 
-        checkout.confirm().then((result) => {
+        checkout.confirm().then(async (result) => {
           fetching.set(0);
           if (result.type === 'error') notify(result.error.message, 'alert');
         });

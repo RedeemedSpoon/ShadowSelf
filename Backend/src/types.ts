@@ -44,7 +44,7 @@ export interface QueryResultIdentify {
   payment_intent: string;
   subscription_id: string;
   plan: 'monthly' | 'annually' | 'lifetime';
-  active: boolean;
+  status: 'active' | 'inactive' | 'frozen';
 }
 
 export const emailTemplate = {

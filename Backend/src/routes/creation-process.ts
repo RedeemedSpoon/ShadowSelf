@@ -1,44 +1,41 @@
-import {sql, WSConnections} from '../connection';
+import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 import {Elysia, t} from 'elysia';
 import {User} from '../types';
 
-export default new Elysia({prefix: '/ws-creation-process'}).use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string})).ws('/', {
-  query: t.Object({id: t.String()}),
-  async open(ws) {
-    const token = ws.data.cookie?.token?.value;
-    if (!token) return ws.close(1014, 'You are not logged in');
+export default new Elysia()
+  .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
+  .post('/creation-process', async ({headers, jwt, body}) => {
+    const auth = headers['authorization'];
+    const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : undefined;
 
-    const user = (await ws.data.jwt.verify(token)) as User;
-    if (!user) return ws.close(1014, 'You are not a valid user');
+    const user = (await jwt.verify(token)) as User;
+    if (!user) return;
 
-    const account = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
-    if (!account.length) return ws.close(1014, 'You are not a valid user');
+    const {id} = body as {id: string};
+    const account = await attempt(sql`SELECT * FROM users WHERE email = ${user?.email}`);
+    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${id}`);
 
-    const identityID = ws.data.query.id;
-    if (!identityID) return ws.close(1014, 'Missing or invalid query id. Try again');
-
-    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID}`);
-    if (!identity.length) return ws.close(1014, 'Identity not found. Try again');
-
-    const owner = identity[0].owner;
-    if (owner !== account[0].id) return ws.close(1014, 'You are not the owner of this identity');
-
-    WSConnections.set(ws.data.query.id, ws);
-  },
-  async message(ws, message) {
-    const validationCookie = ws.data.cookie['creation-process']?.value;
-    if (!validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
-    const identityID = ws.data.query.id;
+    if (!identity.length) return;
+    if (identity[0].owner !== account[0].id) return;
+    if (identity[0].status !== 'inactive') return;
 
     //@ts-expect-error JWT only accept objects
-    const cookie = await ws.data.jwt.sign(identityID + process.env.SECRET_SAUCE);
-    if (cookie.split('.')[2] !== validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
+    const cookie = await jwt.sign(id + process.env.SECRET_SAUCE);
+    return {cookie: cookie.split('.')[2]};
+  })
+  .ws('/ws-creation-process', {
+    query: t.Object({id: t.String()}),
+    async message(ws, message) {
+      const validationCookie = ws.data.cookie['creation-process']?.value;
+      if (!validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
+      const identityID = ws.data.query.id;
 
-    console.log(message);
-  },
-  close(ws) {
-    WSConnections.delete(ws.id);
-  },
-});
+      //@ts-expect-error JWT only accept objects
+      const cookie = await ws.data.jwt.sign(identityID + process.env.SECRET_SAUCE);
+      if (cookie.split('.')[2] !== validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
+
+      console.log(message);
+    },
+  });
