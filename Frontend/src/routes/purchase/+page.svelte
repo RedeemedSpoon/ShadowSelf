@@ -1,9 +1,9 @@
 <script lang="ts">
-  import {CheckmarkIcon, CreditCardIcon, CryptoWalletIcon} from '$icon';
   import {type Notification, allPricingModels} from '$type';
   import {loadStripe, type Stripe} from '@stripe/stripe-js';
   import {pricingModel, fetching, showModal} from '$store';
   import {LoadingButton, Modal, Tooltip} from '$component';
+  import {CheckmarkIcon, CreditCardIcon, QuestionIcon} from '$icon';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';
@@ -21,11 +21,10 @@
 
   const features = [
     'Personal Attributes',
-    'Account Credentials',
+    'Account Management',
     'Email Address',
     'Virtual Card',
     'Phone Number',
-    'Crypto Wallet',
     'VPN Access',
     'And More...',
   ];
@@ -125,7 +124,7 @@
           <p class="text-xl text-neutral-400">{$pricingModel.description}</p>
         </div>
       {/key}
-      <ul class="mt-4 grid gap-x-12 gap-y-4 text-left sm:grid-cols-2">
+      <ul class="mt-4 grid gap-x-12 gap-y-4 text-center sm:grid-cols-2">
         {#each features as feature}
           <li><CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />{feature}</li>
         {/each}
@@ -134,11 +133,14 @@
     <section id="payment-methods" class="my-10">
       <form class="flex gap-6 px-8 max-sm:flex-col" method="POST" use:enhance={handleSubmit}>
         <input hidden value={$pricingModel.name} name="type" type="hidden" />
-        <LoadingButton className="px-8 py-5 enable"><CreditCardIcon className="!w-8 !h-8" />Pay with card</LoadingButton>
-        <Tooltip tip="Coming Soon..." onTop={false}>
-          <button disabled class="flex items-center gap-3 px-8 py-5"><CryptoWalletIcon className="!w-8 !h-8" />Pay with crypto</button>
-        </Tooltip>
+        <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="!w-8 !h-8" />Pay With Card</LoadingButton>
       </form>
+      <Tooltip
+        tip="Due to legal (KYC) and technical reasons, we require your credit card in order to create a virtual card. Sorry for the inconvenience!">
+        <p class="mt-3 flex items-center gap-1 text-sm text-neutral-400 hover:cursor-help">
+          Why do we not support crypto<QuestionIcon className="!w-3 !h-3 hover:cursor-help" />
+        </p>
+      </Tooltip>
     </section>
   </div>
 </div>

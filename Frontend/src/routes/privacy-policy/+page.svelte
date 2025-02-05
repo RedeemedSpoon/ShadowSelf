@@ -17,7 +17,8 @@
   <p>
     Shadowself is committed to protecting the privacy of our users. This Privacy Policy outlines the practices we employ regarding the
     collection, use, disclosure, and protection of user information in connection with our website, located at <a
-      href="https://shadowself.io">shadowself.io</a> (the "Website").
+      href="https://shadowself.io">shadowself.io</a
+    >.
   </p>
   <h3>Information Collection</h3>
   <p>We adhere to a minimalist data collection approach, gathering only the essential information required for service operation:</p>
@@ -27,8 +28,8 @@
       credentials in an untraceable format, rendering them unlinkable to specific users.
     </li>
     <li>
-      <b>Payment Information:</b> Users have the option to utilize cryptocurrency or credit cards for payment purposes. We emphasize that
-      we do not directly store any payment details. Secure third-party payment processors handle all financial transactions.
+      <b>Payment Information:</b> Users have the option to make payments for our services through secure third-party payment processors.
+      We emphasize that we do not directly store any payment details. Secure third-party payment processors handle all financial transactions.
     </li>
     <li>
       <b>Contact Information:</b> Users may choose to provide their email address for our contact page. We may collect them solely for communication

@@ -1,10 +1,10 @@
 import {QueryResult, type User, pricingModal} from '../types';
+import {generateIdentityID} from '../crypto';
 import {sql, stripe} from '../connection';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 import {check} from '../checks';
-import {generateIdentityID} from '../crypto';
 
 const runtime = process.env.NODE_ENV;
 const origin = runtime === 'dev' ? 'https://localhost' : 'https://shadowself.io';

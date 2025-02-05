@@ -26,7 +26,7 @@
     {
       title: 'Payment Services',
       description:
-        'Securely manage your finances with anonymous virtual cards and crypto wallets. Enjoy the convenience and privacy of these digital tools. Make online payments, store cryptocurrency, and preserve your very sentitive banking details.',
+        'Securely manage your finances with anonymous working virtual cards. Enjoy the convenience and privacy of these digital tools, and preserve your very sentitive banking details.',
       images: [money, card],
     },
     {

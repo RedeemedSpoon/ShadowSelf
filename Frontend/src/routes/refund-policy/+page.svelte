@@ -9,8 +9,8 @@
   <section>
     <p>
       <span>TLDR</span> Not sure if Shadowself is right for you? No problem! You have 14 days to change your mind and receive a full refund.
-      Simply delete your identity in the identity individual page or stripe customer portal in settings, and if it was created less than
-      14 days ago, you’ll be eligible and get refunded automatically within a few short minutes.
+      Simply delete your identity in the identity individual page, and if it was created less than 14 days ago, you’ll be eligible and get
+      refunded automatically within a few short minutes.
     </p>
   </section>
   <p>

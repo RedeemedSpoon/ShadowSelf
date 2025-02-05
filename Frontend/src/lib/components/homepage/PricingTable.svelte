@@ -16,15 +16,14 @@
   }
 
   const title = [
-    'You can manage your identities and online account linked to it such as passwords and credentials',
     'You get a 14-day money-back guarantee, during which you can request a refund.',
     'You can email us at anytime and we will assist you with any questions or issues you may have.',
   ];
 
   const sections = [
     ['Personal Attributes', 'Email Address', 'Phone Number'],
-    ['Virtual Card', 'Crypto Wallet', 'VPN Access'],
-    ['Account Credentials', '14 Day Refund', '24/7 Support'],
+    ['Virtual Card', 'VPN Access', 'Account Management'],
+    ['14 Day Refund', '24/7 Support'],
   ];
 
   onMount(() => changePricingModel($pricingModel.name));
@@ -74,7 +73,6 @@
         </ul>
       {/each}
     </div>
-    <p class="-my-4 text-sm text-neutral-500">Crypto currency will be supported in an upcoming update</p>
   </div>
   <a href={$user ? '/purchase' : '/login'}>
     <button id="purchase">Purchase<ChevronIcon /></button>
