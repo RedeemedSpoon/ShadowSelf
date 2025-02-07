@@ -8,31 +8,31 @@
     {
       title: 'Fake a Person',
       description:
-        'Create and manage anonymous identities to shield your personal information online. Customize them with names, bios, photos, etc. Then use them to sign up for accounts, authenticate to services, and maintain your sensitive data from the public eye...',
+        'Create and manage private identities to shield your personal information. Customize them with names, bios, photos, etc. Then use them to sign up for accounts, authenticate to services, and maintain your sensitive data from the public eye.',
       images: [identity, globe],
     },
     {
       title: 'Phone Services',
       description:
-        'Generate a functional permanent phone number to use for your profile. Use them to receive and send text messages (SMS). Protect yourself and avoid annoying calls or scams. Please note that you cannot make phone calls with a virtual number.',
+        'Each identity comes with a functional permanent phone number. Use them to receive and send text messages. Protect yourself and avoid annoying calls or scams. Please note that you cannot make phone calls with them.',
       images: [message, tower],
     },
     {
       title: 'Email Services',
       description:
-        'Generate a private permanent email address and use it for your online activities, including sending and receiving and confirming emails. Keep yourself from unwanted emails, advertisements, spams and phishing attempts.',
+        'Each identity also comes with a permanent email address. Use it for sending and receiving and confirming emails. Keep yourself from unwanted emails, advertisements, spams and phishing attempts.',
       images: [email, router],
     },
     {
       title: 'Payment Services',
       description:
-        'Securely manage your finances with anonymous working virtual cards. Enjoy the convenience and privacy of these digital tools, and preserve your very sentitive banking details.',
+        'Each identity has a virtual credit card to keep your primary card details secure. Enjoy hassle-free transactions, while protecting yourself from unauthorized charges, fraud, and identity theft.',
       images: [money, card],
     },
     {
       title: 'VPN Services',
       description:
-        'No solution would be complete without a vpn. As expected, you can use our vpn/proxy service to mask your location and route your traffic through our secure servers. Enjoy enhanced privacy, bypass censorship, and access geo-restricted content.',
+        'Finally Each identity has an address to disguise your location and route your traffic through our secure servers, making sure to bypass monitoring and interception from malicious threats.',
       images: [server, cloud],
     },
   ];

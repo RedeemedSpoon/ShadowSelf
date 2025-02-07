@@ -1,9 +1,12 @@
 <script lang="ts">
   import type {PageData} from './$types';
+  import {fly} from 'svelte/transition';
   import {page} from '$app/state';
+  import {InfoIcon} from '$icon';
   import {notify} from '$lib';
 
   let {data}: {data: PageData} = $props();
+  let steps = $state(1);
 
   async function init() {
     if (data.cookie) initWebsocket();
@@ -15,7 +18,7 @@
     }, 650);
 
     return new Promise((resolve, reject) => {
-      setTimeout(() => (data.cookie ? resolve(true) : reject()), 1000);
+      setTimeout(() => (data.cookie ? resolve(true) : reject()), 1950);
     });
   }
 
@@ -40,20 +43,36 @@
 
 <div id="create-identity">
   {#await init()}
-    <div class="flex flex-row">
+    <div class="mx-auto flex flex-row items-center">
       <h3>Loading</h3>
       <h3 id="loader-process">.</h3>
     </div>
   {:then}
-    <h3>You are successfully connected</h3>
+    {#key steps}
+      <section
+        class="flex w-full flex-col justify-center gap-8"
+        in:fly={{delay: 500, x: 35, opacity: 0, duration: 500}}
+        out:fly={{x: -35, opacity: 0, duration: 500}}>
+        <h3>Step {steps}</h3>
+        <button onclick={() => steps++}>Continue As Guest</button>
+      </section>
+    {/key}
   {:catch}
-    <h3>You are NOT successfully connected</h3>
+    <div class="flex flex-col items-center gap-8">
+      <InfoIcon fill={true} className="h-28 w-28 text-neutral-300" />
+      <h3>Something Went Wrong.</h3>
+      <p class="px-2 text-center text-neutral-400 lg:w-3/5">
+        There was an issue with your request. This could be due to a network error or a bad request on your part. Please try reloading
+        the page and give it another go.
+      </p>
+      <button class="w-1/3" onclick={() => window.location.reload()}>Retry</button>
+    </div>
   {/await}
 </div>
 
 <style lang="postcss">
   #create-identity {
-    @apply mx-auto mb-[4rem] mt-[10rem] flex h-fit min-h-[70vh] w-5/6 flex-col items-center justify-center gap-12;
+    @apply mx-auto mb-[4rem] mt-[10rem] flex min-h-[70vh] w-5/6 items-center justify-center;
   }
 
   h3 {
