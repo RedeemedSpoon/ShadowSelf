@@ -1,8 +1,8 @@
+import {User, CreationProcess} from '../types';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 import {Elysia, t} from 'elysia';
-import {User} from '../types';
 
 export default new Elysia()
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -27,7 +27,7 @@ export default new Elysia()
   })
   .ws('/ws-creation-process', {
     query: t.Object({id: t.String()}),
-    async message(ws, message) {
+    async message(ws, message: CreationProcess) {
       const validationCookie = ws.data.cookie['creation-process']?.value;
       if (!validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
       const identityID = ws.data.query.id;
@@ -36,6 +36,14 @@ export default new Elysia()
       const cookie = await ws.data.jwt.sign(identityID + process.env.SECRET_SAUCE);
       if (cookie.split('.')[2] !== validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
 
-      console.log(message);
+      switch (message.kind) {
+        case 'start':
+          ws.send({data: {locations: ['France', 'United States', 'Singapore']}});
+          break;
+
+        default:
+          ws.send({data: {help: true}});
+          break;
+      }
     },
   });

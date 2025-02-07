@@ -47,6 +47,13 @@ export interface QueryResultIdentify {
   status: 'active' | 'inactive' | 'frozen';
 }
 
+export interface CreationProcess {
+  kind: string;
+  data: {
+    [key: string]: string;
+  };
+}
+
 export const emailTemplate = {
   confirm: {
     title: 'Confirm Your Email Address',

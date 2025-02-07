@@ -64,6 +64,13 @@ export interface AnimationSelector {
   delay?: number;
 }
 
+export interface CreationProcess {
+  errorMessage: string;
+  data: {
+    [key: string]: string;
+  };
+}
+
 export interface ServicesContent {
   title: string;
   description: string;

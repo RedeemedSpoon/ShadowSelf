@@ -17,6 +17,7 @@ export {default as StepsItem} from './main/StepsItem.svelte';
 export {default as SelectMenu} from './main/SelectMenu.svelte';
 export {default as SearchInput} from './main/SearchInput.svelte';
 export {default as ReactiveButton} from './main/ReactiveButton.svelte';
+export {default as ContinuousProcess} from './main/ContinuousProcess.svelte';
 
 export {default as Slogan} from './homepage/Slogan.svelte';
 export {default as Card3D} from './homepage/Card3D.svelte';
