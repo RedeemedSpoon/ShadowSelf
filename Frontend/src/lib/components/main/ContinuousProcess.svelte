@@ -6,17 +6,17 @@
   interface Props {
     children: Snippet;
     finalStep: number;
-    respond: () => void;
+    handleClick: () => void;
   }
 
-  let {respond, finalStep, children}: Props = $props();
+  let {handleClick, finalStep, children}: Props = $props();
 </script>
 
 <div class="relative w-full md:w-1/2">
   {#key $currentStep}
     <section in:fly={{delay: 500, y: 35, opacity: 0, duration: 500}} out:fly={{y: -35, opacity: 0, duration: 500}}>
       {@render children?.()}
-      <button onclick={respond}>{$currentStep !== finalStep ? 'Next →' : 'Finish'}</button>
+      <button onclick={handleClick}>{$currentStep !== finalStep ? 'Next →' : 'Finish'}</button>
     </section>
   {/key}
 </div>

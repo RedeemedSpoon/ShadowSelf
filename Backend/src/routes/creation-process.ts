@@ -35,14 +35,38 @@ export default new Elysia()
       //@ts-expect-error JWT only accept objects
       const cookie = await ws.data.jwt.sign(identityID + process.env.SECRET_SAUCE);
       if (cookie.split('.')[2] !== validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
+      let data;
 
       switch (message.kind) {
         case 'start':
-          ws.send({data: {locations: ['France', 'United States', 'Singapore']}});
-          break;
+          data = [
+            {
+              country: 'United States',
+              city: 'Seattle, Washington',
+              ip: '91.240.75.212',
+              map: 'https://osm.org/go/WIdEVZFE',
+            },
+            {
+              country: 'Netherlands',
+              city: 'Amsterdam',
+              ip: '180.4.61.56',
+              map: 'https://osm.org/go/0E4~sd',
+            },
+            {
+              country: 'France',
+              city: 'Paris',
+              ip: '24.68.162.1',
+              map: 'https://osm.org/go/0BOd2l~--',
+            },
+            {
+              country: 'Australia',
+              city: 'Sydney',
+              ip: '110.212.129.122',
+              map: 'https://osm.org/go/uN~RKL',
+            },
+          ];
 
-        default:
-          ws.send({data: {help: true}});
+          ws.send({locations: data});
           break;
       }
     },

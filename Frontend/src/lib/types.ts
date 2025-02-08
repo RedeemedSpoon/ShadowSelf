@@ -65,10 +65,13 @@ export interface AnimationSelector {
 }
 
 export interface CreationProcess {
-  errorMessage: string;
-  data: {
-    [key: string]: string;
-  };
+  error: string;
+  locations: {
+    country: string;
+    city: string;
+    ip: string;
+    map: string;
+  }[];
 }
 
 export interface ServicesContent {

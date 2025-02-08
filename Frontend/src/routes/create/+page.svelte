@@ -1,22 +1,23 @@
 <script lang="ts">
+  import {InfoIcon, ExternalLinkIcon} from '$icon';
   import {ContinuousProcess} from '$component';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
   import {currentStep} from '$store';
   import {page} from '$app/state';
-  import {InfoIcon} from '$icon';
   import {notify} from '$lib';
 
   let {data}: {data: PageData} = $props();
-  let loaderInterval: number | null;
+
+  let server = $state() as CreationProcess;
+  let loaderInterval: unknown;
   let ws: WebSocket | null;
 
   async function init() {
     if (data.cookie) initWebsocket();
     const loader = document.querySelector('#loader-process') as HTMLParagraphElement;
 
-    //@ts-expect-error return Timeout in Node, number in browser
     loaderInterval = setInterval(() => {
       if (loader?.innerText.length === 3) loader!.innerText = '';
       else loader!.innerText += '.';
@@ -31,32 +32,38 @@
     const id = page.url.searchParams.get('id');
     ws = new WebSocket(`wss://${page.url.hostname}/ws-creation-process?id=${id}`);
 
-    ws.onopen = () => ws?.send(JSON.stringify({kind: 'start'}));
+    ws.onopen = () => reply('start');
+    ws.onclose = (ws) => ws.code === 1014 && notify(ws.reason, 'alert');
+
     ws.onmessage = async (event) => {
       const response = JSON.parse(event.data) as CreationProcess;
-      if (response.errorMessage) notify(response.errorMessage, 'alert');
-      else if (response.data.locations) $currentStep = 1;
-      else $currentStep++;
-    };
-
-    ws.onclose = (ws) => {
-      if (ws.code === 1014) notify(ws.reason, 'alert');
+      if (response.error) return notify(response.error, 'alert');
+      $currentStep = response.locations ? 1 : $currentStep + 1;
+      server = response;
     };
   }
 
-  function respond() {
+  function reply(kind: string, body?: {[key: string]: string}) {
+    ws?.send(JSON.stringify({kind, ...body}));
+  }
+
+  function respondServer() {
     switch ($currentStep) {
       case 1:
-        ws?.send(JSON.stringify({kind: 'locations'}));
+        reply('locations');
+        break;
+
+      case 8:
+        $currentStep = 9;
+        break;
+
+      case 9:
+        $currentStep = 10;
         break;
 
       case 10:
         clearInterval(loaderInterval as number);
-        goto('/dashboard', {replaceState: true});
-        break;
-
-      default:
-        ws?.send(JSON.stringify({kind: 'next'}));
+        goto('/dashboard');
         break;
     }
   }
@@ -74,9 +81,20 @@
       <h3 id="loader-process">.</h3>
     </div>
   {:then}
-    <ContinuousProcess finalStep={10} {respond}>
+    <ContinuousProcess finalStep={10} handleClick={respondServer}>
       {#if $currentStep === 1}
         <h3>Choose your location</h3>
+        <div class="flex cursor-pointer flex-col">
+          {#each server.locations as location}
+            <div class="px-6 py-3 odd:bg-neutral-800 hover:opacity-70">
+              <p class="text-2xl">{location.country}, {location.city}</p>
+              <p>{location.ip}</p>
+              <a class="flex flex-row gap-1 !text-neutral-500" target="_blank" href={location.map}>
+                Link <ExternalLinkIcon className="h-4 w-4" />
+              </a>
+            </div>
+          {/each}
+        </div>
       {:else if $currentStep === 2}
         <h3>Customize your identity</h3>
       {:else if $currentStep === 3}
