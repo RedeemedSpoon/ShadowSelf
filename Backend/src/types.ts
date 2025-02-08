@@ -49,6 +49,7 @@ export interface QueryResultIdentify {
 
 export interface CreationProcess {
   kind: string;
+  code: string;
 }
 
 export const emailTemplate = {

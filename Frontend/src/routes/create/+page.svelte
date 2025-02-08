@@ -10,6 +10,7 @@
 
   let {data}: {data: PageData} = $props();
 
+  let disabled = $state(true);
   let server = $state() as CreationProcess;
   let loaderInterval: unknown;
   let ws: WebSocket | null;
@@ -49,9 +50,11 @@
 
   function respondServer() {
     switch ($currentStep) {
-      case 1:
-        reply('locations');
+      case 1: {
+        const chosen = document.querySelector('.chosen') as HTMLDivElement;
+        reply('locations', {code: chosen.id});
         break;
+      }
 
       case 8:
         $currentStep = 9;
@@ -65,6 +68,20 @@
         clearInterval(loaderInterval as number);
         goto('/dashboard');
         break;
+    }
+  }
+
+  function handleEvent(kind: string, body?: unknown) {
+    switch (kind) {
+      case 'locations': {
+        const all = document.querySelectorAll('.locations-box');
+        all.forEach((element) => element.classList.remove('chosen'));
+
+        const chosenElement = document.querySelector(`#${body}`) as HTMLDivElement;
+        chosenElement.classList.add('chosen');
+        disabled = false;
+        break;
+      }
     }
   }
 </script>
@@ -81,15 +98,19 @@
       <h3 id="loader-process">.</h3>
     </div>
   {:then}
-    <ContinuousProcess finalStep={10} handleClick={respondServer}>
+    <ContinuousProcess {disabled} finalStep={10} handleClick={respondServer}>
       {#if $currentStep === 1}
         <h3>Choose your location</h3>
+        <p>Choose the location of your synthetic identity. You will be able to access this location via our extension afterwards.</p>
         <div class="flex cursor-pointer flex-col">
           {#each server.locations as location}
-            <div class="px-6 py-3 odd:bg-neutral-800 hover:opacity-70">
-              <p class="text-2xl">{location.country}, {location.city}</p>
-              <p>{location.ip}</p>
-              <a class="flex flex-row gap-1 !text-neutral-500" target="_blank" href={location.map}>
+            <div id={location.code} class="locations-box" onclick={() => handleEvent('locations', location.code)} aria-hidden="true">
+              <img src="https://flagsapi.com/{location.code}/flat/48.png" alt="country flag" />
+              <div class="w-full">
+                <p class="!text-left text-2xl !text-neutral-300">{location.country}, {location.city}</p>
+                <p class="!text-left tracking-wider !text-neutral-300">{location.ip}</p>
+              </div>
+              <a class="flex flex-row gap-1 !text-neutral-300" target="_blank" href={location.map}>
                 Link <ExternalLinkIcon className="h-4 w-4" />
               </a>
             </div>
@@ -119,7 +140,7 @@
     <div class="flex flex-col items-center gap-8">
       <InfoIcon fill={true} className="h-28 w-28 text-neutral-300" />
       <h3>Something Went Wrong.</h3>
-      <p class="px-2 text-center text-neutral-400 lg:w-3/5">
+      <p class="lg:w-3/5">
         There was an issue with your request. This could be due to a network error or a bad request on your part. Please try reloading
         the page and give it another go.
       </p>
@@ -135,5 +156,13 @@
 
   h3 {
     @apply text-4xl text-neutral-300;
+  }
+
+  p {
+    @apply text-balance px-4 text-center text-neutral-400;
+  }
+
+  .locations-box {
+    @apply flex min-w-[35vw] flex-row items-center justify-between gap-8 px-6 py-3 odd:bg-neutral-800 hover:opacity-70;
   }
 </style>

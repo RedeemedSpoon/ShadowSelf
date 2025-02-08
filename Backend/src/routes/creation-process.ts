@@ -22,43 +22,49 @@ export default new Elysia()
     if (identity[0].status !== 'inactive') return;
 
     //@ts-expect-error JWT only accept objects
-    const cookie = await jwt.sign(id + process.env.SECRET_SAUCE);
-    return {cookie: cookie.split('.')[2]};
+    let cookie = await jwt.sign(id + process.env.SECRET_SAUCE);
+    cookie = cookie.split('.')[2];
+    return {cookie};
   })
   .ws('/ws-creation-process', {
     query: t.Object({id: t.String()}),
     async message(ws, message: CreationProcess) {
-      const validationCookie = ws.data.cookie['creation-process']?.value;
-      if (!validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
+      const cookie = ws.data.cookie['creation-process'];
+      if (!cookie) return ws.close(1014, 'You do not have permission to perform this action');
+
+      const [validationCookie, ...cookieStore] = cookie.value?.split('&&') || [];
       const identityID = ws.data.query.id;
 
       //@ts-expect-error JWT only accept objects
-      const cookie = await ws.data.jwt.sign(identityID + process.env.SECRET_SAUCE);
-      if (cookie.split('.')[2] !== validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
-      let data;
+      const validToken = await ws.data.jwt.sign(identityID + process.env.SECRET_SAUCE);
+      if (validToken.split('.')[2] !== validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
 
       switch (message.kind) {
-        case 'start':
-          data = [
+        case 'start': {
+          const locations = [
             {
+              code: 'US',
               country: 'United States',
-              city: 'Seattle, Washington',
+              city: 'Seattle',
               ip: '91.240.75.212',
               map: 'https://osm.org/go/WIdEVZFE',
             },
             {
+              code: 'NL',
               country: 'Netherlands',
               city: 'Amsterdam',
               ip: '180.4.61.56',
               map: 'https://osm.org/go/0E4~sd',
             },
             {
+              code: 'FR',
               country: 'France',
               city: 'Paris',
               ip: '24.68.162.1',
               map: 'https://osm.org/go/0BOd2l~--',
             },
             {
+              code: 'AU',
               country: 'Australia',
               city: 'Sydney',
               ip: '110.212.129.122',
@@ -66,8 +72,21 @@ export default new Elysia()
             },
           ];
 
-          ws.send({locations: data});
+          ws.send({locations});
           break;
+        }
+
+        case 'locations': {
+          const {code} = message;
+          if (!['US', 'NL', 'FR', 'AU'].includes(code)) {
+            ws.send({error: 'Invalid location code'});
+            break;
+          }
+
+          cookie.set({value: cookie.value + `&&${code}`});
+          ws.send({status: 'success'});
+          break;
+        }
       }
     },
   });

@@ -68,6 +68,7 @@ export interface CreationProcess {
   error: string;
   locations: {
     country: string;
+    code: string;
     city: string;
     ip: string;
     map: string;

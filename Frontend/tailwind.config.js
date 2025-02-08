@@ -92,6 +92,12 @@ function addCustomClasses({addComponents}) {
         boxShadow: '0 10px 15px rgba(153, 27, 27, 0.5)',
       },
     },
+    '.chosen': {
+      backgroundColor: 'rgb(79, 70, 229, 0.75) !important',
+      '&:hover': {
+        opacity: '1 !important',
+      },
+    },
     '.small-icon': {
       height: '2rem',
       width: '2rem',
