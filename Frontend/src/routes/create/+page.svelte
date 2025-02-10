@@ -4,9 +4,9 @@
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
+  import {notify, getAge} from '$lib';
   import {currentStep} from '$store';
   import {page} from '$app/state';
-  import {notify} from '$lib';
 
   let {data}: {data: PageData} = $props();
 
@@ -118,6 +118,12 @@
         </div>
       {:else if $currentStep === 2}
         <h3>Customize your identity</h3>
+        <p>Customize the physical appearance of your identity to your liking.</p>
+        <div class="flex justify-center gap-4 p-8">
+          <h3>{server.identity.name}, {getAge(server.identity.date)}</h3>
+          <p>{server.identity.sex}, {server.identity.shape}, {server.identity.ethnicity}, {server.identity.bio}</p>
+          <img src={server.identity.avatar} alt="avatar" />
+        </div>
       {:else if $currentStep === 3}
         <h3>Create your phone number</h3>
       {:else if $currentStep === 4}

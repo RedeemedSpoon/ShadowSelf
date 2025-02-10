@@ -112,15 +112,26 @@ export default new Elysia()
           const shape = shapes[Math.floor(Math.random() * shapes.length)];
           const date = faker.date.birthdate({mode: 'age', min: 18, max: 65});
 
-          const identity = {
-            avatar: '',
-            name,
-            bio,
-            sex,
-            date,
-            shape,
-            ethnicity,
-          };
+          const ms_per_year = 1000 * 60 * 60 * 24 * 365.2425;
+          const age = Math.floor((new Date().getTime() - date.getTime()) / ms_per_year);
+          const prompt = `${ethnicity} ${shape} person, ${age} years old, ${bio}, profile picture`;
+
+          const formData = new FormData();
+          formData.append('prompt', prompt);
+          formData.append('output_format', 'webp');
+          formData.append('aspect_ratio', '1:1');
+
+          const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
+              accept: 'image/*',
+            },
+          });
+
+          const avatar = URL.createObjectURL(await response.blob());
+          const identity = {avatar, name, bio, sex, date, shape, ethnicity};
 
           cookie.set({value: cookie.value + `&&${code}`});
           ws.send({identity});

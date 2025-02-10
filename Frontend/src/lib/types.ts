@@ -78,7 +78,7 @@ export interface CreationProcess {
     avatar: string;
     name: string;
     bio: string;
-    date: Date;
+    date: string;
     sex: string;
     shape: string;
     ethnicity: string;
