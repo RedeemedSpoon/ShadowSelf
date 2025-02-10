@@ -1,8 +1,57 @@
 import {User, CreationProcess} from '../types';
+import {allFakers} from '@faker-js/faker';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 import {Elysia, t} from 'elysia';
+
+const shapes = ['fit', 'curvy', 'slim', 'fat', 'muscular', 'chubby', 'obese'];
+const ethnicities = [
+  'caucasian',
+  'black',
+  'hispanic',
+  'asian',
+  'latino',
+  'arab',
+  'middle eastern',
+  'east asian',
+  'south asian',
+  'indian',
+];
+const locations = [
+  {
+    code: 'US',
+    country: 'United States',
+    city: 'Seattle',
+    ip: '91.240.75.212',
+    map: 'https://osm.org/go/WIdEVZFE',
+    localization: 'en',
+  },
+  {
+    code: 'FR',
+    country: 'France',
+    city: 'Paris',
+    ip: '24.68.162.1',
+    map: 'https://osm.org/go/0BOd2l~--',
+    localization: 'fr',
+  },
+  {
+    code: 'ES',
+    country: 'Spain',
+    city: 'Madrid',
+    ip: '153.869.12.56',
+    map: 'https://osm.org/go/b_Njo_H-',
+    localization: 'es',
+  },
+  {
+    code: 'KR',
+    country: 'South Korea',
+    city: 'Seoul',
+    ip: '38.0.101.76',
+    map: 'https://osm.org/go/b_M3ywz7V',
+    localization: 'ko',
+  },
+];
 
 export default new Elysia()
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -41,50 +90,40 @@ export default new Elysia()
 
       switch (message.kind) {
         case 'start': {
-          const locations = [
-            {
-              code: 'US',
-              country: 'United States',
-              city: 'Seattle',
-              ip: '91.240.75.212',
-              map: 'https://osm.org/go/WIdEVZFE',
-            },
-            {
-              code: 'NL',
-              country: 'Netherlands',
-              city: 'Amsterdam',
-              ip: '180.4.61.56',
-              map: 'https://osm.org/go/0E4~sd',
-            },
-            {
-              code: 'FR',
-              country: 'France',
-              city: 'Paris',
-              ip: '24.68.162.1',
-              map: 'https://osm.org/go/0BOd2l~--',
-            },
-            {
-              code: 'AU',
-              country: 'Australia',
-              city: 'Sydney',
-              ip: '110.212.129.122',
-              map: 'https://osm.org/go/uN~RKL',
-            },
-          ];
-
           ws.send({locations});
           break;
         }
 
         case 'locations': {
           const {code} = message;
-          if (!['US', 'NL', 'FR', 'AU'].includes(code)) {
+          if (!['US', 'FR', 'ES', 'KR'].includes(code)) {
             ws.send({error: 'Invalid location code'});
             break;
           }
 
+          const lang = locations.find((location) => location.code === code);
+          const faker = allFakers[lang?.localization as keyof typeof allFakers];
+
+          const sex = faker.person.sex() as 'male' | 'female';
+          const name = faker.person.fullName({sex});
+          const bio = faker.person.bio();
+
+          const ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
+          const shape = shapes[Math.floor(Math.random() * shapes.length)];
+          const date = faker.date.birthdate({mode: 'age', min: 18, max: 65});
+
+          const identity = {
+            avatar: '',
+            name,
+            bio,
+            sex,
+            date,
+            shape,
+            ethnicity,
+          };
+
           cookie.set({value: cookie.value + `&&${code}`});
-          ws.send({status: 'success'});
+          ws.send({identity});
           break;
         }
       }

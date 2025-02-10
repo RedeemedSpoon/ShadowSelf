@@ -8,17 +8,18 @@
     "build": "NODE_ENV=prod bun build --compile --minify-whitespace --minify-syntax --target bun --outfile server ./src/index.ts"
   },
   "devDependencies": {
-    "@types/nodemailer": "^6.4.17",
-    "@types/bcrypt": "^5.0.2",
-    "@types/bun": "^1.2.0",
     "@elysiajs/jwt": "^1.2.0",
-    "nodemailer": "^6.10.0",
-    "bun-types": "latest",
-    "postgres": "^3.4.5",
-    "otpauth": "^9.3.6",
+    "@faker-js/faker": "^9.4.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/bun": "^1.2.2",
+    "@types/nodemailer": "^6.4.17",
     "bcrypt": "^5.1.1",
+    "bun-types": "latest",
     "elysia": "latest",
-    "stripe": "^17.5.0"
+    "nodemailer": "^6.10.0",
+    "otpauth": "^9.3.6",
+    "postgres": "^3.4.5",
+    "stripe": "^17.6.0"
   },
   "type": "module",
   "module": "src/index.ts"

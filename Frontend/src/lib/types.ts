@@ -72,7 +72,17 @@ export interface CreationProcess {
     city: string;
     ip: string;
     map: string;
+    localization: string;
   }[];
+  identity: {
+    avatar: string;
+    name: string;
+    bio: string;
+    date: Date;
+    sex: string;
+    shape: string;
+    ethnicity: string;
+  };
 }
 
 export interface ServicesContent {
