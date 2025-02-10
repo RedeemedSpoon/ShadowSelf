@@ -5,7 +5,7 @@
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
   import {notify, getAge} from '$lib';
-  import {currentStep} from '$store';
+  import {currentStep, fetching} from '$store';
   import {page} from '$app/state';
 
   let {data}: {data: PageData} = $props();
@@ -38,17 +38,18 @@
 
     ws.onmessage = async (event) => {
       const response = JSON.parse(event.data) as CreationProcess;
+      $fetching = 0;
+
       if (response.error) return notify(response.error, 'alert');
       $currentStep = response.locations ? 1 : $currentStep + 1;
       server = response;
     };
   }
 
-  function reply(kind: string, body?: {[key: string]: string}) {
-    ws?.send(JSON.stringify({kind, ...body}));
-  }
+  async function respondServer(altEvent?: string) {
+    $fetching = altEvent?.length ? 2 : 1;
+    await new Promise((resolve) => setTimeout(resolve, 650));
 
-  function respondServer() {
     switch ($currentStep) {
       case 1: {
         const chosen = document.querySelector('.chosen') as HTMLDivElement;
@@ -69,6 +70,10 @@
         goto('/dashboard');
         break;
     }
+  }
+
+  function reply(kind: string, body?: {[key: string]: string}) {
+    ws?.send(JSON.stringify({kind, ...body}));
   }
 
   function handleEvent(kind: string, body?: unknown) {
@@ -119,10 +124,10 @@
       {:else if $currentStep === 2}
         <h3>Customize your identity</h3>
         <p>Customize the physical appearance of your identity to your liking.</p>
-        <div class="flex justify-center gap-4 p-8">
+        <div class="flex flex-col items-center justify-center gap-4 p-8">
           <h3>{server.identity.name}, {getAge(server.identity.date)}</h3>
-          <p>{server.identity.sex}, {server.identity.shape}, {server.identity.ethnicity}, {server.identity.bio}</p>
-          <img src={`data:image/png;base64,${server.identity.avatar}`} alt="avatar" />
+          <p class="text-neutral-400">{server.identity.sex}, {server.identity.ethnicity}, {server.identity.bio}</p>
+          <img class="h-96 w-96 rounded-lg" src={`data:image/png;base64,${server.identity.avatar}`} alt="avatar" />
         </div>
       {:else if $currentStep === 3}
         <h3>Create your phone number</h3>

@@ -1,7 +1,8 @@
 <script lang="ts">
+  import {Loader} from '$component';
   import type {Snippet} from 'svelte';
   import {fly} from 'svelte/transition';
-  import {currentStep} from '$store';
+  import {fetching, currentStep} from '$store';
 
   interface Props {
     children: Snippet;
@@ -17,7 +18,10 @@
   {#key $currentStep}
     <section in:fly={{delay: 500, y: 35, opacity: 0, duration: 500}} out:fly={{y: -35, opacity: 0, duration: 500}}>
       {@render children?.()}
-      <button class="self-end px-8" {disabled} onclick={handleClick}>{$currentStep !== finalStep ? 'Next →' : 'Finish'}</button>
+      <button onclick={handleClick} disabled={$fetching === 1 || disabled}>
+        {$currentStep !== finalStep ? ($fetching === 1 ? 'Next' : 'Next →') : 'Finish'}
+        <Loader index={1} />
+      </button>
     </section>
   {/key}
 </div>
@@ -25,5 +29,9 @@
 <style lang="postcss">
   section {
     @apply absolute inset-0 flex flex-col items-center justify-center gap-8;
+  }
+
+  button {
+    @apply flex items-center justify-center gap-3 self-end text-nowrap px-8;
   }
 </style>

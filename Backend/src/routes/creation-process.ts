@@ -5,7 +5,6 @@ import {jwt} from '@elysiajs/jwt';
 import {attempt, blobToBase64} from '../utils';
 import {Elysia, t} from 'elysia';
 
-const shapes = ['fit', 'curvy', 'slim', 'fat', 'muscular', 'chubby', 'obese'];
 const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
 const locations = [
   {
@@ -98,17 +97,19 @@ export default new Elysia()
           const bio = faker.person.bio();
 
           const ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
-          const shape = shapes[Math.floor(Math.random() * shapes.length)];
           const date = faker.date.birthdate({mode: 'age', min: 18, max: 65});
 
           const ms_per_year = 1000 * 60 * 60 * 24 * 365.2425;
           const age = Math.floor((new Date().getTime() - date.getTime()) / ms_per_year);
-          const prompt = `${ethnicity} ${shape} person, ${age} years old, ${bio}, profile picture`;
+
+          const prompt = `${ethnicity} ${sex} individual, aged ${age}, ${bio}, located in ${lang?.city}, ${lang?.country}`;
+          const negativePrompt = 'overly idealized, unrealistic, flawless, artificial, exaggerated features, stereotypical appearance';
 
           const formData = new FormData();
           formData.append('prompt', prompt);
-          formData.append('output_format', 'webp');
           formData.append('aspect_ratio', '1:1');
+          formData.append('output_format', 'webp');
+          formData.append('negative_prompt', negativePrompt);
 
           const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
             method: 'POST',
@@ -120,7 +121,7 @@ export default new Elysia()
           });
 
           const avatar = await blobToBase64(await response.blob());
-          const identity = {avatar, name, bio, sex, date, shape, ethnicity};
+          const identity = {avatar, name, bio, sex, date, ethnicity};
 
           cookie.set({value: cookie.value + `&&${code}`});
           ws.send({identity});

@@ -80,7 +80,6 @@ export interface CreationProcess {
     bio: string;
     date: string;
     sex: string;
-    shape: string;
     ethnicity: string;
   };
 }
