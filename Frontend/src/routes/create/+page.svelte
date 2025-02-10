@@ -122,7 +122,7 @@
         <div class="flex justify-center gap-4 p-8">
           <h3>{server.identity.name}, {getAge(server.identity.date)}</h3>
           <p>{server.identity.sex}, {server.identity.shape}, {server.identity.ethnicity}, {server.identity.bio}</p>
-          <img src={server.identity.avatar} alt="avatar" />
+          <img src={`data:image/png;base64,${server.identity.avatar}`} alt="avatar" />
         </div>
       {:else if $currentStep === 3}
         <h3>Create your phone number</h3>

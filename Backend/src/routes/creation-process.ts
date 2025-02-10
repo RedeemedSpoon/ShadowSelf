@@ -2,54 +2,43 @@ import {User, CreationProcess} from '../types';
 import {allFakers} from '@faker-js/faker';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
-import {attempt} from '../utils';
+import {attempt, blobToBase64} from '../utils';
 import {Elysia, t} from 'elysia';
 
 const shapes = ['fit', 'curvy', 'slim', 'fat', 'muscular', 'chubby', 'obese'];
-const ethnicities = [
-  'caucasian',
-  'black',
-  'hispanic',
-  'asian',
-  'latino',
-  'arab',
-  'middle eastern',
-  'east asian',
-  'south asian',
-  'indian',
-];
+const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
 const locations = [
   {
-    code: 'US',
     country: 'United States',
+    code: 'US',
     city: 'Seattle',
+    localization: 'en',
     ip: '91.240.75.212',
     map: 'https://osm.org/go/WIdEVZFE',
-    localization: 'en',
   },
   {
-    code: 'FR',
     country: 'France',
+    code: 'FR',
     city: 'Paris',
-    ip: '24.68.162.1',
-    map: 'https://osm.org/go/0BOd2l~--',
     localization: 'fr',
+    ip: '24.68.162.126',
+    map: 'https://osm.org/go/0BOd2l~--',
   },
   {
-    code: 'ES',
     country: 'Spain',
+    code: 'ES',
     city: 'Madrid',
+    localization: 'es',
     ip: '153.869.12.56',
     map: 'https://osm.org/go/b_Njo_H-',
-    localization: 'es',
   },
   {
-    code: 'KR',
     country: 'South Korea',
+    code: 'KR',
     city: 'Seoul',
     ip: '38.0.101.76',
-    map: 'https://osm.org/go/b_M3ywz7V',
     localization: 'ko',
+    map: 'https://osm.org/go/b_M3ywz7V',
   },
 ];
 
@@ -130,7 +119,7 @@ export default new Elysia()
             },
           });
 
-          const avatar = URL.createObjectURL(await response.blob());
+          const avatar = await blobToBase64(await response.blob());
           const identity = {avatar, name, bio, sex, date, shape, ethnicity};
 
           cookie.set({value: cookie.value + `&&${code}`});

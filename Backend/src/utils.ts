@@ -14,6 +14,12 @@ export function toTitleCase(str: string): string {
   });
 }
 
+export async function blobToBase64(blob: Blob) {
+  const arr = new Uint8Array(await blob.arrayBuffer());
+  const buf = Buffer.from(arr);
+  return buf.toString('base64');
+}
+
 export async function request(url: string, method = 'GET', body?: object) {
   return fetch('http://localhost:3000' + url, {
     headers: {'Content-Type': 'application/json'},
