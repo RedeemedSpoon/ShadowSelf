@@ -100,7 +100,7 @@
           {@const phone = identity.phone.toString().replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')}
           {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
           <a href="/identity/{identity.id}" id="identity-{identity.id}">
-            <img src={identity.avatar} alt="{identity.name}'s avatar" />
+            <img src={identity.picture} alt="{identity.name}'s picture" />
             <div class="text-nowrap">
               <p class="!text-neutral-300">{identity.name}</p>
               <br />

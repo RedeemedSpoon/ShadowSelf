@@ -33,7 +33,7 @@
     const id = page.url.searchParams.get('id');
     ws = new WebSocket(`wss://${page.url.hostname}/ws-creation-process?id=${id}`);
 
-    ws.onopen = () => reply('start');
+    ws.onopen = () => reply('locations');
     ws.onclose = (ws) => ws.code === 1014 && notify(ws.reason, 'alert');
 
     ws.onmessage = async (event) => {
@@ -53,7 +53,25 @@
     switch ($currentStep) {
       case 1: {
         const chosen = document.querySelector('.chosen') as HTMLDivElement;
-        reply('locations', {code: chosen.id});
+        reply('identities', {code: chosen.id});
+        break;
+      }
+
+      case 2: {
+        if (altEvent === 'regenerate') {
+          const updatedIdentity = {
+            name: server.identity.name,
+            date: server.identity.date,
+            sex: server.identity.sex,
+            bio: server.identity.bio,
+            ethnicity: server.identity.ethnicity,
+          };
+
+          reply('identities', {regenerate: updatedIdentity});
+          return;
+        }
+
+        reply('email', {identity: server.identity});
         break;
       }
 
@@ -72,7 +90,7 @@
     }
   }
 
-  function reply(kind: string, body?: {[key: string]: string}) {
+  function reply(kind: string, body?: {[key: string]: unknown}) {
     ws?.send(JSON.stringify({kind, ...body}));
   }
 
@@ -127,7 +145,7 @@
         <div class="flex flex-col items-center justify-center gap-4 p-8">
           <h3>{server.identity.name}, {getAge(server.identity.date)}</h3>
           <p class="text-neutral-400">{server.identity.sex}, {server.identity.ethnicity}, {server.identity.bio}</p>
-          <img class="h-96 w-96 rounded-lg" src={`data:image/png;base64,${server.identity.avatar}`} alt="avatar" />
+          <img class="h-96 w-96 rounded-lg" src={`data:image/png;base64,${server.identity.picture}`} alt="identity look" />
         </div>
       {:else if $currentStep === 3}
         <h3>Create your phone number</h3>

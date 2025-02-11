@@ -33,7 +33,7 @@ export interface SettingsForm {
 
 export interface Identity {
   id: string;
-  avatar: string;
+  picture: string;
   name: string;
   country: string;
   location: string;
@@ -75,7 +75,7 @@ export interface CreationProcess {
     localization: string;
   }[];
   identity: {
-    avatar: string;
+    picture: string;
     name: string;
     bio: string;
     date: string;

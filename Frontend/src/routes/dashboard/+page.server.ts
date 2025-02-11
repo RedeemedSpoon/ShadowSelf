@@ -60,7 +60,7 @@ export const load: PageServerLoad = async () => {
     identities: [
       {
         id: '18129fe791a1',
-        avatar: 'https://randomuser.me/api/portraits/men/4.jpg',
+        picture: 'https://randomuser.me/api/portraits/men/4.jpg',
         name: 'Torry Coleman',
         country: 'US',
         location: 'San Francisco, CA',
@@ -71,7 +71,7 @@ export const load: PageServerLoad = async () => {
       },
       {
         id: 'dd2c249985de',
-        avatar: 'https://randomuser.me/api/portraits/women/21.jpg',
+        picture: 'https://randomuser.me/api/portraits/women/21.jpg',
         name: 'Sharlene Olson',
         country: 'DE',
         location: 'Stuttgart, Bavaria',
@@ -82,7 +82,7 @@ export const load: PageServerLoad = async () => {
       },
       {
         id: 'cd9fa8bf72c3',
-        avatar: 'https://randomuser.me/api/portraits/men/35.jpg',
+        picture: 'https://randomuser.me/api/portraits/men/35.jpg',
         name: 'Carlos Rodriguez',
         country: 'MX',
         location: 'Cancun, Mexico',
@@ -93,7 +93,7 @@ export const load: PageServerLoad = async () => {
       },
       {
         id: '6c2b104e134f',
-        avatar: 'https://randomuser.me/api/portraits/women/51.jpg',
+        picture: 'https://randomuser.me/api/portraits/women/51.jpg',
         name: 'Yuki Tanaka',
         country: 'JP',
         location: 'Kyoto, Japan',
@@ -104,7 +104,7 @@ export const load: PageServerLoad = async () => {
       },
       {
         id: 'b2d5a40d8b8f',
-        avatar: 'https://randomuser.me/api/portraits/men/6.jpg',
+        picture: 'https://randomuser.me/api/portraits/men/6.jpg',
         name: 'Omar Al-Fahad',
         country: 'AE',
         location: 'Dubai, UAE',
@@ -115,7 +115,7 @@ export const load: PageServerLoad = async () => {
       },
       {
         id: 'df97f831c943',
-        avatar: 'https://randomuser.me/api/portraits/women/14.jpg',
+        picture: 'https://randomuser.me/api/portraits/women/14.jpg',
         name: 'Emma Johansson',
         country: 'SE',
         location: 'Stockholm, Sweden',
@@ -126,7 +126,7 @@ export const load: PageServerLoad = async () => {
       },
       {
         id: 'abf1234ef67',
-        avatar: 'https://randomuser.me/api/portraits/women/24.jpg',
+        picture: 'https://randomuser.me/api/portraits/women/24.jpg',
         name: 'Amina Yusuf',
         country: 'KE',
         location: 'Nairobi, Kenya',
@@ -137,7 +137,7 @@ export const load: PageServerLoad = async () => {
       },
       {
         id: 'acf7a18abfd8',
-        avatar: 'https://randomuser.me/api/portraits/men/33.jpg',
+        picture: 'https://randomuser.me/api/portraits/men/33.jpg',
         name: 'Peter Ferguson',
         country: 'FR',
         location: 'Paris, Ile-de-France',
@@ -148,7 +148,7 @@ export const load: PageServerLoad = async () => {
       },
       {
         id: 'd0f8d2a1b61a',
-        avatar: 'https://randomuser.me/api/portraits/women/3.jpg',
+        picture: 'https://randomuser.me/api/portraits/women/3.jpg',
         name: 'Maria Garcia',
         country: 'ES',
         location: 'Madrid, Spain',
@@ -159,7 +159,7 @@ export const load: PageServerLoad = async () => {
       },
       {
         id: 'f3d8a29d77b1',
-        avatar: 'https://randomuser.me/api/portraits/men/8.jpg',
+        picture: 'https://randomuser.me/api/portraits/men/8.jpg',
         name: 'Rajesh Patel',
         country: 'IN',
         location: 'Mumbai, India',

@@ -50,6 +50,21 @@ export interface QueryResultIdentify {
 export interface CreationProcess {
   kind: string;
   code: string;
+  regenerate: {
+    name: string;
+    bio: string;
+    date: string;
+    sex: string;
+    ethnicity: string;
+  };
+  identity: {
+    picture: string;
+    name: string;
+    bio: string;
+    date: string;
+    sex: string;
+    ethnicity: string;
+  };
 }
 
 export const emailTemplate = {

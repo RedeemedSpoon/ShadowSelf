@@ -77,22 +77,21 @@ export default new Elysia()
       if (validToken.split('.')[2] !== validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
 
       switch (message.kind) {
-        case 'start': {
+        case 'locations': {
           ws.send({locations});
           break;
         }
 
-        case 'locations': {
-          const {code} = message;
-          if (!['US', 'FR', 'ES', 'KR'].includes(code)) {
-            ws.send({error: 'Invalid location code'});
-            break;
+        case 'identities': {
+          if (!message.code) {
+            const code = message.code;
+            cookie.set({value: cookie.value + `&&${code}`});
           }
 
-          const lang = locations.find((location) => location.code === code);
+          const lang = locations.find((location) => location.code === (cookieStore[0] || message.code));
           const faker = allFakers[lang?.localization as keyof typeof allFakers];
 
-          const sex = faker.person.sex() as 'male' | 'female';
+          const sex = Math.random() > 0.5 ? 'male' : 'female';
           const name = faker.person.fullName({sex});
           const bio = faker.person.bio();
 
@@ -120,11 +119,18 @@ export default new Elysia()
             },
           });
 
-          const avatar = await blobToBase64(await response.blob());
-          const identity = {avatar, name, bio, sex, date, ethnicity};
+          const picture = await blobToBase64(await response.blob());
+          const identity = {picture, name, bio, sex, date, ethnicity};
 
-          cookie.set({value: cookie.value + `&&${code}`});
           ws.send({identity});
+          break;
+        }
+
+        case 'email': {
+          if (message.identity) {
+            const {picture, name, bio, sex, date, ethnicity} = message.identity;
+            cookie.set({value: cookie.value + `&&${picture}&&${name}&&${bio}&&${date}&&${sex}&&${ethnicity}`});
+          }
           break;
         }
       }
