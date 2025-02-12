@@ -39,12 +39,14 @@
 
     ws.onmessage = async (event) => {
       const response = JSON.parse(event.data) as CreationProcess;
-      if (response.error) notify(response.error, 'alert');
-      else {
-        $currentStep = response.locations ? 1 : $fetching !== 1 ? $currentStep : $currentStep + 1;
-        server = response;
-        $fetching = 0;
-      }
+      const oldFetch = $fetching;
+      $fetching = 0;
+
+      if (typeof response !== 'object') return;
+      if (response?.error) return notify(response.error, 'alert');
+
+      $currentStep = response.locations ? 1 : oldFetch !== 1 ? $currentStep : $currentStep + 1;
+      server = response;
     };
   }
 
@@ -61,6 +63,12 @@
 
       case 2: {
         reply('email', {identity: server.identity});
+        break;
+      }
+
+      case 3: {
+        const email = document.querySelector('input[name="email"]') as HTMLInputElement;
+        reply('phone', {email: email.value});
         break;
       }
 
@@ -192,6 +200,9 @@
         </div>
       {:else if $currentStep === 3}
         <h3>Create an email address</h3>
+        <p>Enter an email address to be used for your identity.</p>
+        <label for="email">Email</label>
+        <input type="email" placeholder="Email" name="email" value={server.email} />
       {:else if $currentStep === 4}
         <h3>Give yourself phone number</h3>
       {:else if $currentStep === 5}

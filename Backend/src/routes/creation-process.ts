@@ -85,13 +85,15 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
         case 'identities': {
           if (message.code) {
-            const code = message.code;
+            const {code, error} = checkIdentity('code', message);
+            if (error) return ws.send({error});
+
             cookie.set({value: cookie.value + `&&${code}`});
           }
 
           const lang = locations.find((location) => location.code === (cookieStore[0] || message.code));
-          let {name, age, ethnicity, bio, sex, err} = checkIdentity(message.regenerate) || {};
-          if (err) return ws.send({error: err});
+          let {name, age, ethnicity, bio, sex, error} = checkIdentity('identity', message.regenerate) || {};
+          if (error) return ws.send({error});
 
           if (!message.regenerate) {
             const faker = allFakers[lang?.localization as keyof typeof allFakers];
@@ -102,7 +104,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
             ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
             age = Math.floor(Math.random() * 42) + 18;
-            err = undefined;
+            error = undefined;
           }
 
           const prompt = `${ethnicity} ${sex} individual, aged ${age}, ${bio}, located in ${lang?.city}, ${lang?.country}`;
@@ -132,9 +134,27 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
         case 'email': {
           if (message.identity) {
-            const {picture, name, bio, sex, age, ethnicity} = message.identity;
-            cookie.set({value: cookie.value + `&&${picture}&&${name}&&${bio}&&${age}&&${sex}&&${ethnicity}`});
+            const {picture, name, bio, sex, age, ethnicity, error} = checkIdentity('identity', message.identity);
+            if (error) return ws.send({error});
+
+            const cookieString = `&&${picture}&&${name}&&${bio}&&${age}&&${sex}&&${ethnicity}`;
+            cookie.set({value: cookie.value + cookieString});
           }
+
+          const username = message.identity.name.toLowerCase().replace(/\s/g, '.');
+          ws.send({email: username + '@shadowself.io'});
+          break;
+        }
+
+        case 'phone': {
+          if (message.email) {
+            const {email, error} = checkIdentity('email', message);
+            if (error) return ws.send({error});
+
+            cookie.set({value: cookie.value + `&&${email?.trim().toLowerCase()}`});
+          }
+
+          ws.send({phone: 'nothing'});
           break;
         }
       }

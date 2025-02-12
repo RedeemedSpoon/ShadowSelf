@@ -1,4 +1,4 @@
-import type {BodyField, ContactDetail, RegenerateIdentity} from './types';
+import type {BodyField, ContactDetail, CheckIdentity} from './types';
 import {toTitleCase} from './utils';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
@@ -115,33 +115,49 @@ export function checkContact(Rawbody: unknown): ContactDetail {
   return body;
 }
 
-export function checkIdentity(body: RegenerateIdentity): RegenerateIdentity {
+export function checkIdentity(kind: string, body: CheckIdentity): CheckIdentity {
   if (!body) return body;
 
-  for (const field of ['name', 'bio', 'age', 'sex', 'ethnicity']) {
-    if (!Object.prototype.hasOwnProperty.call(body, field)) {
-      return {err: `${toTitleCase(field)} is a required field`} as RegenerateIdentity;
-    }
-  }
+  switch (kind) {
+    case 'code':
+      if (body.code!.length !== 2 && body.code!.toUpperCase() !== body.code!) {
+        return {error: 'Invalid code'};
+      }
+      break;
 
-  if (body.name.length > 30) {
-    return {err: 'Name is too long (<30 characters)'} as RegenerateIdentity;
-  }
+    case 'identity':
+      for (const field of ['name', 'bio', 'age', 'sex', 'ethnicity']) {
+        if (!Object.prototype.hasOwnProperty.call(body, field)) {
+          return {error: `${toTitleCase(field)} is a required field`};
+        }
+      }
 
-  if (body.sex !== 'male' && body.sex !== 'female') {
-    return {err: 'Sex must be either "male" or "female"'} as RegenerateIdentity;
-  }
+      if (body.name!.length > 30) {
+        return {error: 'Name is too long (<30 characters)'};
+      }
 
-  if (body.age < 18 || body.age > 60) {
-    return {err: 'Age must be between 18 and 60'} as RegenerateIdentity;
-  }
+      if (body.sex !== 'male' && body.sex !== 'female') {
+        return {error: 'Sex must be either "male" or "female"'};
+      }
 
-  if (!['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'].includes(body.ethnicity)) {
-    return {err: 'Ethnicity must be a valid ethnicity'} as RegenerateIdentity;
-  }
+      if (body.age! < 18 || body.age! > 60) {
+        return {error: 'Age must be between 18 and 60'};
+      }
 
-  if (body.bio.length > 300) {
-    return {err: 'Biography is too long (<300 characters)'} as RegenerateIdentity;
+      if (!['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'].includes(body.ethnicity!)) {
+        return {error: 'Ethnicity must be a valid ethnicity'};
+      }
+
+      if (body.bio!.length > 300) {
+        return {error: 'Biography is too long (<300 characters)'};
+      }
+      break;
+
+    case 'email':
+      if (!/^[\w\-.]+@shadowself\.io$/gm.test(body.email!)) {
+        return {error: 'Invalid email address, please try again'};
+      }
+      break;
   }
 
   return body;

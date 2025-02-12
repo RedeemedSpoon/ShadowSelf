@@ -66,6 +66,7 @@ export interface AnimationSelector {
 
 export interface CreationProcess {
   error: string;
+  email: string;
   locations: {
     country: string;
     code: string;

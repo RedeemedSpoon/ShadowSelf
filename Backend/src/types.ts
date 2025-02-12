@@ -53,14 +53,26 @@ export interface RegenerateIdentity {
   age: number;
   sex: 'male' | 'female';
   ethnicity: string;
-  err?: string;
 }
 
 export interface CreationProcess {
   kind: string;
   code: string;
+  email: string;
   regenerate: RegenerateIdentity;
   identity: RegenerateIdentity & {picture: string};
+}
+
+export interface CheckIdentity {
+  error?: string;
+  code?: string;
+  email?: string;
+  name?: string;
+  bio?: string;
+  age?: number;
+  sex?: 'male' | 'female';
+  ethnicity?: string;
+  picture?: string;
 }
 
 export const emailTemplate = {
