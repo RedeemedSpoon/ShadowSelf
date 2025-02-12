@@ -1,14 +1,15 @@
 <script lang="ts">
+  import {ContinuousProcess, LoadingButton, SelectMenu} from '$component';
   import {InfoIcon, ExternalLinkIcon} from '$icon';
-  import {ContinuousProcess} from '$component';
+  import {currentStep, fetching} from '$store';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
-  import {notify, getAge} from '$lib';
-  import {currentStep, fetching} from '$store';
   import {page} from '$app/state';
+  import {notify} from '$lib';
 
   let {data}: {data: PageData} = $props();
+  const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Latino', 'Arab', 'East asian', 'South asian'];
 
   let disabled = $state(true);
   let server = $state() as CreationProcess;
@@ -38,16 +39,17 @@
 
     ws.onmessage = async (event) => {
       const response = JSON.parse(event.data) as CreationProcess;
-      $fetching = 0;
-
-      if (response.error) return notify(response.error, 'alert');
-      $currentStep = response.locations ? 1 : $currentStep + 1;
-      server = response;
+      if (response.error) notify(response.error, 'alert');
+      else {
+        $currentStep = response.locations ? 1 : $fetching !== 1 ? $currentStep : $currentStep + 1;
+        server = response;
+        $fetching = 0;
+      }
     };
   }
 
-  async function respondServer(altEvent?: string) {
-    $fetching = altEvent?.length ? 2 : 1;
+  async function respondServer() {
+    $fetching = 1;
     await new Promise((resolve) => setTimeout(resolve, 650));
 
     switch ($currentStep) {
@@ -58,19 +60,6 @@
       }
 
       case 2: {
-        if (altEvent === 'regenerate') {
-          const updatedIdentity = {
-            name: server.identity.name,
-            date: server.identity.date,
-            sex: server.identity.sex,
-            bio: server.identity.bio,
-            ethnicity: server.identity.ethnicity,
-          };
-
-          reply('identities', {regenerate: updatedIdentity});
-          return;
-        }
-
         reply('email', {identity: server.identity});
         break;
       }
@@ -103,6 +92,30 @@
         const chosenElement = document.querySelector(`#${body}`) as HTMLDivElement;
         chosenElement.classList.add('chosen');
         disabled = false;
+        break;
+      }
+
+      case 'sexes': {
+        const all = document.querySelectorAll('.sex-box');
+        all.forEach((element) => element.classList.remove('selected'));
+
+        const chosenElement = document.querySelector(`#${body}`) as HTMLDivElement;
+        chosenElement.classList.add('selected');
+        break;
+      }
+
+      case 'identities': {
+        $fetching = 2;
+
+        const regenerate = {
+          ethnicity: (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value,
+          name: (document.querySelector('input[name="name"]') as HTMLInputElement).value,
+          age: (document.querySelector('input[name="age"]') as HTMLInputElement).value,
+          bio: document.querySelector('textarea')?.value,
+          sex: document.querySelector('.selected')?.id,
+        };
+
+        reply('identities', {regenerate});
         break;
       }
     }
@@ -142,15 +155,45 @@
       {:else if $currentStep === 2}
         <h3>Customize your identity</h3>
         <p>Customize the physical appearance of your identity to your liking.</p>
-        <div class="flex flex-col items-center justify-center gap-4 p-8">
-          <h3>{server.identity.name}, {getAge(server.identity.date)}</h3>
-          <p class="text-neutral-400">{server.identity.sex}, {server.identity.ethnicity}, {server.identity.bio}</p>
-          <img class="h-96 w-96 rounded-lg" src={`data:image/png;base64,${server.identity.picture}`} alt="identity look" />
+        <div class="flex items-center justify-center gap-4 p-8">
+          <div class="flex flex-col items-center gap-4">
+            <h3>{server.identity.name}, {server.identity.age}</h3>
+            <p class="text-neutral-400">{server.identity.bio}</p>
+            <img class="h-96 w-96 rounded-lg" src={`data:image/png;base64,${server.identity.picture}`} alt="identity look" />
+            <LoadingButton onclick={() => handleEvent('identities')} index={2}>Regenerate</LoadingButton>
+          </div>
+          <div class="flex flex-col gap-4">
+            <label for="name">Name</label>
+            <input type="text" placeholder="Name" name="name" value={server.identity.name} />
+            <label for="sex">Sex</label>
+            <div class="flex flex-row gap-4">
+              <div
+                id="male"
+                class="sex-box {server.identity.sex === 'male' && 'selected'}"
+                onclick={() => handleEvent('sexes', 'male')}
+                aria-hidden="true">
+                ♂ Male
+              </div>
+              <div
+                id="female"
+                class="sex-box {server.identity.sex === 'female' && 'selected'}"
+                onclick={() => handleEvent('sexes', 'female')}
+                aria-hidden="true">
+                ♀ Female
+              </div>
+            </div>
+            <label for="ethnicity">Ethnicity</label>
+            <SelectMenu options={ethnicities} name="ethnicity" value={server?.identity?.ethnicity} />
+            <label for="age">Age</label>
+            <input type="number" name="age" placeholder="Age" value={server?.identity.age} />
+            <label for="bio">Bio</label>
+            <textarea placeholder="Short bio, will be used when generating a profile picture" value={server.identity.bio}></textarea>
+          </div>
         </div>
       {:else if $currentStep === 3}
-        <h3>Create your phone number</h3>
+        <h3>Create an email address</h3>
       {:else if $currentStep === 4}
-        <h3>Give yourself an email address</h3>
+        <h3>Give yourself phone number</h3>
       {:else if $currentStep === 5}
         <h3>Make your virtual card</h3>
       {:else if $currentStep === 6}
@@ -191,7 +234,24 @@
     @apply text-balance px-4 text-center text-neutral-400;
   }
 
+  label {
+    @apply mt-2 text-neutral-300;
+  }
+
+  textarea {
+    @apply w-full resize-none;
+  }
+
   .locations-box {
     @apply flex min-w-[35vw] flex-row items-center justify-between gap-8 px-6 py-3 odd:bg-neutral-800 hover:opacity-70;
+  }
+
+  .sex-box {
+    @apply flex h-12 w-1/2 items-center justify-center font-semibold transition-all duration-300 ease-in-out;
+    @apply cursor-pointer rounded-lg border border-neutral-600 bg-neutral-800 p-2 hover:bg-neutral-900;
+  }
+
+  .sex-box.selected {
+    @apply bg-primary-600;
   }
 </style>

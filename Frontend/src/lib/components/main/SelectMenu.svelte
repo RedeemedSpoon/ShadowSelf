@@ -5,14 +5,26 @@
   import {onMount} from 'svelte';
 
   interface Props {
+    options: Option[] | string[];
+    value?: string;
     name: string;
-    options: Option[];
   }
 
-  let {name, options}: Props = $props();
+  let {name, options, value}: Props = $props();
+
+  let givenOptions: Option[] = $state([]);
   let btn: HTMLButtonElement;
   let select: HTMLDivElement;
   let input: HTMLInputElement;
+
+  if (typeof options[0] === 'string') {
+    //@ts-expect-error option is string[]
+    givenOptions = options.map((option) => {
+      return {label: option, value: option.toString().toLowerCase()};
+    });
+  } else {
+    givenOptions = options as Option[];
+  }
 
   function handleBtnSelect(e: MouseEvent) {
     e.stopPropagation();
@@ -42,13 +54,14 @@
   });
 </script>
 
-<input required bind:this={input} type="hidden" name={name.toLowerCase()} value={options[0].value} />
+<input required bind:this={input} type="hidden" name={name.toLowerCase()} value={value || givenOptions[0].value} />
 <div bind:this={select} id="select-input" class="relative">
   <button type="button" bind:this={btn} onclick={handleBtnSelect}>
-    <span>{options[0].label}</span><ChevronIcon className="rotate-90" />
+    <span>{givenOptions.find((option) => option.value === value)?.label || givenOptions[0].label}</span>
+    <ChevronIcon className="rotate-90" />
   </button>
   <ul onclick={handleSltClick} class:hidden={!$selectionInputOpen} aria-hidden={!$selectionInputOpen}>
-    {#each options as option}
+    {#each givenOptions as option}
       <li id={option.value}>{option.label}</li>
     {/each}
   </ul>

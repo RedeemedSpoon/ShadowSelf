@@ -34,13 +34,6 @@ export async function setModal(index = 1, condition = true) {
   };
 }
 
-export function getAge(stringDate: string) {
-  const ms_per_year = 1000 * 60 * 60 * 24 * 365.2425;
-  const date = new Date(stringDate);
-
-  return Math.floor((new Date().getTime() - date.getTime()) / ms_per_year);
-}
-
 export async function fetchApi(url: string, method = 'GET', body?: Record<string, unknown>) {
   return await fetch('http://localhost:3000' + url, {
     headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},

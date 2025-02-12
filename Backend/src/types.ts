@@ -47,24 +47,20 @@ export interface QueryResultIdentify {
   status: 'active' | 'inactive' | 'frozen';
 }
 
+export interface RegenerateIdentity {
+  name: string;
+  bio: string;
+  age: number;
+  sex: 'male' | 'female';
+  ethnicity: string;
+  err?: string;
+}
+
 export interface CreationProcess {
   kind: string;
   code: string;
-  regenerate: {
-    name: string;
-    bio: string;
-    date: string;
-    sex: string;
-    ethnicity: string;
-  };
-  identity: {
-    picture: string;
-    name: string;
-    bio: string;
-    date: string;
-    sex: string;
-    ethnicity: string;
-  };
+  regenerate: RegenerateIdentity;
+  identity: RegenerateIdentity & {picture: string};
 }
 
 export const emailTemplate = {

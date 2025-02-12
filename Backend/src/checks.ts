@@ -1,4 +1,4 @@
-import type {BodyField, ContactDetail} from './types';
+import type {BodyField, ContactDetail, RegenerateIdentity} from './types';
 import {toTitleCase} from './utils';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
@@ -110,6 +110,38 @@ export function checkContact(Rawbody: unknown): ContactDetail {
 
   if (!body.category.match(/^(question|feedback|collaboration|refund|bug|help|other)$/i)) {
     return {err: 'Please enter a valid category'} as ContactDetail;
+  }
+
+  return body;
+}
+
+export function checkIdentity(body: RegenerateIdentity): RegenerateIdentity {
+  if (!body) return body;
+
+  for (const field of ['name', 'bio', 'age', 'sex', 'ethnicity']) {
+    if (!Object.prototype.hasOwnProperty.call(body, field)) {
+      return {err: `${toTitleCase(field)} is a required field`} as RegenerateIdentity;
+    }
+  }
+
+  if (body.name.length > 30) {
+    return {err: 'Name is too long (<30 characters)'} as RegenerateIdentity;
+  }
+
+  if (body.sex !== 'male' && body.sex !== 'female') {
+    return {err: 'Sex must be either "male" or "female"'} as RegenerateIdentity;
+  }
+
+  if (body.age < 18 || body.age > 60) {
+    return {err: 'Age must be between 18 and 60'} as RegenerateIdentity;
+  }
+
+  if (!['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'].includes(body.ethnicity)) {
+    return {err: 'Ethnicity must be a valid ethnicity'} as RegenerateIdentity;
+  }
+
+  if (body.bio.length > 300) {
+    return {err: 'Biography is too long (<300 characters)'} as RegenerateIdentity;
   }
 
   return body;

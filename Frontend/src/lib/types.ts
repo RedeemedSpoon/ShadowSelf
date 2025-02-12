@@ -78,8 +78,8 @@ export interface CreationProcess {
     picture: string;
     name: string;
     bio: string;
-    date: string;
-    sex: string;
+    age: number;
+    sex: 'male' | 'female';
     ethnicity: string;
   };
 }

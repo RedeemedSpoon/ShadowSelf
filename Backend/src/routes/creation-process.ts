@@ -1,8 +1,9 @@
 import {User, CreationProcess} from '../types';
+import {attempt, blobToBase64} from '../utils';
 import {allFakers} from '@faker-js/faker';
+import {checkIdentity} from '../checks';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
-import {attempt, blobToBase64} from '../utils';
 import {Elysia, t} from 'elysia';
 
 const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
@@ -41,7 +42,7 @@ const locations = [
   },
 ];
 
-export default new Elysia()
+export default new Elysia({websocket: {idleTimeout: 300}})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
   .post('/creation-process', async ({headers, jwt, body}) => {
     const auth = headers['authorization'];
@@ -83,23 +84,26 @@ export default new Elysia()
         }
 
         case 'identities': {
-          if (!message.code) {
+          if (message.code) {
             const code = message.code;
             cookie.set({value: cookie.value + `&&${code}`});
           }
 
           const lang = locations.find((location) => location.code === (cookieStore[0] || message.code));
-          const faker = allFakers[lang?.localization as keyof typeof allFakers];
+          let {name, age, ethnicity, bio, sex, err} = checkIdentity(message.regenerate) || {};
+          if (err) return ws.send({error: err});
 
-          const sex = Math.random() > 0.5 ? 'male' : 'female';
-          const name = faker.person.fullName({sex});
-          const bio = faker.person.bio();
+          if (!message.regenerate) {
+            const faker = allFakers[lang?.localization as keyof typeof allFakers];
 
-          const ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
-          const date = faker.date.birthdate({mode: 'age', min: 18, max: 65});
+            sex = Math.random() > 0.5 ? 'male' : 'female';
+            name = faker.person.fullName({sex});
+            bio = faker.person.bio();
 
-          const ms_per_year = 1000 * 60 * 60 * 24 * 365.2425;
-          const age = Math.floor((new Date().getTime() - date.getTime()) / ms_per_year);
+            ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
+            age = Math.floor(Math.random() * 42) + 18;
+            err = undefined;
+          }
 
           const prompt = `${ethnicity} ${sex} individual, aged ${age}, ${bio}, located in ${lang?.city}, ${lang?.country}`;
           const negativePrompt = 'overly idealized, unrealistic, flawless, artificial, exaggerated features, stereotypical appearance';
@@ -120,7 +124,7 @@ export default new Elysia()
           });
 
           const picture = await blobToBase64(await response.blob());
-          const identity = {picture, name, bio, sex, date, ethnicity};
+          const identity = {picture, name, bio, sex, age, ethnicity};
 
           ws.send({identity});
           break;
@@ -128,8 +132,8 @@ export default new Elysia()
 
         case 'email': {
           if (message.identity) {
-            const {picture, name, bio, sex, date, ethnicity} = message.identity;
-            cookie.set({value: cookie.value + `&&${picture}&&${name}&&${bio}&&${date}&&${sex}&&${ethnicity}`});
+            const {picture, name, bio, sex, age, ethnicity} = message.identity;
+            cookie.set({value: cookie.value + `&&${picture}&&${name}&&${bio}&&${age}&&${sex}&&${ethnicity}`});
           }
           break;
         }
