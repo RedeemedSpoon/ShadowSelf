@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {ContinuousProcess, LoadingButton, SelectMenu} from '$component';
-  import {InfoIcon, ExternalLinkIcon} from '$icon';
+  import {InfoIcon, ExternalLinkIcon, PinIcon, MaleIcon, FemaleIcon} from '$icon';
+  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip} from '$component';
   import {currentStep, fetching} from '$store';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
@@ -62,13 +62,21 @@
       }
 
       case 2: {
-        reply('email', {identity: server.identity});
+        const identity = {
+          picture: server.identity.picture,
+          ethnicity: (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value,
+          name: (document.querySelector('input[name="name"]') as HTMLInputElement).value,
+          age: (document.querySelector('input[name="age"]') as HTMLInputElement).value,
+          bio: document.querySelector('textarea')?.value,
+          sex: document.querySelector('.selected')?.id,
+        };
+        reply('email', {identity});
         break;
       }
 
       case 3: {
         const email = document.querySelector('input[name="email"]') as HTMLInputElement;
-        reply('phone', {email: email.value});
+        reply('phone', {email: email.value + '@shadowself.io'});
         break;
       }
 
@@ -145,14 +153,19 @@
     <ContinuousProcess {disabled} finalStep={10} handleClick={respondServer}>
       {#if $currentStep === 1}
         <h3>Choose your location</h3>
-        <p>Choose the location of your synthetic identity. You will be able to access this location via our extension afterwards.</p>
+        <p class="lg:w-1/2">
+          Choose the location of your synthetic identity. You will be able to access this location via our extension afterwards.
+        </p>
         <div class="flex cursor-pointer flex-col">
           {#each server.locations as location}
             <div id={location.code} class="locations-box" onclick={() => handleEvent('locations', location.code)} aria-hidden="true">
               <img src="https://flagsapi.com/{location.code}/flat/48.png" alt="country flag" />
               <div class="w-full">
                 <p class="!text-left text-2xl !text-neutral-300">{location.country}, {location.city}</p>
-                <p class="!text-left tracking-wider !text-neutral-300">{location.ip}</p>
+                <p class="flex items-center gap-1 !text-left tracking-wider !text-neutral-300">
+                  <PinIcon className="h-4 w-4 inline" />
+                  {location.ip}
+                </p>
               </div>
               <a class="flex flex-row gap-1 !text-neutral-300" target="_blank" href={location.map}>
                 Link <ExternalLinkIcon className="h-4 w-4" />
@@ -163,16 +176,19 @@
       {:else if $currentStep === 2}
         <h3>Customize your identity</h3>
         <p>Customize the physical appearance of your identity to your liking.</p>
-        <div class="flex items-center justify-center gap-4 p-8">
+        <div class="flex w-full items-center justify-center gap-12">
           <div class="flex flex-col items-center gap-4">
             <h3>{server.identity.name}, {server.identity.age}</h3>
             <p class="text-neutral-400">{server.identity.bio}</p>
             <img class="h-96 w-96 rounded-lg" src={`data:image/png;base64,${server.identity.picture}`} alt="identity look" />
-            <LoadingButton onclick={() => handleEvent('identities')} index={2}>Regenerate</LoadingButton>
+            <Tooltip
+              tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
+              <LoadingButton onclick={() => handleEvent('identities')} index={2}>Regenerate profile picture</LoadingButton>
+            </Tooltip>
           </div>
-          <div class="flex flex-col gap-4">
+          <div class="flex w-1/2 flex-col gap-4 lg:w-1/3">
             <label for="name">Name</label>
-            <input type="text" placeholder="Name" name="name" value={server.identity.name} />
+            <input type="text" placeholder="John Doe" name="name" value={server.identity.name} />
             <label for="sex">Sex</label>
             <div class="flex flex-row gap-4">
               <div
@@ -180,31 +196,37 @@
                 class="sex-box {server.identity.sex === 'male' && 'selected'}"
                 onclick={() => handleEvent('sexes', 'male')}
                 aria-hidden="true">
-                ♂ Male
+                <MaleIcon /> Male
               </div>
               <div
                 id="female"
                 class="sex-box {server.identity.sex === 'female' && 'selected'}"
                 onclick={() => handleEvent('sexes', 'female')}
                 aria-hidden="true">
-                ♀ Female
+                <FemaleIcon /> Female
               </div>
             </div>
             <label for="ethnicity">Ethnicity</label>
             <SelectMenu options={ethnicities} name="ethnicity" value={server?.identity?.ethnicity} />
             <label for="age">Age</label>
-            <input type="number" name="age" placeholder="Age" value={server?.identity.age} />
+            <input type="number" name="age" placeholder="18-60" value={server?.identity.age} />
             <label for="bio">Bio</label>
             <textarea placeholder="Short bio, will be used when generating a profile picture" value={server.identity.bio}></textarea>
           </div>
         </div>
       {:else if $currentStep === 3}
-        <h3>Create an email address</h3>
-        <p>Enter an email address to be used for your identity.</p>
-        <label for="email">Email</label>
-        <input type="email" placeholder="Email" name="email" value={server.email} />
+        <h3>Create your email address</h3>
+        <p>Enter an email address to be associated with your identity.</p>
+        <div class="flex flex-row items-baseline gap-2">
+          <input type="email" placeholder="Username" name="email" id="email" value={server.email} />
+          <label for="email">@shadowself.io</label>
+        </div>
+        <small class="text-center text-[1rem] text-neutral-400 lg:w-1/2">
+          Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as
+          we take care of security & credentials for you
+        </small>
       {:else if $currentStep === 4}
-        <h3>Give yourself phone number</h3>
+        <h3>Give yourself a phone number</h3>
       {:else if $currentStep === 5}
         <h3>Make your virtual card</h3>
       {:else if $currentStep === 6}
@@ -258,11 +280,11 @@
   }
 
   .sex-box {
-    @apply flex h-12 w-1/2 items-center justify-center font-semibold transition-all duration-300 ease-in-out;
-    @apply cursor-pointer rounded-lg border border-neutral-600 bg-neutral-800 p-2 hover:bg-neutral-900;
+    @apply flex h-12 w-1/2 items-center justify-center gap-px font-semibold transition-all duration-300 ease-in-out;
+    @apply cursor-pointer rounded-lg border border-neutral-800 bg-neutral-800/30 p-3 hover:text-neutral-400;
   }
 
   .sex-box.selected {
-    @apply bg-primary-600;
+    @apply bg-primary-600 hover:text-neutral-300;
   }
 </style>

@@ -141,8 +141,9 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             cookie.set({value: cookie.value + cookieString});
           }
 
-          const username = message.identity.name.toLowerCase().replace(/\s/g, '.');
-          ws.send({email: username + '@shadowself.io'});
+          const username = message.identity.name.toLowerCase();
+          const sanitisedUsername = username.replace(/[\s.]+/g, '.').replace(/[^\p{L}\p{N}.]/gu, '');
+          ws.send({email: sanitisedUsername});
           break;
         }
 
@@ -154,7 +155,6 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             cookie.set({value: cookie.value + `&&${email?.trim().toLowerCase()}`});
           }
 
-          ws.send({phone: 'nothing'});
           break;
         }
       }

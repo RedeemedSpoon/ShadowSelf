@@ -14,7 +14,7 @@
   let {handleClick, disabled, finalStep, children}: Props = $props();
 </script>
 
-<div class="relative w-full md:w-1/2">
+<div class="w-full">
   {#key $currentStep}
     <section in:fly={{delay: 500, y: 35, opacity: 0, duration: 500}} out:fly={{y: -35, opacity: 0, duration: 500}}>
       {@render children?.()}
@@ -28,10 +28,10 @@
 
 <style lang="postcss">
   section {
-    @apply absolute inset-0 flex flex-col items-center justify-center gap-8;
+    @apply flex flex-col items-center justify-center gap-8;
   }
 
   button {
-    @apply flex items-center justify-center gap-3 self-end text-nowrap px-8;
+    @apply mr-[5vw] flex items-center justify-center gap-3 self-end text-nowrap px-8;
   }
 </style>

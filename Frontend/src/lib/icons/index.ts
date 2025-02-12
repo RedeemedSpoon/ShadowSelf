@@ -10,6 +10,10 @@ export {default as SearchIcon} from './Search.svelte';
 export {default as FilterIcon} from './Filter.svelte';
 export {default as SortIcon} from './Sort.svelte';
 
+export {default as MaleIcon} from './Male.svelte';
+export {default as FemaleIcon} from './Female.svelte';
+
+export {default as PinIcon} from './Pin.svelte';
 export {default as EmailIcon} from './Email.svelte';
 export {default as PhoneIcon} from './Phone.svelte';
 export {default as AddressIcon} from './Address.svelte';
