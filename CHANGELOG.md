@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.03] - 2025-2-12
+
+### Added
+
+- Add new icons
+- Add stability AI and fakerjs to creation process
+- Add checks to the creation process
+- Add location choice process (step 1)
+- Add identity customization process (step 2)
+- Add email creation process (step 3)
+
+### Changed
+
+- Update all packages.json
+- Change remote font from google to rsms
+- Change type to better acurate ones in creation process
+- Fix error displays in creation process
+
+## [0.4.02] - 2025-2-7
+
+### Added
+
+- Add ContinuousProcess Compoment
+- Add error/retry message to creation process
+- Add design & markup to creation process
+- Add switch statement and logic to the process
+- Add alternative loader
+
+### Changed
+
+- Change pricing/features text to be more clear and specific
+- Change first interaction in the creation process to regular HTTP request
+- Change routes in the initial creation process
+- Change database active column to status column
+
+### Removed
+
+- Remove stripe sending websocket message to client via WSConnections
+- Remove all crypto payment/wallet promises
+
 ## [0.4.01] - 2025-2-1
 
 ### Added
@@ -224,7 +264,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Move crytographic function from utils.ts to crypto.ts
+- Move cryptographic function from utils.ts to crypto.ts
 - Move repetitive code into functions
 
 ## [0.2.05] - 2024-11-19

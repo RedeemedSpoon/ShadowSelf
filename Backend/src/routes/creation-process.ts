@@ -85,14 +85,14 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
         case 'identities': {
           if (message.code) {
-            const {code, error} = checkIdentity('code', message);
+            const {code, error} = await checkIdentity('code', message);
             if (error) return ws.send({error});
 
             cookie.set({value: cookie.value + `&&${code}`});
           }
 
           const lang = locations.find((location) => location.code === (cookieStore[0] || message.code));
-          let {name, age, ethnicity, bio, sex, error} = checkIdentity('identity', message.regenerate) || {};
+          let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};
           if (error) return ws.send({error});
 
           if (!message.regenerate) {
@@ -134,7 +134,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
         case 'email': {
           if (message.identity) {
-            const {picture, name, bio, sex, age, ethnicity, error} = checkIdentity('identity', message.identity);
+            const {picture, name, bio, sex, age, ethnicity, error} = await checkIdentity('identity', message.identity);
             if (error) return ws.send({error});
 
             const cookieString = `&&${picture}&&${name}&&${bio}&&${age}&&${sex}&&${ethnicity}`;
@@ -149,7 +149,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
         case 'phone': {
           if (message.email) {
-            const {email, error} = checkIdentity('email', message);
+            const {email, error} = await checkIdentity('email', message);
             if (error) return ws.send({error});
 
             cookie.set({value: cookie.value + `&&${email?.trim().toLowerCase()}`});

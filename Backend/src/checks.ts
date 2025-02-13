@@ -1,5 +1,6 @@
 import type {BodyField, ContactDetail, CheckIdentity} from './types';
 import {toTitleCase} from './utils';
+import {$} from 'bun';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
   const body = rawBody as BodyField;
@@ -115,7 +116,7 @@ export function checkContact(Rawbody: unknown): ContactDetail {
   return body;
 }
 
-export function checkIdentity(kind: string, body: CheckIdentity): CheckIdentity {
+export async function checkIdentity(kind: string, body: CheckIdentity): Promise<CheckIdentity> {
   if (!body) return body;
 
   switch (kind) {
@@ -157,7 +158,12 @@ export function checkIdentity(kind: string, body: CheckIdentity): CheckIdentity 
       if (!/^[\w\-.]+@shadowself\.io$/gm.test(body.email!)) {
         return {error: 'Invalid email address, please try again'};
       }
-      break;
+
+      return (
+        (await $`id ${body.email!.split('@')[0]}`.nothrow().then((e) => {
+          if (!e.exitCode) return {error: 'Email address is already registered on our systems'};
+        })) || body
+      );
   }
 
   return body;
