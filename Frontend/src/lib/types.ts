@@ -66,7 +66,6 @@ export interface AnimationSelector {
 
 export interface CreationProcess {
   error: string;
-  email: string;
   locations: {
     country: string;
     code: string;
@@ -83,6 +82,11 @@ export interface CreationProcess {
     sex: 'male' | 'female';
     ethnicity: string;
   };
+  email: string;
+  phone: string[];
+  card: string;
+  sync: string;
+  finish: boolean;
 }
 
 export interface ServicesContent {

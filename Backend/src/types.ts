@@ -59,6 +59,9 @@ export interface CreationProcess {
   kind: string;
   code: string;
   email: string;
+  phone: string;
+  card: string;
+  sync: string;
   regenerate: RegenerateIdentity;
   identity: RegenerateIdentity & {picture: string};
 }
@@ -67,6 +70,9 @@ export interface CheckIdentity {
   error?: string;
   code?: string;
   email?: string;
+  phone?: string;
+  card?: string;
+  sync?: string;
   name?: string;
   bio?: string;
   age?: number;

@@ -155,6 +155,27 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             cookie.set({value: cookie.value + `&&${email?.trim().toLowerCase()}`});
           }
 
+          ws.send({phone: ['1234567890']});
+          break;
+        }
+
+        case 'card': {
+          ws.send({card: '4242 4242 4242 4242'});
+          break;
+        }
+
+        case 'extension': {
+          ws.send({_: null});
+          break;
+        }
+
+        case 'sync': {
+          ws.send({sync: '123456789'});
+          break;
+        }
+
+        case 'finish': {
+          ws.send({finish: true});
           break;
         }
       }

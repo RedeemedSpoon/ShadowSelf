@@ -44,6 +44,7 @@
 
       if (typeof response !== 'object') return;
       if (response?.error) return notify(response.error, 'alert');
+      if (response.finish) return goto('/dashboard');
 
       $currentStep = response.locations ? 1 : oldFetch !== 1 ? $currentStep : $currentStep + 1;
       server = response;
@@ -51,8 +52,10 @@
   }
 
   async function respondServer() {
-    $fetching = 1;
-    await new Promise((resolve) => setTimeout(resolve, 650));
+    if (![7, 8, 9].includes($currentStep)) {
+      $fetching = 1;
+      await new Promise((resolve) => setTimeout(resolve, 650));
+    }
 
     switch ($currentStep) {
       case 1: {
@@ -80,6 +83,22 @@
         break;
       }
 
+      case 4:
+        reply('card');
+        break;
+
+      case 5:
+        reply('extension');
+        break;
+
+      case 6:
+        reply('sync');
+        break;
+
+      case 7:
+        $currentStep = 8;
+        break;
+
       case 8:
         $currentStep = 9;
         break;
@@ -90,7 +109,7 @@
 
       case 10:
         clearInterval(loaderInterval as number);
-        goto('/dashboard');
+        reply('finish');
         break;
     }
   }
@@ -175,7 +194,7 @@
         </div>
       {:else if $currentStep === 2}
         <h3>Customize your identity</h3>
-        <p>Customize the physical appearance of your identity to your liking.</p>
+        <p class="lg:w-1/2">Customize the physical appearance of your identity to your liking.</p>
         <div class="flex w-full items-center justify-center gap-12">
           <div class="flex flex-col items-center gap-4">
             <h3>{server.identity.name}, {server.identity.age}</h3>
@@ -216,29 +235,39 @@
         </div>
       {:else if $currentStep === 3}
         <h3>Create your email address</h3>
-        <p>Enter an email address to be associated with your identity.</p>
+        <p class="lg:w-1/2">Enter an email address to be associated with your identity.</p>
         <div class="flex flex-row items-baseline gap-2">
           <input type="email" placeholder="Username" name="email" id="email" value={server.email} />
           <label for="email">@shadowself.io</label>
         </div>
         <small class="text-center text-[1rem] text-neutral-400 lg:w-1/2">
           Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as
-          we take care of security & credentials for you
+          we take care of security & credentials for you.
         </small>
       {:else if $currentStep === 4}
         <h3>Give yourself a phone number</h3>
+        <p class="lg:w-1/2">Select from the available phone numbers we have for you to use with your identity.</p>
       {:else if $currentStep === 5}
         <h3>Make your virtual card</h3>
+        <p class="lg:w-1/2">Forge your own virtual card that you can use to make payments.</p>
       {:else if $currentStep === 6}
         <h3>Install our browser extension</h3>
+        <p class="lg:w-1/2">
+          With our browser extension, you can access our VPN services, change user agents, and view your identity information.
+        </p>
       {:else if $currentStep === 7}
         <h3>Sync the extension with your account</h3>
+        <p class="lg:w-1/2">Securely authenticate and link your identity to the extension by clicking the button below.</p>
       {:else if $currentStep === 8}
         <h3>Install ublock origin (optional)</h3>
       {:else if $currentStep === 9}
         <h3>Install canvas blocker (optional)</h3>
       {:else if $currentStep === 10}
-        <h3>Finish up!</h3>
+        <h3>Your identity is now ready</h3>
+        <p class="lg:w-1/2">
+          Thank you for completing the entire process. You can now use your identity however you wish. You have the option to redo the
+          process now, but keep in mind that you won’t be able to make changes later.
+        </p>
       {/if}
     </ContinuousProcess>
   {:catch}
