@@ -4,6 +4,7 @@
   import {currentStep, fetching, showModal} from '$store';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
+  import {ublock, canvas} from '$image';
   import {goto} from '$app/navigation';
   import {page} from '$app/state';
   import {notify} from '$lib';
@@ -266,10 +267,44 @@
         <button class="w-1/3" onclick={() => handleEvent('sync')}>Sync with extension</button>
       {:else if $currentStep === 8}
         <h3>Install ublock origin (optional)</h3>
-        <ExtensionLinks extension={'ublock'} />
+        <div class="flex flex-row items-center justify-center gap-16 p-8">
+          <div class="flex flex-col items-center gap-4">
+            <img class="h-52 w-52" src={ublock} alt="ublock origin" />
+            <h3 class="mb-8 font-semibold">uBlock Origin</h3>
+            <ExtensionLinks extension={'ublock'} />
+          </div>
+          <div class="flex w-[40rem] flex-col items-center gap-4">
+            <p class="text-pretty !text-left !text-neutral-300">
+              uBlock Origin is a powerful, open-source ad blocker that enhances online privacy by blocking intrusive ads, trackers, and
+              malicious scripts. It is lightweight and efficient and it ensures a cleaner, more secure web experience. Using it with
+              the addition of our set of tool ensures that your privacy is protected at all times.
+            </p>
+            <p class="text-pretty !text-left">
+              Note: The recent Manifest V3 update on Chromium browsers limits uBlock Origin’s functionality. Switching to Firefox
+              preserves full privacy control and extension support.
+            </p>
+          </div>
+        </div>
       {:else if $currentStep === 9}
         <h3>Install canvas blocker (optional)</h3>
-        <ExtensionLinks extension={'canvas'} />
+        <div class="flex flex-row items-center justify-center gap-16 p-8">
+          <div class="flex flex-col items-center gap-4">
+            <img class="h-52 w-52" src={canvas} alt="canvas blocker" />
+            <h3 class="mb-8 font-semibold">Canvas Blocker</h3>
+            <ExtensionLinks extension={'canvas'} />
+          </div>
+          <div class="flex w-[40rem] flex-col items-center gap-4">
+            <p class="text-pretty !text-left !text-neutral-300">
+              Canvas Blocker protects against browser fingerprinting by blocking techniques used to track users based on unique device
+              characteristics. It enhances privacy by preventing websites from creating identifiable profiles. Combined with
+              Shadowself, it guarantees that no trace of your identity can be linked to your device.
+            </p>
+            <p class="text-pretty !text-left">
+              Note: Canvas Blocker is only available for Firefox and its forks, offering fingerprinting protection exclusively on these
+              browsers, not on Chrome or other Chromium-based browsers.
+            </p>
+          </div>
+        </div>
       {:else if $currentStep === 10}
         <HappyIcon className="w-40 h-40" />
         <h3>Your identity is now ready!</h3>

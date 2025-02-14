@@ -7,6 +7,9 @@ export {default as github} from './links/github.svg';
 export {default as simplex} from './links/simplex.svg';
 export {default as website} from './links/website.svg';
 
+export {default as canvas} from './extensions/canvas.svg';
+export {default as ublock} from './extensions/ublock.svg';
+
 export {default as circuitPattern} from './patterns/circuit-pattern.svg';
 export {default as worldMap} from './patterns/world-map.svg';
 
