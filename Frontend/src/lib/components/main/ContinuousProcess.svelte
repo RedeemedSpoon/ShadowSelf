@@ -18,10 +18,12 @@
   {#key $currentStep}
     <section in:fly={{delay: 500, y: 35, opacity: 0, duration: 500}} out:fly={{y: -35, opacity: 0, duration: 500}}>
       {@render children?.()}
-      <button onclick={handleClick} disabled={$fetching === 1 || disabled}>
-        {$currentStep !== finalStep ? ($fetching === 1 ? 'Next' : 'Next →') : 'Finish'}
-        <Loader index={1} />
-      </button>
+      {#if $currentStep !== finalStep}
+        <button onclick={handleClick} disabled={$fetching === 1 || disabled}>
+          {$fetching === 1 ? 'Next' : 'Next →'}
+          <Loader index={1} />
+        </button>
+      {/if}
     </section>
   {/key}
 </div>

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks} from '$component';
-  import {InfoIcon, ExternalLinkIcon, PinIcon, MaleIcon, FemaleIcon} from '$icon';
-  import {currentStep, fetching} from '$store';
+  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal} from '$component';
+  import {InfoIcon, ExternalLinkIcon, PinIcon, MaleIcon, FemaleIcon, HappyIcon} from '$icon';
+  import {currentStep, fetching, showModal} from '$store';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
@@ -84,11 +84,11 @@
       }
 
       case 4:
-        reply('card');
+        reply('card', {phone: server.phone});
         break;
 
       case 5:
-        reply('extension');
+        reply('extension', {card: server.card});
         break;
 
       case 6:
@@ -108,6 +108,7 @@
         break;
 
       case 10:
+        await new Promise((resolve) => setTimeout(resolve, 1350));
         clearInterval(loaderInterval as number);
         reply('finish');
         break;
@@ -270,11 +271,29 @@
         <h3>Install canvas blocker (optional)</h3>
         <ExtensionLinks extension={'canvas'} />
       {:else if $currentStep === 10}
-        <h3>Your identity is now ready</h3>
+        <HappyIcon className="w-40 h-40" />
+        <h3>Your identity is now ready!</h3>
         <p class="lg:w-1/2">
           Thank you for completing the entire process. You can now use your identity however you wish. You still have the option to
           redo the process now, but keep in mind that you won’t be able to make some changes later.
         </p>
+        <div class="flex w-full items-center justify-center gap-16">
+          <button class="alt px-8" onclick={() => window.location.reload()}>Redo</button>
+          <button class="px-16" onclick={() => ($showModal = 1)}>Finish</button>
+        </div>
+        <Modal>
+          <div class="flex flex-col gap-4">
+            <h1 class="ml-2 text-5xl font-semibold text-neutral-300">Are you sure?</h1>
+            <p class="mb-2 !text-left">
+              You will not be able to change some important configurations later on
+              <br class="max-md:hidden" /> Are you sure you want to proceed?
+            </p>
+            <div class="flex justify-end gap-4">
+              <button class="alt text-primary-700 hover:text-primary-800" onclick={() => ($showModal = 0)}>Cancel</button>
+              <LoadingButton onclick={respondServer}>Confirm</LoadingButton>
+            </div>
+          </div>
+        </Modal>
       {/if}
     </ContinuousProcess>
   {:catch}

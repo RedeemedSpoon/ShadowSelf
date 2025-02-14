@@ -133,13 +133,11 @@ export default new Elysia({websocket: {idleTimeout: 300}})
         }
 
         case 'email': {
-          if (message.identity) {
-            const {picture, name, bio, sex, age, ethnicity, error} = await checkIdentity('identity', message.identity);
-            if (error) return ws.send({error});
+          const {picture, name, bio, sex, age, ethnicity, error} = await checkIdentity('identity', message.identity);
+          if (error) return ws.send({error});
 
-            const cookieString = `&&${picture}&&${name}&&${bio}&&${age}&&${sex}&&${ethnicity}`;
-            cookie.set({value: cookie.value + cookieString});
-          }
+          const cookieString = `&&${picture}&&${name}&&${bio}&&${age}&&${sex}&&${ethnicity}`;
+          cookie.set({value: cookie.value + cookieString});
 
           const username = message.identity.name.toLowerCase();
           const sanitisedUsername = username.replace(/[\s.]+/g, '.').replace(/[^\p{L}\p{N}.]/gu, '');
@@ -148,12 +146,10 @@ export default new Elysia({websocket: {idleTimeout: 300}})
         }
 
         case 'phone': {
-          if (message.email) {
-            const {email, error} = await checkIdentity('email', message);
-            if (error) return ws.send({error});
+          const {email, error} = await checkIdentity('email', message);
+          if (error) return ws.send({error});
 
-            cookie.set({value: cookie.value + `&&${email?.trim().toLowerCase()}`});
-          }
+          cookie.set({value: cookie.value + `&&${email?.trim().toLowerCase()}`});
 
           ws.send({phone: ['1234567890']});
           break;
@@ -175,6 +171,10 @@ export default new Elysia({websocket: {idleTimeout: 300}})
         }
 
         case 'finish': {
+          const [location, picture, name, bio, age, sex, ethnicity, email, phone, card] = cookieStore;
+          // store to db
+
+          cookie.remove();
           ws.send({finish: true});
           break;
         }
