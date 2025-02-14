@@ -1,6 +1,6 @@
 <script lang="ts">
+  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks} from '$component';
   import {InfoIcon, ExternalLinkIcon, PinIcon, MaleIcon, FemaleIcon} from '$icon';
-  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip} from '$component';
   import {currentStep, fetching} from '$store';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
@@ -153,6 +153,9 @@
         reply('identities', {regenerate});
         break;
       }
+
+      case 'sync':
+        break;
     }
   }
 </script>
@@ -255,18 +258,22 @@
         <p class="lg:w-1/2">
           With our browser extension, you can access our VPN services, change user agents, and view your identity information.
         </p>
+        <ExtensionLinks extension={'shadowself'} />
       {:else if $currentStep === 7}
         <h3>Sync the extension with your account</h3>
         <p class="lg:w-1/2">Securely authenticate and link your identity to the extension by clicking the button below.</p>
+        <button class="w-1/3" onclick={() => handleEvent('sync')}>Sync with extension</button>
       {:else if $currentStep === 8}
         <h3>Install ublock origin (optional)</h3>
+        <ExtensionLinks extension={'ublock'} />
       {:else if $currentStep === 9}
         <h3>Install canvas blocker (optional)</h3>
+        <ExtensionLinks extension={'canvas'} />
       {:else if $currentStep === 10}
         <h3>Your identity is now ready</h3>
         <p class="lg:w-1/2">
-          Thank you for completing the entire process. You can now use your identity however you wish. You have the option to redo the
-          process now, but keep in mind that you won’t be able to make changes later.
+          Thank you for completing the entire process. You can now use your identity however you wish. You still have the option to
+          redo the process now, but keep in mind that you won’t be able to make some changes later.
         </p>
       {/if}
     </ContinuousProcess>

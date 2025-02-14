@@ -5,6 +5,7 @@ export {default as logoBesideText} from './logo/logo-beside-text.svg';
 export {default as tor} from './links/tor.svg';
 export {default as github} from './links/github.svg';
 export {default as simplex} from './links/simplex.svg';
+export {default as website} from './links/website.svg';
 
 export {default as circuitPattern} from './patterns/circuit-pattern.svg';
 export {default as worldMap} from './patterns/world-map.svg';

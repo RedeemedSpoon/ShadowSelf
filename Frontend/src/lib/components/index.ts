@@ -8,16 +8,19 @@ export {default as Modal} from './main/Modal.svelte';
 export {default as Loader} from './main/Loader.svelte';
 export {default as Tooltip} from './main/Tooltip.svelte';
 export {default as ConfirmModal} from './main/ConfirmModal.svelte';
+
 export {default as LoadingButton} from './main/LoadingButton.svelte';
 export {default as InputWithIcon} from './main/InputWithIcon.svelte';
+export {default as ReactiveButton} from './main/ReactiveButton.svelte';
 export {default as InputWithButton} from './main/InputWithButton.svelte';
 
 export {default as Steps} from './main/Steps.svelte';
 export {default as StepsItem} from './main/StepsItem.svelte';
 export {default as SelectMenu} from './main/SelectMenu.svelte';
 export {default as SearchInput} from './main/SearchInput.svelte';
-export {default as ReactiveButton} from './main/ReactiveButton.svelte';
+
 export {default as ContinuousProcess} from './main/ContinuousProcess.svelte';
+export {default as ExtensionLinks} from './main/ExtensionLinks.svelte';
 
 export {default as Slogan} from './homepage/Slogan.svelte';
 export {default as Card3D} from './homepage/Card3D.svelte';

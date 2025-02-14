@@ -34,6 +34,12 @@ export async function setModal(index = 1, condition = true) {
   };
 }
 
+export function toTitleCase(str: string): string {
+  return str.replace(/\w\S*/g, (txt) => {
+    return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
+  });
+}
+
 export async function fetchApi(url: string, method = 'GET', body?: Record<string, unknown>) {
   return await fetch('http://localhost:3000' + url, {
     headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
