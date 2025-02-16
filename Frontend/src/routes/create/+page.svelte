@@ -2,9 +2,9 @@
   import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal} from '$component';
   import {InfoIcon, ExternalLinkIcon, PinIcon, MaleIcon, FemaleIcon, HappyIcon} from '$icon';
   import {currentStep, fetching, showModal} from '$store';
+  import {ublock, canvas, screenshot} from '$image';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
-  import {ublock, canvas} from '$image';
   import {goto} from '$app/navigation';
   import {page} from '$app/state';
   import {notify} from '$lib';
@@ -15,6 +15,7 @@
   let disabled = $state(true);
   let server = $state() as CreationProcess;
   let loaderInterval: unknown;
+  let pingInterval: unknown;
   let ws: WebSocket | null;
 
   async function init() {
@@ -35,17 +36,29 @@
     const id = page.url.searchParams.get('id');
     ws = new WebSocket(`wss://${page.url.hostname}/ws-creation-process?id=${id}`);
 
-    ws.onopen = () => reply('locations');
-    ws.onclose = (ws) => ws.code === 1014 && notify(ws.reason, 'alert');
+    ws.onopen = () => {
+      pingInterval = setInterval(() => ws?.send('ping'), 5000);
+      reply('locations');
+    };
+
+    ws.onclose = (ws) => {
+      clearInterval(pingInterval as number);
+      if (ws.code === 1014) {
+        notify(ws.reason, 'alert');
+      }
+    };
 
     ws.onmessage = async (event) => {
+      if (Number(event.data) == event.data) return;
+      if (event.data === 'pong') return;
+
       const response = JSON.parse(event.data) as CreationProcess;
       const oldFetch = $fetching;
       $fetching = 0;
 
-      if (typeof response !== 'object') return;
       if (response?.error) return notify(response.error, 'alert');
       if (response.finish) return goto('/dashboard');
+      if (response.sync) disabled = true;
 
       $currentStep = response.locations ? 1 : oldFetch !== 1 ? $currentStep : $currentStep + 1;
       server = response;
@@ -69,11 +82,12 @@
         const identity = {
           picture: server.identity.picture,
           ethnicity: (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value,
-          name: (document.querySelector('input[name="name"]') as HTMLInputElement).value,
-          age: (document.querySelector('input[name="age"]') as HTMLInputElement).value,
-          bio: document.querySelector('textarea')?.value,
+          name: (document.querySelector('input[name="name"]') as HTMLInputElement).value.trim(),
+          age: (document.querySelector('input[name="age"]') as HTMLInputElement).value.trim(),
+          bio: document.querySelector('textarea')?.value.trim(),
           sex: document.querySelector('.selected')?.id,
         };
+
         reply('email', {identity});
         break;
       }
@@ -157,6 +171,7 @@
       }
 
       case 'sync':
+        disabled = false;
         break;
     }
   }
@@ -240,14 +255,14 @@
         </div>
       {:else if $currentStep === 3}
         <h3>Create your email address</h3>
-        <p class="lg:w-1/2">Enter an email address to be associated with your identity.</p>
+        <p class="lg:w-1/2">Enter an email address to be associated with your identity. It can only contain letters and numbers.</p>
         <div class="flex flex-row items-baseline gap-2">
           <input type="email" placeholder="Username" name="email" id="email" value={server.email} />
           <label for="email">@shadowself.io</label>
         </div>
         <small class="text-center text-[1rem] text-neutral-400 lg:w-1/2">
           Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as
-          we take care of security & credentials for you.
+          we take care of security and credentials for you.
         </small>
       {:else if $currentStep === 4}
         <h3>Give yourself a phone number</h3>
@@ -260,6 +275,7 @@
         <p class="lg:w-1/2">
           With our browser extension, you can access our VPN services, change user agents, and view your identity information.
         </p>
+        <img class="h-52 py-8" src={screenshot} alt="shadowself extension" />
         <ExtensionLinks extension={'shadowself'} />
       {:else if $currentStep === 7}
         <h3>Sync the extension with your account</h3>
@@ -273,15 +289,15 @@
             <h3 class="mb-8 font-semibold">uBlock Origin</h3>
             <ExtensionLinks extension={'ublock'} />
           </div>
-          <div class="flex w-[40rem] flex-col items-center gap-4">
-            <p class="text-pretty !text-left !text-neutral-300">
-              uBlock Origin is a powerful, open-source ad blocker that enhances online privacy by blocking intrusive ads, trackers, and
-              malicious scripts. It is lightweight and efficient and it ensures a cleaner, more secure web experience. Using it with
-              the addition of our set of tool ensures that your privacy is protected at all times.
+          <div class="flex w-[45rem] flex-col items-center gap-4">
+            <p class="short !text-neutral-300">
+              uBlock Origin is a powerful, open-source ad blocker that boosts online privacy by blocking ads, trackers, and malicious
+              scripts. Lightweight and efficient, it ensures a cleaner, more secure web experience. Combined with our tools, it keeps
+              your privacy protected.
             </p>
-            <p class="text-pretty !text-left">
+            <p class="short">
               Note: The recent Manifest V3 update on Chromium browsers limits uBlock Origin’s functionality. Switching to Firefox
-              preserves full privacy control and extension support.
+              ensures full privacy control and extension support.
             </p>
           </div>
         </div>
@@ -293,11 +309,11 @@
             <h3 class="mb-8 font-semibold">Canvas Blocker</h3>
             <ExtensionLinks extension={'canvas'} />
           </div>
-          <div class="flex w-[40rem] flex-col items-center gap-4">
+          <div class="flex w-[45rem] flex-col items-center gap-4">
             <p class="text-pretty !text-left !text-neutral-300">
-              Canvas Blocker protects against browser fingerprinting by blocking techniques used to track users based on unique device
-              characteristics. It enhances privacy by preventing websites from creating identifiable profiles. Combined with
-              Shadowself, it guarantees that no trace of your identity can be linked to your device.
+              Canvas Blocker protects against browser fingerprinting by blocking tracking techniques based on unique device
+              characteristics. It enhances privacy by preventing websites from creating identifiable profiles. Paired with Shadowself,
+              it ensures your identity remains untraceable.
             </p>
             <p class="text-pretty !text-left">
               Note: Canvas Blocker is only available for Firefox and its forks, offering fingerprinting protection exclusively on these
@@ -320,7 +336,7 @@
           <div class="flex flex-col gap-4">
             <h1 class="ml-2 text-5xl font-semibold text-neutral-300">Are you sure?</h1>
             <p class="mb-2 !text-left">
-              You will not be able to change some important configurations later on
+              You will not be able to change some important configurations later on.
               <br class="max-md:hidden" /> Are you sure you want to proceed?
             </p>
             <div class="flex justify-end gap-4">
@@ -361,12 +377,17 @@
     @apply mt-2 text-neutral-300;
   }
 
+  .short {
+    @apply text-pretty !text-left !text-xl !leading-[1.85];
+  }
+
   textarea {
     @apply w-full resize-none;
   }
 
   .locations-box {
-    @apply flex min-w-[35vw] flex-row items-center justify-between gap-8 px-6 py-3 odd:bg-neutral-800 hover:opacity-70;
+    @apply flex min-w-[35vw] flex-row items-center justify-between gap-8 px-6 py-3;
+    @apply border-t border-neutral-500 first:border-none hover:bg-neutral-300/10;
   }
 
   .sex-box {
@@ -375,6 +396,6 @@
   }
 
   .sex-box.selected {
-    @apply bg-primary-600 hover:text-neutral-300;
+    @apply bg-primary-600/75 hover:text-neutral-300;
   }
 </style>

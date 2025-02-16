@@ -155,7 +155,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       break;
 
     case 'email':
-      if (!/^[\w\-.]+@shadowself\.io$/gm.test(body.email!)) {
+      if (!/^[\p{L}\p{N}]+@shadowself\.io$/u.test(body.email!)) {
         return {error: 'Invalid email address, please try again'};
       }
 

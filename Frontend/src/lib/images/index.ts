@@ -9,6 +9,7 @@ export {default as website} from './links/website.svg';
 
 export {default as canvas} from './extensions/canvas.svg';
 export {default as ublock} from './extensions/ublock.svg';
+export {default as screenshot} from './extensions/screenshot.webp';
 
 export {default as circuitPattern} from './patterns/circuit-pattern.svg';
 export {default as worldMap} from './patterns/world-map.svg';

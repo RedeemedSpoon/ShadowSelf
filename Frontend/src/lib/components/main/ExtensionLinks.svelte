@@ -2,18 +2,9 @@
   import {website, github} from '$image';
   import {ChevronIcon} from '$icon';
   import {toTitleCase} from '$lib';
-  import {onMount} from 'svelte';
 
-  interface Props {
-    extension: 'shadowself' | 'ublock' | 'canvas';
-    showSub?: boolean;
-  }
-
-  let {extension, showSub = true}: Props = $props();
+  let {extension}: {extension: 'shadowself' | 'ublock' | 'canvas'} = $props();
   let expand = $state(false);
-
-  let otherBrowsers = ['chrome', 'edge', 'opera'];
-  let browser = 'firefox';
 
   const browserIcons = {
     chrome:
@@ -50,9 +41,9 @@
 
 <div>
   <div class="flex items-center justify-center gap-0">
-    <a href={extensionInfo[extension][browser as 'firefox']} target="_blank" rel="noreferrer">
+    <a href={extensionInfo[extension]['firefox']} target="_blank" rel="noreferrer">
       <button class="!h-16 {extension !== 'canvas' && '!rounded-r-none !pr-8'} {expand && '!rounded-b-none'}">
-        <p>Download for {@html browserIcons[browser as keyof typeof browserIcons]} {toTitleCase(browser)}</p>
+        <p>Download for {@html browserIcons['firefox']} Firefox</p>
       </button>
     </a>
     {#if extension !== 'canvas'}
@@ -64,7 +55,7 @@
   </div>
   {#if expand && extension !== 'canvas'}
     <div class="absolute">
-      {#each otherBrowsers as otherBrowser, i}
+      {#each ['chrome', 'edge', 'opera'] as otherBrowser, i}
         <a class="other" href={extensionInfo[extension][otherBrowser as 'firefox']} target="_blank" rel="noreferrer">
           <button class="other-link !rounded-none {i === 2 && '!rounded-b-xl'}">
             <p>Download for {@html browserIcons[otherBrowser as keyof typeof browserIcons]} {toTitleCase(otherBrowser)}</p>
@@ -73,8 +64,8 @@
       {/each}
     </div>
   {/if}
-  {#if showSub && extension !== 'shadowself'}
-    <div class="flex justify-evenly p-2">
+  {#if extension !== 'shadowself'}
+    <div class="flex justify-evenly p-4">
       <a href={extensionInfo[extension].website} target="_blank">
         <img src={website} class="h-7 w-7" alt="Website" />Website
       </a>

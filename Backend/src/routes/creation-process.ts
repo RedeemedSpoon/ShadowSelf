@@ -66,7 +66,9 @@ export default new Elysia({websocket: {idleTimeout: 300}})
   })
   .ws('/ws-creation-process', {
     query: t.Object({id: t.String()}),
-    async message(ws, message: CreationProcess) {
+    async message(ws, message: CreationProcess | 'ping') {
+      if (message === 'ping') return ws.send('pong');
+
       const cookie = ws.data.cookie['creation-process'];
       if (!cookie) return ws.close(1014, 'You do not have permission to perform this action');
 
@@ -139,9 +141,11 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const cookieString = `&&${picture}&&${name}&&${bio}&&${age}&&${sex}&&${ethnicity}`;
           cookie.set({value: cookie.value + cookieString});
 
-          const username = message.identity.name.toLowerCase();
-          const sanitisedUsername = username.replace(/[\s.]+/g, '.').replace(/[^\p{L}\p{N}.]/gu, '');
-          ws.send({email: sanitisedUsername});
+          const username = message.identity.name
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-zA-Z0-9]/g, '');
+          ws.send({email: username});
           break;
         }
 
