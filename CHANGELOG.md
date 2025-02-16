@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.04] - 2025-2-15
+
+### Added
+
+- Add new icons
+- Add redo name & bio button
+- Add ExtensionLinks component
+- Add extension download process (step 6)
+- Add extension syncing process (step 7)
+- Add ublock origin recommendation process (step 8)
+- Add canvas block recommendation process (step 9)
+- Add final confirmal process (step 10)
+- Add ping/pong mechanism to websocket
+
+### Changed
+
+- Change email checking to include unicode & exclude dots
+- Change design to most all the creation process
+
 ## [0.4.03] - 2025-2-12
 
 ### Added
@@ -20,14 +39,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update all packages.json
 - Change remote font from google to rsms
-- Change type to better acurate ones in creation process
+- Change type to better accurate ones in creation process
 - Fix error displays in creation process
 
 ## [0.4.02] - 2025-2-7
 
 ### Added
 
-- Add ContinuousProcess Compoment
+- Add ContinuousProcess component
 - Add error/retry message to creation process
 - Add design & markup to creation process
 - Add switch statement and logic to the process

@@ -63,6 +63,11 @@ export interface CreationProcess {
   card: string;
   regenerate: RegenerateIdentity;
   identity: RegenerateIdentity & {picture: string};
+  repeat: {
+    sex?: 'male' | 'female';
+    name?: boolean;
+    bio?: boolean;
+  };
 }
 
 export interface CheckIdentity {

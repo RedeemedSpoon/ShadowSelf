@@ -9,6 +9,6 @@
   stroke-linecap="round"
   stroke-linejoin="round"
   class={className + ' small-icon fill-none stroke-current'}>
-  <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 9m-5 0a5 5 0 1 0 10 0a5 5 0 1 0 -10 0" />
-  <path d="M12 14v7" /><path d="M9 18h6" />
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3" />
+  <path d="M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3" />
 </svg>

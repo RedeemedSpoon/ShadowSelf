@@ -1,6 +1,6 @@
 <script lang="ts">
   import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal} from '$component';
-  import {InfoIcon, ExternalLinkIcon, PinIcon, MaleIcon, FemaleIcon, HappyIcon} from '$icon';
+  import {InfoIcon, ExternalLinkIcon, PinIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
   import {currentStep, fetching, showModal} from '$store';
   import {ublock, canvas, screenshot} from '$image';
   import type {CreationProcess} from '$type';
@@ -59,6 +59,12 @@
       if (response?.error) return notify(response.error, 'alert');
       if (response.finish) return goto('/dashboard');
       if (response.sync) disabled = true;
+
+      if (response?.repeat) {
+        server.identity.name = response.repeat?.name || server.identity.name;
+        server.identity.bio = response.repeat?.bio || server.identity.bio;
+        return;
+      }
 
       $currentStep = response.locations ? 1 : oldFetch !== 1 ? $currentStep : $currentStep + 1;
       server = response;
@@ -125,6 +131,8 @@
       case 10:
         await new Promise((resolve) => setTimeout(resolve, 1350));
         clearInterval(loaderInterval as number);
+        clearInterval(pingInterval as number);
+
         reply('finish');
         break;
     }
@@ -152,6 +160,17 @@
 
         const chosenElement = document.querySelector(`#${body}`) as HTMLDivElement;
         chosenElement.classList.add('selected');
+        break;
+      }
+
+      case 'repeat-bio': {
+        reply('identities', {repeat: {bio: true}});
+        break;
+      }
+
+      case 'repeat-name': {
+        const sex = document.querySelector('.selected')?.id;
+        reply('identities', {repeat: {name: true, sex}});
         break;
       }
 
@@ -217,8 +236,7 @@
         <p class="lg:w-1/2">Customize the physical appearance of your identity to your liking.</p>
         <div class="flex w-full items-center justify-center gap-12">
           <div class="flex flex-col items-center gap-4">
-            <h3>{server.identity.name}, {server.identity.age}</h3>
-            <p class="text-neutral-400">{server.identity.bio}</p>
+            <h3 class="w-96 text-center">{server.identity.name}, {server.identity.age}</h3>
             <img class="h-96 w-96 rounded-lg" src={`data:image/png;base64,${server.identity.picture}`} alt="identity look" />
             <Tooltip
               tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
@@ -226,8 +244,13 @@
             </Tooltip>
           </div>
           <div class="flex w-1/2 flex-col gap-4 lg:w-1/3">
-            <label for="name">Name</label>
-            <input type="text" placeholder="John Doe" name="name" value={server.identity.name} />
+            <div class="flex items-end gap-4">
+              <label for="name">Name</label>
+              <div aria-hidden="true" class="repeat-box" onclick={() => handleEvent('repeat-name')}>
+                <RepeatIcon className="h-4 w-4" />
+              </div>
+            </div>
+            <input bind:value={server.identity.name} type="text" placeholder="John Doe" name="name" />
             <label for="sex">Sex</label>
             <div class="flex flex-row gap-4">
               <div
@@ -248,8 +271,13 @@
             <label for="ethnicity">Ethnicity</label>
             <SelectMenu options={ethnicities} name="ethnicity" value={server?.identity?.ethnicity} />
             <label for="age">Age</label>
-            <input type="number" name="age" placeholder="18-60" value={server?.identity.age} />
-            <label for="bio">Bio</label>
+            <input type="number" name="age" placeholder="18-60" bind:value={server.identity.age} />
+            <div class="flex items-end gap-4">
+              <label for="bio">Bio</label>
+              <div aria-hidden="true" class="repeat-box" onclick={() => handleEvent('repeat-bio')}>
+                <RepeatIcon className="h-4 w-4" />
+              </div>
+            </div>
             <textarea placeholder="Short bio, will be used when generating a profile picture" value={server.identity.bio}></textarea>
           </div>
         </div>
@@ -397,5 +425,9 @@
 
   .sex-box.selected {
     @apply bg-primary-600/75 hover:text-neutral-300;
+  }
+
+  .repeat-box {
+    @apply w-fit cursor-pointer rounded-lg border border-neutral-600 p-1 hover:bg-neutral-300/10;
   }
 </style>

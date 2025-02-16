@@ -100,6 +100,18 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           if (!message.regenerate) {
             const faker = allFakers[lang?.localization as keyof typeof allFakers];
 
+            if (message.repeat) {
+              if (message.repeat.name) {
+                name = faker.person.fullName({sex: message.repeat.sex});
+                ws.send({repeat: {name}});
+              }
+              if (message.repeat.bio) {
+                bio = faker.person.bio();
+                ws.send({repeat: {bio}});
+              }
+              break;
+            }
+
             sex = Math.random() > 0.5 ? 'male' : 'female';
             name = faker.person.fullName({sex});
             bio = faker.person.bio();
@@ -109,8 +121,10 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             error = undefined;
           }
 
-          const prompt = `${ethnicity} ${sex} individual, aged ${age}, ${bio}, located in ${lang?.city}, ${lang?.country}`;
-          const negativePrompt = 'overly idealized, unrealistic, flawless, artificial, exaggerated features, stereotypical appearance';
+          const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, must be located in ${lang?.city}, ${lang?.country}, exuding a sense of warmth, personality, and approachability.`;
+
+          const negativePrompt =
+            'hyper-realistic, polished, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits';
 
           const formData = new FormData();
           formData.append('prompt', prompt);
@@ -141,11 +155,9 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const cookieString = `&&${picture}&&${name}&&${bio}&&${age}&&${sex}&&${ethnicity}`;
           cookie.set({value: cookie.value + cookieString});
 
-          const username = message.identity.name
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-zA-Z0-9]/g, '');
-          ws.send({email: username});
+          const sanitizedEmail = message.email.trim().toLowerCase();
+          const emailUsername = sanitizedEmail.replace(/[^a-zA-Z0-9]/g, '');
+          ws.send({email: emailUsername});
           break;
         }
 
@@ -176,7 +188,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
         case 'finish': {
           const [location, picture, name, bio, age, sex, ethnicity, email, phone, card] = cookieStore;
-          // store to db
+          console.log({location, picture, name, bio, age, sex, ethnicity, email, phone, card});
 
           cookie.remove();
           ws.send({finish: true});

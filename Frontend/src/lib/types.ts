@@ -82,6 +82,10 @@ export interface CreationProcess {
     sex: 'male' | 'female';
     ethnicity: string;
   };
+  repeat: {
+    name: string;
+    bio: string;
+  };
   email: string;
   phone: string[];
   card: string;
