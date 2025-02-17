@@ -155,8 +155,8 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const cookieString = `&&${picture}&&${name}&&${bio}&&${age}&&${sex}&&${ethnicity}`;
           cookie.set({value: cookie.value + cookieString});
 
-          const sanitizedEmail = message.email.trim().toLowerCase();
-          const emailUsername = sanitizedEmail.replace(/[^a-zA-Z0-9]/g, '');
+          const sanitizedEmail = name!.trim().toLowerCase();
+          const emailUsername = sanitizedEmail.replace(/[^\p{L}\p{N}]/gu, '');
           ws.send({email: emailUsername});
           break;
         }

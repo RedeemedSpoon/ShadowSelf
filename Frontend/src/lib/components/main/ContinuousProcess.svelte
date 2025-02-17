@@ -1,7 +1,7 @@
 <script lang="ts">
   import {Loader} from '$component';
   import type {Snippet} from 'svelte';
-  import {fly} from 'svelte/transition';
+  import {slide} from 'svelte/transition';
   import {fetching, currentStep} from '$store';
 
   interface Props {
@@ -16,7 +16,7 @@
 
 <div class="w-full">
   {#key $currentStep}
-    <section in:fly={{delay: 500, y: 35, opacity: 0, duration: 500}} out:fly={{y: -35, opacity: 0, duration: 500}}>
+    <section in:slide={{delay: 500, duration: 500}} out:slide={{duration: 500}}>
       {@render children?.()}
       {#if $currentStep !== finalStep}
         <button onclick={handleClick} disabled={$fetching === 1 || disabled}>

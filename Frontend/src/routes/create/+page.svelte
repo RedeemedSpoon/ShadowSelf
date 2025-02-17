@@ -310,14 +310,14 @@
         <p class="lg:w-1/2">Securely authenticate and link your identity to the extension by clicking the button below.</p>
         <button class="w-1/3" onclick={() => handleEvent('sync')}>Sync with extension</button>
       {:else if $currentStep === 8}
-        <h3>Install ublock origin (optional)</h3>
         <div class="flex flex-row items-center justify-center gap-16 p-8">
           <div class="flex flex-col items-center gap-4">
             <img class="h-52 w-52" src={ublock} alt="ublock origin" />
             <h3 class="mb-8 font-semibold">uBlock Origin</h3>
             <ExtensionLinks extension={'ublock'} />
           </div>
-          <div class="flex w-[45rem] flex-col items-center gap-4">
+          <div class="flex w-[45rem] flex-col gap-4">
+            <h3 class="mb-8 pl-4">Install ublock origin (optional)</h3>
             <p class="short !text-neutral-300">
               uBlock Origin is a powerful, open-source ad blocker that boosts online privacy by blocking ads, trackers, and malicious
               scripts. Lightweight and efficient, it ensures a cleaner, more secure web experience. Combined with our tools, it keeps
@@ -330,7 +330,6 @@
           </div>
         </div>
       {:else if $currentStep === 9}
-        <h3>Install canvas blocker (optional)</h3>
         <div class="flex flex-row items-center justify-center gap-16 p-8">
           <div class="flex flex-col items-center gap-4">
             <img class="h-52 w-52" src={canvas} alt="canvas blocker" />
@@ -338,6 +337,7 @@
             <ExtensionLinks extension={'canvas'} />
           </div>
           <div class="flex w-[45rem] flex-col items-center gap-4">
+            <h3 class="mb-8 pl-4">Install canvas blocker (optional)</h3>
             <p class="text-pretty !text-left !text-neutral-300">
               Canvas Blocker protects against browser fingerprinting by blocking tracking techniques based on unique device
               characteristics. It enhances privacy by preventing websites from creating identifiable profiles. Paired with Shadowself,

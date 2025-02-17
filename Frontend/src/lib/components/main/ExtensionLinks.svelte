@@ -40,15 +40,15 @@
 </script>
 
 <div>
-  <div class="flex items-center justify-center gap-0">
+  <div class="group flex w-[350px] items-center justify-center gap-0">
     <a href={extensionInfo[extension]['firefox']} target="_blank" rel="noreferrer">
-      <button class="!h-16 {extension !== 'canvas' && '!rounded-r-none !pr-8'} {expand && '!rounded-b-none'}">
+      <button class="group-hover:!bg-pos-100 !h-16 {extension !== 'canvas' && '!rounded-r-none !pr-8'} {expand && '!rounded-b-none'}">
         <p>Download for {@html browserIcons['firefox']} Firefox</p>
       </button>
     </a>
     {#if extension !== 'canvas'}
       <div class="h-16 w-[2px] bg-neutral-300/90"></div>
-      <button onclick={() => (expand = !expand)} class="!h-16 !rounded-l-none !px-4 {expand && '!rounded-b-none'}">
+      <button onclick={() => (expand = !expand)} class="group-hover:!bg-pos-100 expand {expand && '!rounded-b-none'}">
         <span class:rotate-180={expand}><ChevronIcon className="rotate-90" /></span>
       </button>
     {/if}
@@ -56,7 +56,7 @@
   {#if expand && extension !== 'canvas'}
     <div class="absolute">
       {#each ['chrome', 'edge', 'opera'] as otherBrowser, i}
-        <a class="other" href={extensionInfo[extension][otherBrowser as 'firefox']} target="_blank" rel="noreferrer">
+        <a href={extensionInfo[extension][otherBrowser as 'firefox']} target="_blank" rel="noreferrer">
           <button class="other-link !rounded-none {i === 2 && '!rounded-b-xl'}">
             <p>Download for {@html browserIcons[otherBrowser as keyof typeof browserIcons]} {toTitleCase(otherBrowser)}</p>
           </button>
@@ -65,7 +65,7 @@
     </div>
   {/if}
   {#if extension !== 'shadowself'}
-    <div class="flex justify-evenly p-4">
+    <div id="sublinks" class="flex justify-evenly p-4">
       <a href={extensionInfo[extension].website} target="_blank">
         <img src={website} class="h-7 w-7" alt="Website" />Website
       </a>
@@ -82,8 +82,12 @@
   }
 
   button.other-link {
-    @apply !h-16 w-[350px] border-t-[2px] border-neutral-400/90 text-neutral-400 hover:text-neutral-300;
-    @apply from-primary-800 to-primary-800 hover:from-primary-600 hover:to-primary-600;
+    @apply !h-16 w-[350px] border-t-[2px] border-neutral-300/85 text-neutral-400 hover:text-neutral-300;
+    @apply from-primary-700 to-primary-700 hover:from-primary-600 hover:to-primary-600;
+  }
+
+  .expand {
+    @apply !h-16 !rounded-l-none !px-4;
   }
 
   span {
@@ -94,7 +98,7 @@
     @apply flex items-center gap-1 font-semibold;
   }
 
-  a:not(.other) {
+  #sublinks a {
     @apply flex items-center gap-1 text-neutral-400 hover:text-neutral-400 hover:opacity-80;
   }
 </style>
