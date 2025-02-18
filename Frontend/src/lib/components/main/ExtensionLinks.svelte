@@ -39,11 +39,11 @@
   };
 </script>
 
-<div>
+<div class="max-sm:scale-90">
   <div class="group flex w-[350px] items-center justify-center gap-0">
     <a href={extensionInfo[extension]['firefox']} target="_blank" rel="noreferrer">
       <button
-        class="group-hover:!from-primary-700 group-hover:!to-primary-700 !h-16 {extension !== 'canvas' &&
+        class="group-hover:!from-primary-800 group-hover:!to-primary-800 !h-16 {extension !== 'canvas' &&
           '!rounded-r-none !pr-8'} {expand && '!rounded-b-none'}">
         <p>Download for {@html browserIcons['firefox']} Firefox</p>
       </button>
@@ -52,7 +52,7 @@
       <div class="z-10 h-8 w-[2px] bg-neutral-300/90"></div>
       <button
         onclick={() => (expand = !expand)}
-        class="group-hover:!from-primary-700 group-hover:!to-primary-700 expand !-ml-1 {expand && '!rounded-b-none'}">
+        class="group-hover:!from-primary-800 group-hover:!to-primary-800 expand !-ml-1 {expand && '!rounded-b-none'}">
         <span class:rotate-180={expand}><ChevronIcon className="rotate-90" /></span>
       </button>
     {/if}
@@ -83,7 +83,7 @@
 <style lang="postcss">
   button {
     @apply flex cursor-pointer items-center gap-2 rounded-xl px-6 shadow-none duration-300;
-    @apply from-primary-600 to-primary-600 hover:to-primary-700 hover:from-primary-700;
+    @apply from-primary-700 to-primary-700 hover:to-primary-800 hover:from-primary-800;
   }
 
   button.other-link {

@@ -219,13 +219,13 @@
             <div id={location.code} class="locations-box" onclick={() => handleEvent('locations', location.code)} aria-hidden="true">
               <img src="https://flagsapi.com/{location.code}/flat/48.png" alt="country flag" />
               <div class="w-full">
-                <p class="!text-left text-2xl !text-neutral-300">{location.country}, {location.city}</p>
+                <p class="!text-left text-xl !text-neutral-300 md:text-2xl">{location.country}, {location.city}</p>
                 <p class="flex items-center gap-1 !text-left tracking-wider !text-neutral-300">
                   <PinIcon className="h-4 w-4 inline" />
                   {location.ip}
                 </p>
               </div>
-              <a class="flex flex-row gap-1 !text-neutral-300" target="_blank" href={location.map}>
+              <a class="flex flex-row gap-1 !text-neutral-300 max-sm:hidden" target="_blank" href={location.map}>
                 Link <ExternalLinkIcon className="h-4 w-4" />
               </a>
             </div>
@@ -234,16 +234,19 @@
       {:else if $currentStep === 2}
         <h3>Customize your identity</h3>
         <p class="lg:w-1/2">Customize the physical appearance of your identity to your liking.</p>
-        <div class="flex w-full items-center justify-center gap-12">
+        <div class="flex w-full items-center justify-center gap-12 max-md:flex-col">
           <div class="flex flex-col items-center gap-4">
             <h3 class="w-96 text-center">{server.identity.name}, {server.identity.age}</h3>
-            <img class="h-96 w-96 rounded-lg" src={`data:image/png;base64,${server.identity.picture}`} alt="identity look" />
+            <img
+              class="my-2 h-64 w-64 rounded-lg sm:h-96 sm:w-96"
+              src={`data:image/png;base64,${server.identity.picture}`}
+              alt="identity look" />
             <Tooltip
               tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
               <LoadingButton onclick={() => handleEvent('identities')} index={2}>Regenerate profile picture</LoadingButton>
             </Tooltip>
           </div>
-          <div class="flex w-1/2 flex-col gap-4 lg:w-1/3">
+          <div class="flex w-full flex-col gap-4 md:w-1/2 lg:w-1/3">
             <div class="flex items-end gap-4">
               <label for="name">Name</label>
               <div aria-hidden="true" class="repeat-box" onclick={() => handleEvent('repeat-name')}>
@@ -284,11 +287,11 @@
       {:else if $currentStep === 3}
         <h3>Create your email address</h3>
         <p class="lg:w-1/2">Enter an email address to be associated with your identity. It can only contain letters and numbers.</p>
-        <div class="flex flex-row items-baseline gap-2">
+        <div class="flex items-center gap-2 max-sm:flex-col sm:items-baseline">
           <input type="email" placeholder="Username" name="email" id="email" value={server.email} />
           <label for="email">@shadowself.io</label>
         </div>
-        <small class="text-center text-[1rem] text-neutral-400 lg:w-1/2">
+        <small class="!text-pretty text-center text-[1rem] text-neutral-400 lg:w-1/2">
           Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as
           we take care of security and credentials for you.
         </small>
@@ -308,16 +311,17 @@
       {:else if $currentStep === 7}
         <h3>Sync the extension with your account</h3>
         <p class="lg:w-1/2">Securely authenticate and link your identity to the extension by clicking the button below.</p>
-        <button class="w-1/3" onclick={() => handleEvent('sync')}>Sync with extension</button>
+        <button class="text-wrap sm:w-1/3" onclick={() => handleEvent('sync')}>Sync with extension</button>
       {:else if $currentStep === 8}
-        <div class="flex flex-row items-center justify-center gap-16 p-8">
+        <div class="flex items-center justify-center gap-6 max-xl:flex-col sm:gap-16 sm:p-8">
+          <h3 class="xl:hidden">Install ublock origin (optional)</h3>
           <div class="flex flex-col items-center gap-4">
             <img class="h-52 w-52" src={ublock} alt="ublock origin" />
             <h3 class="mb-8 font-semibold">uBlock Origin</h3>
             <ExtensionLinks extension={'ublock'} />
           </div>
-          <div class="flex w-[45rem] flex-col gap-4">
-            <h3 class="mb-8 pl-4">Install ublock origin (optional)</h3>
+          <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
+            <h3 class="mb-8 pl-4 !text-left max-xl:hidden">Install ublock origin (optional)</h3>
             <p class="short !text-neutral-300">
               uBlock Origin is a powerful, open-source ad blocker that boosts online privacy by blocking ads, trackers, and malicious
               scripts. Lightweight and efficient, it ensures a cleaner, more secure web experience. Combined with our tools, it keeps
@@ -330,14 +334,15 @@
           </div>
         </div>
       {:else if $currentStep === 9}
-        <div class="flex flex-row items-center justify-center gap-16 p-8">
+        <div class="flex items-center justify-center gap-6 max-xl:flex-col sm:gap-16 sm:p-8">
+          <h3 class="xl:hidden">Install ublock origin (optional)</h3>
           <div class="flex flex-col items-center gap-4">
             <img class="h-52 w-52" src={canvas} alt="canvas blocker" />
             <h3 class="mb-8 font-semibold">Canvas Blocker</h3>
             <ExtensionLinks extension={'canvas'} />
           </div>
-          <div class="flex w-[45rem] flex-col items-center gap-4">
-            <h3 class="mb-8 pl-4">Install canvas blocker (optional)</h3>
+          <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
+            <h3 class="mb-8 pl-4 !text-left max-xl:hidden">Install canvas blocker (optional)</h3>
             <p class="text-pretty !text-left !text-neutral-300">
               Canvas Blocker protects against browser fingerprinting by blocking tracking techniques based on unique device
               characteristics. It enhances privacy by preventing websites from creating identifiable profiles. Paired with Shadowself,
@@ -357,8 +362,8 @@
           redo the process now, but keep in mind that you won’t be able to make some changes later.
         </p>
         <div class="flex w-full items-center justify-center gap-16">
-          <button class="alt px-8" onclick={() => window.location.reload()}>Redo</button>
-          <button class="px-16" onclick={() => ($showModal = 1)}>Finish</button>
+          <button class="alt px-4 sm:px-8" onclick={() => window.location.reload()}>Redo</button>
+          <button class="px-8 sm:px-16" onclick={() => ($showModal = 1)}>Finish</button>
         </div>
         <Modal>
           <div class="flex flex-col gap-4">
@@ -394,11 +399,11 @@
   }
 
   h3 {
-    @apply text-4xl text-neutral-300;
+    @apply text-center text-4xl text-neutral-300;
   }
 
   p {
-    @apply text-balance px-4 text-center text-neutral-400;
+    @apply text-balance text-center text-neutral-400 md:px-4;
   }
 
   label {
@@ -406,7 +411,7 @@
   }
 
   .short {
-    @apply text-pretty !text-left !text-xl !leading-[1.85];
+    @apply text-pretty !text-left text-lg leading-[1.65] md:!text-xl md:!leading-[1.85];
   }
 
   textarea {

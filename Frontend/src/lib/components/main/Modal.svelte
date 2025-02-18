@@ -26,7 +26,7 @@
   }
 
   #modal {
-    @apply fixed inset-0 z-[60] m-auto flex h-fit w-fit items-center justify-center;
-    @apply rounded-xl bg-neutral-800/95 p-8 shadow-2xl shadow-gray-950/50 backdrop-blur-sm;
+    @apply fixed inset-0 z-[60] m-auto flex h-fit w-fit items-center justify-center self-center;
+    @apply rounded-xl bg-neutral-800/95 p-4 shadow-2xl shadow-gray-950/50 backdrop-blur-sm max-sm:mx-4 sm:p-8;
   }
 </style>
