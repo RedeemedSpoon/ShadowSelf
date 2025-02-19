@@ -19,7 +19,8 @@
     "nodemailer": "^6.10.0",
     "otpauth": "^9.3.6",
     "postgres": "^3.4.5",
-    "stripe": "^17.6.0"
+    "stripe": "^17.6.0",
+    "twilio": "^5.4.4"
   },
   "type": "module",
   "module": "src/index.ts"

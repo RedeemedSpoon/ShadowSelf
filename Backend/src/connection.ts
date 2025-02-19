@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import postgres from 'postgres';
 import Stripe from 'stripe';
+import twilio from 'twilio';
 
 export const sql = postgres({
   host: 'localhost',
@@ -33,3 +34,5 @@ export const verificationTransporter = nodemailer.createTransport({
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2024-11-20.acacia; custom_checkout_beta=v1' as '2024-12-18.acacia',
 });
+
+export const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);

@@ -1,8 +1,8 @@
+import {sql, twilioClient} from '../connection';
 import {User, CreationProcess} from '../types';
 import {attempt, blobToBase64} from '../utils';
 import {allFakers} from '@faker-js/faker';
 import {checkIdentity} from '../checks';
-import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
 import {Elysia, t} from 'elysia';
 
@@ -165,8 +165,16 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const {email, error} = await checkIdentity('email', message);
           if (error) return ws.send({error});
 
-          cookie.set({value: cookie.value + `&&${email?.trim().toLowerCase()}`});
+          const sanitizedEmail = email!.trim().toLowerCase();
+          cookie.set({value: cookie.value + `&&${sanitizedEmail}`});
 
+          const location = cookieStore[0];
+          const result = await twilioClient.availablePhoneNumbers(location).local.list({
+            smsEnabled: true,
+            limit: 20,
+          });
+
+          console.log(result);
           ws.send({phone: ['1234567890']});
           break;
         }
