@@ -164,6 +164,12 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
           if (!e.exitCode) return {error: 'Email address is already registered on our systems'};
         })) || body
       );
+
+    case 'phone':
+      if (!/^\+(\d{10,13})$/.test(body.phone!)) {
+        return {error: 'Invalid phone number, please try again'};
+      }
+      break;
   }
 
   return body;

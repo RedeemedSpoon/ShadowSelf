@@ -52,6 +52,12 @@ export interface Registration {
   qr: string;
 }
 
+export interface ServicesContent {
+  title: string;
+  description: string;
+  images: string[];
+}
+
 export interface AnimationNode {
   type: 'left' | 'right' | 'bottom';
   node: HTMLElement;
@@ -86,17 +92,14 @@ export interface CreationProcess {
     name: string;
     bio: string;
   };
+  phone: {
+    phone: string;
+    formatted: string;
+  }[];
   email: string;
-  phone: string[];
   card: string;
   sync: string;
   finish: boolean;
-}
-
-export interface ServicesContent {
-  title: string;
-  description: string;
-  images: string[];
 }
 
 export interface PricingModel {

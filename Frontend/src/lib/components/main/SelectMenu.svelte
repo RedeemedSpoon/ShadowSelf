@@ -55,7 +55,7 @@
 </script>
 
 <input required bind:this={input} type="hidden" name={name.toLowerCase()} value={value || givenOptions[0].value} />
-<div bind:this={select} id="select-input" class="relative">
+<div bind:this={select} id="select-input" class="relative min-w-[15vw]">
   <button type="button" bind:this={btn} onclick={handleBtnSelect}>
     <span>{givenOptions.find((option) => option.value === value)?.label || givenOptions[0].label}</span>
     <ChevronIcon className="rotate-90" />
@@ -68,6 +68,10 @@
 </div>
 
 <style lang="postcss">
+  ul {
+    @apply max-h-[275px] overflow-y-scroll;
+  }
+
   li {
     @apply cursor-pointer select-none bg-[#131c2e] px-4 py-3 hover:bg-neutral-800;
     @apply text-lg first:rounded-t-xl last:rounded-b-xl;

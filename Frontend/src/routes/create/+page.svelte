@@ -104,9 +104,11 @@
         break;
       }
 
-      case 4:
-        reply('card', {phone: server.phone});
+      case 4: {
+        const phone = document.querySelector('input[name="phone"]') as HTMLInputElement;
+        reply('card', {phone: phone.value});
         break;
+      }
 
       case 5:
         reply('extension', {card: server.card});
@@ -291,13 +293,18 @@
           <input type="email" placeholder="Username" name="email" id="email" value={server.email} />
           <label for="email">@shadowself.io</label>
         </div>
-        <small class="!text-pretty text-center text-[1rem] text-neutral-400 lg:w-1/2">
+        <small>
           Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as
           we take care of security and credentials for you.
         </small>
       {:else if $currentStep === 4}
         <h3>Give yourself a phone number</h3>
         <p class="lg:w-1/2">Select from the available phone numbers we have for you to use with your identity.</p>
+        <SelectMenu options={server.phone.map((phone) => ({value: phone.phone, label: phone.formatted}))} name="phone" />
+        <small>
+          Important: These phone numbers are local and support both SMS and voice calls. However, if left inactive, they may be
+          reclaimed by the provider. To avoid this, make sure to keep them in use.
+        </small>
       {:else if $currentStep === 5}
         <h3>Make your virtual card</h3>
         <p class="lg:w-1/2">Forge your own virtual card that you can use to make payments.</p>
@@ -408,6 +415,10 @@
 
   label {
     @apply mt-2 text-neutral-300;
+  }
+
+  small {
+    @apply !text-pretty text-center text-[1rem] text-neutral-400 lg:w-1/2;
   }
 
   .short {

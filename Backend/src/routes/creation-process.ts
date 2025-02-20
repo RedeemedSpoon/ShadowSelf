@@ -169,17 +169,18 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           cookie.set({value: cookie.value + `&&${sanitizedEmail}`});
 
           const location = cookieStore[0];
-          const result = await twilioClient.availablePhoneNumbers(location).local.list({
-            smsEnabled: true,
-            limit: 20,
-          });
+          const result = await twilioClient.availablePhoneNumbers(location).local.list({limit: 20});
 
-          console.log(result);
-          ws.send({phone: ['1234567890']});
+          const phone = result.map((phone) => ({phone: phone.phoneNumber, formatted: phone.friendlyName}));
+          ws.send({phone});
           break;
         }
 
         case 'card': {
+          const {phone, error} = await checkIdentity('phone', message);
+          if (error) return ws.send({error});
+
+          cookie.set({value: cookie.value + `&&${phone}`});
           ws.send({card: '4242 4242 4242 4242'});
           break;
         }
