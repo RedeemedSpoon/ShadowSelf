@@ -120,9 +120,9 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
   if (!body) return body;
 
   switch (kind) {
-    case 'code':
-      if (body.code!.length !== 2 && body.code!.toUpperCase() !== body.code!) {
-        return {error: 'Invalid code'};
+    case 'location':
+      if (body.location!.length !== 2 && body.location!.toUpperCase() !== body.location!) {
+        return {error: 'Invalid location code'};
       }
       break;
 
@@ -141,7 +141,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Sex must be either "male" or "female"'};
       }
 
-      if (body.age! < 18 || body.age! > 60) {
+      if (Number(body.age)! < 18 || Number(body.age!) > 60) {
         return {error: 'Age must be between 18 and 60'};
       }
 
@@ -159,6 +159,10 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Invalid email address, please try again'};
       }
 
+      if (body.email!.length > 48) {
+        return {error: 'Email is too long (<48 characters)'};
+      }
+
       return (
         (await $`id ${body.email!.split('@')[0]}`.nothrow().then((e) => {
           if (!e.exitCode) return {error: 'Email address is already registered on our systems'};
@@ -170,6 +174,24 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Invalid phone number, please try again'};
       }
       break;
+
+    case 'card':
+      break;
+    // if (!/^\d{16}$/.test(body.card!)) {
+    //   return { error: 'Invalid credit card number, please try again' };
+    // }
+    // break;
+
+    case 'finish': {
+      const validationKinds: string[] = ['location', 'identity', 'email', 'phone', 'card'];
+
+      for (const validationKind of validationKinds) {
+        const {error} = await checkIdentity(validationKind, body);
+        if (error) return {error};
+      }
+
+      break;
+    }
   }
 
   return body;

@@ -86,14 +86,14 @@ export default new Elysia({websocket: {idleTimeout: 300}})
         }
 
         case 'identities': {
-          if (message.code) {
-            const {code, error} = await checkIdentity('code', message);
+          if (message.location) {
+            const {location, error} = await checkIdentity('location', message);
             if (error) return ws.send({error});
 
-            cookie.set({value: cookie.value + `&&${code}`});
+            cookie.set({value: cookie.value + `&&${location}`});
           }
 
-          const lang = locations.find((location) => location.code === (cookieStore[0] || message.code));
+          const lang = locations.find((location) => location.code === (cookieStore[0] || message.location));
           let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};
           if (error) return ws.send({error});
 
@@ -113,18 +113,18 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             }
 
             sex = Math.random() > 0.5 ? 'male' : 'female';
-            name = faker.person.fullName({sex});
+            name = faker.person.fullName({sex: sex as 'male' | 'female'});
             bio = faker.person.bio();
 
             ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
-            age = Math.floor(Math.random() * 42) + 18;
+            age = (Math.floor(Math.random() * 42) + 18).toString();
             error = undefined;
           }
 
-          const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, must be located in ${lang?.city}, ${lang?.country}, exuding a sense of warmth, personality, and approachability.`;
+          const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, background must somewhere in ${lang?.city}, ${lang?.country}, exuding a sense of warmth, personality, and approachability.`;
 
           const negativePrompt =
-            'hyper-realistic, polished, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits';
+            'hyper-realistic, polished, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits, bland one color background';
 
           const formData = new FormData();
           formData.append('prompt', prompt);
@@ -186,19 +186,25 @@ export default new Elysia({websocket: {idleTimeout: 300}})
         }
 
         case 'extension': {
+          const {card, error} = await checkIdentity('card', message);
+          if (error) return ws.send({error});
+
+          cookie.set({value: cookie.value + `&&${card}`});
           ws.send({_: null});
           break;
         }
 
         case 'sync': {
-          ws.send({sync: '123456789'});
+          ws.send({sync: ws.data.cookie['token'].value});
           break;
         }
 
         case 'finish': {
           const [location, picture, name, bio, age, sex, ethnicity, email, phone, card] = cookieStore;
-          console.log({location, picture, name, bio, age, sex, ethnicity, email, phone, card});
+          const {error} = await checkIdentity('finish', {location, picture, name, bio, age, sex, ethnicity, email, phone, card});
+          if (error) return ws.send({error});
 
+          await attempt(sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`);
           cookie.remove();
           ws.send({finish: true});
           break;

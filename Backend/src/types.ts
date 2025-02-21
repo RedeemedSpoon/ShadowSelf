@@ -50,14 +50,14 @@ export interface QueryResultIdentify {
 export interface RegenerateIdentity {
   name: string;
   bio: string;
-  age: number;
-  sex: 'male' | 'female';
+  age: string;
+  sex: string;
   ethnicity: string;
 }
 
 export interface CreationProcess {
   kind: string;
-  code: string;
+  location: string;
   email: string;
   phone: string;
   card: string;
@@ -72,16 +72,16 @@ export interface CreationProcess {
 
 export interface CheckIdentity {
   error?: string;
-  code?: string;
   email?: string;
   phone?: string;
   card?: string;
   name?: string;
   bio?: string;
-  age?: number;
-  sex?: 'male' | 'female';
+  age?: string;
+  sex?: string;
   ethnicity?: string;
   picture?: string;
+  location?: string;
 }
 
 export const emailTemplate = {

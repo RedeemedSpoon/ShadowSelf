@@ -42,5 +42,18 @@ CREATE TABLE identities (
   "payment_intent" varchar(27),
   "subscription_id" varchar(28),
   "plan" varchar(8) CHECK ("plan" IN ('monthly', 'annually', 'lifetime')),
+  "proxy_server" cidr,
+  "user_agent" varchar(7),
+  "location" varchar(2),
+  "picture" text,
+  "name" varchar(30),
+  "bio" varchar(300),
+  "age" integer CHECK ("age" BETWEEN 18 AND 60),
+  "sex" varchar(6) CHECK ("sex" IN ('male', 'female')),
+  "ethnicity" varchar(12) CHECK ("ethnicity" IN ('caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian')),
+  "email" varchar(48),
+  "phone" varchar(12),
+  "card" varchar(16),
   "status" varchar(8) CHECK ("status" IN ('active', 'inactive', 'frozen')) DEFAULT 'inactive'
 );
+

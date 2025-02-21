@@ -80,7 +80,7 @@
     switch ($currentStep) {
       case 1: {
         const chosen = document.querySelector('.chosen') as HTMLDivElement;
-        reply('identities', {code: chosen.id});
+        reply('identities', {location: chosen.id});
         break;
       }
 
