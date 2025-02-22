@@ -21,7 +21,7 @@
   <title>ShadowSelf - Create & Manage Fake Identities</title>
   <meta
     name="description"
-    content="ShadowSelf is a platform that safeguard you and your sensitive data by creating sythetic identities that can be used to register and authenticate while concealing your actual identity from being at risk of misuse, breach, theft, or fraud." />
+    content="ShadowSelf is a platform that safeguard you and your sensitive data by creating synthetic identities that can be used to register and authenticate while concealing your actual identity from being at risk of misuse, breach, theft, or fraud." />
 </svelte:head>
 
 <section id={data.homepageIds[0]} class="!h-screen !p-8">
@@ -106,11 +106,11 @@
 </section>
 
 <section id={data.homepageIds[7]} class="relative !mt-0 !h-screen overflow-hidden">
-  <h1 class="text-center text-6xl md:text-7xl">Join The Waitlist</h1>
+  <h1 class="text-center text-6xl md:text-7xl">Join The Beta</h1>
   <p class="z-10 w-3/5 text-center leading-relaxed text-neutral-400 lg:w-1/2 xl:w-1/3">
-    Join the waitlist to be notified when we launch. In the mean time, stay tuned for updates and new exiting features in the <a
-      href="https://github.com/RedeemedSpoon/ShadowSelf">Github</a> Repository. We are just as exited as you are about this project and
-    we are committed to make the world a safer and freer place.
+    Join the beta phase to be among the first to experience the power of ShadowSelf. In the meantime, stay tuned for updates and
+    exciting new additions in the <a href="https://github.com/RedeemedSpoon/ShadowSelf">Github</a> Repository. We're just as excited as
+    you are about this project, and we're dedicated to making the world a safer and freer place.
   </p>
   <BackgroundBeams />
 </section>

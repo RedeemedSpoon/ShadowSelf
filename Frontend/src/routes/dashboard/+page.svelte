@@ -97,7 +97,7 @@
       <p bind:this={errorText} class="mt-24 !hidden text-3xl !text-neutral-500">No results found.</p>
       <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
         {#each data.identities as identity}
-          {@const phone = identity.phone.toString().replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')}
+          {@const phone = identity.phone.replace('+', '').replace(/(\d{1})(\d{3})(\d{3})(\d{4})(\d{3})/, '+$1 $2 $3 $4$5')}
           {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
           <a href="/identity/{identity.id}" id="identity-{identity.id}">
             <img src={identity.picture} alt="{identity.name}'s picture" />

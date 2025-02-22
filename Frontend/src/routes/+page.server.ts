@@ -3,7 +3,7 @@ import type {AnimationSelector} from '$type';
 
 export const load: PageServerLoad = () => {
   return {
-    homepageIds: ['welcome', 'product', 'services', 'usecases', 'features', 'pricing', 'solution', 'waitlist'],
+    homepageIds: ['welcome', 'product', 'services', 'usecases', 'features', 'pricing', 'solution', 'join'],
     animations: [
       {
         selector: '#welcome > *:not(#background)',
@@ -54,7 +54,7 @@ export const load: PageServerLoad = () => {
         type: 'right',
       },
       {
-        selector: '#waitlist > *:not(div)',
+        selector: '#join > *:not(div)',
         type: 'bottom',
       },
     ] satisfies AnimationSelector[],

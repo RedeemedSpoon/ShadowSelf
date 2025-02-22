@@ -38,7 +38,7 @@ export interface Identity {
   country: string;
   location: string;
   email: string;
-  phone: number;
+  phone: string;
   card: number;
   accounts: number;
 }
