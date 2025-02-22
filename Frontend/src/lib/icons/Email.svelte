@@ -4,7 +4,7 @@
     fill?: boolean;
   }
 
-  let {fill = false, className = '!h-6 !w-6 !stroke-primary-600'}: Props = $props();
+  let {fill = false, className = '!h-6 !w-6'}: Props = $props();
 </script>
 
 {#if fill}

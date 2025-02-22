@@ -20,6 +20,7 @@ export {default as PhoneIcon} from './Phone.svelte';
 export {default as AddressIcon} from './Address.svelte';
 export {default as MultiUsersIcon} from './MultiUsers.svelte';
 export {default as CreditCardIcon} from './CreditCard.svelte';
+export {default as ExtensionIcon} from './Extension.svelte';
 
 export {default as KeyIcon} from './Key.svelte';
 export {default as KeylockIcon} from './Keylock.svelte';

@@ -1,16 +1,17 @@
 <script lang="ts">
+  import {onMount, type Component} from 'svelte';
   import {selectionInputOpen} from '$store';
   import type {Option} from '$type';
   import {ChevronIcon} from '$icon';
-  import {onMount} from 'svelte';
 
   interface Props {
     options: Option[] | string[];
+    icon?: Component;
     value?: string;
     name: string;
   }
 
-  let {name, options, value}: Props = $props();
+  let {name, options, value, icon}: Props = $props();
 
   let givenOptions: Option[] = $state([]);
   let btn: HTMLButtonElement;
@@ -37,7 +38,7 @@
     $selectionInputOpen = false;
 
     const target = e.target as HTMLLIElement;
-    const span = btn.childNodes[0] as HTMLSpanElement;
+    const span = btn.childNodes[1] as HTMLSpanElement;
 
     span.innerText = target.innerText;
     input.value = target.id;
@@ -57,7 +58,13 @@
 <input required bind:this={input} type="hidden" name={name.toLowerCase()} value={value || givenOptions[0].value} />
 <div bind:this={select} id="select-input" class="relative min-w-[15vw]">
   <button type="button" bind:this={btn} onclick={handleBtnSelect}>
-    <span>{givenOptions.find((option) => option.value === value)?.label || givenOptions[0].label}</span>
+    <div class="flex items-center gap-2">
+      {#if icon}
+        {@const SvelteComponent = icon}
+        <SvelteComponent className="w-7 h-7 !stroke-none !fill-neutral-300" } />
+      {/if}
+      <span>{givenOptions.find((option) => option.value === value)?.label || givenOptions[0].label}</span>
+    </div>
     <ChevronIcon className="rotate-90" />
   </button>
   <ul onclick={handleSltClick} class:hidden={!$selectionInputOpen} aria-hidden={!$selectionInputOpen}>

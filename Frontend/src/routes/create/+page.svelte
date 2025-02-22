@@ -1,8 +1,9 @@
 <script lang="ts">
-  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal} from '$component';
-  import {InfoIcon, ExternalLinkIcon, PinIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
+  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon} from '$component';
+  import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
+  import {PhoneIcon, EmailIcon, CreditCardIcon, UserIcon, ExtensionIcon, PinIcon} from '$icon';
   import {currentStep, fetching, showModal} from '$store';
-  import {ublock, canvas, screenshot} from '$image';
+  import {ublock, canvas, screenshot, icon, email} from '$image';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
@@ -245,7 +246,9 @@
               alt="identity look" />
             <Tooltip
               tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
-              <LoadingButton onclick={() => handleEvent('identities')} index={2}>Regenerate profile picture</LoadingButton>
+              <LoadingButton onclick={() => handleEvent('identities')} index={2}>
+                <UserIcon className="h-6 w-6 -mr-2" />Regenerate profile picture
+              </LoadingButton>
             </Tooltip>
           </div>
           <div class="flex w-full flex-col gap-4 md:w-1/2 lg:w-1/3">
@@ -289,9 +292,9 @@
       {:else if $currentStep === 3}
         <h3>Create your email address</h3>
         <p class="lg:w-1/2">Enter an email address to be associated with your identity. It can only contain letters and numbers.</p>
-        <div class="flex items-center gap-2 max-sm:flex-col sm:items-baseline">
-          <input type="email" placeholder="Username" name="email" id="email" value={server.email} />
-          <label for="email">@shadowself.io</label>
+        <div class="flex items-center gap-2 max-sm:flex-col">
+          <InputWithIcon icon={EmailIcon} type="email" fill={true} value={server.email} placeholder="Username" name="email" />
+          <label class="!mt-0" for="email">@shadowself.io</label>
         </div>
         <small>
           Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as
@@ -300,7 +303,10 @@
       {:else if $currentStep === 4}
         <h3>Give yourself a phone number</h3>
         <p class="lg:w-1/2">Select from the available phone numbers we have for you to use with your identity.</p>
-        <SelectMenu options={server.phone.map((phone) => ({value: phone.phone, label: phone.formatted}))} name="phone" />
+        <SelectMenu
+          options={server.phone.map((phone) => ({value: phone.phone, label: phone.formatted}))}
+          icon={PhoneIcon}
+          name="phone" />
         <small>
           Important: These phone numbers are local and support both SMS and voice calls. However, if left inactive, they may be
           reclaimed by the provider. To avoid this, make sure to keep them in use.
@@ -308,6 +314,13 @@
       {:else if $currentStep === 5}
         <h3>Make your virtual card</h3>
         <p class="lg:w-1/2">Forge your own virtual card that you can use to make payments.</p>
+        <InputWithIcon
+          icon={CreditCardIcon}
+          type="text"
+          fill={true}
+          value={server.card}
+          placeholder="XXXX XXXX XXXX XXXX"
+          name="card" />
       {:else if $currentStep === 6}
         <h3>Install our browser extension</h3>
         <p class="lg:w-1/2">
@@ -318,7 +331,9 @@
       {:else if $currentStep === 7}
         <h3>Sync the extension with your account</h3>
         <p class="lg:w-1/2">Securely authenticate and link your identity to the extension by clicking the button below.</p>
-        <button class="text-wrap sm:w-1/3" onclick={() => handleEvent('sync')}>Sync with extension</button>
+        <button class="flex items-center justify-center gap-2 text-wrap sm:w-1/3" onclick={() => handleEvent('sync')}>
+          <ExtensionIcon />Sync with extension
+        </button>
       {:else if $currentStep === 8}
         <div class="flex items-center justify-center gap-6 max-xl:flex-col sm:gap-16 sm:p-8">
           <h3 class="xl:hidden">Install ublock origin (optional)</h3>
@@ -370,7 +385,7 @@
         </p>
         <div class="flex w-full items-center justify-center gap-16">
           <button class="alt px-4 sm:px-8" onclick={() => window.location.reload()}>Redo</button>
-          <button class="px-8 sm:px-16" onclick={() => ($showModal = 1)}>Finish</button>
+          <button class="px-8 sm:px-16" onclick={() => ($showModal = 1)}>Finish →</button>
         </div>
         <Modal>
           <div class="flex flex-col gap-4">
@@ -440,7 +455,7 @@
   }
 
   .sex-box.selected {
-    @apply bg-primary-600/75 hover:text-neutral-300;
+    @apply bg-primary-600/65 hover:text-neutral-300;
   }
 
   .repeat-box {

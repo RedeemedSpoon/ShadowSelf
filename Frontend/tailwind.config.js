@@ -93,7 +93,7 @@ function addCustomClasses({addComponents}) {
       },
     },
     '.chosen': {
-      backgroundColor: 'rgb(79, 70, 229, 0.75) !important',
+      backgroundColor: 'rgba(79, 57, 246, 0.65) !important',
       '&:hover': {
         opacity: '1 !important',
       },

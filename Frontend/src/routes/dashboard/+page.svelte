@@ -110,7 +110,7 @@
               </span>
             </div>
             <br />
-            <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon />{identity.email}</p>
+            <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon className={'!h-6 !w-6 !stroke-primary-600'} />{identity.email}</p>
             <p class="lg:max-xl:!flex"><PhoneIcon />{phone}</p>
             <p><CreditCardIcon />{cardNumber}</p>
             <p><MultiUsersIcon />{identity.accounts}</p>
