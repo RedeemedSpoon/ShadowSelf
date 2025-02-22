@@ -3,11 +3,11 @@
 </script>
 
 <svelte:head>
-  <title>ShadowSelf - Browser Extension</title>
-  <meta name="description" content="Install the ShadowSelf browser extension to access remote location and change your user-agent." />
+  <title>ShadowSelf - API Documentation</title>
+  <meta name="description" content="Make use of the ShadowSelf API to interact with our services programmatically with ease" />
 </svelte:head>
 
-<div id="extension">
+<div id="docs">
   <h1>Coming Soon<RocketIcon /></h1>
   <p class="text-center">
     We're working diligently to bring you the full ShadowSelf experience. While we're currently in the beta phase, the complete version
@@ -17,7 +17,7 @@
 </div>
 
 <style lang="postcss">
-  #extension {
+  #docs {
     @apply mx-auto my-[15rem] flex min-h-[40vh] w-5/6 flex-col items-center justify-center gap-8 text-neutral-400 md:w-1/2;
   }
 

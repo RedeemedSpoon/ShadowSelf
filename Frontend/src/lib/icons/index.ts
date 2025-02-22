@@ -6,6 +6,7 @@ export {default as CopyIcon} from './Copy.svelte';
 export {default as HappyIcon} from './Happy.svelte';
 export {default as DownloadIcon} from './Download.svelte';
 
+export {default as RocketIcon} from './Rocket.svelte';
 export {default as SearchIcon} from './Search.svelte';
 export {default as FilterIcon} from './Filter.svelte';
 export {default as SortIcon} from './Sort.svelte';
