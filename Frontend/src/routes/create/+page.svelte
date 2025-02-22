@@ -3,7 +3,7 @@
   import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
   import {PhoneIcon, EmailIcon, CreditCardIcon, UserIcon, ExtensionIcon, PinIcon} from '$icon';
   import {currentStep, fetching, showModal} from '$store';
-  import {ublock, canvas, screenshot, icon, email} from '$image';
+  import {ublock, canvas, screenshot} from '$image';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
@@ -35,7 +35,7 @@
 
   async function initWebsocket() {
     const id = page.url.searchParams.get('id');
-    ws = new WebSocket(`wss://${page.url.hostname}/ws-creation-process?id=${id}`);
+    ws = new WebSocket(`wss://${page.url.hostname}/ws/creation-process?id=${id}`);
 
     ws.onopen = () => {
       pingInterval = setInterval(() => ws?.send('ping'), 5000);
