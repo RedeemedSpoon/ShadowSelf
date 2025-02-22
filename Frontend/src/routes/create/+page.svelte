@@ -59,7 +59,7 @@
 
       if (response?.error) return notify(response.error, 'alert');
       if (response.finish) return goto('/dashboard');
-      if (response.sync) disabled = true;
+      // if (response.sync) disabled = true;
 
       if (response?.repeat) {
         server.identity.name = response.repeat?.name || server.identity.name;
@@ -193,7 +193,7 @@
       }
 
       case 'sync':
-        disabled = false;
+        // disabled = false;
         break;
     }
   }
@@ -292,7 +292,7 @@
       {:else if $currentStep === 3}
         <h3>Create your email address</h3>
         <p class="lg:w-1/2">Enter an email address to be associated with your identity. It can only contain letters and numbers.</p>
-        <div class="flex items-center gap-2 max-sm:flex-col">
+        <div class="flex items-center gap-3 max-sm:flex-col">
           <InputWithIcon icon={EmailIcon} type="email" fill={true} value={server.email} placeholder="Username" name="email" />
           <label class="!mt-0" for="email">@shadowself.io</label>
         </div>
@@ -314,24 +314,20 @@
       {:else if $currentStep === 5}
         <h3>Make your virtual card</h3>
         <p class="lg:w-1/2">Forge your own virtual card that you can use to make payments.</p>
-        <InputWithIcon
-          icon={CreditCardIcon}
-          type="text"
-          fill={true}
-          value={server.card}
-          placeholder="XXXX XXXX XXXX XXXX"
-          name="card" />
+        <button disabled class="flex items-center justify-center gap-2 text-wrap sm:w-1/3" onclick={() => handleEvent('sync')}>
+          <CreditCardIcon className={'!h-6 !w-6 fill-neutral-300'} fill={true} />Currently unavailable
+        </button>
       {:else if $currentStep === 6}
         <h3>Install our browser extension</h3>
         <p class="lg:w-1/2">
           With our browser extension, you can access our VPN services, change user agents, and view your identity information.
         </p>
-        <img class="h-52 py-8" src={screenshot} alt="shadowself extension" />
+        <img class="my-4 h-64 rounded-xl border border-neutral-700" src={screenshot} alt="shadowself extension" />
         <ExtensionLinks extension={'shadowself'} />
       {:else if $currentStep === 7}
         <h3>Sync the extension with your account</h3>
         <p class="lg:w-1/2">Securely authenticate and link your identity to the extension by clicking the button below.</p>
-        <button class="flex items-center justify-center gap-2 text-wrap sm:w-1/3" onclick={() => handleEvent('sync')}>
+        <button disabled class="flex items-center justify-center gap-2 text-wrap sm:w-1/3" onclick={() => handleEvent('sync')}>
           <ExtensionIcon />Sync with extension
         </button>
       {:else if $currentStep === 8}

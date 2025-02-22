@@ -122,27 +122,28 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             error = undefined;
           }
 
-          const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, background must somewhere in ${lang?.city}, ${lang?.country}, exuding a sense of warmth, personality, and approachability.`;
-
-          const negativePrompt =
-            'hyper-realistic, polished, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits, bland one color background';
-
-          const formData = new FormData();
-          formData.append('prompt', prompt);
-          formData.append('aspect_ratio', '1:1');
-          formData.append('output_format', 'webp');
-          formData.append('negative_prompt', negativePrompt);
-
-          const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
-            method: 'POST',
-            body: formData,
-            headers: {
-              authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
-              accept: 'image/*',
-            },
-          });
-
-          const picture = await blobToBase64(await response.blob());
+          // const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, background must somewhere in ${lang?.city}, ${lang?.country}, exuding a sense of warmth, personality, and approachability.`;
+          //
+          // const negativePrompt =
+          //   'hyper-realistic, polished, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits, bland one color background';
+          //
+          // const formData = new FormData();
+          // formData.append('prompt', prompt);
+          // formData.append('aspect_ratio', '1:1');
+          // formData.append('output_format', 'webp');
+          // formData.append('negative_prompt', negativePrompt);
+          //
+          // const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
+          //   method: 'POST',
+          //   body: formData,
+          //   headers: {
+          //     authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
+          //     accept: 'image/*',
+          //   },
+          // });
+          //
+          // const picture = await blobToBase64(await response.blob());
+          const picture = await blobToBase64(Bun.file('/home/greed/Code/Bytepicks/static/assets/recommendation.jpg'));
           const identity = {picture, name, bio, sex, age, ethnicity};
 
           ws.send({identity});

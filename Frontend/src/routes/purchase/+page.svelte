@@ -1,9 +1,9 @@
 <script lang="ts">
+  import {CheckmarkIcon, CreditCardIcon, QuestionIcon} from '$icon';
   import {type Notification, allPricingModels} from '$type';
   import {loadStripe, type Stripe} from '@stripe/stripe-js';
   import {pricingModel, fetching, showModal} from '$store';
   import {LoadingButton, Modal, Tooltip} from '$component';
-  import {CheckmarkIcon, CreditCardIcon, QuestionIcon} from '$icon';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';
