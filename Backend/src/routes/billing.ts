@@ -1,13 +1,10 @@
 import {QueryResult, type User, pricingModal} from '../types';
 import {generateIdentityID} from '../crypto';
-import {sql, stripe} from '../connection';
+import {sql, stripe, origin} from '../connection';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
 import {check} from '../checks';
-
-const runtime = process.env.NODE_ENV;
-const origin = runtime === 'dev' ? 'https://localhost' : 'https://shadowself.io';
 
 export default new Elysia({prefix: '/billing'})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))

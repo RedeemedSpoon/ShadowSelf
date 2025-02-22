@@ -164,9 +164,12 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       }
 
       return (
-        (await $`id ${body.email!.split('@')[0]}`.nothrow().then((e) => {
-          if (!e.exitCode) return {error: 'Email address is already registered on our systems'};
-        })) || body
+        (await $`id ${body.email!.split('@')[0]}`
+          .quiet()
+          .nothrow()
+          .then((e) => {
+            if (!e.exitCode) return {error: 'Email address is already registered on our systems'};
+          })) || body
       );
 
     case 'phone':
@@ -183,7 +186,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
     // break;
 
     case 'finish': {
-      const validationKinds: string[] = ['location', 'identity', 'email', 'phone', 'card'];
+      const validationKinds = ['location', 'identity', 'email', 'phone', 'card'];
 
       for (const validationKind of validationKinds) {
         const {error} = await checkIdentity(validationKind, body);

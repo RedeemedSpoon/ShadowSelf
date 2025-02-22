@@ -5,16 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.07] - 2025-2-21
+
+### Added
+
+- Add active status to identity
+- Add finish process to creation (step 10)
+- Add email creation shell command
+- Add phone provision function
+
+### Changed
+
+- Fix types
+- Move origin to connection.ts
+- Change check identity function
+- Change identity database structure
+- Rename code switch case to location
+
 ## [0.4.06] - 2025-2-19
 
 ### Added
 
 - Add twilio to the creation process
 - Add phone registration to the creation process (step 4)
-
-### Changed
-
-- Change SelectionMenu to be scrollable
+- Add scrollability to SelectionMenu
 
 ## [0.4.05] - 2025-2-17
 

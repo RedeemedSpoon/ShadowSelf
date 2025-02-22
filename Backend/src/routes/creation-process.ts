@@ -1,10 +1,11 @@
-import {sql, twilioClient} from '../connection';
+import {sql, twilioClient, origin} from '../connection';
 import {User, CreationProcess} from '../types';
 import {attempt, blobToBase64} from '../utils';
 import {allFakers} from '@faker-js/faker';
 import {checkIdentity} from '../checks';
 import {jwt} from '@elysiajs/jwt';
 import {Elysia, t} from 'elysia';
+import {$} from 'bun';
 
 const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
 const locations = [
@@ -204,7 +205,26 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const {error} = await checkIdentity('finish', {location, picture, name, bio, age, sex, ethnicity, email, phone, card});
           if (error) return ws.send({error});
 
+          const emailUsername = email!.split('@')[0];
+          const emailPassword = (await $`openssl rand -base64 24`).stdout;
+
+          await $`useradd -m -G mail ${emailUsername}`.nothrow().quiet();
+          await $`echo ${emailPassword}:${emailPassword} | chpasswd`.nothrow().quiet();
+
+          await twilioClient.incomingPhoneNumbers.create({
+            emergencyStatus: 'Inactive',
+            voiceUrl: `${origin}/api/voice`,
+            smsUrl: `${origin}/api/sms`,
+            phoneNumber: phone,
+          });
+
+          await attempt(sql`UPDATE identities SET location = ${location} WHERE id = ${identityID}`);
+          await attempt(sql`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`);
+          await attempt(sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`);
+          await attempt(sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`);
+          await attempt(sql`UPDATE identities SET phone = ${phone}, card = ${card} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`);
+
           cookie.remove();
           ws.send({finish: true});
           break;

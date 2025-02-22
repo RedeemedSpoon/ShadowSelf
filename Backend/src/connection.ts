@@ -36,3 +36,5 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 export const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
+
+export const origin = process.env.NODE_ENV === 'dev' ? 'https://localhost' : 'https://shadowself.io';

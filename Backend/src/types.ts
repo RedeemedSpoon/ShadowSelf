@@ -45,6 +45,19 @@ export interface QueryResultIdentify {
   subscription_id: string;
   plan: 'monthly' | 'annually' | 'lifetime';
   status: 'active' | 'inactive' | 'frozen';
+  proxy_server: string;
+  user_agent: string;
+  location: string;
+  picture: string;
+  name: string;
+  bio: string;
+  age: number;
+  sex: string;
+  ethnicity: string;
+  email: string;
+  email_password: string;
+  phone: string;
+  card: string;
 }
 
 export interface RegenerateIdentity {
