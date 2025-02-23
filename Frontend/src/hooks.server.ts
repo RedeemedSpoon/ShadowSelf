@@ -4,6 +4,10 @@ export const handle: Handle = async ({event, resolve}) => {
   const isLogged = event.cookies.get('token');
   const path = event.url.pathname;
 
+  if (path === '/identity' || path === '/identity/') {
+    redirect(302, '/dashboard');
+  }
+
   if (['/login', '/signup'].includes(path) && isLogged) {
     redirect(302, '/dashboard');
   }

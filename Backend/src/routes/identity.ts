@@ -1,8 +1,8 @@
-import {User} from '../types';
 import {Elysia, error} from 'elysia';
 import {sql} from '../connection';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';
+import {User} from '../types';
 
 export default new Elysia({prefix: '/identity'})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -34,7 +34,11 @@ export default new Elysia({prefix: '/identity'})
       return {id, picture, name, email, phone, card, country, location: formattedLocation, accounts: accounts?.length};
     });
 
-    const allIdentities = await Promise.all(allIdentitiesPromises);
-
-    return allIdentities;
+    return await Promise.all(allIdentitiesPromises);
+  })
+  .post('/', async ({user, body}) => {
+    const identityID = (body as {id: string}).id;
+    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
+    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
+    return !identity.length ? error(400, 'Identity not found') : identity[0];
   });

@@ -108,7 +108,7 @@
 <section id={data.homepageIds[7]} class="relative !mt-0 !h-screen overflow-hidden">
   <h1 class="text-center text-6xl md:text-7xl">Join The Beta</h1>
   <p class="z-10 w-3/5 text-center leading-relaxed text-neutral-400 lg:w-1/2 xl:w-1/3">
-    Join the beta phase to be among the first to experience the power of ShadowSelf. In the meantime, stay tuned for updates and
+    Join the alpha phase to be among the first to experience the power of ShadowSelf. In the meantime, stay tuned for updates and
     exciting new additions in the <a href="https://github.com/RedeemedSpoon/ShadowSelf">Github</a> Repository. We're just as excited as
     you are about this project, and we're dedicated to making the world a safer and freer place.
   </p>

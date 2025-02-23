@@ -1,4 +1,4 @@
-import type {Faq, Settings, Option, Identity, AnimationSelector} from '$type';
+import type {Faq, Settings, Option, Identity, AnimationSelector, FullIdentity} from '$type';
 
 declare global {
   namespace App {
@@ -14,6 +14,8 @@ declare global {
       stripeKey?: string;
       cookie?: string;
       faqs?: Faq[];
+      slug?: string;
+      identity?: FullIdentity;
     }
   }
 }
