@@ -57,7 +57,7 @@ export interface QueryResultIdentify {
   email: string;
   email_password: string;
   phone: string;
-  card: string;
+  card: number;
 }
 
 export interface RegenerateIdentity {
@@ -95,6 +95,15 @@ export interface CheckIdentity {
   ethnicity?: string;
   picture?: string;
   location?: string;
+}
+
+export interface Location {
+  country: string;
+  city: string;
+  code: string;
+  map: string;
+  ip: string;
+  localization: string;
 }
 
 export const emailTemplate = {

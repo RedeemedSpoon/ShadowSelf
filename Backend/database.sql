@@ -41,20 +41,28 @@ CREATE TABLE identities (
   "creation_date" timestamp NOT NULL,
   "payment_intent" varchar(27),
   "subscription_id" varchar(28),
-  "plan" varchar(8) CHECK ("plan" IN ('monthly', 'annually', 'lifetime')),
+  "plan" varchar(8),
   "proxy_server" cidr,
   "user_agent" varchar(7),
-  "location" varchar(2),
+  "location" text,
   "picture" text,
   "name" varchar(30),
   "bio" varchar(300),
-  "age" integer CHECK ("age" BETWEEN 18 AND 60),
-  "sex" varchar(6) CHECK ("sex" IN ('male', 'female')),
-  "ethnicity" varchar(12) CHECK ("ethnicity" IN ('caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian')),
+  "age" integer,
+  "sex" varchar(6),
+  "ethnicity" varchar(12),
   "email" varchar(48),
   "email_password" varchar(33),
   "phone" varchar(12),
   "card" varchar(16),
-  "status" varchar(8) CHECK ("status" IN ('active', 'inactive', 'frozen')) DEFAULT 'inactive'
+  "status" varchar(8) DEFAULT 'inactive'
 );
 
+DROP TABLE IF EXISTS accounts;
+CREATE TABLE accounts (
+  "id" SERIAL PRIMARY KEY,
+  "owner" varchar(12) NOT NULL REFERENCES identities(id),
+  "username" varchar(25) NOT NULL,
+  "password" varchar(60) NOT NULL,
+  "totp" varchar(32)
+);

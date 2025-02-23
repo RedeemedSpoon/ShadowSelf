@@ -1,47 +1,11 @@
 import {sql, twilioClient, origin} from '../connection';
-import {User, CreationProcess} from '../types';
-import {attempt, blobToBase64} from '../utils';
+import {User, CreationProcess, Location} from '../types';
+import {attempt, blobToBase64, request} from '../utils';
 import {allFakers} from '@faker-js/faker';
 import {checkIdentity} from '../checks';
 import {jwt} from '@elysiajs/jwt';
 import {Elysia, t} from 'elysia';
 import {$} from 'bun';
-
-const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
-const locations = [
-  {
-    country: 'United States',
-    code: 'US',
-    city: 'Seattle',
-    localization: 'en',
-    ip: '91.240.75.212',
-    map: 'https://osm.org/go/WIdEVZFE',
-  },
-  {
-    country: 'Netherland',
-    code: 'NL',
-    city: 'Amsterdam',
-    localization: 'nl',
-    ip: '153.869.12.56',
-    map: 'https://osm.org/go/0E4~sdq--',
-  },
-  {
-    country: 'Brazil',
-    code: 'BR',
-    city: 'São Paulo',
-    localization: 'pt_BR',
-    ip: '24.68.162.126',
-    map: 'https://osm.org/go/M~yzo4',
-  },
-  {
-    country: 'Japan',
-    code: 'JP',
-    city: 'Tokyo',
-    ip: '38.0.101.76',
-    localization: 'ja',
-    map: 'https://osm.org/go/7Q52DZ',
-  },
-];
 
 export default new Elysia({websocket: {idleTimeout: 300}})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -82,7 +46,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
       switch (message.kind) {
         case 'locations': {
-          ws.send({locations});
+          ws.send({locations: await request('/extension-api', 'GET')});
           break;
         }
 
@@ -93,6 +57,9 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
             cookie.set({value: cookie.value + `&&${location}`});
           }
+
+          const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
+          const locations = (await request('/extension-api', 'GET')) as Location[];
 
           const lang = locations.find((location) => location.code === (cookieStore[0] || message.location));
           let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};
@@ -122,30 +89,28 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             error = undefined;
           }
 
-          // const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, background must somewhere in ${lang?.city}, ${lang?.country}, exuding a sense of warmth, personality, and approachability.`;
-          //
-          // const negativePrompt =
-          //   'hyper-realistic, polished, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits, bland one color background';
-          //
-          // const formData = new FormData();
-          // formData.append('prompt', prompt);
-          // formData.append('aspect_ratio', '1:1');
-          // formData.append('output_format', 'webp');
-          // formData.append('negative_prompt', negativePrompt);
-          //
-          // const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
-          //   method: 'POST',
-          //   body: formData,
-          //   headers: {
-          //     authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
-          //     accept: 'image/*',
-          //   },
-          // });
-          //
-          // const picture = await blobToBase64(await response.blob());
-          const picture = await blobToBase64(Bun.file('/home/greed/Code/Bytepicks/static/assets/recommendation.jpg'));
-          const identity = {picture, name, bio, sex, age, ethnicity};
+          const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, background must somewhere in ${lang?.city}, ${lang?.country}, exuding a sense of warmth, personality, and approachability.`;
 
+          const negativePrompt =
+            'hyper-realistic, polished, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits, bland one color background';
+
+          const formData = new FormData();
+          formData.append('prompt', prompt);
+          formData.append('aspect_ratio', '1:1');
+          formData.append('output_format', 'webp');
+          formData.append('negative_prompt', negativePrompt);
+
+          const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
+              accept: 'image/*',
+            },
+          });
+
+          const picture = await blobToBase64(await response.blob());
+          const identity = {picture, name, bio, sex, age, ethnicity};
           ws.send({identity});
           break;
         }
@@ -206,6 +171,11 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const {error} = await checkIdentity('finish', {location, picture, name, bio, age, sex, ethnicity, email, phone, card});
           if (error) return ws.send({error});
 
+          const allLocations = (await request('/extension-api', 'GET')) as Location[];
+          const loc = allLocations.find((loc) => loc.code === location);
+          const fullLocation = `${loc!.code}, ${loc!.city}, ${loc!.country}`;
+          const proxyServer = loc!.ip;
+
           const emailUsername = email!.split('@')[0];
           const emailPassword = (await $`openssl rand -base64 24`).stdout;
 
@@ -219,7 +189,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             phoneNumber: phone,
           });
 
-          await attempt(sql`UPDATE identities SET location = ${location} WHERE id = ${identityID}`);
+          await attempt(sql`UPDATE identities SET location = ${fullLocation}, proxy_server = ${proxyServer} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`);

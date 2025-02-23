@@ -3,10 +3,13 @@ import {checkContact} from './checks';
 import {Elysia, error} from 'elysia';
 import {contact} from './email';
 
-import creaionProcess from './routes/creation-process';
+import creationProcess from './routes/creation-process';
+import extension from './routes/extension';
+import identity from './routes/identity';
 import settings from './routes/settings';
 import account from './routes/account';
 import billing from './routes/billing';
+import api from './routes/api';
 
 const app = new Elysia()
   .onError(({error}) => ({message: error.message}))
@@ -19,7 +22,10 @@ const app = new Elysia()
     if (result.err) return error(500, result.err);
     return result.message;
   })
-  .use(creaionProcess)
+  .use(api)
+  .use(creationProcess)
+  .use(extension)
+  .use(identity)
   .use(settings)
   .use(account)
   .use(billing)

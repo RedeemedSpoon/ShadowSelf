@@ -4,17 +4,19 @@ import {fetchApi} from '$lib';
 
 export const load: PageServerLoad = async () => {
   const remains = await fetchApi('/account/recovery-remaining', 'GET');
-  const identities = (await fetchApi('/identity/', 'GET')) as Identity[];
-  const searchKeywords: Option[] = [];
-
-  if (!identities.length)
+  const response = await fetchApi('/identity/', 'GET');
+  if (response.type === 'alert')
     return {
       recoveryRemaining: remains.message,
       searchKeywords: [],
       identities: [],
     };
 
-  identities.forEach((identity: Identity) => {
+  const searchKeywords: Option[] = [];
+  const identities = Object.values(response) as Identity[];
+  identities.pop();
+
+  identities.forEach((identity) => {
     const concat = `${identity.name} ${identity.country} ${identity.location} ${identity.id} `;
     concat.concat(`${identity.email} ${identity.phone} ${identity.card} ${identity.accounts}`);
     searchKeywords.push({label: identity.id, value: concat.toLowerCase()});
