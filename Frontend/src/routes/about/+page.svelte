@@ -1,3 +1,7 @@
+<script lang="ts">
+  import {systemDesign} from '$image';
+</script>
+
 <svelte:head>
   <title>ShadowSelf - About</title>
   <meta name="description" content="Learn more about us, ShadowSelf and our mission." />
@@ -10,6 +14,8 @@
     single developer, but we welcome contributions from anyone who can offer their skills and knowledge. To keep this project running
     smoothly, we rely on monetary transactions to cover essential costs like server maintenance and API usage.
   </p>
+  <img class="mx-auto mt-8 w-[75%]" src={systemDesign} alt="System Design" />
+  <small class="mb-4 text-center text-neutral-400">System Design for <a href="/" rel="external">ShadowSelf</a></small>
   <h1>Our Mission</h1>
   <p>
     We're here to revolutionize online privacy and anonymity. We believe that everyone deserves the right to a digital life free from

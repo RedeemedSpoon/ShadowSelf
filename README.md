@@ -69,6 +69,10 @@ sudo cp tmux.sh /usr/bin/{script} # Change {script} to the name of script you wa
 
 If you'd like to contribute, please [open an issue](https://github.com/RedeemedSpoon/ShadowSelf/issues) or [open a pull request](https://github.com/RedeemedSpoon/ShadowSelf/pulls).
 
+Here is the project system design if that might help you understand the architecture of the project better :
+
+<img src="./Frontend/src/lib/images/system-design.webp" width="100%">
+
 ## License
 
 This project is licensed under the GPL-3.0 License. This license allows you to use, modify, and distribute this project. To view a copy of this license, visit [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html).

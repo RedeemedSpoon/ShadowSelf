@@ -6,6 +6,7 @@ export {default as tor} from './links/tor.svg';
 export {default as github} from './links/github.svg';
 export {default as simplex} from './links/simplex.svg';
 export {default as website} from './links/website.svg';
+export {default as systemDesign} from './system-design.webp';
 
 export {default as canvas} from './extensions/canvas.svg';
 export {default as ublock} from './extensions/ublock.svg';
