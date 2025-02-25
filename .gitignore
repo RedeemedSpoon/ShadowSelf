@@ -1,7 +1,7 @@
 bun.lockb
 package-lock.json
 pnpm-lock.yaml
-yarn.lock
+*.lock
 
 Thumbs.db
 .DS_Store
