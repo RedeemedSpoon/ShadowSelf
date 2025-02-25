@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.00] - 2025-2-25
+
+### Added
+
+- Alpha version release
+- Upate website from waitlist to alpha
+- New account table to database
+- New identity routes in elysiaJS
+- Temporary API/Extension route on elysiaJS
+- New individual page for each of youridentity
+- Add more column to identities table on database
+- Dashboard actually retrieve your identities instead
+- New coming soon page to api docs and extension
+- New temporary text to individual identity pages
+- Add system design to project
+- New icons to the project
+
+### Changed
+
+- Update packages
+- Change some route's path
+- Change bcrypt to bcryptJS
+- Change available location for last time
+- Change waitlist to alpha version instead
+- Creation process is have icons and better design
+- Move redirect for sveltekit hooks to nginx instead
+- Move location variable to a request on extension instead
+- InputWithIcon now can hold value as prop and has a different color
+- Temporary image and text to sync/extension on creation process
+- Disable some stuff waiting for the full release
+
 ## [0.4.07] - 2025-2-21
 
 ### Added
