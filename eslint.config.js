@@ -5,10 +5,10 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
+  prettier,
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   ...svelte.configs['flat/recommended'],
-  prettier,
   ...svelte.configs['flat/prettier'],
   {
     languageOptions: {
@@ -32,18 +32,7 @@ export default tseslint.config(
     },
   },
   {
-    files: [
-      '**/*.svelte',
-      '**/*.ts',
-      '**/*.js',
-      '**/*.conf',
-      '**/*.json',
-      '**/*.html',
-      '**/*.css',
-      '**/*.md',
-      '**/*.xml',
-      '**/*.yaml',
-    ],
+    files: ['**/*.svelte', '**/*.ts', '**/*.js'],
     languageOptions: {
       parserOptions: {
         parser: tseslint.parser,

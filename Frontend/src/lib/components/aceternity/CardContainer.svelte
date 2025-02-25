@@ -9,12 +9,7 @@
     children?: Snippet;
   }
 
-  let {
-    className = undefined,
-    containerClassName = undefined,
-    isMouseEntered = $bindable(false),
-    children,
-  }: Props = $props();
+  let {className = undefined, containerClassName = undefined, isMouseEntered = $bindable(false), children}: Props = $props();
 
   let containerRef: HTMLDivElement | undefined = $state();
 

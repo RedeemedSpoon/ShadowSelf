@@ -4,16 +4,26 @@
   "license": "GPL-3.0",
   "private": true,
   "scripts": {
-    "dev": "bun run --watch --env-file=.env src/index.ts",
-    "build": "bun build ./src/index.ts --target=bun --compile  --outfile=server"
+    "dev": "NODE_ENV=dev bun run --watch src/index.ts",
+    "build": "NODE_ENV=prod bun build --compile --minify-whitespace --minify-syntax --target bun --outfile server ./src/index.ts"
   },
   "devDependencies": {
-    "@types/nodemailer": "^6.4.16",
+    "@elysiajs/jwt": "^1.2.0",
+    "@faker-js/faker": "^9.5.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/bun": "^1.2.3",
+    "@types/nodemailer": "^6.4.17",
     "bun-types": "latest",
     "elysia": "latest",
-    "nodemailer": "^6.9.16",
-    "postgres": "^3.4.5"
+    "nodemailer": "^6.10.0",
+    "otpauth": "^9.3.6",
+    "postgres": "^3.4.5",
+    "stripe": "^17.7.0",
+    "twilio": "^5.4.5"
   },
   "type": "module",
-  "module": "src/index.ts"
+  "module": "src/index.ts",
+  "dependencies": {
+    "bcryptjs": "^3.0.2"
+  }
 }

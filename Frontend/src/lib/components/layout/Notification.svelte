@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {alert, info, success} from '$images';
+  import {AlertIcon, InfoIcon, SuccessIcon} from '$icon';
   import {slide} from 'svelte/transition';
   import {notification} from '$store';
 
@@ -7,19 +7,22 @@
   let type = $derived($notification.type);
   let message = $derived($notification.message);
 
-  const icons = {
-    alert: alert,
-    info: info,
-    success: success,
-  };
-
   const handleClick = () => ($notification = {id: null, type: 'info', message: ''});
+
+  const icons = {
+    alert: AlertIcon,
+    info: InfoIcon,
+    success: SuccessIcon,
+  };
 </script>
 
 {#if id}
   <div class="notification {type}" transition:slide={{axis: 'x'}} onclick={handleClick} aria-hidden="true">
-    <img class="mr-4" src={icons[type]} alt={type} width="48px" height="48px" />
-    <p class="text-clip text-nowrap text-xl">{message}</p>
+    {#if type}
+      {@const SvelteComponent = icons[type]}
+      <SvelteComponent />
+    {/if}
+    <p class="text-clip text-xl sm:text-nowrap">{message}</p>
   </div>
 {/if}
 
@@ -27,7 +30,7 @@
   .notification {
     @apply fixed bottom-12 left-8 z-[999] flex items-center border-l-8 bg-neutral-800 bg-opacity-90 p-6;
     @apply cursor-pointer shadow-md shadow-neutral-950 hover:bg-neutral-900;
-    @apply max-sm:bottom-4 max-sm:left-0 max-sm:scale-90;
+    @apply max-sm:-left-6 max-sm:bottom-4 max-sm:scale-75;
   }
 
   .alert {

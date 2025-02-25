@@ -74,8 +74,7 @@
     {#each paths as path, index (index)}
       <Motion isSVG={true}>
         {#snippet children({motion})}
-          <path use:motion d={path} stroke={`url(#linearGradient-${index})`} stroke-opacity="0.4" stroke-width="0.5"
-          ></path>
+          <path use:motion d={path} stroke={`url(#linearGradient-${index})`} stroke-opacity="0.4" stroke-width="0.5"></path>
         {/snippet}
       </Motion>
     {/each}

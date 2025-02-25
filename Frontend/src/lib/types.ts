@@ -1,7 +1,61 @@
 export interface Notification {
   id: number | null;
-  message: string | Error;
+  message: string;
   type: 'success' | 'alert' | 'info';
+}
+
+export interface Faq {
+  question: string;
+  answer: string;
+}
+
+export interface Option {
+  label: string;
+  value: string;
+}
+
+export interface Settings {
+  OTP: boolean;
+  API: boolean;
+  key: string;
+  sessionUrl: string;
+  recovery: number[];
+  email: string;
+}
+
+export interface SettingsForm {
+  toggleModel: boolean;
+  message: string;
+  secret: string;
+  step: number;
+  qr: string;
+}
+
+export interface Identity {
+  id: string;
+  picture: string;
+  name: string;
+  country: string;
+  location: string;
+  email: string;
+  phone: string;
+  card: number;
+  accounts: number;
+}
+
+export interface Registration {
+  step: string;
+  email: string;
+  username: string;
+  recovery: string[];
+  secret: string;
+  qr: string;
+}
+
+export interface ServicesContent {
+  title: string;
+  description: string;
+  images: string[];
 }
 
 export interface AnimationNode {
@@ -16,39 +70,84 @@ export interface AnimationSelector {
   delay?: number;
 }
 
-export interface ServicesContent {
-  title: string;
-  description: string;
-  images: string[];
+export interface CreationProcess {
+  error: string;
+  locations: {
+    country: string;
+    code: string;
+    city: string;
+    ip: string;
+    map: string;
+    localization: string;
+  }[];
+  identity: {
+    picture: string;
+    name: string;
+    bio: string;
+    age: number;
+    sex: 'male' | 'female';
+    ethnicity: string;
+  };
+  repeat: {
+    name: string;
+    bio: string;
+  };
+  phone: {
+    phone: string;
+    formatted: string;
+  }[];
+  email: string;
+  card: string;
+  sync: string;
+  finish: boolean;
+}
+
+export interface FullIdentity {
+  id: string;
+  owner: number;
+  creation_date: Date;
+  payment_intent: string;
+  subscription_id: string;
+  plan: 'monthly' | 'annually' | 'lifetime';
+  status: 'active' | 'inactive' | 'frozen';
+  proxy_server: string;
+  user_agent: string;
+  location: string;
+  picture: string;
+  name: string;
+  bio: string;
+  age: number;
+  sex: string;
+  ethnicity: string;
+  email: string;
+  email_password: string;
+  phone: string;
+  card: number;
 }
 
 export interface PricingModel {
   name: string;
   title: string;
   price: number;
-  days: number;
   description: string;
 }
 
-export const allPricingModel = {
+export const allPricingModels = {
   monthly: {
     title: 'Monthly Subscription',
     description: 'per month',
-    days: 30,
     price: 4.99,
   },
 
   annually: {
     title: 'Annual Subscription',
     description: 'per year',
-    days: 365,
     price: 49.99,
   },
 
   lifetime: {
     title: 'Lifetime Access',
     description: 'one time purchase',
-    days: Infinity,
     price: 199.99,
   },
 };

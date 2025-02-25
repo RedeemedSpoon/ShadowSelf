@@ -1,9 +1,10 @@
 import type {Actions, PageServerLoad} from './$types';
+import type {Option} from '$type';
 import {fetchApi} from '$lib';
 
 export const load: PageServerLoad = () => {
   return {
-    options: [
+    contactOptions: [
       {
         value: 'question',
         label: 'I have a question or a concern',
@@ -17,10 +18,6 @@ export const load: PageServerLoad = () => {
         label: 'I want to collaborate with you',
       },
       {
-        value: 'refund',
-        label: 'I want a to get a refund',
-      },
-      {
         value: 'bug',
         label: 'I found a bug or an issue',
       },
@@ -32,7 +29,7 @@ export const load: PageServerLoad = () => {
         value: 'other',
         label: 'Other',
       },
-    ],
+    ] satisfies Option[],
   };
 };
 

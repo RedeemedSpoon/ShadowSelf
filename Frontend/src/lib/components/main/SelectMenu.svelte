@@ -1,17 +1,31 @@
 <script lang="ts">
-  import {CheveronImg} from '$components';
+  import {onMount, type Component} from 'svelte';
   import {selectionInputOpen} from '$store';
-  import {onMount} from 'svelte';
+  import type {Option} from '$type';
+  import {ChevronIcon} from '$icon';
 
   interface Props {
+    options: Option[] | string[];
+    icon?: Component;
+    value?: string;
     name: string;
-    options: {value: string; label: string}[];
   }
 
-  let {name, options}: Props = $props();
+  let {name, options, value, icon}: Props = $props();
+
+  let givenOptions: Option[] = $state([]);
   let btn: HTMLButtonElement;
   let select: HTMLDivElement;
   let input: HTMLInputElement;
+
+  if (typeof options[0] === 'string') {
+    //@ts-expect-error option is string[]
+    givenOptions = options.map((option) => {
+      return {label: option, value: option.toString().toLowerCase()};
+    });
+  } else {
+    givenOptions = options as Option[];
+  }
 
   function handleBtnSelect(e: MouseEvent) {
     e.stopPropagation();
@@ -24,7 +38,7 @@
     $selectionInputOpen = false;
 
     const target = e.target as HTMLLIElement;
-    const span = btn.childNodes[0] as HTMLSpanElement;
+    const span = btn.childNodes[1] as HTMLSpanElement;
 
     span.innerText = target.innerText;
     input.value = target.id;
@@ -32,29 +46,39 @@
   }
 
   onMount(() => {
-    document.addEventListener('click', (e) => {
-      if (!select.contains(e.target as Node)) {
-        $selectionInputOpen = false;
-      }
-    });
+    function handleClick(e: MouseEvent) {
+      if (!select.contains(e.target as Node)) $selectionInputOpen = false;
+    }
+
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
   });
 </script>
 
-<label for={name.toLowerCase()}>{name}</label>
-<input required bind:this={input} type="hidden" name={name.toLowerCase()} value={options[0].value} />
-
-<div bind:this={select} id="select-input" class="relative">
+<input required bind:this={input} type="hidden" name={name.toLowerCase()} value={value || givenOptions[0].value} />
+<div bind:this={select} id="select-input" class="relative min-w-[15vw]">
   <button type="button" bind:this={btn} onclick={handleBtnSelect}>
-    <span>{options[0].label}</span><CheveronImg className="rotate-90" />
+    <div class="flex items-center gap-2">
+      {#if icon}
+        {@const SvelteComponent = icon}
+        <SvelteComponent className="w-7 h-7 !stroke-none !fill-neutral-300" } />
+      {/if}
+      <span>{givenOptions.find((option) => option.value === value)?.label || givenOptions[0].label}</span>
+    </div>
+    <ChevronIcon className="rotate-90" />
   </button>
   <ul onclick={handleSltClick} class:hidden={!$selectionInputOpen} aria-hidden={!$selectionInputOpen}>
-    {#each options as option}
+    {#each givenOptions as option}
       <li id={option.value}>{option.label}</li>
     {/each}
   </ul>
 </div>
 
 <style lang="postcss">
+  ul {
+    @apply max-h-[275px] overflow-y-scroll;
+  }
+
   li {
     @apply cursor-pointer select-none bg-[#131c2e] px-4 py-3 hover:bg-neutral-800;
     @apply text-lg first:rounded-t-xl last:rounded-b-xl;

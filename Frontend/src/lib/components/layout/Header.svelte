@@ -1,8 +1,9 @@
 <script lang="ts">
-  import {authenticated, scrollY} from '$store';
-  import {HamburgerMenu} from '$components';
-  import {logoBesideText} from '$images';
+  import {HamburgerMenu} from '$component';
+  import {logoBesideText} from '$image';
+  import {scrollY, user} from '$store';
   import {page} from '$app/stores';
+  import {CogIcon} from '$icon';
 
   let isHome = $derived($page.url.pathname === '/');
   let shouldFocus = $derived(isHome && $scrollY < 150);
@@ -13,19 +14,22 @@
   <a href="/" class="max-sm:ml-6">
     <img id="logo" src={logoBesideText} alt="Shadowself Logo" width="276" />
   </a>
-  <div id="nav-container" class="translate-x-0 transition-transform duration-1000 ease-in-out">
+  <div id="nav-container">
     <HamburgerMenu className="!w-16 !h-16">
-      <div id="navigation-links">
+      <div id="navigation-links" class="xl:mr-4">
         <a href="/extension">Extension</a>
         <a href="/purchase">Purchase</a>
         <a href="/docs">Docs</a>
       </div>
       <div id="auth-buttons">
-        {#if $authenticated}
-          <a href="/dashboard">Account Name</a>
+        {#if $user}
+          <div class="flex gap-2">
+            <a href="/settings"><CogIcon className="fill-primary-600 h-7 w-7" /></a>
+            <a href="/dashboard" class="group" id="username">{$user}<span></span></a>
+          </div>
         {:else}
           <a class="text-primary-600 hover:text-primary-700 underline max-xl:mr-2" href="/login">Log In</a>
-          <a href="/signup"><button>Sign Up</button></a>
+          <a href="/signup"><button class="px-5 py-3">Sign Up</button></a>
         {/if}
       </div>
     </HamburgerMenu>
@@ -34,8 +38,20 @@
 
 <style lang="postcss">
   header {
-    @apply fixed top-0 z-50 flex w-full items-center justify-start py-4 backdrop-blur-md sm:justify-evenly md:px-20;
+    @apply fixed top-0 z-50 flex w-full items-center justify-evenly py-4 backdrop-blur-md md:px-20;
     @apply select-none bg-neutral-950 bg-opacity-75 transition-all duration-1000 ease-in-out;
+  }
+
+  #nav-container {
+    @apply translate-x-0 transition-transform duration-1000 ease-in-out;
+  }
+
+  #username {
+    @apply text-primary-600 cursor-pointer font-semibold;
+  }
+
+  span {
+    @apply basic-style block h-[2px] max-w-0 transition-all duration-300 ease-in-out group-hover:!max-w-full;
   }
 
   #logo {

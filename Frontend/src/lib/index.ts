@@ -1,19 +1,11 @@
-import type {Notification, AnimationNode, AnimationSelector} from '$types';
-import {notification, pricingModel} from '$store';
-import {allPricingModel} from '$types';
-import {goto} from '$app/navigation';
+import {notification, showModal, fetching} from '$store';
+import type {Cookies} from '@sveltejs/kit';
+import type {Notification} from '$type';
+import {dev} from '$app/environment';
 import {get} from 'svelte/store';
-import {scrollY} from '$store';
+import {token} from '$store';
 
-export function changePricingModel(model: string) {
-  // @ts-expect-error ts(2322): Some svelte bug prevent type assertion smh
-  pricingModel.set({name: model, ...allPricingModel[model.toLowerCase()]});
-  const margin = model === 'Monthly' ? '0%' : model === 'Annually' ? '33%' : '66%';
-  const element = document.querySelector('#select-model-box') as HTMLElement;
-  element.style.left = margin;
-}
-
-export function notify(message: Notification['message'], type: Notification['type'] = 'info') {
+export function notify(message: string, type: Notification['type'] = 'info') {
   const id = Math.floor(Math.random() * 10000);
   notification.set({message, type, id});
   setTimeout(() => {
@@ -23,74 +15,60 @@ export function notify(message: Notification['message'], type: Notification['typ
   }, 5000);
 }
 
+export async function sendFrom(shouldWait = false, index = 1, condition = true) {
+  if (condition) fetching.set(index);
+  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 650));
+
+  return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
+    fetching.set(0);
+    update({reset: false});
+  };
+}
+
+export async function setModal(index = 1, condition = true) {
+  if (!condition) showModal.set(0);
+  else showModal.set(index);
+
+  return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
+    update({reset: false});
+  };
+}
+
+export function toTitleCase(str: string): string {
+  return str.replace(/\w\S*/g, (txt) => {
+    return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
+  });
+}
+
 export async function fetchApi(url: string, method = 'GET', body?: Record<string, unknown>) {
-  return await fetch('http://localhost:3000/api' + url, {
-    method,
-    headers: {'Content-Type': 'application/json'},
+  return await fetch('http://localhost:3000' + url, {
+    headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
     body: body ? JSON.stringify(body) : undefined,
+    method,
   })
-    .then((res) => res.json())
-    .catch(() => ({message: 'An error occurred. Please try again later.', type: 'alert'}));
-}
+    .then(async (res) => {
+      const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';
 
-export function addTabScrollEvent(sectionsIds: string[]) {
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      let currentSection = Math.ceil((get(scrollY) + 10) / window.innerHeight);
-      if ((currentSection === 1 && e.shiftKey) || (currentSection === sectionsIds.length && !e.shiftKey)) {
-        goto(`#${sectionsIds[0]}`);
-        return;
-      }
-
-      currentSection = e.shiftKey ? currentSection - 2 : currentSection;
-      goto(`#${sectionsIds[currentSection]}`);
-    }
-  });
-}
-
-export function addAnimation(elements: AnimationSelector[]) {
-  function returnTranslate(type: AnimationNode['type']) {
-    if (window.innerWidth < 1269 || type === 'bottom') return '!translate-y-24';
-    return type === 'left' ? 'sm:!-translate-x-24' : 'sm:!translate-x-24';
-  }
-
-  const nodes = elements.map((element) => {
-    const query = document.querySelectorAll(element.selector) as NodeListOf<HTMLElement>;
-    const object: AnimationNode[] = [];
-
-    query.forEach((node, key) => {
-      const translate = returnTranslate(element.type);
-
-      node.classList.add('transition-all', '!duration-1000', 'ease-in-out', 'opacity-0', translate);
-      object.push({
-        node: node,
-        delay: element.delay || 100 * key,
-        type: element.type,
-      });
-    });
-
-    return object;
-  });
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      const target = animatedNodes.find((node) => node.node === entry.target) as AnimationNode;
-      const translate = returnTranslate(target?.type);
-
-      if (entry.isIntersecting) {
-        setTimeout(() => {
-          entry.target.classList.add('!duration-1000');
-          entry.target.classList.remove('opacity-0', translate);
-        }, target?.delay);
+      if (res.headers.get('Content-Type')?.includes('application/json')) {
+        const message = await res.json();
+        return {...message, type};
       } else {
-        entry.target.classList.remove('!duration-1000');
-        entry.target.classList.add('opacity-0', translate);
+        const message = await res.text();
+        return {message, type};
       }
-    });
-  });
+    })
+    .catch(() => ({message: 'An error occurred. Please try again later', type: 'alert'}));
+}
 
-  const animatedNodes = nodes.flat(1);
-  animatedNodes.forEach((node) => observer.observe(node.node));
-  return () => observer.disconnect();
+export function createCookie(cookies: Cookies, name: string, value: string, short: boolean = false) {
+  return cookies.set(name, value, {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    domain: dev ? 'localhost' : 'shadowself.io',
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    maxAge: short ? 3_600_000 : 2_592_000_000,
+    sameSite: 'strict',
+    priority: 'high',
+  });
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  let {className = '!w-6 !h-6 !fill-green-500'}: {className?: string | undefined} = $props();
+  let {className = '!cursor-pointer !w-6 !h-6'}: {className?: string | undefined} = $props();
 </script>
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class={className + ' small-icon'}>

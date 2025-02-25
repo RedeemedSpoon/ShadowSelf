@@ -1,12 +1,24 @@
-import type {Handle} from '@sveltejs/kit';
+import {redirect, type Handle} from '@sveltejs/kit';
 
 export const handle: Handle = async ({event, resolve}) => {
-  if (event.url.pathname.startsWith('/api/extension')) {
-    const response = await fetch(`http://localhost:3000${event.url.pathname}`, event.request)
-      .then((res) => res.json())
-      .catch((error) => ({message: error.message, type: 'alert'}));
+  const isLogged = event.cookies.get('token');
+  const path = event.url.pathname;
 
-    return new Response(JSON.stringify(response), {headers: {'Content-Type': 'application/json'}});
+  if (path === '/identity' || path === '/identity/') {
+    redirect(302, '/dashboard');
+  }
+
+  if (['/login', '/signup'].includes(path) && isLogged) {
+    redirect(302, '/dashboard');
+  }
+
+  if (['/dashboard', '/settings', '/identity/', '/purchase', '/create'].includes(path) && !isLogged) {
+    redirect(302, '/login');
+  }
+
+  if (path === '/logout') {
+    event.cookies.delete('token', {path: '/'});
+    redirect(302, '/');
   }
 
   return resolve(event);

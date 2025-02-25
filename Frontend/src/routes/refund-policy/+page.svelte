@@ -8,40 +8,41 @@
   <h6>Want a refund? Cool, just check out our refund policy first.</h6>
   <section>
     <p>
-      <span>TLDR</span> Want to try Shadowself but not sure if it's for you? No worries! You've got 14 days to change your
-      mind and get a full refund. Just shoot us a message on our contact page and we'll take care of it within a week.
+      <span>TLDR</span> Not sure if Shadowself is right for you? No problem! You have 14 days to change your mind and receive a full refund.
+      Simply delete your identity in the identity individual page, and if it was created less than 14 days ago, you’ll be eligible and get
+      refunded automatically within a few short minutes.
     </p>
   </section>
   <p>
-    We, Shadowself, are committed to providing you with the highest services quality and customer satisfaction. That's
-    why we offer a refund policy for anyone who finds our service unsatisfactory.
+    We, Shadowself, are committed to providing you with the highest services quality and customer satisfaction. That's why we offer a
+    refund policy for anyone who finds our service unsatisfactory.
   </p>
   <h3>Refund Eligibility</h3>
   <p>
-    To ensure your satisfaction, we offer a 14-day, no-questions-asked refund policy. This means you may request a full
-    refund within 14 days of your initial purchase, provided that you have not violated any of our terms and conditions.
+    To ensure your satisfaction, we offer a 14-day, no-questions-asked refund policy. This means you may request a full refund within
+    14 days of your initial purchase, provided that you have not violated any of our terms and conditions.
   </p>
   <h3>How to Request a Refund</h3>
   <p>
-    To initiate a refund request, please contact us via our designated <a href="/contact">contact</a> page. Please provide
-    your identity ID, Your username and a brief explanation of the reason for your refund request.
+    To request a refund, please visit your individual identity page and delete it. If it was created less than 14 days ago, you will be
+    eligible for a full refund. And if you'd like to help us improve our service state a reason for the refund.
   </p>
   <h3>Refund Processing Time</h3>
   <p>
-    Upon receipt of your refund request, we will process it promptly. You can expect your refund to be credited to your
-    original payment method within 7 business days.
+    Upon receipt of your refund request, our systems will take care of request automatically. You can expect your refund to be complete
+    within a few minutes. there might be disputes with stripe but we will find a way to resolve them.
   </p>
   <h3>Data Privacy</h3>
   <p>
-    Rest assured that any personal information provided during the refund process will be handled with the utmost care
-    and in accordance with our Privacy Policy.
+    Rest assured that any personal information provided during the refund process will be handled with the utmost care and in
+    accordance with our Privacy Policy.
   </p>
   <h3>Contact Us</h3>
   <p>
-    Should you have any questions or concerns regarding our refund policy or service, please do not hesitate to contact
-    us and we will get back to you as soon as possible.
+    Should you have any questions or concerns regarding our refund policy or service, please do not hesitate to contact us and we will
+    get back to you as soon as possible.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: November 5, 2024</small>
+  <small class="text-lg text-neutral-500">Last updated: January 23, 2025</small>
 </div>
 
 <style lang="postcss">

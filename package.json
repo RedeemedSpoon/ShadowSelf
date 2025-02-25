@@ -8,16 +8,16 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "@types/eslint": "^9.6.1",
-    "eslint": "^9.13.0",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-svelte": "^2.46.0",
-    "globals": "^15.11.0",
+    "prettier-plugin-svelte": "^3.3.3",
+    "eslint-plugin-svelte": "^2.46.1",
+    "typescript-eslint": "^8.25.0",
     "autoprefixer": "^10.4.20",
-    "prettier": "^3.3.3",
-    "prettier-plugin-svelte": "^3.2.7",
-    "prettier-plugin-tailwindcss": "^0.6.8",
-    "typescript-eslint": "^8.12.2"
+    "@types/eslint": "^9.6.1",
+    "globals": "^15.15.0",
+    "prettier": "^3.5.2",
+    "eslint": "^9.21.0"
   },
   "type": "module"
 }

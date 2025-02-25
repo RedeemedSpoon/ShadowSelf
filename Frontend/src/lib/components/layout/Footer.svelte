@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {logo, github, tor, simplex} from '$images';
+  import {logo, github, tor, simplex} from '$image';
 
   const year = new Date().getFullYear();
   const navLinks = {
@@ -36,7 +36,7 @@
           <p class="font-bold text-neutral-400">{key}</p>
           {#each value as link}
             {@const url = link === 'Homepage' ? '/' : `/${link.toLowerCase().replace(/ /g, '-')}`}
-            <a class="alt" href={url}>{link}</a>
+            <a href={url}>{link}</a>
           {/each}
         </div>
       {/each}

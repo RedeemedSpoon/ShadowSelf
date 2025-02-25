@@ -1,8 +1,8 @@
 <p align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./Frontend/src/lib/images/logo/logo-white-text.svg">
-  <img alt="ShadowSelf" src="./Frontend/src/lib/images/logo/logo-black-text.svg" width="60%">
-</picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./Frontend/src/lib/images/logo/logo-white-text.svg">
+    <img alt="ShadowSelf" src="./Frontend/src/lib/images/logo/logo-black-text.svg" width="60%">
+  </picture>
 </p>
 
 ## ShadowSelf Overview
@@ -10,8 +10,6 @@
 [ShadowSelf](https://shadowself.io) is a web application that allows any individual to safeguard their privacy and anonymity in the digital age. With it, you can generate synthetic identities, complete with functional phone numbers, virtual cards, email addresses, proxies, metadata, names, nationalities and way more exciting stuff....
 
 By utilizing such fabricated identities, you can register for online services while concealing you true identity, offering a significant step toward protecting you privacy & right to remain anonymous online.
-
-The project is still in beta phase and is still under heavy development. You can subscribe to our [waitlist](https://shadowself.io/#waitlist) to get notified when it's ready.
 
 ## Running Locally
 
@@ -70,6 +68,10 @@ sudo cp tmux.sh /usr/bin/{script} # Change {script} to the name of script you wa
 ## Contribution
 
 If you'd like to contribute, please [open an issue](https://github.com/RedeemedSpoon/ShadowSelf/issues) or [open a pull request](https://github.com/RedeemedSpoon/ShadowSelf/pulls).
+
+Here is the project system design if that might help you understand the architecture of the project better :
+
+<img src="./Frontend/src/lib/images/system-design.webp" width="100%">
 
 ## License
 

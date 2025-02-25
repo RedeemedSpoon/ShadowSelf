@@ -1,8 +1,8 @@
 <script lang="ts">
   import {onMount, type Snippet} from 'svelte';
-  import type {ServicesContent} from '$types';
+  import type {ServicesContent} from '$type';
   import {scrollYProgress} from '$store';
-  import {Card} from '$components';
+  import {Card} from '$component';
 
   let activeCard = $state(0);
   let direction = $state('down');

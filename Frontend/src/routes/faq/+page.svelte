@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Cheveron from '$components/icons/Cheveron.svelte';
   import type {PageData} from './$types';
+  import {ChevronIcon} from '$icon';
 
   let {data}: {data: PageData} = $props();
 
@@ -41,7 +41,7 @@
       <div class="question">
         <div onclick={() => handleClick(index)} aria-hidden="true">
           <h3>{question.question}</h3>
-          <h4 class="rotate-180"><Cheveron className="rotate-[-90deg]" /></h4>
+          <h4 class="rotate-180"><ChevronIcon className="rotate-[-90deg]" /></h4>
         </div>
         <p>{question.answer}</p>
       </div>

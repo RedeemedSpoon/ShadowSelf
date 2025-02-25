@@ -2,22 +2,24 @@ export {default as icon} from './logo/icon.svg';
 export {default as logo} from './logo/logo-white-text.svg';
 export {default as logoBesideText} from './logo/logo-beside-text.svg';
 
-export {default as simplex} from './links/simplex.svg';
-export {default as github} from './links/github.svg';
 export {default as tor} from './links/tor.svg';
+export {default as github} from './links/github.svg';
+export {default as simplex} from './links/simplex.svg';
+export {default as website} from './links/website.svg';
+export {default as systemDesign} from './system-design.webp';
 
-export {default as info} from './status/info.svg';
-export {default as alert} from './status/alert.svg';
-export {default as success} from './status/success.svg';
+export {default as canvas} from './extensions/canvas.svg';
+export {default as ublock} from './extensions/ublock.svg';
+export {default as screenshot} from './extensions/screenshot.webp';
 
 export {default as circuitPattern} from './patterns/circuit-pattern.svg';
-
-export {default as satisfaction} from './homepage/satisfaction.webp';
-export {default as background} from './homepage/background.webp';
-export {default as dashboard} from './homepage/dashboard.webp';
+export {default as worldMap} from './patterns/world-map.svg';
 
 export {default as registration} from './homepage/usecases/registration.svg';
 export {default as management} from './homepage/usecases/management.svg';
+export {default as satisfaction} from './homepage/satisfaction.webp';
+export {default as background} from './homepage/background.webp';
+export {default as dashboard} from './homepage/dashboard.webp';
 
 export {default as cog} from './homepage/features/cog.svg';
 export {default as tag} from './homepage/features/tag.svg';

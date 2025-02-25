@@ -1,12 +1,13 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
+
   interface Props {
     color?: string;
+    animate?: boolean;
     className?: string;
     upperClass?: string;
-    animate?: boolean;
     isMouseEntered?: boolean;
-    children?: Snippet;
+    children: Snippet;
   }
 
   let {color, className, upperClass, animate, isMouseEntered, children}: Props = $props();

@@ -1,8 +1,9 @@
 <script lang="ts">
-  import type {Notification} from '$types';
-  import {SelectMenu} from '$components';
+  import {SelectMenu, LoadingButton} from '$component';
+  import type {Notification} from '$type';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
+  import {fetching} from '$store';
   import {notify} from '$lib';
 
   interface Props {
@@ -13,8 +14,20 @@
   let {data, form}: Props = $props();
 
   $effect(() => {
-    if (form?.message) notify(form?.message, form?.type);
+    if (form?.message) notify(form.message, form.type);
   });
+
+  async function handleForm() {
+    fetching.set(1);
+    await new Promise((resolve) => setTimeout(resolve, 750));
+
+    // @ts-expect-error TS2322
+    return async ({update, result}) => {
+      fetching.set(0);
+      if (result.data.type && result.data.type === 'success') update({reset: true});
+      update({reset: false});
+    };
+  }
 </script>
 
 <svelte:head>
@@ -26,26 +39,23 @@
   <section>
     <h1 class="basic-style max-md:text-5xl">Contact Us</h1>
     <p class="text-center sm:w-3/4 lg:w-1/2">
-      If you have any questions, concerns, or feedback, please don't hesitate to contact us. We look forward to hearing
-      from you!
+      If you have any questions, concerns, or feedback, please don't hesitate to contact us. We look forward to hearing from you!
     </p>
   </section>
-  <form
-    use:enhance={() => {
-      return async ({update, result}) => {
-        if (result.data.type !== 'success') update({reset: false});
-        update({reset: true});
-      };
-    }}
-    method="POST">
+  <form use:enhance={handleForm} method="POST">
     <label for="subject">Subject</label>
     <input type="text" required placeholder="I am looking for..." name="subject" id="subject" />
-    <SelectMenu name="Category" options={data.options} />
+
+    <label for="category">Category</label>
+    <SelectMenu name="Category" options={data.contactOptions} />
+
     <label for="email">Email (optional)</label>
     <input type="email" placeholder="user@example.com" name="email" id="email" />
+
     <label for="message">Message</label>
     <textarea name="message" id="message" required placeholder="Your message goes here"></textarea>
-    <button type="submit">Submit</button>
+
+    <LoadingButton>Submit</LoadingButton>
   </form>
 </div>
 
@@ -64,5 +74,9 @@
 
   form {
     @apply flex flex-col gap-4;
+  }
+
+  label {
+    @apply ml-2 mt-4;
   }
 </style>

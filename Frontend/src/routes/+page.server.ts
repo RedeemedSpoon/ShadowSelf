@@ -1,10 +1,9 @@
-import type {Actions, PageServerLoad} from './$types';
-import type {AnimationSelector} from '$types';
-import {fetchApi} from '$lib';
+import type {PageServerLoad} from './$types';
+import type {AnimationSelector} from '$type';
 
 export const load: PageServerLoad = () => {
   return {
-    ids: ['welcome', 'product', 'services', 'usecases', 'features', 'pricing', 'solution', 'waitlist'],
+    homepageIds: ['welcome', 'product', 'services', 'usecases', 'features', 'pricing', 'solution', 'join'],
     animations: [
       {
         selector: '#welcome > *:not(#background)',
@@ -55,17 +54,9 @@ export const load: PageServerLoad = () => {
         type: 'right',
       },
       {
-        selector: '#waitlist > *:not(div)',
+        selector: '#join > *:not(div)',
         type: 'bottom',
       },
     ] satisfies AnimationSelector[],
   };
-};
-
-export const actions: Actions = {
-  default: async ({request}) => {
-    const data = await request.formData();
-    const email = data.get('email') as string;
-    return await fetchApi('/join', 'POST', {email});
-  },
 };

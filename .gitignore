@@ -6,13 +6,11 @@ yarn.lock
 Thumbs.db
 .DS_Store
 .output
-.env
 
 build
+server
 node_modules
 .svelte-kit
-server
 
-*.crt
-*.key
+*.env
 *.pem

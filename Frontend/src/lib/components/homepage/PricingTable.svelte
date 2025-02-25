@@ -1,14 +1,32 @@
 <script lang="ts">
-  import {Card, CheckmarkImg, CheveronImg, QuestionImg} from '$components';
-  import {changePricingModel} from '$lib';
-  import {pricingModel} from '$store';
+  import {CheckmarkIcon, ChevronIcon, QuestionIcon} from '$icon';
+  import {user, pricingModel} from '$store';
+  import {allPricingModels} from '$type';
   import {fly} from 'svelte/transition';
+  import {Card} from '$component';
+  import {onMount} from 'svelte';
+
+  function changePricingModel(model: string) {
+    const chosenModel = model.toLowerCase() as keyof typeof allPricingModels;
+    pricingModel.set({name: model, ...allPricingModels[chosenModel]});
+
+    const margin = model === 'Monthly' ? '0%' : model === 'Annually' ? '33%' : '66%';
+    const element = document.querySelector('#select-model-box') as HTMLElement;
+    element.style.left = margin;
+  }
 
   const title = [
-    'You can manage your identities and online account linked to it such as passwords and credentials',
     'You get a 14-day money-back guarantee, during which you can request a refund.',
     'You can email us at anytime and we will assist you with any questions or issues you may have.',
   ];
+
+  const sections = [
+    ['Personal Attributes', 'Email Address', 'Phone Number'],
+    ['Virtual Card', 'VPN Access', 'Account Management'],
+    ['14 Day Refund', '24/7 Support'],
+  ];
+
+  onMount(() => changePricingModel($pricingModel.name));
 </script>
 
 <div class="mb-16 flex flex-col items-center gap-4 max-sm:-mb-48 max-sm:scale-[65%]">
@@ -19,7 +37,7 @@
   <div id="pricing-model">
     <div id="select-model-box"></div>
     {#each ['Monthly', 'Annually', 'Lifetime'] as model}
-      <button class:!text-neutral-300={model === $pricingModel.name} onclick={() => changePricingModel(model)}>
+      <button type="button" class:!text-neutral-300={model === $pricingModel.name} onclick={() => changePricingModel(model)}>
         {model}
       </button>
     {/each}
@@ -39,35 +57,32 @@
         </div>
       </div>
     {/key}
-    <div class="flex gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
-      <ul>
-        <li><CheckmarkImg />Custom Identity</li>
-        <li><CheckmarkImg />Email Address</li>
-        <li><CheckmarkImg />Phone Number</li>
-      </ul>
-      <ul>
-        <li><CheckmarkImg />Virtual Card</li>
-        <li><CheckmarkImg />Crypto Wallet</li>
-        <li><CheckmarkImg />VPN Access</li>
-      </ul>
-      <ul>
-        <li><CheckmarkImg />Account Management<span title={title[0]}><QuestionImg /></span></li>
-        <li><CheckmarkImg />14 Day Refund<span title={title[1]}><QuestionImg /></span></li>
-        <li><CheckmarkImg />24/7 Support<span title={title[2]}><QuestionImg /></span></li>
-      </ul>
+    <div class="flex w-full gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
+      {#each sections as section, index (index)}
+        <ul>
+          {#each section as item}
+            <li>
+              <CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />
+              {item}
+              {#if index === 2}
+                <span title={title[section.indexOf(item)]}>
+                  <QuestionIcon className="cursor-help -ml-2 !w-4 !h-4 !fill-neutral-700" /></span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      {/each}
     </div>
-    <p class="-my-4 text-sm text-neutral-500">All major crypto currencies are supported.</p>
   </div>
-  <a href="/signup">
-    <button id="purchase">Purchase<CheveronImg className="!w-10 !h-10" /></button>
+  <a href={$user ? '/purchase' : '/login'}>
+    <button id="purchase">Purchase<ChevronIcon /></button>
   </a>
 </Card>
 
 <style lang="postcss">
   #purchase {
-    @apply from-primary-700 to-primary-800 bg-gradient-to-b shadow-none;
-    @apply w-full rounded-none rounded-b-xl border-t-2 border-neutral-400 text-center text-3xl font-bold;
-    @apply mt-8 flex w-full items-center justify-center gap-1 p-8 text-4xl font-bold;
+    @apply rounded-none rounded-b-xl border-t-2 border-neutral-400 shadow-md;
+    @apply mt-8 flex w-full items-end justify-center gap-1 p-8 text-4xl font-semibold;
   }
 
   #pricing-model {
@@ -88,9 +103,5 @@
 
   li {
     @apply inline-flex flex-nowrap items-center justify-start gap-4 text-nowrap;
-  }
-
-  span {
-    @apply cursor-pointer;
   }
 </style>

@@ -1,4 +1,5 @@
 import type {PageLoad} from './$types';
+import type {Faq} from '$type';
 
 export const load: PageLoad = () => {
   return {
@@ -46,7 +47,7 @@ export const load: PageLoad = () => {
       {
         question: 'Can I permanently delete synthetic identities?',
         answer:
-          "Deleting your ShadowSelf account won't automatically delete your synthetic identities. To permanently erase them, press that dangerous red button in the corner. It's a one-way trip, so make sure you're absolutely certain before you press it.",
+          'Deleting your ShadowSelf account will remove your synthetic identities and stop your subscription. To erase them manually, go to the individual identity pages and delete it there. This is permanent, so be sure before proceeding.',
       },
       {
         question: 'What are the benefits of synthetic identities?',
@@ -112,6 +113,6 @@ export const load: PageLoad = () => {
         answer:
           "Well, to be honest, yes. But we're also providing a valuable service. Running and maintaining a service like ShadowSelf costs money. We need to cover our expenses to keep the lights on. It's a balancing act between providing a service and making a profit. But hey, isn't that how most businesses work?",
       },
-    ] satisfies {question: string; answer: string}[],
+    ] satisfies Faq[],
   };
 };
