@@ -9,19 +9,21 @@
   },
   "devDependencies": {
     "@elysiajs/jwt": "^1.2.0",
-    "@faker-js/faker": "^9.4.0",
+    "@faker-js/faker": "^9.5.0",
     "@types/bcrypt": "^5.0.2",
-    "@types/bun": "^1.2.2",
+    "@types/bun": "^1.2.3",
     "@types/nodemailer": "^6.4.17",
-    "bcrypt": "^5.1.1",
     "bun-types": "latest",
     "elysia": "latest",
     "nodemailer": "^6.10.0",
     "otpauth": "^9.3.6",
     "postgres": "^3.4.5",
-    "stripe": "^17.6.0",
-    "twilio": "^5.4.4"
+    "stripe": "^17.7.0",
+    "twilio": "^5.4.5"
   },
   "type": "module",
-  "module": "src/index.ts"
+  "module": "src/index.ts",
+  "dependencies": {
+    "bcryptjs": "^3.0.2"
+  }
 }
