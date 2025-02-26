@@ -11,7 +11,7 @@
   <h1>Coming Soon<RocketIcon /></h1>
   <p class="text-center">
     We're working diligently to bring you the full ShadowSelf experience. While we're currently in the alpha phase, the complete
-    version will be available on <b>April 27th</b>. Stay tuned for the launch!
+    version will be available on <b>April 16th</b>. Stay tuned for the launch!
   </p>
   <a href="/"><button class="flex items-center gap-1">Go Home<ChevronIcon /></button></a>
 </div>

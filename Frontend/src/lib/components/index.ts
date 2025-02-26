@@ -22,6 +22,12 @@ export {default as SearchInput} from './main/SearchInput.svelte';
 export {default as ContinuousProcess} from './main/ContinuousProcess.svelte';
 export {default as ExtensionLinks} from './main/ExtensionLinks.svelte';
 
+export {default as IdentityEmail} from './identity/Email.svelte';
+export {default as IdentityPhone} from './identity/Phone.svelte';
+export {default as IdentityAccounts} from './identity/Accounts.svelte';
+export {default as IdentityVirtualCard} from './identity/VirtualCard.svelte';
+export {default as IdentityInformation} from './identity/Information.svelte';
+
 export {default as Slogan} from './homepage/Slogan.svelte';
 export {default as Card3D} from './homepage/Card3D.svelte';
 export {default as WordFlip} from './homepage/WordFlip.svelte';

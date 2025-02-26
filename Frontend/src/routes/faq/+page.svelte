@@ -78,6 +78,6 @@
   }
 
   p {
-    @apply max-h-0 px-2 text-neutral-400 transition-all duration-300 ease-in-out;
+    @apply max-h-0 overflow-hidden px-2 text-neutral-400 transition-all duration-300 ease-in-out;
   }
 </style>

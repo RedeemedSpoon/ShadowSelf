@@ -1,29 +1,38 @@
 <script lang="ts">
-  import {RocketIcon, ChevronIcon} from '$icon';
+  import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityVirtualCard, IdentityAccounts} from '$component';
   import type {PageProps} from './$types';
+  import type {Sections} from '$type';
+  import {ChevronIcon} from '$icon';
 
   let {data}: PageProps = $props();
-  console.log(data);
+
+  let currentSection: Sections = $state('info');
+
+  const allSections = {
+    info: IdentityInformation,
+    email: IdentityEmail,
+    phone: IdentityPhone,
+    card: IdentityVirtualCard,
+    account: IdentityAccounts,
+  };
 </script>
 
 <svelte:head>
-  <title>ShadowSelf - Browser Extension</title>
+  <title>ShadowSelf - {data.identity?.name}'s Identity</title>
   <meta name="description" content="Take control of your identity, personalize your preferences, and protect your privacy here." />
 </svelte:head>
 
 <div id="identity">
   {#if data.identity}
-    <h1>Coming Soon<RocketIcon /></h1>
-    <p class="text-center">
-      This section is currently under active development. The first beta release is scheduled for <b>March 9</b> and the full release
-      is scheduled for <b>April 27</b>. Stay tuned for the exciting updates!
-    </p>
-    <p><b>Identity ID</b> : {data.slug}</p>
-    <a href="/dashboard"><button class="flex items-center gap-1">Dashboard<ChevronIcon /></button></a>
+    {#each Object.keys(allSections) as section}
+      <button class:enable={section === currentSection} onclick={() => (currentSection = section as Sections)}>section</button>
+    {/each}
+    {@const SvelteComponent = allSections[currentSection]}
+    <SvelteComponent />
   {:else}
     <h1>Identity Not Found</h1>
     <p class="text-center">
-      The identity you're looking for doesn't exist, or your account isn't the owner.
+      The identity you're looking for doesn't exist, or your account isn't the owner of this identity.
       <br class="max-lg:hidden" /> Please verify the URL and try again.
     </p>
     <a href="/dashboard"><button class="flex items-center gap-1">Dashboard<ChevronIcon /></button></a>

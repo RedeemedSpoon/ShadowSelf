@@ -1,3 +1,5 @@
+export type Sections = 'info' | 'email' | 'phone' | 'card' | 'account';
+
 export interface Notification {
   id: number | null;
   message: string;
