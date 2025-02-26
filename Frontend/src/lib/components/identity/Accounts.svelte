@@ -1,7 +1,6 @@
-<section>
-  <h1>Identity Accounts</h1>
-  <p>
-    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nisi, quidem saepe atque accusantium quasi perferendis praesentium
-    sapiente velit, impedit adipisci odio ex hic perspiciatis labore corporis non modi excepturi repudiandae!
-  </p>
-</section>
+<ul class="list-disc">
+  <li>Add Accounts</li>
+  <li>View/Copy Accounts</li>
+  <li>Change Accounts</li>
+  <li>Delete Accounts</li>
+</ul>

@@ -1,7 +1,6 @@
-<section>
-  <h1>Identity General Information</h1>
-  <p>
-    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nisi, quidem saepe atque accusantium quasi perferendis praesentium
-    sapiente velit, impedit adipisci odio ex hic perspiciatis labore corporis non modi excepturi repudiandae!
-  </p>
-</section>
+<ul class="list-disc">
+  <li>View Information</li>
+  <li>Change Information</li>
+  <li>Delete identity</li>
+  <li>Cancel identity</li>
+</ul>

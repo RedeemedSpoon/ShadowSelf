@@ -1,7 +1,8 @@
-<section>
-  <h1>Identity Email Address</h1>
-  <p>
-    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nisi, quidem saepe atque accusantium quasi perferendis praesentium
-    sapiente velit, impedit adipisci odio ex hic perspiciatis labore corporis non modi excepturi repudiandae!
-  </p>
-</section>
+<ul class="list-disc">
+  <li>Receive Emails</li>
+  <li>Browse Emails</li>
+  <li>Display Emails</li>
+  <li>Sanitize Emails</li>
+  <li>Send Emails</li>
+  <li>Delete Emails</li>
+</ul>

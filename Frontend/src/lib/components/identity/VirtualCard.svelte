@@ -1,7 +1,6 @@
-<section>
-  <h1>Identity Virtual Card</h1>
-  <p>
-    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nisi, quidem saepe atque accusantium quasi perferendis praesentium
-    sapiente velit, impedit adipisci odio ex hic perspiciatis labore corporis non modi excepturi repudiandae!
-  </p>
-</section>
+<ul class="list-disc">
+  <li>Add Funds</li>
+  <li>Retrieve Funds</li>
+  <li>Spend Funds</li>
+  <li>View Purchases</li>
+</ul>
