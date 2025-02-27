@@ -29,6 +29,20 @@ export {default as RecoveryIcon} from './Recovery.svelte';
 export {default as AddUserIcon} from './AddUser.svelte';
 export {default as UserIcon} from './User.svelte';
 
+export {default as UserAddIcon} from './UserAdd.svelte';
+export {default as UserEditIcon} from './UserEdit.svelte';
+export {default as UserDeleteIcon} from './UserDelete.svelte';
+
+export {default as SendIcon} from './Send.svelte';
+export {default as EditIcon} from './Edit.svelte';
+export {default as TrashIcon} from './Trash.svelte';
+export {default as CancelIcon} from './Cancel.svelte';
+
+export {default as LimitIcon} from './Limit.svelte';
+export {default as TransferIcon} from './Transfer.svelte';
+export {default as AddFundsIcon} from './AddFunds.svelte';
+export {default as RetrieveFundsIcon} from './RetrieveFunds.svelte';
+
 export {default as LogoutIcon} from './Logout.svelte';
 export {default as IssuesIcon} from './Issues.svelte';
 export {default as ChangelogIcon} from './Changelog.svelte';

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityVirtualCard, IdentityAccounts} from '$component';
+  import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts} from '$component';
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
   import type {PageProps} from './$types';
   import type {Sections} from '$type';
@@ -21,7 +21,7 @@
     info: IdentityInformation,
     email: IdentityEmail,
     phone: IdentityPhone,
-    card: IdentityVirtualCard,
+    card: IdentityCard,
     account: IdentityAccounts,
   };
 </script>
@@ -71,6 +71,6 @@
   }
 
   .main {
-    @apply border-b-[3px] !border-neutral-300 !text-neutral-300;
+    @apply !border-b-[3px] !border-neutral-300 !text-neutral-300;
   }
 </style>

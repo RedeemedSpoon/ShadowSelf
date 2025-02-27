@@ -1,6 +1,6 @@
 <script lang="ts">
   import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
-  import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
+  import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon, LimitIcon} from '$icon';
   import {PhoneIcon, EmailIcon, CreditCardIcon, UserIcon, ExtensionIcon, PinIcon} from '$icon';
   import {currentStep, fetching, showModal} from '$store';
   import {ublock, canvas, screenshot} from '$image';
@@ -314,9 +314,9 @@
       {:else if $currentStep === 5}
         <h3>Make your virtual card</h3>
         <p class="lg:w-1/2">Forge your own virtual card that you can use to make payments.</p>
-        <button disabled class="flex items-center justify-center gap-2 text-wrap sm:w-1/3" onclick={() => handleEvent('sync')}>
-          <CreditCardIcon className={'!h-6 !w-6 fill-neutral-300'} fill={true} />Currently unavailable
-        </button>
+        <p>Currently unavailable</p>
+        <!-- <CreditCardIcon className={'!h-6 !w-6 fill-neutral-300'} fill={true} /> -->
+        <!-- <InputWithIcon icon={LimitIcon} type="number" value={'100'} placeholder="100$" name="limit" /> -->
       {:else if $currentStep === 6}
         <h3>Install our browser extension</h3>
         <p class="lg:w-1/2">

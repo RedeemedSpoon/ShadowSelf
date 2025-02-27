@@ -1,10 +1,10 @@
 <script lang="ts">
+  import {SendIcon, TrashIcon, RepeatIcon} from '$icon';
   import {ActionIcon} from '$component';
 </script>
 
 <ul class="list-disc">
-  <li>Receive SMS</li>
-  <li>Read SMS</li>
-  <li>Send SMS</li>
-  <li>Delete SMS</li>
+  <li>Refresh<ActionIcon icon={RepeatIcon} action={() => {}} title="Refresh" /></li>
+  <li>Send SMS<ActionIcon icon={SendIcon} action={() => {}} title="Send SMS" /></li>
+  <li>Delete SMS<ActionIcon icon={TrashIcon} action={() => {}} title="Delete SMS" /></li>
 </ul>
