@@ -1,3 +1,7 @@
+<script lang="ts">
+  import {ActionIcon} from '$component';
+</script>
+
 <ul class="list-disc">
   <li>View Information</li>
   <li>Change Information</li>

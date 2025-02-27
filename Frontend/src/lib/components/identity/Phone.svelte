@@ -1,3 +1,7 @@
+<script lang="ts">
+  import {ActionIcon} from '$component';
+</script>
+
 <ul class="list-disc">
   <li>Receive SMS</li>
   <li>Read SMS</li>

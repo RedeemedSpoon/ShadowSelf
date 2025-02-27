@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon} from '$component';
+  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
   import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
   import {PhoneIcon, EmailIcon, CreditCardIcon, UserIcon, ExtensionIcon, PinIcon} from '$icon';
   import {currentStep, fetching, showModal} from '$store';
@@ -254,9 +254,11 @@
           <div class="flex w-full flex-col gap-4 md:w-1/2 lg:w-1/3">
             <div class="flex items-end gap-4">
               <label for="name">Name</label>
-              <div aria-hidden="true" class="repeat-box" onclick={() => handleEvent('repeat-name')}>
-                <RepeatIcon className="h-4 w-4" />
-              </div>
+              <ActionIcon
+                title="regenerate a random name"
+                icon={RepeatIcon}
+                action={() => handleEvent('repeat-name')}
+                size={'small'} />
             </div>
             <input bind:value={server.identity.name} type="text" placeholder="John Doe" name="name" />
             <label for="sex">Sex</label>
@@ -282,9 +284,7 @@
             <input type="number" name="age" placeholder="18-60" bind:value={server.identity.age} />
             <div class="flex items-end gap-4">
               <label for="bio">Bio</label>
-              <div aria-hidden="true" class="repeat-box" onclick={() => handleEvent('repeat-bio')}>
-                <RepeatIcon className="h-4 w-4" />
-              </div>
+              <ActionIcon title="regenerate a random bio" icon={RepeatIcon} action={() => handleEvent('repeat-bio')} size="small" />
             </div>
             <textarea placeholder="Short bio, will be used when generating a profile picture" value={server.identity.bio}></textarea>
           </div>
@@ -452,9 +452,5 @@
 
   .sex-box.selected {
     @apply bg-primary-600/65 hover:text-neutral-300;
-  }
-
-  .repeat-box {
-    @apply w-fit cursor-pointer rounded-lg border border-neutral-600 p-1 hover:bg-neutral-300/10;
   }
 </style>

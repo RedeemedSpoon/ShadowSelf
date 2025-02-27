@@ -21,6 +21,7 @@ export {default as SearchInput} from './main/SearchInput.svelte';
 
 export {default as ContinuousProcess} from './main/ContinuousProcess.svelte';
 export {default as ExtensionLinks} from './main/ExtensionLinks.svelte';
+export {default as ActionIcon} from './main/ActionIcon.svelte';
 
 export {default as IdentityEmail} from './identity/Email.svelte';
 export {default as IdentityPhone} from './identity/Phone.svelte';

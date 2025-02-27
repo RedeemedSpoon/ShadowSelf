@@ -48,7 +48,11 @@
       The identity you're looking for doesn't exist, or your account isn't the owner of the identity.
       <br class="max-lg:hidden" /> Please verify the URL and try again.
     </p>
-    <a href="/dashboard"><button class="flex items-center gap-1">Dashboard<ChevronIcon /></button></a>
+    <a href="/dashboard">
+      <button id="reload" class="flex items-center gap-1">
+        Dashboard<ChevronIcon />
+      </button>
+    </a>
   {/if}
 </div>
 
@@ -61,7 +65,7 @@
     @apply flex items-center gap-2 text-center text-6xl font-bold text-neutral-300 max-sm:scale-75;
   }
 
-  button {
+  button:not(#reload) {
     @apply flex items-center gap-2 border-b bg-none px-12 text-neutral-500 shadow-transparent;
     @apply rounded-none border-b border-neutral-500 transition-colors duration-500 hover:border-neutral-400 hover:text-neutral-400;
   }
