@@ -42,6 +42,9 @@
     </div>
     {@const SvelteComponent = allSections[currentSection]}
     <SvelteComponent />
+    <a class="mt-8 self-start" href="/dashboard">
+      <button class="alt">← Back</button>
+    </a>
   {:else}
     <h1>Identity Not Found</h1>
     <p class="text-center">
@@ -58,14 +61,14 @@
 
 <style lang="postcss">
   #identity {
-    @apply mx-auto my-[15rem] flex w-5/6 flex-col items-center justify-center gap-8 text-neutral-400 md:w-1/2;
+    @apply mx-auto my-[10rem] flex w-5/6 flex-col items-center justify-center gap-8 text-neutral-400 md:w-1/2;
   }
 
   h1 {
     @apply flex items-center gap-2 text-center text-6xl font-bold text-neutral-300 max-sm:scale-75;
   }
 
-  button:not(#reload) {
+  button:not(.alt, #reload) {
     @apply flex items-center gap-2 border-b bg-none px-12 text-neutral-500 shadow-transparent;
     @apply rounded-none border-b border-neutral-500 transition-colors duration-500 hover:border-neutral-400 hover:text-neutral-400;
   }
