@@ -1,6 +1,6 @@
 <script lang="ts">
   import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon, ExternalLinkIcon} from '$icon';
-  import {Modal, InputWithButton, InputWithIcon, LoadingButton, ConfirmModal, ReactiveButton} from '$component';
+  import {Modal, InputWithButton, InputWithIcon, LoadingButton, ConfirmModal, CopyButton, ReactiveButton} from '$component';
   import {loadStripe, type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Settings, SettingsForm} from '$type';
   import {notify, sendFrom, setModal} from '$lib';
@@ -69,9 +69,7 @@
     array[index + 1].classList.add('!bg-neutral-300/10', 'border-l-4', '2xl:!pl-24');
   }
 
-  const copyKey = () => navigator.clipboard.writeText(settings.key);
   const copyRecovery = () => navigator.clipboard.writeText(settings.recovery.join('\n'));
-  const copySecret = () => navigator.clipboard.writeText(settings.secret);
   const downloadRecovery = () => {
     const text = settings.recovery.join('\n');
     const blob = new Blob([text], {type: 'text/plain'});
@@ -207,7 +205,7 @@
       <div class="flex gap-4 max-md:flex-col md:items-center">
         <label class="w-fit" for="key">API Key :</label>
         {#if settings.API}
-          <ReactiveButton className="md:max-lg:max-w-[20vw]" callback={copyKey} icon={CopyIcon} text={settings.key} isBox={true} />
+          <CopyButton text={settings.key} className="md:max-lg:max-w-[20vw]" change={false} />
         {/if}
       </div>
       <button disabled={!settings.API} type="submit" class="w-fit">Generate New API Key</button>
@@ -261,12 +259,7 @@
         <div class="flex flex-col gap-2">
           <h1>Or enter the secret key</h1>
           <p class="mb-2">Alternatively, you can paste this secret key into your auth app:</p>
-          <ReactiveButton
-            className="md:max-lg:max-w-[30vw]"
-            isBox={true}
-            icon={CopyIcon}
-            text={settings.secret}
-            callback={copySecret} />
+          <ReactiveButton <CopyButton text={settings.secret} className="md:max-lg:max-w-[30vw]" change={false} />
           <p class="ml-1 mt-2 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
         </div>
       </div>

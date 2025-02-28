@@ -41,7 +41,7 @@
       {/each}
     </div>
     {@const SvelteComponent = allSections[currentSection]}
-    <SvelteComponent />
+    <SvelteComponent identity={data.identity} />
     <a class="mt-8 self-start" href="/dashboard">
       <button class="alt">← Back</button>
     </a>

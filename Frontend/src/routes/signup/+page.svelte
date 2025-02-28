@@ -1,6 +1,6 @@
 <script lang="ts">
   import {UserIcon, KeyIcon, KeylockIcon, DownloadIcon, CopyIcon, HappyIcon, EmailIcon, QuestionIcon} from '$icon';
-  import {Steps, StepsItem, InputWithIcon, LoadingButton, ReactiveButton, Tooltip} from '$component';
+  import {Steps, StepsItem, InputWithIcon, LoadingButton, CopyButton, ReactiveButton, Tooltip} from '$component';
   import {loadStripe, type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Registration} from '$type';
   import {currentStep, fetching} from '$store';
@@ -151,7 +151,7 @@
       <div class="flex w-full flex-col gap-2">
         <h1>Or enter the secret key</h1>
         <p class="mb-2">Alternatively, you can paste this secret key into your auth app if you don't have a phone:</p>
-        <ReactiveButton isBox={true} icon={CopyIcon} text={secret} callback={() => navigator.clipboard.writeText(secret)} />
+        <CopyButton text={secret} change={false} />
         <p class="ml-1 mt-2 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
       </div>
     </div>

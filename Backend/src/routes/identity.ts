@@ -40,5 +40,10 @@ export default new Elysia({prefix: '/identity'})
     const identityID = (body as {id: string}).id;
     const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
     const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
-    return !identity.length ? error(400, 'Identity not found') : identity[0];
+    if (!identity.length) return error(400, 'Identity not found');
+
+    const {picture, name, bio, age, sex, ethnicity} = identity[0];
+    const {id, creation_date, proxy_server, user_agent, location, email, phone, card} = identity[0];
+
+    return {id, creation_date, proxy_server, user_agent, picture, name, bio, age, sex, ethnicity, location, email, phone, card};
   });

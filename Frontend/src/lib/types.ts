@@ -106,12 +106,7 @@ export interface CreationProcess {
 
 export interface FullIdentity {
   id: string;
-  owner: number;
   creation_date: Date;
-  payment_intent: string;
-  subscription_id: string;
-  plan: 'monthly' | 'annually' | 'lifetime';
-  status: 'active' | 'inactive' | 'frozen';
   proxy_server: string;
   user_agent: string;
   location: string;
@@ -122,7 +117,6 @@ export interface FullIdentity {
   sex: string;
   ethnicity: string;
   email: string;
-  email_password: string;
   phone: string;
   card: number;
 }

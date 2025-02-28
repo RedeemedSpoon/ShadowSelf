@@ -9,6 +9,7 @@ export {default as Loader} from './main/Loader.svelte';
 export {default as Tooltip} from './main/Tooltip.svelte';
 export {default as ConfirmModal} from './main/ConfirmModal.svelte';
 
+export {default as CopyButton} from './main/CopyButton.svelte';
 export {default as LoadingButton} from './main/LoadingButton.svelte';
 export {default as InputWithIcon} from './main/InputWithIcon.svelte';
 export {default as ReactiveButton} from './main/ReactiveButton.svelte';

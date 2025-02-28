@@ -20,6 +20,6 @@
 
 <style lang="postcss">
   button {
-    @apply w-fit cursor-pointer rounded-lg border border-neutral-600 !bg-none p-1 !shadow-transparent hover:bg-neutral-300/10;
+    @apply w-fit cursor-pointer rounded-lg border-2 border-neutral-600 !bg-none p-1 !shadow-transparent hover:bg-neutral-300/10;
   }
 </style>
