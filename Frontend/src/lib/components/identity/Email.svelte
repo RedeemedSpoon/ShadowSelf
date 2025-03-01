@@ -2,15 +2,14 @@
   import {SendIcon, TrashIcon, RepeatIcon} from '$icon';
   import type {FullIdentity} from '$type';
   import {ActionIcon} from '$component';
+  import {mailbox} from '$image';
   import {onMount} from 'svelte';
   import {fetchAPI} from '$lib';
 
   let {identity}: {identity: FullIdentity} = $props();
+  let inbox = $state();
 
-  onMount(async () => {
-    const response = await fetchAPI('/api/email/' + identity.id);
-    console.log(response);
-  });
+  onMount(async () => (inbox = await fetchAPI('/api/email/' + identity.id)));
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
@@ -21,8 +20,24 @@
     <ActionIcon icon={TrashIcon} action={() => {}} title="Delete Emails" />
   </div>
 </section>
-<section>
-  <li>Refresh</li>
-  <li>Send Emails</li>
-  <li>Delete Emails</li>
-</section>
+{#if inbox?.emails}
+  <section>
+    <li>Refresh</li>
+    <li>Send Emails</li>
+    <li>Delete Emails</li>
+  </section>
+{:else}
+  <section id="no-emails" style="background-image: url({mailbox});">
+    <h2 class="mt-12 text-5xl text-neutral-300">No Emails</h2>
+    <p class="w-1/2 text-center">
+      Looks like no emails have been sent to this email yet. Maybe it's a good idea to send one to kick things off?
+    </p>
+    <button>Send Email</button>
+  </section>
+{/if}
+
+<style lang="postcss">
+  #no-emails {
+    @apply mb-12 mt-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
+  }
+</style>

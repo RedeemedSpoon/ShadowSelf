@@ -63,7 +63,7 @@
       </a>
       <div id="danger-actions" class="flex items-center gap-4">
         <button>Cancel Subscription</button>
-        <div class="h-8 w-px bg-neutral-700"></div>
+        <div class="h-8 w-px bg-neutral-600"></div>
         <button>Delete Identity</button>
       </div>
     </div>
@@ -99,7 +99,7 @@
   }
 
   #danger-actions button {
-    @apply alt text-alert-600 hover:text-alert-700 border-none px-0 py-0;
+    @apply alt hover:text-alert-600 border-none px-0 py-0 text-neutral-400;
   }
 
   .main {
