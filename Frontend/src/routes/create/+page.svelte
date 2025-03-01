@@ -413,7 +413,7 @@
 
 <style lang="postcss">
   #create-identity {
-    @apply mx-auto mb-[4rem] mt-[10rem] flex min-h-[70vh] w-5/6 items-center justify-center;
+    @apply mx-auto mb-[4rem] mt-[10rem] flex min-h-[60vh] w-5/6 items-center justify-center;
   }
 
   h3 {

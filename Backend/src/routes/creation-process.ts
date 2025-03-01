@@ -89,10 +89,10 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             error = undefined;
           }
 
-          const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, background must somewhere in ${lang?.city}, ${lang?.country}, exuding a sense of warmth, personality, and approachability.`;
+          const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, exuding a sense of warmth, personality, and approachability. They are in an urban environment, with a bustling cityscape in ${lang?.city}, ${lang?.country} in the background, capturing the vibrant, everyday life of the city. The setting should feel natural and immersive, with elements such as streets, buildings, and people in the background, adding to the realism.`;
 
           const negativePrompt =
-            'hyper-realistic, polished, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits, bland one color background';
+            'hyper-realistic, polished skin, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits, backgrounds that are not realistic city environments, overly simple or bland settings';
 
           const formData = new FormData();
           formData.append('prompt', prompt);
