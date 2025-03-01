@@ -1,6 +1,6 @@
 import type {Actions, PageServerLoad} from './$types';
 import type {Option} from '$type';
-import {fetchApi} from '$lib';
+import {fetchBackend} from '$lib';
 
 export const load: PageServerLoad = () => {
   return {
@@ -41,6 +41,6 @@ export const actions: Actions = {
     const message = data.get('message') as string;
     const category = data.get('category') as string;
 
-    return await fetchApi('/contact', 'POST', {category, email, subject, message});
+    return await fetchBackend('/contact', 'POST', {category, email, subject, message});
   },
 };

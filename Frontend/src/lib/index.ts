@@ -40,7 +40,19 @@ export function toTitleCase(str: string): string {
   });
 }
 
-export async function fetchApi(url: string, method = 'GET', body?: Record<string, unknown>) {
+export async function fetchAPI(url: string) {
+  return await fetch(url, {
+    headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
+  })
+    .then(async (res) => {
+      const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';
+      const message = await res.json();
+      return {...message, type};
+    })
+    .catch(() => ({message: 'An error occurred. Please try again later', type: 'alert'}));
+}
+
+export async function fetchBackend(url: string, method = 'GET', body?: Record<string, unknown>) {
   return await fetch('http://localhost:3000' + url, {
     headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
     body: body ? JSON.stringify(body) : undefined,

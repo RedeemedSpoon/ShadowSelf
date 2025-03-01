@@ -51,7 +51,7 @@ export default new Elysia({prefix: '/api'})
 
     return {id, creation_date, proxy_server, user_agent, picture, name, bio, age, sex, ethnicity, location, email, phone, card};
   })
-  .get('/email/:id', async ({user, params}) => {})
-  .get('/phone/:id', async ({user, params}) => {})
-  .get('/card/:id', async ({user, params}) => {})
-  .get('/account/:id', async ({user, params}) => {});
+  .get('/email/:id', async ({user, params}) => ({}))
+  .get('/phone/:id', async ({user, params}) => ({}))
+  .get('/card/:id', async ({user, params}) => ({}))
+  .get('/account/:id', async ({user, params}) => ({}));

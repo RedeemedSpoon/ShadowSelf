@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Alpha version release
-- Upate website from waitlist to alpha
+- Update website from waitlist to alpha
 - New account table to database
 - New identity routes in elysiaJS
 - Temporary API/Extension route on elysiaJS

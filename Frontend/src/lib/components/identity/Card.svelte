@@ -1,6 +1,16 @@
 <script lang="ts">
   import {TransferIcon, RepeatIcon, AddFundsIcon, RetrieveFundsIcon} from '$icon';
+  import type {FullIdentity} from '$type';
   import {ActionIcon} from '$component';
+  import {onMount} from 'svelte';
+  import {fetchAPI} from '$lib';
+
+  let {identity}: {identity: FullIdentity} = $props();
+
+  onMount(async () => {
+    const response = await fetchAPI('/api/card/' + identity.id);
+    console.log(response);
+  });
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">

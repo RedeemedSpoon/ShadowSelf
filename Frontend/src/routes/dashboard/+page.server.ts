@@ -1,10 +1,10 @@
 import type {PageServerLoad} from './$types';
 import type {Identity, Option} from '$type';
-import {fetchApi} from '$lib';
+import {fetchBackend} from '$lib';
 
 export const load: PageServerLoad = async () => {
-  const remains = await fetchApi('/account/recovery-remaining', 'GET');
-  const response = await fetchApi('/api', 'GET');
+  const remains = await fetchBackend('/account/recovery-remaining', 'GET');
+  const response = await fetchBackend('/api', 'GET');
   if (response.type === 'alert')
     return {
       recoveryRemaining: remains.message,

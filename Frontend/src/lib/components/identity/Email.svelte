@@ -3,17 +3,13 @@
   import type {FullIdentity} from '$type';
   import {ActionIcon} from '$component';
   import {onMount} from 'svelte';
-  import {token} from '$store';
+  import {fetchAPI} from '$lib';
 
   let {identity}: {identity: FullIdentity} = $props();
 
   onMount(async () => {
-    const response = await fetch('/api/email/' + identity.id, {
-      headers: {'Content-Type': 'application/json', authorization: `Bearer ${$token}`},
-    });
-
-    const data = await response.json();
-    console.log(data);
+    const response = await fetchAPI('/api/email/' + identity.id);
+    console.log(response);
   });
 </script>
 

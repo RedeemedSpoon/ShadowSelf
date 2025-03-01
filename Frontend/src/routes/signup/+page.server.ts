@@ -1,4 +1,4 @@
-import {createCookie, fetchApi} from '$lib';
+import {createCookie, fetchBackend} from '$lib';
 import {redirect} from '@sveltejs/kit';
 import type {Actions} from './$types';
 import QRCode from 'qrcode';
@@ -9,7 +9,7 @@ export const actions: Actions = {
     const email = form.get('email') as string;
     const password = form.get('password') as string;
 
-    const response = await fetchApi('/account/signup', 'POST', {email, password});
+    const response = await fetchBackend('/account/signup', 'POST', {email, password});
     if (!response.email) return response;
 
     const concat = `${email}&&${password}`;
@@ -22,7 +22,7 @@ export const actions: Actions = {
     const form = await request.formData();
     const access = form.get('access');
 
-    const response = await fetchApi('/account/signup-email', 'POST', {access, email});
+    const response = await fetchBackend('/account/signup-email', 'POST', {access, email});
     if (!response.email) return response;
 
     const cookie = cookies.get('signup')?.split('&&').join('&&');
@@ -35,7 +35,7 @@ export const actions: Actions = {
     const form = await request.formData();
     const username = form.get('username');
 
-    const response = await fetchApi('/account/signup-username', 'POST', {username});
+    const response = await fetchBackend('/account/signup-username', 'POST', {username});
     if (!response.username) return response;
 
     const cookie = cookies.get('signup')?.split('&&').join('&&');
@@ -50,7 +50,7 @@ export const actions: Actions = {
 
     if (wantOTP) {
       const username = cookies.get('signup')?.split('&&')[3];
-      const response = await fetchApi('/account/signup-otp', 'POST', {username});
+      const response = await fetchBackend('/account/signup-otp', 'POST', {username});
       if (!response.secret) return response;
 
       const cookie = cookies.get('signup')?.split('&&').join('&&');
@@ -69,7 +69,7 @@ export const actions: Actions = {
     const token = form.get('token');
 
     const secret = cookies.get('signup')?.split('&&')[4];
-    const response = await fetchApi('/account/signup-recovery', 'POST', {token, secret});
+    const response = await fetchBackend('/account/signup-recovery', 'POST', {token, secret});
     if (!response.recovery) return response;
 
     const cookie = cookies.get('signup')?.split('&&').join('&&');
@@ -118,7 +118,15 @@ export const actions: Actions = {
       payment = hasOTP ? object[6] : object[4];
     }
 
-    const response = await fetchApi('/account/signup-create', 'POST', {email, access, username, password, secret, recovery, payment});
+    const response = await fetchBackend('/account/signup-create', 'POST', {
+      email,
+      access,
+      username,
+      password,
+      secret,
+      recovery,
+      payment,
+    });
     if (!response.cookie) return response;
 
     createCookie(cookies, 'token', response.cookie);
