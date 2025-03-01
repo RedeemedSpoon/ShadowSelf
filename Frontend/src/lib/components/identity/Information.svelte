@@ -1,8 +1,8 @@
 <script lang="ts">
-  import {EditIcon} from '$icon';
   import {ActionIcon, CopyButton} from '$component';
   import type {FullIdentity} from '$type';
   import {toTitleCase} from '$lib';
+  import {EditIcon} from '$icon';
 
   let {identity}: {identity: FullIdentity} = $props();
 

@@ -1,4 +1,4 @@
-import type {Notification, PricingModel} from '$type';
+import type {Notification, PricingModel, Sections} from '$type';
 import {writable, type Writable} from 'svelte/store';
 import {allPricingModels} from '$type';
 
@@ -7,6 +7,7 @@ export const token: Writable<string> = writable('');
 
 export const sortAsc: Writable<boolean> = writable(true);
 export const filterOverflow: Writable<boolean> = writable(false);
+export const currentSection = writable<Sections>('info');
 
 export const scrollY: Writable<number> = writable(0);
 export const currentStep: Writable<number> = writable(1);

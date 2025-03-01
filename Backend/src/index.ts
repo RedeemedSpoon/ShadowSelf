@@ -5,7 +5,6 @@ import {contact} from './email';
 
 import creationProcess from './routes/creation-process';
 import extension from './routes/extension';
-import identity from './routes/identity';
 import settings from './routes/settings';
 import account from './routes/account';
 import billing from './routes/billing';
@@ -22,13 +21,12 @@ const app = new Elysia()
     if (result.err) return error(500, result.err);
     return result.message;
   })
-  .use(api)
   .use(creationProcess)
   .use(extension)
-  .use(identity)
   .use(settings)
   .use(account)
   .use(billing)
+  .use(api)
   .listen(3000);
 
 console.log(`Elysia is running at ${app.server?.hostname}:${app.server?.port}`);

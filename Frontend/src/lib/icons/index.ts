@@ -36,7 +36,6 @@ export {default as UserDeleteIcon} from './UserDelete.svelte';
 export {default as SendIcon} from './Send.svelte';
 export {default as EditIcon} from './Edit.svelte';
 export {default as TrashIcon} from './Trash.svelte';
-export {default as CancelIcon} from './Cancel.svelte';
 
 export {default as LimitIcon} from './Limit.svelte';
 export {default as TransferIcon} from './Transfer.svelte';

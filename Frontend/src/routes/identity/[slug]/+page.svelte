@@ -2,13 +2,13 @@
   import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts} from '$component';
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
   import type {PageProps} from './$types';
+  import {slide} from 'svelte/transition';
+  import {currentSection} from '$store';
   import type {Sections} from '$type';
   import {ChevronIcon} from '$icon';
-  import {slide} from 'svelte/transition';
 
   let {data}: PageProps = $props();
 
-  let currentSection: Sections = $state('info');
   let buttonWrapper = $state() as HTMLDivElement;
 
   const sectionsNames = [
@@ -28,7 +28,7 @@
   };
 
   function handleClick(section: Sections) {
-    currentSection = section;
+    $currentSection = section;
     buttonWrapper.childNodes.forEach((node) => {
       (node as HTMLButtonElement).disabled = true;
       setTimeout(() => ((node as HTMLButtonElement).disabled = false), 750);
@@ -46,18 +46,18 @@
     <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
       {#each Object.keys(allSections) as section, i}
         {@const Icon = sectionsNames[i].icon}
-        <button class:main={section === currentSection} onclick={() => handleClick(section as Sections)}>
+        <button class:main={section === $currentSection} onclick={() => handleClick(section as Sections)}>
           <Icon className="h-6 w-6" />{sectionsNames[i].name}</button>
       {/each}
     </div>
-    {#key currentSection}
-      {@const SvelteComponent = allSections[currentSection]}
-      <div class="my-8 px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
+    {#key $currentSection}
+      {@const SvelteComponent = allSections[$currentSection]}
+      <div class="mb-12 mt-8 w-full px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
         <SvelteComponent identity={data.identity as never} />
       </div>
     {/key}
     <hr class="mb-8 h-px w-full" />
-    <div class="flex justify-between">
+    <div class="flex w-full justify-between">
       <a class="ml-8" href="/dashboard">
         <button class="!alt my-0 border-none">← Back</button>
       </a>
@@ -68,22 +68,24 @@
       </div>
     </div>
   {:else}
-    <h1>Identity Not Found</h1>
-    <p class="text-center">
-      The identity you're looking for doesn't exist, or your account isn't the owner of the identity.
-      <br class="max-lg:hidden" /> Please verify the URL and try again.
-    </p>
-    <a href="/dashboard">
-      <button class="flex items-center gap-1">
-        Dashboard<ChevronIcon />
-      </button>
-    </a>
+    <div class="flex min-h-[40vh] flex-col items-center justify-center gap-8">
+      <h1>Identity Not Found</h1>
+      <p class="text-center">
+        The identity you're looking for doesn't exist, or your account isn't the owner of the identity.
+        <br class="max-lg:hidden" /> Please verify the URL and try again.
+      </p>
+      <a href="/dashboard">
+        <button class="flex items-center gap-1">
+          Dashboard<ChevronIcon />
+        </button>
+      </a>
+    </div>
   {/if}
 </div>
 
 <style lang="postcss">
   #identity {
-    @apply mx-auto my-[10rem] flex w-5/6 flex-col text-neutral-400 md:w-2/3;
+    @apply mx-auto my-[10rem] flex w-5/6 flex-col items-center text-neutral-400 md:w-2/3;
   }
 
   h1 {

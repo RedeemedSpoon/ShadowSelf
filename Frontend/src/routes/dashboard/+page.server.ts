@@ -4,7 +4,7 @@ import {fetchApi} from '$lib';
 
 export const load: PageServerLoad = async () => {
   const remains = await fetchApi('/account/recovery-remaining', 'GET');
-  const response = await fetchApi('/identity/', 'GET');
+  const response = await fetchApi('/api', 'GET');
   if (response.type === 'alert')
     return {
       recoveryRemaining: remains.message,

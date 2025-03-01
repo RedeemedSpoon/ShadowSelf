@@ -18,7 +18,7 @@ export default new Elysia({prefix: '/settings'})
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(9);
     const putPaths = ['/email', '/username', '/password'];
-    const otherPaths = ['/', '/revoke', '/otp', '/recovery', '/payment', '/api-access', '/api-key', '/full'];
+    const otherPaths = ['', '/', '/revoke', '/otp', '/recovery', '/payment', '/api-access', '/api-key', '/full'];
     const mustLogIn = [...putPaths, ...otherPaths];
 
     if (mustLogIn.some((p) => relativePath === p) && !user) {
