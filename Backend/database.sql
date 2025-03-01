@@ -47,7 +47,7 @@ CREATE TABLE identities (
   "location" text,
   "picture" text,
   "name" varchar(30),
-  "bio" varchar(300),
+  "bio" varchar(126),
   "age" integer,
   "sex" varchar(6),
   "ethnicity" varchar(12),

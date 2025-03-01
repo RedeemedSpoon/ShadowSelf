@@ -149,8 +149,8 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Ethnicity must be a valid ethnicity'};
       }
 
-      if (body.bio!.length > 300) {
-        return {error: 'Biography is too long (<300 characters)'};
+      if (body.bio!.length > 126) {
+        return {error: 'Biography is too long (<126 characters)'};
       }
       break;
 

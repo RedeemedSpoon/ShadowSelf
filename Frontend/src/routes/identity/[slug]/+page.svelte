@@ -4,10 +4,12 @@
   import type {PageProps} from './$types';
   import type {Sections} from '$type';
   import {ChevronIcon} from '$icon';
+  import {slide} from 'svelte/transition';
 
   let {data}: PageProps = $props();
 
   let currentSection: Sections = $state('info');
+  let buttonWrapper = $state() as HTMLDivElement;
 
   const sectionsNames = [
     {name: 'Information', icon: InfoIcon},
@@ -24,6 +26,14 @@
     card: IdentityCard,
     account: IdentityAccounts,
   };
+
+  function handleClick(section: Sections) {
+    currentSection = section;
+    buttonWrapper.childNodes.forEach((node) => {
+      (node as HTMLButtonElement).disabled = true;
+      setTimeout(() => ((node as HTMLButtonElement).disabled = false), 750);
+    });
+  }
 </script>
 
 <svelte:head>
@@ -33,18 +43,30 @@
 
 <div id="identity">
   {#if data.identity}
-    <div class="flex h-16">
+    <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
       {#each Object.keys(allSections) as section, i}
         {@const Icon = sectionsNames[i].icon}
-        <button class:main={section === currentSection} onclick={() => (currentSection = section as Sections)}>
+        <button class:main={section === currentSection} onclick={() => handleClick(section as Sections)}>
           <Icon className="h-6 w-6" />{sectionsNames[i].name}</button>
       {/each}
     </div>
-    {@const SvelteComponent = allSections[currentSection]}
-    <SvelteComponent identity={data.identity} />
-    <a class="mt-8 self-start" href="/dashboard">
-      <button class="alt">← Back</button>
-    </a>
+    {#key currentSection}
+      {@const SvelteComponent = allSections[currentSection]}
+      <div class="my-8 px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
+        <SvelteComponent identity={data.identity as never} />
+      </div>
+    {/key}
+    <hr class="mb-8 h-px w-full" />
+    <div class="flex justify-between">
+      <a class="ml-8" href="/dashboard">
+        <button class="!alt my-0 border-none">← Back</button>
+      </a>
+      <div id="danger-actions" class="flex items-center gap-4">
+        <button>Cancel Subscription</button>
+        <div class="h-8 w-px bg-neutral-700"></div>
+        <button>Delete Identity</button>
+      </div>
+    </div>
   {:else}
     <h1>Identity Not Found</h1>
     <p class="text-center">
@@ -52,7 +74,7 @@
       <br class="max-lg:hidden" /> Please verify the URL and try again.
     </p>
     <a href="/dashboard">
-      <button id="reload" class="flex items-center gap-1">
+      <button class="flex items-center gap-1">
         Dashboard<ChevronIcon />
       </button>
     </a>
@@ -61,16 +83,21 @@
 
 <style lang="postcss">
   #identity {
-    @apply mx-auto my-[10rem] flex w-5/6 flex-col items-center justify-center gap-8 text-neutral-400 md:w-1/2;
+    @apply mx-auto my-[10rem] flex w-5/6 flex-col text-neutral-400 md:w-2/3;
   }
 
   h1 {
     @apply flex items-center gap-2 text-center text-6xl font-bold text-neutral-300 max-sm:scale-75;
   }
 
-  button:not(.alt, #reload) {
-    @apply flex items-center gap-2 border-b bg-none px-12 text-neutral-500 shadow-transparent;
+  #button-wrapper button {
+    @apply flex items-center gap-2 border-b bg-none px-[4vw] text-neutral-500 shadow-transparent;
     @apply rounded-none border-b border-neutral-500 transition-colors duration-500 hover:border-neutral-400 hover:text-neutral-400;
+    @apply disabled:cursor-pointer disabled:opacity-100;
+  }
+
+  #danger-actions button {
+    @apply alt text-alert-600 hover:text-alert-700 border-none px-0 py-0;
   }
 
   .main {

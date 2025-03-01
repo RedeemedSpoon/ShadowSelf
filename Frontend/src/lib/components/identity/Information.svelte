@@ -1,7 +1,8 @@
 <script lang="ts">
-  import {EditIcon, TrashIcon, CancelIcon} from '$icon';
+  import {EditIcon} from '$icon';
   import {ActionIcon, CopyButton} from '$component';
   import type {FullIdentity} from '$type';
+  import {toTitleCase} from '$lib';
 
   let {identity}: {identity: FullIdentity} = $props();
 
@@ -17,51 +18,48 @@
   <h2 class="text-5xl text-neutral-300">General Information</h2>
   <div id="top-icons" class="flex gap-2">
     <ActionIcon icon={EditIcon} action={() => {}} title="Change Information" />
-    <ActionIcon icon={CancelIcon} action={() => {}} title="Cancel Identity" />
-    <ActionIcon icon={TrashIcon} action={() => {}} title="Delete Identity" />
   </div>
 </section>
-<section class="flex w-full items-start justify-evenly gap-8">
+<section class="mx-8 flex items-center gap-4">
+  <div class="w-[30rem]">
+    <img id="profile" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s profile picture" />
+    <h3 class="mt-4 !text-2xl">{identity.name}</h3>
+    <p>ipsum dolor sit amet consectetur adipisicing elit. Obcaecati officia laborum ipsum culpa!</p>
+    <p>Created {date}</p>
+  </div>
+  <div class="w-fit text-nowrap">
+    <h3 class="mb-4">Physical Details</h3>
+    <p>Age : {identity.age}</p>
+    <p>Sex : {toTitleCase(identity.sex)}</p>
+    <p>Ethnicity : {toTitleCase(identity.ethnicity)}</p>
+    <p class="flex items-center gap-2 text-nowrap">
+      Location :
+      <img class="h-[24px]" src={`https://flagsapi.com/${identity.location.split(',')[0]}/flat/24.png`} alt={identity.location} />
+      {identity.location.split(',')[1]}, {identity.location.split(',')[2]}
+    </p>
+    <p>IP : {identity.proxy_server}</p>
+  </div>
+</section>
+<section class="mx-8 grid grid-cols-2 gap-4">
   <div>
-    <div>
-      <img src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s profile picture" />
-      <h3 class="mt-4 !text-2xl">{identity.name}</h3>
-      <p>
-        {identity.bio} Lorem, ipsum dolor sit amet consectetur adipisicing elit. Obcaecati officia laborum ipsum culpa! Ratione illo earum
-        rerum magni nisi maiores tempora laudantium adipisci quasi aliquam, voluptatum nostrum consectetur iusto numquam!
-      </p>
-      <p>Created : {date}</p>
-    </div>
-    <div>
-      <h3>Physical Details</h3>
-      <p>age : {identity.age}</p>
-      <p>sex : {identity.sex}</p>
-      <p>ethnicity: {identity.ethnicity}</p>
-      <p>location: {identity.location}</p>
-      <p>IP: {identity.proxy_server}</p>
-    </div>
+    <h3>Email Address</h3>
+    <CopyButton text={identity.email} />
   </div>
   <div>
-    <div>
-      <h3>Email Address</h3>
-      <CopyButton text={identity.email} />
-    </div>
-    <div>
-      <h3>Phone Number</h3>
-      <CopyButton text={identity.phone} />
-    </div>
-    <div>
-      <h3>Virtual Card</h3>
-      <CopyButton text={identity.card.toString()} />
-    </div>
-    <div>
-      <h3>Online Accounts</h3>
-    </div>
+    <h3>Phone Number</h3>
+    <CopyButton text={identity.phone} />
+  </div>
+  <div>
+    <h3>Virtual Card</h3>
+    <CopyButton text={identity.card.toString()} />
+  </div>
+  <div>
+    <h3>Online Accounts</h3>
   </div>
 </section>
 
 <style lang="postcss">
-  img {
+  #profile {
     @apply h-[15vh] w-[15vh] rounded-full object-cover;
   }
 
@@ -69,7 +67,7 @@
     @apply text-3xl text-neutral-300;
   }
 
-  section > div:not(#top-icons) {
-    @apply flex flex-col items-start justify-start gap-4;
+  section.grid > div {
+    @apply mx-8 flex flex-col gap-4;
   }
 </style>
