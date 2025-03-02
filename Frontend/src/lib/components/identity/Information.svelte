@@ -1,8 +1,8 @@
 <script lang="ts">
+  import {CopyIcon, DownloadIcon, EditIcon} from '$icon';
   import {ActionIcon, CopyButton} from '$component';
+  import {toTitleCase, base64ToBlob} from '$lib';
   import type {FullIdentity} from '$type';
-  import {toTitleCase} from '$lib';
-  import {EditIcon} from '$icon';
 
   let {identity}: {identity: FullIdentity} = $props();
 
@@ -12,6 +12,21 @@
 
   const rtf1 = new Intl.RelativeTimeFormat('en', {style: 'short'});
   const date = Math.abs(dateInMonth) > 1 ? rtf1.format(dateInMonth, 'months') : rtf1.format(dateInDays, 'days');
+
+  function copyImage() {
+    const blob = base64ToBlob(identity.picture);
+    navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+  }
+
+  function downloadImage() {
+    const blob = base64ToBlob(identity.picture);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.download = `${identity.name.replace(' ', '_').replace('.', '')}.png`;
+    link.href = url;
+    link.click();
+  }
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
@@ -21,8 +36,10 @@
   </div>
 </section>
 <section class="m-12 grid grid-cols-2 place-items-center gap-16">
-  <div class="relative cursor-pointer">
+  <div class="group relative cursor-pointer">
     <div id="overlay-profile"></div>
+    <button class="right-8 group-hover:opacity-100" onclick={copyImage}><CopyIcon />Copy</button>
+    <button class="left-8 group-hover:opacity-100" onclick={downloadImage}><DownloadIcon />Download</button>
     <img class="rounded-xl" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s profile picture" />
   </div>
   <div class="flex flex-col gap-2 text-nowrap">
@@ -43,7 +60,12 @@
 
 <style lang="postcss">
   #overlay-profile {
-    @apply absolute inset-0 h-full w-full rounded-xl transition-all duration-300 hover:bg-black/20 hover:shadow-[inset_0_0_50px_10px_#00000090];
+    @apply absolute inset-0 h-full w-full rounded-xl transition-all duration-300;
+    @apply group-hover:bg-black/35 group-hover:shadow-[inset_0_0_50px_10px_#00000090];
+  }
+
+  div.relative button {
+    @apply absolute bottom-8 flex items-center gap-2 opacity-0 shadow-none transition-opacity duration-300;
   }
 
   h3 {

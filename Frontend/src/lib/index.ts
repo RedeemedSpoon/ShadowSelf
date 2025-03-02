@@ -34,12 +34,6 @@ export async function setModal(index = 1, condition = true) {
   };
 }
 
-export function toTitleCase(str: string): string {
-  return str.replace(/\w\S*/g, (txt) => {
-    return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
-  });
-}
-
 export async function fetchAPI(url: string) {
   return await fetch(url, {
     headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
@@ -82,5 +76,31 @@ export function createCookie(cookies: Cookies, name: string, value: string, shor
     maxAge: short ? 3_600_000 : 2_592_000_000,
     sameSite: 'strict',
     priority: 'high',
+  });
+}
+
+export function base64ToBlob(base64: string) {
+  const byteCharacters = atob(base64);
+  const byteArrays = [];
+
+  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+    const slice = byteCharacters.slice(offset, offset + 512);
+
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+
+  const blob = new Blob(byteArrays, {type: 'image/png'});
+  return blob;
+}
+
+export function toTitleCase(str: string): string {
+  return str.replace(/\w\S*/g, (txt) => {
+    return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
   });
 }

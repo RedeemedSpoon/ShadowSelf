@@ -97,7 +97,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const formData = new FormData();
           formData.append('prompt', prompt);
           formData.append('aspect_ratio', '1:1');
-          formData.append('output_format', 'webp');
+          formData.append('output_format', 'png');
           formData.append('negative_prompt', negativePrompt);
 
           const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
