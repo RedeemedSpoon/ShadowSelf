@@ -13,7 +13,7 @@
 
   const callback = () => navigator.clipboard.writeText(text);
 
-  const upperClassname = alt ? 'group !flex-row-reverse justify-between px-0 !w-full' : '';
+  const upperClassname = alt ? 'group !flex-row-reverse justify-between px-0 py-3 !w-full' : '';
   const otherClassname = alt ? '!text-left group-hover:text-neutral-400 text-neutral-300 w-full' : '';
   const iconClassname = alt ? 'group-hover:block hidden text-neutral-400' : '';
 

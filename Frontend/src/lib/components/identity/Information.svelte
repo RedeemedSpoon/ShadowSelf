@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {CopyIcon, DownloadIcon, EditIcon} from '$icon';
+  import {CopyIcon, CreditCardIcon, DownloadIcon, EditIcon, EmailIcon, PhoneIcon} from '$icon';
+  import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
   import {ActionIcon, CopyButton} from '$component';
-  import {toTitleCase, base64ToBlob} from '$lib';
   import type {FullIdentity} from '$type';
 
   let {identity}: {identity: FullIdentity} = $props();
@@ -52,9 +52,20 @@
       {identity.location.split(',')[1]}, {identity.location.split(',')[2]} ({identity.proxy_server})
     </p>
     <p>Created {date}</p>
-    <CopyButton alt={true} change={false} text={identity.email} />
-    <CopyButton alt={true} change={false} text={identity.phone} />
-    <CopyButton alt={true} change={false} text={identity.card.toString()} />
+    <div id="info" class="flex flex-col">
+      <div>
+        <EmailIcon fill={true} className="text-neutral-300 cursor-default" />
+        <CopyButton alt={true} change={false} text={identity.email} />
+      </div>
+      <div>
+        <PhoneIcon fill={true} className="text-neutral-300 cursor-default" />
+        <CopyButton alt={true} change={false} text={formatPhoneNumber(identity.phone)} />
+      </div>
+      <div>
+        <CreditCardIcon fill={true} className="text-neutral-300 cursor-default" />
+        <CopyButton alt={true} change={false} text={identity.card.toString().replace(/\d{4}(?=\d)/g, '$& ')} />
+      </div>
+    </div>
   </div>
 </section>
 
@@ -66,6 +77,10 @@
 
   div.relative button {
     @apply absolute bottom-8 flex items-center gap-2 opacity-0 shadow-none transition-opacity duration-300;
+  }
+
+  #info > div {
+    @apply flex items-center gap-6;
   }
 
   h3 {
