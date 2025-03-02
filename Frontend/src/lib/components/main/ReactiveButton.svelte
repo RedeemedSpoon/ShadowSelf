@@ -4,6 +4,8 @@
 
   interface Props {
     callback: () => void;
+    upperClassname?: string;
+    iconClassname?: string;
     className?: string;
     newText?: string;
     isBox?: boolean;
@@ -11,7 +13,7 @@
     text: string;
   }
 
-  const {callback, icon, className, text, newText, isBox}: Props = $props();
+  const {callback, icon, className, upperClassname, iconClassname, text, newText, isBox}: Props = $props();
 
   let button = $state() as HTMLButtonElement;
   let buttonText = $state() as HTMLParagraphElement;
@@ -24,8 +26,8 @@
   }
 </script>
 
-<button bind:this={button} type="button" onclick={handleClick} class={isBox ? 'box' : 'alt'}>
-  <div>
+<button bind:this={button} type="button" onclick={handleClick} class="{upperClassname} {isBox ? 'box' : 'alt'}">
+  <div class={iconClassname}>
     {#if icon}
       {@const SvelteComponent = isActivated ? CheckmarkIcon : icon}
       <SvelteComponent />

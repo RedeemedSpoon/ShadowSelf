@@ -4,13 +4,20 @@
 
   interface Props {
     className?: string;
-    text: string;
     change?: boolean;
+    alt?: boolean;
+    text: string;
   }
 
-  let {text, className, change = true}: Props = $props();
+  let {text, className, alt = false, change = true}: Props = $props();
 
   const callback = () => navigator.clipboard.writeText(text);
+
+  const upperClassname = alt ? 'group !flex-row-reverse justify-between px-0 !w-full' : '';
+  const otherClassname = alt ? '!text-left group-hover:text-neutral-400 text-neutral-300 w-full' : '';
+  const iconClassname = alt ? 'group-hover:block hidden text-neutral-400' : '';
+
+  const classes = {iconClassname, className: `${className || ''} ${otherClassname || ''}`, upperClassname, isBox: !alt};
 </script>
 
-<ReactiveButton isBox={true} {className} {text} icon={CopyIcon} {callback} newText={change ? 'Copied!' : text} />
+<ReactiveButton {...classes} {text} icon={CopyIcon} {callback} newText={change ? 'Copied!' : text} />

@@ -35,9 +35,9 @@
       {identity.location.split(',')[1]}, {identity.location.split(',')[2]} ({identity.proxy_server})
     </p>
     <p>Created {date}</p>
-    <CopyButton text={identity.email} />
-    <CopyButton text={identity.phone} />
-    <CopyButton text={identity.card.toString()} />
+    <CopyButton alt={true} change={false} text={identity.email} />
+    <CopyButton alt={true} change={false} text={identity.phone} />
+    <CopyButton alt={true} change={false} text={identity.card.toString()} />
   </div>
 </section>
 
