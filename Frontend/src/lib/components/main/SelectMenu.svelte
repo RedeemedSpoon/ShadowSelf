@@ -38,7 +38,7 @@
     $selectionInputOpen = false;
 
     const target = e.target as HTMLLIElement;
-    const span = btn.childNodes[1] as HTMLSpanElement;
+    const span = btn.querySelector('span') as HTMLSpanElement;
 
     span.innerText = target.innerText;
     input.value = target.id;
@@ -80,7 +80,7 @@
   }
 
   li {
-    @apply cursor-pointer select-none bg-[#131c2e] px-4 py-3 hover:bg-neutral-800;
+    @apply cursor-pointer select-none bg-[#131c2e] px-4 py-3 text-neutral-300 hover:bg-neutral-800;
     @apply text-lg first:rounded-t-xl last:rounded-b-xl;
   }
 

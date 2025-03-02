@@ -6,6 +6,7 @@
   import {currentSection} from '$store';
   import type {Sections} from '$type';
   import {ChevronIcon} from '$icon';
+  import {onMount} from 'svelte';
 
   let {data}: PageProps = $props();
 
@@ -34,6 +35,8 @@
       setTimeout(() => ((node as HTMLButtonElement).disabled = false), 750);
     });
   }
+
+  onMount(() => handleClick('info'));
 </script>
 
 <svelte:head>
