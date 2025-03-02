@@ -94,7 +94,7 @@
           <SearchInput keywords={data.searchKeywords} {handleSearch} />
         </div>
       </div>
-      <p bind:this={errorText} class="mt-24 !hidden text-3xl !text-neutral-500">No results found.</p>
+      <p bind:this={errorText} id="error" class="!hidden">No results found.</p>
       <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
         {#each data.identities as identity}
           {@const phone = identity.phone.replace('+', '').replace(/(\d{1})(\d{3})(\d{3})(\d{4})(\d{3})/, '+$1 $2 $3 $4$5')}
@@ -175,11 +175,15 @@
     @apply h-14 rounded-full shadow-inner;
   }
 
+  a > p {
+    @apply max-xl:hidden;
+  }
+
   p {
     @apply inline-flex items-center gap-2 text-neutral-400;
   }
 
-  a > p {
-    @apply max-xl:hidden;
+  #error {
+    @apply absolute inset-y-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl !text-neutral-500;
   }
 </style>

@@ -32,7 +32,7 @@ export default new Elysia({prefix: '/api'})
       const {id, picture, name, location, email, phone, card} = identity;
 
       const accounts = await attempt(sql`SELECT * FROM accounts WHERE owner = ${id}`);
-      const formattedLocation = location.split(',')[1].trim();
+      const formattedLocation = location.slice(4).trim();
       const country = location.split(',')[0];
 
       return {id, picture, name, email, phone, card, country, location: formattedLocation, accounts: accounts?.length};
