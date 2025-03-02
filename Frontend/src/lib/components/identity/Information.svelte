@@ -1,7 +1,7 @@
 <script lang="ts">
   import {CopyIcon, CreditCardIcon, DownloadIcon, EditIcon, EmailIcon, PhoneIcon} from '$icon';
   import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
-  import {ActionIcon, CopyButton} from '$component';
+  import {ActionIcon, CopyButton, ReactiveButton} from '$component';
   import type {FullIdentity} from '$type';
 
   let {identity}: {identity: FullIdentity} = $props();
@@ -38,14 +38,28 @@
 <section class="m-12 grid grid-cols-2 place-items-center gap-16">
   <div class="group relative cursor-pointer">
     <div id="overlay-profile"></div>
-    <button class="right-8 group-hover:opacity-100" onclick={copyImage}><CopyIcon />Copy</button>
-    <button class="left-8 group-hover:opacity-100" onclick={downloadImage}><DownloadIcon />Download</button>
+    <ReactiveButton
+      text="Copy Image"
+      newText="Copied!"
+      callback={copyImage}
+      icon={CopyIcon}
+      upperClassname="group/copy absolute right-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
+      className="group-hover/copy:!text-neutral-400 text-neutral-100"
+      iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
+    <ReactiveButton
+      text="Download Image"
+      newText="Downloaded!"
+      callback={downloadImage}
+      icon={DownloadIcon}
+      upperClassname="group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
+      className="group-hover/copy:!text-neutral-400 text-neutral-100"
+      iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
     <img class="rounded-xl" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s profile picture" />
   </div>
   <div class="flex flex-col gap-2 text-nowrap">
-    <h3 class="mt-4 !text-2xl">{identity.name}, {identity.age}</h3>
+    <h3 class="mt-4 !text-3xl">{identity.name}, {identity.age}</h3>
     <p class="text-lg text-neutral-500">{toTitleCase(identity.ethnicity)} {toTitleCase(identity.sex)}</p>
-    <p>ipsum dolor sit amet consectetur adipisicing elit. Obcaecati officia laborum ipsum culpa!</p>
+    <p>{identity.bio}</p>
     <p class="flex items-center gap-2 text-nowrap">
       Located in
       <img class="h-[24px]" src={`https://flagsapi.com/${identity.location.split(',')[0]}/flat/24.png`} alt={identity.location} />
@@ -72,11 +86,7 @@
 <style lang="postcss">
   #overlay-profile {
     @apply absolute inset-0 h-full w-full rounded-xl transition-all duration-300;
-    @apply group-hover:bg-black/35 group-hover:shadow-[inset_0_0_50px_10px_#00000090];
-  }
-
-  div.relative button {
-    @apply absolute bottom-8 flex items-center gap-2 opacity-0 shadow-none transition-opacity duration-300;
+    @apply group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080];
   }
 
   #info > div {
