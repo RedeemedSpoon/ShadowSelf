@@ -106,9 +106,9 @@ export interface Location {
   localization: string;
 }
 
-export interface WebsocketAPI {
+export interface WebsocketRequest {
   type: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
-  [key: string]: string;
+  [key: string]: unknown;
 }
 
 export const emailTemplate = {

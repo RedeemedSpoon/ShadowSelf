@@ -1,11 +1,12 @@
+import {User, WebsocketRequest, Location} from '../types';
+import {allFakers} from '@faker-js/faker';
+import {attempt, request} from '../utils';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
-import {attempt} from '../utils';
-import {User, WebsocketAPI} from '../types';
 import {Elysia} from 'elysia';
 
 export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string})).ws('/ws/api/:id', {
-  async message(ws, message: WebsocketAPI | 'ping') {
+  async message(ws, message: WebsocketRequest | 'ping') {
     if (message === 'ping') return ws.send('pong');
 
     const cookie = ws.data.cookie['token'];
@@ -22,14 +23,29 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
     if (id !== identity.owner) return ws.close(1014, 'You do not authorize to perform this action');
 
     switch (message.type) {
-      case 'regenerate-picture':
+      case 'regenerate-picture': {
         break;
+      }
 
-      case 'regenerate-name':
-        break;
+      case 'regenerate-name': {
+        const locations = (await request('/extension-api', 'GET')) as Location[];
+        const lang = locations.find((location) => location.code === identity.location.split(',')[0]);
+        const faker = allFakers[lang?.localization as keyof typeof allFakers];
 
-      case 'regenerate-bio':
+        const name = faker.person.fullName({sex: identity.sex as 'male' | 'female'});
+        ws.send({type: 'regenerate-name', name});
         break;
+      }
+
+      case 'regenerate-bio': {
+        const locations = (await request('/extension-api', 'GET')) as Location[];
+        const lang = locations.find((location) => location.code === identity.location.split(',')[0]);
+        const faker = allFakers[lang?.localization as keyof typeof allFakers];
+
+        const bio = faker.person.bio();
+        ws.send({type: 'regenerate-bio', bio});
+        break;
+      }
 
       case 'update-information':
         break;

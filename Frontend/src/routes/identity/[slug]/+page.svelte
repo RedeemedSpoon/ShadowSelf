@@ -1,10 +1,10 @@
 <script lang="ts">
   import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts} from '$component';
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
+  import type {Sections, WebSocketResponse} from '$type';
+  import {currentSection, handleResponse} from '$store';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
-  import {currentSection} from '$store';
-  import type {Sections} from '$type';
   import {ChevronIcon} from '$icon';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
@@ -43,7 +43,18 @@
     let pingInterval: unknown;
 
     ws = new WebSocket(`wss://${page.url.hostname}/ws/api/${data.identity?.id}`);
-    ws.onopen = () => (pingInterval = setInterval(() => ws?.send('ping'), 5000));
+
+    ws.onopen = () => {
+      pingInterval = setInterval(() => ws?.send('ping'), 5000);
+    };
+
+    ws.onmessage = (event) => {
+      if (Number(event.data) == event.data) return;
+      if (event.data === 'pong') return;
+
+      const response = JSON.parse(event.data) as WebSocketResponse;
+      $handleResponse(response);
+    };
 
     ws.onclose = (ws) => {
       clearInterval(pingInterval as number);

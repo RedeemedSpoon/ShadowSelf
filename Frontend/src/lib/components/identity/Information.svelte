@@ -3,8 +3,8 @@
   import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
   import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon, EditIcon} from '$icon';
   import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
-  import type {IdentityProps} from '$type';
-  import {fetching} from '$store';
+  import type {IdentityProps, WebSocketResponse} from '$type';
+  import {fetching, handleResponse} from '$store';
 
   let {identity, ws}: IdentityProps = $props();
 
@@ -32,13 +32,6 @@
     link.href = url;
     link.click();
   }
-
-  ws.onmessage = (event) => {
-    if (Number(event.data) == event.data) return;
-    if (event.data === 'pong') return;
-
-    const response = JSON.parse(event.data);
-  };
 
   function updateInformation() {
     isEditingMode = !isEditingMode;
@@ -73,6 +66,31 @@
         break;
     }
   }
+
+  $handleResponse = (response: WebSocketResponse) => {
+    switch (response.type) {
+      case 'regenerate-name': {
+        const element = document.querySelector(`input[name="name"]`) as HTMLInputElement;
+        element.value = response.name;
+        identity.name = response.name;
+        break;
+      }
+
+      case 'regenerate-bio': {
+        const element = document.querySelector(`textarea`) as HTMLTextAreaElement;
+        element.value = response.bio;
+        identity.bio = response.bio;
+        break;
+      }
+      case 'regenerate-picture': {
+        const element = document.querySelector(`#profile`) as HTMLImageElement;
+        element.src = `data:image/png;base64,${response.picture}`;
+        identity.picture = response.picture;
+        $fetching = 0;
+        break;
+      }
+    }
+  };
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
@@ -97,7 +115,7 @@
         <label for="name">Name</label>
         <ActionIcon title="regenerate a random name" icon={RepeatIcon} action={() => handleEvent('repeat-name')} size={'small'} />
       </div>
-      <input bind:value={identity.name} type="text" placeholder="John Doe" name="name" />
+      <input value={identity.name} type="text" placeholder="John Doe" name="name" />
       <label for="sex">Sex</label>
       <div class="flex flex-row gap-4">
         <div
@@ -146,7 +164,7 @@
         upperClassname="group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
         className="group-hover/copy:!text-neutral-400 text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
-      <img class="rounded-xl" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s profile picture" />
+      <img class="rounded-xl" id="profile" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s profile picture" />
     </div>
     <div class="flex flex-col gap-2 text-nowrap">
       <h3 class="mt-4 !text-3xl">{identity.name}, {identity.age}</h3>

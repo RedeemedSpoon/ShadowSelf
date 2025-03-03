@@ -126,6 +126,13 @@ export interface FullIdentity {
   card: number;
 }
 
+export interface WebSocketResponse {
+  type: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
+  picture: string;
+  name: string;
+  bio: string;
+}
+
 export interface PricingModel {
   name: string;
   title: string;
