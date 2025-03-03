@@ -40,12 +40,18 @@
     }
   }
 
-  function handleEvent(event: string) {
+  async function handleEvent(event: string) {
     switch (event) {
-      case 'regenerate-picture':
+      case 'regenerate-picture': {
+        const age = (document.querySelector('input[name="age"]') as HTMLInputElement).value.trim();
+        const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
+        const sex = document.querySelector('.selected')?.id;
+
         $fetching = 1;
-        ws.send(JSON.stringify({type: 'regenerate-picture'}));
+        await new Promise((resolve) => setTimeout(resolve, 650));
+        ws.send(JSON.stringify({type: 'regenerate-picture', sex, age, ethnicity}));
         break;
+      }
 
       case 'repeat-name':
         ws.send(JSON.stringify({type: 'regenerate-name', sex: document.querySelector('.selected')!.id}));
@@ -82,6 +88,7 @@
         identity.bio = response.bio;
         break;
       }
+
       case 'regenerate-picture': {
         const element = document.querySelector(`#profile`) as HTMLImageElement;
         element.src = `data:image/png;base64,${response.picture}`;
@@ -102,7 +109,7 @@
 {#if isEditingMode}
   <div class="m-12 grid grid-cols-2 place-items-center gap-16">
     <div class="flex flex-col items-center gap-4">
-      <img class="rounded-xl" src={`data:image/png;base64,${identity.picture}`} alt="identity look" />
+      <img class="rounded-xl" id="profile" src={`data:image/png;base64,${identity.picture}`} alt="identity look" />
       <Tooltip
         tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
         <LoadingButton onclick={() => handleEvent('regenerate-picture')}>
@@ -164,7 +171,7 @@
         upperClassname="group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
         className="group-hover/copy:!text-neutral-400 text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
-      <img class="rounded-xl" id="profile" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s profile picture" />
+      <img class="rounded-xl" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s profile picture" />
     </div>
     <div class="flex flex-col gap-2 text-nowrap">
       <h3 class="mt-4 !text-3xl">{identity.name}, {identity.age}</h3>

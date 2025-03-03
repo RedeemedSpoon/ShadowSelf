@@ -127,6 +127,7 @@ export interface FullIdentity {
 }
 
 export interface WebSocketResponse {
+  error: string;
   type: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
   picture: string;
   name: string;

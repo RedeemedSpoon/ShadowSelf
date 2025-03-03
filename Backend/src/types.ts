@@ -110,13 +110,13 @@ export interface WebsocketRequest {
   type: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
   ethnicity?: string;
   sex?: string;
-  age?: string;
+  age?: number;
 }
 
 export interface APIParams {
   ethnicity?: string;
   error?: string;
-  age?: string;
+  age?: number;
   sex?: string;
 }
 

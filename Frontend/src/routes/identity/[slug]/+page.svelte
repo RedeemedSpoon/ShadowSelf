@@ -1,8 +1,8 @@
 <script lang="ts">
   import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts} from '$component';
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
+  import {currentSection, fetching, handleResponse} from '$store';
   import type {Sections, WebSocketResponse} from '$type';
-  import {currentSection, handleResponse} from '$store';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
   import {ChevronIcon} from '$icon';
@@ -53,6 +53,11 @@
       if (event.data === 'pong') return;
 
       const response = JSON.parse(event.data) as WebSocketResponse;
+      if (response.error) {
+        notify(response.error, 'alert');
+        $fetching = 0;
+      }
+
       $handleResponse(response);
     };
 

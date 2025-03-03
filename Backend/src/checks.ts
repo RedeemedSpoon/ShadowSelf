@@ -201,7 +201,7 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
     return {error: 'Sex must be either "male" or "female"'};
   }
 
-  if (body.age && (Number(body.age) < 18 || Number(body.age) > 60)) {
+  if (body.age && (body.age < 18 || body.age > 60)) {
     return {error: 'Age must be between 18 and 60'};
   }
 
