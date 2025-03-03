@@ -1,7 +1,7 @@
+import {attempt, resizeImage} from '../utils';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
-import {attempt} from '../utils';
 import {User} from '../types';
 
 export default new Elysia({prefix: '/api'})
@@ -31,11 +31,12 @@ export default new Elysia({prefix: '/api'})
     const allIdentitiesPromises = result.map(async (identity) => {
       const {id, picture, name, location, email, phone, card} = identity;
 
+      const lowResPic = await resizeImage(picture);
       const accounts = await attempt(sql`SELECT * FROM accounts WHERE owner = ${id}`);
       const formattedLocation = location.slice(4).trim();
       const country = location.split(',')[0];
 
-      return {id, picture, name, email, phone, card, country, location: formattedLocation, accounts: accounts?.length};
+      return {id, picture: lowResPic, name, email, phone, card, country, location: formattedLocation, accounts: accounts?.length};
     });
 
     return await Promise.all(allIdentitiesPromises);

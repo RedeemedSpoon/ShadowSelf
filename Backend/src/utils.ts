@@ -1,4 +1,5 @@
 import type {QueryResult} from './types';
+import sharp from 'sharp';
 
 export async function attempt(func: Promise<unknown>): Promise<QueryResult[]> {
   try {
@@ -18,6 +19,12 @@ export async function blobToBase64(blob: Blob) {
   const arr = new Uint8Array(await blob.arrayBuffer());
   const buf = Buffer.from(arr);
   return buf.toString('base64');
+}
+
+export async function resizeImage(base64: string) {
+  const buffer = Buffer.from(base64, 'base64');
+  const resizedBuffer = await sharp(buffer).resize(256, 256).toBuffer();
+  return resizedBuffer.toString('base64');
 }
 
 export async function request(url: string, method = 'GET', body?: object) {
