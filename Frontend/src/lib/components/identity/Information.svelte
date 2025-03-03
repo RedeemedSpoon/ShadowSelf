@@ -33,14 +33,18 @@
     link.click();
   }
 
+  ws.onmessage = (event) => {
+    if (Number(event.data) == event.data) return;
+    if (event.data === 'pong') return;
+
+    const response = JSON.parse(event.data);
+  };
+
   function updateInformation() {
     isEditingMode = !isEditingMode;
-    ws.onmessage = (event) => {
-      if (Number(event.data) == event.data) return;
-      if (event.data === 'pong') return;
-
-      const response = JSON.parse(event.data);
-    };
+    if (!isEditingMode) {
+      ws.send(JSON.stringify({type: 'update-information'}));
+    }
   }
 
   function handleEvent(event: string) {

@@ -4,6 +4,7 @@ import {Elysia, error} from 'elysia';
 import {contact} from './email';
 
 import creationProcess from './routes/creation-process';
+import websocket from './routes/websocket';
 import extension from './routes/extension';
 import settings from './routes/settings';
 import account from './routes/account';
@@ -22,6 +23,7 @@ const app = new Elysia()
     return result.message;
   })
   .use(creationProcess)
+  .use(websocket)
   .use(extension)
   .use(settings)
   .use(account)

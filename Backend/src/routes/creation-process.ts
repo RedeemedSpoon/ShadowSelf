@@ -1,5 +1,5 @@
-import {sql, twilioClient, origin} from '../connection';
 import {User, CreationProcess, Location} from '../types';
+import {sql, twilioClient, origin} from '../connection';
 import {attempt, blobToBase64, request} from '../utils';
 import {allFakers} from '@faker-js/faker';
 import {checkIdentity} from '../checks';

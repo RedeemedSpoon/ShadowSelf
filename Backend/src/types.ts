@@ -106,6 +106,11 @@ export interface Location {
   localization: string;
 }
 
+export interface WebsocketAPI {
+  type: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
+  [key: string]: string;
+}
+
 export const emailTemplate = {
   confirm: {
     title: 'Confirm Your Email Address',
