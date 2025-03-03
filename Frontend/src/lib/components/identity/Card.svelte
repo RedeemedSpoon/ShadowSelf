@@ -1,12 +1,13 @@
 <script lang="ts">
   import {TransferIcon, RepeatIcon, AddFundsIcon, RetrieveFundsIcon} from '$icon';
-  import type {FullIdentity} from '$type';
+  import type {IdentityProps} from '$type';
   import {ActionIcon} from '$component';
   import {onMount} from 'svelte';
   import {fetchAPI} from '$lib';
   import {cart} from '$image';
 
-  let {identity}: {identity: FullIdentity} = $props();
+  let {identity, ws}: IdentityProps = $props();
+
   let purchases = $state();
 
   onMount(async () => (purchases = await fetchAPI('/api/card/' + identity.id)));

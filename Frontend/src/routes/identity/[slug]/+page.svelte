@@ -6,11 +6,14 @@
   import {currentSection} from '$store';
   import type {Sections} from '$type';
   import {ChevronIcon} from '$icon';
+  import {page} from '$app/state';
   import {onMount} from 'svelte';
+  import {notify} from '$lib';
 
   let {data}: PageProps = $props();
 
   let buttonWrapper = $state() as HTMLDivElement;
+  let ws = $state() as WebSocket;
 
   const sectionsNames = [
     {name: 'Information', icon: InfoIcon},
@@ -36,7 +39,19 @@
     });
   }
 
-  onMount(() => handleClick('info'));
+  onMount(() => {
+    let pingInterval: unknown;
+
+    ws = new WebSocket(`wss://${page.url.hostname}/ws/api/${data.identity?.id}`);
+    ws.onopen = () => (pingInterval = setInterval(() => ws?.send('ping'), 5000));
+
+    ws.onclose = (ws) => {
+      clearInterval(pingInterval as number);
+      if (ws.code === 1014) notify(ws.reason, 'alert');
+    };
+
+    handleClick('info');
+  });
 </script>
 
 <svelte:head>
@@ -56,7 +71,7 @@
     {#key $currentSection}
       {@const SvelteComponent = allSections[$currentSection]}
       <div class="mb-12 mt-8 w-full px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
-        <SvelteComponent identity={data.identity as never} />
+        <SvelteComponent {ws} identity={data.identity as never} />
       </div>
     {/key}
     <hr class="mb-8 h-px w-full" />

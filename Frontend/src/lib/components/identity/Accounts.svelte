@@ -1,12 +1,13 @@
 <script lang="ts">
   import {UserAddIcon, UserEditIcon, UserDeleteIcon} from '$icon';
-  import type {FullIdentity} from '$type';
+  import type {IdentityProps} from '$type';
   import {ActionIcon} from '$component';
   import {onMount} from 'svelte';
   import {fetchAPI} from '$lib';
   import {group} from '$image';
 
-  let {identity}: {identity: FullIdentity} = $props();
+  let {identity, ws}: IdentityProps = $props();
+
   let accounts = $state();
 
   onMount(async () => (accounts = await fetchAPI('/api/account/' + identity.id)));

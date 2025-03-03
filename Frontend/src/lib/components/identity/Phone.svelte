@@ -1,12 +1,13 @@
 <script lang="ts">
   import {SendIcon, TrashIcon, RepeatIcon} from '$icon';
-  import type {FullIdentity} from '$type';
+  import type {IdentityProps} from '$type';
   import {ActionIcon} from '$component';
   import {conversation} from '$image';
   import {onMount} from 'svelte';
   import {fetchAPI} from '$lib';
 
-  let {identity}: {identity: FullIdentity} = $props();
+  let {identity, ws}: IdentityProps = $props();
+
   let inbox = $state();
 
   onMount(async () => (inbox = await fetchAPI('/api/phone/' + identity.id)));

@@ -33,6 +33,11 @@ export interface SettingsForm {
   qr: string;
 }
 
+export interface IdentityProps {
+  identity: FullIdentity;
+  ws: WebSocket;
+}
+
 export interface Identity {
   id: string;
   picture: string;

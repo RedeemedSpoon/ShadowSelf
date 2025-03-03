@@ -3,10 +3,10 @@
   import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
   import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon, EditIcon} from '$icon';
   import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
-  import type {FullIdentity} from '$type';
+  import type {IdentityProps} from '$type';
   import {fetching} from '$store';
 
-  let {identity}: {identity: FullIdentity} = $props();
+  let {identity, ws}: IdentityProps = $props();
 
   let isEditingMode = $state(false);
   const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Latino', 'Arab', 'East asian', 'South asian'];
@@ -35,21 +35,34 @@
 
   function updateInformation() {
     isEditingMode = !isEditingMode;
+    ws.onmessage = (event) => {
+      if (Number(event.data) == event.data) return;
+      if (event.data === 'pong') return;
+
+      const response = JSON.parse(event.data);
+    };
   }
 
   function handleEvent(event: string) {
     switch (event) {
       case 'regenerate-picture':
         $fetching = 1;
+        ws.send(JSON.stringify({type: 'regenerate-picture'}));
         break;
+
       case 'repeat-name':
+        ws.send(JSON.stringify({type: 'regenerate-name'}));
         break;
+
       case 'repeat-bio':
+        ws.send(JSON.stringify({type: 'regenerate-bio'}));
         break;
+
       case 'change-male':
         document.querySelectorAll('.sex-box').forEach((element) => element.classList.remove('selected'));
         document.querySelector(`#male`)!.classList.add('selected');
         break;
+
       case 'change-female':
         document.querySelectorAll('.sex-box').forEach((element) => element.classList.remove('selected'));
         document.querySelector(`#female`)!.classList.add('selected');
