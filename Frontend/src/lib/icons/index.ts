@@ -14,6 +14,7 @@ export {default as SortIcon} from './Sort.svelte';
 export {default as MaleIcon} from './Male.svelte';
 export {default as FemaleIcon} from './Female.svelte';
 export {default as RepeatIcon} from './Repeat.svelte';
+export {default as BackIcon} from './Back.svelte';
 
 export {default as PinIcon} from './Pin.svelte';
 export {default as EmailIcon} from './Email.svelte';

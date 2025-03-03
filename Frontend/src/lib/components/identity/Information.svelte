@@ -1,7 +1,7 @@
 <script lang="ts">
   import {ActionIcon, CopyButton, ReactiveButton, SelectMenu, Tooltip, LoadingButton} from '$component';
+  import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon, EditIcon, BackIcon} from '$icon';
   import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
-  import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon, EditIcon} from '$icon';
   import {currentSection, identity, fetching, handleResponse} from '$store';
   import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
   import type {WebSocketResponse} from '$type';
@@ -117,6 +117,9 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h2 class="text-5xl text-neutral-300">General Information</h2>
   <div id="top-icons" class="flex gap-2">
+    <div class:hidden={!isEditingMode}>
+      <ActionIcon icon={BackIcon} action={() => ((isEditingMode = false), (activeStatus = false))} title="Ignore Changes" />
+    </div>
     <ActionIcon commit={true} icon={EditIcon} action={updateInformation} title="Update Information" {activeStatus} />
   </div>
 </section>
