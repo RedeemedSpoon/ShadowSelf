@@ -1,4 +1,4 @@
-import type {BodyField, ContactDetail, CheckIdentity} from './types';
+import type {BodyField, ContactDetail, CheckIdentity, APIParams} from './types';
 import {toTitleCase} from './utils';
 import {$} from 'bun';
 
@@ -121,18 +121,12 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 
   switch (kind) {
     case 'location':
-      if (body.location!.length !== 2 && body.location!.toUpperCase() !== body.location!) {
+      if (!['US', 'CA', 'GB', 'SE'].includes(body.location!)) {
         return {error: 'Invalid location code'};
       }
       break;
 
     case 'identity':
-      for (const field of ['name', 'bio', 'age', 'sex', 'ethnicity']) {
-        if (!Object.prototype.hasOwnProperty.call(body, field)) {
-          return {error: `${toTitleCase(field)} is a required field`};
-        }
-      }
-
       if (body.name!.length > 30) {
         return {error: 'Name is too long (<30 characters)'};
       }
@@ -195,6 +189,24 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 
       break;
     }
+  }
+
+  return body;
+}
+
+export async function checkAPI(body: APIParams): Promise<APIParams> {
+  if (!body) return body;
+
+  if (body.sex && body.sex !== 'male' && body.sex !== 'female') {
+    return {error: 'Sex must be either "male" or "female"'};
+  }
+
+  if (body.age && (Number(body.age) < 18 || Number(body.age) > 60)) {
+    return {error: 'Age must be between 18 and 60'};
+  }
+
+  if (body.ethnicity && !['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'].includes(body.ethnicity)) {
+    return {error: 'Ethnicity must be a valid ethnicity'};
   }
 
   return body;

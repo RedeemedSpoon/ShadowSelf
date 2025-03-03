@@ -48,7 +48,7 @@
         break;
 
       case 'repeat-name':
-        ws.send(JSON.stringify({type: 'regenerate-name'}));
+        ws.send(JSON.stringify({type: 'regenerate-name', sex: document.querySelector('.selected')!.id}));
         break;
 
       case 'repeat-bio':

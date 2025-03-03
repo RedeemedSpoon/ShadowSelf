@@ -1,6 +1,7 @@
 import {User, WebsocketRequest, Location} from '../types';
 import {allFakers} from '@faker-js/faker';
 import {attempt, request} from '../utils';
+import {checkAPI} from '../checks';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
 import {Elysia} from 'elysia';
@@ -28,11 +29,16 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       }
 
       case 'regenerate-name': {
+        const mes = {sex: identity.sex, ...message};
+        const {error, sex} = await checkAPI(mes);
+        if (error) return ws.send({error});
+
         const locations = (await request('/extension-api', 'GET')) as Location[];
         const lang = locations.find((location) => location.code === identity.location.split(',')[0]);
-        const faker = allFakers[lang?.localization as keyof typeof allFakers];
 
-        const name = faker.person.fullName({sex: identity.sex as 'male' | 'female'});
+        const faker = allFakers[lang?.localization as keyof typeof allFakers];
+        const name = faker.person.fullName({sex: sex as 'male' | 'female'});
+
         ws.send({type: 'regenerate-name', name});
         break;
       }
@@ -40,9 +46,10 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       case 'regenerate-bio': {
         const locations = (await request('/extension-api', 'GET')) as Location[];
         const lang = locations.find((location) => location.code === identity.location.split(',')[0]);
-        const faker = allFakers[lang?.localization as keyof typeof allFakers];
 
+        const faker = allFakers[lang?.localization as keyof typeof allFakers];
         const bio = faker.person.bio();
+
         ws.send({type: 'regenerate-bio', bio});
         break;
       }

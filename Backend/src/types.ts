@@ -98,17 +98,26 @@ export interface CheckIdentity {
 }
 
 export interface Location {
+  localization: string;
   country: string;
   city: string;
   code: string;
   map: string;
   ip: string;
-  localization: string;
 }
 
 export interface WebsocketRequest {
   type: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
-  [key: string]: unknown;
+  ethnicity?: string;
+  sex?: string;
+  age?: string;
+}
+
+export interface APIParams {
+  ethnicity?: string;
+  error?: string;
+  age?: string;
+  sex?: string;
 }
 
 export const emailTemplate = {
