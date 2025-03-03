@@ -111,6 +111,9 @@ export interface WebsocketRequest {
   ethnicity?: string;
   sex?: string;
   age?: number;
+  name?: string;
+  bio?: string;
+  picture?: string;
 }
 
 export interface APIParams {
@@ -118,6 +121,9 @@ export interface APIParams {
   error?: string;
   age?: number;
   sex?: string;
+  name?: string;
+  bio?: string;
+  picture?: string;
 }
 
 export const emailTemplate = {

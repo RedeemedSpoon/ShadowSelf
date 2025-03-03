@@ -146,6 +146,10 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       if (body.bio!.length > 126) {
         return {error: 'Biography is too long (<126 characters)'};
       }
+
+      if (!/^[A-Za-z0-9+/=]+$/.test(body.picture!)) {
+        return {error: 'Incorrect profile picture format'};
+      }
       break;
 
     case 'email':
@@ -173,11 +177,10 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       break;
 
     case 'card':
+      // if (!/^\d{16}$/.test(body.card!)) {
+      //   return { error: 'Invalid credit card number, please try again' };
+      // }
       break;
-    // if (!/^\d{16}$/.test(body.card!)) {
-    //   return { error: 'Invalid credit card number, please try again' };
-    // }
-    // break;
 
     case 'finish': {
       const validationKinds = ['location', 'identity', 'email', 'phone', 'card'];
@@ -197,6 +200,14 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 export async function checkAPI(body: APIParams): Promise<APIParams> {
   if (!body) return body;
 
+  if (body.name && body.name.length > 30) {
+    return {error: 'Name is too long (<30 characters)'};
+  }
+
+  if (body.bio && body.bio.length > 126) {
+    return {error: 'Biography is too long (<126 characters)'};
+  }
+
   if (body.sex && body.sex !== 'male' && body.sex !== 'female') {
     return {error: 'Sex must be either "male" or "female"'};
   }
@@ -207,6 +218,10 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
 
   if (body.ethnicity && !['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'].includes(body.ethnicity)) {
     return {error: 'Ethnicity must be a valid ethnicity'};
+  }
+
+  if (body.picture && !/^[A-Za-z0-9+/=]+$/.test(body.picture)) {
+    return {error: 'Incorrect profile picture format'};
   }
 
   return body;

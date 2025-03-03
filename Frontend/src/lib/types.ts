@@ -33,11 +33,6 @@ export interface SettingsForm {
   qr: string;
 }
 
-export interface IdentityProps {
-  identity: FullIdentity;
-  ws: WebSocket;
-}
-
 export interface Identity {
   id: string;
   picture: string;
@@ -127,11 +122,14 @@ export interface FullIdentity {
 }
 
 export interface WebSocketResponse {
-  error: string;
-  type: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
-  picture: string;
-  name: string;
-  bio: string;
+  error?: string;
+  type?: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
+  picture?: string;
+  ethnicity?: string;
+  name?: string;
+  age?: number;
+  sex?: string;
+  bio?: string;
 }
 
 export interface PricingModel {

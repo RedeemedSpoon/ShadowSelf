@@ -7,17 +7,17 @@
     icon: Component;
     title: string;
     commit?: boolean;
+    activeStatus?: boolean;
     size?: 'big' | 'small';
   }
 
-  let {icon, action, commit, title, size = 'big'}: Props = $props();
+  let {icon, action, activeStatus, commit, title, size = 'big'}: Props = $props();
 
-  let on = $state(false);
   const width = size === 'big' ? 'w-8 h-8' : 'w-4 h-4';
 </script>
 
-<button class="group {commit && on && 'primary-color'}" type="button" onclick={() => (action(), (on = !on))} {title}>
-  {#if commit && on}
+<button class="group {commit && activeStatus && 'primary-color'}" type="button" onclick={action} {title}>
+  {#if commit && activeStatus}
     <CheckmarkIcon className={width + ' fill-primary-600 stroke-none'} />
   {:else}
     {@const SvelteComponent = icon}

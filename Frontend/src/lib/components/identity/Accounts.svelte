@@ -1,16 +1,15 @@
 <script lang="ts">
   import {UserAddIcon, UserEditIcon, UserDeleteIcon} from '$icon';
-  import type {IdentityProps} from '$type';
   import {ActionIcon} from '$component';
+  import {identity} from '$store';
   import {onMount} from 'svelte';
   import {fetchAPI} from '$lib';
   import {group} from '$image';
 
-  let {identity, ws}: IdentityProps = $props();
-
+  let {ws}: {ws: WebSocket} = $props();
   let accounts = $state();
 
-  onMount(async () => (accounts = await fetchAPI('/api/account/' + identity.id)));
+  onMount(async () => (accounts = await fetchAPI('/api/account/' + $identity.id)));
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">

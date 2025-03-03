@@ -83,8 +83,18 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         break;
       }
 
-      case 'update-information':
+      case 'update-information': {
+        const mes1 = {sex: identity.sex, ethnicity: identity.ethnicity, age: identity.age};
+        const mes2 = {name: identity.name, bio: identity.bio, ...message, picture: identity.picture};
+        const {error, sex, ethnicity, age, name, bio, picture} = await checkAPI({...mes1, ...mes2, ...message});
+        if (error) return ws.send({error});
+
+        await attempt(sql`UPDATE identities SET sex = ${sex!}, ethnicity = ${ethnicity!}, age = ${age!} WHERE id = ${identity.id}`);
+        await attempt(sql`UPDATE identities SET name = ${name!}, bio = ${bio!}, picture = ${picture!} WHERE id = ${identity.id}`);
+
+        ws.send({type: 'update-information', sex, ethnicity, age, name, bio, picture});
         break;
+      }
 
       default:
         ws.send({error: 'Invalid action. Please read the documentation carefully'});

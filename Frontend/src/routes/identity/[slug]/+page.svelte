@@ -1,7 +1,7 @@
 <script lang="ts">
   import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts} from '$component';
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
-  import {currentSection, fetching, handleResponse} from '$store';
+  import {currentSection, fetching, handleResponse, identity} from '$store';
   import type {Sections, WebSocketResponse} from '$type';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
@@ -14,6 +14,7 @@
 
   let buttonWrapper = $state() as HTMLDivElement;
   let ws = $state() as WebSocket;
+  $identity = data.identity!;
 
   const sectionsNames = [
     {name: 'Information', icon: InfoIcon},
@@ -87,7 +88,7 @@
     {#key $currentSection}
       {@const SvelteComponent = allSections[$currentSection]}
       <div class="mb-12 mt-8 w-full px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
-        <SvelteComponent {ws} identity={data.identity as never} />
+        <SvelteComponent {ws} />
       </div>
     {/key}
     <hr class="mb-8 h-px w-full" />

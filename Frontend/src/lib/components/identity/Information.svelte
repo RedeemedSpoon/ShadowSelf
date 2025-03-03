@@ -2,16 +2,17 @@
   import {ActionIcon, CopyButton, ReactiveButton, SelectMenu, Tooltip, LoadingButton} from '$component';
   import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
   import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon, EditIcon} from '$icon';
+  import {currentSection, identity, fetching, handleResponse} from '$store';
   import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
-  import type {IdentityProps, WebSocketResponse} from '$type';
-  import {fetching, handleResponse} from '$store';
+  import type {WebSocketResponse} from '$type';
 
-  let {identity, ws}: IdentityProps = $props();
+  let {ws}: {ws: WebSocket} = $props();
 
+  let activeStatus = $state(false);
   let isEditingMode = $state(false);
   const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Latino', 'Arab', 'East asian', 'South asian'];
 
-  const relativeDate = new Date(identity.creation_date).getTime() - new Date().getTime();
+  const relativeDate = new Date($identity.creation_date).getTime() - new Date().getTime();
   const dateInDays = Math.round(relativeDate / (1000 * 60 * 60 * 24));
   const dateInMonth = Math.round(dateInDays / 30);
 
@@ -19,24 +20,33 @@
   const date = Math.abs(dateInMonth) > 1 ? rtf1.format(dateInMonth, 'months') : rtf1.format(dateInDays, 'days');
 
   function copyImage() {
-    const blob = base64ToBlob(identity.picture);
+    const blob = base64ToBlob($identity.picture);
     navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
   }
 
   function downloadImage() {
-    const blob = base64ToBlob(identity.picture);
+    const blob = base64ToBlob($identity.picture);
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
 
-    link.download = `${identity.name.replace(' ', '_').replace('.', '')}.png`;
+    link.download = `${$identity.name.replace(' ', '_').replace('.', '')}.png`;
     link.href = url;
     link.click();
   }
 
-  function updateInformation() {
-    isEditingMode = !isEditingMode;
-    if (!isEditingMode) {
-      ws.send(JSON.stringify({type: 'update-information'}));
+  async function updateInformation() {
+    if (isEditingMode) {
+      const picture = (document.querySelector('#profile') as HTMLImageElement)!.src.split('data:image/png;base64,')[1];
+      const name = (document.querySelector('input[name="name"]') as HTMLInputElement).value.trim();
+      const bio = (document.querySelector('textarea') as HTMLTextAreaElement).value.trim();
+      const age = (document.querySelector('input[name="age"]') as HTMLInputElement).value.trim();
+      const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
+      const sex = document.querySelector('.selected')?.id;
+
+      ws.send(JSON.stringify({type: 'update-information', picture, name, bio, age, ethnicity, sex}));
+    } else {
+      isEditingMode = true;
+      activeStatus = true;
     }
   }
 
@@ -48,7 +58,7 @@
         const sex = document.querySelector('.selected')?.id;
 
         $fetching = 1;
-        await new Promise((resolve) => setTimeout(resolve, 650));
+        await new Promise((resolve) => setTimeout(resolve, 300));
         ws.send(JSON.stringify({type: 'regenerate-picture', sex, age, ethnicity}));
         break;
       }
@@ -77,23 +87,27 @@
     switch (response.type) {
       case 'regenerate-name': {
         const element = document.querySelector(`input[name="name"]`) as HTMLInputElement;
-        element.value = response.name;
-        identity.name = response.name;
+        element.value = response.name!;
         break;
       }
 
       case 'regenerate-bio': {
         const element = document.querySelector(`textarea`) as HTMLTextAreaElement;
-        element.value = response.bio;
-        identity.bio = response.bio;
+        element.value = response.bio!;
         break;
       }
 
       case 'regenerate-picture': {
         const element = document.querySelector(`#profile`) as HTMLImageElement;
         element.src = `data:image/png;base64,${response.picture}`;
-        identity.picture = response.picture;
         $fetching = 0;
+        break;
+      }
+
+      case 'update-information': {
+        $identity = {...$identity, ...response};
+        isEditingMode = false;
+        activeStatus = false;
         break;
       }
     }
@@ -103,13 +117,13 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h2 class="text-5xl text-neutral-300">General Information</h2>
   <div id="top-icons" class="flex gap-2">
-    <ActionIcon commit={true} icon={EditIcon} action={updateInformation} title="Update Information" />
+    <ActionIcon commit={true} icon={EditIcon} action={updateInformation} title="Update Information" {activeStatus} />
   </div>
 </section>
 {#if isEditingMode}
   <div class="m-12 grid grid-cols-2 place-items-center gap-16">
-    <div class="flex flex-col items-center gap-4">
-      <img class="rounded-xl" id="profile" src={`data:image/png;base64,${identity.picture}`} alt="identity look" />
+    <div class="flex flex-col items-center gap-8">
+      <img class="rounded-xl" id="profile" src={`data:image/png;base64,${$identity.picture}`} alt="identity look" />
       <Tooltip
         tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
         <LoadingButton onclick={() => handleEvent('regenerate-picture')}>
@@ -122,38 +136,38 @@
         <label for="name">Name</label>
         <ActionIcon title="regenerate a random name" icon={RepeatIcon} action={() => handleEvent('repeat-name')} size={'small'} />
       </div>
-      <input value={identity.name} type="text" placeholder="John Doe" name="name" />
+      <input value={$identity.name} type="text" placeholder="John Doe" name="name" />
       <label for="sex">Sex</label>
       <div class="flex flex-row gap-4">
         <div
           id="male"
-          class="sex-box {identity.sex === 'male' && 'selected'}"
+          class="sex-box {$identity.sex === 'male' && 'selected'}"
           onclick={() => handleEvent('change-male')}
           aria-hidden="true">
           <MaleIcon /> Male
         </div>
         <div
           id="female"
-          class="sex-box {identity.sex === 'female' && 'selected'}"
+          class="sex-box {$identity.sex === 'female' && 'selected'}"
           onclick={() => handleEvent('change-female')}
           aria-hidden="true">
           <FemaleIcon /> Female
         </div>
       </div>
       <label for="ethnicity">Ethnicity</label>
-      <SelectMenu options={ethnicities} name="ethnicity" value={identity?.ethnicity} />
+      <SelectMenu options={ethnicities} name="ethnicity" value={$identity.ethnicity} />
       <label for="age">Age</label>
-      <input type="number" name="age" placeholder="18-60" bind:value={identity.age} />
+      <input type="number" name="age" placeholder="18-60" bind:value={$identity.age} />
       <div class="flex items-end gap-4">
         <label for="bio">Bio</label>
         <ActionIcon title="regenerate a random bio" icon={RepeatIcon} action={() => handleEvent('repeat-bio')} size="small" />
       </div>
-      <textarea placeholder="Short bio, will be used when generating a profile picture" value={identity.bio}></textarea>
+      <textarea placeholder="Short bio, will be used when generating a profile picture" value={$identity.bio}></textarea>
     </div>
   </div>
 {:else}
   <section class="m-12 grid grid-cols-2 place-items-center gap-16">
-    <div class="group relative cursor-pointer">
+    <div class="group relative">
       <div id="overlay-profile"></div>
       <ReactiveButton
         text="Copy Image"
@@ -171,30 +185,32 @@
         upperClassname="group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
         className="group-hover/copy:!text-neutral-400 text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
-      <img class="rounded-xl" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s profile picture" />
+      {#key currentSection}
+        <img class="rounded-xl" id="pic" src={`data:image/png;base64,${$identity.picture}`} alt="{$identity.name}'s profile picture" />
+      {/key}
     </div>
     <div class="flex flex-col gap-2 text-nowrap">
-      <h3 class="mt-4 !text-3xl">{identity.name}, {identity.age}</h3>
-      <p class="text-lg text-neutral-500">{toTitleCase(identity.ethnicity)} {toTitleCase(identity.sex)}</p>
-      <p>{identity.bio}</p>
+      <h3 class="mt-4 !text-3xl">{$identity.name}, {$identity.age}</h3>
+      <p class="text-lg text-neutral-500">{toTitleCase($identity.ethnicity)} {toTitleCase($identity.sex)}</p>
+      <p>{$identity.bio}</p>
       <p class="flex items-center gap-2 text-nowrap">
         Located in
-        <img class="h-[24px]" src={`https://flagsapi.com/${identity.location.split(',')[0]}/flat/24.png`} alt={identity.location} />
-        {identity.location.split(',')[1]}, {identity.location.split(',')[2]} ({identity.proxy_server})
+        <img class="h-[24px]" src={`https://flagsapi.com/${$identity.location.split(',')[0]}/flat/24.png`} alt={$identity.location} />
+        {$identity.location.split(',')[1]}, {$identity.location.split(',')[2]} ({$identity.proxy_server})
       </p>
       <p>Created {date}</p>
       <div id="info" class="flex flex-col">
         <div>
           <EmailIcon fill={true} className="text-neutral-300 cursor-default" />
-          <CopyButton alt={true} change={false} text={identity.email} />
+          <CopyButton alt={true} change={false} text={$identity.email} />
         </div>
         <div>
           <PhoneIcon fill={true} className="text-neutral-300 cursor-default" />
-          <CopyButton alt={true} change={false} text={formatPhoneNumber(identity.phone)} />
+          <CopyButton alt={true} change={false} text={formatPhoneNumber($identity.phone)} />
         </div>
         <div>
           <CreditCardIcon fill={true} className="text-neutral-300 cursor-default" />
-          <CopyButton alt={true} change={false} text={identity.card.toString().replace(/\d{4}(?=\d)/g, '$& ')} />
+          <CopyButton alt={true} change={false} text={$identity.card.toString().replace(/\d{4}(?=\d)/g, '$& ')} />
         </div>
       </div>
     </div>

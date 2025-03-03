@@ -1,16 +1,15 @@
 <script lang="ts">
   import {SendIcon, TrashIcon, RepeatIcon} from '$icon';
-  import type {IdentityProps} from '$type';
   import {ActionIcon} from '$component';
   import {conversation} from '$image';
+  import {identity} from '$store';
   import {onMount} from 'svelte';
   import {fetchAPI} from '$lib';
 
-  let {identity, ws}: IdentityProps = $props();
-
+  let {ws}: {ws: WebSocket} = $props();
   let inbox = $state();
 
-  onMount(async () => (inbox = await fetchAPI('/api/phone/' + identity.id)));
+  onMount(async () => (inbox = await fetchAPI('/api/phone/' + $identity.id)));
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
