@@ -26,6 +26,9 @@ export {default as ExtensionIcon} from './Extension.svelte';
 
 export {default as KeyIcon} from './Key.svelte';
 export {default as KeylockIcon} from './Keylock.svelte';
+export {default as LockEditIcon} from './LockEdit.svelte';
+export {default as LockRemoveIcon} from './LockRemove.svelte';
+
 export {default as RecoveryIcon} from './Recovery.svelte';
 export {default as AddUserIcon} from './AddUser.svelte';
 export {default as UserIcon} from './User.svelte';

@@ -21,7 +21,7 @@
     <CheckmarkIcon className={width + ' fill-primary-600 stroke-none'} />
   {:else}
     {@const SvelteComponent = icon}
-    <SvelteComponent className={width + ' stroke-neutral-300'} />
+    <SvelteComponent fill={true} className={width + ' stroke-neutral-300'} />
   {/if}
 </button>
 

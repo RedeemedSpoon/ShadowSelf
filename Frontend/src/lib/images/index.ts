@@ -9,6 +9,7 @@ export {default as website} from './links/website.svg';
 export {default as systemDesign} from './system-design.webp';
 
 export {default as cart} from './empty-states/cart.svg';
+export {default as lock} from './empty-states/lock.svg';
 export {default as group} from './empty-states/group.svg';
 export {default as mailbox} from './empty-states/mailbox.svg';
 export {default as conversation} from './empty-states/conversation.svg';
