@@ -77,6 +77,27 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         break;
       }
 
+      case 'add-account': {
+        const {error, username, password, website, totp, algorithm} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        await attempt(sql`INSERT INTO accounts (owner, username, password) VALUES (${identity.id}, ${username!}, ${password!})`);
+        if (website) await attempt(sql`UPDATE accounts SET website = ${website!} WHERE password = ${password!}`);
+        if (totp)
+          await attempt(sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm || 'SHA1'} WHERE password = ${password!}`);
+
+        ws.send({type: 'add-account', username, password, website, totp, algorithm});
+        break;
+      }
+
+      case 'edit-account': {
+        break;
+      }
+
+      case 'remove-account': {
+        break;
+      }
+
       default:
         ws.send({error: 'Invalid action. Please read the documentation carefully'});
         break;

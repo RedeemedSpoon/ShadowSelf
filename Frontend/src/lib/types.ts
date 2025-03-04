@@ -123,13 +123,25 @@ export interface FullIdentity {
 
 export interface WebSocketResponse {
   error?: string;
-  type?: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
+  type?:
+    | 'regenerate-picture'
+    | 'regenerate-name'
+    | 'regenerate-bio'
+    | 'update-information'
+    | 'add-account'
+    | 'edit-account'
+    | 'remove-account';
   picture?: string;
   ethnicity?: string;
   name?: string;
   age?: number;
   sex?: string;
   bio?: string;
+  username?: string;
+  password?: string;
+  website: string;
+  totp?: string;
+  algorithm: string;
 }
 
 export interface PricingModel {

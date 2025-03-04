@@ -224,5 +224,24 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
     return {error: 'Incorrect profile picture format'};
   }
 
+  if (body.username && body.username.length > 25) {
+    return {error: 'Username is too long (<25 characters)'};
+  }
+
+  if (body.password && !/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
+    return {error: 'Password is too weak. You probably did not use a strong key'};
+  }
+
+  if (body.website && !/\b(?:[a-zA-Z0-9-]+\.)+(?:[a-zA-Z0-9-]+\.[a-zA-Z]{2,6})(?:\/[^\s]*)?\b/.test(body.website)) {
+    return {error: 'Invalid website address, please try again'};
+  }
+
+  if (body.totp && !/^[A-Za-z0-9+/=]+$/.test(body.totp)) {
+    return {error: 'Invalid TOTP secret, please try again'};
+  }
+
+  if (body.algorithm && !['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
+    return {error: 'Invalid algorithm, please try again'};
+  }
   return body;
 }

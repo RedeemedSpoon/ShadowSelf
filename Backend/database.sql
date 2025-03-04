@@ -64,7 +64,7 @@ CREATE TABLE accounts (
   "owner" varchar(12) NOT NULL REFERENCES identities(id),
   "username" varchar(25) NOT NULL,
   "password" varchar(60) NOT NULL,
-  "website" varchar(48) NOT NULL,
+  "website" varchar(48),
   "algorithm" varchar(6),
-  "totp" varchar(32)
+  "totp" varchar(60)
 );

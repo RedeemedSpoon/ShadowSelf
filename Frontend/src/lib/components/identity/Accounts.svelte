@@ -1,11 +1,12 @@
 <script lang="ts">
   import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon} from '$icon';
   import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu} from '$component';
-  import {fetching, identity, showModal, showPassword} from '$store';
+  import {fetching, identity, showModal, showPassword, handleResponse} from '$store';
   import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
+  import type {WebSocketResponse} from '$type';
+  import {fetchAPI, notify} from '$lib';
   import {group, lock} from '$image';
   import {onMount} from 'svelte';
-  import {fetchAPI} from '$lib';
 
   let {ws}: {ws: WebSocket} = $props();
 
@@ -21,6 +22,19 @@
   };
 
   onMount(async () => (accounts = await fetchAPI('/api/account/' + $identity.id)));
+
+  $handleResponse = (response: WebSocketResponse) => {
+    switch (response.type) {
+      case 'add-account':
+        break;
+
+      case 'edit-account':
+        break;
+
+      case 'remove-account':
+        break;
+    }
+  };
 
   async function getMasterKey() {
     const keyBuffer = new Uint8Array(
@@ -92,11 +106,30 @@
     const encryptedPasswordBuffer = encryptedData.slice(12);
 
     const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, encryptedPasswordBuffer);
-
     return new TextDecoder().decode(decryptedBuffer);
   }
 
-  async function addAccount() {}
+  async function addAccount() {
+    $fetching = 1;
+    await new Promise((resolve) => setTimeout(resolve, 650));
+
+    const username = (document.querySelector('input[name="username"]') as HTMLInputElement)?.value;
+    const rawPassword = (document.querySelector('input[name="password"]') as HTMLInputElement)?.value;
+    const website = (document.querySelector('input[name="website"]') as HTMLInputElement)?.value;
+    const rawTotp = (document.querySelector('input[name="totp"]') as HTMLInputElement)?.value;
+    const algorithm = (document.querySelector('input[name="algorithm"]') as HTMLSelectElement)?.value.toUpperCase();
+
+    if (!username || !rawPassword) {
+      notify('Username and Password are required', 'alert');
+      $fetching = 0;
+    }
+
+    const password = await encryptPassword(rawPassword);
+    const totp = rawTotp ? await encryptPassword(rawTotp) : null;
+
+    ws.send(JSON.stringify({type: 'add-account', username, password, website, totp, algorithm}));
+  }
+
   async function editAccount() {}
   async function deleteAccount() {}
 </script>
@@ -139,7 +172,7 @@
         <p>* Required Fields</p>
       </div>
     </div>
-    <button onclick={addAccount}>Add Account</button>
+    <LoadingButton onclick={addAccount}>Add Account</LoadingButton>
   </section>
 {:else if mode === 'edit'}
   <section></section>

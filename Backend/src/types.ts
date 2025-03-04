@@ -1,5 +1,5 @@
 export type User = {email: string; id: string} | undefined;
-export type QueryResult = QueryResultUser & QueryResultIdentify;
+export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
 
 export interface ContactDetail {
   category: 'question' | 'feedback' | 'collaboration' | 'bug' | 'help' | 'other';
@@ -60,6 +60,16 @@ export interface QueryResultIdentify {
   card: number;
 }
 
+export interface QueryResultAccount {
+  id: string;
+  owner: string;
+  username: string;
+  password: string;
+  website: string;
+  algorithm: string;
+  totp: string;
+}
+
 export interface RegenerateIdentity {
   name: string;
   bio: string;
@@ -107,13 +117,25 @@ export interface Location {
 }
 
 export interface WebsocketRequest {
-  type: 'regenerate-picture' | 'regenerate-name' | 'regenerate-bio' | 'update-information';
+  type:
+    | 'regenerate-picture'
+    | 'regenerate-name'
+    | 'regenerate-bio'
+    | 'update-information'
+    | 'add-account'
+    | 'edit-account'
+    | 'remove-account';
   ethnicity?: string;
   sex?: string;
   age?: number;
   name?: string;
   bio?: string;
   picture?: string;
+  username?: string;
+  password?: string;
+  website?: string;
+  totp?: string;
+  algorithm?: string;
 }
 
 export interface APIParams {
@@ -124,6 +146,11 @@ export interface APIParams {
   name?: string;
   bio?: string;
   picture?: string;
+  username?: string;
+  password?: string;
+  website?: string;
+  totp?: string;
+  algorithm?: string;
 }
 
 export const emailTemplate = {
