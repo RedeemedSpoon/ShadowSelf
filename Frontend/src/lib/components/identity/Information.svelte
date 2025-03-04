@@ -53,13 +53,14 @@
   async function handleEvent(event: string) {
     switch (event) {
       case 'regenerate-picture': {
+        const bio = (document.querySelector('textarea') as HTMLTextAreaElement).value.trim();
         const age = (document.querySelector('input[name="age"]') as HTMLInputElement).value.trim();
         const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
         const sex = document.querySelector('.selected')?.id;
 
         $fetching = 1;
         await new Promise((resolve) => setTimeout(resolve, 300));
-        ws.send(JSON.stringify({type: 'regenerate-picture', sex, age, ethnicity}));
+        ws.send(JSON.stringify({type: 'regenerate-picture', sex, age, ethnicity, bio}));
         break;
       }
 
@@ -196,23 +197,25 @@
       <h3 class="mt-4 !text-3xl">{$identity.name}, {$identity.age}</h3>
       <p class="text-lg text-neutral-500">{toTitleCase($identity.ethnicity)} {toTitleCase($identity.sex)}</p>
       <p>{$identity.bio}</p>
+      <hr class="my-2 w-1/6" />
       <p class="flex items-center gap-2 text-nowrap">
         Located in
-        <img class="h-[24px]" src={`https://flagsapi.com/${$identity.location.split(',')[0]}/flat/24.png`} alt={$identity.location} />
+        <img class="h-[22px]" src={`https://flagsapi.com/${$identity.location.split(',')[0]}/flat/24.png`} alt={$identity.location} />
         {$identity.location.split(',')[1]}, {$identity.location.split(',')[2]} ({$identity.proxy_server})
       </p>
-      <p>Created {date}</p>
+      <p class="-mt-2">Created {date}</p>
+      <hr class="my-2 w-1/6" />
       <div id="info" class="flex flex-col">
         <div>
-          <EmailIcon fill={true} className="text-neutral-300 cursor-default" />
+          <EmailIcon fill={true} className="text-primary-700 cursor-default" />
           <CopyButton alt={true} change={false} text={$identity.email} />
         </div>
         <div>
-          <PhoneIcon fill={true} className="text-neutral-300 cursor-default" />
+          <PhoneIcon fill={true} className="text-primary-700 cursor-default" />
           <CopyButton alt={true} change={false} text={formatPhoneNumber($identity.phone)} />
         </div>
         <div>
-          <CreditCardIcon fill={true} className="text-neutral-300 cursor-default" />
+          <CreditCardIcon fill={true} className="text-primary-700 cursor-default" />
           <CopyButton alt={true} change={false} text={$identity.card.toString().replace(/\d{4}(?=\d)/g, '$& ')} />
         </div>
       </div>

@@ -1,6 +1,7 @@
 import {User, CreationProcess, Location} from '../types';
 import {sql, twilioClient, origin} from '../connection';
-import {attempt, blobToBase64, request} from '../utils';
+import {generateProfile} from '../prompts';
+import {attempt, request} from '../utils';
 import {allFakers} from '@faker-js/faker';
 import {checkIdentity} from '../checks';
 import {jwt} from '@elysiajs/jwt';
@@ -85,32 +86,13 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             bio = faker.person.bio();
 
             ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
-            age = (Math.floor(Math.random() * 42) + 18).toString();
+            age = Math.floor(Math.random() * 42) + 18;
             error = undefined;
           }
 
-          const prompt = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, exuding a sense of warmth, personality, and approachability. They are in an urban environment, with a bustling cityscape in ${lang?.city}, ${lang?.country} in the background, capturing the vibrant, everyday life of the city. The setting should feel natural and immersive, with elements such as streets, buildings, and people in the background, adding to the realism.`;
-
-          const negativePrompt =
-            'hyper-realistic, polished skin, exaggerated features, overly symmetrical, robotic or artificial facial expressions, cartoonish, stylized, or unrealistic traits, backgrounds that are not realistic city environments, overly simple or bland settings';
-
-          const formData = new FormData();
-          formData.append('prompt', prompt);
-          formData.append('aspect_ratio', '1:1');
-          formData.append('output_format', 'png');
-          formData.append('negative_prompt', negativePrompt);
-
-          const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
-            method: 'POST',
-            body: formData,
-            headers: {
-              authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
-              accept: 'image/*',
-            },
-          });
-
-          const picture = await blobToBase64(await response.blob());
+          const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
           const identity = {picture, name, bio, sex, age, ethnicity};
+
           ws.send({identity});
           break;
         }
@@ -174,7 +156,8 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
         case 'finish': {
           const [location, picture, name, bio, age, sex, ethnicity, email, phone, card] = cookieStore;
-          const {error} = await checkIdentity('finish', {location, picture, name, bio, age, sex, ethnicity, email, phone, card});
+          const params = {location, picture, name, bio, age: Number(age), sex, ethnicity, email, phone, card};
+          const {error} = await checkIdentity('finish', params);
           if (error) return ws.send({error});
 
           const allLocations = (await request('/extension-api', 'GET')) as Location[];

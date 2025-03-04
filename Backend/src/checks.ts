@@ -135,7 +135,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Sex must be either "male" or "female"'};
       }
 
-      if (Number(body.age)! < 18 || Number(body.age!) > 60) {
+      if (body.age! < 18 || body.age! > 60) {
         return {error: 'Age must be between 18 and 60'};
       }
 

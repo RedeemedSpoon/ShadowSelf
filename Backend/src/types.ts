@@ -63,7 +63,7 @@ export interface QueryResultIdentify {
 export interface RegenerateIdentity {
   name: string;
   bio: string;
-  age: string;
+  age: number;
   sex: string;
   ethnicity: string;
 }
@@ -90,7 +90,7 @@ export interface CheckIdentity {
   card?: string;
   name?: string;
   bio?: string;
-  age?: string;
+  age?: number;
   sex?: string;
   ethnicity?: string;
   picture?: string;

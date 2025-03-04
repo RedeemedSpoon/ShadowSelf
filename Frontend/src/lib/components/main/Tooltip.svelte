@@ -17,6 +17,6 @@
 
 <style lang="postcss">
   span {
-    @apply absolute z-20 my-2 hidden text-wrap rounded-xl bg-neutral-950/85 px-4 py-3 text-sm shadow-black drop-shadow-2xl;
+    @apply absolute z-20 my-2 hidden text-wrap rounded-xl bg-neutral-950/85 px-4 py-3 text-sm text-neutral-300 shadow-black drop-shadow-2xl;
   }
 </style>
