@@ -8,9 +8,10 @@
     text: string;
     name: string;
     fetch?: number;
+    onclick?: () => void;
   }
 
-  let {id, text, name, fetch}: Props = $props();
+  let {id, text, name, fetch, onclick}: Props = $props();
 </script>
 
 <Modal {id}>
@@ -23,9 +24,9 @@
     <div class="flex justify-end gap-4">
       <button class="alt text-red-700 hover:text-red-800" type="button" onclick={() => ($showModal = 0)}>Cancel</button>
       {#if fetch}
-        <LoadingButton {name} index={fetch} className="text-nowrap disable">Confirm</LoadingButton>
+        <LoadingButton {name} {onclick} index={fetch} className="text-nowrap disable">Confirm</LoadingButton>
       {:else}
-        <button {name} class="disable flex items-center gap-1" type="submit">Confirm <ChevronIcon /></button>
+        <button {name} {onclick} class="disable flex items-center gap-1" type="submit">Confirm <ChevronIcon /></button>
       {/if}
     </div>
   </div>

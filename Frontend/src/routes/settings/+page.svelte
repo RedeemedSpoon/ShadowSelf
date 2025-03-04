@@ -26,7 +26,7 @@
 
   const className = {
     label: '!bg-neutral-900/50 !border-neutral-700',
-    icon: 'fiYour card numbll-neutral-700 stroke-neutral-700',
+    icon: 'fill-neutral-700 stroke-neutral-700',
     input: 'placeholder-neutral-700 !bg-neutral-900/50 !border-neutral-700',
   };
 
@@ -158,7 +158,7 @@
     </form>
     <hr />
 
-    <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" />Two Factor Authentication :</h2>
+    <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" fill={true} />Two Factor Authentication :</h2>
     <form class="!gap-4" use:enhance={({formData}) => setModal(2, !formData.has('remove'))} method="POST" action="?/checkOtp">
       <label for="totp">Time-based one-time password :</label>
       {#if settings.OTP}
@@ -259,7 +259,7 @@
         <div class="flex flex-col gap-2">
           <h1>Or enter the secret key</h1>
           <p class="mb-2">Alternatively, you can paste this secret key into your auth app:</p>
-          <ReactiveButton <CopyButton text={settings.secret} className="md:max-lg:max-w-[30vw]" change={false} />
+          <CopyButton text={settings.secret} className="md:max-lg:max-w-[30vw]" change={false} />
           <p class="ml-1 mt-2 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
         </div>
       </div>
