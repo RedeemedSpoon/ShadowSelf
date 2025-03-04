@@ -1,7 +1,8 @@
 <script lang="ts">
-  import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon} from '$icon';
-  import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal} from '$component';
-  import {fetching, identity, showModal} from '$store';
+  import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon} from '$icon';
+  import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu} from '$component';
+  import {fetching, identity, showModal, showPassword} from '$store';
+  import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
   import {group, lock} from '$image';
   import {onMount} from 'svelte';
   import {fetchAPI} from '$lib';
@@ -9,6 +10,7 @@
   let {ws}: {ws: WebSocket} = $props();
 
   let password = $state(localStorage.getItem('privateKey'));
+  let mode = $state('view') as 'view' | 'add' | 'edit';
   let accounts = $state();
 
   const className = {
@@ -20,13 +22,14 @@
 
   onMount(async () => (accounts = await fetchAPI('/api/account/' + $identity.id)));
 
-  async function encryptPassword(password: string) {}
-  async function decryptPassword(password: string) {}
+  async function getMasterKey() {
+    const keyBuffer = new Uint8Array(
+      atob(password!)
+        .split('')
+        .map((char) => char.charCodeAt(0)),
+    );
 
-  async function removeMasterPassword() {
-    localStorage.removeItem('privateKey');
-    password = null;
-    $showModal = 0;
+    return await crypto.subtle.importKey('raw', keyBuffer, {name: 'AES-GCM'}, true, ['encrypt', 'decrypt']);
   }
 
   async function setMasterPassword() {
@@ -48,12 +51,60 @@
     $fetching = 0;
     $showModal = 0;
   }
+
+  async function removeMasterPassword() {
+    localStorage.removeItem('privateKey');
+    password = null;
+    $showModal = 0;
+  }
+
+  async function generatePassword() {
+    const password = window.crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
+    const element = document.querySelector('input[name="password"]') as HTMLInputElement;
+    element.value = password;
+  }
+
+  async function encryptPassword(password: string) {
+    const key = await getMasterKey();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+
+    const encodedPassword = new TextEncoder().encode(password);
+    const encryptedBuffer = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, encodedPassword);
+
+    const encryptedData = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+    encryptedData.set(iv);
+    encryptedData.set(new Uint8Array(encryptedBuffer), iv.length);
+
+    //@ts-expect-error Type 'Uint8Array' is not assignable to type 'string'.
+    return btoa(String.fromCharCode.apply(null, encryptedData));
+  }
+
+  async function decryptPassword(password: string) {
+    const key = await getMasterKey();
+
+    const encryptedData = new Uint8Array(
+      atob(password)
+        .split('')
+        .map((char) => char.charCodeAt(0)),
+    );
+
+    const iv = encryptedData.slice(0, 12);
+    const encryptedPasswordBuffer = encryptedData.slice(12);
+
+    const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, encryptedPasswordBuffer);
+
+    return new TextDecoder().decode(decryptedBuffer);
+  }
+
+  async function addAccount() {}
+  async function editAccount() {}
+  async function deleteAccount() {}
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
   <h2 class="text-5xl text-neutral-300">Online Accounts</h2>
-  <div>
-    <div class:hidden={!password}>
+  <div class="flex gap-1">
+    <div class="flex gap-1" class:hidden={!password}>
       <ActionIcon icon={LockEditIcon} action={() => ($showModal = 2)} title="Edit Master Password" />
       <ActionIcon icon={LockRemoveIcon} action={() => ($showModal = 3)} title="Remove Master Password" />
     </div>
@@ -62,7 +113,37 @@
     <ActionIcon icon={UserDeleteIcon} action={() => {}} title="Delete Accounts" />
   </div>
 </section>
-{#if accounts?.accounts}
+{#if mode === 'add'}
+  <section class="flex flex-col items-center gap-8 p-8">
+    <h3 class="!text-5xl text-neutral-300">Add Account</h3>
+    <div class="flex gap-8">
+      <div class="flex flex-col gap-2">
+        <label for="username">Username<span class="text-red-600">*</span></label>
+        <InputWithIcon type="text" name="username" placeholder="Username" icon={UserIcon} />
+        <div class="flex justify-between gap-4">
+          <label for="password">Password<span class="text-red-600">*</span></label>
+          <div class="mt-2">
+            <ActionIcon title="regenerate a random password" icon={RepeatIcon} action={generatePassword} size="small" />
+            <ActionIcon title="show password" icon={EyeIcon} action={() => ($showPassword = !$showPassword)} size="small" />
+          </div>
+        </div>
+        <InputWithIcon type={$showPassword ? 'text' : 'password'} name="password" placeholder="Password" icon={KeyIcon} />
+        <label for="website">Website</label>
+        <InputWithIcon type="url" name="website" placeholder="Website URL" icon={WWWIcon} />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label for="totp">Totp Secret</label>
+        <InputWithIcon type="text" name="totp" placeholder="Totp Secret" icon={KeylockIcon} />
+        <label for="algorithm">Algorithm</label>
+        <SelectMenu options={['SHA1', 'SHA256', 'SHA512']} name="algorithm" />
+        <p>* Required Fields</p>
+      </div>
+    </div>
+    <button onclick={addAccount}>Add Account</button>
+  </section>
+{:else if mode === 'edit'}
+  <section></section>
+{:else if accounts?.accounts}
   <section>
     <li>Add Accounts</li>
     <li>Change Accounts</li>
@@ -94,7 +175,7 @@
       Keep track of your online accounts linked to this identity using entries. You can store/generate your passwords, usernames, and
       set up TOTP all in one spot
     </p>
-    <button>Add Account</button>
+    <button onclick={() => (mode = 'add')}>Add Account</button>
   </section>
   <Modal id={2}>
     <div class="flex flex-col items-center gap-8 p-8">
@@ -113,5 +194,9 @@
 <style lang="postcss">
   #no-accounts {
     @apply mb-12 mt-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
+  }
+
+  label {
+    @apply ml-2 mt-2 text-neutral-300;
   }
 </style>

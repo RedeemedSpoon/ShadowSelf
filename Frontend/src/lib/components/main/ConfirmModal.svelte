@@ -6,7 +6,7 @@
   interface Props {
     id: number;
     text: string;
-    name: string;
+    name?: string;
     fetch?: number;
     onclick?: () => void;
   }

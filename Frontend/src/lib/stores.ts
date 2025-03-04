@@ -20,6 +20,7 @@ export const selectionMenuOpen: Writable<boolean> = writable(false);
 export const selectionInputOpen: Writable<boolean> = writable(false);
 
 export const identity: Writable<FullIdentity> = writable();
+export const showPassword: Writable<boolean> = writable(false);
 export const handleResponse: Writable<(response: WebSocketResponse) => void> = writable(() => {});
 
 export const notification: Writable<Notification> = writable({id: null, message: '', type: 'info'});

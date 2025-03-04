@@ -37,6 +37,8 @@ export {default as UserAddIcon} from './UserAdd.svelte';
 export {default as UserEditIcon} from './UserEdit.svelte';
 export {default as UserDeleteIcon} from './UserDelete.svelte';
 
+export {default as EyeIcon} from './Eye.svelte';
+export {default as WWWIcon} from './WWW.svelte';
 export {default as SendIcon} from './Send.svelte';
 export {default as EditIcon} from './Edit.svelte';
 export {default as TrashIcon} from './Trash.svelte';
