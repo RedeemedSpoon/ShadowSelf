@@ -63,6 +63,7 @@ export default new Elysia({prefix: '/api'})
 
     const accounts = await attempt(sql`SELECT * FROM accounts WHERE owner = ${identity[0].id}`);
     const formattedAccounts = accounts.map((account) => ({
+      id: account.id,
       username: account.username,
       password: account.password,
       website: account.website,

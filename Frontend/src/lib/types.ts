@@ -107,6 +107,7 @@ export interface CreationProcess {
 
 export interface FetchAPI {
   accounts: {
+    id: number;
     username: string;
     password: string;
     website: string;
@@ -153,6 +154,7 @@ export interface WebSocketResponse {
   age?: number;
   sex?: string;
   bio?: string;
+  id: number;
   username?: string;
   password?: string;
   website: string;

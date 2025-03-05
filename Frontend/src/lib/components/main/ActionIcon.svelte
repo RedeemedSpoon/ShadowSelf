@@ -8,20 +8,21 @@
     title: string;
     commit?: boolean;
     activeStatus?: boolean;
+    disabled?: boolean;
     size?: 'big' | 'small';
   }
 
-  let {icon, action, activeStatus, commit, title, size = 'big'}: Props = $props();
+  let {disabled, icon, action, activeStatus, commit, title, size = 'big'}: Props = $props();
 
   const width = size === 'big' ? 'w-8 h-8' : 'w-4 h-4';
 </script>
 
-<button class="group {commit && activeStatus && 'primary-color'}" type="button" onclick={action} {title}>
+<button {disabled} class="group {commit && activeStatus && 'primary-color'}" type="button" onclick={action} {title}>
   {#if commit && activeStatus}
     <CheckmarkIcon className={width + ' fill-primary-600 stroke-none'} />
   {:else}
     {@const SvelteComponent = icon}
-    <SvelteComponent fill={true} className={width + ' stroke-neutral-300'} />
+    <SvelteComponent fill={true} className={width + ' stroke-neutral-300 ' + (disabled && 'cursor-not-allowed')} />
   {/if}
 </button>
 

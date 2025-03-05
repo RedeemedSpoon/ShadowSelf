@@ -14,7 +14,7 @@
   let password = $state(localStorage.getItem('privateKey'));
   let mode = $state('view') as 'view' | 'add' | 'edit';
   let accounts = $state() as FetchAPI;
-  let target = $state() as Target;
+  let target = $state() as Target | null;
 
   const className = {
     label: '!bg-neutral-900/50 !border-neutral-700',
@@ -23,7 +23,10 @@
     wrapper: 'w-2/3',
   };
 
-  onMount(async () => (accounts = await fetchAPI('/api/account/' + $identity.id, token)));
+  onMount(async () => {
+    accounts = await fetchAPI('/api/account/' + $identity.id, token);
+    target = null;
+  });
 
   $handleResponse = (response: WebSocketResponse) => {
     switch (response.type) {
@@ -31,19 +34,21 @@
         accounts.accounts.push(response as Target);
         mode = 'view';
         $fetching = 0;
+        target = null;
         break;
 
       case 'edit-account':
-        accounts.accounts = accounts.accounts.filter((account) => account.password !== response.password);
-        accounts.accounts.push(response as Target);
+        accounts.accounts = [...accounts.accounts.filter((account) => account.id !== response.id), response as Target];
         mode = 'view';
         $fetching = 0;
+        target = null;
         break;
 
       case 'remove-account':
-        accounts.accounts = accounts.accounts.filter((account) => account.password !== response.password);
+        accounts.accounts = accounts.accounts.filter((account) => account.id !== response.id);
         mode = 'view';
         $fetching = 0;
+        target = null;
         break;
     }
   };
@@ -71,8 +76,9 @@
 
     const keyBuffer = await crypto.subtle.exportKey('raw', key);
     const base64Key = btoa(String.fromCharCode.apply(null, new Uint8Array(keyBuffer) as unknown as number[]));
-    localStorage.setItem('privateKey', base64Key);
 
+    // Update
+    localStorage.setItem('privateKey', base64Key);
     password = base64Key;
     $fetching = 0;
     $showModal = 0;
@@ -146,24 +152,24 @@
     const password = await encrypt(rawPassword);
     const totp = rawTotp ? await encrypt(rawTotp) : null;
 
-    const oldPassword = mode === 'edit' ? await encrypt(target.password) : '';
+    const id = mode === 'edit' ? target!.id : null;
     const type = mode === 'add' ? 'add-account' : 'edit-account';
 
-    ws.send(JSON.stringify({type, username, password, oldPassword, website, totp, algorithm}));
+    ws.send(JSON.stringify({type, id, username, password, website, totp, algorithm}));
   }
 
   async function changeModeToEdit() {
     mode = 'edit';
-
     await new Promise((resolve) => setTimeout(resolve, 50));
+
     for (const input of ['username', 'password', 'website', 'totp', 'algorithm']) {
       const element = document.querySelector('input[name="' + input + '"]') as HTMLInputElement;
-      element.value = target[input as keyof Target];
+      element.value = target![input as keyof Target] as string;
     }
   }
 
   async function deleteAccount() {
-    ws.send(JSON.stringify({type: 'remove-account', password: await encrypt(target.password)}));
+    ws.send(JSON.stringify({type: 'remove-account', id: target!.id, password: await encrypt(target!.password)}));
   }
 </script>
 
@@ -174,9 +180,9 @@
       <ActionIcon icon={LockEditIcon} action={() => ($showModal = 2)} title="Edit Master Password" />
       <ActionIcon icon={LockRemoveIcon} action={() => ($showModal = 3)} title="Remove Master Password" />
     </div>
-    <ActionIcon icon={UserAddIcon} action={() => (mode = 'add')} title="Add Accounts" />
-    <ActionIcon icon={UserEditIcon} action={changeModeToEdit} title="Edit Accounts" />
-    <ActionIcon icon={UserDeleteIcon} action={deleteAccount} title="Delete Accounts" />
+    <ActionIcon disabled={!password} icon={UserAddIcon} action={() => (mode = 'add')} title="Add Accounts" />
+    <ActionIcon disabled={!target} icon={UserEditIcon} action={changeModeToEdit} title="Edit Accounts" />
+    <ActionIcon disabled={!target} icon={UserDeleteIcon} action={deleteAccount} title="Delete Accounts" />
   </div>
 </section>
 {#if mode === 'add' || mode === 'edit'}
@@ -208,25 +214,27 @@
     <LoadingButton onclick={addOrUpdateAccount}>{mode === 'add' ? 'Add' : 'Update'} Account</LoadingButton>
   </section>
 {:else if accounts?.accounts.length && password}
-  <section>
-    {#await decryptAll(accounts) then decryptedAccounts}
-      {#each decryptedAccounts as account}
-        <div
-          aria-hidden="true"
-          onclick={() => (target = account as Target)}
-          class="{target?.website == account.website ? 'target' : ''} wrapper last:border-b-0">
-          <div class="flex flex-col">
-            <p class="text-left">{account.username}</p>
-            <small class="text-left text-neutral-500">{account.website}</small>
+  {#key accounts.accounts}
+    <section>
+      {#await decryptAll(accounts) then decryptedAccounts}
+        {#each decryptedAccounts as account}
+          <div
+            aria-hidden="true"
+            onclick={() => (target = account as Target)}
+            class="{target && target?.id == account.id ? 'target' : ''} wrapper last:border-b-0">
+            <div class="flex flex-col">
+              <p class="text-left">{account.username}</p>
+              <small class="text-left text-neutral-500">{account.website}</small>
+            </div>
+            <div class="flex flex-col">
+              <p class="truncate text-right">{account.password}</p>
+              <small class="truncate text-right text-neutral-500">{account.totp}</small>
+            </div>
           </div>
-          <div class="flex flex-col">
-            <p class="truncate text-right">{account.password}</p>
-            <small class="truncate text-right text-neutral-500">{account.totp}</small>
-          </div>
-        </div>
-      {/each}
-    {/await}
-  </section>
+        {/each}
+      {/await}
+    </section>
+  {/key}
 {:else if password}
   <section id="no-accounts" style="background-image: url({group});">
     <h2 class="mt-12 text-5xl text-neutral-300">No Accounts</h2>

@@ -131,6 +131,7 @@ export interface WebsocketRequest {
   name?: string;
   bio?: string;
   picture?: string;
+  id: number;
   username?: string;
   password?: string;
   website?: string;
@@ -146,12 +147,12 @@ export interface APIParams {
   name?: string;
   bio?: string;
   picture?: string;
+  id?: number;
   username?: string;
   password?: string;
   website?: string;
   totp?: string;
   algorithm?: string;
-  oldPassword?: string;
 }
 
 export const emailTemplate = {
