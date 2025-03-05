@@ -36,7 +36,7 @@
     $currentSection = section;
     buttonWrapper.childNodes.forEach((node) => {
       (node as HTMLButtonElement).disabled = true;
-      setTimeout(() => ((node as HTMLButtonElement).disabled = false), 750);
+      setTimeout(() => ((node as HTMLButtonElement).disabled = false), 500);
     });
   }
 

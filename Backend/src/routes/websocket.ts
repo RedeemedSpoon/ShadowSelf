@@ -82,10 +82,11 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         if (error) return ws.send({error});
 
         const res = await attempt(
-          sql`INSERT INTO accounts (owner, username, password) VALUES (${identity.id}, ${username!}, ${password!})`,
+          sql`INSERT INTO accounts (owner, username, password) VALUES (${identity.id}, ${username!}, ${password!}) RETURNING id`,
         );
+
         if (website) await attempt(sql`UPDATE accounts SET website = ${website!} WHERE id = ${res[0].id}`);
-        if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${id!}`);
+        if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${res[0].id!}`);
 
         ws.send({type: 'add-account', username, password, website, totp, algorithm, id});
         break;

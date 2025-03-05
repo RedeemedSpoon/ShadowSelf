@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon} from '$icon';
-  import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu} from '$component';
+  import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon, QuestionIcon} from '$icon';
+  import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu, Tooltip} from '$component';
   import {fetching, identity, showModal, showPassword, handleResponse} from '$store';
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI, Target} from '$type';
   import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
@@ -10,11 +10,12 @@
 
   let {ws, token}: IdentityComponentParams = $props();
 
+  let password = $state(localStorage.getItem('key-' + $identity.id));
   const iv = new Uint8Array(12).fill(0x01);
-  let password = $state(localStorage.getItem('privateKey'));
+
   let mode = $state('view') as 'view' | 'add' | 'edit';
-  let accounts = $state() as FetchAPI;
   let target = $state() as Target | null;
+  let accounts = $state() as FetchAPI;
 
   const className = {
     label: '!bg-neutral-900/50 !border-neutral-700',
@@ -77,15 +78,14 @@
     const keyBuffer = await crypto.subtle.exportKey('raw', key);
     const base64Key = btoa(String.fromCharCode.apply(null, new Uint8Array(keyBuffer) as unknown as number[]));
 
-    // Update
-    localStorage.setItem('privateKey', base64Key);
+    localStorage.setItem('key-' + $identity.id, base64Key);
     password = base64Key;
     $fetching = 0;
     $showModal = 0;
   }
 
   async function removeMasterPassword() {
-    localStorage.removeItem('privateKey');
+    localStorage.removeItem('key-' + $identity.id);
     password = null;
     $showModal = 0;
   }
@@ -101,8 +101,8 @@
 
     const encodedPassword = new TextEncoder().encode(unencryptedPassword);
     const encryptedBuffer = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, encodedPassword);
-
     const encryptedData = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+
     encryptedData.set(iv);
     encryptedData.set(new Uint8Array(encryptedBuffer), iv.length);
 
@@ -120,8 +120,12 @@
     );
 
     const encryptedPasswordBuffer = encryptedData.slice(12);
-    const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, encryptedPasswordBuffer);
-    return new TextDecoder().decode(decryptedBuffer);
+    try {
+      const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, encryptedPasswordBuffer);
+      return new TextDecoder().decode(decryptedBuffer);
+    } catch {
+      return 'unable to decrypt';
+    }
   }
 
   async function decryptAll(encryptedAccounts: FetchAPI) {
@@ -178,7 +182,7 @@
   <div class="flex gap-1">
     <div class="flex gap-1" class:hidden={!password}>
       <ActionIcon icon={LockEditIcon} action={() => ($showModal = 2)} title="Edit Master Password" />
-      <ActionIcon icon={LockRemoveIcon} action={() => ($showModal = 3)} title="Remove Master Password" />
+      <ActionIcon icon={LockRemoveIcon} action={() => ($showModal = 3)} title="Remove Local Master Password" />
     </div>
     <ActionIcon disabled={!password} icon={UserAddIcon} action={() => (mode = 'add')} title="Add Accounts" />
     <ActionIcon disabled={!target} icon={UserEditIcon} action={changeModeToEdit} title="Edit Accounts" />
@@ -226,10 +230,20 @@
               <p class="text-left">{account.username}</p>
               <small class="text-left text-neutral-500">{account.website}</small>
             </div>
-            <div class="flex flex-col">
-              <p class="truncate text-right">{account.password}</p>
-              <small class="truncate text-right text-neutral-500">{account.totp}</small>
-            </div>
+            {#if account.password === 'unable to decrypt' || account.totp === 'unable to decrypt'}
+              <Tooltip
+                tip="The password/TOTP decryption failed, most likely due to a mismatch with the master password during the decryption process.">
+                <p class="text-right text-red-600">
+                  Unable to decrypt
+                  <QuestionIcon className="inline-block ml-1 hover:cursor-default w-4 h-4" />
+                </p>
+              </Tooltip>
+            {:else}
+              <div class="flex flex-col">
+                <p class="truncate text-right">{account.password}</p>
+                <small class="truncate text-right text-neutral-500">{account.totp}</small>
+              </div>
+            {/if}
           </div>
         {/each}
       {/await}
@@ -288,7 +302,7 @@
   }
 
   .wrapper {
-    @apply flex items-center justify-between border-b border-neutral-700 px-8 py-2 hover:bg-neutral-300/5;
+    @apply flex h-24 items-center justify-between border-b border-neutral-700 px-8 py-2 hover:bg-neutral-400/5;
   }
 
   .target {
