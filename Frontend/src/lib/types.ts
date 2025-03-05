@@ -104,6 +104,21 @@ export interface CreationProcess {
   finish: boolean;
 }
 
+export interface FetchAPI {
+  accounts: {
+    username: string;
+    password: string;
+    website: string;
+    totp: string;
+    algorithm: string;
+  }[];
+}
+
+export interface IdentityComponentParams {
+  ws: WebSocket;
+  token: string;
+}
+
 export interface FullIdentity {
   id: string;
   creation_date: Date;

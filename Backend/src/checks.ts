@@ -232,7 +232,7 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
     return {error: 'Password is too weak. You probably did not use a strong key'};
   }
 
-  if (body.website && !/\b(?:[a-zA-Z0-9-]+\.)+(?:[a-zA-Z0-9-]+\.[a-zA-Z]{2,6})(?:\/[^\s]*)?\b/.test(body.website)) {
+  if (body.website && !/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
     return {error: 'Invalid website address, please try again'};
   }
 

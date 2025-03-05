@@ -14,8 +14,9 @@ declare global {
       stripeKey?: string;
       cookie?: string;
       faqs?: Faq[];
-      slug?: string;
       identity?: FullIdentity;
+      token?: string;
+      slug?: string;
     }
   }
 }

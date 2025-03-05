@@ -88,7 +88,7 @@
     {#key $currentSection}
       {@const SvelteComponent = allSections[$currentSection]}
       <div class="mb-12 mt-8 w-full px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
-        <SvelteComponent {ws} />
+        <SvelteComponent {ws} token={data.token} />
       </div>
     {/key}
     <hr class="mb-8 h-px w-full" />

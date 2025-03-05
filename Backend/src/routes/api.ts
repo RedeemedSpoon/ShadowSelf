@@ -55,4 +55,20 @@ export default new Elysia({prefix: '/api'})
   .get('/email/:id', async ({user, params}) => ({}))
   .get('/phone/:id', async ({user, params}) => ({}))
   .get('/card/:id', async ({user, params}) => ({}))
-  .get('/account/:id', async ({user, params}) => ({}));
+  .get('/account/:id', async ({user, params}) => {
+    const identityID = params.id;
+    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
+    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
+    if (!identity.length) return error(400, 'Identity not found');
+
+    const accounts = await attempt(sql`SELECT * FROM accounts WHERE owner = ${identity[0].id}`);
+    const formattedAccounts = accounts.map((account) => ({
+      username: account.username,
+      password: account.password,
+      website: account.website,
+      totp: account.totp,
+      algorithm: account.algorithm,
+    }));
+
+    return {accounts: formattedAccounts};
+  });

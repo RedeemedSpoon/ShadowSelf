@@ -2,17 +2,17 @@
   import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon} from '$icon';
   import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu} from '$component';
   import {fetching, identity, showModal, showPassword, handleResponse} from '$store';
+  import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
   import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
-  import type {WebSocketResponse} from '$type';
   import {fetchAPI, notify} from '$lib';
   import {group, lock} from '$image';
   import {onMount} from 'svelte';
 
-  let {ws}: {ws: WebSocket} = $props();
+  let {ws, token}: IdentityComponentParams = $props();
 
   let password = $state(localStorage.getItem('privateKey'));
   let mode = $state('view') as 'view' | 'add' | 'edit';
-  let accounts = $state();
+  let accounts = $state() as FetchAPI;
 
   const className = {
     label: '!bg-neutral-900/50 !border-neutral-700',
@@ -21,7 +21,7 @@
     wrapper: 'w-2/3',
   };
 
-  onMount(async () => (accounts = await fetchAPI('/api/account/' + $identity.id)));
+  onMount(async () => (accounts = await fetchAPI('/api/account/' + $identity.id, token)));
 
   $handleResponse = (response: WebSocketResponse) => {
     switch (response.type) {
@@ -78,11 +78,11 @@
     element.value = password;
   }
 
-  async function encryptPassword(password: string) {
+  async function encrypt(unencryptedPassword: string) {
     const key = await getMasterKey();
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
-    const encodedPassword = new TextEncoder().encode(password);
+    const encodedPassword = new TextEncoder().encode(unencryptedPassword);
     const encryptedBuffer = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, encodedPassword);
 
     const encryptedData = new Uint8Array(iv.length + encryptedBuffer.byteLength);
@@ -93,11 +93,11 @@
     return btoa(String.fromCharCode.apply(null, encryptedData));
   }
 
-  async function decryptPassword(password: string) {
+  async function decrypt(encryptedPassword: string) {
     const key = await getMasterKey();
 
     const encryptedData = new Uint8Array(
-      atob(password)
+      atob(encryptedPassword)
         .split('')
         .map((char) => char.charCodeAt(0)),
     );
@@ -107,6 +107,16 @@
 
     const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, encryptedPasswordBuffer);
     return new TextDecoder().decode(decryptedBuffer);
+  }
+
+  async function decryptAll(encryptedAccounts: FetchAPI) {
+    return await Promise.all(
+      encryptedAccounts.accounts.map(async (account) => ({
+        ...account,
+        password: await decrypt(account.password),
+        totp: account.totp ? await decrypt(account.totp) : null,
+      })),
+    );
   }
 
   async function addAccount() {
@@ -124,8 +134,8 @@
       $fetching = 0;
     }
 
-    const password = await encryptPassword(rawPassword);
-    const totp = rawTotp ? await encryptPassword(rawTotp) : null;
+    const password = await encrypt(rawPassword);
+    const totp = rawTotp ? await encrypt(rawTotp) : null;
 
     ws.send(JSON.stringify({type: 'add-account', username, password, website, totp, algorithm}));
   }
@@ -141,7 +151,7 @@
       <ActionIcon icon={LockEditIcon} action={() => ($showModal = 2)} title="Edit Master Password" />
       <ActionIcon icon={LockRemoveIcon} action={() => ($showModal = 3)} title="Remove Master Password" />
     </div>
-    <ActionIcon icon={UserAddIcon} action={() => {}} title="Add Accounts" />
+    <ActionIcon icon={UserAddIcon} action={() => (mode = 'add')} title="Add Accounts" />
     <ActionIcon icon={UserEditIcon} action={() => {}} title="Change Accounts" />
     <ActionIcon icon={UserDeleteIcon} action={() => {}} title="Delete Accounts" />
   </div>
@@ -176,18 +186,20 @@
   </section>
 {:else if mode === 'edit'}
   <section></section>
-{:else if accounts?.accounts}
+{:else if accounts?.accounts.length}
   <section>
-    <li>Add Accounts</li>
-    <li>Change Accounts</li>
-    <li>Delete Accounts</li>
+    {#await decryptAll(accounts) then decryptedAccounts}
+      {#each decryptedAccounts as account}
+        <p>{account.username} {account.password}</p>
+      {/each}
+    {/await}
   </section>
 {:else if !password}
   <section id="no-accounts" style="background-image: url({lock});">
     <h2 class="mt-12 text-5xl text-neutral-300">No Master Password</h2>
     <p class="w-1/2 text-center">
-      Set a master password to be stored on this device. This ensures only you can access your accounts—no one else, not even us. You
-      can change it anytime.
+      Set/recover a master password that will be stored on this device. This ensures only you can access your accounts—no one else, not
+      even us. You can change it anytime.
     </p>
     <button onclick={() => ($showModal = 1)}>Add Password</button>
   </section>
@@ -195,7 +207,8 @@
     <div class="flex flex-col items-center gap-8 p-8">
       <h3 class="w-full !text-5xl text-neutral-300">Setup Master Password</h3>
       <p class="w-[40vw]">
-        Set a master password to secure your accounts, ensuring only you can access them. You can update it anytime for added security.
+        Set/recover a master password to secure your accounts, ensuring only you can access them. You can update it anytime for added
+        security.
       </p>
       <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="password" />
       <LoadingButton className="w-2/3" onclick={setMasterPassword}>Set Password</LoadingButton>
