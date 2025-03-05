@@ -2,7 +2,7 @@
   import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon} from '$icon';
   import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu} from '$component';
   import {fetching, identity, showModal, showPassword, handleResponse} from '$store';
-  import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
+  import type {WebSocketResponse, IdentityComponentParams, FetchAPI, Target} from '$type';
   import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
   import {fetchAPI, notify} from '$lib';
   import {group, lock} from '$image';
@@ -10,9 +10,11 @@
 
   let {ws, token}: IdentityComponentParams = $props();
 
+  const iv = new Uint8Array(12).fill(0x01);
   let password = $state(localStorage.getItem('privateKey'));
   let mode = $state('view') as 'view' | 'add' | 'edit';
   let accounts = $state() as FetchAPI;
+  let target = $state() as Target;
 
   const className = {
     label: '!bg-neutral-900/50 !border-neutral-700',
@@ -26,12 +28,22 @@
   $handleResponse = (response: WebSocketResponse) => {
     switch (response.type) {
       case 'add-account':
+        accounts.accounts.push(response as Target);
+        mode = 'view';
+        $fetching = 0;
         break;
 
       case 'edit-account':
+        accounts.accounts = accounts.accounts.filter((account) => account.password !== response.password);
+        accounts.accounts.push(response as Target);
+        mode = 'view';
+        $fetching = 0;
         break;
 
       case 'remove-account':
+        accounts.accounts = accounts.accounts.filter((account) => account.password !== response.password);
+        mode = 'view';
+        $fetching = 0;
         break;
     }
   };
@@ -80,7 +92,6 @@
 
   async function encrypt(unencryptedPassword: string) {
     const key = await getMasterKey();
-    const iv = crypto.getRandomValues(new Uint8Array(12));
 
     const encodedPassword = new TextEncoder().encode(unencryptedPassword);
     const encryptedBuffer = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, encodedPassword);
@@ -102,9 +113,7 @@
         .map((char) => char.charCodeAt(0)),
     );
 
-    const iv = encryptedData.slice(0, 12);
     const encryptedPasswordBuffer = encryptedData.slice(12);
-
     const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, encryptedPasswordBuffer);
     return new TextDecoder().decode(decryptedBuffer);
   }
@@ -119,7 +128,7 @@
     );
   }
 
-  async function addAccount() {
+  async function addOrUpdateAccount() {
     $fetching = 1;
     await new Promise((resolve) => setTimeout(resolve, 650));
 
@@ -127,7 +136,7 @@
     const rawPassword = (document.querySelector('input[name="password"]') as HTMLInputElement)?.value;
     const website = (document.querySelector('input[name="website"]') as HTMLInputElement)?.value;
     const rawTotp = (document.querySelector('input[name="totp"]') as HTMLInputElement)?.value;
-    const algorithm = (document.querySelector('input[name="algorithm"]') as HTMLSelectElement)?.value.toUpperCase();
+    const algorithm = (document.querySelector('input[name="algorithm"]') as HTMLInputElement)?.value.toUpperCase();
 
     if (!username || !rawPassword) {
       notify('Username and Password are required', 'alert');
@@ -137,11 +146,25 @@
     const password = await encrypt(rawPassword);
     const totp = rawTotp ? await encrypt(rawTotp) : null;
 
-    ws.send(JSON.stringify({type: 'add-account', username, password, website, totp, algorithm}));
+    const oldPassword = mode === 'edit' ? await encrypt(target.password) : '';
+    const type = mode === 'add' ? 'add-account' : 'edit-account';
+
+    ws.send(JSON.stringify({type, username, password, oldPassword, website, totp, algorithm}));
   }
 
-  async function editAccount() {}
-  async function deleteAccount() {}
+  async function changeModeToEdit() {
+    mode = 'edit';
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    for (const input of ['username', 'password', 'website', 'totp', 'algorithm']) {
+      const element = document.querySelector('input[name="' + input + '"]') as HTMLInputElement;
+      element.value = target[input as keyof Target];
+    }
+  }
+
+  async function deleteAccount() {
+    ws.send(JSON.stringify({type: 'remove-account', password: await encrypt(target.password)}));
+  }
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
@@ -152,13 +175,13 @@
       <ActionIcon icon={LockRemoveIcon} action={() => ($showModal = 3)} title="Remove Master Password" />
     </div>
     <ActionIcon icon={UserAddIcon} action={() => (mode = 'add')} title="Add Accounts" />
-    <ActionIcon icon={UserEditIcon} action={() => {}} title="Change Accounts" />
-    <ActionIcon icon={UserDeleteIcon} action={() => {}} title="Delete Accounts" />
+    <ActionIcon icon={UserEditIcon} action={changeModeToEdit} title="Edit Accounts" />
+    <ActionIcon icon={UserDeleteIcon} action={deleteAccount} title="Delete Accounts" />
   </div>
 </section>
-{#if mode === 'add'}
+{#if mode === 'add' || mode === 'edit'}
   <section class="flex flex-col items-center gap-8 p-8">
-    <h3 class="!text-5xl text-neutral-300">Add Account</h3>
+    <h3 class="!text-5xl text-neutral-300">{mode === 'add' ? 'Add' : 'Edit'} Account</h3>
     <div class="flex gap-8">
       <div class="flex flex-col gap-2">
         <label for="username">Username<span class="text-red-600">*</span></label>
@@ -182,19 +205,38 @@
         <p>* Required Fields</p>
       </div>
     </div>
-    <LoadingButton onclick={addAccount}>Add Account</LoadingButton>
+    <LoadingButton onclick={addOrUpdateAccount}>{mode === 'add' ? 'Add' : 'Update'} Account</LoadingButton>
   </section>
-{:else if mode === 'edit'}
-  <section></section>
-{:else if accounts?.accounts.length}
+{:else if accounts?.accounts.length && password}
   <section>
     {#await decryptAll(accounts) then decryptedAccounts}
       {#each decryptedAccounts as account}
-        <p>{account.username} {account.password}</p>
+        <div
+          aria-hidden="true"
+          onclick={() => (target = account as Target)}
+          class="{target?.website == account.website ? 'target' : ''} wrapper last:border-b-0">
+          <div class="flex flex-col">
+            <p class="text-left">{account.username}</p>
+            <small class="text-left text-neutral-500">{account.website}</small>
+          </div>
+          <div class="flex flex-col">
+            <p class="truncate text-right">{account.password}</p>
+            <small class="truncate text-right text-neutral-500">{account.totp}</small>
+          </div>
+        </div>
       {/each}
     {/await}
   </section>
-{:else if !password}
+{:else if password}
+  <section id="no-accounts" style="background-image: url({group});">
+    <h2 class="mt-12 text-5xl text-neutral-300">No Accounts</h2>
+    <p class="w-1/2 text-center">
+      Keep track of your online accounts linked to this identity using entries. You can store/generate your passwords, usernames, and
+      set up TOTP all in one spot
+    </p>
+    <button onclick={() => (mode = 'add')}>Add Account</button>
+  </section>
+{:else}
   <section id="no-accounts" style="background-image: url({lock});">
     <h2 class="mt-12 text-5xl text-neutral-300">No Master Password</h2>
     <p class="w-1/2 text-center">
@@ -214,28 +256,19 @@
       <LoadingButton className="w-2/3" onclick={setMasterPassword}>Set Password</LoadingButton>
     </div>
   </Modal>
-{:else}
-  <section id="no-accounts" style="background-image: url({group});">
-    <h2 class="mt-12 text-5xl text-neutral-300">No Accounts</h2>
-    <p class="w-1/2 text-center">
-      Keep track of your online accounts linked to this identity using entries. You can store/generate your passwords, usernames, and
-      set up TOTP all in one spot
-    </p>
-    <button onclick={() => (mode = 'add')}>Add Account</button>
-  </section>
-  <Modal id={2}>
-    <div class="flex flex-col items-center gap-8 p-8">
-      <h3 class="w-full !text-5xl text-neutral-300">Change Master Password</h3>
-      <p class="w-[40vw]">
-        Change the master password of your accounts and automatically update all of your accounts. There is no going back once you set
-        it.
-      </p>
-      <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="password" />
-      <LoadingButton className="w-2/3" onclick={setMasterPassword}>Change Password</LoadingButton>
-    </div>
-  </Modal>
-  <ConfirmModal id={3} onclick={removeMasterPassword} text="Removing the local master password" />
 {/if}
+<Modal id={2}>
+  <div class="flex flex-col items-center gap-8 p-8">
+    <h3 class="w-full !text-5xl text-neutral-300">Change Master Password</h3>
+    <p class="w-[40vw]">
+      Change the master password of your accounts and automatically update all of your accounts. There is no going back once you set
+      it.
+    </p>
+    <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="password" />
+    <LoadingButton className="w-2/3" onclick={setMasterPassword}>Change Password</LoadingButton>
+  </div>
+</Modal>
+<ConfirmModal id={3} onclick={removeMasterPassword} text="Removing the local master password" />
 
 <style lang="postcss">
   #no-accounts {
@@ -244,5 +277,13 @@
 
   label {
     @apply ml-2 mt-2 text-neutral-300;
+  }
+
+  .wrapper {
+    @apply flex items-center justify-between border-b border-neutral-700 px-8 py-2 hover:bg-neutral-300/5;
+  }
+
+  .target {
+    @apply bg-neutral-300/10 hover:bg-neutral-300/10;
   }
 </style>

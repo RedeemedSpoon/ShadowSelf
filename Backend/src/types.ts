@@ -151,6 +151,7 @@ export interface APIParams {
   website?: string;
   totp?: string;
   algorithm?: string;
+  oldPassword?: string;
 }
 
 export const emailTemplate = {

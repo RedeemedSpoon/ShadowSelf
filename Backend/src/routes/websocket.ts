@@ -90,10 +90,26 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       }
 
       case 'edit-account': {
+        const {error, username, password, website, totp, algorithm, oldPassword} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        const account = await attempt(sql`SELECT * FROM accounts WHERE password = ${oldPassword!}`);
+        if (!account.length) return ws.send({error: 'Account not found'});
+
+        await attempt(sql`UPDATE accounts SET username = ${username!}, password = ${password!} WHERE id= ${account[0].id}`);
+        if (website) await attempt(sql`UPDATE accounts SET website = ${website!} WHERE password = ${password!}`);
+        if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE password = ${password!}`);
+
+        ws.send({type: 'remove-account', username, password, website, totp, algorithm});
         break;
       }
 
       case 'remove-account': {
+        const {error, password} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        await attempt(sql`DELETE FROM accounts WHERE password = ${password!}`);
+        ws.send({type: 'remove-account', password});
         break;
       }
 

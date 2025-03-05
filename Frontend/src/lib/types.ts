@@ -1,4 +1,5 @@
 export type Sections = 'info' | 'email' | 'phone' | 'card' | 'account';
+export type Target = FetchAPI['accounts'][number];
 
 export interface Notification {
   id: number | null;
