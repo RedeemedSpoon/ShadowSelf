@@ -147,7 +147,8 @@ export interface WebSocketResponse {
     | 'update-information'
     | 'add-account'
     | 'edit-account'
-    | 'remove-account';
+    | 'remove-account'
+    | 'update-encryption';
   picture?: string;
   ethnicity?: string;
   name?: string;
@@ -160,6 +161,11 @@ export interface WebSocketResponse {
   website: string;
   totp?: string;
   algorithm: string;
+  accounts?: {
+    id: number;
+    password: string;
+    totp?: string;
+  }[];
 }
 
 export interface PricingModel {

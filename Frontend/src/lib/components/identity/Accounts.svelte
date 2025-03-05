@@ -33,24 +33,36 @@
     switch (response.type) {
       case 'add-account':
         accounts.accounts.push(response as Target);
-        mode = 'view';
-        $fetching = 0;
-        target = null;
         break;
 
       case 'edit-account':
         accounts.accounts = [...accounts.accounts.filter((account) => account.id !== response.id), response as Target];
-        mode = 'view';
-        $fetching = 0;
-        target = null;
         break;
 
       case 'remove-account':
         accounts.accounts = accounts.accounts.filter((account) => account.id !== response.id);
-        mode = 'view';
-        $fetching = 0;
-        target = null;
         break;
+
+      case 'update-encryption': {
+        const updatedAccounts = accounts.accounts.map((account) => {
+          const updatedAccount = response.accounts!.find((a) => a.id === account.id);
+          return {
+            ...account,
+            password: updatedAccount!.password,
+            totp: updatedAccount!.totp || '',
+          };
+        });
+
+        accounts.accounts = updatedAccounts;
+        $showModal = 0;
+        break;
+      }
+    }
+
+    if (!response.error) {
+      mode = 'view';
+      $fetching = 0;
+      target = null;
     }
   };
 
@@ -78,8 +90,25 @@
     const keyBuffer = await crypto.subtle.exportKey('raw', key);
     const base64Key = btoa(String.fromCharCode.apply(null, new Uint8Array(keyBuffer) as unknown as number[]));
 
-    localStorage.setItem('key-' + $identity.id, base64Key);
+    const updatedAccounts = await Promise.all(
+      accounts.accounts.map(async (account) => {
+        const oldPassword = await decrypt(account.password);
+        const oldTotp = account.totp ? await decrypt(account.totp) : 'unable to decrypt';
+
+        if (oldPassword === 'unable to decrypt' && oldTotp === 'unable to decrypt') return account;
+
+        return {
+          id: account.id,
+          password: await encrypt(oldPassword, key),
+          totp: account.totp ? await encrypt(oldTotp, key) : null,
+        };
+      }),
+    );
+
     password = base64Key;
+    localStorage.setItem('key-' + $identity.id, base64Key);
+    ws.send(JSON.stringify({type: 'update-encryption', accounts: updatedAccounts}));
+
     $fetching = 0;
     $showModal = 0;
   }
@@ -96,8 +125,8 @@
     element.value = password;
   }
 
-  async function encrypt(unencryptedPassword: string) {
-    const key = await getMasterKey();
+  async function encrypt(unencryptedPassword: string, key?: CryptoKey) {
+    key = key || (await getMasterKey());
 
     const encodedPassword = new TextEncoder().encode(unencryptedPassword);
     const encryptedBuffer = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, encodedPassword);
@@ -173,7 +202,7 @@
   }
 
   async function deleteAccount() {
-    ws.send(JSON.stringify({type: 'remove-account', id: target!.id, password: await encrypt(target!.password)}));
+    ws.send(JSON.stringify({type: 'remove-account', id: target!.id}));
   }
 </script>
 

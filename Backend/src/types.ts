@@ -1,3 +1,5 @@
+import {password} from 'bun';
+
 export type User = {email: string; id: string} | undefined;
 export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
 
@@ -124,7 +126,8 @@ export interface WebsocketRequest {
     | 'update-information'
     | 'add-account'
     | 'edit-account'
-    | 'remove-account';
+    | 'remove-account'
+    | 'update-encryption';
   ethnicity?: string;
   sex?: string;
   age?: number;
@@ -137,6 +140,11 @@ export interface WebsocketRequest {
   website?: string;
   totp?: string;
   algorithm?: string;
+  accounts?: {
+    id: number;
+    password: string;
+    totp?: string;
+  }[];
 }
 
 export interface APIParams {

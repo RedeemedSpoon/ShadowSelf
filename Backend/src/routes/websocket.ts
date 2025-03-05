@@ -105,11 +105,26 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       }
 
       case 'remove-account': {
-        const {error, password, id} = await checkAPI(message);
+        const {error, id} = await checkAPI(message);
         if (error) return ws.send({error});
 
-        await attempt(sql`DELETE FROM accounts WHERE id = ${id!} AND password = ${password!}`);
-        ws.send({type: 'remove-account', id, password});
+        await attempt(sql`DELETE FROM accounts WHERE id = ${id!}`);
+        ws.send({type: 'remove-account', id});
+        break;
+      }
+
+      case 'update-encryption': {
+        if (!message.accounts || typeof message.accounts !== 'object') return ws.send({error: 'Accounts Array are required'});
+
+        for (const account of message.accounts) {
+          const {error, id, password, totp} = await checkAPI(account);
+          if (error) return ws.send({error});
+
+          await attempt(sql`UPDATE accounts SET password = ${password!} WHERE id = ${id!}`);
+          if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!} WHERE id = ${id!}`);
+        }
+
+        ws.send({type: 'update-encryption', accounts: message.accounts});
         break;
       }
 
