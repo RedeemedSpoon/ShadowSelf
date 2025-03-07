@@ -1,5 +1,3 @@
-import {password} from 'bun';
-
 export type User = {email: string; id: string} | undefined;
 export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
 

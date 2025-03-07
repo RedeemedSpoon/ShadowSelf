@@ -1,6 +1,6 @@
 import {QueryResult, type User, pricingModal} from '../types';
-import {generateIdentityID} from '../crypto';
 import {sql, stripe, origin} from '../connection';
+import {generateIdentityID} from '../crypto';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {attempt} from '../utils';

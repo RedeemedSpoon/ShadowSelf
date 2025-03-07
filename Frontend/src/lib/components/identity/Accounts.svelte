@@ -1,8 +1,8 @@
 <script lang="ts">
   import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon, QuestionIcon} from '$icon';
   import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu, Tooltip} from '$component';
-  import {fetching, identity, showModal, showPassword, handleResponse} from '$store';
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI, Target} from '$type';
+  import {fetching, identity, showModal, showPassword, handleResponse} from '$store';
   import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
   import {fetchAPI, notify} from '$lib';
   import {group, lock} from '$image';
