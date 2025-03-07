@@ -1,7 +1,7 @@
 <script lang="ts">
   import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon, QuestionIcon} from '$icon';
   import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu, Tooltip} from '$component';
-  import type {WebSocketResponse, IdentityComponentParams, FetchAPI, Target} from '$type';
+  import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
   import {fetching, identity, showModal, showPassword, handleResponse} from '$store';
   import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
   import {fetchAPI, notify} from '$lib';
@@ -14,7 +14,7 @@
   const iv = new Uint8Array(12).fill(0x01);
 
   let mode = $state('view') as 'view' | 'add' | 'edit';
-  let target = $state() as Target | null;
+  let target = $state() as FetchAPI['accounts'][number] | null;
   let accounts = $state() as FetchAPI;
 
   const className = {
@@ -32,11 +32,14 @@
   $handleResponse = (response: WebSocketResponse) => {
     switch (response.type) {
       case 'add-account':
-        accounts.accounts.push(response as Target);
+        accounts.accounts.push(response as FetchAPI['accounts'][number]);
         break;
 
       case 'edit-account':
-        accounts.accounts = [...accounts.accounts.filter((account) => account.id !== response.id), response as Target];
+        accounts.accounts = [
+          ...accounts.accounts.filter((account) => account.id !== response.id),
+          response as FetchAPI['accounts'][number],
+        ];
         break;
 
       case 'remove-account':
@@ -197,7 +200,7 @@
 
     for (const input of ['username', 'password', 'website', 'totp', 'algorithm']) {
       const element = document.querySelector('input[name="' + input + '"]') as HTMLInputElement;
-      element.value = target![input as keyof Target] as string;
+      element.value = target![input as keyof FetchAPI['accounts'][number]] as string;
     }
   }
 
@@ -253,7 +256,7 @@
         {#each decryptedAccounts as account}
           <div
             aria-hidden="true"
-            onclick={() => (target = account as Target)}
+            onclick={() => (target = account as FetchAPI['accounts'][number])}
             class="{target && target?.id == account.id ? 'target' : ''} wrapper last:border-b-0">
             <div class="flex flex-col">
               <p class="text-left">{account.username}</p>
