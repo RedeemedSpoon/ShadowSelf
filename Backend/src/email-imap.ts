@@ -1,6 +1,6 @@
 import imap from 'imap-simple';
 
-async function fetchEmails(user: string, password: string, from?: number, to?: number) {
+export async function fetchEmails(user: string, password: string, from?: number, to?: number) {
   const config = {
     imap: {
       user,
@@ -15,7 +15,7 @@ async function fetchEmails(user: string, password: string, from?: number, to?: n
   const connection = await imap.connect(config);
   const messagesCount = await getMessageCount(connection);
 
-  const mesFrom = from || messagesCount - 4;
+  const mesFrom = from || messagesCount - 9;
   const mesTo = to || messagesCount;
 
   await connection.openBox('INBOX');
@@ -58,7 +58,7 @@ async function fetchEmails(user: string, password: string, from?: number, to?: n
   }
 
   connection.end();
-  return {messagesCount, total};
+  return {messagesCount, total: total.reverse()};
 }
 
 async function getMessageCount(connection: imap.ImapSimple) {
@@ -69,5 +69,3 @@ async function getMessageCount(connection: imap.ImapSimple) {
     });
   });
 }
-
-console.log(await fetchEmails('contact@shadowself.io', process.env.EMAIL_CONTACT!));

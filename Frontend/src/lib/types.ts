@@ -114,6 +114,23 @@ export interface FetchAPI {
     totp: string;
     algorithm: string;
   }[];
+  emails: {
+    messagesCount: number;
+    total: {
+      messageID: string;
+      subject: string;
+      from: string;
+      date: string;
+      reference: string | null;
+      inReplyTo: string | null;
+      attachments: {
+        filename: string;
+        data: string;
+      }[];
+      body: string;
+      type: 'html' | 'text';
+    }[];
+  };
 }
 
 export interface IdentityComponentParams {

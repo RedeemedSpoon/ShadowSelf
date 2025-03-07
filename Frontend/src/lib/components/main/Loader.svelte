@@ -2,26 +2,28 @@
   import {fetching} from '$store';
 
   interface Props {
-    index: number;
+    index?: number;
+    skip?: boolean;
     type?: 'card' | 'button';
+    size?: 'big' | 'small';
   }
 
-  const {type = 'button', index = 1}: Props = $props();
+  const {type = 'button', index = 1, skip = false, size = 'small'}: Props = $props();
 </script>
 
-{#if $fetching === index}
+{#if skip || $fetching === index}
   {#if type === 'card'}
     <div class="wrapper">
-      <div class="loader">
+      <div class="loader" style="--size: 50px">
         {#each Array(5) as _, i}
-          <div class="orbe" style="--index: {i}"></div>
+          <div class="orbe" style="--index: {i}; --size-orbe: 10px"></div>
         {/each}
       </div>
     </div>
   {:else}
-    <div class="loader !block !h-[15px] !w-[15px]">
+    <div class="loader !block" style="--size: {size === 'big' ? '35px' : '15px'}">
       {#each Array(5) as _, i}
-        <div class="orbe orbe-alt" style="--index: {i}"></div>
+        <div class="orbe orbe-alt" style="--index: {i}; --size-orbe-alt: {size === 'big' ? '8px' : '4px'}"></div>
       {/each}
     </div>
   {/if}
@@ -33,7 +35,9 @@
   }
 
   .loader {
-    @apply relative h-[50px] w-[50px] rotate-45;
+    @apply relative rotate-45;
+    height: var(--size);
+    width: var(--size);
   }
 
   .orbe {
@@ -41,11 +45,15 @@
   }
 
   .orbe::after {
-    @apply absolute left-0 top-0 h-[10px] w-[10px] rounded-full;
+    @apply absolute left-0 top-0 rounded-full;
     @apply bg-primary-600 shadow-primary-700 shadow-[0px_0px_20px_2px] content-[''];
+    height: var(--size-orbe);
+    width: var(--size-orbe);
   }
 
   .orbe-alt::after {
-    @apply h-[4px] w-[4px] bg-neutral-300 shadow-none;
+    @apply bg-neutral-300 shadow-none;
+    height: var(--size-orbe-alt);
+    width: var(--size-orbe-alt);
   }
 </style>
