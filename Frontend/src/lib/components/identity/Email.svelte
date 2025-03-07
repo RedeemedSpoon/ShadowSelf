@@ -1,18 +1,27 @@
 <script lang="ts">
-  import type {WebSocketResponse, IdentityComponentParams} from '$type';
+  import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, RepeatIcon} from '$icon';
+  import {identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
-  import {identity} from '$store';
   import {mailbox} from '$image';
-  import {fetchAPI} from '$lib';
+  import {fetchAPI, notify} from '$lib';
 
   let {ws, token}: IdentityComponentParams = $props();
+  let inbox = $state() as FetchAPI;
 
   async function fetchEmails() {
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
-    return fetchAPI('/api/email/' + $identity.id, token);
+    inbox = await fetchAPI('/api/email/' + $identity.id, token);
   }
+
+  $handleResponse = (response: WebSocketResponse) => {
+    if (response.type === 'new-email') {
+      console.log('a');
+      notify('New Email Received! Check your inbox', 'success');
+      inbox.emails.total.unshift(response.newEmail!);
+    }
+  };
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
@@ -30,7 +39,7 @@
       <Loader size="big" skip={true} />Fetching
     </h3>
   </div>
-{:then inbox}
+{:then}
   {#if inbox.emails.messagesCount > 0}
     {#each inbox.emails.total as email}
       <p>{email.subject}</p>

@@ -1,4 +1,5 @@
 import {User, WebsocketRequest, Location} from '../types';
+import {listenForEmail} from '../email-imap';
 import {generateProfile} from '../prompts';
 import {attempt, request} from '../utils';
 import {allFakers} from '@faker-js/faker';
@@ -8,14 +9,12 @@ import {sql} from '../connection';
 import {Elysia} from 'elysia';
 
 export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string})).ws('/ws/api/:id', {
-  async message(ws, message: WebsocketRequest | 'ping') {
-    if (message === 'ping') return ws.send('pong');
-
+  async open(ws) {
     const cookie = ws.data.cookie['token'];
     if (!cookie) return ws.close(1014, 'You are not logged in');
 
     const user = (await ws.data.jwt.verify(cookie.value)) as User;
-    if (!user?.email) return ws.close(1014, 'You do not logged in');
+    if (!user?.email) return ws.close(1014, 'You are not logged in');
 
     const params = ws.data.params.id;
     const identity = (await attempt(sql`SELECT * FROM identities WHERE id = ${params}`))[0];
@@ -23,6 +22,16 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
 
     const id = (await attempt(sql`SELECT id FROM users WHERE email = ${user!.email}`))[0].id;
     if (id !== identity.owner) return ws.close(1014, 'You do not authorize to perform this action');
+
+    // listenForEmail(ws, identity.email, identity.email_password);
+    // @ts-expect-error Websocket type
+    listenForEmail(ws, 'contact@shadowself.io', process.env.EMAIL_CONTACT!);
+  },
+  async message(ws, message: WebsocketRequest | 'ping') {
+    if (message === 'ping') return ws.send('pong');
+
+    const params = ws.data.params.id;
+    const identity = (await attempt(sql`SELECT * FROM identities WHERE id = ${params}`))[0];
 
     switch (message.type) {
       case 'regenerate-picture': {
@@ -88,7 +97,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         if (website) await attempt(sql`UPDATE accounts SET website = ${website!} WHERE id = ${res[0].id}`);
         if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${res[0].id!}`);
 
-        ws.send({type: 'add-account', username, password, website, totp, algorithm, id});
+        ws.send({type: 'add-account', username, password, website, totp, algorithm, id: res[0].id});
         break;
       }
 

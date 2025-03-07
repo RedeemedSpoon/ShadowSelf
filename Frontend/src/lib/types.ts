@@ -165,7 +165,8 @@ export interface WebSocketResponse {
     | 'add-account'
     | 'edit-account'
     | 'remove-account'
-    | 'update-encryption';
+    | 'update-encryption'
+    | 'new-email';
   picture?: string;
   ethnicity?: string;
   name?: string;
@@ -183,6 +184,20 @@ export interface WebSocketResponse {
     password: string;
     totp?: string;
   }[];
+  newEmail?: {
+    messageID: string;
+    subject: string;
+    from: string;
+    date: string;
+    reference: string | null;
+    inReplyTo: string | null;
+    attachments: {
+      filename: string;
+      data: string;
+    }[];
+    body: string;
+    type: 'html' | 'text';
+  };
 }
 
 export interface PricingModel {
