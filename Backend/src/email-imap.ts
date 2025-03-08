@@ -1,4 +1,6 @@
+import PostalMime from 'postal-mime';
 import imap from 'imap-simple';
+import mimelib from 'mimelib';
 
 export async function listenForEmail(ws: WebSocket, user: string, password: string) {
   const config = {
@@ -37,9 +39,14 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
         );
 
         const details = message.parts[0].body;
-        const body = message.parts[1].body;
-        const type = /<\/?(html|body|head)>/.test(body) ? 'html' : 'text';
+        const rawBody = message.parts[1].body;
+        const type = /<\/?(html|body|head)>/.test(rawBody) ? 'html' : 'text';
+
         await connection.addFlags(message.attributes.uid, ['\\SEEN']);
+
+        const email = await PostalMime.parse(rawBody);
+        const cleanedBody = (email.html || email.text)!.match(/<html[^>]*>(.*?)<\/html>/is);
+        const body = mimelib.decodeQuotedPrintable(cleanedBody?.[0] || email.html || email.text!);
 
         ws.send(
           JSON.stringify({
@@ -80,7 +87,7 @@ export async function fetchEmails(user: string, password: string, from?: number,
   const connection = await imap.connect(config);
   const messagesCount = await getMessageCount(connection);
 
-  const mesFrom = from || messagesCount - 9;
+  const mesFrom = from || messagesCount - 20;
   const mesTo = to || messagesCount;
 
   await connection.openBox('INBOX');
@@ -106,8 +113,12 @@ export async function fetchEmails(user: string, password: string, from?: number,
     );
 
     const details = message.parts[0].body;
-    const body = message.parts[1].body;
-    const type = /<\/?(html|body|head)>/.test(body) ? 'html' : 'text';
+    const rawBody = message.parts[1].body;
+    const type = /<\/?(html|body|head)>/.test(rawBody) ? 'html' : 'text';
+
+    const email = await PostalMime.parse(rawBody);
+    const cleanedBody = (email.html || email.text)!.match(/<html[^>]*>(.*?)<\/html>/is);
+    const body = mimelib.decodeQuotedPrintable(cleanedBody?.[0] || email.html || email.text!);
 
     total.push({
       messageID: details['message-id'][0],
