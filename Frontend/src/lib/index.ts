@@ -79,7 +79,7 @@ export function createCookie(cookies: Cookies, name: string, value: string, shor
   });
 }
 
-export function base64ToBlob(base64: string) {
+export function base64ToBlob(base64: string, type = 'image/png'): Blob {
   const byteCharacters = atob(base64);
   const byteArrays = [];
 
@@ -95,7 +95,7 @@ export function base64ToBlob(base64: string) {
     byteArrays.push(byteArray);
   }
 
-  const blob = new Blob(byteArrays, {type: 'image/png'});
+  const blob = new Blob(byteArrays, {type});
   return blob;
 }
 

@@ -23,11 +23,11 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
       });
 
       for (const message of messages) {
+        await connection.addFlags(message.attributes.uid, ['\\SEEN']);
         const {messageID, subject, from, date, reference, inReplyTo, attachments, body, type} = await parseMassage(
           connection,
           message,
         );
-        await connection.addFlags(message.attributes.uid, ['\\SEEN']);
 
         ws.send(
           JSON.stringify({
@@ -41,6 +41,8 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
 
   const connection = await imap.connect(config);
   connection.openBox('INBOX');
+
+  ws.onclose = () => connection.end();
 }
 
 export async function fetchEmails(user: string, password: string, from?: number, to?: number) {
@@ -87,26 +89,28 @@ async function getMessageCount(connection: imap.ImapSimple) {
 async function parseMassage(connection: imap.ImapSimple, message: imap.Message) {
   const parts = imap.getParts(message.attributes.struct!);
 
-  const rawAttachments = parts.filter(function (part) {
-    return part.disposition && part.disposition.type.toUpperCase() === 'ATTACHMENT';
-  });
+  const rawAttachments = parts.filter(
+    ({disposition}) => disposition && disposition.type.toUpperCase() === 'ATTACHMENT' && !disposition.params.filename.includes('.asc'),
+  );
 
   const attachments = await Promise.all(
     rawAttachments.map((part) =>
-      connection.getPartData(message, part).then((partData) => ({
-        filename: part.disposition.params.filename,
-        data: partData.toString('base64'),
-      })),
+      connection.getPartData(message, part).then((partData) => {
+        return {
+          filename: part.disposition.params.filename,
+          data: partData.toString('base64'),
+        };
+      }),
     ),
   );
 
   const details = message.parts[0].body;
   const rawBody = message.parts[1].body;
-  const type = /<\/?(html|body|head)>/.test(rawBody) ? 'html' : 'text';
 
   const email = await PostalMime.parse(rawBody);
   const cleanedBody = (email.html || email.text)!.match(/<html[^>]*>(.*?)<\/html>/is);
   const body = mimelib.decodeQuotedPrintable(cleanedBody?.[1] || email.html || email.text!);
+  const type = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(body) ? 'html' : 'text';
 
   return {
     messageID: details['message-id'][0],

@@ -1,14 +1,15 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, RepeatIcon} from '$icon';
+  import {base64ToBlob, fetchAPI, notify} from '$lib';
   import {identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
-  import {fetchAPI, notify} from '$lib';
   import DOMPurify from 'dompurify';
   import {mailbox} from '$image';
 
   let {ws, token}: IdentityComponentParams = $props();
 
+  let iframe = $state() as HTMLIFrameElement | null;
   let mode = $state('browse') as 'browse' | 'read' | 'write';
   let target = $state() as FetchAPI['emails']['total'][number] | null;
   let inbox = $state() as FetchAPI;
@@ -66,12 +67,23 @@
   {:else if mode === 'read'}
     {#if target?.type === 'html'}
       <iframe
-        srcdoc={DOMPurify.sanitize(target.body)}
+        bind:this={iframe}
         title={target.subject}
-        class="min-h-[80vh] w-full"
+        onload={() => ((iframe!.style.height = iframe!.contentWindow!.document.body.scrollHeight + 70 + 'px'), window.scrollTo(0, 0))}
+        srcdoc={DOMPurify.sanitize(target.body)}
+        class="h-[40vh] w-full overflow-y-hidden bg-neutral-100"
         sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
     {:else}
-      <p>{target?.body}</p>
+      <p class="whitespace-pre-line p-8">{target?.body}</p>
+    {/if}
+    {#if target?.attachments?.length && target?.attachments.length > 0}
+      <div class="flex flex-col gap-4 p-4">
+        <h3 class="text-2xl text-neutral-300">Attachments:</h3>
+        {#each target.attachments as attachment}
+          <a href={URL.createObjectURL(base64ToBlob(attachment.data, 'application/octet-stream'))} download={attachment.filename}>
+            {attachment.filename}</a>
+        {/each}
+      </div>
     {/if}
   {/if}
 {/await}
