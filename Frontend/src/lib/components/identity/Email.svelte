@@ -16,6 +16,7 @@
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
     inbox = await fetchAPI('/api/email/' + $identity.id, token);
+    $target = null;
   }
 
   async function deleteEmail() {
@@ -57,6 +58,7 @@
         inbox.emails[messageCount as keyof typeof inbox.emails]--;
 
         inbox.emails = {...inbox.emails};
+        $target = null;
         break;
       }
     }
@@ -86,10 +88,10 @@
       <div class="mt-[5vh] flex items-center justify-between">
         <h3 class="!text-2xl">{$identity.email}</h3>
         <div id="mailbox-labels" class="flex">
-          <button class:selected={label === 'INBOX'} onclick={() => (label = 'INBOX')}>Inbox</button>
-          <button class:selected={label === 'Sent'} onclick={() => (label = 'Sent')}>Sent</button>
-          <button class:selected={label === 'Drafts'} onclick={() => (label = 'Drafts')}>Drafts</button>
-          <button class:selected={label === 'Junk'} onclick={() => (label = 'Junk')}>Junk</button>
+          <button class:selected={label === 'INBOX'} onclick={() => ((label = 'INBOX'), ($target = null))}>Inbox</button>
+          <button class:selected={label === 'Sent'} onclick={() => ((label = 'Sent'), ($target = null))}>Sent</button>
+          <button class:selected={label === 'Drafts'} onclick={() => ((label = 'Drafts'), ($target = null))}>Drafts</button>
+          <button class:selected={label === 'Junk'} onclick={() => ((label = 'Junk'), ($target = null))}>Junk</button>
         </div>
       </div>
       {#if label === 'INBOX'}

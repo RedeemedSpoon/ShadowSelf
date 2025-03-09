@@ -1,7 +1,7 @@
 <script lang="ts">
+  import {mailbox, shredder, file, pencil} from '$image';
   import {mode, target} from '$store';
   import type {FetchAPI} from '$type';
-  import {mailbox} from '$image';
 
   interface Props {
     label: 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
@@ -12,7 +12,7 @@
   let {count, inbox, label}: Props = $props();
 </script>
 
-{#if count > 0}
+{#if count > 0 && inbox.length > 0}
   {#each inbox as email}
     <div
       aria-hidden="true"
@@ -26,23 +26,36 @@
     </div>
   {/each}
 {:else if label === 'INBOX'}
-  <section id="no-emails" style="background-image: url({mailbox});">
-    <h3 class="mt-12">No Emails</h3>
+  <section class="no-emails" style="background-image: url({mailbox});">
+    <h3 class="mt-12">No Emails Received</h3>
     <p class="w-1/2 text-center">
       Looks like no emails have been sent to this email address yet. Maybe it's a good idea to send one to kick things off?
     </p>
     <button onclick={() => ($mode = 'write')}>Send Email</button>
   </section>
 {:else if label === 'Sent'}
-  <div></div>
-{:else if label === 'Junk'}
-  <div></div>
+  <section class="no-emails" style="background-image: url({pencil});">
+    <h3 class="mt-12">No Emails Sent</h3>
+    <p class="w-1/2 text-center">It looks like you haven't sent any emails from this account yet. Why not start by writing one now?</p>
+    <button onclick={() => ($mode = 'write')}>Compose Email</button>
+  </section>
 {:else if label === 'Drafts'}
-  <div></div>
+  <section class="no-emails" style="background-image: url({file});">
+    <h3 class="mt-12">No Drafts</h3>
+    <p class="w-1/2 text-center">
+      Looks like you don’t have any drafts at the moment. Start writing an email and save it as a draft to come back to later!
+    </p>
+    <button onclick={() => ($mode = 'write')}>Write Draft</button>
+  </section>
+{:else if label === 'Junk'}
+  <section class="no-emails" style="background-image: url({shredder});">
+    <h3 class="mt-12">No Junk :)</h3>
+    <p class="w-1/2 text-center">No junk emails here! Keep it that way by sending only the emails you care about to your inbox.</p>
+  </section>
 {/if}
 
 <style lang="postcss">
-  #no-emails {
+  .no-emails {
     @apply mb-12 mt-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
   }
 
@@ -52,5 +65,9 @@
 
   .target {
     @apply bg-neutral-300/10 hover:bg-neutral-300/10;
+  }
+
+  h3 {
+    @apply text-5xl text-neutral-300;
   }
 </style>
