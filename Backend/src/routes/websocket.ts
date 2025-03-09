@@ -1,5 +1,5 @@
 import {User, WebsocketRequest, Location} from '../types';
-import {listenForEmail} from '../email-imap';
+import {listenForEmail, deleteEmail} from '../email-imap';
 import {generateProfile} from '../prompts';
 import {attempt, request} from '../utils';
 import {allFakers} from '@faker-js/faker';
@@ -133,6 +133,16 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         }
 
         ws.send({type: 'update-encryption', accounts: message.accounts});
+        break;
+      }
+
+      case 'delete-email': {
+        const {error, mailbox, uid} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        const result = await attempt(sql`SELECT email, email_password FROM identities WHERE id = ${identity.id}`);
+        await deleteEmail(result[0].email, result[0].email_password, mailbox!, message.uid!);
+        ws.send({type: 'delete-email', mailbox, uid});
         break;
       }
 

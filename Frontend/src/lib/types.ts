@@ -111,6 +111,7 @@ export interface Inbox {
   date: string;
   reference: string | null;
   inReplyTo: string | null;
+  uid: number;
   attachments: {
     filename: string;
     data: string;
@@ -130,13 +131,13 @@ export interface FetchAPI {
   }[];
   emails: {
     messagesCount: number;
-    sendMessagesCount: number;
-    draftmessagesCount: number;
-    junkmessagesCount: number;
-    send: Inbox[];
+    sentMessagesCount: number;
+    draftsMessagesCount: number;
+    junkMessagesCount: number;
+    sent: Inbox[];
     inbox: Inbox[];
     junk: Inbox[];
-    draft: Inbox[];
+    drafts: Inbox[];
   };
 }
 
@@ -173,7 +174,8 @@ export interface WebSocketResponse {
     | 'edit-account'
     | 'remove-account'
     | 'update-encryption'
-    | 'new-email';
+    | 'new-email'
+    | 'delete-email';
   picture?: string;
   ethnicity?: string;
   name?: string;
@@ -192,6 +194,8 @@ export interface WebSocketResponse {
     totp?: string;
   }[];
   newEmail?: Inbox;
+  uid?: number;
+  mailbox?: string;
 }
 
 export interface PricingModel {

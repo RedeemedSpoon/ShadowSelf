@@ -10,7 +10,7 @@
   let {ws, token}: IdentityComponentParams = $props();
 
   let mode = $state('browse') as 'browse' | 'read' | 'write';
-  let label = $state('inbox') as 'inbox' | 'sent' | 'drafts' | 'junk';
+  let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
 
   let target = $state() as FetchAPI['emails']['inbox'][number] | null;
   let iframe = $state() as HTMLIFrameElement | null;
@@ -22,10 +22,31 @@
     inbox = await fetchAPI('/api/email/' + $identity.id, token);
   }
 
+  async function deleteEmail() {
+    ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: target!.uid}));
+  }
+
   $handleResponse = (response: WebSocketResponse) => {
-    if (response.type === 'new-email') {
-      notify('New Email Received!', 'success');
-      inbox.emails.inbox.unshift(response.newEmail!);
+    switch (response.type) {
+      case 'new-email': {
+        notify('New Email Received!', 'success');
+        inbox.emails.inbox.unshift(response.newEmail!);
+        inbox.emails.messagesCount++;
+
+        inbox.emails = {...inbox.emails};
+        break;
+      }
+
+      case 'delete-email': {
+        const mailbox = response.mailbox?.toLowerCase();
+        const messageCount = mailbox === 'inbox' ? 'messagesCount' : `${mailbox}MessagesCount`;
+
+        // @ts-expect-error nonsense
+        inbox.emails[mailbox] = inbox.emails[mailbox].filter((email) => email.uid !== response.uid);
+        inbox.emails[messageCount as keyof typeof inbox.emails]--;
+        inbox.emails = {...inbox.emails};
+        break;
+      }
     }
   };
 </script>
@@ -37,7 +58,7 @@
     <ActionIcon icon={SendIcon} action={() => {}} title="Send New Emails" />
     <ActionIcon disabled={!target} icon={ReplyIcon} action={() => {}} title="Reply to Email" />
     <ActionIcon disabled={!target} icon={ForwardIcon} action={() => {}} title="Forward Email" />
-    <ActionIcon disabled={!target} icon={TrashIcon} action={() => {}} title="Delete Email" />
+    <ActionIcon disabled={!target} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
@@ -49,29 +70,31 @@
   </div>
 {:then}
   {#if mode === 'browse'}
-    {#key inbox}
-      {#if inbox.emails.messagesCount > 0}
-        {#each inbox.emails.inbox as email}
-          <div
-            aria-hidden="true"
-            class="container {target?.messageID === email.messageID && 'target'}"
-            onclick={() => (target?.messageID === email.messageID && (mode = 'read'), (target = email))}>
-            <div class="w-1/2">
-              <h3 class="truncate text-2xl text-neutral-300">{email.subject}</h3>
-              <p class="text-sm text-neutral-500">{email.date}</p>
+    {#key inbox.emails}
+      {#if label === 'INBOX'}
+        {#if inbox.emails.messagesCount > 0}
+          {#each inbox.emails.inbox as email}
+            <div
+              aria-hidden="true"
+              class="container {target?.messageID === email.messageID && 'target'}"
+              onclick={() => (target?.messageID === email.messageID && (mode = 'read'), (target = email))}>
+              <div class="w-1/2">
+                <h3 class="truncate text-2xl text-neutral-300">{email.subject}</h3>
+                <p class="text-sm text-neutral-500">{email.date}</p>
+              </div>
+              <p class="w-1/2 text-right text-sm text-neutral-400">{email.from}</p>
             </div>
-            <p class="w-1/2 text-right text-sm text-neutral-400">{email.from}</p>
-          </div>
-        {/each}
-      {:else}
-        <section id="no-emails" style="background-image: url({mailbox});">
-          <h2 class="mt-12 text-5xl text-neutral-300">No Emails</h2>
-          <p class="w-1/2 text-center">
-            Looks like no emails have been sent to this email address yet. Maybe it's a good idea to send one to kick things off?
-          </p>
-          <button>Send Email</button>
-        </section>
-      {/if}
+          {/each}
+        {:else}
+          <section id="no-emails" style="background-image: url({mailbox});">
+            <h2 class="mt-12 text-5xl text-neutral-300">No Emails</h2>
+            <p class="w-1/2 text-center">
+              Looks like no emails have been sent to this email address yet. Maybe it's a good idea to send one to kick things off?
+            </p>
+            <button>Send Email</button>
+          </section>
+        {/if}
+      {:else if label === 'Sent'}{:else if label === 'Drafts'}{:else if label === 'Junk'}{/if}
     {/key}
   {:else if mode === 'read'}
     {#if target?.type === 'html'}

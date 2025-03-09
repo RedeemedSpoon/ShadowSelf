@@ -243,5 +243,13 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
   if (body.algorithm && !['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
     return {error: 'Invalid algorithm, please try again'};
   }
+
+  if (body.uid && body.uid !== Number(body.uid)) {
+    return {error: 'Invalid email UID, please try again'};
+  }
+
+  if (body.mailbox && !['INBOX', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
+    return {error: 'Invalid mailbox, please try again'};
+  }
   return body;
 }

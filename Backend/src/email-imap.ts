@@ -24,7 +24,7 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
 
       for (const message of messages) {
         await connection.addFlags(message.attributes.uid, ['\\SEEN']);
-        const {messageID, subject, from, date, reference, inReplyTo, attachments, body, type} = await parseMassage(
+        const {messageID, subject, from, date, reference, inReplyTo, attachments, body, type, uid} = await parseMassage(
           connection,
           message,
         );
@@ -32,7 +32,7 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
         ws.send(
           JSON.stringify({
             type: 'new-email',
-            newEmail: {messageID, subject, from, date, reference, inReplyTo, attachments, body, type},
+            newEmail: {messageID, subject, from, date, reference, inReplyTo, attachments, uid, body, type},
           }),
         );
       }
@@ -45,19 +45,16 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
   ws.onclose = () => connection.end();
 }
 
-export async function fetchEmail(user: string, password: string, type: string, query?: string) {
-  const config = {
-    imap: {
-      user,
-      password,
-      host: 'mail.shadowself.io',
-      port: 993,
-      tls: true,
-    },
-  };
+export async function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
+  const connection = await connect(user, password);
+  await connection.openBox(mailbox);
+  await connection.moveMessage(uid.toString(), 'Junk');
+  connection.end();
+}
 
-  const connection = await imap.connect(config);
-  const mailbox = await getInbox(type === 'send' ? 'Sent' : 'INBOX', connection, query);
+export async function fetchEmail(user: string, password: string, type: string, query?: string) {
+  const connection = await connect(user, password);
+  const mailbox = await getInbox(type, connection, query);
   connection.end();
 
   return {
@@ -80,21 +77,44 @@ export async function fetchRecentEmails(user: string, password: string) {
   const connection = await imap.connect(config);
 
   const inboxMailbox = await getInbox('INBOX', connection);
-  const sendMailbox = await getInbox('Sent', connection);
-  const draftMailbox = await getInbox('Drafts', connection);
+  const sentMailbox = await getInbox('Sent', connection);
+  const draftsMailbox = await getInbox('Drafts', connection);
   const junkMailbox = await getInbox('Junk', connection);
   connection.end();
 
   return {
     messagesCount: inboxMailbox.messagesCount,
-    sendMessagesCount: sendMailbox.messagesCount,
-    draftMessagesCount: draftMailbox.messagesCount,
+    sentMessagesCount: sentMailbox.messagesCount,
+    draftsMessagesCount: draftsMailbox.messagesCount,
     junkMessagesCount: junkMailbox.messagesCount,
     inbox: inboxMailbox.emails,
-    send: sendMailbox.emails,
-    draft: draftMailbox.emails,
+    sent: sentMailbox.emails,
+    drafts: draftsMailbox.emails,
     junk: junkMailbox.emails,
   };
+}
+
+async function connect(user: string, password: string) {
+  const config = {
+    imap: {
+      user,
+      password,
+      host: 'mail.shadowself.io',
+      port: 993,
+      tls: true,
+    },
+  };
+
+  return await imap.connect(config);
+}
+
+async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
+  return new Promise<number>((resolve, reject) => {
+    connection.imap.status(inbox, (err, mes) => {
+      if (err) reject(err);
+      else resolve(mes.messages.total);
+    });
+  });
 }
 
 async function getInbox(inbox: string, connection: imap.ImapSimple, query?: string) {
@@ -111,19 +131,21 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
   });
 
   for (const message of messages) {
+    if (inbox === 'Junk') {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const internalDate = new Date(message.attributes.date);
+
+      if (internalDate < sevenDaysAgo) {
+        await connection.deleteMessage(message.attributes.uid);
+        continue;
+      }
+    }
+
     emails.unshift(await parseMassage(connection, message));
   }
 
   return {messagesCount, emails};
-}
-
-async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
-  return new Promise<number>((resolve, reject) => {
-    connection.imap.status(inbox, (err, mes) => {
-      if (err) reject(err);
-      else resolve(mes.messages.total);
-    });
-  });
 }
 
 async function parseMassage(connection: imap.ImapSimple, message: imap.Message) {
@@ -144,6 +166,7 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
     ),
   );
 
+  const uid = message.attributes.uid;
   const details = message.parts[0].body;
   const rawBody = message.parts[1].body;
 
@@ -160,6 +183,7 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
     reference: details.references?.[0],
     inReplyTo: details['in-reply-to']?.[0],
     attachments,
+    uid,
     body,
     type,
   };
