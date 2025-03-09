@@ -15,7 +15,7 @@
 
 <section class="mb-4 flex w-full items-center justify-between">
   <h2 class="text-5xl text-neutral-300">Virtual Card</h2>
-  <div>
+  <div class="flex gap-1">
     <ActionIcon icon={RepeatIcon} action={() => {}} title="Refresh" />
     <ActionIcon icon={TransferIcon} action={() => {}} title="Transfer Funds" />
     <ActionIcon icon={RetrieveFundsIcon} action={() => {}} title="Retrieve Funds" />

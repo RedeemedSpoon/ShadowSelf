@@ -32,13 +32,13 @@
 
 <section class="mb-4 flex w-full items-center justify-between">
   <h2 class="text-5xl text-neutral-300">Email Address</h2>
-  <div>
-    <ActionIcon icon={InboxIcon} action={() => {}} title="Go to Inbox" />
+  <div class="flex gap-1">
+    <ActionIcon icon={InboxIcon} action={() => ((mode = 'browse'), (target = null))} title="Go to Inbox" />
     <ActionIcon icon={SendIcon} action={() => {}} title="Send New Emails" />
-    <ActionIcon icon={ReplyIcon} action={() => {}} title="Reply to Email" />
-    <ActionIcon icon={ForwardIcon} action={() => {}} title="Forward Email" />
-    <ActionIcon icon={ArchiveIcon} action={() => {}} title="Archive Email" />
-    <ActionIcon icon={TrashIcon} action={() => {}} title="Delete Email" />
+    <ActionIcon disabled={!target} icon={ReplyIcon} action={() => {}} title="Reply to Email" />
+    <ActionIcon disabled={!target} icon={ForwardIcon} action={() => {}} title="Forward Email" />
+    <ActionIcon disabled={!target} icon={ArchiveIcon} action={() => {}} title="Archive Email" />
+    <ActionIcon disabled={!target} icon={TrashIcon} action={() => {}} title="Delete Email" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
@@ -52,7 +52,10 @@
   {#if mode === 'browse'}
     {#if inbox.emails.messagesCount > 0}
       {#each inbox.emails.inbox as email}
-        <div class="container" aria-hidden="true" onclick={() => ((target = email), (mode = 'read'))}>
+        <div
+          aria-hidden="true"
+          class="container {target?.messageID === email.messageID && 'target'}"
+          onclick={() => (target?.messageID === email.messageID && (mode = 'read'), (target = email))}>
           <div class="w-1/2">
             <h3 class="truncate text-2xl text-neutral-300">{email.subject}</h3>
             <p class="text-sm text-neutral-500">{email.date}</p>
@@ -74,9 +77,9 @@
       <iframe
         bind:this={iframe}
         title={target.subject}
-        onload={() => ((iframe!.style.height = iframe!.contentWindow!.document.body.scrollHeight + 70 + 'px'), window.scrollTo(0, 0))}
         srcdoc={DOMPurify.sanitize(target.body)}
         class="h-[40vh] w-full overflow-y-hidden bg-neutral-100"
+        onload={() => ((iframe!.style.height = iframe!.contentWindow!.document.body.scrollHeight + 70 + 'px'), window.scrollTo(0, 0))}
         sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
     {:else}
       <p class="whitespace-pre-line p-8">{target?.body}</p>
@@ -99,6 +102,10 @@
   }
 
   .container {
-    @apply flex cursor-pointer items-center border-b border-neutral-700 px-2 py-4 last:border-none hover:bg-neutral-400/5;
+    @apply flex cursor-pointer items-center border-b border-neutral-700 px-8 py-4 last:border-none hover:bg-neutral-400/5;
+  }
+
+  .target {
+    @apply bg-neutral-300/10 hover:bg-neutral-300/10;
   }
 </style>

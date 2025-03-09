@@ -1,5 +1,6 @@
 <script lang="ts">
   import type {Component} from 'svelte';
+  import {Tooltip} from '$component';
   import {CheckmarkIcon} from '$icon';
 
   interface Props {
@@ -7,8 +8,8 @@
     icon: Component;
     title: string;
     commit?: boolean;
-    activeStatus?: boolean;
     disabled?: boolean;
+    activeStatus?: boolean;
     size?: 'big' | 'small';
   }
 
@@ -17,14 +18,16 @@
   const width = size === 'big' ? 'w-8 h-8' : 'w-4 h-4';
 </script>
 
-<button {disabled} class="group {commit && activeStatus && 'primary-color'}" type="button" onclick={action} {title}>
-  {#if commit && activeStatus}
-    <CheckmarkIcon className={width + ' fill-primary-600 stroke-none'} />
-  {:else}
-    {@const SvelteComponent = icon}
-    <SvelteComponent fill={true} className={width + ' stroke-neutral-300 ' + (disabled && 'cursor-not-allowed')} />
-  {/if}
-</button>
+<Tooltip tip={title} nowrap={true}>
+  <button {disabled} class="group {commit && activeStatus && 'primary-color'}" type="button" onclick={action}>
+    {#if commit && activeStatus}
+      <CheckmarkIcon className={width + ' fill-primary-600 stroke-none'} />
+    {:else}
+      {@const SvelteComponent = icon}
+      <SvelteComponent fill={true} className={width + ' stroke-neutral-300 ' + (disabled && 'cursor-not-allowed')} />
+    {/if}
+  </button>
+</Tooltip>
 
 <style lang="postcss">
   button {
