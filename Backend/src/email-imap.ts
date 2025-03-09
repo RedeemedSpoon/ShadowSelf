@@ -78,15 +78,22 @@ export async function fetchRecentEmails(user: string, password: string) {
   };
 
   const connection = await imap.connect(config);
+
   const inboxMailbox = await getInbox('INBOX', connection);
   const sendMailbox = await getInbox('Sent', connection);
+  const draftMailbox = await getInbox('Drafts', connection);
+  const junkMailbox = await getInbox('Junk', connection);
   connection.end();
 
   return {
     messagesCount: inboxMailbox.messagesCount,
     sendMessagesCount: sendMailbox.messagesCount,
+    draftMessagesCount: draftMailbox.messagesCount,
+    junkMessagesCount: junkMailbox.messagesCount,
     inbox: inboxMailbox.emails,
     send: sendMailbox.emails,
+    draft: draftMailbox.emails,
+    junk: junkMailbox.emails,
   };
 }
 

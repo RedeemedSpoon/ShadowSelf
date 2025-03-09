@@ -166,14 +166,14 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const proxyServer = loc!.ip;
 
           const emailUsername = email!.split('@')[0];
-          const emailPassword = (await $`openssl rand -base64 24`).stdout;
+          const emailPassword = (await $`openssl rand -base64 24`.quiet()).stdout.toString('utf-8').trim();
 
           await $`useradd -m -G mail ${emailUsername}`.nothrow().quiet();
-          await $`echo ${emailPassword}:${emailPassword} | chpasswd`.nothrow().quiet();
+          await $`echo ${emailUsername}:${emailPassword} | chpasswd`.nothrow().quiet();
 
           await twilioClient.incomingPhoneNumbers.create({
             emergencyStatus: 'Inactive',
-            smsUrl: `${origin}/api/sms`,
+            smsUrl: `${origin}/webhook-twilio`,
             phoneNumber: phone,
           });
 

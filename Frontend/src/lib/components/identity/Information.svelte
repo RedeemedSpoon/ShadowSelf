@@ -50,38 +50,33 @@
     }
   }
 
-  async function handleEvent(event: string) {
-    switch (event) {
-      case 'regenerate-picture': {
-        const bio = (document.querySelector('textarea') as HTMLTextAreaElement).value.trim();
-        const age = (document.querySelector('input[name="age"]') as HTMLInputElement).value.trim();
-        const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
-        const sex = document.querySelector('.selected')?.id;
+  async function regeneratePicture() {
+    const bio = (document.querySelector('textarea') as HTMLTextAreaElement).value.trim();
+    const age = (document.querySelector('input[name="age"]') as HTMLInputElement).value.trim();
+    const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
+    const sex = document.querySelector('.selected')?.id;
 
-        $fetching = 1;
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        ws.send(JSON.stringify({type: 'regenerate-picture', sex, age, ethnicity, bio}));
-        break;
-      }
+    $fetching = 1;
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    ws.send(JSON.stringify({type: 'regenerate-picture', sex, age, ethnicity, bio}));
+  }
 
-      case 'repeat-name':
-        ws.send(JSON.stringify({type: 'regenerate-name', sex: document.querySelector('.selected')!.id}));
-        break;
+  function regenerateName() {
+    ws.send(JSON.stringify({type: 'regenerate-name', sex: document.querySelector('.selected')!.id}));
+  }
 
-      case 'repeat-bio':
-        ws.send(JSON.stringify({type: 'regenerate-bio'}));
-        break;
+  function regenerateBio() {
+    ws.send(JSON.stringify({type: 'regenerate-bio'}));
+  }
 
-      case 'change-male':
-        document.querySelectorAll('.sex-box').forEach((element) => element.classList.remove('selected'));
-        document.querySelector(`#male`)!.classList.add('selected');
-        break;
+  function changeToMale() {
+    document.querySelector(`#female`)!.classList.remove('selected');
+    document.querySelector(`#male`)!.classList.add('selected');
+  }
 
-      case 'change-female':
-        document.querySelectorAll('.sex-box').forEach((element) => element.classList.remove('selected'));
-        document.querySelector(`#female`)!.classList.add('selected');
-        break;
-    }
+  function changeToFemale() {
+    document.querySelector(`#male`)!.classList.remove('selected');
+    document.querySelector(`#female`)!.classList.add('selected');
   }
 
   $handleResponse = (response: WebSocketResponse) => {
@@ -130,7 +125,7 @@
       <img class="rounded-xl" id="profile" src={`data:image/png;base64,${$identity.picture}`} alt="identity look" />
       <Tooltip
         tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
-        <LoadingButton onclick={() => handleEvent('regenerate-picture')}>
+        <LoadingButton onclick={regeneratePicture}>
           <UserIcon className="h-6 w-6 -mr-2" />Regenerate profile picture
         </LoadingButton>
       </Tooltip>
@@ -138,23 +133,15 @@
     <div class="flex w-full flex-col gap-4">
       <div class="flex items-end gap-4">
         <label for="name">Name</label>
-        <ActionIcon title="regenerate a random name" icon={RepeatIcon} action={() => handleEvent('repeat-name')} size={'small'} />
+        <ActionIcon title="regenerate a random name" icon={RepeatIcon} action={regenerateName} size={'small'} />
       </div>
       <input value={$identity.name} type="text" placeholder="John Doe" name="name" />
       <label for="sex">Sex</label>
       <div class="flex flex-row gap-4">
-        <div
-          id="male"
-          class="sex-box {$identity.sex === 'male' && 'selected'}"
-          onclick={() => handleEvent('change-male')}
-          aria-hidden="true">
+        <div id="male" class="sex-box {$identity.sex === 'male' && 'selected'}" onclick={changeToMale} aria-hidden="true">
           <MaleIcon /> Male
         </div>
-        <div
-          id="female"
-          class="sex-box {$identity.sex === 'female' && 'selected'}"
-          onclick={() => handleEvent('change-female')}
-          aria-hidden="true">
+        <div id="female" class="sex-box {$identity.sex === 'female' && 'selected'}" onclick={changeToFemale} aria-hidden="true">
           <FemaleIcon /> Female
         </div>
       </div>
@@ -164,7 +151,7 @@
       <input type="number" name="age" placeholder="18-60" bind:value={$identity.age} />
       <div class="flex items-end gap-4">
         <label for="bio">Bio</label>
-        <ActionIcon title="regenerate a random bio" icon={RepeatIcon} action={() => handleEvent('repeat-bio')} size="small" />
+        <ActionIcon title="regenerate a random bio" icon={RepeatIcon} action={regenerateBio} size="small" />
       </div>
       <textarea placeholder="Short bio, will be used when generating a profile picture" value={$identity.bio}></textarea>
     </div>

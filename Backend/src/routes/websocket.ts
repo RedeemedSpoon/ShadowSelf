@@ -23,9 +23,8 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
     const id = (await attempt(sql`SELECT id FROM users WHERE email = ${user!.email}`))[0].id;
     if (id !== identity.owner) return ws.close(1014, 'You do not authorize to perform this action');
 
-    // listenForEmail(ws, identity.email, identity.email_password);
     // @ts-expect-error Websocket type
-    listenForEmail(ws, 'contact@shadowself.io', process.env.EMAIL_CONTACT!);
+    listenForEmail(ws, identity.email, identity.email_password);
   },
   async message(ws, message: WebsocketRequest | 'ping') {
     if (message === 'ping') return ws.send('pong');

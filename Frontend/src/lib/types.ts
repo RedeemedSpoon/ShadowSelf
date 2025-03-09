@@ -104,6 +104,21 @@ export interface CreationProcess {
   finish: boolean;
 }
 
+export interface Inbox {
+  messageID: string;
+  subject: string;
+  from: string;
+  date: string;
+  reference: string | null;
+  inReplyTo: string | null;
+  attachments: {
+    filename: string;
+    data: string;
+  }[];
+  body: string;
+  type: 'html' | 'text';
+}
+
 export interface FetchAPI {
   accounts: {
     id: number;
@@ -116,34 +131,12 @@ export interface FetchAPI {
   emails: {
     messagesCount: number;
     sendMessagesCount: number;
-    send: {
-      messageID: string;
-      subject: string;
-      from: string;
-      date: string;
-      reference: string | null;
-      inReplyTo: string | null;
-      attachments: {
-        filename: string;
-        data: string;
-      }[];
-      body: string;
-      type: 'html' | 'text';
-    }[];
-    inbox: {
-      messageID: string;
-      subject: string;
-      from: string;
-      date: string;
-      reference: string | null;
-      inReplyTo: string | null;
-      attachments: {
-        filename: string;
-        data: string;
-      }[];
-      body: string;
-      type: 'html' | 'text';
-    }[];
+    draftmessagesCount: number;
+    junkmessagesCount: number;
+    send: Inbox[];
+    inbox: Inbox[];
+    junk: Inbox[];
+    draft: Inbox[];
   };
 }
 
@@ -187,7 +180,7 @@ export interface WebSocketResponse {
   age?: number;
   sex?: string;
   bio?: string;
-  id: number;
+  id: string;
   username?: string;
   password?: string;
   website: string;
@@ -198,20 +191,7 @@ export interface WebSocketResponse {
     password: string;
     totp?: string;
   }[];
-  newEmail?: {
-    messageID: string;
-    subject: string;
-    from: string;
-    date: string;
-    reference: string | null;
-    inReplyTo: string | null;
-    attachments: {
-      filename: string;
-      data: string;
-    }[];
-    body: string;
-    type: 'html' | 'text';
-  };
+  newEmail?: Inbox;
 }
 
 export interface PricingModel {

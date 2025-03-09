@@ -32,18 +32,17 @@
   $handleResponse = (response: WebSocketResponse) => {
     switch (response.type) {
       case 'add-account':
-        accounts.accounts.push(response as FetchAPI['accounts'][number]);
+        // @ts-expect-error nonsense
+        accounts.accounts.push(response);
         break;
 
       case 'edit-account':
-        accounts.accounts = [
-          ...accounts.accounts.filter((account) => account.id !== response.id),
-          response as FetchAPI['accounts'][number],
-        ];
+        // @ts-expect-error nonsense
+        accounts.accounts = [...accounts.accounts.filter((account) => account.id !== (response.id as unknown)), response];
         break;
 
       case 'remove-account':
-        accounts.accounts = accounts.accounts.filter((account) => account.id !== response.id);
+        accounts.accounts = accounts.accounts.filter((account) => account.id !== (response.id as unknown));
         break;
 
       case 'update-encryption': {
