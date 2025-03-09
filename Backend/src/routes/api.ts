@@ -1,5 +1,5 @@
 import {attempt, resizeImage} from '../utils';
-import {fetchEmails} from '../email-imap';
+import {fetchRecentEmails} from '../email-imap';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
@@ -59,8 +59,8 @@ export default new Elysia({prefix: '/api'})
     const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
     if (!identity.length) return error(400, 'Identity not found');
 
-    // return { emails: await fetchEmails(identity[0].email, identity[0].email_password) };
-    return {emails: await fetchEmails('contact@shadowself.io', process.env.EMAIL_CONTACT!)};
+    // return { emails: await fetchRecentEmails(identity[0].email, identity[0].email_password) };
+    return {emails: await fetchRecentEmails('contact@shadowself.io', process.env.EMAIL_CONTACT!)};
   })
   .get('/phone/:id', async ({user, params}) => ({}))
   .get('/card/:id', async ({user, params}) => ({}))

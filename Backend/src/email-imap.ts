@@ -45,7 +45,7 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
   ws.onclose = () => connection.end();
 }
 
-export async function fetchEmails(user: string, password: string, from?: number, to?: number) {
+export async function fetchEmail(user: string, password: string, type: string, query?: string) {
   const config = {
     imap: {
       user,
@@ -56,30 +56,63 @@ export async function fetchEmails(user: string, password: string, from?: number,
     },
   };
 
-  const total = [];
   const connection = await imap.connect(config);
-  const messagesCount = await getMessageCount(connection);
+  const mailbox = await getInbox(type === 'send' ? 'Sent' : 'INBOX', connection, query);
+  connection.end();
 
-  const mesFrom = from || messagesCount - 20;
-  const mesTo = to || messagesCount;
+  return {
+    sendMessagesCount: mailbox.messagesCount,
+    send: mailbox.emails,
+  };
+}
 
-  await connection.openBox('INBOX');
-  const messages = await connection.search([`${mesFrom}:${mesTo}`], {
+export async function fetchRecentEmails(user: string, password: string) {
+  const config = {
+    imap: {
+      user,
+      password,
+      host: 'mail.shadowself.io',
+      port: 993,
+      tls: true,
+    },
+  };
+
+  const connection = await imap.connect(config);
+  const inboxMailbox = await getInbox('INBOX', connection);
+  const sendMailbox = await getInbox('Sent', connection);
+  connection.end();
+
+  return {
+    messagesCount: inboxMailbox.messagesCount,
+    sendMessagesCount: sendMailbox.messagesCount,
+    inbox: inboxMailbox.emails,
+    send: sendMailbox.emails,
+  };
+}
+
+async function getInbox(inbox: string, connection: imap.ImapSimple, query?: string) {
+  const emails = [];
+  const messagesCount = await getMessageCount(inbox, connection);
+
+  await connection.openBox(inbox);
+  const lastMessages = messagesCount - 10 < 0 ? 1 : messagesCount - 9;
+  const searchQuery = query ? query : `${lastMessages}:${messagesCount || 1}`;
+
+  const messages = await connection.search([searchQuery], {
     bodies: ['HEADER.FIELDS (FROM SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
     struct: true,
   });
 
   for (const message of messages) {
-    total.push(await parseMassage(connection, message));
+    emails.unshift(await parseMassage(connection, message));
   }
 
-  connection.end();
-  return {messagesCount, total: total.reverse()};
+  return {messagesCount, emails};
 }
 
-async function getMessageCount(connection: imap.ImapSimple) {
+async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
   return new Promise<number>((resolve, reject) => {
-    connection.imap.status('INBOX', (err, mes) => {
+    connection.imap.status(inbox, (err, mes) => {
       if (err) reject(err);
       else resolve(mes.messages.total);
     });

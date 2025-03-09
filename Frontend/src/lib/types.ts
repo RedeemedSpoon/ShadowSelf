@@ -115,7 +115,22 @@ export interface FetchAPI {
   }[];
   emails: {
     messagesCount: number;
-    total: {
+    sendMessagesCount: number;
+    send: {
+      messageID: string;
+      subject: string;
+      from: string;
+      date: string;
+      reference: string | null;
+      inReplyTo: string | null;
+      attachments: {
+        filename: string;
+        data: string;
+      }[];
+      body: string;
+      type: 'html' | 'text';
+    }[];
+    inbox: {
       messageID: string;
       subject: string;
       from: string;

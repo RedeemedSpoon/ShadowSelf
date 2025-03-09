@@ -11,7 +11,7 @@
 
   let iframe = $state() as HTMLIFrameElement | null;
   let mode = $state('browse') as 'browse' | 'read' | 'write';
-  let target = $state() as FetchAPI['emails']['total'][number] | null;
+  let target = $state() as FetchAPI['emails']['inbox'][number] | null;
   let inbox = $state() as FetchAPI;
 
   async function fetchEmails() {
@@ -22,8 +22,8 @@
 
   $handleResponse = (response: WebSocketResponse) => {
     if (response.type === 'new-email') {
-      notify('New Email Received! Check your inbox', 'success');
-      inbox.emails.total.unshift(response.newEmail!);
+      notify('New Email Received!', 'success');
+      inbox.emails.inbox.unshift(response.newEmail!);
     }
   };
 </script>
@@ -46,7 +46,7 @@
 {:then}
   {#if mode === 'browse'}
     {#if inbox.emails.messagesCount > 0}
-      {#each inbox.emails.total as email}
+      {#each inbox.emails.inbox as email}
         <div class="container" aria-hidden="true" onclick={() => ((target = email), (mode = 'read'))}>
           <div class="w-1/2">
             <h3 class="truncate text-2xl text-neutral-300">{email.subject}</h3>
