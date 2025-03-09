@@ -1,6 +1,6 @@
 <script lang="ts">
+  import {SendIcon, TrashIcon, ReplyIcon, ForwardIcon, InboxIcon, ArchiveIcon} from '$icon';
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
-  import {SendIcon, TrashIcon, RepeatIcon} from '$icon';
   import {base64ToBlob, fetchAPI, notify} from '$lib';
   import {identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
@@ -9,9 +9,11 @@
 
   let {ws, token}: IdentityComponentParams = $props();
 
-  let iframe = $state() as HTMLIFrameElement | null;
   let mode = $state('browse') as 'browse' | 'read' | 'write';
+  let label = $state('inbox') as 'inbox' | 'send' | 'draft' | 'archive' | 'delete';
+
   let target = $state() as FetchAPI['emails']['inbox'][number] | null;
+  let iframe = $state() as HTMLIFrameElement | null;
   let inbox = $state() as FetchAPI;
 
   async function fetchEmails() {
@@ -31,9 +33,12 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h2 class="text-5xl text-neutral-300">Email Address</h2>
   <div>
-    <ActionIcon icon={RepeatIcon} action={() => {}} title="Refresh" />
-    <ActionIcon icon={SendIcon} action={() => {}} title="Send Emails" />
-    <ActionIcon icon={TrashIcon} action={() => {}} title="Delete Emails" />
+    <ActionIcon icon={InboxIcon} action={() => {}} title="Go to Inbox" />
+    <ActionIcon icon={SendIcon} action={() => {}} title="Send New Emails" />
+    <ActionIcon icon={ReplyIcon} action={() => {}} title="Reply to Email" />
+    <ActionIcon icon={ForwardIcon} action={() => {}} title="Forward Email" />
+    <ActionIcon icon={ArchiveIcon} action={() => {}} title="Archive Email" />
+    <ActionIcon icon={TrashIcon} action={() => {}} title="Delete Email" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
