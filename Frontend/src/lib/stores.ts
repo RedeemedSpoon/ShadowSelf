@@ -1,4 +1,4 @@
-import type {Notification, PricingModel, Sections, WebSocketResponse, FullIdentity} from '$type';
+import type {Notification, PricingModel, Sections, WebSocketResponse, FullIdentity, FetchAPI} from '$type';
 import {writable, type Writable} from 'svelte/store';
 import {allPricingModels} from '$type';
 
@@ -18,6 +18,9 @@ export const fetching: Writable<number> = writable(0);
 
 export const selectionMenuOpen: Writable<boolean> = writable(false);
 export const selectionInputOpen: Writable<boolean> = writable(false);
+
+export const mode: Writable<'browse' | 'read' | 'write'> = writable('browse');
+export const target: Writable<FetchAPI['emails']['inbox'][number] | null> = writable();
 
 export const identity: Writable<FullIdentity> = writable();
 export const showPassword: Writable<boolean> = writable(false);

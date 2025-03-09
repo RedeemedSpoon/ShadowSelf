@@ -52,15 +52,24 @@ export async function deleteEmail(user: string, password: string, mailbox: strin
   connection.end();
 }
 
-export async function fetchEmail(user: string, password: string, type: string, query?: string) {
+export async function fetchReply(user: string, password: string, messageID?: string) {
   const connection = await connect(user, password);
-  const mailbox = await getInbox(type, connection, query);
-  connection.end();
+  let reply = null;
 
-  return {
-    sendMessagesCount: mailbox.messagesCount,
-    send: mailbox.emails,
-  };
+  for (const mailbox of ['INBOX', 'Sent']) {
+    await connection.openBox(mailbox);
+
+    const message = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+      bodies: ['HEADER.FIELDS (FROM SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
+      struct: true,
+    });
+
+    if (message.length === 0) continue;
+    reply = await parseMassage(connection, message[0]);
+  }
+
+  connection.end();
+  return reply;
 }
 
 export async function fetchRecentEmails(user: string, password: string) {
@@ -131,6 +140,7 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
   });
 
   for (const message of messages) {
+    await connection.addFlags(message.attributes.uid, ['\\SEEN']);
     if (inbox === 'Junk') {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -171,8 +181,8 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
   const rawBody = message.parts[1].body;
 
   const email = await PostalMime.parse(rawBody);
-  const cleanedBody = (email.html || email.text)!.match(/<html[^>]*>(.*?)<\/html>/is);
-  const body = mimelib.decodeQuotedPrintable(cleanedBody?.[1] || email.html || email.text!);
+  const cleanedBody = (email.html || email.text || '')!.match(/<html[^>]*>(.*?)<\/html>/is);
+  const body = mimelib.decodeQuotedPrintable(cleanedBody?.[1] || email.html || email.text! || '');
   const type = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(body) ? 'html' : 'text';
 
   return {

@@ -175,6 +175,7 @@ export interface WebSocketResponse {
     | 'remove-account'
     | 'update-encryption'
     | 'new-email'
+    | 'fetch-reply'
     | 'delete-email';
   picture?: string;
   ethnicity?: string;
@@ -194,7 +195,9 @@ export interface WebSocketResponse {
     totp?: string;
   }[];
   newEmail?: Inbox;
+  fetchEmail?: Inbox;
   uid?: number;
+  uuid?: string;
   mailbox?: string;
 }
 
