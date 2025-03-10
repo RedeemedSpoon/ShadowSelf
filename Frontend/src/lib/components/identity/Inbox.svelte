@@ -6,10 +6,11 @@
   interface Props {
     label: 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
     inbox: FetchAPI['emails']['inbox'];
+    loadMore: () => void;
     count: number;
   }
 
-  let {count, inbox, label}: Props = $props();
+  let {count, inbox, label, loadMore}: Props = $props();
 </script>
 
 {#if count > 0 && inbox.length > 0}
@@ -25,6 +26,7 @@
       <p class="w-1/2 text-right text-sm text-neutral-400">{email.from}</p>
     </div>
   {/each}
+  <button class="load-more" onclick={loadMore}>Load More</button>
 {:else if label === 'INBOX'}
   <section class="no-emails" style="background-image: url({mailbox});">
     <h3 class="mt-12">No Emails Received</h3>

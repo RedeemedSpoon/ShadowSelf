@@ -72,19 +72,18 @@ export async function fetchReply(user: string, password: string, messageID?: str
   return reply;
 }
 
+export async function fetchMoreEmails(user: string, password: string, mailbox: string, from: number) {
+  if (from < 0) return [];
+  const connection = await connect(user, password);
+  const query = from - 7 < 0 ? `${1}:${from}` : `${from - 6}:${from}`;
+  const inbox = await getInbox(mailbox, connection, query);
+
+  connection.end();
+  return inbox.emails;
+}
+
 export async function fetchRecentEmails(user: string, password: string) {
-  const config = {
-    imap: {
-      user,
-      password,
-      host: 'mail.shadowself.io',
-      port: 993,
-      tls: true,
-    },
-  };
-
-  const connection = await imap.connect(config);
-
+  const connection = await connect(user, password);
   const inboxMailbox = await getInbox('INBOX', connection);
   const sentMailbox = await getInbox('Sent', connection);
   const draftsMailbox = await getInbox('Drafts', connection);
@@ -131,7 +130,7 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
   const messagesCount = await getMessageCount(inbox, connection);
 
   await connection.openBox(inbox);
-  const lastMessages = messagesCount - 10 < 0 ? 1 : messagesCount - 9;
+  const lastMessages = messagesCount - 7 < 0 ? 1 : messagesCount - 6;
   const searchQuery = query ? query : `${lastMessages}:${messagesCount || 1}`;
 
   const messages = await connection.search([searchQuery], {

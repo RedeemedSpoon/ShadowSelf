@@ -127,7 +127,8 @@ export interface WebsocketRequest {
     | 'remove-account'
     | 'update-encryption'
     | 'fetch-reply'
-    | 'delete-email';
+    | 'delete-email'
+    | 'load-more';
   ethnicity?: string;
   sex?: string;
   age?: number;
@@ -167,6 +168,7 @@ export interface APIParams {
   uid?: number;
   mailbox?: string;
   uuid?: string;
+  from?: number;
 }
 
 export const emailTemplate = {

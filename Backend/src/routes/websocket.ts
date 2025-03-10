@@ -1,4 +1,4 @@
-import {listenForEmail, fetchReply, deleteEmail} from '../email-imap';
+import {fetchMoreEmails, listenForEmail, fetchReply, deleteEmail} from '../email-imap';
 import {User, WebsocketRequest, Location} from '../types';
 import {generateProfile} from '../prompts';
 import {attempt, request} from '../utils';
@@ -140,9 +140,17 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         const {error, uuid} = await checkAPI(message);
         if (error) return ws.send({error});
 
-        const result = await attempt(sql`SELECT email, email_password FROM identities WHERE id = ${identity.id}`);
-        const email = await fetchReply('contact@shadowself.io', process.env.EMAIL_CONTACT!, uuid!);
+        const email = await fetchReply(identity.email, identity.email_password, uuid!);
         ws.send({type: 'fetch-reply', uuid, fetchEmail: email});
+        break;
+      }
+
+      case 'load-more': {
+        const {error, mailbox, from} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        const emails = await fetchMoreEmails(identity.email, identity.email_password, mailbox!, from!);
+        ws.send({type: 'load-more', mailbox, from, emails});
         break;
       }
 
@@ -150,8 +158,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         const {error, mailbox, uid} = await checkAPI(message);
         if (error) return ws.send({error});
 
-        const result = await attempt(sql`SELECT email, email_password FROM identities WHERE id = ${identity.id}`);
-        await deleteEmail('contact@shadowself.io', process.env.EMAIL_CONTACT!, mailbox!, message.uid!);
+        await deleteEmail(identity.email, identity.email_password, mailbox!, message.uid!);
         ws.send({type: 'delete-email', mailbox, uid});
         break;
       }

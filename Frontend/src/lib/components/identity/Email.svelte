@@ -12,21 +12,29 @@
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
   let reply = $state([]) as FetchAPI['emails']['inbox'][number][];
   let inbox = $state() as FetchAPI;
+  let from = $state(7) as number;
 
   async function fetchAllEmails() {
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
     inbox = await fetchAPI('/api/email/' + $identity.id, token);
     $target = null;
+    from = 7;
+  }
+
+  function loadMore() {
+    const messageCountString = label.toLowerCase() === 'inbox' ? 'messagesCount' : `${label.toLowerCase()}MessagesCount`;
+    const total = inbox.emails[messageCountString as keyof typeof inbox.emails] as number;
+    ws.send(JSON.stringify({type: 'load-more', mailbox: label, from: total - from}));
+  }
+
+  function fetchReply(uuid?: string) {
+    ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid || $target!.inReplyTo}));
   }
 
   function deleteEmail() {
     if (label === 'Junk') return;
     ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
-  }
-
-  function fetchReply(uuid?: string) {
-    ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid || $target!.inReplyTo}));
   }
 
   $handleResponse = (response: WebSocketResponse) => {
@@ -43,6 +51,13 @@
       case 'fetch-reply': {
         reply = [...reply, response.fetchEmail!];
         if (response.fetchEmail?.inReplyTo) fetchReply(response.fetchEmail.inReplyTo);
+        break;
+      }
+
+      case 'load-more': {
+        // @ts-expect-error nonsense
+        inbox.emails[response.mailbox.toLowerCase()] = [...inbox.emails[response.mailbox.toLowerCase()], ...response.emails!];
+        from += 7;
         break;
       }
 
@@ -97,13 +112,13 @@
         </div>
       </div>
       {#if label === 'INBOX'}
-        <Inbox inbox={inbox.emails.inbox} count={inbox.emails.messagesCount} label="INBOX" />
+        <Inbox {loadMore} inbox={inbox.emails.inbox} count={inbox.emails.messagesCount} label="INBOX" />
       {:else if label === 'Sent'}
-        <Inbox inbox={inbox.emails.sent} count={inbox.emails.sentMessagesCount} label="Sent" />
+        <Inbox {loadMore} inbox={inbox.emails.sent} count={inbox.emails.sentMessagesCount} label="Sent" />
       {:else if label === 'Drafts'}
-        <Inbox inbox={inbox.emails.drafts} count={inbox.emails.draftsMessagesCount} label="Drafts" />
+        <Inbox {loadMore} inbox={inbox.emails.drafts} count={inbox.emails.draftsMessagesCount} label="Drafts" />
       {:else if label === 'Junk'}
-        <Inbox inbox={inbox.emails.junk} count={inbox.emails.junkMessagesCount} label="Junk" />
+        <Inbox {loadMore} inbox={inbox.emails.junk} count={inbox.emails.junkMessagesCount} label="Junk" />
       {/if}
     {/key}
   {:else if $mode === 'read'}

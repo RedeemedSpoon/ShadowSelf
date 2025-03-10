@@ -176,7 +176,8 @@ export interface WebSocketResponse {
     | 'update-encryption'
     | 'new-email'
     | 'fetch-reply'
-    | 'delete-email';
+    | 'delete-email'
+    | 'load-more';
   picture?: string;
   ethnicity?: string;
   name?: string;
@@ -196,9 +197,11 @@ export interface WebSocketResponse {
   }[];
   newEmail?: Inbox;
   fetchEmail?: Inbox;
+  emails?: Inbox[];
   uid?: number;
   uuid?: string;
   mailbox?: string;
+  from?: number;
 }
 
 export interface PricingModel {

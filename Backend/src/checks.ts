@@ -251,5 +251,10 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
   if (body.mailbox && !['INBOX', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
     return {error: 'Invalid mailbox, please try again'};
   }
+
+  if (body.from && body.from !== Number(body.from)) {
+    return {error: 'Invalid from value, please try again'};
+  }
+
   return body;
 }
