@@ -10,6 +10,7 @@
   let {ws, token}: IdentityComponentParams = $props();
 
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
+  let reply = $state([]) as FetchAPI['emails']['inbox'][number][];
   let inbox = $state() as FetchAPI;
 
   async function fetchAllEmails() {
@@ -19,13 +20,13 @@
     $target = null;
   }
 
-  async function deleteEmail() {
+  function deleteEmail() {
     if (label === 'Junk') return;
     ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
   }
 
-  async function fetchReply() {
-    ws.send(JSON.stringify({type: 'fetch-reply', uuid: $target!.inReplyTo}));
+  function fetchReply(uuid?: string) {
+    ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid || $target!.inReplyTo}));
   }
 
   $handleResponse = (response: WebSocketResponse) => {
@@ -40,7 +41,8 @@
       }
 
       case 'fetch-reply': {
-        console.log(response);
+        reply = [...reply, response.fetchEmail!];
+        if (response.fetchEmail?.inReplyTo) fetchReply(response.fetchEmail.inReplyTo);
         break;
       }
 
@@ -69,7 +71,7 @@
   <h3>Email Address</h3>
   <div class="flex gap-1">
     <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go to Inbox" />
-    <ActionIcon icon={SendIcon} action={fetchReply} title="Send New Emails" />
+    <ActionIcon icon={SendIcon} action={() => ($mode = 'write')} title="Send New Emails" />
     <ActionIcon disabled={!$target} icon={ReplyIcon} action={() => {}} title="Reply to Email" />
     <ActionIcon disabled={!$target} icon={ForwardIcon} action={() => {}} title="Forward Email" />
     <ActionIcon disabled={!$target} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
@@ -105,7 +107,14 @@
       {/if}
     {/key}
   {:else if $mode === 'read'}
-    <EmailBody />
+    <EmailBody email={$target!} />
+    {#if $target?.inReplyTo}
+      {@const _ = fetchReply()}
+      {#each reply as email}
+        <p>Response to: {email.subject}</p>
+        <EmailBody {email} />
+      {/each}
+    {/if}
   {/if}
 {/await}
 
