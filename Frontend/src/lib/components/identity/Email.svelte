@@ -38,9 +38,11 @@
     ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
   }
 
-  function saveDraft() {}
+  function saveDraft(string: string) {}
 
-  function sendEmail() {}
+  function sendEmail(string: string) {
+    ws.send(JSON.stringify({type: 'send-email', email: string}));
+  }
 
   $handleResponse = (response: WebSocketResponse) => {
     switch (response.type) {
@@ -98,7 +100,7 @@
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
-<div id="editor-holder" class:hidden={$mode !== 'write'}>
+<div class:hidden={$mode !== 'write'}>
   <Editor {saveDraft} {sendEmail} />
 </div>
 {#await fetchAllEmails()}

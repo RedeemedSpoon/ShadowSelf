@@ -1,18 +1,26 @@
 <script lang="ts">
+  import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
 
   interface Props {
-    saveDraft: () => void;
-    sendEmail: () => void;
+    saveDraft: (string: string) => void;
+    sendEmail: (string: string) => void;
   }
 
   let {saveDraft, sendEmail}: Props = $props();
+
+  let quill = $state() as {getSemanticHTML: () => string; getText: () => string};
+  let attachments = $state([]) as {filename: string; data: string}[];
+
+  function parseContent() {
+    return quill.getSemanticHTML();
+  }
 
   onMount(async () => {
     const Quill = (await import('quill')).default;
     await import('quill/dist/quill.snow.css');
 
-    const quill = new Quill('#editor', {
+    quill = new Quill('#editor', {
       modules: {toolbar: '#toolbar-container'},
       theme: 'snow',
     });
@@ -28,57 +36,98 @@
         element.classList.add('hover:!text-neutral-500');
       }
     });
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    input.addEventListener('change', () => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          const buffer = event.target.result as ArrayBuffer;
+          attachments = [...attachments, {filename: input.files![0].name, data: buffer.toString()}];
+        }
+      };
+
+      reader.readAsDataURL(input.files![0]);
+    });
   });
 </script>
 
-<div id="toolbar-container">
-  <span class="ql-formats">
-    <select class="ql-font"></select>
-    <select class="ql-size"></select>
-  </span>
-  <span class="ql-formats">
-    <button class="ql-bold" aria-label="Bold"></button>
-    <button class="ql-italic" aria-label="Italic"></button>
-    <button class="ql-underline" aria-label="Underline"></button>
-    <button class="ql-strike" aria-label="Strikethrough"></button>
-  </span>
-  <span class="ql-formats">
-    <select class="ql-color" aria-label="Text color"></select>
-    <select class="ql-background" aria-label="Background color"></select>
-  </span>
-  <span class="ql-formats">
-    <button class="ql-script" value="sub" aria-label="Subscript"></button>
-    <button class="ql-script" value="super" aria-label="Superscript"></button>
-  </span>
-  <span class="ql-formats">
-    <button class="ql-header" value="1" aria-label="Heading 1"></button>
-    <button class="ql-header" value="2" aria-label="Heading 2"></button>
-    <button class="ql-blockquote" aria-label="Blockquote"></button>
-    <button class="ql-code-block" aria-label="Code block"></button>
-  </span>
-  <span class="ql-formats">
-    <button class="ql-list" value="ordered" aria-label="Ordered list"></button>
-    <button class="ql-list" value="bullet" aria-label="Bullet list"></button>
-    <button class="ql-indent" value="-1" aria-label="Decrease indent"></button>
-    <button class="ql-indent" value="+1" aria-label="Increase indent"></button>
-  </span>
-  <span class="ql-formats">
-    <button class="ql-direction" value="rtl" aria-label="Right to left"></button>
-    <select class="ql-align" aria-label="Text alignment"></select>
-  </span>
-  <span class="ql-formats">
-    <button class="ql-link" aria-label="Insert link"></button>
-    <button class="ql-image" aria-label="Insert image"></button>
-    <button class="ql-video" aria-label="Insert video"></button>
-    <button class="ql-formula" aria-label="Insert formula"></button>
-  </span>
-  <span class="ql-formats">
-    <button class="ql-clean" aria-label="Clear formatting"></button>
-  </span>
+<div>
+  <div class="m-8">
+    <label for="subject">Subject</label>
+    <input type="text" placeholder="Mail Subject" />
+    <label class="ml-12" for="recipient">Recipient</label>
+    <input type="text" placeholder="example@domain.tld" />
+  </div>
+  <div id="toolbar-container">
+    <span class="ql-formats">
+      <select class="ql-font"></select>
+      <select class="ql-size"></select>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-bold" aria-label="Bold"></button>
+      <button class="ql-italic" aria-label="Italic"></button>
+      <button class="ql-underline" aria-label="Underline"></button>
+      <button class="ql-strike" aria-label="Strikethrough"></button>
+    </span>
+    <span class="ql-formats">
+      <select class="ql-color" aria-label="Text color"></select>
+      <select class="ql-background" aria-label="Background color"></select>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-script" value="sub" aria-label="Subscript"></button>
+      <button class="ql-script" value="super" aria-label="Superscript"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-header" value="1" aria-label="Heading 1"></button>
+      <button class="ql-header" value="2" aria-label="Heading 2"></button>
+      <button class="ql-blockquote" aria-label="Blockquote"></button>
+      <button class="ql-code-block" aria-label="Code block"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-list" value="ordered" aria-label="Ordered list"></button>
+      <button class="ql-list" value="bullet" aria-label="Bullet list"></button>
+      <button class="ql-indent" value="-1" aria-label="Decrease indent"></button>
+      <button class="ql-indent" value="+1" aria-label="Increase indent"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-direction" value="rtl" aria-label="Right to left"></button>
+      <select class="ql-align" aria-label="Text alignment"></select>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-link" aria-label="Insert link"></button>
+      <button class="ql-formula" aria-label="Insert formula"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-clean" aria-label="Clear formatting"></button>
+    </span>
+  </div>
+  <div id="editor"></div>
+  <div class="m-8 flex justify-between">
+    <div class="flex items-start gap-4">
+      <div class="flex items-center gap-2">
+        <label for="file">Attachments</label>
+        <label id="file-upload"><input type="file" hidden />Upload</label>
+      </div>
+      <div class="max-h-24 flex-col overflow-y-auto">
+        {#key attachments}
+          {#each attachments as attachment}
+            <div class="flex items-center gap-2">
+              <p class="text-sm text-neutral-500">{attachment.filename}</p>
+              <button
+                class="alt px-2 py-1 text-sm"
+                onclick={() => (attachments = attachments.filter((a) => a.filename !== attachment.filename))}>Remove</button>
+            </div>
+          {/each}
+        {/key}
+      </div>
+    </div>
+    <div class="flex h-fit gap-2">
+      <button class="alt" onclick={() => saveDraft(parseContent())}>Save Draft</button>
+      <button class="flex items-center pr-4" onclick={() => sendEmail(parseContent())}>Send Email<ChevronIcon /></button>
+    </div>
+  </div>
 </div>
-<div id="editor"></div>
-<button onclick={saveDraft}>Save Draft</button>
-<button onclick={sendEmail}>Send Email</button>
 
 <style lang="postcss">
   #editor {
@@ -86,7 +135,15 @@
   }
 
   #toolbar-container {
-    @apply rounded-t-xl border-neutral-800 bg-neutral-800;
+    @apply flex rounded-t-xl border-neutral-800 bg-neutral-800;
+  }
+
+  #file-upload {
+    @apply inline cursor-pointer self-center rounded-md bg-neutral-800 p-4 transition-opacity duration-300 hover:opacity-80;
+  }
+
+  label {
+    @apply mr-2 text-neutral-300;
   }
 
   #toolbar-container button {
