@@ -181,8 +181,12 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
 
   const email = await PostalMime.parse(rawBody);
   const cleanedBody = (email.html || email.text || '')!.match(/<html[^>]*>(.*?)<\/html>/is);
-  const body = mimelib.decodeQuotedPrintable(cleanedBody?.[1] || email.html || email.text! || '');
+  let body = mimelib.decodeQuotedPrintable(cleanedBody?.[1] || email.html || email.text! || '');
   const type = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(body) ? 'html' : 'text';
+
+  if (details.from[0].includes('@gmail.com')) {
+    body = body.match(/<div[^>]*>(.*?)<\/div>/is)[0] || body;
+  }
 
   return {
     messageID: details['message-id'][0],

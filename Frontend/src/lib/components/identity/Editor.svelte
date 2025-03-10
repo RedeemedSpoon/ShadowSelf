@@ -1,19 +1,25 @@
 <script lang="ts">
+  import type {EditorParams} from '$type';
   import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
+  import {target} from '$store';
 
   interface Props {
-    saveDraft: (string: string) => void;
-    sendEmail: (string: string) => void;
+    saveDraft: (content: EditorParams) => void;
+    sendEmail: (content: EditorParams) => void;
   }
 
   let {saveDraft, sendEmail}: Props = $props();
 
   let quill = $state() as {getSemanticHTML: () => string; getText: () => string};
   let attachments = $state([]) as {filename: string; data: string}[];
+  let isTypeHTML = $state(true) as boolean;
 
   function parseContent() {
-    return quill.getSemanticHTML();
+    const body = isTypeHTML ? quill.getSemanticHTML() : quill.getText();
+    const subject = (document.querySelector('input[name="subject"]') as HTMLInputElement)?.value;
+
+    return {subject, body, attachments};
   }
 
   onMount(async () => {
@@ -54,10 +60,23 @@
 
 <div>
   <div class="m-8">
-    <label for="subject">Subject</label>
-    <input type="text" placeholder="Mail Subject" />
-    <label class="ml-12" for="recipient">Recipient</label>
-    <input type="text" placeholder="example@domain.tld" />
+    <div class="flex items-center gap-8">
+      <div class="flex flex-col gap-14">
+        <label for="subject">Subject</label>
+        <label for="recipient">Recipient</label>
+      </div>
+      <div class="flex flex-col gap-6">
+        <input type="text" placeholder="Mail Subject" name="subject" />
+        <input type="text" placeholder="example@domain.tld" name="recipient" value={$target?.from} disabled={$target && true} />
+      </div>
+      <div class="flex w-full flex-col items-end">
+        <h3 class="mb-2 mr-10 text-xl font-semibold text-neutral-300">Body Type</h3>
+        <div class="flex flex-row">
+          <div class="box {!isTypeHTML && 'selected'}" onclick={() => (isTypeHTML = false)} aria-hidden="true">Raw Text</div>
+          <div class="box {isTypeHTML && 'selected'}" onclick={() => (isTypeHTML = true)} aria-hidden="true">HTML</div>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="toolbar-container">
     <span class="ql-formats">
@@ -124,14 +143,15 @@
     </div>
     <div class="flex h-fit gap-2">
       <button class="alt" onclick={() => saveDraft(parseContent())}>Save Draft</button>
-      <button class="flex items-center pr-4" onclick={() => sendEmail(parseContent())}>Send Email<ChevronIcon /></button>
+      <button class="flex items-center pr-4" onclick={() => sendEmail(parseContent())}
+        >Send {$target ? 'Reply' : 'Email'}<ChevronIcon /></button>
     </div>
   </div>
 </div>
 
 <style lang="postcss">
   #editor {
-    @apply !h-[40vh] !min-h-96 rounded-b-xl border-neutral-800 bg-neutral-800/30 text-neutral-300;
+    @apply !h-[50vh] !min-h-96 rounded-b-xl border-neutral-800 bg-neutral-800/30 text-neutral-300;
   }
 
   #toolbar-container {
@@ -148,5 +168,18 @@
 
   #toolbar-container button {
     @apply shadow-none;
+  }
+
+  input:disabled {
+    @apply cursor-not-allowed select-none opacity-50;
+  }
+
+  .box {
+    @apply cursor-pointer border border-neutral-600 bg-neutral-800 px-4 py-2;
+    @apply text-neutral-300 first:rounded-l-md last:rounded-r-md hover:bg-neutral-800/50;
+  }
+
+  .selected {
+    @apply !bg-primary-600;
   }
 </style>

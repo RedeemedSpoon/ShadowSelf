@@ -146,6 +146,15 @@ export interface IdentityComponentParams {
   token: string;
 }
 
+export interface EditorParams {
+  subject: string;
+  body: string;
+  attachments: {
+    filename: string;
+    data: string;
+  }[];
+}
+
 export interface FullIdentity {
   id: string;
   creation_date: Date;
@@ -177,6 +186,8 @@ export interface WebSocketResponse {
     | 'new-email'
     | 'fetch-reply'
     | 'delete-email'
+    | 'send-email'
+    | 'send-draft'
     | 'load-more';
   picture?: string;
   ethnicity?: string;
@@ -202,6 +213,14 @@ export interface WebSocketResponse {
   uuid?: string;
   mailbox?: string;
   from?: number;
+  subject?: string;
+  body?: string;
+  to?: string;
+  inReplyTo?: string;
+  attachments?: {
+    filename: string;
+    data: string;
+  }[];
 }
 
 export interface PricingModel {

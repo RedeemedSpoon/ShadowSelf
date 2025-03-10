@@ -1,6 +1,6 @@
 import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '../crypto';
 import {attempt, request} from '../utils';
-import {sendEmail} from '../email-smtp';
+import {sendOfficialEmail} from '../email-smtp';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';
@@ -122,7 +122,7 @@ export default new Elysia({prefix: '/settings'})
 
     //@ts-expect-error JWT only accept objects
     const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
-    const response = await sendEmail(email, accessToken.split('.')[2], 'change');
+    const response = await sendOfficialEmail(email, accessToken.split('.')[2], 'change');
     if (response.err) return error(500, 'Failed to send verification email. Try later');
 
     return {email};

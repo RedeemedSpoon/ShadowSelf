@@ -128,6 +128,8 @@ export interface WebsocketRequest {
     | 'update-encryption'
     | 'fetch-reply'
     | 'delete-email'
+    | 'send-email'
+    | 'send-draft'
     | 'load-more';
   ethnicity?: string;
   sex?: string;
@@ -149,6 +151,14 @@ export interface WebsocketRequest {
     password: string;
     totp?: string;
   }[];
+  subject?: string;
+  body?: string;
+  to?: string;
+  inReplyTo?: string;
+  attachments?: {
+    filename: string;
+    data: string;
+  }[];
 }
 
 export interface APIParams {
@@ -169,6 +179,14 @@ export interface APIParams {
   mailbox?: string;
   uuid?: string;
   from?: number;
+  subject?: string;
+  body?: string;
+  to?: string;
+  inReplyTo?: string;
+  attachments?: {
+    filename: string;
+    data: string;
+  }[];
 }
 
 export const emailTemplate = {

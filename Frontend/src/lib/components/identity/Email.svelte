@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
+  import type {WebSocketResponse, IdentityComponentParams, EditorParams, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, ReplyIcon, ForwardIcon, InboxIcon} from '$icon';
   import {mode, target, identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
@@ -30,7 +30,20 @@
   }
 
   function fetchReply(uuid?: string) {
-    ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid || $target!.inReplyTo}));
+    let alreadyFetched;
+
+    for (const mailbox of ['INBOX', 'Sent']) {
+      // @ts-expect-error nonsense
+      const message = inbox.emails[mailbox.toLowerCase()].find((email) => email.inReplyTo === uuid);
+      if (!message) continue;
+
+      setTimeout(() => (reply = [...reply, message]), 100);
+      alreadyFetched = true;
+
+      if (message?.inReplyTo) fetchReply(message.inReplyTo);
+    }
+
+    if (!alreadyFetched) ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid || $target!.inReplyTo}));
   }
 
   function deleteEmail() {
@@ -38,10 +51,16 @@
     ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
   }
 
-  function saveDraft(string: string) {}
+  function saveDraft(content: EditorParams) {}
 
-  function sendEmail(string: string) {
-    ws.send(JSON.stringify({type: 'send-email', email: string}));
+  function sendEmail(content: EditorParams) {
+    if ($mode === 'reply') {
+      const inReplyTo = $target!.messageID;
+      ws.send(JSON.stringify({type: 'send-email', inReplyTo, ...content}));
+    } else {
+      const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
+      ws.send(JSON.stringify({type: 'send-email', to, ...content}));
+    }
   }
 
   $handleResponse = (response: WebSocketResponse) => {
@@ -55,7 +74,16 @@
         break;
       }
 
+      case 'send-email': {
+        break;
+      }
+
+      case 'send-draft': {
+        break;
+      }
+
       case 'fetch-reply': {
+        if (response.fetchEmail === null) return;
         reply = [...reply, response.fetchEmail!];
         if (response.fetchEmail?.inReplyTo) fetchReply(response.fetchEmail.inReplyTo);
         break;
@@ -93,14 +121,14 @@
   <h3>Email Address</h3>
   <div class="flex gap-1">
     <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go to Inbox" />
-    <ActionIcon icon={SendIcon} action={() => ($mode = 'write')} title="Send New Emails" />
-    <ActionIcon disabled={!$target} icon={ReplyIcon} action={() => ($mode = 'write')} title="Reply to Email" />
+    <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($target = null))} title="Send New Emails" />
+    <ActionIcon disabled={!$target} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Email" />
     <ActionIcon disabled={!$target} icon={ForwardIcon} action={() => {}} title="Forward Email" />
     <ActionIcon disabled={!$target} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
-<div class:hidden={$mode !== 'write'}>
+<div class:hidden={$mode === 'browse' || $mode === 'read'}>
   <Editor {saveDraft} {sendEmail} />
 </div>
 {#await fetchAllEmails()}

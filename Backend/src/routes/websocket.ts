@@ -145,6 +145,16 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         break;
       }
 
+      case 'send-email': {
+        const {error, to, inReplyTo, attachments, subject, body} = await checkAPI(message);
+        if (error) return ws.send({error});
+        break;
+      }
+
+      case 'send-draft': {
+        break;
+      }
+
       case 'load-more': {
         const {error, mailbox, from} = await checkAPI(message);
         if (error) return ws.send({error});

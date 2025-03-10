@@ -17,7 +17,7 @@ export async function contact(body: ContactDetail) {
   }
 }
 
-export async function sendEmail(email: string, token: string, reason: keyof typeof emailTemplate) {
+export async function sendOfficialEmail(email: string, token: string, reason: keyof typeof emailTemplate) {
   const mailOptions = {
     from: 'verification@shadowself.io',
     to: email,
