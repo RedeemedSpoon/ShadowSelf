@@ -5,6 +5,7 @@
   import {ActionIcon, Loader} from '$component';
   import EmailBody from './EmailBody.svelte';
   import {fetchAPI, notify} from '$lib';
+  import Editor from './Editor.svelte';
   import Inbox from './Inbox.svelte';
 
   let {ws, token}: IdentityComponentParams = $props();
@@ -36,6 +37,10 @@
     if (label === 'Junk') return;
     ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
   }
+
+  function saveDraft() {}
+
+  function sendEmail() {}
 
   $handleResponse = (response: WebSocketResponse) => {
     switch (response.type) {
@@ -87,12 +92,15 @@
   <div class="flex gap-1">
     <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go to Inbox" />
     <ActionIcon icon={SendIcon} action={() => ($mode = 'write')} title="Send New Emails" />
-    <ActionIcon disabled={!$target} icon={ReplyIcon} action={() => {}} title="Reply to Email" />
+    <ActionIcon disabled={!$target} icon={ReplyIcon} action={() => ($mode = 'write')} title="Reply to Email" />
     <ActionIcon disabled={!$target} icon={ForwardIcon} action={() => {}} title="Forward Email" />
     <ActionIcon disabled={!$target} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
+<div id="editor-holder" class:hidden={$mode !== 'write'}>
+  <Editor {saveDraft} {sendEmail} />
+</div>
 {#await fetchAllEmails()}
   <div class="flex h-[40vh] items-center justify-center">
     <h3 class="flex items-center gap-6">
