@@ -23,7 +23,9 @@
         <h3 class="truncate !text-2xl text-neutral-300">{email.subject}</h3>
         <p class="text-sm text-neutral-500">{email.date}</p>
       </div>
-      <p class="w-1/2 text-right text-sm text-neutral-400">{email.from}</p>
+      <div class="w-1/2">
+        <p class="text-right text-sm text-neutral-400">{email.from}</p>
+      </div>
     </div>
   {/each}
   {#if inbox.length < count}

@@ -1,6 +1,7 @@
+import {imapConnection} from './connection';
+import {EmailContent} from './types.ts';
 import PostalMime from 'postal-mime';
 import imap from 'imap-simple';
-import {imapConnection} from './connection';
 // @ts-expect-error No declaration file
 import mimelib from 'mimelib';
 
@@ -15,18 +16,8 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
     });
 
     for (const message of messages) {
-      await connection.addFlags(message.attributes.uid, ['\\SEEN']);
-      const {messageID, subject, from, date, reference, inReplyTo, attachments, body, type, uid} = await parseMassage(
-        connection,
-        message,
-      );
-
-      ws.send(
-        JSON.stringify({
-          type: 'new-email',
-          newEmail: {messageID, subject, from, date, reference, inReplyTo, attachments, uid, body, type},
-        }),
-      );
+      const response = await parseMassage(connection, message);
+      ws.send(JSON.stringify({type: 'new-email', newEmail: response}));
     }
   }
 
@@ -75,6 +66,7 @@ export async function fetchMoreEmails(user: string, password: string, mailbox: s
 
 export async function fetchRecentEmails(user: string, password: string) {
   const connection = await imapConnection(user, password);
+
   const inboxMailbox = await getInbox('INBOX', connection);
   const sentMailbox = await getInbox('Sent', connection);
   const draftsMailbox = await getInbox('Drafts', connection);
@@ -91,6 +83,11 @@ export async function fetchRecentEmails(user: string, password: string) {
     drafts: draftsMailbox.emails,
     junk: junkMailbox.emails,
   };
+}
+
+export async function appendToMailbox(content: EmailContent & {messageID: string; date: string}) {
+  const connection = await imapConnection(content.email, content.password);
+  await connection.openBox('Sent');
 }
 
 async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
@@ -151,6 +148,10 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
       }),
     ),
   );
+
+  if (!message.attributes.flags.includes('\\Seen')) {
+    await connection.addFlags(message.attributes.uid, ['\\Seen']);
+  }
 
   const uid = message.attributes.uid;
   const details = message.parts[0].body;

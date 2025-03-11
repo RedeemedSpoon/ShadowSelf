@@ -1,5 +1,5 @@
 import {contactTransporter, verificationTransporter, smtpTransporter} from './connection';
-import {type ContactDetail, type Attachment, emailTemplate} from './types';
+import {type ContactDetail, type EmailContent, emailTemplate} from './types';
 
 export async function contact(body: ContactDetail) {
   const mailOptions = {
@@ -33,9 +33,35 @@ export async function sendOfficialEmail(email: string, token: string, reason: ke
   }
 }
 
-export async function sendIdentityEmail(mail: string, pw: string, recept: string, subj: string, body: string, att: Attachment[]) {
-  const transporter = smtpTransporter(mail, pw);
-  console.log(transporter);
+export async function sendIdentityEmail(emailContent: EmailContent) {
+  const {email, password, to, subject, body, attachments, inReplyTo, references} = emailContent;
+  const transporter = smtpTransporter(email, password);
+
+  const isHtml = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(body);
+  const date = new Date();
+
+  const attachmentsList = attachments.map((attachment) => {
+    return {
+      filename: attachment.filename,
+      content: attachment.data.split(',')[1],
+      encoding: 'base64',
+    };
+  });
+
+  const mailOptions = {
+    from: email,
+    to,
+    subject,
+    inReplyTo,
+    references,
+    text: isHtml ? '' : body,
+    html: isHtml ? body : '',
+    attachments: attachmentsList,
+    date,
+  };
+
+  const message = await transporter.sendMail(mailOptions).catch(() => {});
+  return {messageID: message?.messageId, date};
 }
 
 function getEmailTemplate(token: string, reason: keyof typeof emailTemplate): string {

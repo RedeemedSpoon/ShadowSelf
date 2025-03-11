@@ -63,13 +63,14 @@
       return notify('One attachment is too large (>15MB)', 'alert');
     }
 
+    let inReplyTo, references;
     if ($mode === 'reply') {
-      const inReplyTo = $target!.messageID;
-      ws.send(JSON.stringify({type: 'send-email', inReplyTo, ...content}));
-    } else {
-      const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
-      ws.send(JSON.stringify({type: 'send-email', to, ...content}));
+      inReplyTo = $target!.inReplyTo;
+      references = $target!.reference;
     }
+
+    const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
+    ws.send(JSON.stringify({type: 'send-email', inReplyTo, references, to, ...content}));
   }
 
   $handleResponse = (response: WebSocketResponse) => {

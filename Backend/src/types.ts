@@ -137,57 +137,71 @@ export interface WebsocketRequest {
   age?: number;
   name?: string;
   bio?: string;
-  picture?: string;
+  picture: string;
   id: number;
-  username?: string;
-  password?: string;
-  website?: string;
-  totp?: string;
-  algorithm?: string;
-  uid?: number;
-  mailbox?: string;
-  uuid?: string;
-  accounts?: {
+  username: string;
+  password: string;
+  website: string;
+  totp: string;
+  algorithm: string;
+  uid: number;
+  mailbox: string;
+  uuid: string;
+  from: number;
+  accounts: {
     id: number;
     password: string;
-    totp?: string;
+    totp: string;
   }[];
-  subject?: string;
-  body?: string;
-  to?: string;
-  inReplyTo?: string;
-  attachments?: {
+  subject: string;
+  body: string;
+  to: string;
+  inReplyTo: string;
+  references: string;
+  attachments: {
     filename: string;
     data: string;
   }[];
 }
 
 export interface APIParams {
-  ethnicity?: string;
   error?: string;
+  ethnicity?: string;
   age?: number;
   sex?: string;
   name?: string;
   bio?: string;
-  picture?: string;
-  id?: number;
-  username?: string;
-  password?: string;
-  website?: string;
-  totp?: string;
-  algorithm?: string;
-  uid?: number;
-  mailbox?: string;
-  uuid?: string;
-  from?: number;
-  subject?: string;
-  body?: string;
-  to?: string;
-  inReplyTo?: string;
-  attachments?: {
+  picture: string;
+  id: number;
+  username: string;
+  password: string;
+  website: string;
+  totp: string;
+  algorithm: string;
+  uid: number;
+  mailbox: string;
+  uuid: string;
+  from: number;
+  subject: string;
+  body: string;
+  to: string;
+  inReplyTo: string;
+  references: string;
+  attachments: {
     filename: string;
     data: string;
   }[];
+}
+
+export interface EmailContent {
+  email: string;
+  password: string;
+  subject: string;
+  to: string;
+  body: string;
+  attachments: Attachment[];
+  inReplyTo: string;
+  references: string;
 }
 
 export const emailTemplate = {

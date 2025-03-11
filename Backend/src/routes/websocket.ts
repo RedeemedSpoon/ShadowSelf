@@ -1,5 +1,5 @@
-import {fetchMoreEmails, listenForEmail, fetchReply, deleteEmail} from '../email-imap';
-import {User, WebsocketRequest, Location} from '../types';
+import {fetchMoreEmails, listenForEmail, fetchReply, deleteEmail, appendToMailbox} from '../email-imap';
+import {User, WebsocketRequest, Location, APIParams} from '../types';
 import {sendIdentityEmail} from '../email-smtp';
 import {generateProfile} from '../prompts';
 import {attempt, request} from '../utils';
@@ -126,7 +126,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         if (!message.accounts || typeof message.accounts !== 'object') return ws.send({error: 'Accounts Array are required'});
 
         for (const account of message.accounts) {
-          const {error, id, password, totp} = await checkAPI(account);
+          const {error, id, password, totp} = await checkAPI(account as APIParams);
           if (error) return ws.send({error});
 
           await attempt(sql`UPDATE accounts SET password = ${password!} WHERE id = ${id!}`);
@@ -147,11 +147,18 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       }
 
       case 'send-email': {
-        const {error, to, inReplyTo, attachments, subject, body} = await checkAPI(message);
+        const {error, to, inReplyTo, references, attachments, subject, body} = await checkAPI(message);
         if (error) return ws.send({error});
 
-        if (inReplyTo) await sendIdentityEmail(identity.email, identity.email_password, inReplyTo, subject!, body!, attachments!);
-        else await sendIdentityEmail(identity.email, identity.email_password, to!, subject!, body!, attachments!);
+        const email = identity.email;
+        const password = identity.email_password;
+        const content = {email, password, to, subject, body, attachments, references, inReplyTo};
+
+        const response = await sendIdentityEmail(content);
+        if (!response.messageID) return ws.send({error: 'Failed to send email'});
+
+        await appendToMailbox({...content, messageID: response.messageID, date: response.date});
+        ws.send({type: 'send-email', messageID: response.messageID, date: response.date, ...content});
         break;
       }
 

@@ -201,83 +201,87 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
   if (!body) return body;
 
   if (body.name && body.name.length > 30) {
-    return {error: 'Name is too long (<30 characters)'};
+    return {error: 'Name is too long (<30 characters)'} as APIParams;
   }
 
   if (body.bio && body.bio.length > 126) {
-    return {error: 'Biography is too long (<126 characters)'};
+    return {error: 'Biography is too long (<126 characters)'} as APIParams;
   }
 
   if (body.sex && body.sex !== 'male' && body.sex !== 'female') {
-    return {error: 'Sex must be either "male" or "female"'};
+    return {error: 'Sex must be either "male" or "female"'} as APIParams;
   }
 
   if (body.age && (body.age < 18 || body.age > 60)) {
-    return {error: 'Age must be between 18 and 60'};
+    return {error: 'Age must be between 18 and 60'} as APIParams;
   }
 
   if (body.ethnicity && !['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'].includes(body.ethnicity)) {
-    return {error: 'Ethnicity must be a valid ethnicity'};
+    return {error: 'Ethnicity must be a valid ethnicity'} as APIParams;
   }
 
   if (body.picture && !/^[A-Za-z0-9+/=]+$/.test(body.picture)) {
-    return {error: 'Incorrect profile picture format'};
+    return {error: 'Incorrect profile picture format'} as APIParams;
   }
 
   if (body.username && body.username.length > 25) {
-    return {error: 'Username is too long (<25 characters)'};
+    return {error: 'Username is too long (<25 characters)'} as APIParams;
   }
 
   if (body.password && !/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
-    return {error: 'Password is too weak. You probably did not use a strong key'};
+    return {error: 'Password is too weak. You probably did not use a strong key'} as APIParams;
   }
 
   if (body.website && !/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
-    return {error: 'Invalid website address, please try again'};
+    return {error: 'Invalid website address, please try again'} as APIParams;
   }
 
   if (body.totp && !/^[A-Za-z0-9+/=]+$/.test(body.totp)) {
-    return {error: 'Invalid TOTP secret, please try again'};
+    return {error: 'Invalid TOTP secret, please try again'} as APIParams;
   }
 
   if (body.algorithm && !['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
-    return {error: 'Inrecognized algorithm, please try again'};
+    return {error: 'Inrecognized algorithm, please try again'} as APIParams;
   }
 
   if (body.uid && body.uid !== Number(body.uid)) {
-    return {error: 'Invalid email UID, please try again'};
+    return {error: 'Invalid email UID, please try again'} as APIParams;
   }
 
   if (body.mailbox && !['INBOX', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
-    return {error: 'Non-existent mailbox, please try again'};
+    return {error: 'Non-existent mailbox, please try again'} as APIParams;
   }
 
   if (body.from && body.from !== Number(body.from)) {
-    return {error: 'Invalid from value, please try again'};
+    return {error: 'Invalid from value, please try again'} as APIParams;
   }
 
   if (body.to && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.to)) {
-    return {error: 'Invalid recipient value, please try again'};
+    return {error: 'Invalid recipient value, please try again'} as APIParams;
   }
 
   if (body.inReplyTo && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.inReplyTo)) {
-    return {error: 'Invalid recipient value, please try again'};
+    return {error: 'Invalid recipient value, please try again'} as APIParams;
+  }
+
+  if (body.references && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.references)) {
+    return {error: 'Invalid recipient value, please try again'} as APIParams;
   }
 
   if (body.subject && body.subject.length > 126) {
-    return {error: 'Long subject (>126 characters), please try again'};
+    return {error: 'Long subject (>126 characters), please try again'} as APIParams;
   }
 
   if (body.body && body.body.length < 12) {
-    return {error: 'Short body (<12 characters), please try again'};
+    return {error: 'Short body (<12 characters), please try again'} as APIParams;
   }
 
   if (body.attachments && body.attachments.length > 10) {
-    return {error: 'Too many attachments, please try again'};
+    return {error: 'Too many attachments, please try again'} as APIParams;
   }
 
   if (body.attachments && body.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
-    return {error: 'One or more attachments exceed the 15MB size limit, please try again'};
+    return {error: 'One or more attachments exceed the 15MB size limit, please try again'} as APIParams;
   }
   return body;
 }

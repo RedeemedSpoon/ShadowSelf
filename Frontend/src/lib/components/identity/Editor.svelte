@@ -15,6 +15,10 @@
   let attachments = $state([]) as {filename: string; data: string}[];
   let isTypeHTML = $state(true) as boolean;
 
+  function from() {
+    return $target?.from ? $target.from!.match(/<([^>]+)>/)?.[1] : '';
+  }
+
   function parseContent() {
     const body = isTypeHTML ? quill.getSemanticHTML() : quill.getText();
     const subject = (document.querySelector('input[name="subject"]') as HTMLInputElement)?.value;
@@ -67,7 +71,7 @@
       </div>
       <div class="flex flex-col gap-6">
         <input type="text" placeholder="Mail Subject" name="subject" />
-        <input type="text" placeholder="example@domain.tld" name="recipient" value={$target?.from} disabled={$target && true} />
+        <input type="text" placeholder="example@domain.tld" name="recipient" value={from()} disabled={$target && true} />
       </div>
       <div class="flex w-full flex-col items-end">
         <h3 class="mb-2 mr-10 text-xl font-semibold text-neutral-300">Body Type</h3>
