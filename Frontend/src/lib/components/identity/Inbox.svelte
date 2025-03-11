@@ -26,7 +26,9 @@
       <p class="w-1/2 text-right text-sm text-neutral-400">{email.from}</p>
     </div>
   {/each}
-  <button class="load-more" onclick={loadMore}>Load More</button>
+  {#if inbox.length < count}
+    <button class="load-more" onclick={loadMore}>Load More</button>
+  {/if}
 {:else if label === 'INBOX'}
   <section class="no-emails" style="background-image: url({mailbox});">
     <h3 class="mt-12">No Emails Received</h3>
@@ -67,6 +69,10 @@
 
   .target {
     @apply bg-neutral-300/10 hover:bg-neutral-300/10;
+  }
+
+  .load-more {
+    @apply relative z-20 w-full from-neutral-950 to-neutral-950/10 shadow-none;
   }
 
   h3 {

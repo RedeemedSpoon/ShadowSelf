@@ -10,6 +10,7 @@
 
   let {ws, token}: IdentityComponentParams = $props();
 
+  const showActionButtons = $derived(!$target || label === 'Junk' || label === 'Drafts');
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
   let reply = $state([]) as FetchAPI['emails']['inbox'][number][];
   let inbox = $state() as FetchAPI;
@@ -33,8 +34,8 @@
     let alreadyFetched;
 
     for (const mailbox of ['INBOX', 'Sent']) {
-      // @ts-expect-error nonsense
-      const message = inbox.emails[mailbox.toLowerCase()].find((email) => email.inReplyTo === uuid);
+      const box = mailbox.toLowerCase() as 'inbox' | 'sent';
+      const message = inbox.emails[box].find((email) => email.inReplyTo === uuid);
       if (!message) continue;
 
       setTimeout(() => (reply = [...reply, message]), 100);
@@ -90,22 +91,20 @@
       }
 
       case 'load-more': {
-        // @ts-expect-error nonsense
-        inbox.emails[response.mailbox.toLowerCase()] = [...inbox.emails[response.mailbox.toLowerCase()], ...response.emails!];
+        const mailbox = response.mailbox?.toLowerCase() as 'inbox' | 'sent';
+        inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.emails!];
         from += 7;
         break;
       }
 
       case 'delete-email': {
-        const mailbox = response.mailbox?.toLowerCase();
+        const mailbox = response.mailbox?.toLowerCase() as 'inbox' | 'sent';
         const messageCount = mailbox === 'inbox' ? 'messagesCount' : `${mailbox}MessagesCount`;
 
-        // @ts-expect-error nonsense
         const removedEmail = inbox.emails[mailbox].find((email) => email.uid === response.uid);
         inbox.emails.junk.unshift(removedEmail!);
         inbox.emails.junkMessagesCount++;
 
-        // @ts-expect-error nonsense
         inbox.emails[mailbox] = inbox.emails[mailbox].filter((email) => email.uid !== response.uid);
         inbox.emails[messageCount as keyof typeof inbox.emails]--;
 
@@ -120,11 +119,11 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h3>Email Address</h3>
   <div class="flex gap-1">
-    <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go to Inbox" />
+    <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null), (label = 'INBOX'))} title="Go to Inbox" />
     <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($target = null))} title="Send New Emails" />
-    <ActionIcon disabled={!$target} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Email" />
-    <ActionIcon disabled={!$target} icon={ForwardIcon} action={() => {}} title="Forward Email" />
-    <ActionIcon disabled={!$target} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
+    <ActionIcon disabled={showActionButtons} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Email" />
+    <ActionIcon disabled={showActionButtons} icon={ForwardIcon} action={() => {}} title="Forward Email" />
+    <ActionIcon disabled={showActionButtons} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
