@@ -10,8 +10,8 @@
 
   let {ws, token}: IdentityComponentParams = $props();
 
-  const showActionButtons = $derived(!$target || label === 'Junk' || label === 'Drafts');
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
+  const showActionButtons = $derived(!$target || label === 'Junk' || label === 'Drafts');
   let reply = $state([]) as FetchAPI['emails']['inbox'][number][];
   let inbox = $state() as FetchAPI;
   let from = $state(7) as number;
@@ -19,6 +19,7 @@
   async function fetchAllEmails() {
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
+
     inbox = await fetchAPI('/api/email/' + $identity.id, token);
     $target = null;
     from = 7;
@@ -35,7 +36,8 @@
 
     for (const mailbox of ['INBOX', 'Sent']) {
       const box = mailbox.toLowerCase() as 'inbox' | 'sent';
-      const message = inbox.emails[box].find((email) => email.inReplyTo === uuid);
+      const message = inbox.emails[box].find((email) => email.messageID === uuid);
+
       if (!message) continue;
 
       setTimeout(() => (reply = [...reply, message]), 100);
@@ -44,7 +46,9 @@
       if (message?.inReplyTo) fetchReply(message.inReplyTo);
     }
 
-    if (!alreadyFetched) ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid || $target!.inReplyTo}));
+    if (!alreadyFetched) {
+      ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid || $target!.inReplyTo}));
+    }
   }
 
   function deleteEmail() {
@@ -55,6 +59,10 @@
   function saveDraft(content: EditorParams) {}
 
   function sendEmail(content: EditorParams) {
+    if (content.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
+      return notify('One attachment is too large (>15MB)', 'alert');
+    }
+
     if ($mode === 'reply') {
       const inReplyTo = $target!.messageID;
       ws.send(JSON.stringify({type: 'send-email', inReplyTo, ...content}));

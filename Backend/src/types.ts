@@ -1,5 +1,6 @@
 export type User = {email: string; id: string} | undefined;
 export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
+export type Attachment = {filename: string; data: string};
 
 export interface ContactDetail {
   category: 'question' | 'feedback' | 'collaboration' | 'bug' | 'help' | 'other';

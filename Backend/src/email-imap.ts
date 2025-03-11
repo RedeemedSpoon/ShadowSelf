@@ -1,59 +1,50 @@
 import PostalMime from 'postal-mime';
 import imap from 'imap-simple';
+import {imapConnection} from './connection';
 // @ts-expect-error No declaration file
 import mimelib from 'mimelib';
 
 export async function listenForEmail(ws: WebSocket, user: string, password: string) {
-  const config = {
-    imap: {
-      user,
-      password,
-      host: 'mail.shadowself.io',
-      port: 993,
-      tls: true,
-    },
+  async function onmail(mail: number) {
+    if (mail > 1) return;
 
-    onmail: async (mail: number) => {
-      if (mail > 1) return;
+    await connection.openBox('INBOX');
+    const messages = await connection.search([`UNSEEN`], {
+      bodies: ['HEADER.FIELDS (FROM SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
+      struct: true,
+    });
 
-      await connection.openBox('INBOX');
-      const messages = await connection.search([`UNSEEN`], {
-        bodies: ['HEADER.FIELDS (FROM SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
-        struct: true,
-      });
+    for (const message of messages) {
+      await connection.addFlags(message.attributes.uid, ['\\SEEN']);
+      const {messageID, subject, from, date, reference, inReplyTo, attachments, body, type, uid} = await parseMassage(
+        connection,
+        message,
+      );
 
-      for (const message of messages) {
-        await connection.addFlags(message.attributes.uid, ['\\SEEN']);
-        const {messageID, subject, from, date, reference, inReplyTo, attachments, body, type, uid} = await parseMassage(
-          connection,
-          message,
-        );
+      ws.send(
+        JSON.stringify({
+          type: 'new-email',
+          newEmail: {messageID, subject, from, date, reference, inReplyTo, attachments, uid, body, type},
+        }),
+      );
+    }
+  }
 
-        ws.send(
-          JSON.stringify({
-            type: 'new-email',
-            newEmail: {messageID, subject, from, date, reference, inReplyTo, attachments, uid, body, type},
-          }),
-        );
-      }
-    },
-  };
-
-  const connection = await imap.connect(config);
+  const connection = await imapConnection(user, password, onmail);
   connection.openBox('INBOX');
 
   ws.onclose = () => connection.end();
 }
 
 export async function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
-  const connection = await connect(user, password);
+  const connection = await imapConnection(user, password);
   await connection.openBox(mailbox);
   await connection.moveMessage(uid.toString(), 'Junk');
   connection.end();
 }
 
 export async function fetchReply(user: string, password: string, messageID?: string) {
-  const connection = await connect(user, password);
+  const connection = await imapConnection(user, password);
   let reply = null;
 
   for (const mailbox of ['INBOX', 'Sent']) {
@@ -74,7 +65,7 @@ export async function fetchReply(user: string, password: string, messageID?: str
 
 export async function fetchMoreEmails(user: string, password: string, mailbox: string, from: number) {
   if (from < 0) return [];
-  const connection = await connect(user, password);
+  const connection = await imapConnection(user, password);
   const query = from - 7 < 0 ? `${1}:${from}` : `${from - 6}:${from}`;
   const inbox = await getInbox(mailbox, connection, query);
 
@@ -83,7 +74,7 @@ export async function fetchMoreEmails(user: string, password: string, mailbox: s
 }
 
 export async function fetchRecentEmails(user: string, password: string) {
-  const connection = await connect(user, password);
+  const connection = await imapConnection(user, password);
   const inboxMailbox = await getInbox('INBOX', connection);
   const sentMailbox = await getInbox('Sent', connection);
   const draftsMailbox = await getInbox('Drafts', connection);
@@ -100,20 +91,6 @@ export async function fetchRecentEmails(user: string, password: string) {
     drafts: draftsMailbox.emails,
     junk: junkMailbox.emails,
   };
-}
-
-async function connect(user: string, password: string) {
-  const config = {
-    imap: {
-      user,
-      password,
-      host: 'mail.shadowself.io',
-      port: 993,
-      tls: true,
-    },
-  };
-
-  return await imap.connect(config);
 }
 
 async function getMessageCount(inbox: string, connection: imap.ImapSimple) {

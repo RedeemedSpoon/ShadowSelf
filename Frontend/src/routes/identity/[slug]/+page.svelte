@@ -49,6 +49,10 @@
       pingInterval = setInterval(() => ws?.send('ping'), 5000);
     };
 
+    ws.onerror = () => {
+      notify('Something went horribly wrong. Try reloading the page.', 'alert');
+    };
+
     ws.onmessage = (event) => {
       if (Number(event.data) == event.data) return;
       if (event.data === 'pong') return;

@@ -1,5 +1,5 @@
-import {contactTransporter, verificationTransporter} from './connection';
-import {type ContactDetail, emailTemplate} from './types';
+import {contactTransporter, verificationTransporter, smtpTransporter} from './connection';
+import {type ContactDetail, type Attachment, emailTemplate} from './types';
 
 export async function contact(body: ContactDetail) {
   const mailOptions = {
@@ -33,14 +33,10 @@ export async function sendOfficialEmail(email: string, token: string, reason: ke
   }
 }
 
-export async function sendIdentityEmail(
-  email: string,
-  password: string,
-  recepient: string,
-  subject: string,
-  body: string,
-  attachment: unknown,
-) {}
+export async function sendIdentityEmail(mail: string, pw: string, recept: string, subj: string, body: string, att: Attachment[]) {
+  const transporter = smtpTransporter(mail, pw);
+  console.log(transporter);
+}
 
 function getEmailTemplate(token: string, reason: keyof typeof emailTemplate): string {
   return `
