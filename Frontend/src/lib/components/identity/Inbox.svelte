@@ -1,6 +1,6 @@
 <script lang="ts">
   import {mailbox, shredder, file, pencil} from '$image';
-  import {mode, target} from '$store';
+  import {mode, reply, target} from '$store';
   import type {FetchAPI} from '$type';
 
   interface Props {
@@ -18,13 +18,14 @@
     <div
       aria-hidden="true"
       class="container {$target?.messageID === email.messageID && 'target'}"
-      onclick={() => ($target?.messageID === email.messageID && ($mode = 'read'), ($target = email))}>
+      onclick={() => ($target?.messageID === email.messageID && ($mode = 'read'), (($target = email), ($reply = [])))}>
       <div class="w-1/2">
         <h3 class="truncate !text-2xl text-neutral-300">{email.subject}</h3>
         <p class="text-sm text-neutral-500">{email.date}</p>
       </div>
       <div class="w-1/2">
         <p class="text-right text-sm text-neutral-400">{email.from}</p>
+        <p class="text-right text-sm text-neutral-400">{email.inReplyTo}</p>
       </div>
     </div>
   {/each}

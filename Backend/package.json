@@ -19,6 +19,7 @@
     "imap-simple": "^5.1.0",
     "mimelib": "^0.3.1",
     "nodemailer": "^6.10.0",
+    "bcryptjs": "^3.0.2",
     "otpauth": "^9.3.6",
     "postal-mime": "^2.4.3",
     "postgres": "^3.4.5",
@@ -27,8 +28,5 @@
     "twilio": "^5.4.5"
   },
   "type": "module",
-  "module": "src/index.ts",
-  "dependencies": {
-    "bcryptjs": "^3.0.2"
-  }
+  "module": "src/index.ts"
 }

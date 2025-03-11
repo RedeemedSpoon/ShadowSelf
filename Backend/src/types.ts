@@ -157,7 +157,7 @@ export interface WebsocketRequest {
   body: string;
   to: string;
   inReplyTo: string;
-  references: string;
+  references: string[];
   attachments: {
     filename: string;
     data: string;
@@ -186,7 +186,7 @@ export interface APIParams {
   body: string;
   to: string;
   inReplyTo: string;
-  references: string;
+  references: string[];
   attachments: {
     filename: string;
     data: string;
@@ -201,7 +201,7 @@ export interface EmailContent {
   body: string;
   attachments: Attachment[];
   inReplyTo: string;
-  references: string;
+  references: string[];
 }
 
 export const emailTemplate = {

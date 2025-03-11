@@ -260,11 +260,11 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
     return {error: 'Invalid recipient value, please try again'} as APIParams;
   }
 
-  if (body.inReplyTo && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.inReplyTo)) {
+  if (body?.inReplyTo && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.inReplyTo)) {
     return {error: 'Invalid recipient value, please try again'} as APIParams;
   }
 
-  if (body.references && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.references)) {
+  if (body?.references?.length && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.references[0])) {
     return {error: 'Invalid recipient value, please try again'} as APIParams;
   }
 

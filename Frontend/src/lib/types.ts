@@ -109,7 +109,7 @@ export interface Inbox {
   subject: string;
   from: string;
   date: string;
-  reference: string | null;
+  reference: string[] | null;
   inReplyTo: string | null;
   uid: number;
   attachments: {
@@ -217,6 +217,8 @@ export interface WebSocketResponse {
   body?: string;
   to?: string;
   inReplyTo?: string;
+  messageID?: string;
+  date?: Date;
   attachments?: {
     filename: string;
     data: string;

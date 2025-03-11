@@ -19,8 +19,9 @@ export const fetching: Writable<number> = writable(0);
 export const selectionMenuOpen: Writable<boolean> = writable(false);
 export const selectionInputOpen: Writable<boolean> = writable(false);
 
-export const mode: Writable<'browse' | 'read' | 'write' | 'reply'> = writable('browse');
+export const reply: Writable<FetchAPI['emails']['inbox'][number][]> = writable([]);
 export const target: Writable<FetchAPI['emails']['inbox'][number] | null> = writable();
+export const mode: Writable<'browse' | 'read' | 'write' | 'reply'> = writable('browse');
 
 export const identity: Writable<FullIdentity> = writable();
 export const showPassword: Writable<boolean> = writable(false);

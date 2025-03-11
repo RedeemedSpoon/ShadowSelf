@@ -1,5 +1,6 @@
+import MailComposer from 'nodemailer/lib/mail-composer';
 import {imapConnection} from './connection';
-import {EmailContent} from './types.ts';
+import {EmailContent} from './types';
 import PostalMime from 'postal-mime';
 import imap from 'imap-simple';
 // @ts-expect-error No declaration file
@@ -85,9 +86,35 @@ export async function fetchRecentEmails(user: string, password: string) {
   };
 }
 
-export async function appendToMailbox(content: EmailContent & {messageID: string; date: string}) {
+export async function appendToMailbox(content: EmailContent & {messageID: string; date: Date}) {
   const connection = await imapConnection(content.email, content.password);
   await connection.openBox('Sent');
+
+  const attachmentsList = content.attachments.map((attachment) => {
+    return {
+      filename: attachment.filename,
+      content: attachment.data.split(',')[1],
+      encoding: 'base64',
+    };
+  });
+
+  const mail = new MailComposer({
+    messageId: content.messageID,
+    from: content.email,
+    to: content.to,
+    subject: content.subject,
+    text: content.body,
+    html: content.body,
+    references: content.references,
+    inReplyTo: content.inReplyTo,
+    attachments: attachmentsList,
+    date: content.date,
+  });
+
+  const RFC822Message = await mail.compile().build();
+  await connection.append(RFC822Message, {flags: ['\\Seen']});
+
+  connection.end();
 }
 
 async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
@@ -158,12 +185,16 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
   const rawBody = message.parts[1].body;
 
   const email = await PostalMime.parse(rawBody);
-  const cleanedBody = (email.html || email.text || '')!.match(/<html[^>]*>(.*?)<\/html>/is);
-  let body = mimelib.decodeQuotedPrintable(cleanedBody?.[1] || email.html || email.text! || '');
+  const cleanedBody = (email.html || email.text || rawBody)!.match(/<html[^>]*>(.*?)<\/html>/is);
+  let body = mimelib.decodeQuotedPrintable(cleanedBody?.[1] || email.html || email.text! || rawBody);
   const type = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(body) ? 'html' : 'text';
 
   if (details.from[0].includes('@gmail.com')) {
     body = body.match(/<div[^>]*>(.*?)<\/div>/is)[0] || body;
+  }
+
+  if (/Content-Type:/i.test(body) && /----/i.test(body)) {
+    body = body.replace(/----.*/s, '').trim();
   }
 
   return {
@@ -171,7 +202,7 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
     subject: details.subject[0],
     from: details.from[0],
     date: details.date[0],
-    reference: details.references?.[0],
+    reference: details.references,
     inReplyTo: details['in-reply-to']?.[0],
     attachments,
     uid,

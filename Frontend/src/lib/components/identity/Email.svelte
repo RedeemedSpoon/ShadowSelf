@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, EditorParams, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, ReplyIcon, ForwardIcon, InboxIcon} from '$icon';
-  import {mode, target, identity, handleResponse} from '$store';
+  import {mode, reply, target, identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
   import EmailBody from './EmailBody.svelte';
   import {fetchAPI, notify} from '$lib';
@@ -12,7 +12,6 @@
 
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
   const showActionButtons = $derived(!$target || label === 'Junk' || label === 'Drafts');
-  let reply = $state([]) as FetchAPI['emails']['inbox'][number][];
   let inbox = $state() as FetchAPI;
   let from = $state(7) as number;
 
@@ -35,19 +34,20 @@
     let alreadyFetched;
 
     for (const mailbox of ['INBOX', 'Sent']) {
-      const box = mailbox.toLowerCase() as 'inbox' | 'sent';
-      const message = inbox.emails[box].find((email) => email.messageID === uuid);
+      if (alreadyFetched) continue;
 
+      const box = mailbox.toLowerCase() as 'inbox' | 'sent';
+      const message = inbox.emails[box].find((email) => email.messageID.trim() === uuid?.trim());
       if (!message) continue;
 
-      setTimeout(() => (reply = [...reply, message]), 100);
       alreadyFetched = true;
+      setTimeout(() => ($reply = [...$reply, message]), 25);
 
       if (message?.inReplyTo) fetchReply(message.inReplyTo);
     }
 
     if (!alreadyFetched) {
-      ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid || $target!.inReplyTo}));
+      ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid?.trim()}));
     }
   }
 
@@ -63,11 +63,8 @@
       return notify('One attachment is too large (>15MB)', 'alert');
     }
 
-    let inReplyTo, references;
-    if ($mode === 'reply') {
-      inReplyTo = $target!.inReplyTo;
-      references = $target!.reference;
-    }
+    const inReplyTo = $target?.messageID;
+    const references = $target ? ($target.reference || []).concat([$target.messageID]) : [];
 
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
     ws.send(JSON.stringify({type: 'send-email', inReplyTo, references, to, ...content}));
@@ -94,7 +91,7 @@
 
       case 'fetch-reply': {
         if (response.fetchEmail === null) return;
-        reply = [...reply, response.fetchEmail!];
+        $reply = [...$reply, response.fetchEmail!];
         if (response.fetchEmail?.inReplyTo) fetchReply(response.fetchEmail.inReplyTo);
         break;
       }
@@ -170,8 +167,8 @@
   {:else if $mode === 'read'}
     <EmailBody email={$target!} />
     {#if $target?.inReplyTo}
-      {@const _ = fetchReply()}
-      {#each reply as email}
+      {@const _ = fetchReply($target.inReplyTo)}
+      {#each $reply as email}
         <p>Response to: {email.subject}</p>
         <EmailBody {email} />
       {/each}
