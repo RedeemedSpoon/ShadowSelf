@@ -33,6 +33,15 @@ export async function sendOfficialEmail(email: string, token: string, reason: ke
   }
 }
 
+export async function sendIdentityEmail(
+  email: string,
+  password: string,
+  recepient: string,
+  subject: string,
+  body: string,
+  attachment: unknown,
+) {}
+
 function getEmailTemplate(token: string, reason: keyof typeof emailTemplate): string {
   return `
 <!DOCTYPE html>

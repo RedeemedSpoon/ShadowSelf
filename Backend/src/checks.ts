@@ -241,7 +241,7 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
   }
 
   if (body.algorithm && !['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
-    return {error: 'Invalid algorithm, please try again'};
+    return {error: 'Inrecognized algorithm, please try again'};
   }
 
   if (body.uid && body.uid !== Number(body.uid)) {
@@ -249,12 +249,35 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
   }
 
   if (body.mailbox && !['INBOX', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
-    return {error: 'Invalid mailbox, please try again'};
+    return {error: 'Non-existent mailbox, please try again'};
   }
 
   if (body.from && body.from !== Number(body.from)) {
     return {error: 'Invalid from value, please try again'};
   }
 
+  if (body.to && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.to)) {
+    return {error: 'Invalid recipient value, please try again'};
+  }
+
+  if (body.inReplyTo && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.inReplyTo)) {
+    return {error: 'Invalid recipient value, please try again'};
+  }
+
+  if (body.subject && body.subject.length > 126) {
+    return {error: 'Long subject (>126 characters), please try again'};
+  }
+
+  if (body.body && body.body.length < 12) {
+    return {error: 'Short body (<12 characters), please try again'};
+  }
+
+  if (body.attachments && body.attachments.length > 10) {
+    return {error: 'Too many attachments, please try again'};
+  }
+
+  if (body.attachments && body.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
+    return {error: 'One or more attachments exceed the 15MB size limit, please try again'};
+  }
   return body;
 }

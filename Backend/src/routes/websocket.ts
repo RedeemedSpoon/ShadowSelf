@@ -1,5 +1,6 @@
 import {fetchMoreEmails, listenForEmail, fetchReply, deleteEmail} from '../email-imap';
 import {User, WebsocketRequest, Location} from '../types';
+import {sendIdentityEmail} from '../email-smtp';
 import {generateProfile} from '../prompts';
 import {attempt, request} from '../utils';
 import {allFakers} from '@faker-js/faker';
@@ -148,6 +149,9 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       case 'send-email': {
         const {error, to, inReplyTo, attachments, subject, body} = await checkAPI(message);
         if (error) return ws.send({error});
+
+        if (inReplyTo) await sendIdentityEmail(identity.email, identity.email_password, inReplyTo, subject!, body!, attachments!);
+        else await sendIdentityEmail(identity.email, identity.email_password, to!, subject!, body!, attachments!);
         break;
       }
 
