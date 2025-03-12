@@ -1,6 +1,7 @@
 <script lang="ts">
   import {mailbox, shredder, file, pencil} from '$image';
   import {mode, reply, target} from '$store';
+  import {LoadingButton} from '$component';
   import type {FetchAPI} from '$type';
 
   interface Props {
@@ -30,7 +31,9 @@
     </div>
   {/each}
   {#if inbox.length < count}
-    <button class="load-more" onclick={loadMore}>Load More</button>
+    <LoadingButton className="relative z-20 w-full from-neutral-950 to-neutral-950/10 shadow-none" onclick={loadMore}>
+      Load More
+    </LoadingButton>
   {/if}
 {:else if label === 'INBOX'}
   <section class="no-emails" style="background-image: url({mailbox});">
@@ -72,10 +75,6 @@
 
   .target {
     @apply bg-neutral-300/10 hover:bg-neutral-300/10;
-  }
-
-  .load-more {
-    @apply relative z-20 w-full from-neutral-950 to-neutral-950/10 shadow-none;
   }
 
   h3 {

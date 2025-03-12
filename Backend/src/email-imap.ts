@@ -28,33 +28,6 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
   ws.onclose = () => connection.end();
 }
 
-export async function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
-  const connection = await imapConnection(user, password);
-  await connection.openBox(mailbox);
-  await connection.moveMessage(uid.toString(), 'Junk');
-  connection.end();
-}
-
-export async function fetchReply(user: string, password: string, messageID?: string) {
-  const connection = await imapConnection(user, password);
-  let reply = null;
-
-  for (const mailbox of ['INBOX', 'Sent']) {
-    await connection.openBox(mailbox);
-
-    const message = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
-      bodies: ['HEADER.FIELDS (FROM SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
-      struct: true,
-    });
-
-    if (message.length === 0) continue;
-    reply = await parseMassage(connection, message[0]);
-  }
-
-  connection.end();
-  return reply;
-}
-
 export async function fetchMoreEmails(user: string, password: string, mailbox: string, from: number) {
   if (from < 0) return [];
   const connection = await imapConnection(user, password);
@@ -86,6 +59,26 @@ export async function fetchRecentEmails(user: string, password: string) {
   };
 }
 
+export async function fetchReply(user: string, password: string, messageID?: string) {
+  const connection = await imapConnection(user, password);
+  let reply = null;
+
+  for (const mailbox of ['INBOX', 'Sent']) {
+    await connection.openBox(mailbox);
+
+    const message = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+      bodies: ['HEADER.FIELDS (FROM SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
+      struct: true,
+    });
+
+    if (message.length === 0) continue;
+    reply = await parseMassage(connection, message[0]);
+  }
+
+  connection.end();
+  return reply;
+}
+
 export async function appendToMailbox(content: EmailContent & {messageID: string; date: Date}) {
   const connection = await imapConnection(content.email, content.password);
   await connection.openBox('Sent');
@@ -114,6 +107,16 @@ export async function appendToMailbox(content: EmailContent & {messageID: string
   const RFC822Message = await mail.compile().build();
   await connection.append(RFC822Message, {flags: ['\\Seen']});
 
+  const uid = (await connection.search([['HEADER', 'MESSAGE-ID', content.messageID]], {}))[0].attributes.uid;
+  connection.end();
+
+  return uid;
+}
+
+export async function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
+  const connection = await imapConnection(user, password);
+  await connection.openBox(mailbox);
+  await connection.moveMessage(uid.toString(), 'Junk');
   connection.end();
 }
 

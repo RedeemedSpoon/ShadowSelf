@@ -156,9 +156,10 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
 
         const response = await sendIdentityEmail(content);
         if (!response.messageID) return ws.send({error: 'Failed to send email'});
+        const fullEmail = {...content, messageID: response.messageID, date: response.date};
 
-        await appendToMailbox({...content, messageID: response.messageID, date: response.date});
-        ws.send({type: 'send-email', messageID: response.messageID, date: response.date, ...content});
+        const uid = await appendToMailbox(fullEmail);
+        ws.send({type: 'send-email', sentEmail: {...fullEmail, uid, type: response.type}});
         break;
       }
 

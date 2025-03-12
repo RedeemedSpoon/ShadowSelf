@@ -1,12 +1,13 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, EditorParams, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, ReplyIcon, ForwardIcon, InboxIcon} from '$icon';
-  import {mode, reply, target, identity, handleResponse} from '$store';
+  import {mode, reply, target, identity, handleResponse, fetching} from '$store';
   import {ActionIcon, Loader} from '$component';
   import EmailBody from './EmailBody.svelte';
   import {fetchAPI, notify} from '$lib';
   import Editor from './Editor.svelte';
   import Inbox from './Inbox.svelte';
+  import {onMount} from 'svelte';
 
   let {ws, token}: IdentityComponentParams = $props();
 
@@ -14,6 +15,8 @@
   const showActionButtons = $derived(!$target || label === 'Junk' || label === 'Drafts');
   let inbox = $state() as FetchAPI;
   let from = $state(7) as number;
+
+  onMount(() => (($mode = 'browse'), ($target = null)));
 
   async function fetchAllEmails() {
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -27,6 +30,8 @@
   function loadMore() {
     const messageCountString = label.toLowerCase() === 'inbox' ? 'messagesCount' : `${label.toLowerCase()}MessagesCount`;
     const total = inbox.emails[messageCountString as keyof typeof inbox.emails] as number;
+    $fetching = 1;
+
     ws.send(JSON.stringify({type: 'load-more', mailbox: label, from: total - from}));
   }
 
@@ -63,6 +68,7 @@
       return notify('One attachment is too large (>15MB)', 'alert');
     }
 
+    $fetching = 1;
     const inReplyTo = $target?.messageID;
     const references = $target ? ($target.reference || []).concat([$target.messageID]) : [];
 
@@ -82,6 +88,12 @@
       }
 
       case 'send-email': {
+        inbox.emails.sent.unshift(response.sentEmail!);
+        inbox.emails.sentMessagesCount++;
+
+        $fetching = 0;
+        $mode = 'browse';
+        $target = null;
         break;
       }
 
@@ -99,6 +111,8 @@
       case 'load-more': {
         const mailbox = response.mailbox?.toLowerCase() as 'inbox' | 'sent';
         inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.emails!];
+
+        $fetching = 0;
         from += 7;
         break;
       }

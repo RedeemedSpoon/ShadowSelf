@@ -61,7 +61,7 @@ export async function sendIdentityEmail(emailContent: EmailContent) {
   };
 
   const message = await transporter.sendMail(mailOptions).catch(() => {});
-  return {messageID: message?.messageId, date};
+  return {messageID: message?.messageId, date, type: isHtml ? 'html' : 'text'};
 }
 
 function getEmailTemplate(token: string, reason: keyof typeof emailTemplate): string {

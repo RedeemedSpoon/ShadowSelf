@@ -184,10 +184,10 @@ export interface WebSocketResponse {
     | 'remove-account'
     | 'update-encryption'
     | 'new-email'
-    | 'fetch-reply'
     | 'delete-email'
     | 'send-email'
     | 'send-draft'
+    | 'fetch-reply'
     | 'load-more';
   picture?: string;
   ethnicity?: string;
@@ -208,6 +208,7 @@ export interface WebSocketResponse {
   }[];
   newEmail?: Inbox;
   fetchEmail?: Inbox;
+  sentEmail?: Inbox & {messageID: string; date: Date};
   emails?: Inbox[];
   uid?: number;
   uuid?: string;

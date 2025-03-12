@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type {EditorParams} from '$type';
-  import {ChevronIcon} from '$icon';
-  import {onMount} from 'svelte';
   import {target} from '$store';
+  import type {EditorParams} from '$type';
+  import {LoadingButton} from '$component';
+  import {onMount} from 'svelte';
 
   interface Props {
     saveDraft: (content: EditorParams) => void;
@@ -148,8 +148,7 @@
     </div>
     <div class="flex h-fit gap-2">
       <button class="alt" onclick={() => saveDraft(parseContent())}>Save Draft</button>
-      <button class="flex items-center pr-4" onclick={() => sendEmail(parseContent())}
-        >Send {$target ? 'Reply' : 'Email'}<ChevronIcon /></button>
+      <LoadingButton onclick={() => sendEmail(parseContent())}>Send {$target ? 'Reply' : 'Email'}</LoadingButton>
     </div>
   </div>
 </div>
