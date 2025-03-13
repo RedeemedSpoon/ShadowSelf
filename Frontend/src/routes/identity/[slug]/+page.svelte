@@ -3,11 +3,11 @@
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
   import {currentSection, fetching, handleResponse, identity} from '$store';
   import type {Sections, WebSocketResponse} from '$type';
-  import {onDestroy, onMount} from 'svelte';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
   import {ChevronIcon} from '$icon';
   import {page} from '$app/state';
+  import {onMount} from 'svelte';
   import {notify} from '$lib';
 
   let {data}: PageProps = $props();

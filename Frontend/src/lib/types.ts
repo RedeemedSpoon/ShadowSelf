@@ -213,7 +213,7 @@ export interface WebSocketResponse {
   fetchEmail?: Inbox;
   sentEmail?: Inbox & {messageID: string; date: Date};
   savedDraft?: Inbox & {messageID: string; date: Date};
-  draft: boolean;
+  draft: number;
   uid?: number;
   uuid?: string;
   mailbox?: string;

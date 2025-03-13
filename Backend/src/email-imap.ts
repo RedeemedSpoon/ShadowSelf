@@ -45,6 +45,7 @@ export async function fetchRecentEmails(user: string, password: string) {
   const sentMailbox = await getInbox('Sent', connection);
   const draftsMailbox = await getInbox('Drafts', connection);
   const junkMailbox = await getInbox('Junk', connection);
+
   connection.end();
 
   return {
@@ -124,10 +125,11 @@ export async function appendToMailbox(asDraft: boolean, content: EmailContent & 
   return {uid, date, messageID, type};
 }
 
-export async function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
+export async function deleteEmail(user: string, password: string, mailbox: string, uid: number, def = false) {
   const connection = await imapConnection(user, password);
   await connection.openBox(mailbox);
-  await connection.moveMessage(uid.toString(), 'Junk');
+  if (def) await connection.deleteMessage(uid);
+  else await connection.moveMessage(uid.toString(), 'Junk');
   connection.end();
 }
 
@@ -165,7 +167,9 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
       }
     }
 
-    emails.unshift(await parseMassage(connection, message));
+    try {
+      emails.unshift(await parseMassage(connection, message));
+    } catch {}
   }
 
   return {messagesCount, emails};
@@ -180,12 +184,10 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
 
   const attachments = await Promise.all(
     rawAttachments.map((part) =>
-      connection.getPartData(message, part).then((partData) => {
-        return {
-          filename: part.disposition.params.filename,
-          data: partData.toString('base64'),
-        };
-      }),
+      connection.getPartData(message, part).then((partData) => ({
+        filename: part.disposition.params.filename,
+        data: partData.toString('base64'),
+      })),
     ),
   );
 

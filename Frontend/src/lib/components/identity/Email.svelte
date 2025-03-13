@@ -61,13 +61,14 @@
     ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
   }
 
-  function submit(content: EditorParams, save: boolean, draft: boolean) {
+  function submit(content: EditorParams, save: boolean, isdraft?: boolean) {
     if (content.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
       return notify('One attachment is too large (>15MB)', 'alert');
     }
 
     $fetching = save ? 2 : 1;
     const type = save ? 'save-draft' : 'send-email';
+    const draft = isdraft ? $target!.uid : null;
 
     const inReplyTo = $target?.messageID;
     const references = $target ? ($target.reference || []).concat([$target.messageID]) : [];
@@ -88,6 +89,10 @@
       }
 
       case 'send-email': {
+        if (response.draft) {
+          inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
+        }
+
         inbox.emails.sent.unshift(response.sentEmail!);
         inbox.emails.sentMessagesCount++;
 
@@ -98,6 +103,10 @@
       }
 
       case 'save-draft': {
+        if (response.draft) {
+          inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
+        }
+
         inbox.emails.drafts.unshift(response.savedDraft!);
         inbox.emails.draftsMessagesCount++;
 

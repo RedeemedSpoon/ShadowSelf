@@ -5,7 +5,7 @@
   import {target, mode} from '$store';
 
   interface Props {
-    submit: (content: EditorParams, save: boolean, draft: boolean) => void;
+    submit: (content: EditorParams, save: boolean, isdraft: boolean) => void;
     isDraft: boolean;
   }
 
@@ -14,6 +14,7 @@
   let quill = $state() as {getSemanticHTML: () => string; getText: () => string; root: HTMLElement};
   let attachments = $state([]) as {filename: string; data: string}[];
   let isTypeHTML = $state(true) as boolean;
+  let singleRun = $state(false) as boolean;
 
   function getRecipient() {
     if (!$target?.from) return '';
@@ -28,6 +29,8 @@
   }
 
   $effect(() => {
+    if ($mode === 'read' || $mode === 'browse') singleRun = true;
+
     if ($mode === 'write' || $mode === 'reply') {
       quill.root.innerHTML = '';
       attachments = [];
@@ -40,7 +43,8 @@
       subject.focus();
     }
 
-    if (isDraft && $target) {
+    if (isDraft && singleRun && $target) {
+      singleRun = false;
       quill.root.innerHTML = isTypeHTML ? $target.body : $target.body.replaceAll('\n', '<br>');
 
       const recipient = document.querySelector('input[name="recipient"]') as HTMLInputElement;

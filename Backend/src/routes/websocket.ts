@@ -159,7 +159,9 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         const fullEmail = {...content, messageID: response.messageID, date: response.date};
 
         const {uid} = await appendToMailbox(false, fullEmail);
-        ws.send({type: 'send-email', sentEmail: {...fullEmail, uid, type: response.type}});
+        if (draft) await deleteEmail(email, password, 'Drafts', message.draft, true);
+
+        ws.send({type: 'send-email', draft, sentEmail: {...fullEmail, uid, type: response.type}});
         break;
       }
 
@@ -171,8 +173,10 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         const password = identity.email_password;
         const content = {email, password, to, subject, body, attachments, references, inReplyTo};
 
+        if (draft) await deleteEmail(email, password, 'Drafts', message.draft, true);
         const fullEmail = await appendToMailbox(true, content);
-        ws.send({type: 'save-draft', savedDraft: {...fullEmail, ...content}});
+
+        ws.send({type: 'save-draft', draft, savedDraft: {...fullEmail, ...content}});
         break;
       }
 

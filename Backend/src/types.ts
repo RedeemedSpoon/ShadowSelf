@@ -149,7 +149,7 @@ export interface WebsocketRequest {
   mailbox: string;
   uuid: string;
   from: number;
-  draft: boolean;
+  draft: number;
   accounts: {
     id: number;
     password: string;
@@ -184,7 +184,7 @@ export interface APIParams {
   mailbox: string;
   uuid: string;
   from: number;
-  draft: boolean;
+  draft: number;
   subject: string;
   body: string;
   to: string;
