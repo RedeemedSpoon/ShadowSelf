@@ -125,11 +125,10 @@ export async function appendToMailbox(asDraft: boolean, content: EmailContent & 
   return {uid, date, messageID, type};
 }
 
-export async function deleteEmail(user: string, password: string, mailbox: string, uid: number, def = false) {
+export async function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
   const connection = await imapConnection(user, password);
   await connection.openBox(mailbox);
-  if (def) await connection.deleteMessage(uid);
-  else await connection.moveMessage(uid.toString(), 'Junk');
+  await connection.moveMessage(uid.toString(), 'Junk');
   connection.end();
 }
 

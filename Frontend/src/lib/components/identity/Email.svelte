@@ -70,8 +70,8 @@
     const type = save ? 'save-draft' : 'send-email';
     const draft = isdraft ? $target!.uid : null;
 
-    const inReplyTo = $target?.messageID;
-    const references = $target ? ($target.reference || []).concat([$target.messageID]) : [];
+    const inReplyTo = save ? $target?.inReplyTo || $target?.messageID : isdraft ? $target?.inReplyTo : $target?.messageID;
+    const references = $target ? ($target.reference || []).concat([inReplyTo!]) : [];
 
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
     ws.send(JSON.stringify({type, draft, inReplyTo, references, to, ...content}));

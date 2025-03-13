@@ -1,8 +1,8 @@
 <script lang="ts">
+  import {target, mode} from '$store';
   import {LoadingButton} from '$component';
   import type {EditorParams} from '$type';
   import {onMount} from 'svelte';
-  import {target, mode} from '$store';
 
   interface Props {
     submit: (content: EditorParams, save: boolean, isdraft: boolean) => void;
@@ -32,7 +32,7 @@
     if ($mode === 'read' || $mode === 'browse') singleRun = true;
 
     if ($mode === 'write' || $mode === 'reply') {
-      quill.root.innerHTML = '';
+      if (quill?.root) quill.root.innerHTML = '';
       attachments = [];
 
       const recipient = document.querySelector('input[name="recipient"]') as HTMLInputElement;
