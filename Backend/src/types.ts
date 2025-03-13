@@ -131,6 +131,7 @@ export interface WebsocketRequest {
     | 'delete-email'
     | 'send-email'
     | 'save-draft'
+    | 'send-draft'
     | 'load-more';
   ethnicity?: string;
   sex?: string;
@@ -148,6 +149,7 @@ export interface WebsocketRequest {
   mailbox: string;
   uuid: string;
   from: number;
+  draft: boolean;
   accounts: {
     id: number;
     password: string;
@@ -182,6 +184,7 @@ export interface APIParams {
   mailbox: string;
   uuid: string;
   from: number;
+  draft: boolean;
   subject: string;
   body: string;
   to: string;

@@ -147,7 +147,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       }
 
       case 'send-email': {
-        const {error, to, inReplyTo, references, attachments, subject, body} = await checkAPI(message);
+        const {error, to, inReplyTo, references, attachments, subject, body, draft} = await checkAPI(message);
         if (error) return ws.send({error});
 
         const email = identity.email;
@@ -164,7 +164,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       }
 
       case 'save-draft': {
-        const {error, to, inReplyTo, references, attachments, subject, body} = await checkAPI(message);
+        const {error, to, inReplyTo, references, attachments, subject, body, draft} = await checkAPI(message);
         if (error) return ws.send({error});
 
         const email = identity.email;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, EditorParams, FetchAPI} from '$type';
-  import {SendIcon, TrashIcon, ReplyIcon, ForwardIcon, InboxIcon} from '$icon';
   import {mode, reply, target, identity, handleResponse, fetching} from '$store';
+  import {SendIcon, TrashIcon, ReplyIcon, ForwardIcon, InboxIcon} from '$icon';
   import {ActionIcon, Loader} from '$component';
   import EmailBody from './EmailBody.svelte';
   import {fetchAPI, notify} from '$lib';
@@ -61,19 +61,19 @@
     ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
   }
 
-  function onSubmit(content: EditorParams, asDraft: boolean) {
+  function submit(content: EditorParams, save: boolean, draft: boolean) {
     if (content.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
       return notify('One attachment is too large (>15MB)', 'alert');
     }
 
-    $fetching = asDraft ? 2 : 1;
-    const type = asDraft ? 'save-draft' : 'send-email';
+    $fetching = save ? 2 : 1;
+    const type = save ? 'save-draft' : 'send-email';
 
     const inReplyTo = $target?.messageID;
     const references = $target ? ($target.reference || []).concat([$target.messageID]) : [];
 
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
-    ws.send(JSON.stringify({type, inReplyTo, references, to, ...content}));
+    ws.send(JSON.stringify({type, draft, inReplyTo, references, to, ...content}));
   }
 
   $handleResponse = (response: WebSocketResponse) => {
@@ -115,7 +115,7 @@
       }
 
       case 'load-more': {
-        const mailbox = response.mailbox?.toLowerCase() as 'inbox' | 'sent';
+        const mailbox = response.mailbox?.toLowerCase() as 'inbox';
         inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.emails!];
 
         $fetching = 0;
@@ -124,7 +124,7 @@
       }
 
       case 'delete-email': {
-        const mailbox = response.mailbox?.toLowerCase() as 'inbox' | 'sent';
+        const mailbox = response.mailbox?.toLowerCase() as 'inbox';
         const messageCount = mailbox === 'inbox' ? 'messagesCount' : `${mailbox}MessagesCount`;
 
         const removedEmail = inbox.emails[mailbox].find((email) => email.uid === response.uid);
@@ -145,7 +145,7 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h1 class="text-5xl font-bold text-neutral-300">Email Address</h1>
   <div class="flex gap-1">
-    <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null), (label = 'INBOX'))} title="Go to Inbox" />
+    <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go to Inbox" />
     <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($target = null))} title="Send New Emails" />
     <ActionIcon
       disabled={label === 'Drafts' || showActionButtons}
@@ -157,9 +157,7 @@
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
-<div class:hidden={$mode === 'browse' || $mode === 'read'}>
-  <Editor {onSubmit} />
-</div>
+<Editor {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} />
 {#await fetchAllEmails()}
   <div class="flex h-[40vh] items-center justify-center">
     <h3 class="flex items-center gap-6">
@@ -178,15 +176,17 @@
           <button class:selected={label === 'Junk'} onclick={() => ((label = 'Junk'), ($target = null))}>Junk</button>
         </div>
       </div>
-      {#if label === 'INBOX'}
-        <Inbox {loadMore} inbox={inbox.emails.inbox} count={inbox.emails.messagesCount} label="INBOX" />
-      {:else if label === 'Sent'}
-        <Inbox {loadMore} inbox={inbox.emails.sent} count={inbox.emails.sentMessagesCount} label="Sent" />
-      {:else if label === 'Drafts'}
-        <Inbox {loadMore} inbox={inbox.emails.drafts} count={inbox.emails.draftsMessagesCount} label="Drafts" />
-      {:else if label === 'Junk'}
-        <Inbox {loadMore} inbox={inbox.emails.junk} count={inbox.emails.junkMessagesCount} label="Junk" />
-      {/if}
+      {@const labels = [
+        {thisLabel: 'INBOX', data: inbox.emails.inbox, count: inbox.emails.messagesCount},
+        {thisLabel: 'Sent', data: inbox.emails.sent, count: inbox.emails.sentMessagesCount},
+        {thisLabel: 'Drafts', data: inbox.emails.drafts, count: inbox.emails.draftsMessagesCount},
+        {thisLabel: 'Junk', data: inbox.emails.junk, count: inbox.emails.junkMessagesCount},
+      ]}
+      {#each labels as { thisLabel, data, count }}
+        {#if label === thisLabel}
+          <Inbox {loadMore} inbox={data} {count} {label} />
+        {/if}
+      {/each}
     {/key}
   {:else if $mode === 'read'}
     <EmailBody email={$target!} />

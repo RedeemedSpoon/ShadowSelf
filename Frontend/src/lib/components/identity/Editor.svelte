@@ -1,16 +1,21 @@
 <script lang="ts">
-  import {target} from '$store';
-  import type {EditorParams} from '$type';
   import {LoadingButton} from '$component';
+  import type {EditorParams} from '$type';
   import {onMount} from 'svelte';
+  import {target, mode} from '$store';
 
-  let {onSubmit}: {onSubmit: (content: EditorParams, asDraft: boolean) => void} = $props();
+  interface Props {
+    submit: (content: EditorParams, save: boolean, draft: boolean) => void;
+    isDraft: boolean;
+  }
 
-  let quill = $state() as {getSemanticHTML: () => string; getText: () => string};
+  let {submit, isDraft}: Props = $props();
+
+  let quill = $state() as {getSemanticHTML: () => string; getText: () => string; root: HTMLElement};
   let attachments = $state([]) as {filename: string; data: string}[];
   let isTypeHTML = $state(true) as boolean;
 
-  function from() {
+  function getRecipient() {
     if (!$target?.from) return '';
     return $target?.from.includes('<') ? $target.from!.match(/<([^>]+)>/)?.[1] : $target.from;
   }
@@ -21,6 +26,35 @@
 
     return {subject, body, attachments};
   }
+
+  $effect(() => {
+    if ($mode === 'write' || $mode === 'reply') {
+      quill.root.innerHTML = '';
+      attachments = [];
+
+      const recipient = document.querySelector('input[name="recipient"]') as HTMLInputElement;
+      const subject = document.querySelector('input[name="subject"]') as HTMLInputElement;
+
+      if (!$target) recipient.value = '';
+      subject.value = '';
+      subject.focus();
+    }
+
+    if (isDraft && $target) {
+      quill.root.innerHTML = isTypeHTML ? $target.body : $target.body.replaceAll('\n', '<br>');
+
+      const recipient = document.querySelector('input[name="recipient"]') as HTMLInputElement;
+      const subject = document.querySelector('input[name="subject"]') as HTMLInputElement;
+
+      recipient.value = $target.to;
+      subject.value = $target.subject;
+      attachments = [];
+
+      for (const attachment of $target.attachments) {
+        attachments = [...attachments, {filename: attachment.filename, data: attachment.data}];
+      }
+    }
+  });
 
   onMount(async () => {
     const Quill = (await import('quill')).default;
@@ -46,6 +80,7 @@
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     input.addEventListener('change', () => {
       const reader = new FileReader();
+
       reader.onload = (event) => {
         if (event.target?.result) {
           const buffer = event.target.result as ArrayBuffer;
@@ -58,7 +93,7 @@
   });
 </script>
 
-<div>
+<div class:hidden={$mode === 'read' || $mode === 'browse'}>
   <div class="m-8">
     <div class="flex items-center gap-8">
       <div class="flex flex-col gap-14">
@@ -67,7 +102,12 @@
       </div>
       <div class="flex flex-col gap-6">
         <input type="text" placeholder="Mail Subject" name="subject" />
-        <input type="email" placeholder="example@domain.tld" name="recipient" value={from()} disabled={$target && true} />
+        <input
+          type="email"
+          placeholder="example@domain.tld"
+          name="recipient"
+          value={getRecipient()}
+          disabled={$target && $mode !== 'write-draft'} />
       </div>
       <div class="flex w-full flex-col items-end">
         <h3 class="mb-2 mr-10 text-xl font-semibold text-neutral-300">Body Type</h3>
@@ -142,8 +182,8 @@
       </div>
     </div>
     <div class="flex h-fit gap-2">
-      <LoadingButton index={2} className="alt" onclick={() => onSubmit(parseContent(), true)}>Save Draft</LoadingButton>
-      <LoadingButton onclick={() => onSubmit(parseContent(), false)}>Send {$target ? 'Reply' : 'Email'}</LoadingButton>
+      <LoadingButton index={2} className="alt" onclick={() => submit(parseContent(), true, isDraft)}>Save Draft</LoadingButton>
+      <LoadingButton onclick={() => submit(parseContent(), false, isDraft)}>Send {$target ? 'Reply' : 'Email'}</LoadingButton>
     </div>
   </div>
 </div>

@@ -189,7 +189,8 @@ export interface WebSocketResponse {
     | 'send-email'
     | 'save-draft'
     | 'fetch-reply'
-    | 'load-more';
+    | 'load-more'
+    | 'send-draft';
   picture?: string;
   ethnicity?: string;
   name?: string;
@@ -212,6 +213,7 @@ export interface WebSocketResponse {
   fetchEmail?: Inbox;
   sentEmail?: Inbox & {messageID: string; date: Date};
   savedDraft?: Inbox & {messageID: string; date: Date};
+  draft: boolean;
   uid?: number;
   uuid?: string;
   mailbox?: string;

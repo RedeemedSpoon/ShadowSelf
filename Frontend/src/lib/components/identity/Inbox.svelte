@@ -5,21 +5,27 @@
   import type {FetchAPI} from '$type';
 
   interface Props {
-    label: 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
     inbox: FetchAPI['emails']['inbox'];
     loadMore: () => void;
+    label: string;
     count: number;
   }
 
   let {count, inbox, label, loadMore}: Props = $props();
+
+  function handleClick(email: FetchAPI['emails']['inbox'][0]) {
+    if ($target?.messageID === email.messageID) {
+      $mode = label === 'Drafts' ? 'write-draft' : 'read';
+    }
+
+    $target = email;
+    $reply = [];
+  }
 </script>
 
 {#if count > 0 && inbox.length > 0}
   {#each inbox as email}
-    <div
-      aria-hidden="true"
-      class="container {$target?.messageID === email.messageID && 'target'}"
-      onclick={() => ($target?.messageID === email.messageID && ($mode = 'read'), (($target = email), ($reply = [])))}>
+    <div aria-hidden="true" class="container {$target?.messageID === email.messageID && 'target'}" onclick={() => handleClick(email)}>
       <div class="w-1/2">
         <h3 class="truncate !text-2xl text-neutral-300">{email.subject}</h3>
         <p class="text-sm text-neutral-500">{email.date}</p>
