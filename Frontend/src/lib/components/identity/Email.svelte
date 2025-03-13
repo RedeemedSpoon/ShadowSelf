@@ -12,7 +12,7 @@
   let {ws, token}: IdentityComponentParams = $props();
 
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
-  const showActionButtons = $derived(!$target || label === 'Junk' || label === 'Drafts');
+  const showActionButtons = $derived(!$target || label === 'Junk');
   let inbox = $state() as FetchAPI;
   let from = $state(7) as number;
 
@@ -61,19 +61,19 @@
     ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
   }
 
-  function saveDraft(content: EditorParams) {}
-
-  function sendEmail(content: EditorParams) {
+  function onSubmit(content: EditorParams, asDraft: boolean) {
     if (content.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
       return notify('One attachment is too large (>15MB)', 'alert');
     }
 
-    $fetching = 1;
+    $fetching = asDraft ? 2 : 1;
+    const type = asDraft ? 'save-draft' : 'send-email';
+
     const inReplyTo = $target?.messageID;
     const references = $target ? ($target.reference || []).concat([$target.messageID]) : [];
 
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
-    ws.send(JSON.stringify({type: 'send-email', inReplyTo, references, to, ...content}));
+    ws.send(JSON.stringify({type, inReplyTo, references, to, ...content}));
   }
 
   $handleResponse = (response: WebSocketResponse) => {
@@ -97,7 +97,13 @@
         break;
       }
 
-      case 'send-draft': {
+      case 'save-draft': {
+        inbox.emails.drafts.unshift(response.savedDraft!);
+        inbox.emails.draftsMessagesCount++;
+
+        $fetching = 0;
+        $mode = 'browse';
+        $target = null;
         break;
       }
 
@@ -137,18 +143,22 @@
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
-  <h3>Email Address</h3>
+  <h1 class="text-5xl font-bold text-neutral-300">Email Address</h1>
   <div class="flex gap-1">
     <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null), (label = 'INBOX'))} title="Go to Inbox" />
     <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($target = null))} title="Send New Emails" />
-    <ActionIcon disabled={showActionButtons} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Email" />
-    <ActionIcon disabled={showActionButtons} icon={ForwardIcon} action={() => {}} title="Forward Email" />
+    <ActionIcon
+      disabled={label === 'Drafts' || showActionButtons}
+      icon={ReplyIcon}
+      action={() => ($mode = 'reply')}
+      title="Reply to Email" />
+    <ActionIcon disabled={label === 'Drafts' || showActionButtons} icon={ForwardIcon} action={() => {}} title="Forward Email" />
     <ActionIcon disabled={showActionButtons} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
 <div class:hidden={$mode === 'browse' || $mode === 'read'}>
-  <Editor {saveDraft} {sendEmail} />
+  <Editor {onSubmit} />
 </div>
 {#await fetchAllEmails()}
   <div class="flex h-[40vh] items-center justify-center">

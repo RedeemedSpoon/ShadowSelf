@@ -4,12 +4,7 @@
   import {LoadingButton} from '$component';
   import {onMount} from 'svelte';
 
-  interface Props {
-    saveDraft: (content: EditorParams) => void;
-    sendEmail: (content: EditorParams) => void;
-  }
-
-  let {saveDraft, sendEmail}: Props = $props();
+  let {onSubmit}: {onSubmit: (content: EditorParams, asDraft: boolean) => void} = $props();
 
   let quill = $state() as {getSemanticHTML: () => string; getText: () => string};
   let attachments = $state([]) as {filename: string; data: string}[];
@@ -147,8 +142,8 @@
       </div>
     </div>
     <div class="flex h-fit gap-2">
-      <button class="alt" onclick={() => saveDraft(parseContent())}>Save Draft</button>
-      <LoadingButton onclick={() => sendEmail(parseContent())}>Send {$target ? 'Reply' : 'Email'}</LoadingButton>
+      <LoadingButton index={2} className="alt" onclick={() => onSubmit(parseContent(), true)}>Save Draft</LoadingButton>
+      <LoadingButton onclick={() => onSubmit(parseContent(), false)}>Send {$target ? 'Reply' : 'Email'}</LoadingButton>
     </div>
   </div>
 </div>

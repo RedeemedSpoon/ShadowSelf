@@ -111,7 +111,7 @@
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
-  <h2 class="text-5xl text-neutral-300">General Information</h2>
+  <h1 class="text-5xl font-bold text-neutral-300">General Information</h1>
   <div id="top-icons" class="flex gap-2">
     <div class:hidden={!isEditingMode}>
       <ActionIcon icon={BackIcon} action={() => ((isEditingMode = false), (activeStatus = false))} title="Ignore Changes" />

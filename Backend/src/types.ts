@@ -130,7 +130,7 @@ export interface WebsocketRequest {
     | 'fetch-reply'
     | 'delete-email'
     | 'send-email'
-    | 'send-draft'
+    | 'save-draft'
     | 'load-more';
   ethnicity?: string;
   sex?: string;

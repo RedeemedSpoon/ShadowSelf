@@ -209,7 +209,7 @@
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
-  <h2 class="text-5xl text-neutral-300">Online Accounts</h2>
+  <h1 class="text-5xl font-bold text-neutral-300">Online Accounts</h1>
   <div class="flex gap-1">
     <div class="flex gap-1" class:hidden={!password}>
       <ActionIcon icon={LockEditIcon} action={() => ($showModal = 2)} title="Edit Master Password" />

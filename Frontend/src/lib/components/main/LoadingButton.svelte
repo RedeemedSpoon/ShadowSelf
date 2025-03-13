@@ -19,7 +19,7 @@
 
 <button {name} {onclick} {formaction} {type} class={className} disabled={$fetching === index || disabled}>
   {@render children?.()}
-  <Loader {index} />
+  <Loader {index} primaryColor={className === 'alt'} />
 </button>
 
 <style lang="postcss">

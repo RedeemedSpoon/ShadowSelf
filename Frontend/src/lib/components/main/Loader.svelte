@@ -6,9 +6,10 @@
     skip?: boolean;
     type?: 'card' | 'button';
     size?: 'big' | 'small';
+    primaryColor?: boolean;
   }
 
-  const {type = 'button', index = 1, skip = false, size = 'small'}: Props = $props();
+  const {primaryColor, type = 'button', index = 1, skip = false, size = 'small'}: Props = $props();
 </script>
 
 {#if skip || $fetching === index}
@@ -23,7 +24,10 @@
   {:else}
     <div class="loader !block" style="--size: {size === 'big' ? '35px' : '15px'}">
       {#each Array(5) as _, i}
-        <div class="orbe orbe-alt" style="--index: {i}; --size-orbe-alt: {size === 'big' ? '8px' : '4px'}"></div>
+        <div
+          class="orbe orbe-alt {primaryColor && 'after:!bg-primary-600'}"
+          style="--index: {i}; --size-orbe-alt: {size === 'big' ? '8px' : '4px'}">
+        </div>
       {/each}
     </div>
   {/if}

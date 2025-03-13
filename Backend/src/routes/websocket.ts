@@ -158,12 +158,21 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         if (!response.messageID) return ws.send({error: 'Failed to send email'});
         const fullEmail = {...content, messageID: response.messageID, date: response.date};
 
-        const uid = await appendToMailbox(fullEmail);
+        const {uid} = await appendToMailbox(false, fullEmail);
         ws.send({type: 'send-email', sentEmail: {...fullEmail, uid, type: response.type}});
         break;
       }
 
-      case 'send-draft': {
+      case 'save-draft': {
+        const {error, to, inReplyTo, references, attachments, subject, body} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        const email = identity.email;
+        const password = identity.email_password;
+        const content = {email, password, to, subject, body, attachments, references, inReplyTo};
+
+        const fullEmail = await appendToMailbox(true, content);
+        ws.send({type: 'save-draft', savedDraft: {...fullEmail, ...content}});
         break;
       }
 

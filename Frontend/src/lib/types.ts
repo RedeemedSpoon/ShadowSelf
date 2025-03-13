@@ -108,6 +108,7 @@ export interface Inbox {
   messageID: string;
   subject: string;
   from: string;
+  to: string;
   date: string;
   reference: string[] | null;
   inReplyTo: string | null;
@@ -186,7 +187,7 @@ export interface WebSocketResponse {
     | 'new-email'
     | 'delete-email'
     | 'send-email'
-    | 'send-draft'
+    | 'save-draft'
     | 'fetch-reply'
     | 'load-more';
   picture?: string;
@@ -206,10 +207,11 @@ export interface WebSocketResponse {
     password: string;
     totp?: string;
   }[];
+  emails?: Inbox[];
   newEmail?: Inbox;
   fetchEmail?: Inbox;
   sentEmail?: Inbox & {messageID: string; date: Date};
-  emails?: Inbox[];
+  savedDraft?: Inbox & {messageID: string; date: Date};
   uid?: number;
   uuid?: string;
   mailbox?: string;

@@ -108,7 +108,7 @@
       </div>
     </div>
   {:else}
-    <div class="flex min-h-[40vh] flex-col items-center justify-center gap-8">
+    <div class="flex min-h-[50vh] flex-col items-center justify-center gap-8">
       <h1>Identity Not Found</h1>
       <p class="text-center">
         The identity you're looking for doesn't exist, or your account isn't the owner of the identity.

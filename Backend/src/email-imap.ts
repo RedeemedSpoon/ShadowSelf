@@ -12,7 +12,7 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
 
     await connection.openBox('INBOX');
     const messages = await connection.search([`UNSEEN`], {
-      bodies: ['HEADER.FIELDS (FROM SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
+      bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
       struct: true,
     });
 
@@ -67,7 +67,7 @@ export async function fetchReply(user: string, password: string, messageID?: str
     await connection.openBox(mailbox);
 
     const message = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
-      bodies: ['HEADER.FIELDS (FROM SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
+      bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
       struct: true,
     });
 
@@ -79,9 +79,12 @@ export async function fetchReply(user: string, password: string, messageID?: str
   return reply;
 }
 
-export async function appendToMailbox(content: EmailContent & {messageID: string; date: Date}) {
+export async function appendToMailbox(asDraft: boolean, content: EmailContent & {messageID?: string; date?: Date}) {
   const connection = await imapConnection(content.email, content.password);
-  await connection.openBox('Sent');
+  if (asDraft) await connection.openBox('Drafts');
+  else await connection.openBox('Sent');
+
+  const shownDate = content.date || new Date();
 
   const attachmentsList = content.attachments.map((attachment) => {
     return {
@@ -107,10 +110,18 @@ export async function appendToMailbox(content: EmailContent & {messageID: string
   const RFC822Message = await mail.compile().build();
   await connection.append(RFC822Message, {flags: ['\\Seen']});
 
-  const uid = (await connection.search([['HEADER', 'MESSAGE-ID', content.messageID]], {}))[0].attributes.uid;
+  const message = await connection.search([['SINCE', shownDate]], {
+    bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
+    struct: true,
+  });
+
+  const type = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(content.body) ? 'html' : 'text';
+  const messageID = message[0].parts[0].body['message-id'][0];
+  const {uid, date} = message[0].attributes;
+
   connection.end();
 
-  return uid;
+  return {uid, date, messageID, type};
 }
 
 export async function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
@@ -138,12 +149,11 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
   const searchQuery = query ? query : `${lastMessages}:${messagesCount || 1}`;
 
   const messages = await connection.search([searchQuery], {
-    bodies: ['HEADER.FIELDS (FROM SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
+    bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
     struct: true,
   });
 
   for (const message of messages) {
-    await connection.addFlags(message.attributes.uid, ['\\SEEN']);
     if (inbox === 'Junk') {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -203,8 +213,9 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
   return {
     messageID: details['message-id'][0],
     subject: details.subject[0],
-    from: details.from[0],
+    from: details?.from[0],
     date: details.date[0],
+    to: details.to?.[0],
     reference: details.references,
     inReplyTo: details['in-reply-to']?.[0],
     attachments,

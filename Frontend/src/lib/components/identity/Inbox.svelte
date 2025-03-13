@@ -25,8 +25,14 @@
         <p class="text-sm text-neutral-500">{email.date}</p>
       </div>
       <div class="w-1/2">
-        <p class="text-right text-sm text-neutral-400">{email.from}</p>
-        <p class="text-right text-sm text-neutral-400">{email.inReplyTo}</p>
+        {#if label === 'INBOX'}
+          <p class="text-right text-sm text-neutral-400">From : {email.from}</p>
+        {:else if label === 'Junk'}
+          <p class="text-right text-sm text-neutral-400">From : {email.from}</p>
+          <p class="text-right text-sm text-neutral-400">To : {email.to}</p>
+        {:else}
+          <p class="text-right text-sm text-neutral-400">To : {email.to}</p>
+        {/if}
       </div>
     </div>
   {/each}
