@@ -257,7 +257,11 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
   }
 
   if (body.to && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.to)) {
-    return {error: 'Invalid recipient value, please try again'} as APIParams;
+    return {error: 'Invalid recipient email, please try again'} as APIParams;
+  }
+
+  if (body.forward && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.forward)) {
+    return {error: 'Invalid forward email, please try again'} as APIParams;
   }
 
   if (body?.inReplyTo && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.inReplyTo)) {

@@ -60,14 +60,15 @@ export async function fetchRecentEmails(user: string, password: string) {
   };
 }
 
-export async function fetchReply(user: string, password: string, messageID?: string) {
+export async function fetchEmail(user: string, password: string, isReply: boolean, id: string | number) {
   const connection = await imapConnection(user, password);
   let reply = null;
 
   for (const mailbox of ['INBOX', 'Sent']) {
     await connection.openBox(mailbox);
+    const query = isReply ? [['HEADER', 'MESSAGE-ID', id]] : [['UID', id]];
 
-    const message = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+    const message = await connection.search(query, {
       bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
       struct: true,
     });
@@ -217,7 +218,7 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
     from: details?.from[0],
     date: details.date[0],
     to: details.to?.[0],
-    reference: details.references,
+    references: details.references,
     inReplyTo: details['in-reply-to']?.[0],
     attachments,
     uid,

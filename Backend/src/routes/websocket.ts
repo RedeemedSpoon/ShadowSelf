@@ -1,4 +1,4 @@
-import {fetchMoreEmails, listenForEmail, fetchReply, deleteEmail, appendToMailbox} from '../email-imap';
+import {fetchMoreEmails, listenForEmail, fetchEmail, deleteEmail, appendToMailbox} from '../email-imap';
 import {User, WebsocketRequest, Location, APIParams} from '../types';
 import {sendIdentityEmail} from '../email-smtp';
 import {generateProfile} from '../prompts';
@@ -141,7 +141,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         const {error, uuid} = await checkAPI(message);
         if (error) return ws.send({error});
 
-        const email = await fetchReply(identity.email, identity.email_password, uuid!);
+        const email = await fetchEmail(identity.email, identity.email_password, true, uuid!);
         ws.send({type: 'fetch-reply', uuid, fetchEmail: email});
         break;
       }
@@ -178,7 +178,17 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         const fullEmail = await appendToMailbox(true, content);
 
         delete (fullEmail as {password?: string}).password;
+        delete (fullEmail as {email?: string}).email;
         ws.send({type: 'save-draft', draft, savedDraft: {...fullEmail, ...content}});
+        break;
+      }
+
+      case 'delete-email': {
+        const {error, mailbox, uid} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        await deleteEmail(identity.email, identity.email_password, mailbox!, message.uid!);
+        ws.send({type: 'delete-email', mailbox, uid});
         break;
       }
 
@@ -191,12 +201,48 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         break;
       }
 
-      case 'delete-email': {
-        const {error, mailbox, uid} = await checkAPI(message);
+      case 'forward-email': {
+        const {error, uid, forward} = await checkAPI(message);
         if (error) return ws.send({error});
 
-        await deleteEmail(identity.email, identity.email_password, mailbox!, message.uid!);
-        ws.send({type: 'delete-email', mailbox, uid});
+        const email = await fetchEmail(identity.email, identity.email_password, false, uid!);
+        if (!email) return ws.send({error: 'Failed to fetch email'});
+
+        if (email.type === 'html') {
+          email.body = `
+          <p><strong>--- Forwarded Message ---</strong></p>
+          <p><strong>From:</strong> ${email.from}</p>
+          <p><strong>To:</strong> ${forward}</p>
+          <p><strong>Subject:</strong> ${email.subject}</p>
+          <p><strong>Date:</strong> ${email.date}</p>
+          <p><strong>Subject:</strong> ${email.subject}</p>
+          <p>${email.body}</p>
+        `;
+        } else {
+          email.body = `
+          --- Forwarded Message ---
+          From: ${email.from}
+          To: ${forward}
+          Subject: ${email.subject}
+          Date: ${email.date}
+          Subject: ${email.subject}
+          
+          ${email.body}
+        `;
+        }
+
+        email.subject = email.subject.toUpperCase().includes('FWD: ') ? email.subject : `FWD: ${email?.subject}`;
+        const forwardEmail = {...email, to: forward, email: identity.email, password: identity.email_password};
+
+        const response = await sendIdentityEmail(forwardEmail);
+        if (!response.messageID) return ws.send({error: 'Failed to send email'});
+
+        const fullEmail = {...forwardEmail, messageID: response.messageID, date: response.date};
+        const newUID = await appendToMailbox(false, fullEmail);
+
+        delete (fullEmail as {password?: string}).password;
+        delete (fullEmail as {email?: string}).email;
+        ws.send({type: 'forward-email', uid, forward, forwardEmail: {...fullEmail, uid: newUID.uid, type: response.type}});
         break;
       }
 

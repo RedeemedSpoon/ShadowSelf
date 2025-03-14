@@ -110,7 +110,7 @@ export interface Inbox {
   from: string;
   to: string;
   date: string;
-  reference: string[] | null;
+  references: string[] | null;
   inReplyTo: string | null;
   uid: number;
   attachments: {
@@ -190,7 +190,7 @@ export interface WebSocketResponse {
     | 'save-draft'
     | 'fetch-reply'
     | 'load-more'
-    | 'send-draft';
+    | 'forward-email';
   picture?: string;
   ethnicity?: string;
   name?: string;
@@ -213,6 +213,7 @@ export interface WebSocketResponse {
   fetchEmail?: Inbox;
   sentEmail?: Inbox & {messageID: string; date: Date};
   savedDraft?: Inbox & {messageID: string; date: Date};
+  forwardEmail?: Inbox & {messageID: string; date: Date};
   draft: number;
   uid?: number;
   uuid?: string;
@@ -221,6 +222,7 @@ export interface WebSocketResponse {
   subject?: string;
   body?: string;
   to?: string;
+  forward?: string;
   inReplyTo?: string;
   messageID?: string;
   date?: Date;

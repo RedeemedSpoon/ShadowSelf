@@ -131,7 +131,7 @@ export interface WebsocketRequest {
     | 'delete-email'
     | 'send-email'
     | 'save-draft'
-    | 'send-draft'
+    | 'forward-email'
     | 'load-more';
   ethnicity?: string;
   sex?: string;
@@ -150,6 +150,7 @@ export interface WebsocketRequest {
   uuid: string;
   from: number;
   draft: number;
+  forward: string;
   accounts: {
     id: number;
     password: string;
@@ -188,6 +189,7 @@ export interface APIParams {
   subject: string;
   body: string;
   to: string;
+  forward: string;
   inReplyTo: string;
   references: string[];
   attachments: {

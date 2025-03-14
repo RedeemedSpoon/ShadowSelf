@@ -1,8 +1,8 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, EditorParams, FetchAPI} from '$type';
-  import {mode, reply, target, identity, handleResponse, fetching} from '$store';
-  import {SendIcon, TrashIcon, ReplyIcon, ForwardIcon, InboxIcon} from '$icon';
-  import {ActionIcon, Loader} from '$component';
+  import {mode, reply, target, identity, handleResponse, fetching, showModal} from '$store';
+  import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, InboxIcon} from '$icon';
+  import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
   import EmailBody from './EmailBody.svelte';
   import {fetchAPI, notify} from '$lib';
   import Editor from './Editor.svelte';
@@ -15,6 +15,13 @@
   const showActionButtons = $derived(!$target || label === 'Junk');
   let inbox = $state() as FetchAPI;
   let from = $state(7) as number;
+
+  const className = {
+    label: '!bg-neutral-900/50 !border-neutral-700',
+    icon: 'fill-neutral-700 stroke-neutral-700',
+    input: 'placeholder-neutral-700 !bg-neutral-900/50 !border-neutral-700',
+    wrapper: 'w-2/3',
+  };
 
   onMount(() => (($mode = 'browse'), ($target = null)));
 
@@ -61,6 +68,12 @@
     ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
   }
 
+  function forwardEmail() {
+    $fetching = 3;
+    const forward = (document.querySelector('input[name="forward"]') as HTMLInputElement)?.value;
+    ws.send(JSON.stringify({type: 'forward-email', forward, uid: $target!.uid}));
+  }
+
   function submit(content: EditorParams, save: boolean, isdraft?: boolean) {
     if (content.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
       return notify('One attachment is too large (>15MB)', 'alert');
@@ -71,7 +84,7 @@
     const draft = isdraft ? $target!.uid : null;
 
     const inReplyTo = save ? $target?.inReplyTo || $target?.messageID : isdraft ? $target?.inReplyTo : $target?.messageID;
-    const references = $target ? ($target.reference || []).concat([inReplyTo!]) : [];
+    const references = $target ? ($target.references || []).concat([inReplyTo!]) : [];
 
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
     ws.send(JSON.stringify({type, draft, inReplyTo, references, to, ...content}));
@@ -116,6 +129,15 @@
         break;
       }
 
+      case 'forward-email': {
+        inbox.emails.sent.unshift(response.forwardEmail!);
+
+        $fetching = 0;
+        $showModal = 0;
+        $mode = 'browse';
+        $target = null;
+        break;
+      }
       case 'fetch-reply': {
         if (response.fetchEmail === null) return;
         $reply = [...$reply, response.fetchEmail!];
@@ -161,12 +183,27 @@
       icon={ReplyIcon}
       action={() => ($mode = 'reply')}
       title="Reply to Email" />
-    <ActionIcon disabled={label === 'Drafts' || showActionButtons} icon={ForwardIcon} action={() => {}} title="Forward Email" />
+    <ActionIcon
+      disabled={label === 'Drafts' || showActionButtons}
+      icon={ForwardIcon}
+      action={() => ($showModal = 1)}
+      title="Forward Email" />
     <ActionIcon disabled={showActionButtons} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
 <Editor {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} />
+<Modal>
+  <div class="flex flex-col items-center gap-8 p-8">
+    <h3 class="w-full !text-5xl text-neutral-300">Forward Email to Another Address</h3>
+    <p class="w-[40vw]">
+      Enter the email address of the recipient you would like to forward this email to. The original headers will be shown on top of
+      the body.
+    </p>
+    <InputWithIcon {className} icon={UserIcon} type="email" placeholder="username@domain.tld" name="forward" />
+    <LoadingButton index={3} className="w-2/3" onclick={forwardEmail}>Forward Email</LoadingButton>
+  </div>
+</Modal>
 {#await fetchAllEmails()}
   <div class="flex h-[40vh] items-center justify-center">
     <h3 class="flex items-center gap-6">
