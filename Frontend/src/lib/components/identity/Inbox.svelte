@@ -3,6 +3,7 @@
   import {mode, reply, target} from '$store';
   import {LoadingButton} from '$component';
   import type {FetchAPI} from '$type';
+  import {ReplyIcon} from '$icon';
 
   interface Props {
     inbox: FetchAPI['emails']['inbox'];
@@ -26,9 +27,14 @@
 {#if count > 0 && inbox.length > 0}
   {#each inbox as email}
     <div aria-hidden="true" class="container {$target?.messageID === email.messageID && 'target'}" onclick={() => handleClick(email)}>
-      <div class="w-1/2">
-        <h3 class="truncate !text-2xl text-neutral-300">{email.subject}</h3>
-        <p class="text-sm text-neutral-500">{email.date}</p>
+      <div class="relative w-1/2">
+        <div class:ml-12={email.inReplyTo}>
+          <h3 class="truncate !text-2xl text-neutral-300">{email.subject}</h3>
+          <p class="text-sm text-neutral-500">{email.date}</p>
+        </div>
+        {#if email.inReplyTo}
+          <ReplyIcon className="stroke-neutral-600 absolute left-0 top-1/2 -translate-y-1/2" />
+        {/if}
       </div>
       <div class="w-1/2">
         {#if label === 'INBOX'}
@@ -43,7 +49,9 @@
     </div>
   {/each}
   {#if inbox.length < count}
-    <LoadingButton className="relative z-20 w-full from-neutral-950 to-neutral-950/10 shadow-none" onclick={loadMore}>
+    <LoadingButton
+      className="bg-contain from-neutral-900 to-neutral-950/40 hover:text-neutral-400 py-7 w-full shadow-none"
+      onclick={loadMore}>
       Load More
     </LoadingButton>
   {/if}

@@ -84,7 +84,7 @@
     const draft = isdraft ? $target!.uid : null;
 
     const inReplyTo = save ? $target?.inReplyTo || $target?.messageID : isdraft ? $target?.inReplyTo : $target?.messageID;
-    const references = $target ? ($target.references || []).concat([inReplyTo!]) : [];
+    const references = $target && inReplyTo ? ($target.references || []).concat([inReplyTo!]) : [];
 
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
     ws.send(JSON.stringify({type, draft, inReplyTo, references, to, ...content}));
@@ -214,7 +214,18 @@
   {#if $mode === 'browse'}
     {#key inbox.emails}
       <div class="mt-[5vh] flex items-center justify-between">
-        <h3 class="!text-2xl">{$identity.email}</h3>
+        <div class="[*&>p]:!text-neutral-500">
+          <h3 class="!text-3xl">{$identity.email}</h3>
+          {#if label === 'INBOX'}
+            <p>{inbox.emails.messagesCount} Emails in Inbox</p>
+          {:else if label === 'Sent'}
+            <p>{inbox.emails.sentMessagesCount} Emails Sent</p>
+          {:else if label === 'Drafts'}
+            <p>{inbox.emails.draftsMessagesCount} Drafts</p>
+          {:else}
+            <p>{inbox.emails.junkMessagesCount} Junk/Deleted Emails</p>
+          {/if}
+        </div>
         <div id="mailbox-labels" class="flex">
           <button class:selected={label === 'INBOX'} onclick={() => ((label = 'INBOX'), ($target = null))}>Inbox</button>
           <button class:selected={label === 'Sent'} onclick={() => ((label = 'Sent'), ($target = null))}>Sent</button>
@@ -239,7 +250,9 @@
     {#if $target?.inReplyTo}
       {@const _ = fetchReply($target.inReplyTo)}
       {#each $reply as email}
-        <p>Response to: {email.subject}</p>
+        <h3 class="mt-8 flex items-center gap-2 !text-2xl text-neutral-300">
+          <ReplyIcon />In Reply To :
+        </h3>
         <EmailBody {email} />
       {/each}
     {/if}

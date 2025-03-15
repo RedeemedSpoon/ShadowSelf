@@ -40,6 +40,7 @@ export {default as UserDeleteIcon} from './UserDelete.svelte';
 export {default as InboxIcon} from './Inbox.svelte';
 export {default as ReplyIcon} from './Reply.svelte';
 export {default as ForwardIcon} from './Forward.svelte';
+export {default as AttachmentIcon} from './Attachment.svelte';
 
 export {default as EyeIcon} from './Eye.svelte';
 export {default as WWWIcon} from './WWW.svelte';
