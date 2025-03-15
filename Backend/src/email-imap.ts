@@ -178,18 +178,22 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
 async function parseMassage(connection: imap.ImapSimple, message: imap.Message) {
   const parts = imap.getParts(message.attributes.struct!);
 
-  const rawAttachments = parts.filter(
-    ({disposition}) => disposition && disposition.type.toUpperCase() === 'ATTACHMENT' && !disposition.params.filename.includes('.asc'),
-  );
+  let attachments =
+    parts.filter(
+      ({disposition}) =>
+        disposition && disposition.type.toUpperCase() === 'ATTACHMENT' && !disposition.params.filename.includes('.asc'),
+    ) || [];
 
-  const attachments = await Promise.all(
-    rawAttachments.map((part) =>
-      connection.getPartData(message, part).then((partData) => ({
-        filename: part.disposition.params.filename,
-        data: partData.toString('base64'),
-      })),
-    ),
-  );
+  try {
+    attachments = await Promise.all(
+      attachments.map((part) =>
+        connection.getPartData(message, part).then((partData) => ({
+          filename: part.disposition.params.filename,
+          data: partData.toString('base64'),
+        })),
+      ),
+    );
+  } catch {}
 
   if (!message.attributes.flags.includes('\\Seen')) {
     await connection.addFlags(message.attributes.uid, ['\\Seen']);
@@ -211,7 +215,6 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
   if (/Content-Type:/i.test(body) && /----/i.test(body)) {
     body = body.replace(/----.*/s, '').trim();
   }
-
   return {
     messageID: details['message-id'][0],
     subject: details.subject[0],

@@ -167,6 +167,7 @@
 
         inbox.emails = {...inbox.emails};
         $target = null;
+        from--;
         break;
       }
     }

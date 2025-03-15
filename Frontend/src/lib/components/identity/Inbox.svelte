@@ -48,13 +48,15 @@
       </div>
     </div>
   {/each}
-  {#if inbox.length < count}
-    <LoadingButton
-      className="bg-contain from-neutral-900 to-neutral-950/40 hover:text-neutral-400 py-7 w-full shadow-none"
-      onclick={loadMore}>
-      Load More
-    </LoadingButton>
-  {/if}
+  {#key inbox.length}
+    {#if inbox.length < count}
+      <LoadingButton
+        className="bg-contain from-neutral-900 to-neutral-950/40 hover:text-neutral-400 py-7 w-full shadow-none"
+        onclick={loadMore}>
+        Load More
+      </LoadingButton>
+    {/if}
+  {/key}
 {:else if label === 'INBOX'}
   <section class="no-emails" style="background-image: url({mailbox});">
     <h3 class="mt-12">No Emails Received</h3>
