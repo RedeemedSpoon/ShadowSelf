@@ -10,7 +10,7 @@
 </svelte:head>
 
 <section>
-  <img alt={page.error?.message} src="/404-error.gif" />
+  <img loading="lazy" alt={page.error?.message} src="/404-error.gif" />
   <h1 class="basic-style text-4xl md:text-6xl">Page Not Found.</h1>
   <p>
     It appears the page you're looking for doesn’t exist. This could be a spelling typo, a small mistake in the URL or a broken link.

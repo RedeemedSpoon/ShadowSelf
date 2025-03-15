@@ -1,5 +1,6 @@
 <script lang="ts">
   import {RocketIcon, ChevronIcon} from '$icon';
+  import {screenshot} from '$image';
 </script>
 
 <svelte:head>
@@ -14,6 +15,7 @@
     version will be available on <b>April 16th</b>. Stay tuned for the launch!
   </p>
   <a href="/"><button class="flex items-center gap-1">Go Home<ChevronIcon /></button></a>
+  <img loading="lazy" class="hidden" src={screenshot} alt="shadowself extension" />
 </div>
 
 <style lang="postcss">

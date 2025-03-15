@@ -177,7 +177,12 @@
         className="group-hover/copy:!text-neutral-400 text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
       {#key currentSection}
-        <img class="rounded-xl" id="pic" src={`data:image/png;base64,${$identity.picture}`} alt="{$identity.name}'s profile picture" />
+        <img
+          loading="lazy"
+          class="rounded-xl"
+          id="pic"
+          src={`data:image/png;base64,${$identity.picture}`}
+          alt="{$identity.name}'s profile picture" />
       {/key}
     </div>
     <div class="flex flex-col gap-2 text-nowrap">

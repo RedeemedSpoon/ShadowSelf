@@ -19,7 +19,11 @@
         location, etc.) and rest easy knowing that you no longer fear mass-surveillance, fraud and other potential threats to you.
       </CardItem>
       <CardItem {isMouseEntered} translateZ="100" className="hidden md:block w-full mt-6 border border-neutral-600 rounded-lg">
-        <img src={dashboard} class="h-60 w-full rounded-xl object-top group-hover/card:shadow-xl" alt="Dashboard Simplified" />
+        <img
+          loading="lazy"
+          src={dashboard}
+          class="h-60 w-full rounded-xl object-top group-hover/card:shadow-xl"
+          alt="Dashboard Simplified" />
       </CardItem>
       <CardItem {isMouseEntered} translateZ="50" className="absolute bottom-8 right-12 text-neutral-200 rounded-xl text-sm">
         Try now →

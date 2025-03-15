@@ -322,7 +322,7 @@
         <p class="lg:w-1/2">
           With our browser extension, you can access our VPN services, change user agents, and view your identity information.
         </p>
-        <img class="my-4 h-64 rounded-xl border border-neutral-700" src={screenshot} alt="shadowself extension" />
+        <img loading="lazy" class="my-4 h-64 rounded-xl border border-neutral-700" src={screenshot} alt="shadowself extension" />
         <ExtensionLinks extension={'shadowself'} />
       {:else if $currentStep === 7}
         <h3>Sync the extension with your account</h3>
