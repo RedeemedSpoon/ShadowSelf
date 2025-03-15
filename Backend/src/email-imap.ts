@@ -215,6 +215,7 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
   if (/Content-Type:/i.test(body) && /----/i.test(body)) {
     body = body.replace(/----.*/s, '').trim();
   }
+
   return {
     messageID: details['message-id'][0],
     subject: details.subject[0],

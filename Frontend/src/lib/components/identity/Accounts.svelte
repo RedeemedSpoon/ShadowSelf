@@ -6,6 +6,7 @@
   import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
   import {fetchAPI, notify} from '$lib';
   import {group, lock} from '$image';
+  import * as OTPAuth from 'otpauth';
   import {onMount} from 'svelte';
 
   let {ws, token}: IdentityComponentParams = $props();
@@ -229,7 +230,7 @@
         <InputWithIcon type="text" name="username" placeholder="Username" icon={UserIcon} />
         <div class="flex justify-between gap-4">
           <label for="password">Password<span class="text-red-600">*</span></label>
-          <div class="mt-2">
+          <div class="mt-2 flex gap-1">
             <ActionIcon title="regenerate a random password" icon={RepeatIcon} action={generatePassword} size="small" />
             <ActionIcon title="show password" icon={EyeIcon} action={() => ($showPassword = !$showPassword)} size="small" />
           </div>
@@ -260,6 +261,18 @@
             <div class="flex flex-col">
               <p class="text-left">{account.username}</p>
               <small class="text-left text-neutral-500">{account.website}</small>
+            </div>
+            <div>
+              {#if account.totp}
+                <p id={'acc' + account.id}></p>
+                {@const _ = (async function () {
+                  await new Promise((resolve) => setTimeout(resolve, 100));
+                  const generator = new OTPAuth.TOTP({algorithm: account.algorithm, secret: account.totp!});
+                  const element = document.getElementById('acc' + account.id) as HTMLParagraphElement;
+                  element.innerHTML = generator.generate();
+                  setInterval(() => (element.innerHTML = generator.generate()), 3000);
+                })()}
+              {/if}
             </div>
             {#if account.password === 'unable to decrypt' || account.totp === 'unable to decrypt'}
               <Tooltip

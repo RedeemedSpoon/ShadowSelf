@@ -24,6 +24,7 @@
     "dompurify": "^3.2.4",
     "globals": "^15.15.0",
     "mini-svg-data-uri": "^1.4.4",
+    "otpauth": "^9.3.6",
     "postcss": "^8.5.3",
     "qrcode": "^1.5.4",
     "quill": "^2.0.3",
