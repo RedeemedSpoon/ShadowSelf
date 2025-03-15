@@ -69,6 +69,16 @@
     }
   };
 
+  async function createTOTPGenerator(secret: string, algorithm: string, id: number) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const generator = new OTPAuth.TOTP({algorithm, secret});
+    const element = document.getElementById('acc' + id.toString()) as HTMLParagraphElement;
+    element.innerText = generator.generate();
+
+    setInterval(() => (element.innerText = generator.generate()), 3000);
+  }
+
   async function getMasterKey() {
     const keyBuffer = new Uint8Array(
       atob(password!)
@@ -251,43 +261,39 @@
   </section>
 {:else if accounts?.accounts.length && password}
   {#key accounts.accounts}
-    <section>
+    <section class="min-h-[40vh]">
       {#await decryptAll(accounts) then decryptedAccounts}
         {#each decryptedAccounts as account}
           <div
             aria-hidden="true"
             onclick={() => (target = account as FetchAPI['accounts'][number])}
             class="{target && target?.id == account.id ? 'target' : ''} wrapper last:border-b-0">
-            <div class="flex flex-col">
-              <p class="text-left">{account.username}</p>
+            <div class="flex w-1/3 flex-col overflow-hidden">
+              <p class="text-left text-neutral-300">{account.username}</p>
               <small class="text-left text-neutral-500">{account.website}</small>
             </div>
-            <div>
+            <div class="w-1/3 overflow-hidden">
               {#if account.totp}
-                <p id={'acc' + account.id}></p>
-                {@const _ = (async function () {
-                  await new Promise((resolve) => setTimeout(resolve, 100));
-                  const generator = new OTPAuth.TOTP({algorithm: account.algorithm, secret: account.totp!});
-                  const element = document.getElementById('acc' + account.id) as HTMLParagraphElement;
-                  element.innerHTML = generator.generate();
-                  setInterval(() => (element.innerHTML = generator.generate()), 3000);
-                })()}
+                <p class="text-center" id={'acc' + account.id}></p>
+                {@const _ = createTOTPGenerator(account.totp, account.algorithm, account.id)}
               {/if}
             </div>
-            {#if account.password === 'unable to decrypt' || account.totp === 'unable to decrypt'}
-              <Tooltip
-                tip="The password/TOTP decryption failed, most likely due to a mismatch with the master password during the decryption process.">
-                <p class="text-right text-red-600">
-                  Unable to decrypt
-                  <QuestionIcon className="inline-block ml-1 hover:cursor-default w-4 h-4" />
-                </p>
-              </Tooltip>
-            {:else}
-              <div class="flex flex-col">
-                <p class="truncate text-right">{account.password}</p>
-                <small class="truncate text-right text-neutral-500">{account.totp}</small>
-              </div>
-            {/if}
+            <div class="w-1/3 overflow-hidden">
+              {#if account.password === 'unable to decrypt' || account.totp === 'unable to decrypt'}
+                <Tooltip
+                  tip="The password/TOTP decryption failed, most likely due to a mismatch with the master password during the decryption process.">
+                  <p class="text-right text-red-600">
+                    Unable to decrypt
+                    <QuestionIcon className="inline-block ml-1 hover:cursor-default w-4 h-4" />
+                  </p>
+                </Tooltip>
+              {:else}
+                <div class="flex flex-col">
+                  <p class="truncate text-right">{account.password}</p>
+                  <small class="truncate text-right text-neutral-500">{account.totp}</small>
+                </div>
+              {/if}
+            </div>
           </div>
         {/each}
       {/await}
