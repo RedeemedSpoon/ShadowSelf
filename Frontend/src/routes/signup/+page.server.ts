@@ -1,6 +1,7 @@
 import {createCookie, fetchBackend} from '$lib';
 import {redirect} from '@sveltejs/kit';
 import type {Actions} from './$types';
+import {dev} from '$app/environment';
 import QRCode from 'qrcode';
 
 export const actions: Actions = {
@@ -130,7 +131,7 @@ export const actions: Actions = {
     if (!response.cookie) return response;
 
     createCookie(cookies, 'token', response.cookie);
-    cookies.delete('signup', {path: '/'});
+    cookies.delete('signup', {domain: dev ? 'localhost' : 'shadowself.io', path: '/'});
     redirect(302, '/dashboard');
   },
 };

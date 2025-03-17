@@ -82,16 +82,13 @@ export const actions: Actions = {
     if (!response.sessionUrl) return response;
     return {sessionUrl: response.sessionUrl, message: 'Successfully added payment method', type: 'success'};
   },
-  session: async ({request, cookies}) => {
+  session: async ({request}) => {
     const form = await request.formData();
     if (form.has('revoke')) await fetchBackend('/settings/revoke', 'GET');
-
-    cookies.delete('token', {path: '/'});
-    redirect(302, '/');
+    redirect(302, '/logout');
   },
-  delete: async ({cookies}) => {
+  delete: async () => {
     await fetchBackend('/settings/full', 'DELETE');
-    cookies.delete('token', {path: '/'});
-    redirect(302, '/');
+    redirect(302, '/logout');
   },
 };

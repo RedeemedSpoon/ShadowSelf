@@ -69,13 +69,11 @@ export async function fetchBackend(url: string, method = 'GET', body?: Record<st
 export function createCookie(cookies: Cookies, name: string, value: string, short: boolean = false) {
   return cookies.set(name, value, {
     path: '/',
-    httpOnly: true,
-    secure: true,
     domain: dev ? 'localhost' : 'shadowself.io',
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     maxAge: short ? 3_600_000 : 2_592_000_000,
     sameSite: 'strict',
-    priority: 'high',
+    secure: true,
   });
 }
 

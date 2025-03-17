@@ -7,6 +7,7 @@
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
+  import {dev} from '$app/environment';
   import {page} from '$app/state';
   import {notify} from '$lib';
 
@@ -58,8 +59,11 @@
       $fetching = 0;
 
       if (response?.error) return notify(response.error, 'alert');
-      if (response.finish) return goto('/dashboard');
       // if (response.sync) disabled = true;
+      if (response.finish) {
+        document.cookie = `creation-process=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${dev ? 'localhost' : 'shadowself.io'}`;
+        return goto('/dashboard');
+      }
 
       if (response?.repeat) {
         server.identity.name = response.repeat?.name || server.identity.name;

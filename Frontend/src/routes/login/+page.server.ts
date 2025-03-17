@@ -1,6 +1,7 @@
 import {createCookie, fetchBackend} from '$lib';
 import {redirect} from '@sveltejs/kit';
 import type {Actions} from './$types';
+import {dev} from '$app/environment';
 
 export const actions: Actions = {
   checkCredentials: async ({request, cookies}) => {
@@ -66,7 +67,7 @@ export const actions: Actions = {
     const response = await fetchBackend('/account/login-recovery', 'POST', {code, email});
     if (!response.cookie) return response;
 
-    cookies.delete('login', {path: '/'});
+    cookies.delete('login', {domain: dev ? 'localhost' : 'shadowself.io', path: '/'});
     createCookie(cookies, 'token', response.cookie);
     redirect(302, '/dashboard');
   },

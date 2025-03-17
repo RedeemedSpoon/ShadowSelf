@@ -4,6 +4,11 @@ export const handle: Handle = async ({event, resolve}) => {
   const isLogged = event.cookies.get('token');
   const path = event.url.pathname;
 
+  if (path === '/logout') {
+    event.cookies.delete('token', {domain: event.url.host, path: '/'});
+    redirect(302, '/');
+  }
+
   if (path === '/identity' || path === '/identity/') {
     redirect(302, '/dashboard');
   }
@@ -14,11 +19,6 @@ export const handle: Handle = async ({event, resolve}) => {
 
   if (['/dashboard', '/settings', '/identity/', '/purchase', '/create'].includes(path) && !isLogged) {
     redirect(302, '/login');
-  }
-
-  if (path === '/logout') {
-    event.cookies.delete('token', {path: '/'});
-    redirect(302, '/');
   }
 
   return resolve(event);
