@@ -3,7 +3,7 @@
   import {enhance} from '$app/forms';
   import {currentStep} from '$store';
   import {Card} from '$component';
-  import {sendFrom} from '$lib';
+  import {updateFetch} from '$lib';
 
   interface Props {
     shouldWait?: boolean;
@@ -22,7 +22,7 @@
     {#if index !== 1}
       <button class="alt group" type="button" onclick={backStep}>← Back<span></span></button>
     {/if}
-    <form method="POST" action="?/{action}" {name} use:enhance={() => sendFrom(shouldWait)}>
+    <form method="POST" action="?/{action}" {name} use:enhance={() => updateFetch(shouldWait)}>
       {@render children?.()}
     </form>
   </Card>

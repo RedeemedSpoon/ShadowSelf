@@ -2,7 +2,7 @@
   import {ActionIcon, CopyButton, ReactiveButton, SelectMenu, Tooltip, LoadingButton} from '$component';
   import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon, EditIcon, BackIcon} from '$icon';
   import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
-  import {currentSection, identity, fetching, handleResponse} from '$store';
+  import {currentSection, identity, fetchIndex, handleResponse} from '$store';
   import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
   import type {WebSocketResponse} from '$type';
 
@@ -56,7 +56,7 @@
     const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
     const sex = document.querySelector('.selected')?.id;
 
-    $fetching = 1;
+    $fetchIndex = 1;
     await new Promise((resolve) => setTimeout(resolve, 300));
     ws.send(JSON.stringify({type: 'regenerate-picture', sex, age, ethnicity, bio}));
   }
@@ -96,7 +96,7 @@
       case 'regenerate-picture': {
         const element = document.querySelector(`#profile`) as HTMLImageElement;
         element.src = `data:image/png;base64,${response.picture}`;
-        $fetching = 0;
+        $fetchIndex = 0;
         break;
       }
 

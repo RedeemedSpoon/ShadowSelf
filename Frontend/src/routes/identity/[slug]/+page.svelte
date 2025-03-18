@@ -1,7 +1,7 @@
 <script lang="ts">
   import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts} from '$component';
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
-  import {currentSection, fetching, handleResponse, identity} from '$store';
+  import {currentSection, fetchIndex, handleResponse, identity} from '$store';
   import type {Sections, WebSocketResponse} from '$type';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
@@ -60,7 +60,7 @@
       const response = JSON.parse(event.data) as WebSocketResponse;
       if (response.error) {
         notify(response.error, 'alert');
-        $fetching = 0;
+        $fetchIndex = 0;
       }
 
       $handleResponse(response);

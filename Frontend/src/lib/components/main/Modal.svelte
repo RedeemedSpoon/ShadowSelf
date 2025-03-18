@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
-  import {showModal} from '$store';
+  import {modalIndex} from '$store';
 
   interface Props {
     children: Snippet;
@@ -11,11 +11,11 @@
   let hide = $state(true);
 
   $effect(() => {
-    hide = $showModal !== id;
+    hide = $modalIndex !== id;
   });
 </script>
 
-<div id="backdrop" onclick={() => ($showModal = 0)} aria-hidden="true" class={hide ? 'hidden' : 'no-scroll'}></div>
+<div id="backdrop" onclick={() => ($modalIndex = 0)} aria-hidden="true" class={hide ? 'hidden' : 'no-scroll'}></div>
 <div id="modal" class:!hidden={hide}>
   {@render children?.()}
 </div>

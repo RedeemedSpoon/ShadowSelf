@@ -1,7 +1,7 @@
 <script lang="ts">
   import {Modal, LoadingButton} from '$component';
   import {ChevronIcon} from '$icon';
-  import {showModal} from '$store';
+  import {modalIndex} from '$store';
 
   interface Props {
     id: number;
@@ -22,7 +22,7 @@
       <br class="max-md:hidden" /> Are you sure you want to proceed?
     </p>
     <div class="flex justify-end gap-4">
-      <button class="alt text-red-700 hover:text-red-800" type="button" onclick={() => ($showModal = 0)}>Cancel</button>
+      <button class="alt text-red-700 hover:text-red-800" type="button" onclick={() => ($modalIndex = 0)}>Cancel</button>
       {#if fetch}
         <LoadingButton {name} {onclick} index={fetch} className="text-nowrap disable">Confirm</LoadingButton>
       {:else}

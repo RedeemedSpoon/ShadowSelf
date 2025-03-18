@@ -1,8 +1,8 @@
 <script lang="ts">
   import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon, QuestionIcon} from '$icon';
   import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu, Tooltip} from '$component';
+  import {fetchIndex, identity, modalIndex, showPassword, handleResponse} from '$store';
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
-  import {fetching, identity, showModal, showPassword, handleResponse} from '$store';
   import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
   import {fetchAPI, notify} from '$lib';
   import {group, lock} from '$image';
@@ -57,14 +57,14 @@
         });
 
         accounts.accounts = updatedAccounts;
-        $showModal = 0;
+        $modalIndex = 0;
         break;
       }
     }
 
     if (!response.error) {
       mode = 'view';
-      $fetching = 0;
+      $fetchIndex = 0;
       target = null;
     }
   };
@@ -90,7 +90,7 @@
   }
 
   async function setMasterPassword() {
-    $fetching = 1;
+    $fetchIndex = 1;
     await new Promise((resolve) => setTimeout(resolve, 750));
 
     const inputElement = document.querySelector('input[name="password"]') as HTMLInputElement;
@@ -122,14 +122,14 @@
     localStorage.setItem('key-' + $identity.id, base64Key);
     ws.send(JSON.stringify({type: 'update-encryption', accounts: updatedAccounts}));
 
-    $fetching = 0;
-    $showModal = 0;
+    $fetchIndex = 0;
+    $modalIndex = 0;
   }
 
   async function removeMasterPassword() {
     localStorage.removeItem('key-' + $identity.id);
     password = null;
-    $showModal = 0;
+    $modalIndex = 0;
   }
 
   async function generatePassword() {
@@ -181,7 +181,7 @@
   }
 
   async function addOrUpdateAccount() {
-    $fetching = 1;
+    $fetchIndex = 1;
     await new Promise((resolve) => setTimeout(resolve, 650));
 
     const username = (document.querySelector('input[name="username"]') as HTMLInputElement)?.value;
@@ -192,7 +192,7 @@
 
     if (!username || !rawPassword) {
       notify('Username and Password are required', 'alert');
-      $fetching = 0;
+      $fetchIndex = 0;
     }
 
     const password = await encrypt(rawPassword);
@@ -223,8 +223,8 @@
   <h1 class="text-5xl font-bold text-neutral-300">Online Accounts</h1>
   <div class="flex gap-1">
     <div class="flex gap-1" class:hidden={!password}>
-      <ActionIcon icon={LockEditIcon} action={() => ($showModal = 2)} title="Edit Master Password" />
-      <ActionIcon icon={LockRemoveIcon} action={() => ($showModal = 3)} title="Remove Local Master Password" />
+      <ActionIcon icon={LockEditIcon} action={() => ($modalIndex = 2)} title="Edit Master Password" />
+      <ActionIcon icon={LockRemoveIcon} action={() => ($modalIndex = 3)} title="Remove Local Master Password" />
     </div>
     <ActionIcon disabled={!password} icon={UserAddIcon} action={() => (mode = 'add')} title="Add Accounts" />
     <ActionIcon disabled={!target} icon={UserEditIcon} action={changeModeToEdit} title="Edit Accounts" />
@@ -315,7 +315,7 @@
       Set/recover a master password that will be stored on this device. This ensures only you can access your accounts—no one else, not
       even us. You can change it anytime.
     </p>
-    <button onclick={() => ($showModal = 1)}>Add Password</button>
+    <button onclick={() => ($modalIndex = 1)}>Add Password</button>
   </section>
   <Modal id={1}>
     <div class="flex flex-col items-center gap-8 p-8">

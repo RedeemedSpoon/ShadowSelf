@@ -2,7 +2,7 @@
   import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
   import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon, LimitIcon} from '$icon';
   import {PhoneIcon, EmailIcon, CreditCardIcon, UserIcon, ExtensionIcon, PinIcon} from '$icon';
-  import {currentStep, fetching, showModal} from '$store';
+  import {currentStep, fetchIndex, modalIndex} from '$store';
   import {ublock, canvas, screenshot} from '$image';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
@@ -55,8 +55,8 @@
       if (event.data === 'pong') return;
 
       const response = JSON.parse(event.data) as CreationProcess;
-      const oldFetch = $fetching;
-      $fetching = 0;
+      const oldFetch = $fetchIndex;
+      $fetchIndex = 0;
 
       if (response?.error) return notify(response.error, 'alert');
       // if (response.sync) disabled = true;
@@ -78,7 +78,7 @@
 
   async function respondServer() {
     if (![7, 8, 9].includes($currentStep)) {
-      $fetching = 1;
+      $fetchIndex = 1;
       await new Promise((resolve) => setTimeout(resolve, 650));
     }
 
@@ -182,7 +182,7 @@
       }
 
       case 'identities': {
-        $fetching = 2;
+        $fetchIndex = 2;
 
         const regenerate = {
           ethnicity: (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value,
@@ -385,7 +385,7 @@
         </p>
         <div class="flex w-full items-center justify-center gap-16">
           <button class="alt px-4 sm:px-8" onclick={() => window.location.reload()}>Redo</button>
-          <button class="px-8 sm:px-16" onclick={() => ($showModal = 1)}>Finish →</button>
+          <button class="px-8 sm:px-16" onclick={() => ($modalIndex = 1)}>Finish →</button>
         </div>
         <Modal>
           <div class="flex flex-col gap-4">
@@ -395,7 +395,7 @@
               <br class="max-md:hidden" /> Are you sure you want to proceed?
             </p>
             <div class="flex justify-end gap-4">
-              <button class="alt text-primary-700 hover:text-primary-800" onclick={() => ($showModal = 0)}>Cancel</button>
+              <button class="alt text-primary-700 hover:text-primary-800" onclick={() => ($modalIndex = 0)}>Cancel</button>
               <LoadingButton onclick={respondServer}>Confirm</LoadingButton>
             </div>
           </div>

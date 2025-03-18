@@ -1,8 +1,8 @@
 <script lang="ts">
-  import {Loader} from '$component';
-  import type {Snippet} from 'svelte';
+  import {fetchIndex, currentStep} from '$store';
   import {fly} from 'svelte/transition';
-  import {fetching, currentStep} from '$store';
+  import type {Snippet} from 'svelte';
+  import {Loader} from '$component';
 
   interface Props {
     children: Snippet;
@@ -19,8 +19,8 @@
     <section in:fly={{delay: 500, y: 35, duration: 500}} out:fly={{y: -35, duration: 500}}>
       {@render children?.()}
       {#if $currentStep !== finalStep}
-        <button onclick={handleClick} disabled={$fetching === 1 || disabled}>
-          {$fetching === 1 ? 'Next' : 'Next →'}
+        <button onclick={handleClick} disabled={$fetchIndex === 1 || disabled}>
+          {$fetchIndex === 1 ? 'Next' : 'Next →'}
           <Loader index={1} />
         </button>
       {/if}

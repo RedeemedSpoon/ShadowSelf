@@ -1,8 +1,8 @@
 <script lang="ts">
   import {CheckmarkIcon, CreditCardIcon, QuestionIcon} from '$icon';
+  import {pricingModel, fetchIndex, modalIndex} from '$store';
   import {type Notification, allPricingModels} from '$type';
   import {loadStripe, type Stripe} from '@stripe/stripe-js';
-  import {pricingModel, fetching, showModal} from '$store';
   import {LoadingButton, Modal, Tooltip} from '$component';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
@@ -77,11 +77,11 @@
 
       paymentElement.mount('#payment');
       document.querySelector('button[name="pay"]')!.addEventListener('click', async () => {
-        fetching.set(2);
+        fetchIndex.set(2);
         await new Promise((resolve) => setTimeout(resolve, 650));
 
         checkout.confirm().then(async (result) => {
-          fetching.set(0);
+          fetchIndex.set(0);
           if (result.type === 'error') notify(result.error.message, 'alert');
         });
       });
@@ -89,8 +89,8 @@
   }
 
   async function handleSubmit() {
-    fetching.set(1);
-    setTimeout(() => (fetching.set(0), showModal.set(1), handleCheckout()), 1000);
+    fetchIndex.set(1);
+    setTimeout(() => (fetchIndex.set(0), modalIndex.set(1), handleCheckout()), 1000);
 
     return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
       update({reset: false});

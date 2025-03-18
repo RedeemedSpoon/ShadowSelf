@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, EditorParams, FetchAPI} from '$type';
-  import {mode, reply, target, identity, handleResponse, fetching, showModal} from '$store';
+  import {mode, reply, target, identity, handleResponse, fetchIndex, modalIndex} from '$store';
   import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, InboxIcon} from '$icon';
   import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
   import EmailBody from './EmailBody.svelte';
@@ -37,7 +37,7 @@
   function loadMore() {
     const messageCountString = label.toLowerCase() === 'inbox' ? 'messagesCount' : `${label.toLowerCase()}MessagesCount`;
     const total = inbox.emails[messageCountString as keyof typeof inbox.emails] as number;
-    $fetching = 1;
+    $fetchIndex = 1;
 
     ws.send(JSON.stringify({type: 'load-more', mailbox: label, from: total - from}));
   }
@@ -69,7 +69,7 @@
   }
 
   function forwardEmail() {
-    $fetching = 3;
+    $fetchIndex = 3;
     const forward = (document.querySelector('input[name="forward"]') as HTMLInputElement)?.value;
     ws.send(JSON.stringify({type: 'forward-email', forward, uid: $target!.uid}));
   }
@@ -79,7 +79,7 @@
       return notify('One attachment is too large (>15MB)', 'alert');
     }
 
-    $fetching = save ? 2 : 1;
+    $fetchIndex = save ? 2 : 1;
     const type = save ? 'save-draft' : 'send-email';
     const draft = isdraft ? $target!.uid : null;
 
@@ -109,7 +109,7 @@
         inbox.emails.sent.unshift(response.sentEmail!);
         inbox.emails.sentMessagesCount++;
 
-        $fetching = 0;
+        $fetchIndex = 0;
         $mode = 'browse';
         $target = null;
         break;
@@ -123,7 +123,7 @@
         inbox.emails.drafts.unshift(response.savedDraft!);
         inbox.emails.draftsMessagesCount++;
 
-        $fetching = 0;
+        $fetchIndex = 0;
         $mode = 'browse';
         $target = null;
         break;
@@ -132,8 +132,8 @@
       case 'forward-email': {
         inbox.emails.sent.unshift(response.forwardEmail!);
 
-        $fetching = 0;
-        $showModal = 0;
+        $fetchIndex = 0;
+        $modalIndex = 0;
         $mode = 'browse';
         $target = null;
         break;
@@ -149,7 +149,7 @@
         const mailbox = response.mailbox?.toLowerCase() as 'inbox';
         inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.emails!];
 
-        $fetching = 0;
+        $fetchIndex = 0;
         from += 7;
         break;
       }
@@ -187,7 +187,7 @@
     <ActionIcon
       disabled={label === 'Drafts' || showActionButtons}
       icon={ForwardIcon}
-      action={() => ($showModal = 1)}
+      action={() => ($modalIndex = 1)}
       title="Forward Email" />
     <ActionIcon disabled={showActionButtons} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>

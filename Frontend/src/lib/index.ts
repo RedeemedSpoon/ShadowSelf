@@ -1,4 +1,4 @@
-import {notification, showModal, fetching} from '$store';
+import {notification, modalIndex, fetchIndex} from '$store';
 import type {FetchAPI, Notification} from '$type';
 import type {Cookies} from '@sveltejs/kit';
 import {dev} from '$app/environment';
@@ -15,19 +15,19 @@ export function notify(message: string, type: Notification['type'] = 'info') {
   }, 5000);
 }
 
-export async function sendFrom(shouldWait = false, index = 1, condition = true) {
-  if (condition) fetching.set(index);
+export async function updateFetch(shouldWait = false, index = 1, condition = true) {
+  if (condition) fetchIndex.set(index);
   if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 650));
 
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
-    fetching.set(0);
+    fetchIndex.set(0);
     update({reset: false});
   };
 }
 
-export async function setModal(index = 1, condition = true) {
-  if (!condition) showModal.set(0);
-  else showModal.set(index);
+export async function updateModal(index = 1, condition = true) {
+  if (!condition) modalIndex.set(0);
+  else modalIndex.set(index);
 
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
     update({reset: false});

@@ -13,8 +13,8 @@ export const scrollY: Writable<number> = writable(0);
 export const currentStep: Writable<number> = writable(1);
 export const scrollYProgress: Writable<number> = writable(0);
 
-export const showModal: Writable<number> = writable(0);
-export const fetching: Writable<number> = writable(0);
+export const modalIndex: Writable<number> = writable(0);
+export const fetchIndex: Writable<number> = writable(0);
 
 export const selectionMenuOpen: Writable<boolean> = writable(false);
 export const selectionInputOpen: Writable<boolean> = writable(false);

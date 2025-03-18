@@ -3,7 +3,7 @@
   import {Steps, StepsItem, InputWithIcon, LoadingButton, CopyButton, ReactiveButton, Tooltip} from '$component';
   import {loadStripe, type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Registration} from '$type';
-  import {currentStep, fetching} from '$store';
+  import {currentStep, fetchIndex} from '$store';
   import {get} from 'svelte/store';
   import {notify} from '$lib';
 
@@ -64,7 +64,7 @@
   }
 
   async function pay() {
-    fetching.set(1);
+    fetchIndex.set(1);
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     const {paymentMethod, error} = await stripe!.createPaymentMethod({type: 'card', card});
@@ -76,7 +76,7 @@
       submit.click();
     } else {
       notify(error!.message!, 'alert');
-      fetching.set(0);
+      fetchIndex.set(0);
     }
   }
 
