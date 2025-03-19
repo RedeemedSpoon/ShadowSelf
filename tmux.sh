@@ -22,7 +22,7 @@ tmux send-keys -t $session:$window 'stripe listen --forward-to localhost/webhook
 
 tmux split-window -t $session:2 -v
 tmux send-keys -t $session:$window 'clear' C-m
-tmux send-keys -t $session:$window 'twilio phone-numbers:update "$PHONE_NUMBER" --sms-url="http://localhost/webhook-twilio"' C-m
+tmux send-keys -t $session:$window 'twilio phone-numbers:update $PHONE_NUMBER --sms-url="http://localhost/webhook-twilio"' C-m
 
 window=3
 tmux new-window -t $session:$window -n 'Database'

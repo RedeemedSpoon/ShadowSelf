@@ -1,3 +1,4 @@
+import {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
 import type {QueryResult} from './types';
 import sharp from 'sharp';
 
@@ -25,6 +26,18 @@ export async function resizeImage(base64: string) {
   const buffer = Buffer.from(base64, 'base64');
   const resizedBuffer = await sharp(buffer).resize(256, 256).toBuffer();
   return resizedBuffer.toString('base64');
+}
+
+export async function parseMessage(message: MessageInstance[]) {
+  return message.map((msg) => ({
+    messageID: msg.sid,
+    status: msg.status,
+    date: msg.dateSent,
+    error: msg.errorCode ? `${msg.errorCode}: ${msg.errorMessage}` : null,
+    body: msg.body,
+    from: msg.from,
+    to: msg.to,
+  }));
 }
 
 export async function request(url: string, method = 'GET', body?: object) {

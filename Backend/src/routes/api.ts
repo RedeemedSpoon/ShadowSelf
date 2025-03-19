@@ -1,8 +1,8 @@
-import {attempt, resizeImage} from '../utils';
+import {attempt, parseMessage, resizeImage} from '../utils';
 import {fetchRecentEmails} from '../email-imap';
+import {sql, twilioClient} from '../connection';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
-import {sql} from '../connection';
 import {User} from '../types';
 
 export default new Elysia({prefix: '/api'})
@@ -61,7 +61,17 @@ export default new Elysia({prefix: '/api'})
 
     return {emails: await fetchRecentEmails(identity[0].email, identity[0].email_password)};
   })
-  .get('/phone/:id', async ({user, params}) => ({}))
+  .get('/phone/:id', async ({user, params}) => {
+    const identityID = params.id;
+    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
+    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
+    if (!identity.length) return error(400, 'Identity not found');
+
+    const receivedMessages = await parseMessage(await twilioClient.messages.list({to: identity[0].phone}));
+    const sentMessages = await parseMessage(await twilioClient.messages.list({from: identity[0].phone}));
+
+    return {receivedMessages, sentMessages};
+  })
   .get('/card/:id', async ({user, params}) => ({}))
   .get('/account/:id', async ({user, params}) => {
     const identityID = params.id;

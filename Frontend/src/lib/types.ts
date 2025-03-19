@@ -140,6 +140,8 @@ export interface FetchAPI {
     junk: Inbox[];
     drafts: Inbox[];
   };
+  receivedMessages: Message[];
+  sentMessages: Message[];
 }
 
 export interface IdentityComponentParams {
@@ -171,6 +173,16 @@ export interface FullIdentity {
   email: string;
   phone: string;
   card: number;
+}
+
+export interface Message {
+  messageID: string;
+  status: string;
+  date: string;
+  error: string;
+  body: string;
+  from: string;
+  to: string;
 }
 
 export interface WebSocketResponse {
