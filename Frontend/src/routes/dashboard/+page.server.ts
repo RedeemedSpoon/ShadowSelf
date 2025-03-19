@@ -13,8 +13,10 @@ export const load: PageServerLoad = async () => {
     };
 
   const searchKeywords: Option[] = [];
-  const identities = Object.values(response) as Identity[];
-  identities.pop();
+  const allIdentities = Object.values(response) as Identity[];
+
+  allIdentities.pop();
+  const identities = allIdentities.filter((identity) => identity.name);
 
   identities.forEach((identity) => {
     const concat = `${identity.name} ${identity.country} ${identity.location} ${identity.id} `;

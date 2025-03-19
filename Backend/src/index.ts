@@ -6,13 +6,14 @@ import {contact} from './email-smtp';
 import creationProcess from './routes/creation-process';
 import websocket from './routes/websocket';
 import extension from './routes/extension';
+import webhooks from './routes/webhooks';
 import settings from './routes/settings';
 import account from './routes/account';
 import billing from './routes/billing';
 import api from './routes/api';
 
 const app = new Elysia()
-  .onError(({error}) => ({message: error.message}))
+  .onError(({error}) => ({message: error instanceof Error ? error.message : error}))
   .get('/', () => 'Hello from ShadowSelf.')
   .post('/contact', async ({body}) => {
     const {err} = checkContact(body);
@@ -25,6 +26,7 @@ const app = new Elysia()
   .use(creationProcess)
   .use(websocket)
   .use(extension)
+  .use(webhooks)
   .use(settings)
   .use(account)
   .use(billing)

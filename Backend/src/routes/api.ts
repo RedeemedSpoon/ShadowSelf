@@ -30,6 +30,7 @@ export default new Elysia({prefix: '/api'})
     if (!result.length) return error(400, 'User/Identity not found');
 
     const allIdentitiesPromises = result.map(async (identity) => {
+      if (!identity.name) return {};
       const {id, picture, name, location, email, phone, card} = identity;
 
       const lowResPic = await resizeImage(picture);
