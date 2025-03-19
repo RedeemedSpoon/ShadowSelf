@@ -177,13 +177,15 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             phoneNumber: phone,
           });
 
+          const mmsSupport = result.capabilities.mms;
+          const messagingService = twilioClient.messaging.v1.services(process.env.TWILIO_MESSAGING_SERVICE!);
+          messagingService.phoneNumbers.create({phoneNumberSid: result.sid});
+
           await attempt(sql`UPDATE identities SET location = ${fullLocation}, proxy_server = ${proxyServer} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`);
-          await attempt(
-            sql`UPDATE identities SET phone = ${phone}, mms_support = ${result.capabilities.mms} WHERE id = ${identityID}`,
-          );
+          await attempt(sql`UPDATE identities SET phone = ${phone}, mms_support = ${mmsSupport} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET card = ${card} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`);
 
