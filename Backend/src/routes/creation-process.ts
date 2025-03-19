@@ -118,7 +118,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           cookie.set({value: cookie.value + `&&${sanitizedEmail}`});
 
           const location = cookieStore[0];
-          const phoneType = location === 'US' || location === 'CA' ? 'local' : 'mobile';
+          const phoneType = location === 'US' ? 'tollFree' : location === 'CA' ? 'local' : 'mobile';
 
           const result = await twilioClient.availablePhoneNumbers(location)[phoneType as 'local'].list({
             limit: 20,
@@ -171,7 +171,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           await $`useradd -m -G mail ${emailUsername}`.nothrow().quiet();
           await $`echo ${emailUsername}:${emailPassword} | chpasswd`.nothrow().quiet();
 
-          await twilioClient.incomingPhoneNumbers.create({
+          const result = await twilioClient.incomingPhoneNumbers.create({
             emergencyStatus: 'Inactive',
             smsUrl: `${origin}/webhook-twilio`,
             phoneNumber: phone,
@@ -181,7 +181,10 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           await attempt(sql`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`);
-          await attempt(sql`UPDATE identities SET phone = ${phone}, card = ${card} WHERE id = ${identityID}`);
+          await attempt(
+            sql`UPDATE identities SET phone = ${phone}, mms_support = ${result.capabilities.mms} WHERE id = ${identityID}`,
+          );
+          await attempt(sql`UPDATE identities SET card = ${card} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`);
 
           cookie.remove();
