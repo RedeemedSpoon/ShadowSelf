@@ -47,9 +47,10 @@ export default new Elysia()
     return {received: true};
   })
   .post('/webhook-twilio', async ({body}: {body: {To: string}}) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
     const message = (await parseMessage(await twilioClient.messages.list({to: body.To, limit: 1})))[0];
     const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
     if (!ws) return;
 
-    ws?.websocket.send({type: 'new-message', message});
+    ws?.websocket.send(JSON.stringify({type: 'new-message', newMessage: message}));
   });
