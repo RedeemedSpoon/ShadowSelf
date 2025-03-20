@@ -1,9 +1,10 @@
 <script lang="ts">
-  import {UserAddIcon, UserEditIcon, UserDeleteIcon, LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon, QuestionIcon} from '$icon';
-  import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu, Tooltip} from '$component';
+  import {ActionIcon, Modal, LoadingButton, InputWithIcon, ConfirmModal, SelectMenu, Tooltip, HoverCopyButton} from '$component';
   import {fetchIndex, identity, modalIndex, showPassword, handleResponse} from '$store';
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
-  import {UserIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
+  import {UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon} from '$icon';
+  import {LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon} from '$icon';
+  import {UserIcon, WWWIcon, RepeatIcon, EyeIcon, BackIcon} from '$icon';
   import {fetchAPI, notify} from '$lib';
   import {group, lock} from '$image';
   import * as OTPAuth from 'otpauth';
@@ -69,14 +70,23 @@
     }
   };
 
+  function handleClick(account: FetchAPI['accounts'][number]) {
+    if (target?.id == account.id && account.website) {
+      let websiteURL = account.website.startsWith('http') ? account.website : 'https://' + account.website;
+      window.open(websiteURL, '_blank');
+    }
+
+    target = account;
+  }
+
   async function createTOTPGenerator(secret: string, algorithm: string, id: number) {
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     const generator = new OTPAuth.TOTP({algorithm, secret});
-    const element = document.getElementById('acc' + id.toString()) as HTMLParagraphElement;
+    const element = document.getElementById(id.toString()) as HTMLParagraphElement;
     element.innerText = generator.generate();
 
-    setInterval(() => (element.innerText = generator.generate()), 3000);
+    setInterval(() => (element.innerText = generator.generate()), 30000);
   }
 
   async function getMasterKey() {
@@ -222,6 +232,9 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h1 class="text-5xl font-bold text-neutral-300">Online Accounts</h1>
   <div class="flex gap-1">
+    <div class:hidden={mode === 'view'}>
+      <ActionIcon icon={BackIcon} action={() => (mode = 'view')} title="Ignore Changes" />
+    </div>
     <div class="flex gap-1" class:hidden={!password}>
       <ActionIcon icon={LockEditIcon} action={() => ($modalIndex = 2)} title="Edit Master Password" />
       <ActionIcon icon={LockRemoveIcon} action={() => ($modalIndex = 3)} title="Remove Local Master Password" />
@@ -241,8 +254,8 @@
         <div class="flex justify-between gap-4">
           <label for="password">Password<span class="text-red-600">*</span></label>
           <div class="mt-2 flex gap-1">
-            <ActionIcon title="regenerate a random password" icon={RepeatIcon} action={generatePassword} size="small" />
-            <ActionIcon title="show password" icon={EyeIcon} action={() => ($showPassword = !$showPassword)} size="small" />
+            <ActionIcon title="Regenerate Random Password" icon={RepeatIcon} action={generatePassword} size="small" />
+            <ActionIcon title="Show Password" icon={EyeIcon} action={() => ($showPassword = !$showPassword)} size="small" />
           </div>
         </div>
         <InputWithIcon type={$showPassword ? 'text' : 'password'} name="password" placeholder="Password" icon={KeyIcon} />
@@ -266,15 +279,22 @@
         {#each decryptedAccounts as account}
           <div
             aria-hidden="true"
-            onclick={() => (target = account as FetchAPI['accounts'][number])}
+            onclick={() => handleClick(account as FetchAPI['accounts'][number])}
             class="{target && target?.id == account.id ? 'target' : ''} wrapper last:border-b-0">
             <div class="flex w-1/3 flex-col overflow-hidden">
-              <p class="text-left text-neutral-300">{account.username}</p>
-              <small class="text-left text-neutral-500">{account.website}</small>
+              <HoverCopyButton text={account.username} icon={UserIcon} color="!text-neutral-300" />
+              {#if account.website}
+                <HoverCopyButton text={account.website} size="small" icon={WWWIcon} color="!text-neutral-500" />
+              {/if}
             </div>
             <div class="w-1/3 overflow-hidden">
               {#if account.totp}
-                <p class="text-center" id={'acc' + account.id}></p>
+                <div class="flex flex-col items-center">
+                  <HoverCopyButton id={account.id.toString()} icon={KeylockIcon} color="!text-neutral-400" />
+                  <div class="relative mt-2 h-1 w-1/2 rounded-2xl bg-neutral-800">
+                    <div class="animate-progress bg-primary-700 absolute left-0 top-0 h-full rounded-2xl"></div>
+                  </div>
+                </div>
                 {@const _ = createTOTPGenerator(account.totp, account.algorithm, account.id)}
               {/if}
             </div>
@@ -289,8 +309,7 @@
                 </Tooltip>
               {:else}
                 <div class="flex flex-col">
-                  <p class="truncate text-right">{account.password}</p>
-                  <small class="truncate text-right text-neutral-500">{account.totp}</small>
+                  <HoverCopyButton text={account.password} icon={KeyIcon} color="!text-neutral-400" direction="end" />
                 </div>
               {/if}
             </div>
@@ -352,7 +371,8 @@
   }
 
   .wrapper {
-    @apply flex h-24 items-center justify-between border-b border-neutral-700 px-8 py-2 hover:bg-neutral-400/5;
+    @apply flex h-24 items-center justify-between border-b border-neutral-700 px-8 py-2;
+    @apply cursor-pointer select-none hover:bg-neutral-400/5;
   }
 
   .target {

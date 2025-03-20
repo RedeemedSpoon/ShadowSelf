@@ -71,9 +71,17 @@
       </div>
       {#key inbox}
         {#each getMessages() as message}
-          <div class="border-b border-neutral-700 px-8 py-4 last:border-none hover:bg-neutral-300/10">
-            <p class="text-sm text-neutral-500">{message.date}</p>
-            <p>{message.body}</p>
+          <div
+            class="flex items-center justify-between border-b border-neutral-700 px-8 py-4 last:border-none hover:bg-neutral-300/10">
+            <div>
+              <p>{message.body.length > 45 ? message.body.slice(0, 45).trim() + '...' : message.body}</p>
+              <p class="text-sm text-neutral-500">{new Date(message.date).toLocaleString()}</p>
+            </div>
+            {#if message.from === $identity.phone}
+              <p class="text-right">Sent to {formatPhoneNumber(message.to)}</p>
+            {:else}
+              <p class="text-right">Received from {formatPhoneNumber(message.from)}</p>
+            {/if}
           </div>
         {/each}
       {/key}

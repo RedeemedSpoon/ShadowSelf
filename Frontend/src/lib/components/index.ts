@@ -14,6 +14,7 @@ export {default as LoadingButton} from './main/LoadingButton.svelte';
 export {default as InputWithIcon} from './main/InputWithIcon.svelte';
 export {default as ReactiveButton} from './main/ReactiveButton.svelte';
 export {default as InputWithButton} from './main/InputWithButton.svelte';
+export {default as HoverCopyButton} from './main/HoverCopyButton.svelte';
 
 export {default as Steps} from './main/Steps.svelte';
 export {default as StepsItem} from './main/StepsItem.svelte';

@@ -18,9 +18,14 @@ export default {
         shake: 'shake 8s ease-in-out infinite',
         scroll: 'scroll 180s linear infinite',
         orbit: 'orbit 1.5s ease-in-out calc(var(--index) * 0.1s) infinite',
+        progress: 'progress 30s linear infinite',
       },
       keyframes: {
         border: {'100%': {transform: 'rotate(-360deg)'}},
+        progress: {
+          '0%': {width: '0%'},
+          '100%': {width: '100%'},
+        },
         shake: {
           '0%, 100%': {transform: 'translateY(0)'},
           '50%': {transform: 'translateY(-50px)'},
