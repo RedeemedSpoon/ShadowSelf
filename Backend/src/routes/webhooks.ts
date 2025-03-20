@@ -1,8 +1,8 @@
-import {sql, stripe} from '../connection';
+import {sql, stripe, twilioClient, WSConnections} from '../connection';
+import {attempt, parseMessage} from '../utils';
 import {Elysia, error} from 'elysia';
 import {type User} from '../types';
 import {jwt} from '@elysiajs/jwt';
-import {attempt} from '../utils';
 
 export default new Elysia()
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -46,7 +46,10 @@ export default new Elysia()
 
     return {received: true};
   })
-  .post('/webhook-twilio', async ({request}) => {
-    console.log(request);
-    return {received: true};
+  .post('/webhook-twilio', async ({body}: {body: {To: string}}) => {
+    const message = (await parseMessage(await twilioClient.messages.list({to: body.To, limit: 1})))[0];
+    const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
+    if (!ws) return;
+
+    ws?.websocket.send({type: 'new-message', message});
   });

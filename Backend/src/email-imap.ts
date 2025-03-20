@@ -1,12 +1,12 @@
+import {imapConnection, WSConnections} from './connection';
 import MailComposer from 'nodemailer/lib/mail-composer';
-import {imapConnection} from './connection';
 import {EmailContent} from './types';
 import PostalMime from 'postal-mime';
 import imap from 'imap-simple';
 // @ts-expect-error No declaration file
 import mimelib from 'mimelib';
 
-export async function listenForEmail(ws: WebSocket, user: string, password: string) {
+export async function listenForEmail(user: string, password: string) {
   async function onmail(mail: number) {
     if (mail > 1) return;
 
@@ -18,14 +18,17 @@ export async function listenForEmail(ws: WebSocket, user: string, password: stri
 
     for (const message of messages) {
       const response = await parseMassage(connection, message);
-      ws.send(JSON.stringify({type: 'new-email', newEmail: response}));
+      const ws = WSConnections.find((ws) => ws.emailAddress === user);
+      if (!ws) return;
+
+      ws.websocket.send(JSON.stringify({type: 'new-email', newEmail: response}));
     }
   }
 
   const connection = await imapConnection(user, password, onmail);
   connection.openBox('INBOX');
 
-  ws.onclose = () => connection.end();
+  return connection;
 }
 
 export async function fetchMoreEmails(user: string, password: string, mailbox: string, from: number) {

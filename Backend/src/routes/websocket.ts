@@ -1,12 +1,12 @@
 import {fetchMoreEmails, listenForEmail, fetchEmail, deleteEmail, appendToMailbox} from '../email-imap';
 import {User, WebsocketRequest, Location, APIParams} from '../types';
+import {sql, WSConnections} from '../connection';
 import {sendIdentityEmail} from '../email-smtp';
 import {generateProfile} from '../prompts';
 import {attempt, request} from '../utils';
 import {allFakers} from '@faker-js/faker';
 import {checkAPI} from '../checks';
 import {jwt} from '@elysiajs/jwt';
-import {sql} from '../connection';
 import {Elysia} from 'elysia';
 
 export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string})).ws('/ws/api/:id', {
@@ -24,8 +24,15 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
     const id = (await attempt(sql`SELECT id FROM users WHERE email = ${user!.email}`))[0].id;
     if (id !== identity.owner) return ws.close(1014, 'You do not authorize to perform this action');
 
-    // @ts-expect-error Websocket type
-    listenForEmail(ws, identity.email, identity.email_password);
+    const connection = await listenForEmail(identity.email, identity.email_password);
+    WSConnections.push({imapConnection: connection, websocket: ws, phoneNumber: identity.phone, emailAddress: identity.email});
+  },
+  async close(ws) {
+    const connection = WSConnections.find((wss) => wss.websocket === ws);
+    if (!connection) return;
+
+    connection.imapConnection.end();
+    WSConnections.splice(WSConnections.indexOf(connection), 1);
   },
   async message(ws, message: WebsocketRequest | 'ping') {
     if (message === 'ping') return ws.send('pong');

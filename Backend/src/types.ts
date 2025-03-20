@@ -1,6 +1,16 @@
+import {ImapSimple} from 'imap-simple';
+import {ElysiaWS} from 'elysia/ws';
+
 export type User = {email: string; id: string} | undefined;
 export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
 export type Attachment = {filename: string; data: string};
+
+export interface WSConnection {
+  imapConnection: ImapSimple;
+  websocket: ElysiaWS;
+  phoneNumber: string;
+  emailAddress: string;
+}
 
 export interface ContactDetail {
   category: 'question' | 'feedback' | 'collaboration' | 'bug' | 'help' | 'other';

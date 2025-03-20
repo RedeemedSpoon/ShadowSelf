@@ -1,8 +1,11 @@
+import {WSConnection} from './types';
 import nodemailer from 'nodemailer';
 import postgres from 'postgres';
 import imap from 'imap-simple';
 import Stripe from 'stripe';
 import twilio from 'twilio';
+
+export const WSConnections: WSConnection[] = [];
 
 export const sql = postgres({
   host: 'localhost',

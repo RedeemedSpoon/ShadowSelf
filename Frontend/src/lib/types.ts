@@ -72,6 +72,59 @@ export interface AnimationSelector {
   delay?: number;
 }
 
+export interface Inbox {
+  messageID: string;
+  subject: string;
+  from: string;
+  to: string;
+  date: string;
+  references: string[] | null;
+  inReplyTo: string | null;
+  uid: number;
+  attachments: {
+    filename: string;
+    data: string;
+  }[];
+  body: string;
+  type: 'html' | 'text';
+}
+
+export interface EditorParams {
+  subject: string;
+  body: string;
+  attachments: {
+    filename: string;
+    data: string;
+  }[];
+}
+
+export interface Message {
+  messageID: string;
+  status: string;
+  date: string;
+  error: string;
+  body: string;
+  from: string;
+  to: string;
+}
+
+export interface FullIdentity {
+  id: string;
+  creation_date: Date;
+  proxy_server: string;
+  user_agent: string;
+  location: string;
+  picture: string;
+  name: string;
+  bio: string;
+  age: number;
+  sex: string;
+  ethnicity: string;
+  email: string;
+  phone: string;
+  card: number;
+}
+
 export interface CreationProcess {
   error: string;
   locations: {
@@ -90,35 +143,12 @@ export interface CreationProcess {
     sex: 'male' | 'female';
     ethnicity: string;
   };
-  repeat: {
-    name: string;
-    bio: string;
-  };
-  phone: {
-    phone: string;
-    formatted: string;
-  }[];
+  repeat: {name: string; bio: string};
+  phone: {phone: string; formatted: string}[];
   email: string;
   card: string;
   sync: string;
   finish: boolean;
-}
-
-export interface Inbox {
-  messageID: string;
-  subject: string;
-  from: string;
-  to: string;
-  date: string;
-  references: string[] | null;
-  inReplyTo: string | null;
-  uid: number;
-  attachments: {
-    filename: string;
-    data: string;
-  }[];
-  body: string;
-  type: 'html' | 'text';
 }
 
 export interface FetchAPI {
@@ -149,42 +179,6 @@ export interface IdentityComponentParams {
   token: string;
 }
 
-export interface EditorParams {
-  subject: string;
-  body: string;
-  attachments: {
-    filename: string;
-    data: string;
-  }[];
-}
-
-export interface FullIdentity {
-  id: string;
-  creation_date: Date;
-  proxy_server: string;
-  user_agent: string;
-  location: string;
-  picture: string;
-  name: string;
-  bio: string;
-  age: number;
-  sex: string;
-  ethnicity: string;
-  email: string;
-  phone: string;
-  card: number;
-}
-
-export interface Message {
-  messageID: string;
-  status: string;
-  date: string;
-  error: string;
-  body: string;
-  from: string;
-  to: string;
-}
-
 export interface WebSocketResponse {
   error?: string;
   type?:
@@ -202,7 +196,8 @@ export interface WebSocketResponse {
     | 'save-draft'
     | 'fetch-reply'
     | 'load-more'
-    | 'forward-email';
+    | 'forward-email'
+    | 'new-message';
   picture?: string;
   ethnicity?: string;
   name?: string;
@@ -242,6 +237,7 @@ export interface WebSocketResponse {
     filename: string;
     data: string;
   }[];
+  newMessage?: Message;
 }
 
 export interface PricingModel {
