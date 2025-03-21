@@ -23,6 +23,7 @@ const config = {
       $image: 'src/lib/images',
       $icon: 'src/lib/icons',
       $type: 'src/lib/types.ts',
+      $crypto: 'src/lib/crypto.ts',
       $store: 'src/lib/stores.ts',
       $lib: 'src/lib/index.ts',
       $dom: 'src/lib/dom.ts',

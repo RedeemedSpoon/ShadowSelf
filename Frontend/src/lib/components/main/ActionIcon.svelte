@@ -9,11 +9,12 @@
     title: string;
     commit?: boolean;
     disabled?: boolean;
+    showPassword?: boolean;
     activeStatus?: boolean;
     size?: 'big' | 'small';
   }
 
-  let {disabled, icon, action, activeStatus, commit, title, size = 'big'}: Props = $props();
+  let {action, disabled, icon, activeStatus, commit, showPassword, title, size = 'big'}: Props = $props();
 
   const width = size === 'big' ? 'w-8 h-8' : 'w-4 h-4';
 </script>
@@ -24,7 +25,7 @@
       <CheckmarkIcon className={width + ' fill-primary-600 stroke-none'} />
     {:else}
       {@const SvelteComponent = icon}
-      <SvelteComponent fill={true} className={width + ' stroke-neutral-300 ' + (disabled && 'cursor-not-allowed')} />
+      <SvelteComponent {showPassword} fill={true} className={width + ' stroke-neutral-300 ' + (disabled && 'cursor-not-allowed')} />
     {/if}
   </button>
 </Tooltip>

@@ -24,7 +24,7 @@ export const target: Writable<FetchAPI['emails']['inbox'][number] | null> = writ
 export const mode: Writable<'browse' | 'read' | 'write' | 'write-draft' | 'reply'> = writable('browse');
 
 export const identity: Writable<FullIdentity> = writable();
-export const showPassword: Writable<boolean> = writable(false);
+export const masterPassword: Writable<string> = writable();
 export const handleResponse: Writable<(response: WebSocketResponse) => void> = writable(() => {});
 
 export const notification: Writable<Notification> = writable({id: null, message: '', type: 'info'});

@@ -1,12 +1,14 @@
 <script lang="ts">
-  import {showPassword} from '$store';
+  interface Props {
+    className?: string | undefined;
+    showPassword?: boolean;
+  }
 
-  let {className}: {className?: string | undefined} = $props();
+  let {className, showPassword}: Props = $props();
 </script>
 
-{#if $showPassword}
+{#if showPassword}
   <svg
-    onclick={() => (on = false)}
     aria-hidden="true"
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
@@ -19,7 +21,6 @@
   </svg>
 {:else}
   <svg
-    onclick={() => (on = true)}
     aria-hidden="true"
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"

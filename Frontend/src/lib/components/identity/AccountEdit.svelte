@@ -1,0 +1,90 @@
+<script lang="ts">
+  import {KeyIcon, UserIcon, KeylockIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
+  import {ActionIcon, LoadingButton, InputWithIcon, SelectMenu} from '$component';
+  import type {FetchAPI} from '$type';
+  import {fetchIndex} from '$store';
+  import {encrypt} from '$crypto';
+  import {notify} from '$lib';
+
+  interface Props {
+    target: FetchAPI['accounts'][number];
+    mode: 'view' | 'add' | 'edit';
+    ws: WebSocket;
+  }
+
+  let {target, mode, ws}: Props = $props();
+  let showPassword = $state(false) as boolean;
+
+  async function generatePassword() {
+    const password = window.crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
+    const element = document.querySelector('input[name="password"]') as HTMLInputElement;
+    element.value = password;
+  }
+
+  async function addOrUpdateAccount() {
+    $fetchIndex = 1;
+    await new Promise((resolve) => setTimeout(resolve, 650));
+
+    const username = (document.querySelector('input[name="username"]') as HTMLInputElement)?.value;
+    const rawPassword = (document.querySelector('input[name="password"]') as HTMLInputElement)?.value;
+    const website = (document.querySelector('input[name="website"]') as HTMLInputElement)?.value;
+    const rawTotp = (document.querySelector('input[name="totp"]') as HTMLInputElement)?.value;
+    const algorithm = (document.querySelector('input[name="algorithm"]') as HTMLInputElement)?.value.toUpperCase();
+
+    if (!username || !rawPassword) {
+      notify('Username and Password are required', 'alert');
+      $fetchIndex = 0;
+    }
+
+    const password = await encrypt(rawPassword);
+    const totp = rawTotp ? await encrypt(rawTotp) : null;
+
+    const id = mode === 'edit' ? target!.id : null;
+    const type = mode === 'add' ? 'add-account' : 'edit-account';
+
+    ws.send(JSON.stringify({type, id, username, password, website, totp, algorithm}));
+  }
+</script>
+
+{#if mode === 'add' || mode === 'edit'}
+  <section class="flex flex-col items-center gap-8 p-8">
+    <h3 class="!text-5xl text-neutral-300">{mode === 'add' ? 'Add' : 'Edit'} Account</h3>
+    <div class="flex gap-8">
+      <div class="flex flex-col gap-2">
+        <label for="username">Username<span class="text-red-600">*</span></label>
+        <InputWithIcon type="text" name="username" placeholder="Username" icon={UserIcon} />
+        <div class="flex justify-between gap-4">
+          <label for="password">Password<span class="text-red-600">*</span></label>
+          <div class="mt-2 flex gap-1">
+            <ActionIcon title="Regenerate Random Password" icon={RepeatIcon} action={generatePassword} size="small" />
+            <ActionIcon
+              title="Show Password"
+              icon={EyeIcon}
+              {showPassword}
+              action={() => (showPassword = !showPassword)}
+              size="small" />
+          </div>
+        </div>
+        <InputWithIcon type={showPassword ? 'text' : 'password'} name="password" placeholder="Password" icon={KeyIcon} />
+        <label for="website">Website</label>
+        <InputWithIcon type="url" name="website" placeholder="Website URL" icon={WWWIcon} />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label for="totp">Totp Secret</label>
+        <InputWithIcon type="text" name="totp" placeholder="Totp Secret" icon={KeylockIcon} />
+        <label for="algorithm">Algorithm</label>
+        <SelectMenu options={['SHA1', 'SHA256', 'SHA512']} name="algorithm" />
+        <p>* Required Fields</p>
+      </div>
+    </div>
+    <LoadingButton onclick={addOrUpdateAccount}>
+      {mode === 'add' ? 'Add' : 'Update'} Account
+    </LoadingButton>
+  </section>
+{/if}
+
+<style lang="postcss">
+  label {
+    @apply ml-2 mt-2 text-neutral-300;
+  }
+</style>
