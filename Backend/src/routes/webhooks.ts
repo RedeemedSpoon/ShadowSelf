@@ -3,6 +3,7 @@ import {attempt, parseMessage} from '../utils';
 import {Elysia, error} from 'elysia';
 import {type User} from '../types';
 import {jwt} from '@elysiajs/jwt';
+import twilio from 'twilio';
 
 export default new Elysia()
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -46,9 +47,17 @@ export default new Elysia()
 
     return {received: true};
   })
-  .post('/webhook-twilio', async ({body}: {body: {To: string}}) => {
+  .post('/webhook-twilio', async ({body, request, headers}) => {
+    const signature = headers['X-Twilio-Signature'] || '';
+    const rawBody = body as {[key: string]: string};
+    const auth = process.env.TWILIO_TOKEN!;
+
+    if (!twilio.validateRequest(auth, signature, request.url, rawBody)) {
+      return error(400, 'Invalid signature');
+    }
+
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const message = (await parseMessage(await twilioClient.messages.list({to: body.To, limit: 1})))[0];
+    const message = (await parseMessage(await twilioClient.messages.list({to: rawBody.To, limit: 1})))[0];
     const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
     if (!ws) return;
 
