@@ -56,7 +56,7 @@
 </script>
 
 <input required bind:this={input} type="hidden" name={name.toLowerCase()} value={value || givenOptions[0].value} />
-<div bind:this={select} id="select-input" class="relative min-w-[15vw]">
+<div bind:this={select} id="select-input" class="relative z-20 min-w-[15vw]">
   <button type="button" bind:this={btn} onclick={handleBtnSelect}>
     <div class="flex items-center gap-2">
       {#if icon}

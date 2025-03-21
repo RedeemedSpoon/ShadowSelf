@@ -1,16 +1,16 @@
 <script lang="ts">
-  import {ActionIcon, CopyButton, ReactiveButton, SelectMenu, Tooltip, LoadingButton} from '$component';
-  import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon, EditIcon, BackIcon} from '$icon';
   import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
   import {currentSection, identity, fetchIndex, handleResponse} from '$store';
   import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
+  import {ActionIcon, CopyButton, ReactiveButton} from '$component';
+  import InformationEdit from './InformationEdit.svelte';
   import type {WebSocketResponse} from '$type';
+  import {EditIcon, BackIcon} from '$icon';
 
   let {ws}: {ws: WebSocket} = $props();
 
   let activeStatus = $state(false);
   let isEditingMode = $state(false);
-  const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Latino', 'Arab', 'East asian', 'South asian'];
 
   const relativeDate = new Date($identity.creation_date).getTime() - new Date().getTime();
   const dateInDays = Math.round(relativeDate / (1000 * 60 * 60 * 24));
@@ -48,35 +48,6 @@
       isEditingMode = true;
       activeStatus = true;
     }
-  }
-
-  async function regeneratePicture() {
-    const bio = (document.querySelector('textarea') as HTMLTextAreaElement).value.trim();
-    const age = (document.querySelector('input[name="age"]') as HTMLInputElement).value.trim();
-    const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
-    const sex = document.querySelector('.selected')?.id;
-
-    $fetchIndex = 1;
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    ws.send(JSON.stringify({type: 'regenerate-picture', sex, age, ethnicity, bio}));
-  }
-
-  function regenerateName() {
-    ws.send(JSON.stringify({type: 'regenerate-name', sex: document.querySelector('.selected')!.id}));
-  }
-
-  function regenerateBio() {
-    ws.send(JSON.stringify({type: 'regenerate-bio'}));
-  }
-
-  function changeToMale() {
-    document.querySelector(`#female`)!.classList.remove('selected');
-    document.querySelector(`#male`)!.classList.add('selected');
-  }
-
-  function changeToFemale() {
-    document.querySelector(`#male`)!.classList.remove('selected');
-    document.querySelector(`#female`)!.classList.add('selected');
   }
 
   $handleResponse = (response: WebSocketResponse) => {
@@ -120,42 +91,7 @@
   </div>
 </section>
 {#if isEditingMode}
-  <div class="m-12 grid grid-cols-2 place-items-center gap-16">
-    <div class="flex flex-col items-center gap-8">
-      <img class="rounded-xl" id="profile" src={`data:image/png;base64,${$identity.picture}`} alt="identity look" />
-      <Tooltip
-        tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
-        <LoadingButton onclick={regeneratePicture}>
-          <UserIcon className="h-6 w-6 -mr-2" />Regenerate profile picture
-        </LoadingButton>
-      </Tooltip>
-    </div>
-    <div class="flex w-full flex-col gap-4">
-      <div class="flex items-end gap-4">
-        <label for="name">Name</label>
-        <ActionIcon title="regenerate a random name" icon={RepeatIcon} action={regenerateName} size={'small'} />
-      </div>
-      <input value={$identity.name} type="text" placeholder="John Doe" name="name" />
-      <label for="sex">Sex</label>
-      <div class="flex flex-row gap-4">
-        <div id="male" class="sex-box {$identity.sex === 'male' && 'selected'}" onclick={changeToMale} aria-hidden="true">
-          <MaleIcon /> Male
-        </div>
-        <div id="female" class="sex-box {$identity.sex === 'female' && 'selected'}" onclick={changeToFemale} aria-hidden="true">
-          <FemaleIcon /> Female
-        </div>
-      </div>
-      <label for="ethnicity">Ethnicity</label>
-      <SelectMenu options={ethnicities} name="ethnicity" value={$identity.ethnicity} />
-      <label for="age">Age</label>
-      <input type="number" name="age" placeholder="18-60" bind:value={$identity.age} />
-      <div class="flex items-end gap-4">
-        <label for="bio">Bio</label>
-        <ActionIcon title="regenerate a random bio" icon={RepeatIcon} action={regenerateBio} size="small" />
-      </div>
-      <textarea placeholder="Short bio, will be used when generating a profile picture" value={$identity.bio}></textarea>
-    </div>
-  </div>
+  <InformationEdit {ws} />
 {:else}
   <section class="m-12 grid grid-cols-2 place-items-center gap-16">
     <div class="group relative">
@@ -227,14 +163,5 @@
 
   h3 {
     @apply text-3xl text-neutral-300;
-  }
-
-  .sex-box {
-    @apply flex h-12 w-1/2 items-center justify-center gap-px font-semibold transition-all duration-300 ease-in-out;
-    @apply cursor-pointer rounded-lg border border-neutral-800 bg-neutral-800/30 p-3 hover:text-neutral-400;
-  }
-
-  .sex-box.selected {
-    @apply bg-primary-600 text-neutral-300;
   }
 </style>
