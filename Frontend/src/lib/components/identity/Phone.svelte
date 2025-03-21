@@ -1,7 +1,8 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, ReplyIcon, InboxIcon} from '$icon';
-  import {fetchAPI, formatPhoneNumber, notify} from '$lib';
+  import {fetchAPI, formatPhoneNumber, notify, toTitleCase} from '$lib';
+  import {writable, type Writable} from 'svelte/store';
   import {identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
   import {conversation} from '$image';
@@ -9,6 +10,8 @@
   let {ws, token}: IdentityComponentParams = $props();
   let messages = $state() as FetchAPI;
   let inbox = $state('all') as 'all' | 'received' | 'sent';
+
+  const target: Writable<FetchAPI['sentMessages'][number] | null> = writable();
 
   async function fetchMessages() {
     await new Promise((resolve) => setTimeout(resolve, 350));
@@ -23,11 +26,20 @@
     else return messages.sentMessages;
   }
 
+  function deleteMessage() {
+    ws.send(JSON.stringify({type: 'delete-message', sid: $target!.messageID}));
+  }
+
   $handleResponse = (response: WebSocketResponse) => {
     switch (response.type) {
       case 'new-message':
         notify('New Message Received!', 'success');
         messages.receivedMessages.unshift(response.newMessage!);
+        break;
+
+      case 'delete-message':
+        messages.receivedMessages = messages.receivedMessages.filter((message) => message.messageID !== response.sid);
+        messages.sentMessages = messages.sentMessages.filter((message) => message.messageID !== response.sid);
         break;
     }
   };
@@ -38,8 +50,8 @@
   <div class="flex gap-1">
     <ActionIcon icon={InboxIcon} action={() => {}} title="Go to Inbox" />
     <ActionIcon icon={SendIcon} action={() => {}} title="Send Message" />
-    <ActionIcon disabled icon={ReplyIcon} action={() => {}} title="Reply to Message" />
-    <ActionIcon disabled icon={TrashIcon} action={() => {}} title="Delete Message" />
+    <ActionIcon disabled={!$target} icon={ReplyIcon} action={() => {}} title="Reply to Message" />
+    <ActionIcon disabled={!$target} icon={TrashIcon} action={deleteMessage} title="Delete Message" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
@@ -71,16 +83,18 @@
       </div>
       {#key inbox}
         {#each getMessages() as message}
-          <div
-            class="flex items-center justify-between border-b border-neutral-700 px-8 py-4 last:border-none hover:bg-neutral-300/10">
+          <div class:target={message === $target} onclick={() => ($target = message)} aria-hidden="true" class="message">
             <div>
-              <p>{message.body.length > 45 ? message.body.slice(0, 45).trim() + '...' : message.body}</p>
-              <p class="text-sm text-neutral-500">{new Date(message.date).toLocaleString()}</p>
+              <p class="text-neutral-300">{message.body.length > 45 ? message.body.slice(0, 45).trim() + '...' : message.body}</p>
+              <div class="flex items-center gap-2 text-sm text-neutral-500">
+                <div class="status">{toTitleCase(message.status)}</div>
+                {new Date(message.date).toLocaleString()}
+              </div>
             </div>
             {#if message.from === $identity.phone}
-              <p class="text-right">Sent to {formatPhoneNumber(message.to)}</p>
+              <p class="text-right text-[1rem] text-neutral-400">Sent to {formatPhoneNumber(message.to)}</p>
             {:else}
-              <p class="text-right">Received from {formatPhoneNumber(message.from)}</p>
+              <p class="text-right text-[1rem] text-neutral-400">Received from {formatPhoneNumber(message.from)}</p>
             {/if}
           </div>
         {/each}
@@ -103,6 +117,18 @@
     @apply mb-12 mt-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
   }
 
+  .message {
+    @apply flex items-center justify-between border-b border-neutral-700 px-8 py-4;
+    @apply cursor-pointer select-none last:border-none hover:bg-neutral-300/5;
+  }
+
+  .target {
+    @apply bg-neutral-300/10 hover:bg-neutral-300/10;
+  }
+
+  .status {
+    @apply w-fit rounded-full bg-neutral-800/75 px-2 py-1 text-sm text-neutral-400;
+  }
   h3 {
     @apply text-5xl text-neutral-300;
   }

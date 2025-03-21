@@ -33,7 +33,7 @@ export async function parseMessage(message: MessageInstance[]) {
     messageID: msg.sid,
     status: msg.status,
     date: msg.dateSent,
-    error: msg.errorCode ? `${msg.errorCode}: ${msg.errorMessage}` : null,
+    error: msg.errorCode ? `${msg.errorCode}: ${msg.errorMessage || 'unknown error'}` : null,
     body: msg.body,
     from: msg.from,
     to: msg.to,

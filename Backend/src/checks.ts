@@ -287,5 +287,8 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
   if (body.attachments && body.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
     return {error: 'One or more attachments exceed the 15MB size limit, please try again'} as APIParams;
   }
+  if (body.sid && body.sid.length !== 34) {
+    return {error: 'Invalid message SID, please try again'} as APIParams;
+  }
   return body;
 }

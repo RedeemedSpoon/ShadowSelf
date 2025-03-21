@@ -1,6 +1,6 @@
 import {fetchMoreEmails, listenForEmail, fetchEmail, deleteEmail, appendToMailbox} from '../email-imap';
 import {User, WebsocketRequest, Location, APIParams} from '../types';
-import {sql, WSConnections} from '../connection';
+import {sql, twilioClient, WSConnections} from '../connection';
 import {sendIdentityEmail} from '../email-smtp';
 import {generateProfile} from '../prompts';
 import {attempt, request} from '../utils';
@@ -250,6 +250,15 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         delete (fullEmail as {password?: string}).password;
         delete (fullEmail as {email?: string}).email;
         ws.send({type: 'forward-email', uid, forward, forwardEmail: {...fullEmail, uid: newUID.uid, type: response.type}});
+        break;
+      }
+
+      case 'delete-message': {
+        const {error, sid} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        await twilioClient.messages.get(sid!).remove();
+        ws.send({type: 'delete-message', sid});
         break;
       }
 

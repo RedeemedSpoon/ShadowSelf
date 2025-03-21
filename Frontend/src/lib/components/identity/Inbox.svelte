@@ -1,18 +1,21 @@
 <script lang="ts">
   import {mailbox, shredder, file, pencil} from '$image';
-  import {mode, reply, target} from '$store';
+  import type {Writable} from 'svelte/store';
   import {LoadingButton} from '$component';
   import type {FetchAPI} from '$type';
   import {ReplyIcon} from '$icon';
 
   interface Props {
+    target: Writable<FetchAPI['emails']['inbox'][number] | null>;
+    mode: Writable<'browse' | 'read' | 'write' | 'write-draft' | 'reply'>;
+    reply: Writable<FetchAPI['emails']['inbox'][number][]>;
     inbox: FetchAPI['emails']['inbox'];
     loadMore: () => void;
     label: string;
     count: number;
   }
 
-  let {count, inbox, label, loadMore}: Props = $props();
+  let {target, mode, reply, count, inbox, label, loadMore}: Props = $props();
 
   function handleClick(email: FetchAPI['emails']['inbox'][0]) {
     if ($target?.messageID === email.messageID) {

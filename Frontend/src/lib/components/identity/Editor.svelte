@@ -1,15 +1,17 @@
 <script lang="ts">
-  import {target, mode} from '$store';
+  import type {EditorParams, FetchAPI} from '$type';
+  import type {Writable} from 'svelte/store';
   import {LoadingButton} from '$component';
-  import type {EditorParams} from '$type';
   import {onMount} from 'svelte';
 
   interface Props {
     submit: (content: EditorParams, save: boolean, isdraft: boolean) => void;
+    target: Writable<FetchAPI['emails']['inbox'][number] | null>;
+    mode: Writable<'browse' | 'read' | 'write' | 'write-draft' | 'reply'>;
     isDraft: boolean;
   }
 
-  let {submit, isDraft}: Props = $props();
+  let {submit, isDraft, target, mode}: Props = $props();
 
   let quill = $state() as {getSemanticHTML: () => string; getText: () => string; root: HTMLElement};
   let attachments = $state([]) as {filename: string; data: string}[];

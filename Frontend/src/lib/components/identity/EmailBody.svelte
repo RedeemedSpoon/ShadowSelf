@@ -1,8 +1,8 @@
 <script lang="ts">
+  import {AttachmentIcon} from '$icon';
   import type {FetchAPI} from '$type';
   import DOMPurify from 'dompurify';
   import {base64ToBlob} from '$lib';
-  import {AttachmentIcon} from '$icon';
 
   let iframe = $state() as HTMLIFrameElement | null;
 

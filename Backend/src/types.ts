@@ -142,6 +142,7 @@ export interface WebsocketRequest {
     | 'send-email'
     | 'save-draft'
     | 'forward-email'
+    | 'delete-message'
     | 'load-more';
   ethnicity?: string;
   sex?: string;
@@ -175,6 +176,7 @@ export interface WebsocketRequest {
     filename: string;
     data: string;
   }[];
+  sid?: string;
 }
 
 export interface APIParams {
@@ -206,6 +208,7 @@ export interface APIParams {
     filename: string;
     data: string;
   }[];
+  sid?: string;
 }
 
 export interface EmailContent {

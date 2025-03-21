@@ -197,6 +197,7 @@ export interface WebSocketResponse {
     | 'fetch-reply'
     | 'load-more'
     | 'forward-email'
+    | 'delete-message'
     | 'new-message';
   picture?: string;
   ethnicity?: string;
@@ -238,6 +239,7 @@ export interface WebSocketResponse {
     data: string;
   }[];
   newMessage?: Message;
+  sid?: string;
 }
 
 export interface PricingModel {

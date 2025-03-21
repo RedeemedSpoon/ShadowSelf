@@ -1,8 +1,9 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, EditorParams, FetchAPI} from '$type';
-  import {mode, reply, target, identity, handleResponse, fetchIndex, modalIndex} from '$store';
   import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, InboxIcon} from '$icon';
   import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
+  import {identity, handleResponse, fetchIndex, modalIndex} from '$store';
+  import {writable, type Writable} from 'svelte/store';
   import EmailBody from './EmailBody.svelte';
   import {fetchAPI, notify} from '$lib';
   import Editor from './Editor.svelte';
@@ -11,11 +12,15 @@
 
   let {ws, token}: IdentityComponentParams = $props();
 
+  const reply: Writable<FetchAPI['emails']['inbox'][number][]> = writable([]);
+  const target: Writable<FetchAPI['emails']['inbox'][number] | null> = writable();
+  const mode: Writable<'browse' | 'read' | 'write' | 'write-draft' | 'reply'> = writable('browse');
+
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
-  const showActionButtons = $derived(!$target || label === 'Junk');
   let inbox = $state() as FetchAPI;
   let from = $state(7) as number;
 
+  const showActionButtons = $derived(!$target || label === 'Junk');
   const className = {
     label: '!bg-neutral-900/50 !border-neutral-700',
     icon: 'fill-neutral-700 stroke-neutral-700',
@@ -193,7 +198,7 @@
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
-<Editor {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} />
+<Editor {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} {target} {mode} />
 <Modal>
   <div class="flex flex-col items-center gap-8 p-8">
     <h3 class="w-full !text-5xl text-neutral-300">Forward Email to Another Address</h3>
@@ -242,7 +247,7 @@
       ]}
       {#each labels as { thisLabel, data, count }}
         {#if label === thisLabel}
-          <Inbox {loadMore} inbox={data} {count} {label} />
+          <Inbox {loadMore} inbox={data} {count} {label} {target} {mode} {reply} />
         {/if}
       {/each}
     {/key}
