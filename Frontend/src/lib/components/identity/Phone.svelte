@@ -3,15 +3,18 @@
   import {SendIcon, TrashIcon, ReplyIcon, InboxIcon} from '$icon';
   import {fetchAPI, formatPhoneNumber, notify, toTitleCase} from '$lib';
   import {writable, type Writable} from 'svelte/store';
+  import ComposeMessage from './ComposeMessage.svelte';
   import {identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
+  import Message from './Message.svelte';
   import {conversation} from '$image';
 
   let {ws, token}: IdentityComponentParams = $props();
-  let messages = $state() as FetchAPI;
   let inbox = $state('all') as 'all' | 'received' | 'sent';
+  let messages = $state() as FetchAPI;
 
   const target: Writable<FetchAPI['sentMessages'][number] | null> = writable();
+  const mode: Writable<'browse' | 'read' | 'write' | 'reply'> = writable('browse');
 
   async function fetchMessages() {
     await new Promise((resolve) => setTimeout(resolve, 350));
@@ -40,6 +43,7 @@
       case 'delete-message':
         messages.receivedMessages = messages.receivedMessages.filter((message) => message.messageID !== response.sid);
         messages.sentMessages = messages.sentMessages.filter((message) => message.messageID !== response.sid);
+        $target = null;
         break;
     }
   };
@@ -48,13 +52,15 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h1 class="text-5xl font-bold text-neutral-300">Phone Number</h1>
   <div class="flex gap-1">
-    <ActionIcon icon={InboxIcon} action={() => {}} title="Go to Inbox" />
-    <ActionIcon icon={SendIcon} action={() => {}} title="Send Message" />
-    <ActionIcon disabled={!$target} icon={ReplyIcon} action={() => {}} title="Reply to Message" />
+    <ActionIcon icon={InboxIcon} action={() => ($mode = 'browse')} title="Go to Inbox" />
+    <ActionIcon icon={SendIcon} action={() => ($mode = 'write')} title="Send Message" />
+    <ActionIcon disabled={!$target} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Message" />
     <ActionIcon disabled={!$target} icon={TrashIcon} action={deleteMessage} title="Delete Message" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
+<Message {target} {mode} {ws} />
+<ComposeMessage {target} {mode} {ws} />
 {#await fetchMessages()}
   <div class="flex h-[40vh] items-center justify-center">
     <h3 class="flex items-center gap-6">
@@ -63,7 +69,7 @@
   </div>
 {:then}
   {#key messages.receivedMessages}
-    {#if messages?.receivedMessages.length || messages?.sentMessages.length}
+    {#if $mode === 'browse' && (messages?.receivedMessages.length || messages?.sentMessages.length)}
       <div class="mt-[5vh] flex items-center justify-between">
         <div class="[*&>p]:!text-neutral-500">
           <h3 class="!text-3xl">{formatPhoneNumber($identity.phone)}</h3>
@@ -83,7 +89,11 @@
       </div>
       {#key inbox}
         {#each getMessages() as message}
-          <div class:target={message === $target} onclick={() => ($target = message)} aria-hidden="true" class="message">
+          <div
+            class="message"
+            aria-hidden="true"
+            class:target={message === $target}
+            onclick={() => ($target === message ? ($mode = 'read') : ($target = message))}>
             <div>
               <p class="text-neutral-300">{message.body.length > 45 ? message.body.slice(0, 45).trim() + '...' : message.body}</p>
               <div class="flex items-center gap-2 text-sm text-neutral-500">
@@ -99,7 +109,7 @@
           </div>
         {/each}
       {/key}
-    {:else}
+    {:else if $mode === 'browse'}
       <section id="no-messages" style="background-image: url({conversation});">
         <h2 class="mt-12 text-5xl text-neutral-300">No Messages</h2>
         <p class="w-1/2 text-center">
@@ -129,6 +139,7 @@
   .status {
     @apply w-fit rounded-full bg-neutral-800/75 px-2 py-1 text-sm text-neutral-400;
   }
+
   h3 {
     @apply text-5xl text-neutral-300;
   }

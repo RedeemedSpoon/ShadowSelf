@@ -57,7 +57,9 @@ export default new Elysia()
     }
 
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const message = (await parseMessage(await twilioClient.messages.list({to: rawBody.To, limit: 1})))[0];
+    const rawMessage = await twilioClient.messages.list({sid: rawBody.MessageSid, limit: 1});
+    const message = (await parseMessage(rawMessage))[0];
+
     const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
     if (!ws) return;
 
