@@ -103,6 +103,12 @@ export function toTitleCase(str: string): string {
   });
 }
 
+export function formatDate(stringDate: string): string {
+  const date = new Date(stringDate).toLocaleString().split(', ');
+  if (date[0] !== new Date().toLocaleString().split(', ')[0]) return date[0];
+  else return date[1];
+}
+
 export function formatPhoneNumber(phoneNumber: string): string {
   const cleaned = phoneNumber.replace(/\D/g, '');
 

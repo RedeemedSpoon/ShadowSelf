@@ -16,6 +16,7 @@
   }
 
   let {target, mode, reply, count, inbox, label, loadMore}: Props = $props();
+  const className = 'bg-contain from-neutral-900 to-neutral-950/40 hover:text-neutral-400 py-7 w-full shadow-none';
 
   function handleClick(email: FetchAPI['emails']['inbox'][0]) {
     if ($target?.messageID === email.messageID) {
@@ -53,11 +54,7 @@
   {/each}
   {#key inbox.length}
     {#if inbox.length < count}
-      <LoadingButton
-        className="bg-contain from-neutral-900 to-neutral-950/40 hover:text-neutral-400 py-7 w-full shadow-none"
-        onclick={loadMore}>
-        Load More
-      </LoadingButton>
+      <LoadingButton {className} onclick={loadMore}>Load More</LoadingButton>
     {/if}
   {/key}
 {:else if label === 'INBOX'}

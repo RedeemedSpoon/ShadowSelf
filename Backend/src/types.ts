@@ -222,6 +222,16 @@ export interface EmailContent {
   references: string[];
 }
 
+export interface Message {
+  messageID: string;
+  status: string;
+  date: Date;
+  error: string;
+  body: string;
+  from: string;
+  to: string;
+}
+
 export const emailTemplate = {
   confirm: {
     title: 'Confirm Your Email Address',

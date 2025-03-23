@@ -1,9 +1,9 @@
 import {attempt, parseMessage, resizeImage} from '../utils';
 import {fetchRecentEmails} from '../email-imap';
 import {sql, twilioClient} from '../connection';
+import {User, Message} from '../types';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
-import {User} from '../types';
 
 export default new Elysia({prefix: '/api'})
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -68,10 +68,21 @@ export default new Elysia({prefix: '/api'})
     const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
     if (!identity.length) return error(400, 'Identity not found');
 
-    const receivedMessages = await parseMessage(await twilioClient.messages.list({to: identity[0].phone, limit: 20}));
-    const sentMessages = await parseMessage(await twilioClient.messages.list({from: identity[0].phone, limit: 20}));
+    const receivedMessages = await twilioClient.messages.list({to: identity[0].phone, limit: 50});
+    const sendedMessages = await twilioClient.messages.list({from: identity[0].phone, limit: 50});
+    const allMessages = [...receivedMessages, ...sendedMessages];
+    const conversations = new Map<string, Message>();
 
-    return {receivedMessages, sentMessages};
+    allMessages.forEach((message) => {
+      const contact = message.from === identity[0].phone ? message.to : message.from;
+
+      if (!conversations.has(contact)) {
+        conversations.set(contact, parseMessage(message));
+      }
+    });
+
+    const messages = [...conversations.values()];
+    return {messages};
   })
   .get('/card/:id', async ({user, params}) => ({}))
   .get('/account/:id', async ({user, params}) => {

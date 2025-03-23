@@ -28,16 +28,16 @@ export async function resizeImage(base64: string) {
   return resizedBuffer.toString('base64');
 }
 
-export async function parseMessage(message: MessageInstance[]) {
-  return message.map((msg) => ({
+export function parseMessage(msg: MessageInstance) {
+  return {
     messageID: msg.sid,
     status: msg.status,
     date: msg.dateSent,
-    error: msg.errorCode ? `${msg.errorCode}: ${msg.errorMessage || 'unknown error'}` : null,
+    error: msg.errorCode ? `${msg.errorCode}: ${msg.errorMessage || 'unknown error'}` : '',
     body: msg.body,
     from: msg.from,
     to: msg.to,
-  }));
+  };
 }
 
 export async function request(url: string, method = 'GET', body?: object) {

@@ -56,12 +56,13 @@ export default new Elysia()
       return error(400, 'Invalid signature');
     }
 
+    console.log('pass');
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const rawMessage = await twilioClient.messages.list({sid: rawBody.MessageSid, limit: 1});
-    const message = (await parseMessage(rawMessage))[0];
+    // const rawMessage = await twilioClient.messages.list({sid: rawBody.MessageSid, limit: 1});
+    // const message = (await parseMessage(rawMessage))[0];
 
-    const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
-    if (!ws) return;
-
-    ws?.websocket.send(JSON.stringify({type: 'new-message', newMessage: message}));
+    // const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
+    // if (!ws) return;
+    //
+    // ws?.websocket.send(JSON.stringify({type: 'new-message', newMessage: message}));
   });

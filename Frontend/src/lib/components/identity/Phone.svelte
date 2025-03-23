@@ -1,5 +1,7 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
+  import ConversationLists from './sub-components/ConversationLists.svelte';
+  import Conversation from './sub-components/Conversation.svelte';
   import {SendIcon, TrashIcon, ReplyIcon, InboxIcon} from '$icon';
   import {fetchAPI, formatPhoneNumber, notify} from '$lib';
   import {writable, type Writable} from 'svelte/store';
@@ -8,10 +10,12 @@
   import {conversation} from '$image';
 
   let {ws, token}: IdentityComponentParams = $props();
+
+  let fullDiscussion = $state() as FetchAPI['messages'];
   let messages = $state() as FetchAPI;
 
-  const discussion: Writable<FetchAPI['messages'] | null> = writable();
-  const mode: Writable<'browse' | 'converse' | 'write' | 'reply'> = writable('browse');
+  const mode: Writable<'browse' | 'read' | 'write'> = writable('browse');
+  const discussion: Writable<FetchAPI['messages'][number] | undefined> = writable();
 
   async function fetchMessages() {
     await new Promise((resolve) => setTimeout(resolve, 350));
@@ -27,11 +31,11 @@
     switch (response.type) {
       case 'new-message':
         notify('New Message Received!', 'success');
-        $discussion!.unshift(response.newMessage!);
+        messages.messages!.unshift(response.newMessage!);
         break;
 
       case 'delete-message':
-        $discussion = $discussion!.filter((message) => message.messageID !== response.sid);
+        messages.messages = messages.messages!.filter((message) => message.messageID !== response.sid);
         break;
     }
   };
@@ -41,8 +45,8 @@
   <h1 class="text-5xl font-bold text-neutral-300">Phone Number</h1>
   <div class="flex gap-1">
     <ActionIcon icon={InboxIcon} action={() => ($mode = 'browse')} title="Go to Inbox" />
-    <ActionIcon icon={SendIcon} action={() => ($mode = 'write')} title="Send Message" />
-    <ActionIcon disabled={!$discussion} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Message" />
+    <ActionIcon icon={SendIcon} action={() => ($mode = 'write')} title="Send New Message" />
+    <ActionIcon disabled={!$discussion} icon={ReplyIcon} action={() => ($mode = 'write')} title="Reply to Message" />
     <ActionIcon disabled={!$discussion} icon={TrashIcon} action={deleteMessage} title="Delete Message" />
   </div>
 </section>
@@ -56,9 +60,12 @@
 {:then}
   {#key messages.messages}
     {#if $mode === 'browse' && messages?.messages?.length}
-      <div class="mt-[5vh] flex items-center justify-between">
-        <h3 class="!text-3xl">{formatPhoneNumber($identity.phone)}</h3>
-        <p class="text-neutral-500">{messages.messages.length} Conversations</p>
+      <div class="mt-20 flex w-full flex-col items-center">
+        <div class="mb-4 flex w-full justify-between">
+          <h3 class="text-3xl">{formatPhoneNumber($identity.phone)}</h3>
+          <p class="text-neutral-500">{messages.messages.length} Conversations</p>
+        </div>
+        <ConversationLists {mode} {discussion} messages={messages.messages} {ws} />
       </div>
     {:else if $mode === 'browse'}
       <section id="no-messages" style="background-image: url({conversation});">
@@ -72,6 +79,12 @@
     {/if}
   {/key}
 {/await}
+
+{#key $discussion}
+  {#if $mode === 'read'}
+    <Conversation {mode} discussion={$discussion!} {ws} {fullDiscussion} />
+  {/if}
+{/key}
 
 <style lang="postcss">
   #no-messages {

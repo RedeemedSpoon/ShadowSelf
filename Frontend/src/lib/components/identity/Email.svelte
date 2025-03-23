@@ -183,7 +183,7 @@
   <h1 class="text-5xl font-bold text-neutral-300">Email Address</h1>
   <div class="flex gap-1">
     <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go to Inbox" />
-    <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($target = null))} title="Send New Emails" />
+    <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($target = null))} title="Send New Email" />
     <ActionIcon
       disabled={label === 'Drafts' || showActionButtons}
       icon={ReplyIcon}
