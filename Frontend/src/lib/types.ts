@@ -197,6 +197,7 @@ export interface WebSocketResponse {
     | 'load-more'
     | 'forward-email'
     | 'delete-message'
+    | 'fetch-conversation'
     | 'new-message';
   picture?: string;
   ethnicity?: string;
@@ -204,7 +205,7 @@ export interface WebSocketResponse {
   age?: number;
   sex?: string;
   bio?: string;
-  id: string;
+  id?: string;
   username?: string;
   password?: string;
   website: string;
@@ -238,6 +239,8 @@ export interface WebSocketResponse {
     data: string;
   }[];
   newMessage?: Message;
+  addressee?: string;
+  conversation: Message[];
   sid?: string;
 }
 

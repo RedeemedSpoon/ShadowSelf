@@ -14,15 +14,18 @@
 
   let {discussion, fullDiscussion, ws, mode}: Props = $props();
   const addressee = discussion?.from === $identity.phone ? discussion?.to : discussion?.from;
+  fullDiscussion = [];
 </script>
 
 <div class="my-8 flex w-full flex-col items-center justify-center gap-2 text-lg text-neutral-600">
   <p id="box">Addressee is {formatPhoneNumber(addressee)}</p>
   <div class="mt-8 flex w-full flex-col gap-8">
-    <Message message={discussion} />
-    <Message message={discussion} />
-    <Message message={discussion} />
-    <Message message={discussion} />
+    {#each fullDiscussion as message}
+      <Message {message} />
+    {/each}
+    {#if fullDiscussion.length === 0}
+      <Message message={discussion} />
+    {/if}
   </div>
 </div>
 

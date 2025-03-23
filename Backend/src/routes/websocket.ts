@@ -1,9 +1,9 @@
 import {fetchMoreEmails, listenForEmail, fetchEmail, deleteEmail, appendToMailbox} from '../email-imap';
 import {User, WebsocketRequest, Location, APIParams} from '../types';
 import {sql, twilioClient, WSConnections} from '../connection';
+import {attempt, parseMessage, request} from '../utils';
 import {sendIdentityEmail} from '../email-smtp';
 import {generateProfile} from '../prompts';
-import {attempt, request} from '../utils';
 import {allFakers} from '@faker-js/faker';
 import {checkAPI} from '../checks';
 import {jwt} from '@elysiajs/jwt';
@@ -250,6 +250,20 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         delete (fullEmail as {password?: string}).password;
         delete (fullEmail as {email?: string}).email;
         ws.send({type: 'forward-email', uid, forward, forwardEmail: {...fullEmail, uid: newUID.uid, type: response.type}});
+        break;
+      }
+
+      case 'fetch-conversation': {
+        const {error, addressee} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        if (addressee === identity.phone) return ws.send({error: 'You cannot fetch your own conversation'});
+
+        const sentMessages = await twilioClient.messages.list({to: addressee});
+        const receivedMessages = await twilioClient.messages.list({from: addressee});
+
+        const conversation = [...sentMessages, ...receivedMessages].map((msg) => parseMessage(msg));
+        ws.send({type: 'fetch-conversation', addressee, conversation});
         break;
       }
 

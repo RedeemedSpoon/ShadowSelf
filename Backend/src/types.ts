@@ -143,12 +143,13 @@ export interface WebsocketRequest {
     | 'save-draft'
     | 'forward-email'
     | 'delete-message'
+    | 'fetch-conversation'
     | 'load-more';
-  ethnicity?: string;
-  sex?: string;
-  age?: number;
-  name?: string;
-  bio?: string;
+  ethnicity: string;
+  sex: string;
+  age: number;
+  name: string;
+  bio: string;
   picture: string;
   id: number;
   username: string;
@@ -176,16 +177,17 @@ export interface WebsocketRequest {
     filename: string;
     data: string;
   }[];
-  sid?: string;
+  sid: string;
+  addressee: string;
 }
 
 export interface APIParams {
-  error?: string;
-  ethnicity?: string;
-  age?: number;
-  sex?: string;
-  name?: string;
-  bio?: string;
+  error: string;
+  ethnicity: string;
+  age: number;
+  sex: string;
+  name: string;
+  bio: string;
   picture: string;
   id: number;
   username: string;
@@ -208,7 +210,8 @@ export interface APIParams {
     filename: string;
     data: string;
   }[];
-  sid?: string;
+  sid: string;
+  addressee: string;
 }
 
 export interface EmailContent {

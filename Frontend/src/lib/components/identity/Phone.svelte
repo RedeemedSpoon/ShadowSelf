@@ -37,6 +37,10 @@
       case 'delete-message':
         messages.messages = messages.messages!.filter((message) => message.messageID !== response.sid);
         break;
+
+      case 'fetch-conversation':
+        fullDiscussion = response.conversation!;
+        break;
     }
   };
 </script>
@@ -44,8 +48,8 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h1 class="text-5xl font-bold text-neutral-300">Phone Number</h1>
   <div class="flex gap-1">
-    <ActionIcon icon={InboxIcon} action={() => ($mode = 'browse')} title="Go to Inbox" />
-    <ActionIcon icon={SendIcon} action={() => ($mode = 'write')} title="Send New Message" />
+    <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($discussion = undefined))} title="Go to Messages" />
+    <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($discussion = undefined))} title="Send New Message" />
     <ActionIcon disabled={!$discussion} icon={ReplyIcon} action={() => ($mode = 'write')} title="Reply to Message" />
     <ActionIcon disabled={!$discussion} icon={TrashIcon} action={deleteMessage} title="Delete Message" />
   </div>

@@ -1,4 +1,4 @@
-import type {BodyField, ContactDetail, CheckIdentity, APIParams} from './types';
+import type {BodyField, ContactDetail, CheckIdentity, APIParams, WebsocketRequest} from './types';
 import {toTitleCase} from './utils';
 import {$} from 'bun';
 
@@ -152,7 +152,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       }
       break;
 
-    case 'email':
+    case 'email': {
       if (!/^[\p{L}\p{N}]+@shadowself\.io$/u.test(body.email!)) {
         return {error: 'Invalid email address, please try again'};
       }
@@ -161,14 +161,9 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Email is too long (<48 characters)'};
       }
 
-      return (
-        (await $`id ${body.email!.split('@')[0]}`
-          .quiet()
-          .nothrow()
-          .then((e) => {
-            if (!e.exitCode) return {error: 'Email address is already registered on our systems'};
-          })) || body
-      );
+      const command = await $`id ${body.email!.split('@')[0]}`.quiet().nothrow();
+      return command.exitCode ? {error: 'Email address is already registered on our systems'} : body;
+    }
 
     case 'phone':
       if (!/^\+(\d{10,13})$/.test(body.phone!)) {
@@ -197,7 +192,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
   return body;
 }
 
-export async function checkAPI(body: APIParams): Promise<APIParams> {
+export async function checkAPI(body: WebsocketRequest): Promise<APIParams> {
   if (!body) return body;
 
   if (body.name && body.name.length > 30) {
@@ -287,8 +282,14 @@ export async function checkAPI(body: APIParams): Promise<APIParams> {
   if (body.attachments && body.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
     return {error: 'One or more attachments exceed the 15MB size limit, please try again'} as APIParams;
   }
+
   if (body.sid && body.sid.length !== 34) {
     return {error: 'Invalid message SID, please try again'} as APIParams;
   }
-  return body;
+
+  if (body.addressee && !/^\+(\d{10,13})$/.test(body.addressee)) {
+    return {error: 'Invalid phone number, please try again'} as APIParams;
+  }
+
+  return body as unknown as APIParams;
 }
