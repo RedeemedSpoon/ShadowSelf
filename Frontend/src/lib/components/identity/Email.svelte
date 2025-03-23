@@ -3,11 +3,11 @@
   import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, InboxIcon} from '$icon';
   import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
   import {identity, handleResponse, fetchIndex, modalIndex} from '$store';
+  import ComposeEmail from './sub-components/ComposeEmail.svelte';
+  import EmailInbox from './sub-components/EmailInbox.svelte';
+  import EmailBody from './sub-components/EmailBody.svelte';
   import {writable, type Writable} from 'svelte/store';
-  import EmailBody from './EmailBody.svelte';
   import {fetchAPI, notify} from '$lib';
-  import Editor from './Editor.svelte';
-  import Inbox from './Inbox.svelte';
   import {onMount} from 'svelte';
 
   let {ws, token}: IdentityComponentParams = $props();
@@ -198,7 +198,7 @@
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
-<Editor {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} {target} {mode} />
+<ComposeEmail {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} {target} {mode} />
 <Modal>
   <div class="flex flex-col items-center gap-8 p-8">
     <h3 class="w-full !text-5xl text-neutral-300">Forward Email to Another Address</h3>
@@ -247,7 +247,7 @@
       ]}
       {#each labels as { thisLabel, data, count }}
         {#if label === thisLabel}
-          <Inbox {loadMore} inbox={data} {count} {label} {target} {mode} {reply} />
+          <EmailInbox {loadMore} inbox={data} {count} {label} {target} {mode} {reply} />
         {/if}
       {/each}
     {/key}

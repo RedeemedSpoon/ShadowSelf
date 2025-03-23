@@ -170,8 +170,7 @@ export interface FetchAPI {
     junk: Inbox[];
     drafts: Inbox[];
   };
-  receivedMessages: Message[];
-  sentMessages: Message[];
+  messages: Message[];
 }
 
 export interface IdentityComponentParams {

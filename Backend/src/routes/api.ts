@@ -68,8 +68,8 @@ export default new Elysia({prefix: '/api'})
     const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
     if (!identity.length) return error(400, 'Identity not found');
 
-    const receivedMessages = await parseMessage(await twilioClient.messages.list({to: identity[0].phone}));
-    const sentMessages = await parseMessage(await twilioClient.messages.list({from: identity[0].phone}));
+    const receivedMessages = await parseMessage(await twilioClient.messages.list({to: identity[0].phone, limit: 20}));
+    const sentMessages = await parseMessage(await twilioClient.messages.list({from: identity[0].phone, limit: 20}));
 
     return {receivedMessages, sentMessages};
   })

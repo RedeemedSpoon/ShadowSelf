@@ -3,9 +3,9 @@
   import {UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon, BackIcon} from '$icon';
   import {fetchIndex, identity, modalIndex, handleResponse, masterPassword} from '$store';
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
+  import MasterPassword from './sub-components/MasterPassword.svelte';
   import {ActionIcon, Tooltip, HoverCopyButton} from '$component';
-  import MasterPassword from './MasterPassword.svelte';
-  import AccountEdit from './AccountEdit.svelte';
+  import AccountEdit from './sub-components/AccountEdit.svelte';
   import * as OTPAuth from 'otpauth';
   import {decrypt} from '$crypto';
   import {onMount} from 'svelte';

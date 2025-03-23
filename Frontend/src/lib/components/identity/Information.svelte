@@ -1,9 +1,9 @@
 <script lang="ts">
   import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
   import {currentSection, identity, fetchIndex, handleResponse} from '$store';
+  import InformationEdit from './sub-components/InformationEdit.svelte';
   import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
   import {ActionIcon, CopyButton, ReactiveButton} from '$component';
-  import InformationEdit from './InformationEdit.svelte';
   import type {WebSocketResponse} from '$type';
   import {EditIcon, BackIcon} from '$icon';
 

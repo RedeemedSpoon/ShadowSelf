@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {Component} from 'svelte';
-  import {Tooltip} from '$component';
   import {CheckmarkIcon} from '$icon';
+  import {Tooltip} from '$component';
 
   interface Props {
     action: () => void;
