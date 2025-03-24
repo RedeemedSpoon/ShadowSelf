@@ -1,7 +1,6 @@
 <script lang="ts">
   import {formatPhoneNumber, formatDate, toTitleCase} from '$lib';
   import {type Writable} from 'svelte/store';
-  import {LoadingButton} from '$component';
   import type {FetchAPI} from '$type';
   import {identity} from '$store';
 
@@ -14,18 +13,11 @@
 
   let {messages, discussion, ws, mode}: Props = $props();
 
-  let from = $state(10);
-  const className = 'bg-contain from-neutral-900 to-neutral-950/40 hover:text-neutral-400 py-7 w-full shadow-none';
-
   function handleClick(message: FetchAPI['messages'][number], addressee: string) {
     ws.send(JSON.stringify({type: 'fetch-conversation', addressee}));
 
     $discussion = message;
     $mode = 'read';
-  }
-
-  async function loadMore() {
-    ws.send(JSON.stringify({type: 'load-more'}));
   }
 </script>
 
@@ -42,12 +34,6 @@
     <p class="text-right text-[1rem] text-neutral-400">{formatPhoneNumber(addressee)}</p>
   </div>
 {/each}
-
-{#key messages.length}
-  {#if messages.length > from}
-    <LoadingButton {className} onclick={loadMore}>Load More</LoadingButton>
-  {/if}
-{/key}
 
 <style lang="postcss">
   .message {

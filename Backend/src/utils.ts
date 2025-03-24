@@ -32,7 +32,7 @@ export function parseMessage(msg: MessageInstance) {
   return {
     messageID: msg.sid,
     status: msg.status,
-    date: msg.dateSent,
+    date: msg.dateSent || msg.dateCreated,
     error: msg.errorCode ? `${msg.errorCode}: ${msg.errorMessage || 'unknown error'}` : '',
     body: msg.body,
     from: msg.from,

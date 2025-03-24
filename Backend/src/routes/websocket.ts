@@ -268,11 +268,17 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       }
 
       case 'delete-message': {
-        const {error, sid} = await checkAPI(message);
+        const {error, addressee} = await checkAPI(message);
         if (error) return ws.send({error});
 
-        await twilioClient.messages.get(sid!).remove();
-        ws.send({type: 'delete-message', sid});
+        const receivedMessages = await twilioClient.messages.list({to: addressee});
+        const sentMessages = await twilioClient.messages.list({from: addressee});
+
+        for (const message of [...receivedMessages, ...sentMessages]) {
+          await twilioClient.messages(message.sid).remove();
+        }
+
+        ws.send({type: 'delete-message', addressee});
         break;
       }
 

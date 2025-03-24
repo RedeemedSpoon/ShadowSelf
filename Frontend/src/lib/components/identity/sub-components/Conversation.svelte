@@ -1,18 +1,17 @@
 <script lang="ts">
-  import {type Writable} from 'svelte/store';
   import Message from './Message.svelte';
   import {formatPhoneNumber} from '$lib';
   import type {FetchAPI} from '$type';
   import {identity} from '$store';
 
   interface Props {
-    mode: Writable<'browse' | 'read' | 'write'>;
     discussion: FetchAPI['messages'][number];
     fullDiscussion: FetchAPI['messages'];
     ws: WebSocket;
   }
 
-  let {discussion, fullDiscussion, ws, mode}: Props = $props();
+  let {discussion, fullDiscussion, ws}: Props = $props();
+
   const addressee = discussion?.from === $identity.phone ? discussion?.to : discussion?.from;
   fullDiscussion = [];
 </script>
@@ -23,9 +22,11 @@
     {#each fullDiscussion as message}
       <Message {message} />
     {/each}
-    {#if fullDiscussion.length === 0}
-      <Message message={discussion} />
-    {/if}
+    {#key fullDiscussion}
+      {#if fullDiscussion.length === 0}
+        <Message message={discussion} />
+      {/if}
+    {/key}
   </div>
 </div>
 

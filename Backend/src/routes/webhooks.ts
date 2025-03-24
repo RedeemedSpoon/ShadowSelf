@@ -47,22 +47,24 @@ export default new Elysia()
 
     return {received: true};
   })
-  .post('/webhook-twilio', async ({body, request, headers}) => {
-    const signature = headers['X-Twilio-Signature'] || '';
+  .post('/webhook-twilio', async ({body, request}) => {
+    const hostname = request.headers.get('X-Forwarded-Proto') + '://' + request.headers.get('X-Forwarded-Host');
+    const url = `${hostname}/webhook-twilio`;
+
+    const signature = request.headers.get('X-Twilio-Signature') || '';
     const rawBody = body as {[key: string]: string};
     const auth = process.env.TWILIO_TOKEN!;
 
-    if (!twilio.validateRequest(auth, signature, request.url, rawBody)) {
+    if (!twilio.validateRequest(auth, signature, url, rawBody)) {
       return error(400, 'Invalid signature');
     }
 
-    console.log('pass');
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    // const rawMessage = await twilioClient.messages.list({sid: rawBody.MessageSid, limit: 1});
-    // const message = (await parseMessage(rawMessage))[0];
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const rawMessage = await twilioClient.messages.get(rawBody.MessageSid).fetch();
+    const message = parseMessage(rawMessage);
 
-    // const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
-    // if (!ws) return;
-    //
-    // ws?.websocket.send(JSON.stringify({type: 'new-message', newMessage: message}));
+    const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
+    if (!ws) return;
+
+    ws?.websocket.send(JSON.stringify({type: 'new-message', newMessage: message}));
   });

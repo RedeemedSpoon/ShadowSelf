@@ -24,18 +24,32 @@
   }
 
   function deleteMessage() {
-    ws.send(JSON.stringify({type: 'delete-message'}));
+    const addressee = $discussion?.from === $identity.phone ? $discussion?.to : $discussion?.from;
+    ws.send(JSON.stringify({type: 'delete-message', addressee}));
   }
 
   $handleResponse = (response: WebSocketResponse) => {
     switch (response.type) {
-      case 'new-message':
+      case 'new-message': {
         notify('New Message Received!', 'success');
-        messages.messages!.unshift(response.newMessage!);
+
+        const alreadyExists = messages.messages!.findIndex((message) => (message.from || message.to) === response.newMessage?.from);
+        if (alreadyExists !== -1) {
+          messages.messages![alreadyExists] = response.newMessage!;
+          if ($mode === 'read' && ($discussion?.from || $discussion?.to) === response.newMessage?.from) {
+            fullDiscussion = [response.newMessage!, ...fullDiscussion];
+          }
+        } else {
+          messages.messages!.unshift(response.newMessage!);
+        }
+
         break;
+      }
 
       case 'delete-message':
-        messages.messages = messages.messages!.filter((message) => message.messageID !== response.sid);
+        messages.messages = messages.messages!.filter((message) => (message.from || message.to) !== response.addressee);
+        fullDiscussion = [];
+        $mode = 'browse';
         break;
 
       case 'fetch-conversation':
@@ -49,9 +63,9 @@
   <h1 class="text-5xl font-bold text-neutral-300">Phone Number</h1>
   <div class="flex gap-1">
     <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($discussion = undefined))} title="Go to Messages" />
-    <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($discussion = undefined))} title="Send New Message" />
+    <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($discussion = undefined))} title="Start New Conversation" />
     <ActionIcon disabled={!$discussion} icon={ReplyIcon} action={() => ($mode = 'write')} title="Reply to Message" />
-    <ActionIcon disabled={!$discussion} icon={TrashIcon} action={deleteMessage} title="Delete Message" />
+    <ActionIcon disabled={!$discussion} icon={TrashIcon} action={deleteMessage} title="Delete Whole Conversation" />
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
@@ -86,7 +100,7 @@
 
 {#key $discussion}
   {#if $mode === 'read'}
-    <Conversation {mode} discussion={$discussion!} {ws} {fullDiscussion} />
+    <Conversation discussion={$discussion!} {ws} {fullDiscussion} />
   {/if}
 {/key}
 
