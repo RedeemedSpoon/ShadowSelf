@@ -7,10 +7,9 @@
   interface Props {
     discussion: FetchAPI['messages'][number];
     fullDiscussion: FetchAPI['messages'];
-    ws: WebSocket;
   }
 
-  let {discussion, fullDiscussion, ws}: Props = $props();
+  let {discussion, fullDiscussion}: Props = $props();
 
   const addressee = discussion?.from === $identity.phone ? discussion?.to : discussion?.from;
   fullDiscussion = [];

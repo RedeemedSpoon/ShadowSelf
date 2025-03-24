@@ -1,6 +1,7 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
   import ConversationLists from './sub-components/ConversationLists.svelte';
+  import ComposeMessage from './sub-components/ComposeMessage.svelte';
   import Conversation from './sub-components/Conversation.svelte';
   import {SendIcon, TrashIcon, ReplyIcon, InboxIcon} from '$icon';
   import {fetchAPI, formatPhoneNumber, notify} from '$lib';
@@ -36,18 +37,21 @@
         const alreadyExists = messages.messages!.findIndex((message) => (message.from || message.to) === response.newMessage?.from);
         if (alreadyExists !== -1) {
           messages.messages![alreadyExists] = response.newMessage!;
+
           if ($mode === 'read' && ($discussion?.from || $discussion?.to) === response.newMessage?.from) {
+            $discussion = response.newMessage;
             fullDiscussion = [response.newMessage!, ...fullDiscussion];
           }
-        } else {
-          messages.messages!.unshift(response.newMessage!);
+          return;
         }
 
+        messages.messages!.unshift(response.newMessage!);
         break;
       }
 
       case 'delete-message':
         messages.messages = messages.messages!.filter((message) => (message.from || message.to) !== response.addressee);
+        $discussion = undefined;
         fullDiscussion = [];
         $mode = 'browse';
         break;
@@ -98,9 +102,13 @@
   {/key}
 {/await}
 
+{#if $mode === 'write'}
+  <ComposeMessage {ws} reply={$discussion} />
+{/if}
+
 {#key $discussion}
   {#if $mode === 'read'}
-    <Conversation discussion={$discussion!} {ws} {fullDiscussion} />
+    <Conversation discussion={$discussion!} {fullDiscussion} />
   {/if}
 {/key}
 
