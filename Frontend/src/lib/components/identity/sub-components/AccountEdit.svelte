@@ -48,7 +48,6 @@
 
 {#if mode === 'add' || mode === 'edit'}
   <section class="flex flex-col items-center gap-8 p-8">
-    <h3 class="!text-5xl text-neutral-300">{mode === 'add' ? 'Add' : 'Edit'} Account</h3>
     <div class="flex gap-8">
       <div class="flex flex-col gap-2">
         <label for="username">Username<span class="text-red-600">*</span></label>

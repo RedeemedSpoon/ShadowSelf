@@ -198,6 +198,7 @@ export interface WebSocketResponse {
     | 'forward-email'
     | 'delete-message'
     | 'fetch-conversation'
+    | 'send-message'
     | 'new-message';
   picture?: string;
   ethnicity?: string;

@@ -24,8 +24,9 @@
   }
 
   function parseContent() {
-    const body = isTypeHTML ? quill.getSemanticHTML() : quill.getText();
     const subject = (document.querySelector('input[name="subject"]') as HTMLInputElement)?.value;
+    let body = isTypeHTML ? quill.getSemanticHTML() : quill.getText();
+    if (body === '<p></p>') body = '';
 
     return {subject, body, attachments};
   }

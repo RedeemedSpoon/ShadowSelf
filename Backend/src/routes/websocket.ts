@@ -267,6 +267,18 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         break;
       }
 
+      case 'send-message': {
+        const {error, addressee, body} = await checkAPI(message);
+        if (error) return ws.send({error});
+
+        if (addressee === identity.phone) return ws.send({error: 'You cannot send a message to yourself'});
+        const messageSent = await twilioClient.messages.create({from: identity.phone, to: addressee, body});
+        console.log(messageSent);
+
+        ws.send({type: 'send-message', sentMessage: parseMessage(messageSent)});
+        break;
+      }
+
       case 'delete-message': {
         const {error, addressee} = await checkAPI(message);
         if (error) return ws.send({error});

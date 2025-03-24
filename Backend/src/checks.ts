@@ -271,8 +271,8 @@ export async function checkAPI(body: WebsocketRequest): Promise<APIParams> {
     return {error: 'Long subject (>126 characters), please try again'} as APIParams;
   }
 
-  if (body.body && body.body.length < 12) {
-    return {error: 'Short body (<12 characters), please try again'} as APIParams;
+  if (body.body && body.body.length < 2) {
+    return {error: 'Body is too short, please try again'} as APIParams;
   }
 
   if (body.attachments && body.attachments.length > 10) {

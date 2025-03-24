@@ -144,6 +144,7 @@ export interface WebsocketRequest {
     | 'forward-email'
     | 'delete-message'
     | 'fetch-conversation'
+    | 'send-message'
     | 'load-more';
   ethnicity: string;
   sex: string;
