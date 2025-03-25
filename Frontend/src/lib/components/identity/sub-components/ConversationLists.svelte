@@ -5,7 +5,7 @@
   import {identity} from '$store';
 
   interface Props {
-    mode: Writable<'browse' | 'read' | 'write'>;
+    mode: Writable<'browse' | 'read' | 'write' | 'reply'>;
     discussion: Writable<FetchAPI['messages'][number] | undefined>;
     fullDiscussion: Writable<FetchAPI['messages']>;
     messages: FetchAPI['messages'];

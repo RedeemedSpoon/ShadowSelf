@@ -1,10 +1,11 @@
 <script lang="ts">
   import type {FetchAPI} from '$type';
+  import {identity} from '$store';
   import {notify} from '$lib';
 
   interface Props {
-    reply: FetchAPI['messages'][number] | undefined;
-    messages: FetchAPI['messages'];
+    reply?: FetchAPI['messages'][number] | undefined;
+    messages?: FetchAPI['messages'];
     ws: WebSocket;
   }
 
@@ -15,6 +16,7 @@
   let secondStep = $state(false) as boolean;
   let textarea = $state() as HTMLTextAreaElement;
   let body = $state('') as string;
+  let addressee = '';
 
   const title = $derived(secondStep ? 'Choose Your Recipient' : 'Type Your Message');
   const hint = $derived(secondStep ? 'Full phone number, with country code (e.g. +11234567890)' : `${charLimit} characters left`);
@@ -52,22 +54,34 @@
       return;
     }
 
-    if (!secondStep) {
+    if (reply) {
+      body = textarea.value;
+      addressee = $identity.phone === reply.from ? reply.to : reply.from;
+    }
+
+    if (!reply && !secondStep) {
       body = textarea.value;
       textarea.value = '';
       secondStep = true;
       return;
     }
 
-    const addressee = textarea.value.replace(/ /g, '').replace(/-/g, '');
-    const recipientExists = messages.find((message) => message.from === addressee || message.to === addressee);
-    ws.send(JSON.stringify({type: 'send-message', body, addressee, isReply: !!reply || !!recipientExists}));
+    if (!addressee) addressee = textarea.value.replace(/ /g, '').replace(/-/g, '');
+    const isReply = !!reply || messages?.find((message) => message.from === addressee || message.to === addressee);
+    ws.send(JSON.stringify({type: 'send-message', body, addressee, isReply}));
   }
 </script>
 
-<div class="flex min-h-[50vh] w-full flex-col items-center justify-center gap-8">
-  <h3>{title}</h3>
-  <div class="relative w-3/4">
+<div class:reply={!!reply} class="flex min-h-[50vh] w-full flex-col items-center justify-center gap-8">
+  {#if reply}
+    {@const body = reply.body.length > 45 ? reply.body.slice(0, 45).trim() + '...' : reply.body}
+    <p class="ml-8 text-sm text-neutral-300">
+      &#8625 Replying to : <span class="text-neutral-500"> {body}</span>
+    </p>
+  {:else}
+    <h3>{title}</h3>
+  {/if}
+  <div class="relative {reply ? 'w-full' : 'w-3/4'}">
     <textarea
       bind:this={textarea}
       oninput={handleInput}
@@ -76,12 +90,16 @@
       {placeholder}></textarea>
     <button class:hidden={!showButton} onclick={sendMessage} id="send">→</button>
   </div>
-  <small class={charLimit === 0 ? 'text-red-500' : 'text-neutral-500'}>{hint}</small>
+  <small class:ml-8={!!reply} class={charLimit === 0 ? 'text-red-500' : 'text-neutral-500'}>{hint}</small>
 </div>
 
 <style lang="postcss">
   h3 {
     @apply text-5xl text-neutral-300;
+  }
+
+  .reply {
+    @apply min-h-fit items-start gap-2;
   }
 
   textarea {

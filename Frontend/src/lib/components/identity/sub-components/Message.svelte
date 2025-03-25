@@ -10,7 +10,7 @@
 
 <article class:own={ownMessage}>
   <span id="bubble" class=" {ownMessage ? 'right-6' : 'left-6'} bg-[#0b1225]"></span>
-  <p class="text-right text-neutral-300">
+  <p class="whitespace-pre-line text-right text-neutral-300">
     {message.body}
   </p>
   <div class:text-right={!ownMessage} class="h-full w-fit self-center text-sm text-neutral-500">

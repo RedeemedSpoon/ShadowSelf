@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ComposeMessage from './ComposeMessage.svelte';
   import type {Writable} from 'svelte/store';
   import Message from './Message.svelte';
   import {formatPhoneNumber} from '$lib';
@@ -6,24 +7,29 @@
   import {identity} from '$store';
 
   interface Props {
-    discussion: FetchAPI['messages'][number];
+    ws: WebSocket;
+    isReply: boolean;
+    discussion: Writable<FetchAPI['messages'][number] | undefined>;
     fullDiscussion: Writable<FetchAPI['messages']>;
   }
 
-  let {discussion, fullDiscussion}: Props = $props();
+  let {discussion, fullDiscussion, ws, isReply}: Props = $props();
 
-  const addressee = discussion?.from === $identity.phone ? discussion?.to : discussion?.from;
+  const addressee = $discussion?.from === $identity.phone ? $discussion?.to : $discussion?.from;
 </script>
 
 <div class="my-8 flex w-full flex-col items-center justify-center gap-2 text-lg text-neutral-600">
-  <p id="box">Addressee is {formatPhoneNumber(addressee)}</p>
+  <p id="box">Addressee is {formatPhoneNumber(addressee!)}</p>
+  {#if isReply}
+    <ComposeMessage {ws} reply={$discussion} />
+  {/if}
   <div class="mt-8 flex w-full flex-col gap-8">
     {#key $fullDiscussion.length}
       {#each $fullDiscussion as message}
         <Message {message} />
       {/each}
       {#if $fullDiscussion.length === 0}
-        <Message message={discussion} />
+        <Message message={$discussion!} />
       {/if}
     {/key}
   </div>

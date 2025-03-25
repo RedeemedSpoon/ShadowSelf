@@ -15,7 +15,7 @@
   let messages = $state() as FetchAPI;
 
   let fullDiscussion: Writable<FetchAPI['messages']> = writable([]);
-  const mode: Writable<'browse' | 'read' | 'write'> = writable('browse');
+  const mode: Writable<'browse' | 'read' | 'write' | 'reply'> = writable('browse');
   const discussion: Writable<FetchAPI['messages'][number] | undefined> = writable();
 
   async function fetchMessages() {
@@ -91,7 +91,7 @@
   <div class="flex gap-1">
     <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($discussion = undefined))} title="Go to Messages" />
     <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($discussion = undefined))} title="Start New Conversation" />
-    <ActionIcon disabled={!$discussion} icon={ReplyIcon} action={() => ($mode = 'write')} title="Reply to Message" />
+    <ActionIcon disabled={!$discussion} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Message" />
     <ActionIcon disabled={!$discussion} icon={TrashIcon} action={deleteMessage} title="Delete Whole Conversation" />
   </div>
 </section>
@@ -126,14 +126,12 @@
 {/await}
 
 {#if $mode === 'write'}
-  <ComposeMessage {ws} messages={messages.messages} reply={$discussion} />
+  <ComposeMessage {ws} messages={messages.messages} />
 {/if}
 
-{#key $discussion}
-  {#if $mode === 'read'}
-    <Conversation discussion={$discussion!} {fullDiscussion} />
-  {/if}
-{/key}
+{#if $mode === 'read' || $mode === 'reply'}
+  <Conversation {discussion} {ws} isReply={$mode === 'reply'} {fullDiscussion} />
+{/if}
 
 <style lang="postcss">
   #no-messages {
