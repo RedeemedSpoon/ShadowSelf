@@ -1,9 +1,9 @@
 <script lang="ts">
   import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
+  import {SendIcon, TrashIcon, ReplyIcon, InboxIcon, BackIcon} from '$icon';
   import ConversationLists from './sub-components/ConversationLists.svelte';
   import ComposeMessage from './sub-components/ComposeMessage.svelte';
   import Conversation from './sub-components/Conversation.svelte';
-  import {SendIcon, TrashIcon, ReplyIcon, InboxIcon} from '$icon';
   import {fetchAPI, formatPhoneNumber, notify} from '$lib';
   import {writable, type Writable} from 'svelte/store';
   import {identity, handleResponse} from '$store';
@@ -34,11 +34,13 @@
       case 'new-message': {
         notify('New Message Received!', 'success');
 
-        const alreadyExists = messages.messages!.findIndex((message) => (message.from || message.to) === response.newMessage?.from);
+        const sender = response.newMessage?.from;
+        const alreadyExists = messages.messages!.findIndex((msg) => msg.from === sender || msg.to === sender);
+
         if (alreadyExists !== -1) {
           messages.messages![alreadyExists] = response.newMessage!;
 
-          if ($mode === 'read' && ($discussion?.from || $discussion?.to) === response.newMessage?.from) {
+          if (($mode === 'read' || $mode === 'reply') && ($discussion?.from === sender || $discussion?.to === sender)) {
             $discussion = response.newMessage;
             $fullDiscussion = [response.newMessage!, ...$fullDiscussion];
           }
@@ -58,7 +60,7 @@
           if (index !== -1) messages.messages.splice(index, 1);
 
           if ($fullDiscussion.find((msg) => msg.from === response.addressee || msg.to === response.addressee)) {
-            $fullDiscussion.unshift(response.messageSent!);
+            $fullDiscussion = [response.messageSent!, ...$fullDiscussion];
           } else {
             $fullDiscussion = [response.messageSent!];
             setTimeout(() => ws.send(JSON.stringify({type: 'fetch-conversation', addressee: response.addressee})), 300);
@@ -89,6 +91,9 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h1 class="text-5xl font-bold text-neutral-300">Phone Number</h1>
   <div class="flex gap-1">
+    {#if $mode === 'reply'}
+      <ActionIcon icon={BackIcon} action={() => ($mode = 'read')} title="Cancel" />
+    {/if}
     <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($discussion = undefined))} title="Go to Messages" />
     <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($discussion = undefined))} title="Start New Conversation" />
     <ActionIcon disabled={!$discussion} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Message" />

@@ -24,7 +24,7 @@
     <ComposeMessage {ws} reply={$discussion} />
   {/if}
   <div class="mt-8 flex w-full flex-col gap-8">
-    {#key $fullDiscussion.length}
+    {#key $fullDiscussion}
       {#each $fullDiscussion as message}
         <Message {message} />
       {/each}

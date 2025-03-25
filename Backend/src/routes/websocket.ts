@@ -262,7 +262,8 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         const sentMessages = await twilioClient.messages.list({to: addressee});
         const receivedMessages = await twilioClient.messages.list({from: addressee});
 
-        const conversation = [...sentMessages, ...receivedMessages].map((msg) => parseMessage(msg));
+        let conversation = [...sentMessages, ...receivedMessages].map((msg) => parseMessage(msg));
+        conversation = conversation.sort((a, b) => b.date.getTime() - a.date.getTime());
         ws.send({type: 'fetch-conversation', addressee, conversation});
         break;
       }

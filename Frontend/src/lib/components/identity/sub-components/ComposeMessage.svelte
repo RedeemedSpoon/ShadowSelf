@@ -107,8 +107,8 @@
   }
 
   #send {
-    @apply alt rounded-full border-2 border-neutral-700 px-3 py-2 text-2xl font-bold text-neutral-600;
-    @apply absolute right-8 top-4 cursor-pointer bg-[#182134] opacity-80 hover:opacity-100;
-    @apply transition-all duration-300 ease-in-out hover:text-neutral-600;
+    @apply alt rounded-full border-2 border-neutral-500 px-3 py-2 text-2xl font-bold text-neutral-500;
+    @apply absolute right-8 top-4 cursor-pointer bg-neutral-800 opacity-70 hover:opacity-100;
+    @apply transition-all duration-300 ease-in-out hover:text-neutral-500;
   }
 </style>

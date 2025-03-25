@@ -71,14 +71,15 @@ export default new Elysia({prefix: '/api'})
     const receivedMessages = await twilioClient.messages.list({to: identity[0].phone});
     const sentMessages = await twilioClient.messages.list({from: identity[0].phone});
     const allMessages = [...receivedMessages.reverse(), ...sentMessages.reverse()];
+    const sortedMessages = allMessages.sort((a, b) => b.dateSent.getTime() - a.dateSent.getTime()).reverse();
     const conversations = new Map<string, Message>();
 
-    allMessages.forEach((message) => {
+    sortedMessages.forEach((message) => {
       const contact = message.from === identity[0].phone ? message.to : message.from;
       conversations.set(contact, parseMessage(message));
     });
 
-    const messages = [...conversations.values()].sort((a, b) => b.date.getTime() - a.date.getTime());
+    const messages = [...conversations.values()].reverse();
     return {messages};
   })
   .get('/card/:id', async ({user, params}) => ({}))
