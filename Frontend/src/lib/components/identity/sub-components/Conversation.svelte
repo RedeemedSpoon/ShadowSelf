@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type {Writable} from 'svelte/store';
   import Message from './Message.svelte';
   import {formatPhoneNumber} from '$lib';
   import type {FetchAPI} from '$type';
@@ -6,23 +7,22 @@
 
   interface Props {
     discussion: FetchAPI['messages'][number];
-    fullDiscussion: FetchAPI['messages'];
+    fullDiscussion: Writable<FetchAPI['messages']>;
   }
 
   let {discussion, fullDiscussion}: Props = $props();
 
   const addressee = discussion?.from === $identity.phone ? discussion?.to : discussion?.from;
-  fullDiscussion = [];
 </script>
 
 <div class="my-8 flex w-full flex-col items-center justify-center gap-2 text-lg text-neutral-600">
   <p id="box">Addressee is {formatPhoneNumber(addressee)}</p>
   <div class="mt-8 flex w-full flex-col gap-8">
-    {#each fullDiscussion as message}
-      <Message {message} />
-    {/each}
-    {#key fullDiscussion}
-      {#if fullDiscussion.length === 0}
+    {#key $fullDiscussion.length}
+      {#each $fullDiscussion as message}
+        <Message {message} />
+      {/each}
+      {#if $fullDiscussion.length === 0}
         <Message message={discussion} />
       {/if}
     {/key}

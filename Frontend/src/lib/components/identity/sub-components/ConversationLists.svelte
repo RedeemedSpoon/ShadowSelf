@@ -7,15 +7,17 @@
   interface Props {
     mode: Writable<'browse' | 'read' | 'write'>;
     discussion: Writable<FetchAPI['messages'][number] | undefined>;
+    fullDiscussion: Writable<FetchAPI['messages']>;
     messages: FetchAPI['messages'];
     ws: WebSocket;
   }
 
-  let {messages, discussion, ws, mode}: Props = $props();
+  let {messages, discussion, fullDiscussion, ws, mode}: Props = $props();
 
   function handleClick(message: FetchAPI['messages'][number], addressee: string) {
     ws.send(JSON.stringify({type: 'fetch-conversation', addressee}));
 
+    $fullDiscussion = [];
     $discussion = message;
     $mode = 'read';
   }
@@ -25,7 +27,10 @@
   {@const addressee = message.from === $identity.phone ? message.to : message.from}
   <div class="message" aria-hidden="true" onclick={() => handleClick(message, addressee)}>
     <div>
-      <p class="text-neutral-300">{message.body.length > 45 ? message.body.slice(0, 45).trim() + '...' : message.body}</p>
+      <p class="text-neutral-300">
+        <span class="text-neutral-600">{addressee === message.to ? ' (You)' : ''}</span>
+        {message.body.length > 45 ? message.body.slice(0, 45).trim() + '...' : message.body}
+      </p>
       <div class="flex items-center gap-2 text-sm text-neutral-500">
         <div class="status">{toTitleCase(message.status)}</div>
         {formatDate(message.date)}

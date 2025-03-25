@@ -12,9 +12,9 @@
 
   let {ws, token}: IdentityComponentParams = $props();
 
-  let fullDiscussion = $state() as FetchAPI['messages'];
   let messages = $state() as FetchAPI;
 
+  let fullDiscussion: Writable<FetchAPI['messages']> = writable([]);
   const mode: Writable<'browse' | 'read' | 'write'> = writable('browse');
   const discussion: Writable<FetchAPI['messages'][number] | undefined> = writable();
 
@@ -40,7 +40,7 @@
 
           if ($mode === 'read' && ($discussion?.from || $discussion?.to) === response.newMessage?.from) {
             $discussion = response.newMessage;
-            fullDiscussion = [response.newMessage!, ...fullDiscussion];
+            $fullDiscussion = [response.newMessage!, ...$fullDiscussion];
           }
           return;
         }
@@ -49,15 +49,38 @@
         break;
       }
 
-      case 'delete-message':
-        messages.messages = messages.messages!.filter((message) => (message.from || message.to) !== response.addressee);
+      case 'send-message': {
+        $mode = 'read';
+        $discussion = response.messageSent;
+
+        if (response.isReply) {
+          const index = messages.messages.findIndex((msg) => msg.from === response.addressee || msg.to === response.addressee);
+          if (index !== -1) messages.messages.splice(index, 1);
+
+          if ($fullDiscussion.find((msg) => msg.from === response.addressee || msg.to === response.addressee)) {
+            $fullDiscussion.unshift(response.messageSent!);
+          } else {
+            $fullDiscussion = [response.messageSent!];
+            setTimeout(() => ws.send(JSON.stringify({type: 'fetch-conversation', addressee: response.addressee})), 300);
+          }
+        } else $fullDiscussion = [];
+
+        messages.messages!.unshift(response.messageSent!);
+        break;
+      }
+
+      case 'delete-message': {
+        const index = messages.messages.findIndex((msg) => msg.from === response.addressee || msg.to === response.addressee);
+        if (index !== -1) messages.messages.splice(index, 1);
+
         $discussion = undefined;
-        fullDiscussion = [];
+        $fullDiscussion = [];
         $mode = 'browse';
         break;
+      }
 
       case 'fetch-conversation':
-        fullDiscussion = response.conversation!;
+        $fullDiscussion = response.conversation!;
         break;
     }
   };
@@ -87,7 +110,7 @@
           <h3 class="text-3xl">{formatPhoneNumber($identity.phone)}</h3>
           <p class="text-neutral-500">{messages.messages.length} Conversations</p>
         </div>
-        <ConversationLists {mode} {discussion} messages={messages.messages} {ws} />
+        <ConversationLists {mode} {fullDiscussion} {discussion} messages={messages.messages} {ws} />
       </div>
     {:else if $mode === 'browse'}
       <section id="no-messages" style="background-image: url({conversation});">
@@ -103,7 +126,7 @@
 {/await}
 
 {#if $mode === 'write'}
-  <ComposeMessage {ws} reply={$discussion} />
+  <ComposeMessage {ws} messages={messages.messages} reply={$discussion} />
 {/if}
 
 {#key $discussion}

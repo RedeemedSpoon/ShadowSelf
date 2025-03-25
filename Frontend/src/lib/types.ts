@@ -241,7 +241,9 @@ export interface WebSocketResponse {
   }[];
   newMessage?: Message;
   addressee?: string;
-  conversation: Message[];
+  conversation?: Message[];
+  messageSent?: Message;
+  isReply?: boolean;
   sid?: string;
 }
 

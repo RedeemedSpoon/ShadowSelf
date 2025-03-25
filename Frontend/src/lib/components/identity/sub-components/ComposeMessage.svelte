@@ -1,13 +1,14 @@
 <script lang="ts">
-  import {notify} from '$lib';
   import type {FetchAPI} from '$type';
+  import {notify} from '$lib';
 
   interface Props {
     reply: FetchAPI['messages'][number] | undefined;
+    messages: FetchAPI['messages'];
     ws: WebSocket;
   }
 
-  let {ws, reply}: Props = $props();
+  let {ws, messages, reply}: Props = $props();
 
   let charLimit = $state(160) as number;
   let showButton = $state(true) as boolean;
@@ -59,7 +60,8 @@
     }
 
     const addressee = textarea.value.replace(/ /g, '').replace(/-/g, '');
-    ws.send(JSON.stringify({type: 'send-message', body, addressee}));
+    const recipientExists = messages.find((message) => message.from === addressee || message.to === addressee);
+    ws.send(JSON.stringify({type: 'send-message', body, addressee, isReply: !!reply || !!recipientExists}));
   }
 </script>
 

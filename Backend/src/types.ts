@@ -180,6 +180,7 @@ export interface WebsocketRequest {
   }[];
   sid: string;
   addressee: string;
+  isReply: boolean;
 }
 
 export interface APIParams {
@@ -213,6 +214,7 @@ export interface APIParams {
   }[];
   sid: string;
   addressee: string;
+  isReply: boolean;
 }
 
 export interface EmailContent {

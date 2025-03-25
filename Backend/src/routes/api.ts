@@ -69,19 +69,16 @@ export default new Elysia({prefix: '/api'})
     if (!identity.length) return error(400, 'Identity not found');
 
     const receivedMessages = await twilioClient.messages.list({to: identity[0].phone});
-    const sendedMessages = await twilioClient.messages.list({from: identity[0].phone});
-    const allMessages = [...receivedMessages, ...sendedMessages];
+    const sentMessages = await twilioClient.messages.list({from: identity[0].phone});
+    const allMessages = [...receivedMessages.reverse(), ...sentMessages.reverse()];
     const conversations = new Map<string, Message>();
 
     allMessages.forEach((message) => {
       const contact = message.from === identity[0].phone ? message.to : message.from;
-
-      if (!conversations.has(contact)) {
-        conversations.set(contact, parseMessage(message));
-      }
+      conversations.set(contact, parseMessage(message));
     });
 
-    const messages = [...conversations.values()];
+    const messages = [...conversations.values()].sort((a, b) => b.date.getTime() - a.date.getTime());
     return {messages};
   })
   .get('/card/:id', async ({user, params}) => ({}))

@@ -1,6 +1,6 @@
 import {fetchMoreEmails, listenForEmail, fetchEmail, deleteEmail, appendToMailbox} from '../email-imap';
-import {User, WebsocketRequest, Location, APIParams} from '../types';
 import {sql, twilioClient, WSConnections} from '../connection';
+import {User, WebsocketRequest, Location} from '../types';
 import {attempt, parseMessage, request} from '../utils';
 import {sendIdentityEmail} from '../email-smtp';
 import {generateProfile} from '../prompts';
@@ -42,8 +42,8 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
 
     switch (message.type) {
       case 'regenerate-picture': {
-        const mes = {sex: identity.sex, age: identity.age, ethnicity: identity.ethnicity, bio: identity.bio, ...message};
-        const {error, sex, age, ethnicity, bio} = await checkAPI(mes);
+        const mes = {sex: identity.sex, age: identity.age, ethnicity: identity.ethnicity, bio: identity.bio};
+        const {error, sex, age, ethnicity, bio} = await checkAPI({...mes, ...message});
         if (error) return ws.send({error});
 
         const locations = (await request('/extension-api', 'GET')) as Location[];
@@ -55,8 +55,8 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       }
 
       case 'regenerate-name': {
-        const mes = {sex: identity.sex, ...message};
-        const {error, sex} = await checkAPI(mes);
+        const mes = {sex: identity.sex};
+        const {error, sex} = await checkAPI({...mes, ...message});
         if (error) return ws.send({error});
 
         const locations = (await request('/extension-api', 'GET')) as Location[];
@@ -82,7 +82,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
 
       case 'update-information': {
         const mes1 = {sex: identity.sex, ethnicity: identity.ethnicity, age: identity.age};
-        const mes2 = {name: identity.name, bio: identity.bio, ...message, picture: identity.picture};
+        const mes2 = {name: identity.name, bio: identity.bio, picture: identity.picture};
         const {error, sex, ethnicity, age, name, bio, picture} = await checkAPI({...mes1, ...mes2, ...message});
         if (error) return ws.send({error});
 
@@ -133,7 +133,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         if (!message.accounts || typeof message.accounts !== 'object') return ws.send({error: 'Accounts Array are required'});
 
         for (const account of message.accounts) {
-          const {error, id, password, totp} = await checkAPI(account as APIParams);
+          const {error, id, password, totp} = await checkAPI(account as WebsocketRequest);
           if (error) return ws.send({error});
 
           await attempt(sql`UPDATE accounts SET password = ${password!} WHERE id = ${id!}`);
@@ -268,15 +268,24 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
       }
 
       case 'send-message': {
-        const {error, addressee, body} = await checkAPI(message);
+        const {error, isReply, addressee, body} = await checkAPI(message);
         if (error) return ws.send({error});
 
         if (addressee === identity.phone) return ws.send({error: 'You cannot send a message to yourself'});
-        const messageSent = await twilioClient.messages.create({from: identity.phone, to: addressee, body});
-        console.log(messageSent);
+        const params = {messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE, from: identity.phone, to: addressee, body};
 
-        ws.send({type: 'send-message', sentMessage: parseMessage(messageSent)});
-        break;
+        try {
+          const {sid} = await twilioClient.messages.create(params);
+
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          const messageSent = parseMessage(await twilioClient.messages(sid).fetch());
+
+          ws.send({type: 'send-message', addressee, messageSent, isReply});
+          break;
+        } catch (error) {
+          ws.send({error: error instanceof Error ? error.message : error});
+          break;
+        }
       }
 
       case 'delete-message': {
