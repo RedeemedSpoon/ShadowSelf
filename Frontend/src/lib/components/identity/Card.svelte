@@ -22,22 +22,13 @@
     <ActionIcon icon={AddFundsIcon} action={() => {}} title="Add Funds" />
   </div>
 </section>
-{#if purchases?.purchases}
-  <section>
-    <li>Refresh</li>
-    <li>Add Funds</li>
-    <li>Retrieve Funds</li>
-    <li>Transfer Funds</li>
-  </section>
-{:else}
-  <section id="no-purchases" style="background-image: url({cart});">
-    <h2 class="mt-12 text-5xl text-neutral-300">No Purchases</h2>
-    <p class="w-1/2 text-center">
-      No money has been transferred to this card and no spending has been made yet. Send some funds over and start using it right away!
-    </p>
-    <button>Add Funds</button>
-  </section>
-{/if}
+<section id="no-purchases" style="background-image: url({cart});">
+  <h2 class="mt-12 text-5xl text-neutral-300">No Purchases</h2>
+  <p class="w-1/2 text-center">
+    No money has been transferred to this card and no spending has been made yet. Send some funds over and start using it right away!
+  </p>
+  <button>Add Funds</button>
+</section>
 
 <style lang="postcss">
   #no-purchases {

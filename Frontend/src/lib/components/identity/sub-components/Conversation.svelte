@@ -23,7 +23,7 @@
   {#if isReply}
     <ComposeMessage {ws} reply={$discussion} />
   {/if}
-  <div class="mt-8 flex w-full flex-col gap-8">
+  <div class="flex w-full flex-col gap-12">
     {#key $fullDiscussion}
       {#each $fullDiscussion as message}
         <Message {message} />
@@ -38,6 +38,6 @@
 <style lang="postcss">
   #box {
     @apply w-fit rounded-full bg-neutral-800/75 px-2 py-1 text-sm text-neutral-500 transition duration-300;
-    @apply cursor-pointer ease-in-out hover:bg-neutral-800 hover:text-neutral-400/85;
+    @apply my-8 cursor-pointer ease-in-out hover:bg-neutral-800 hover:text-neutral-400/85;
   }
 </style>

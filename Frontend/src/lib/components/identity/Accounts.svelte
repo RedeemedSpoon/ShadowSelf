@@ -103,7 +103,7 @@
   }
 
   async function deleteAccount() {
-    ws.send(JSON.stringify({type: 'remove-account', id: target!.id}));
+    ws?.send(JSON.stringify({type: 'remove-account', id: target!.id}));
   }
 </script>
 

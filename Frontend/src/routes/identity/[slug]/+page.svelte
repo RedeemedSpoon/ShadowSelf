@@ -3,6 +3,7 @@
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
   import {currentSection, fetchIndex, handleResponse, identity} from '$store';
   import type {Sections, WebSocketResponse} from '$type';
+  import {browser} from '$app/environment';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
   import {ChevronIcon} from '$icon';
@@ -14,7 +15,9 @@
 
   let buttonWrapper = $state() as HTMLDivElement;
   let ws = $state() as WebSocket;
+
   $identity = data.identity!;
+  $currentSection = (page.url.hash?.slice(1) || 'info') as Sections;
 
   const sectionsNames = [
     {name: 'Information', icon: InfoIcon},
@@ -33,7 +36,9 @@
   };
 
   function handleClick(section: Sections) {
+    if (section) window.location.hash = section;
     $currentSection = section;
+
     buttonWrapper.childNodes.forEach((node) => {
       (node as HTMLButtonElement).disabled = true;
       setTimeout(() => ((node as HTMLButtonElement).disabled = false), 500);
@@ -45,12 +50,11 @@
 
     ws = new WebSocket(`wss://${page.url.hostname}/ws/api/${data.identity?.id}`);
 
-    ws.onopen = () => {
-      pingInterval = setInterval(() => ws?.send('ping'), 5000);
-    };
-
-    ws.onerror = () => {
-      notify('Something went horribly wrong. Try reloading the page.', 'alert');
+    ws.onopen = () => (pingInterval = setInterval(() => ws?.send('ping'), 5000));
+    ws.onerror = () => notify('Something went horribly wrong. Try reloading the page.', 'alert');
+    ws.onclose = (ws) => {
+      clearInterval(pingInterval as number);
+      if (ws.code === 1014) notify(ws.reason, 'alert');
     };
 
     ws.onmessage = (event) => {
@@ -66,13 +70,7 @@
       $handleResponse(response);
     };
 
-    ws.onclose = (ws) => {
-      clearInterval(pingInterval as number);
-      if (ws.code === 1014) notify(ws.reason, 'alert');
-    };
-
     window.onbeforeunload = () => ws.close();
-    handleClick('info');
   });
 </script>
 
@@ -82,7 +80,7 @@
 </svelte:head>
 
 <div id="identity">
-  {#if data.identity}
+  {#if data.identity && browser}
     <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
       {#each Object.keys(allSections) as section, i}
         {@const Icon = sectionsNames[i].icon}

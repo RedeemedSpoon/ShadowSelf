@@ -42,7 +42,7 @@
     const id = mode === 'edit' ? target!.id : null;
     const type = mode === 'add' ? 'add-account' : 'edit-account';
 
-    ws.send(JSON.stringify({type, id, username, password, website, totp, algorithm}));
+    ws?.send(JSON.stringify({type, id, username, password, website, totp, algorithm}));
   }
 </script>
 

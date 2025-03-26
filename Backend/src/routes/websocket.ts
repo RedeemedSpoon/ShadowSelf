@@ -273,6 +273,8 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         if (error) return ws.send({error});
 
         if (addressee === identity.phone) return ws.send({error: 'You cannot send a message to yourself'});
+        if (body.length > 160) return ws.send({error: 'Message is too long (<160 characters)'});
+
         const params = {body, messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE, from: identity.phone, to: addressee};
 
         try {

@@ -72,7 +72,7 @@
   }
 </script>
 
-<div class:reply={!!reply} class="flex min-h-[50vh] w-full flex-col items-center justify-center gap-8">
+<div class:reply={!!reply} class="my-4 flex min-h-[50vh] w-full flex-col items-center justify-center gap-8">
   {#if reply}
     {@const body = reply.body.length > 45 ? reply.body.slice(0, 45).trim() + '...' : reply.body}
     <p class="ml-8 text-sm text-neutral-300">

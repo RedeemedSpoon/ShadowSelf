@@ -19,7 +19,7 @@
   const discussion: Writable<FetchAPI['messages'][number] | undefined> = writable();
 
   async function fetchMessages() {
-    await new Promise((resolve) => setTimeout(resolve, 350));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
     messages = await fetchAPI('/api/phone/' + $identity.id, token);
   }

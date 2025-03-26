@@ -133,7 +133,7 @@
       </p>
       <p class="-mt-2">Created {date}</p>
       <hr class="my-2 w-1/6" />
-      <div id="info" class="flex flex-col">
+      <div id="information" class="flex flex-col">
         <div>
           <EmailIcon fill={true} className="text-primary-700 cursor-default" />
           <CopyButton alt={true} change={false} text={$identity.email} />
@@ -157,7 +157,7 @@
     @apply group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080];
   }
 
-  #info > div {
+  #information > div {
     @apply flex items-center gap-6;
   }
 

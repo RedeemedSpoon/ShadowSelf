@@ -51,7 +51,7 @@
 
     $masterPassword = base64Key;
     localStorage.setItem('key-' + $identity.id, base64Key);
-    ws.send(JSON.stringify({type: 'update-encryption', accounts: updatedAccounts}));
+    ws?.send(JSON.stringify({type: 'update-encryption', accounts: updatedAccounts}));
 
     $fetchIndex = 0;
     $modalIndex = 0;
