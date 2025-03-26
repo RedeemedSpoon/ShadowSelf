@@ -82,7 +82,7 @@
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
-  <h1 class="text-5xl font-bold text-neutral-300">General Information</h1>
+  <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">General Information</h1>
   <div id="top-icons" class="flex gap-2">
     <div class:hidden={!isEditingMode}>
       <ActionIcon icon={BackIcon} action={() => ((isEditingMode = false), (activeStatus = false))} title="Ignore Changes" />
@@ -93,7 +93,8 @@
 {#if isEditingMode}
   <InformationEdit {ws} />
 {:else}
-  <section class="m-12 grid grid-cols-2 place-items-center gap-16">
+  <section class="grid place-items-center gap-8 sm:m-12 lg:grid-cols-[1fr_2fr] xl:gap-16">
+    <h3 class="relative mt-4 hidden w-full !text-3xl max-md:inline">{$identity.name}, {$identity.age}</h3>
     <div class="group relative">
       <div id="overlay-profile"></div>
       <ReactiveButton
@@ -101,7 +102,7 @@
         newText="Copied!"
         callback={copyImage}
         icon={CopyIcon}
-        upperClassname="group/copy absolute right-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
+        upperClassname="max-lg:!hidden group/copy absolute right-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
         className="group-hover/copy:!text-neutral-400 text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
       <ReactiveButton
@@ -109,26 +110,29 @@
         newText="Downloaded!"
         callback={downloadImage}
         icon={DownloadIcon}
-        upperClassname="group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
+        upperClassname="max-lg:!hidden group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
         className="group-hover/copy:!text-neutral-400 text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
       {#key currentSection}
         <img
-          loading="lazy"
-          class="rounded-xl"
           id="pic"
+          loading="lazy"
+          class="min-w-[350px] rounded-xl max-md:w-3/4 xl:min-w-[400px] 2xl:min-w-[500px]"
           src={`data:image/png;base64,${$identity.picture}`}
           alt="{$identity.name}'s profile picture" />
       {/key}
     </div>
     <div class="flex flex-col gap-2 text-nowrap">
-      <h3 class="mt-4 !text-3xl">{$identity.name}, {$identity.age}</h3>
+      <h3 class="mt-4 !text-3xl max-md:hidden">{$identity.name}, {$identity.age}</h3>
       <p class="text-lg text-neutral-500">{toTitleCase($identity.ethnicity)} {toTitleCase($identity.sex)}</p>
       <p>{$identity.bio}</p>
       <hr class="my-2 w-1/6" />
-      <p class="flex items-center gap-2 text-nowrap">
+      <p class="flex items-center gap-2 md:text-nowrap">
         Located in
-        <img class="h-[22px]" src={`https://flagsapi.com/${$identity.location.split(',')[0]}/flat/24.png`} alt={$identity.location} />
+        <img
+          class="h-[22px] max-md:hidden"
+          src={`https://flagsapi.com/${$identity.location.split(',')[0]}/flat/24.png`}
+          alt={$identity.location} />
         {$identity.location.split(',')[1]}, {$identity.location.split(',')[2]} ({$identity.proxy_server})
       </p>
       <p class="-mt-2">Created {date}</p>
@@ -153,7 +157,7 @@
 
 <style lang="postcss">
   #overlay-profile {
-    @apply absolute inset-0 h-full w-full rounded-xl transition-all duration-300;
+    @apply absolute inset-0 h-full w-full rounded-xl transition-all duration-300 max-md:w-3/4;
     @apply group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080];
   }
 

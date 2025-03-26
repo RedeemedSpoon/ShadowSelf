@@ -37,9 +37,13 @@
   }
 </script>
 
-<div class="m-12 grid grid-cols-2 place-items-center gap-16">
+<div class="grid place-items-center gap-8 md:m-12 md:gap-16 lg:grid-cols-2">
   <div class="flex flex-col items-center gap-8">
-    <img class="rounded-xl" id="profile" src={`data:image/png;base64,${$identity.picture}`} alt="identity look" />
+    <img
+      id="profile"
+      class="rounded-xl max-md:mt-4 max-md:w-3/4"
+      src={`data:image/png;base64,${$identity.picture}`}
+      alt="identity look" />
     <Tooltip
       tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
       <LoadingButton onclick={regeneratePicture}>

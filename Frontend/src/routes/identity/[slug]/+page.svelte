@@ -85,23 +85,24 @@
       {#each Object.keys(allSections) as section, i}
         {@const Icon = sectionsNames[i].icon}
         <button class:main={section === $currentSection} onclick={() => handleClick(section as Sections)}>
-          <Icon className="h-6 w-6" />{sectionsNames[i].name}</button>
+          <Icon className="h-6 w-6" /><span class="max-md:hidden">{sectionsNames[i].name}</span>
+        </button>
       {/each}
     </div>
     {#key $currentSection}
       {@const SvelteComponent = allSections[$currentSection]}
-      <div class="mb-12 mt-8 w-full px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
+      <div class="mb-12 mt-8 w-full md:px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
         <SvelteComponent {ws} token={data.token} />
       </div>
     {/key}
     <hr class="mb-8 h-px w-full" />
-    <div class="flex w-full justify-between">
-      <a class="ml-8" href="/dashboard">
-        <button class="!alt my-0 border-none">← Back</button>
+    <div class="flex w-full justify-between max-sm:flex-col-reverse">
+      <a class="sm:ml-8" href="/dashboard">
+        <button class="alt my-0 border-none">← Back</button>
       </a>
-      <div id="danger-actions" class="flex items-center gap-4">
+      <div id="danger-actions">
         <button>Cancel Subscription</button>
-        <div class="h-8 w-px bg-neutral-600"></div>
+        <div class="h-8 w-px bg-neutral-600 max-sm:hidden"></div>
         <button>Delete Identity</button>
       </div>
     </div>
@@ -123,7 +124,7 @@
 
 <style lang="postcss">
   #identity {
-    @apply mx-auto my-[10rem] flex w-5/6 flex-col items-center text-neutral-400 md:w-2/3;
+    @apply mx-auto my-[10rem] flex w-5/6 flex-col items-center text-neutral-400 xl:w-2/3;
   }
 
   h1 {
@@ -131,9 +132,13 @@
   }
 
   #button-wrapper button {
-    @apply flex items-center gap-2 border-b bg-none px-[4vw] text-neutral-500 shadow-transparent;
+    @apply flex items-center gap-2 border-b bg-none text-neutral-500 shadow-transparent lg:px-[4vw];
     @apply rounded-none border-b border-neutral-500 transition-colors duration-500 hover:border-neutral-400 hover:text-neutral-400;
     @apply disabled:cursor-pointer disabled:opacity-100;
+  }
+
+  #danger-actions {
+    @apply flex items-center gap-4 max-sm:ml-8 max-sm:flex-col max-sm:items-start;
   }
 
   #danger-actions button {

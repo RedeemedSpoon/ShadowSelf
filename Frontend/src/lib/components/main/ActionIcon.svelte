@@ -32,7 +32,8 @@
 
 <style lang="postcss">
   button {
-    @apply w-fit cursor-pointer rounded-lg border-2 border-neutral-300/75 !bg-none p-1 !shadow-transparent transition-none hover:bg-neutral-300/10;
+    @apply w-fit cursor-pointer rounded-lg border-2 border-neutral-300/75 p-1 max-sm:scale-75;
+    @apply !bg-none !shadow-transparent transition-none hover:bg-neutral-300/10;
   }
 
   .primary-color {
