@@ -16,7 +16,8 @@
     "paths": {
       "@utils/*": ["./src/utils/*"],
       "@types": ["./src/types.ts"],
-      "@middleware": ["./src/middleware.ts"]
+      "@middleware": ["./src/middleware.ts"],
+      "@middleware-api": ["./src/middleware-api.ts"]
     }
   }
 }

@@ -1,9 +1,8 @@
 import {sql, WSConnections} from '@utils/connection';
 import {attempt, resizeImage} from '@utils/utils';
 import {listenForEmail} from '@utils/email-imap';
-import middleware from '@middleware';
+import middleware from '@middleware-api';
 import {Elysia, error} from 'elysia';
-import {User} from '@types';
 
 import card from './identity/card';
 import phone from './identity/phone';
@@ -15,8 +14,6 @@ export default new Elysia()
   .use(middleware)
   .group('/api', (app) => app.use(card).use(phone).use(email).use(account).use(information))
   .get('/api', async ({user}) => {
-    if (!user) return error(401, 'You are not logged in');
-
     const result = await attempt(sql` SELECT * FROM users u JOIN identities i ON u.id = i.owner WHERE u.email = ${user!.email}`);
     if (!result.length) return error(400, 'No identities were found');
 
@@ -36,21 +33,9 @@ export default new Elysia()
   })
   .ws('/ws-api/:id', {
     async open(ws) {
-      const cookie = ws.data.cookie['token'];
-      if (!cookie) return ws.close(1014, 'You are not logged in');
-
-      const user = (await ws.data.jwt.verify(cookie.value)) as User;
-      if (!user?.email) return ws.close(1014, 'You are not logged in');
-
-      const params = ws.data.params.id;
-      const identity = (await attempt(sql`SELECT * FROM identities WHERE id = ${params}`))[0];
-      if (!identity) return ws.close(1014, 'Identity not found. Please try again');
-
-      const id = (await attempt(sql`SELECT id FROM users WHERE email = ${user!.email}`))[0].id;
-      if (id !== identity.owner) return ws.close(1014, 'You do not authorize to perform this action');
-
-      const connection = await listenForEmail(identity.email, identity.email_password);
-      WSConnections.push({imapConnection: connection, websocket: ws, phoneNumber: identity.phone, emailAddress: identity.email});
+      const identity = ws.data.identity;
+      const connection = await listenForEmail(identity!.email, identity!.email_password);
+      WSConnections.push({imapConnection: connection, websocket: ws, phoneNumber: identity!.phone, emailAddress: identity!.email});
     },
 
     async close(ws) {
