@@ -36,13 +36,13 @@
         {formatDate(message.date)}
       </div>
     </div>
-    <p class="text-right text-[1rem] text-neutral-400">{formatPhoneNumber(addressee)}</p>
+    <p class="text-[1rem] text-neutral-400 md:text-right">{formatPhoneNumber(addressee)}</p>
   </div>
 {/each}
 
 <style lang="postcss">
   .message {
-    @apply flex w-full items-center justify-between border-b border-neutral-700 px-8 py-4;
+    @apply flex w-full justify-between border-b border-neutral-700 py-4 max-md:flex-col-reverse md:items-center md:px-8;
     @apply cursor-pointer select-none last:border-none hover:bg-neutral-300/5;
   }
 

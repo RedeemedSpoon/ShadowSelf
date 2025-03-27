@@ -14,9 +14,8 @@
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
-  <h1 class="text-5xl font-bold text-neutral-300">Virtual Card</h1>
-  <div class="flex gap-1">
-    <ActionIcon icon={RepeatIcon} action={() => {}} title="Refresh" />
+  <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Virtual Card</h1>
+  <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
     <ActionIcon icon={TransferIcon} action={() => {}} title="Transfer Funds" />
     <ActionIcon icon={RetrieveFundsIcon} action={() => {}} title="Retrieve Funds" />
     <ActionIcon icon={AddFundsIcon} action={() => {}} title="Add Funds" />
@@ -24,7 +23,7 @@
 </section>
 <section id="no-purchases" style="background-image: url({cart});">
   <h2 class="mt-12 text-5xl text-neutral-300">No Purchases</h2>
-  <p class="w-1/2 text-center">
+  <p class="text-center md:w-1/2">
     No money has been transferred to this card and no spending has been made yet. Send some funds over and start using it right away!
   </p>
   <button>Add Funds</button>

@@ -34,6 +34,8 @@
     const keyBuffer = await crypto.subtle.exportKey('raw', key);
     const base64Key = btoa(String.fromCharCode.apply(null, new Uint8Array(keyBuffer) as unknown as number[]));
 
+    if (!$masterPassword) $masterPassword = base64Key;
+
     const updatedAccounts = await Promise.all(
       accounts.accounts.map(async (account) => {
         const oldPassword = await decrypt(account.password);
@@ -66,8 +68,8 @@
 
 {#if !$masterPassword}
   <section id="no-accounts" style="background-image: url({lock});">
-    <h2 class="mt-12 text-5xl text-neutral-300">No Master Password</h2>
-    <p class="w-1/2 text-center">
+    <h2 class="mt-12 text-center text-5xl text-neutral-300">No Master Password</h2>
+    <p class="text-center md:w-1/2">
       Set/recover a master password that will be stored on this device. This ensures only you can access your accounts—no one else, not
       even us. You can change it anytime.
     </p>
@@ -76,9 +78,9 @@
 {/if}
 
 <Modal id={1}>
-  <div class="flex flex-col items-center gap-8 p-8">
-    <h3 class="w-full !text-5xl text-neutral-300">Setup Master Password</h3>
-    <p class="w-[40vw]">
+  <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
+    <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Setup Master Password</h3>
+    <p class="md:w-[40vw]">
       Set/recover a master password to secure your accounts, ensuring only you can access them. You can update it anytime for added
       security.
     </p>
@@ -87,9 +89,9 @@
   </div>
 </Modal>
 <Modal id={2}>
-  <div class="flex flex-col items-center gap-8 p-8">
-    <h3 class="w-full !text-5xl text-neutral-300">Change Master Password</h3>
-    <p class="w-[40vw]">
+  <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
+    <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Change Master Password</h3>
+    <p class="md:w-[40vw]">
       Change the master password of your accounts and automatically update all of your accounts. There is no going back once you set
       it.
     </p>

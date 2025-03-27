@@ -14,10 +14,10 @@
 
   const relativeDate = new Date($identity.creation_date).getTime() - new Date().getTime();
   const dateInDays = Math.round(relativeDate / (1000 * 60 * 60 * 24));
-  const dateInMonth = Math.round(dateInDays / 30);
+  const dateInMonths = Math.round(dateInDays / 30);
 
   const rtf1 = new Intl.RelativeTimeFormat('en', {style: 'short'});
-  const date = Math.abs(dateInMonth) > 1 ? rtf1.format(dateInMonth, 'months') : rtf1.format(dateInDays, 'days');
+  const date = Math.abs(dateInMonths) > 1 ? rtf1.format(dateInMonths, 'months') : rtf1.format(dateInDays, 'days');
 
   function copyImage() {
     const blob = base64ToBlob($identity.picture);
@@ -102,7 +102,7 @@
         newText="Copied!"
         callback={copyImage}
         icon={CopyIcon}
-        upperClassname="max-lg:!hidden group/copy absolute right-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
+        upperClassname="group/copy absolute max-xl:!left-12 right-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
         className="group-hover/copy:!text-neutral-400 text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
       <ReactiveButton
@@ -110,7 +110,7 @@
         newText="Downloaded!"
         callback={downloadImage}
         icon={DownloadIcon}
-        upperClassname="max-lg:!hidden group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
+        upperClassname="group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 max-xl:bottom-20 xl:bottom-8 opacity-0"
         className="group-hover/copy:!text-neutral-400 text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
       {#key currentSection}
@@ -158,7 +158,7 @@
 <style lang="postcss">
   #overlay-profile {
     @apply absolute inset-0 h-full w-full rounded-xl transition-all duration-300 max-md:w-3/4;
-    @apply group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080];
+    @apply min-w-[350px] group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080];
   }
 
   #information > div {

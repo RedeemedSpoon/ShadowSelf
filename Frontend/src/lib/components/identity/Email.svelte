@@ -143,6 +143,7 @@
         $target = null;
         break;
       }
+
       case 'fetch-reply': {
         if (response.fetchEmail === null) return;
         $reply = [...$reply, response.fetchEmail!];
@@ -171,6 +172,7 @@
         inbox.emails[messageCount as keyof typeof inbox.emails]--;
 
         inbox.emails = {...inbox.emails};
+        $mode = 'browse';
         $target = null;
         from--;
         break;
@@ -180,8 +182,8 @@
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
-  <h1 class="text-5xl font-bold text-neutral-300">Email Address</h1>
-  <div class="flex gap-1">
+  <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Email Address</h1>
+  <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
     <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go to Inbox" />
     <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($target = null))} title="Send New Email" />
     <ActionIcon
@@ -200,9 +202,9 @@
 <div id="hold-load" class="h-[40vh]"></div>
 <ComposeEmail {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} {target} {mode} />
 <Modal>
-  <div class="flex flex-col items-center gap-8 p-8">
-    <h3 class="w-full !text-5xl text-neutral-300">Forward Email to Another Address</h3>
-    <p class="w-[40vw]">
+  <div class="flex flex-col items-center gap-8 p-4 md:p-8">
+    <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Forward Email to Another Address</h3>
+    <p class="md:w-[40vw]">
       Enter the email address of the recipient you would like to forward this email to. The original headers will be shown on top of
       the body.
     </p>
@@ -219,9 +221,9 @@
 {:then}
   {#if $mode === 'browse'}
     {#key inbox.emails}
-      <div class="mt-[5vh] flex items-center justify-between">
+      <div class="mb-2 mt-[5vh] flex justify-between gap-4 max-md:flex-col md:items-center">
         <div class="[*&>p]:!text-neutral-500">
-          <h3 class="!text-3xl">{$identity.email}</h3>
+          <h3 class="!text-2xl lg:!text-3xl">{$identity.email}</h3>
           {#if label === 'INBOX'}
             <p>{inbox.emails.messagesCount} Emails in Inbox</p>
           {:else if label === 'Sent'}

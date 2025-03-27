@@ -101,22 +101,23 @@
 </script>
 
 <div class:hidden={$mode === 'read' || $mode === 'browse'}>
-  <div class="m-8">
-    <div class="flex items-center gap-8">
+  <div class="my-4 md:m-8">
+    <div class="flex gap-8 max-md:relative max-md:flex-col md:items-center">
       <div class="flex flex-col gap-14">
         <label for="subject">Subject</label>
-        <label for="recipient">Recipient</label>
+        <label class="max-md:mt-6" for="recipient">Recipient</label>
       </div>
-      <div class="flex flex-col gap-6">
+      <div class="flex flex-col gap-6 max-md:absolute max-md:top-10">
         <input type="text" placeholder="Mail Subject" name="subject" />
         <input
           type="email"
-          placeholder="example@domain.tld"
           name="recipient"
+          placeholder="example@domain.tld"
           value={getRecipient()}
+          class="max-md:mt-4"
           disabled={$target && $mode !== 'write-draft'} />
       </div>
-      <div class="flex w-full flex-col items-end">
+      <div class="flex w-full flex-col max-md:mt-12 md:items-end">
         <h3 class="mb-2 mr-10 text-xl font-semibold text-neutral-300">Body Type</h3>
         <div class="flex flex-row">
           <div class="box {!isTypeHTML && 'selected'}" onclick={() => (isTypeHTML = false)} aria-hidden="true">Raw Text</div>
@@ -126,7 +127,7 @@
     </div>
   </div>
   <div id="toolbar-container">
-    <span class="ql-formats">
+    <span class="ql-formats max-md:!hidden">
       <select class="ql-font"></select>
       <select class="ql-size"></select>
     </span>
@@ -169,8 +170,8 @@
     </span>
   </div>
   <div id="editor"></div>
-  <div class="m-8 flex justify-between">
-    <div class="flex items-start gap-4">
+  <div class="my-4 flex justify-between max-md:flex-col md:m-8">
+    <div class="flex items-start gap-4 max-md:mb-12 max-md:justify-center">
       <div class="flex items-center gap-2">
         <label for="file">Attachments</label>
         <label id="file-upload"><input type="file" hidden />Upload</label>
@@ -188,7 +189,7 @@
         {/key}
       </div>
     </div>
-    <div class="flex h-fit gap-2">
+    <div class="flex h-fit gap-2 max-md:justify-center">
       <LoadingButton index={2} className="alt" onclick={() => submit(parseContent(), true, isDraft)}>Save Draft</LoadingButton>
       <LoadingButton onclick={() => submit(parseContent(), false, isDraft)}>Send {$target ? 'Reply' : 'Email'}</LoadingButton>
     </div>
@@ -214,6 +215,10 @@
 
   #toolbar-container button {
     @apply shadow-none;
+  }
+
+  #toolbar-container {
+    @apply max-sm:grid max-sm:grid-cols-3;
   }
 
   input:disabled {

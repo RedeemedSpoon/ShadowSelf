@@ -89,8 +89,8 @@
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
-  <h1 class="text-5xl font-bold text-neutral-300">Phone Number</h1>
-  <div class="flex gap-1">
+  <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Phone Number</h1>
+  <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
     {#if $mode === 'reply'}
       <ActionIcon icon={BackIcon} action={() => ($mode = 'read')} title="Cancel" />
     {/if}
@@ -111,8 +111,8 @@
   {#key messages.messages}
     {#if $mode === 'browse' && messages?.messages?.length}
       <div class="mt-20 flex w-full flex-col items-center">
-        <div class="mb-4 flex w-full justify-between">
-          <h3 class="text-3xl">{formatPhoneNumber($identity.phone)}</h3>
+        <div class="mb-4 flex w-full justify-between max-md:flex-col">
+          <h3 class="!text-2xl lg:!text-3xl">{formatPhoneNumber($identity.phone)}</h3>
           <p class="text-neutral-500">{messages.messages.length} Conversations</p>
         </div>
         <ConversationLists {mode} {fullDiscussion} {discussion} messages={messages.messages} {ws} />
@@ -120,7 +120,7 @@
     {:else if $mode === 'browse'}
       <section id="no-messages" style="background-image: url({conversation});">
         <h2 class="mt-12 text-5xl text-neutral-300">No Messages</h2>
-        <p class="w-1/2 text-center">
+        <p class="text-center md:w-1/2">
           No messages have been sent to this number yet. Sending a quick text or starting a conversation to get things rolling could be
           a good first step!
         </p>

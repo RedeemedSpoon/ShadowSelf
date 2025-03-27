@@ -48,7 +48,7 @@
 
 {#if mode === 'add' || mode === 'edit'}
   <section class="flex flex-col items-center gap-8 p-8">
-    <div class="flex gap-8">
+    <div class="flex gap-8 max-lg:flex-col">
       <div class="flex flex-col gap-2">
         <label for="username">Username<span class="text-red-600">*</span></label>
         <InputWithIcon type="text" name="username" placeholder="Username" icon={UserIcon} />

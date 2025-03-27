@@ -9,14 +9,14 @@
   let {email}: {email: FetchAPI['emails']['inbox'][number]} = $props();
 </script>
 
-<div class="mx-4 mb-4 mt-8 flex items-center justify-between">
-  <div class="relative w-1/2">
+<div class="mb-4 mt-8 flex justify-between max-md:flex-col md:mx-4 md:items-center">
+  <div class="relative md:w-1/2">
     <h3 class="truncate !text-2xl text-neutral-300">{email.subject}</h3>
     <p class="text-sm text-neutral-500">{email.date}</p>
   </div>
-  <div class="w-1/2">
-    <p class="text-right text-sm text-neutral-400">From : {email.from}</p>
-    <p class="text-right text-sm text-neutral-400">To : {email.to}</p>
+  <div class="md:w-1/2">
+    <p class="text-sm text-neutral-400 md:text-right">From : {email.from}</p>
+    <p class="text-sm text-neutral-400 md:text-right">To : {email.to}</p>
   </div>
 </div>
 {#if email?.type === 'html'}

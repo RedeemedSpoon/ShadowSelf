@@ -76,12 +76,12 @@
   {#if reply}
     {@const body = reply.body.length > 45 ? reply.body.slice(0, 45).trim() + '...' : reply.body}
     <p class="ml-8 text-sm text-neutral-300">
-      &#8625 Replying to : <span class="text-neutral-500"> {body}</span>
+      &#8625 Replying to : <span class="text-neutral-500">{body}</span>
     </p>
   {:else}
-    <h3>{title}</h3>
+    <h3 class="text-center text-3xl text-neutral-300 md:text-5xl">{title}</h3>
   {/if}
-  <div class="relative {reply ? 'w-full' : 'w-3/4'}">
+  <div class="relative {reply ? 'w-full' : 'md:w-3/4'}">
     <textarea
       bind:this={textarea}
       oninput={handleInput}
@@ -94,8 +94,10 @@
 </div>
 
 <style lang="postcss">
-  h3 {
-    @apply text-5xl text-neutral-300;
+  #send {
+    @apply alt rounded-full border-2 border-neutral-500 px-3 py-2 text-2xl font-bold text-neutral-500;
+    @apply absolute right-8 top-4 cursor-pointer bg-neutral-800 opacity-70 hover:opacity-100;
+    @apply transition-all duration-300 ease-in-out hover:text-neutral-500;
   }
 
   .reply {
@@ -104,11 +106,5 @@
 
   textarea {
     @apply no-scrollbar h-[80px] w-full resize-none rounded-3xl px-8 py-6 !transition-colors;
-  }
-
-  #send {
-    @apply alt rounded-full border-2 border-neutral-500 px-3 py-2 text-2xl font-bold text-neutral-500;
-    @apply absolute right-8 top-4 cursor-pointer bg-neutral-800 opacity-70 hover:opacity-100;
-    @apply transition-all duration-300 ease-in-out hover:text-neutral-500;
   }
 </style>

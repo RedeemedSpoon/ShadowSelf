@@ -108,13 +108,15 @@
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
-  <h1 class="text-5xl font-bold text-neutral-300">Online Accounts</h1>
-  <div class="flex gap-1">
+  <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Online Accounts</h1>
+  <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
     <div class:hidden={mode === 'view'}>
       <ActionIcon icon={BackIcon} action={() => (mode = 'view')} title="Ignore Changes" />
     </div>
-    <div class="flex gap-1" class:hidden={!$masterPassword}>
+    <div class:hidden={!$masterPassword}>
       <ActionIcon icon={LockEditIcon} action={() => ($modalIndex = 2)} title="Edit Master Password" />
+    </div>
+    <div class:hidden={!$masterPassword}>
       <ActionIcon icon={LockRemoveIcon} action={() => ($modalIndex = 3)} title="Remove Local Master Password" />
     </div>
     <ActionIcon disabled={!$masterPassword} icon={UserAddIcon} action={() => (mode = 'add')} title="Add Accounts" />
@@ -172,7 +174,7 @@
 {:else if mode === 'view' && $masterPassword}
   <section id="no-accounts" style="background-image: url({group});">
     <h2 class="mt-12 text-5xl text-neutral-300">No Accounts</h2>
-    <p class="w-1/2 text-center">
+    <p class="text-center md:w-1/2">
       Keep track of your online accounts linked to this identity using entries. You can store/generate your passwords, usernames, and
       set up TOTP all in one spot
     </p>
@@ -189,7 +191,7 @@
   }
 
   .wrapper {
-    @apply flex h-24 items-center justify-between border-b border-neutral-700 px-8 py-2;
+    @apply flex h-24 items-center justify-between border-b border-neutral-700 py-2 md:px-8;
     @apply cursor-pointer select-none hover:bg-neutral-400/5;
   }
 
