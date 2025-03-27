@@ -23,6 +23,7 @@
   <h2>Privacy<span id="underline-text"></span></h2>
   <h2>,</h2>
 </div>
+
 <div class="flex max-sm:scale-75">
   <h1 class="mr-6">Our</h1>
   <h1 id="highlighted-text">

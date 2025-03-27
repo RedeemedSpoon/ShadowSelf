@@ -88,6 +88,7 @@
     <LoadingButton className="w-2/3" onclick={setMasterPassword}>Set Password</LoadingButton>
   </div>
 </Modal>
+
 <Modal id={2}>
   <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
     <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Change Master Password</h3>
@@ -99,6 +100,7 @@
     <LoadingButton className="w-2/3" onclick={setMasterPassword}>Change Password</LoadingButton>
   </div>
 </Modal>
+
 <ConfirmModal id={3} onclick={removeMasterPassword} text="Removing the local master password" />
 
 <style lang="postcss">

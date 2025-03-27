@@ -119,15 +119,8 @@ export const actions: Actions = {
       payment = hasOTP ? object[6] : object[4];
     }
 
-    const response = await fetchBackend('/account/signup-create', 'POST', {
-      email,
-      access,
-      username,
-      password,
-      secret,
-      recovery,
-      payment,
-    });
+    const body = {email, access, username, password, secret, recovery, payment};
+    const response = await fetchBackend('/account/signup-create', 'POST', body);
     if (!response.cookie) return response;
 
     createCookie(cookies, 'token', response.cookie);

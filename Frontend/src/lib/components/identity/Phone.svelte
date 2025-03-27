@@ -101,6 +101,7 @@
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
+
 {#await fetchMessages()}
   <div class="flex h-[40vh] items-center justify-center">
     <h3 class="flex items-center gap-6">

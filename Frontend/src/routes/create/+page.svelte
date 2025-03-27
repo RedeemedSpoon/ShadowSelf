@@ -265,6 +265,7 @@
                 size={'small'} />
             </div>
             <input bind:value={server.identity.name} type="text" placeholder="John Doe" name="name" />
+
             <label for="sex">Sex</label>
             <div class="flex flex-row gap-4">
               <div
@@ -282,10 +283,13 @@
                 <FemaleIcon /> Female
               </div>
             </div>
+
             <label for="ethnicity">Ethnicity</label>
             <SelectMenu options={ethnicities} name="ethnicity" value={server?.identity?.ethnicity} />
+
             <label for="age">Age</label>
             <input type="number" name="age" placeholder="18-60" bind:value={server.identity.age} />
+
             <div class="flex items-end gap-4">
               <label for="bio">Bio</label>
               <ActionIcon title="regenerate a random bio" icon={RepeatIcon} action={() => handleEvent('repeat-bio')} size="small" />

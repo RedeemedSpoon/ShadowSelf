@@ -19,10 +19,9 @@
   let input: HTMLInputElement;
 
   if (typeof options[0] === 'string') {
-    //@ts-expect-error option is string[]
     givenOptions = options.map((option) => {
       return {label: option, value: option.toString().toLowerCase()};
-    });
+    }) as Option[];
   } else {
     givenOptions = options as Option[];
   }
@@ -56,6 +55,7 @@
 </script>
 
 <input required bind:this={input} type="hidden" name={name.toLowerCase()} value={value || givenOptions[0].value} />
+
 <div bind:this={select} id="select-input" class="relative z-20 min-w-[15vw]">
   <button type="button" bind:this={btn} onclick={handleBtnSelect}>
     <div class="flex items-center gap-2">

@@ -1,6 +1,6 @@
 import {attempt, parseMessage, resizeImage} from '../utils';
 import {fetchRecentEmails} from '../email-imap';
-import {sql, twilioClient} from '../connection';
+import {sql, twilio} from '../connection';
 import {User, Message} from '../types';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
@@ -68,9 +68,10 @@ export default new Elysia({prefix: '/api'})
     const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
     if (!identity.length) return error(400, 'Identity not found');
 
-    const receivedMessages = await twilioClient.messages.list({to: identity[0].phone});
-    const sentMessages = await twilioClient.messages.list({from: identity[0].phone});
+    const receivedMessages = await twilio.messages.list({to: identity[0].phone});
+    const sentMessages = await twilio.messages.list({from: identity[0].phone});
     const allMessages = [...receivedMessages.reverse(), ...sentMessages.reverse()];
+
     const sortedMessages = allMessages.sort((a, b) => b.dateSent.getTime() - a.dateSent.getTime()).reverse();
     const conversations = new Map<string, Message>();
 

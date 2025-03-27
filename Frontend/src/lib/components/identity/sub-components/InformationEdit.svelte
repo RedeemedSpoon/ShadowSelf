@@ -57,6 +57,7 @@
       <ActionIcon title="regenerate a random name" icon={RepeatIcon} action={regenerateName} size={'small'} />
     </div>
     <input value={$identity.name} type="text" placeholder="John Doe" name="name" />
+
     <label for="sex">Sex</label>
     <div class="flex flex-row gap-4">
       <div id="male" class="sex-box {$identity.sex === 'male' && 'selected'}" onclick={changeToMale} aria-hidden="true">
@@ -66,10 +67,13 @@
         <FemaleIcon /> Female
       </div>
     </div>
+
     <label for="ethnicity">Ethnicity</label>
     <SelectMenu options={ethnicities} name="ethnicity" value={$identity.ethnicity} />
+
     <label for="age">Age</label>
     <input type="number" name="age" placeholder="18-60" value={$identity.age} />
+
     <div class="flex items-end gap-4">
       <label for="bio">Bio</label>
       <ActionIcon title="regenerate a random bio" icon={RepeatIcon} action={regenerateBio} size="small" />

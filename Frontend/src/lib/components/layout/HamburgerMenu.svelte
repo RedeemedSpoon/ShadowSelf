@@ -7,15 +7,15 @@
     children?: Snippet;
   }
 
-  let {className = undefined, children}: Props = $props();
+  let {className, children}: Props = $props();
 </script>
 
 <div class="hidden max-lg:block">
   <svg
     onclick={() => ($selectionMenuOpen = !$selectionMenuOpen)}
-    aria-hidden="true"
-    xmlns="http://www.w3.org/2000/svg"
     class={'small-icon small-aura ' + className}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"

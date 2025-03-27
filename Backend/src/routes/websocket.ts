@@ -1,5 +1,5 @@
 import {fetchMoreEmails, listenForEmail, fetchEmail, deleteEmail, appendToMailbox} from '../email-imap';
-import {sql, twilioClient, WSConnections} from '../connection';
+import {sql, twilio, WSConnections} from '../connection';
 import {User, WebsocketRequest, Location} from '../types';
 import {attempt, parseMessage, request} from '../utils';
 import {sendIdentityEmail} from '../email-smtp';
@@ -27,6 +27,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
     const connection = await listenForEmail(identity.email, identity.email_password);
     WSConnections.push({imapConnection: connection, websocket: ws, phoneNumber: identity.phone, emailAddress: identity.email});
   },
+
   async close(ws) {
     const connection = WSConnections.find((wss) => wss.websocket === ws);
     if (!connection) return;
@@ -34,6 +35,7 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
     connection.imapConnection.end();
     WSConnections.splice(WSConnections.indexOf(connection), 1);
   },
+
   async message(ws, message: WebsocketRequest | 'ping') {
     if (message === 'ping') return ws.send('pong');
 
@@ -259,8 +261,8 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
 
         if (addressee === identity.phone) return ws.send({error: 'You cannot fetch your own conversation'});
 
-        const sentMessages = await twilioClient.messages.list({to: addressee});
-        const receivedMessages = await twilioClient.messages.list({from: addressee});
+        const sentMessages = await twilio.messages.list({to: addressee});
+        const receivedMessages = await twilio.messages.list({from: addressee});
 
         let conversation = [...sentMessages, ...receivedMessages].map((msg) => parseMessage(msg));
         conversation = conversation.sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -278,10 +280,10 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         const params = {body, messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE, from: identity.phone, to: addressee};
 
         try {
-          const {sid} = await twilioClient.messages.create(params);
+          const {sid} = await twilio.messages.create(params);
 
           await new Promise((resolve) => setTimeout(resolve, 500));
-          const messageSent = parseMessage(await twilioClient.messages(sid).fetch());
+          const messageSent = parseMessage(await twilio.messages(sid).fetch());
 
           ws.send({type: 'send-message', addressee, messageSent, isReply});
           break;
@@ -295,11 +297,11 @@ export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET
         const {error, addressee} = await checkAPI(message);
         if (error) return ws.send({error});
 
-        const receivedMessages = await twilioClient.messages.list({to: addressee});
-        const sentMessages = await twilioClient.messages.list({from: addressee});
+        const receivedMessages = await twilio.messages.list({to: addressee});
+        const sentMessages = await twilio.messages.list({from: addressee});
 
         for (const message of [...receivedMessages, ...sentMessages]) {
-          await twilioClient.messages(message.sid).remove();
+          await twilio.messages(message.sid).remove();
         }
 
         ws.send({type: 'delete-message', addressee});

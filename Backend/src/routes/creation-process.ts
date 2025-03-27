@@ -1,5 +1,5 @@
 import {User, CreationProcess, Location} from '../types';
-import {sql, twilioClient, origin} from '../connection';
+import {sql, twilio, origin} from '../connection';
 import {generateProfile} from '../prompts';
 import {attempt, request} from '../utils';
 import {allFakers} from '@faker-js/faker';
@@ -61,8 +61,8 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
           const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
           const locations = (await request('/extension-api', 'GET')) as Location[];
-
           const lang = locations.find((location) => location.code === (cookieStore[0] || message.location));
+
           let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};
           if (error) return ws.send({error});
 
@@ -120,7 +120,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const location = cookieStore[0];
           const phoneType = location === 'US' ? 'tollFree' : location === 'CA' ? 'local' : 'mobile';
 
-          const result = await twilioClient.availablePhoneNumbers(location)[phoneType as 'local'].list({
+          const result = await twilio.availablePhoneNumbers(location)[phoneType as 'local'].list({
             limit: 20,
             smsEnabled: true,
             excludeAllAddressRequired: true,
@@ -171,21 +171,21 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           await $`useradd -m -G mail ${emailUsername}`.nothrow().quiet();
           await $`echo ${emailUsername}:${emailPassword} | chpasswd`.nothrow().quiet();
 
-          const result = await twilioClient.incomingPhoneNumbers.create({
+          const result = await twilio.incomingPhoneNumbers.create({
             emergencyStatus: 'Inactive',
             smsUrl: `${origin}/webhook-twilio`,
             phoneNumber: phone,
           });
 
-          const mmsSupport = result.capabilities.mms;
-          const messagingService = twilioClient.messaging.v1.services(process.env.TWILIO_MESSAGING_SERVICE!);
+          const messagingService = twilio.messaging.v1.services(process.env.TWILIO_MESSAGING_SERVICE!);
           messagingService.phoneNumbers.create({phoneNumberSid: result.sid});
 
           await attempt(sql`UPDATE identities SET location = ${fullLocation}, proxy_server = ${proxyServer} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`);
+
           await attempt(sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`);
-          await attempt(sql`UPDATE identities SET phone = ${phone}, mms_support = ${mmsSupport} WHERE id = ${identityID}`);
+          await attempt(sql`UPDATE identities SET phone = ${phone}  WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET card = ${card} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`);
 

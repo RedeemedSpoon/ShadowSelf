@@ -13,9 +13,7 @@
 
   const {icon, text, color, id, size = 'big', direction = 'start'}: Props = $props();
 
-  let button = $state() as HTMLButtonElement;
   let buttonText = $state() as HTMLParagraphElement;
-
   let isActivated = $state();
   let isHovered = $state();
 
@@ -29,7 +27,6 @@
 </script>
 
 <button
-  bind:this={button}
   onmouseenter={() => (isHovered = true)}
   onmouseleave={() => (isHovered = false)}
   class={color + ' ' + (direction === 'end' ? 'flex-row-reverse self-end' : '')}

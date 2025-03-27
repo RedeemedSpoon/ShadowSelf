@@ -58,8 +58,8 @@
   </p>
   <h3>Contact Information</h3>
   <p>
-    For any questions or concerns regarding these Terms of Service or the Service, please contact us via our <a href="/contact"
-      >contact</a> form.
+    For any questions or concerns regarding these Terms of Service or the Service, please contact us via our
+    <a href="/contact">contact</a> form.
   </p>
   <small class="text-lg text-neutral-500">Last updated: November 5, 2024</small>
 </div>

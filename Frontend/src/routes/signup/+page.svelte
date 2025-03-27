@@ -220,11 +220,11 @@
     @apply -mt-4 mb-4 text-4xl font-bold text-neutral-300 max-md:text-2xl md:text-nowrap;
   }
 
-  #recovery-actions-buttons > * {
-    @apply inline-flex items-center gap-2;
-  }
-
   #recovery {
     @apply grid place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider md:grid-cols-3;
+  }
+
+  #recovery-actions-buttons > * {
+    @apply inline-flex items-center gap-2;
   }
 </style>

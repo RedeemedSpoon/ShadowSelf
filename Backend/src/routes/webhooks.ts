@@ -1,9 +1,9 @@
-import {sql, stripe, twilioClient, WSConnections} from '../connection';
+import {sql, stripe, twilio, WSConnections} from '../connection';
 import {attempt, parseMessage} from '../utils';
 import {Elysia, error} from 'elysia';
 import {type User} from '../types';
 import {jwt} from '@elysiajs/jwt';
-import twilio from 'twilio';
+import twilioClient from 'twilio';
 
 export default new Elysia()
   .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
@@ -48,19 +48,19 @@ export default new Elysia()
     return {received: true};
   })
   .post('/webhook-twilio', async ({body, request}) => {
-    const hostname = request.headers.get('X-Forwarded-Proto') + '://' + request.headers.get('X-Forwarded-Host');
-    const url = `${hostname}/webhook-twilio`;
+    const website = request.headers.get('X-Forwarded-Proto') + '://' + request.headers.get('X-Forwarded-Host');
+    const url = `${website}/webhook-twilio`;
 
     const signature = request.headers.get('X-Twilio-Signature') || '';
     const rawBody = body as {[key: string]: string};
     const auth = process.env.TWILIO_TOKEN!;
 
-    if (!twilio.validateRequest(auth, signature, url, rawBody)) {
+    if (!twilioClient.validateRequest(auth, signature, url, rawBody)) {
       return error(400, 'Invalid signature');
     }
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    const rawMessage = await twilioClient.messages.get(rawBody.MessageSid).fetch();
+    const rawMessage = await twilio.messages.get(rawBody.MessageSid).fetch();
     const message = parseMessage(rawMessage);
 
     const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);

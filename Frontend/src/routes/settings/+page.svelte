@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon, ExternalLinkIcon} from '$icon';
   import {Modal, InputWithButton, InputWithIcon, LoadingButton, ConfirmModal, CopyButton, ReactiveButton} from '$component';
+  import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon, ExternalLinkIcon} from '$icon';
   import {loadStripe, type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Settings, SettingsForm} from '$type';
   import {notify, updateFetch, updateModal} from '$lib';
@@ -97,7 +97,7 @@
     return 9;
   }
 
-  async function pay() {
+  async function submitPayment() {
     fetchIndex.set(5);
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -139,6 +139,7 @@
       </a>
     {/each}
   </ul>
+
   <section class="my-20 flex h-full w-full flex-col gap-8 px-6 xl:px-24">
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
@@ -298,7 +299,7 @@
     <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
     <div id="payment"></div>
     <input hidden name="paymentID" />
-    <LoadingButton type="button" onclick={pay} index={5}>Add Payment Method</LoadingButton>
+    <LoadingButton type="button" onclick={submitPayment} index={5}>Add Payment Method</LoadingButton>
     <button hidden type="submit" id="submit-payment">Submit</button>
   </form>
 </Modal>

@@ -1,9 +1,9 @@
 import {WSConnection} from './types';
 import nodemailer from 'nodemailer';
+import twilioClient from 'twilio';
 import postgres from 'postgres';
 import imap from 'imap-simple';
 import Stripe from 'stripe';
-import twilio from 'twilio';
 
 export const WSConnections: WSConnection[] = [];
 
@@ -47,6 +47,6 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2024-11-20.acacia; custom_checkout_beta=v1' as '2025-02-24.acacia',
 });
 
-export const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
+export const twilio = twilioClient(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 
 export const origin = process.env.NODE_ENV === 'dev' ? 'https://localhost' : 'https://shadowself.io';

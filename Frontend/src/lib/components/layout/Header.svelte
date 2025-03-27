@@ -2,10 +2,10 @@
   import {HamburgerMenu} from '$component';
   import {logoBesideText} from '$image';
   import {scrollY, user} from '$store';
-  import {page} from '$app/stores';
+  import {page} from '$app/state';
   import {CogIcon} from '$icon';
 
-  let isHome = $derived($page.url.pathname === '/');
+  let isHome = $derived(page.url.pathname === '/');
   let shouldFocus = $derived(isHome && $scrollY < 150);
 </script>
 

@@ -4,9 +4,9 @@
   import DOMPurify from 'dompurify';
   import {base64ToBlob} from '$lib';
 
-  let iframe = $state() as HTMLIFrameElement | null;
-
   let {email}: {email: FetchAPI['emails']['inbox'][number]} = $props();
+
+  let iframe = $state() as HTMLIFrameElement | null;
 </script>
 
 <div class="mb-4 mt-8 flex justify-between max-md:flex-col md:mx-4 md:items-center">

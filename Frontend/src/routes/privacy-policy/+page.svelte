@@ -16,9 +16,8 @@
   </section>
   <p>
     Shadowself is committed to protecting the privacy of our users. This Privacy Policy outlines the practices we employ regarding the
-    collection, use, disclosure, and protection of user information in connection with our website, located at <a
-      href="https://shadowself.io">shadowself.io</a
-    >.
+    collection, use, disclosure, and protection of user information in connection with our website, located at
+    <a href="https://shadowself.io">shadowself.io</a>.
   </p>
   <h3>Information Collection</h3>
   <p>We adhere to a minimalist data collection approach, gathering only the essential information required for service operation:</p>

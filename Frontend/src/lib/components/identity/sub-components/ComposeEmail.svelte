@@ -126,6 +126,7 @@
       </div>
     </div>
   </div>
+
   <div id="toolbar-container">
     <span class="ql-formats max-md:!hidden">
       <select class="ql-font"></select>
@@ -170,6 +171,7 @@
     </span>
   </div>
   <div id="editor"></div>
+
   <div class="my-4 flex justify-between max-md:flex-col md:m-8">
     <div class="flex items-start gap-4 max-md:mb-12 max-md:justify-center">
       <div class="flex items-center gap-2">
@@ -189,6 +191,7 @@
         {/key}
       </div>
     </div>
+
     <div class="flex h-fit gap-2 max-md:justify-center">
       <LoadingButton index={2} className="alt" onclick={() => submit(parseContent(), true, isDraft)}>Save Draft</LoadingButton>
       <LoadingButton onclick={() => submit(parseContent(), false, isDraft)}>Send {$target ? 'Reply' : 'Email'}</LoadingButton>

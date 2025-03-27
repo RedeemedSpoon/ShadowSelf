@@ -1,6 +1,6 @@
 import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '../crypto';
-import {attempt, request} from '../utils';
 import {sendOfficialEmail} from '../email-smtp';
+import {attempt, request} from '../utils';
 import {Elysia, error} from 'elysia';
 import {jwt} from '@elysiajs/jwt';
 import {sql} from '../connection';

@@ -200,18 +200,7 @@
   </div>
 </section>
 <div id="hold-load" class="h-[40vh]"></div>
-<ComposeEmail {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} {target} {mode} />
-<Modal>
-  <div class="flex flex-col items-center gap-8 p-4 md:p-8">
-    <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Forward Email to Another Address</h3>
-    <p class="md:w-[40vw]">
-      Enter the email address of the recipient you would like to forward this email to. The original headers will be shown on top of
-      the body.
-    </p>
-    <InputWithIcon {className} icon={UserIcon} type="email" placeholder="username@domain.tld" name="forward" />
-    <LoadingButton index={3} className="w-2/3" onclick={forwardEmail}>Forward Email</LoadingButton>
-  </div>
-</Modal>
+
 {#await fetchAllEmails()}
   <div class="flex h-[40vh] items-center justify-center">
     <h3 class="flex items-center gap-6">
@@ -266,6 +255,20 @@
     {/if}
   {/if}
 {/await}
+
+<Modal>
+  <div class="flex flex-col items-center gap-8 p-4 md:p-8">
+    <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Forward Email to Another Address</h3>
+    <p class="md:w-[40vw]">
+      Enter the email address of the recipient you would like to forward this email to. The original headers will be shown on top of
+      the body.
+    </p>
+    <InputWithIcon {className} icon={UserIcon} type="email" placeholder="username@domain.tld" name="forward" />
+    <LoadingButton index={3} className="w-2/3" onclick={forwardEmail}>Forward Email</LoadingButton>
+  </div>
+</Modal>
+
+<ComposeEmail {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} {target} {mode} />
 
 <style lang="postcss">
   h3 {

@@ -1,13 +1,13 @@
 <script lang="ts">
   import {logo, github, tor, simplex} from '$image';
 
-  const year = new Date().getFullYear();
   const navLinks = {
     Product: ['Homepage', 'Extension', 'Purchase'],
     Account: ['Dashboard', 'Settings', 'Docs'],
     Support: ['Contact', 'About', 'FAQ'],
     Legal: ['Terms of Service', 'Privacy Policy', 'Refund Policy'],
   };
+
   const socialLinks = {
     'Github Repository': {href: 'https://github.com/RedeemedSpoon/ShadowSelf', img: github},
     'Onion Website': {href: 'https://onion.torproject.org/', img: tor},
@@ -42,7 +42,7 @@
       {/each}
     </nav>
   </div>
-  <p>&copy; {year} - ShadowSelf. All rights reserved</p>
+  <p>&copy; {new Date().getFullYear()} - ShadowSelf. All rights reserved</p>
 </footer>
 
 <style lang="postcss">

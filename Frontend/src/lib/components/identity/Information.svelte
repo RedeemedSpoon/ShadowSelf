@@ -90,6 +90,7 @@
     <ActionIcon commit={true} icon={EditIcon} action={updateInformation} title="Update Information" {activeStatus} />
   </div>
 </section>
+
 {#if isEditingMode}
   <InformationEdit {ws} />
 {:else}

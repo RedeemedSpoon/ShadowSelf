@@ -52,6 +52,7 @@
       <div class="flex flex-col gap-2">
         <label for="username">Username<span class="text-red-600">*</span></label>
         <InputWithIcon type="text" name="username" placeholder="Username" icon={UserIcon} />
+
         <div class="flex justify-between gap-4">
           <label for="password">Password<span class="text-red-600">*</span></label>
           <div class="mt-2 flex gap-1">
@@ -65,17 +66,20 @@
           </div>
         </div>
         <InputWithIcon type={showPassword ? 'text' : 'password'} name="password" placeholder="Password" icon={KeyIcon} />
+
         <label for="website">Website</label>
         <InputWithIcon type="url" name="website" placeholder="Website URL" icon={WWWIcon} />
       </div>
       <div class="flex flex-col gap-2">
         <label for="totp">Totp Secret</label>
         <InputWithIcon type="text" name="totp" placeholder="Totp Secret" icon={KeylockIcon} />
+
         <label for="algorithm">Algorithm</label>
         <SelectMenu options={['SHA1', 'SHA256', 'SHA512']} name="algorithm" />
         <p>* Required Fields</p>
       </div>
     </div>
+
     <LoadingButton onclick={addOrUpdateAccount}>
       {mode === 'add' ? 'Add' : 'Update'} Account
     </LoadingButton>

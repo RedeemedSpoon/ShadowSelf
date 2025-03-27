@@ -53,18 +53,6 @@ function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, 
       negativePrompt =
         'empty, flat concert settings, no stage lights, no crowd, lack of excitement or color. No vibrant energy, sterile or digital backgrounds.';
       break;
-
-    case 8:
-      prompt = `They are in a well-equipped gym in ${lang?.city}, ${lang?.country}, lifting weights or using gym equipment. The gym has rows of free weights, benches, and machines, with mirrors lining the walls. There are other gym-goers in the background, some on treadmills, others stretching or lifting weights. The lighting is bright and motivating, with posters of fitness goals on the walls. The person’s expression is focused and determined, their body posture firm as they push themselves to complete their set, radiating strength and concentration.`;
-      negativePrompt =
-        'empty or overly simple gyms, no equipment, no mirrors, or lifeless backgrounds. Flat lighting, unrealistic or sterile gym settings.';
-      break;
-
-    case 9:
-      prompt = `They are cruising down a scenic highway in ${lang?.city}, ${lang?.country}, with the windows rolled down and the wind in their hair. The road is surrounded by lush forests, towering mountains, or open plains, with the horizon stretching far ahead. There are a few other vehicles on the road, and the scenery changes as they pass through picturesque valleys or alongside lakes. The person’s face is lit up with a sense of freedom and excitement, their eyes wide as they take in the stunning views, a smile playing on their lips. Their posture is relaxed but excited, embodying the spirit of adventure.`;
-      negativePrompt =
-        'empty, artificial highways with no scenery, no mountains, trees, or open landscapes. Flat, lifeless roads with no vehicles or details.';
-      break;
   }
 
   return {negativePrompt: negativePromptStart + negativePrompt, prompt: promptStart + prompt};

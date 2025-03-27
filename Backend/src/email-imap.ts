@@ -172,7 +172,9 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
 
     try {
       emails.unshift(await parseMassage(connection, message));
-    } catch {}
+    } catch {
+      continue;
+    }
   }
 
   return {messagesCount, emails};
@@ -182,10 +184,12 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
   const parts = imap.getParts(message.attributes.struct!);
 
   let attachments =
-    parts.filter(
-      ({disposition}) =>
-        disposition && disposition.type.toUpperCase() === 'ATTACHMENT' && !disposition.params.filename.includes('.asc'),
-    ) || [];
+    parts.filter(({disposition}) => {
+      const isAttachment = disposition && disposition.type.toUpperCase() === 'ATTACHMENT';
+      const isNotAscFile = disposition.params.filename && !disposition.params.filename.includes('.asc');
+
+      return isAttachment && isNotAscFile;
+    }) || [];
 
   try {
     attachments = await Promise.all(
@@ -196,7 +200,9 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
         })),
       ),
     );
-  } catch {}
+  } catch {
+    // ignore this please
+  }
 
   if (!message.attributes.flags.includes('\\Seen')) {
     await connection.addFlags(message.attributes.uid, ['\\Seen']);
