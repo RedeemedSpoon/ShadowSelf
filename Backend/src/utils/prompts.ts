@@ -1,5 +1,5 @@
-import {blobToBase64} from './utils';
-import {Location} from './types';
+import {blobToBase64} from '@utils/utils';
+import {Location} from '@types';
 
 function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, bio: string) {
   const promptStart = `${ethnicity} ${sex} individual, aged ${age}, showcasing authentic and natural features, with realistic skin texture, facial expression, and posture with realistic lighting. The person should reflect genuine human traits, with subtle imperfections and a non-stereotypical appearance, exuding a sense of warmth, personality, and approachability, with the following description: ${bio}.`;

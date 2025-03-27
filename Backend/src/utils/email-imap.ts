@@ -1,7 +1,7 @@
 import {imapConnection, WSConnections} from './connection';
 import MailComposer from 'nodemailer/lib/mail-composer';
-import {EmailContent} from './types';
 import PostalMime from 'postal-mime';
+import {EmailContent} from '@types';
 import imap from 'imap-simple';
 // @ts-expect-error No declaration file
 import mimelib from 'mimelib';

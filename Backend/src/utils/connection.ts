@@ -1,4 +1,4 @@
-import {WSConnection} from './types';
+import {WSConnection} from '@types';
 import nodemailer from 'nodemailer';
 import twilioClient from 'twilio';
 import postgres from 'postgres';

@@ -1,5 +1,5 @@
 import {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
-import type {QueryResult} from './types';
+import type {QueryResult} from '@types';
 import sharp from 'sharp';
 
 export async function attempt(func: Promise<unknown>): Promise<QueryResult[]> {

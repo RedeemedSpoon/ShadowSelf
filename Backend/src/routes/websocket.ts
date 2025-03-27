@@ -1,15 +1,15 @@
-import {fetchMoreEmails, listenForEmail, fetchEmail, deleteEmail, appendToMailbox} from '../email-imap';
-import {sql, twilio, WSConnections} from '../connection';
-import {User, WebsocketRequest, Location} from '../types';
-import {attempt, parseMessage, request} from '../utils';
-import {sendIdentityEmail} from '../email-smtp';
-import {generateProfile} from '../prompts';
+import {fetchMoreEmails, listenForEmail, fetchEmail, deleteEmail, appendToMailbox} from '@utils/email-imap';
+import {User, WebsocketRequest, Location} from '@types';
+import {sql, twilio, WSConnections} from '@utils/connection';
+import {attempt, parseMessage, request} from '@utils/utils';
+import {sendIdentityEmail} from '@utils/email-smtp';
+import {generateProfile} from '@utils/prompts';
 import {allFakers} from '@faker-js/faker';
-import {checkAPI} from '../checks';
-import {jwt} from '@elysiajs/jwt';
+import {checkAPI} from '@utils/checks';
+import middleware from '@middleware';
 import {Elysia} from 'elysia';
 
-export default new Elysia().use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string})).ws('/ws/api/:id', {
+export default new Elysia().use(middleware).ws('/ws/api/:id', {
   async open(ws) {
     const cookie = ws.data.cookie['token'];
     if (!cookie) return ws.close(1014, 'You are not logged in');

@@ -1,7 +1,7 @@
-import type {ContactDetail} from './types';
-import {checkContact} from './checks';
+import {checkContact} from '@utils/checks';
+import {contact} from '@utils/email-smtp';
 import {Elysia, error} from 'elysia';
-import {contact} from './email-smtp';
+import {ContactDetail} from '@types';
 
 import creationProcess from './routes/creation-process';
 import websocket from './routes/websocket';
@@ -14,7 +14,7 @@ import api from './routes/api';
 
 const app = new Elysia()
   .onError(({error}) => ({message: error instanceof Error ? error.message : error}))
-  .get('/', () => 'Hello from ShadowSelf.')
+  .get('/', () => 'Hello from ShadowSelf!')
   .post('/contact', async ({body}) => {
     const {err} = checkContact(body);
     if (err) return error(400, err);

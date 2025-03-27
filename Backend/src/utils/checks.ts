@@ -1,5 +1,5 @@
-import type {BodyField, ContactDetail, CheckIdentity, APIParams, WebsocketRequest} from './types';
-import {toTitleCase} from './utils';
+import type {BodyField, ContactDetail, CheckIdentity, APIParams, WebsocketRequest} from '@types';
+import {toTitleCase} from '@utils/utils';
 import {$} from 'bun';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {

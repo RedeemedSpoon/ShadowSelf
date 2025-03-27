@@ -1,20 +1,13 @@
-import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '../crypto';
-import {sendOfficialEmail} from '../email-smtp';
-import {attempt, request} from '../utils';
+import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '@utils/crypto';
+import {sendOfficialEmail} from '@utils/email-smtp';
+import {attempt, request} from '@utils/utils';
+import {sql} from '@utils/connection';
 import {Elysia, error} from 'elysia';
-import {jwt} from '@elysiajs/jwt';
-import {sql} from '../connection';
-import {check} from '../checks';
-import {User} from '../types';
+import middleware from '@middleware';
+import {check} from '@utils/checks';
 
 export default new Elysia({prefix: '/settings'})
-  .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
-  .derive(async ({headers, jwt}) => {
-    const auth = headers['authorization'];
-    const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : undefined;
-    const user = (await jwt.verify(token)) as User;
-    return {user};
-  })
+  .use(middleware)
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(9);
     const putPaths = ['/email', '/username', '/password'];

@@ -12,6 +12,11 @@
     "strict": true,
     "moduleResolution": "bundler",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@utils/*": ["./src/utils/*"],
+      "@types": ["./src/types.ts"],
+      "@middleware": ["./src/middleware.ts"]
+    }
   }
 }

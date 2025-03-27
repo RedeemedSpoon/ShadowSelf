@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {ContinuousProcess, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
+  import {FlowStep, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
   import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon, LimitIcon} from '$icon';
   import {PhoneIcon, EmailIcon, CreditCardIcon, UserIcon, ExtensionIcon, PinIcon} from '$icon';
   import {currentStep, fetchIndex, modalIndex} from '$store';
@@ -215,7 +215,7 @@
       <h3 id="loader-process">.</h3>
     </div>
   {:then}
-    <ContinuousProcess {disabled} finalStep={10} handleClick={respondServer}>
+    <FlowStep {disabled} finalStep={10} handleClick={respondServer}>
       {#if $currentStep === 1}
         <h3>Choose your location</h3>
         <p class="lg:w-1/2">
@@ -405,7 +405,7 @@
           </div>
         </Modal>
       {/if}
-    </ContinuousProcess>
+    </FlowStep>
   {:catch}
     <div class="flex flex-col items-center gap-8">
       <InfoIcon fill={true} className="h-28 w-28 text-neutral-300" />

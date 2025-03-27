@@ -1,15 +1,8 @@
+import middleware from '@middleware';
 import {Elysia, error} from 'elysia';
-import {jwt} from '@elysiajs/jwt';
-import {User} from '../types';
 
 export default new Elysia({prefix: '/extension-api'})
-  .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
-  .derive(async ({headers, jwt}) => {
-    const auth = headers['authorization'];
-    const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : undefined;
-    const user = (await jwt.verify(token)) as User;
-    return {user};
-  })
+  .use(middleware)
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(14);
     const auth = ['/'];

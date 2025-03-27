@@ -1,21 +1,19 @@
-import {attempt, parseMessage, resizeImage} from '../utils';
-import {fetchRecentEmails} from '../email-imap';
-import {sql, twilio} from '../connection';
-import {User, Message} from '../types';
+import {attempt, resizeImage} from '@utils/utils';
+import {sql} from '@utils/connection';
+import middleware from '@middleware';
 import {Elysia, error} from 'elysia';
-import {jwt} from '@elysiajs/jwt';
+
+import card from './identity/card';
+import phone from './identity/phone';
+import email from './identity/email';
+import account from './identity/account';
+import information from './identity/information';
 
 export default new Elysia({prefix: '/api'})
-  .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
-  .derive(async ({headers, jwt}) => {
-    const auth = headers['authorization'];
-    const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : undefined;
-    const user = (await jwt.verify(token)) as User;
-    return {user};
-  })
+  .use(middleware)
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(4);
-    const auth = ['', '/identity', '/email', '/phone', '/card', '/account'];
+    const auth = ['/', '/identity', '/email', '/phone', '/card', '/account'];
 
     const isAuthorizedPath = auth.some((p) => {
       return relativePath === p || relativePath === `${p}/`;
@@ -43,62 +41,8 @@ export default new Elysia({prefix: '/api'})
 
     return await Promise.all(allIdentitiesPromises);
   })
-  .get('/identity/:id', async ({user, params}) => {
-    const identityID = params.id;
-    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
-    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
-    if (!identity.length) return error(400, 'Identity not found');
-
-    const {picture, name, bio, age, sex, ethnicity} = identity[0];
-    const {id, creation_date, proxy_server, user_agent, location, email, phone, card} = identity[0];
-
-    return {id, creation_date, proxy_server, user_agent, picture, name, bio, age, sex, ethnicity, location, email, phone, card};
-  })
-  .get('/email/:id', async ({user, params}) => {
-    const identityID = params.id;
-    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
-    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
-    if (!identity.length) return error(400, 'Identity not found');
-
-    return {emails: await fetchRecentEmails(identity[0].email, identity[0].email_password)};
-  })
-  .get('/phone/:id', async ({user, params}) => {
-    const identityID = params.id;
-    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
-    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
-    if (!identity.length) return error(400, 'Identity not found');
-
-    const receivedMessages = await twilio.messages.list({to: identity[0].phone});
-    const sentMessages = await twilio.messages.list({from: identity[0].phone});
-    const allMessages = [...receivedMessages.reverse(), ...sentMessages.reverse()];
-
-    const sortedMessages = allMessages.sort((a, b) => b.dateSent.getTime() - a.dateSent.getTime()).reverse();
-    const conversations = new Map<string, Message>();
-
-    sortedMessages.forEach((message) => {
-      const contact = message.from === identity[0].phone ? message.to : message.from;
-      conversations.set(contact, parseMessage(message));
-    });
-
-    const messages = [...conversations.values()].reverse();
-    return {messages};
-  })
-  .get('/card/:id', async ({user, params}) => ({}))
-  .get('/account/:id', async ({user, params}) => {
-    const identityID = params.id;
-    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
-    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
-    if (!identity.length) return error(400, 'Identity not found');
-
-    const accounts = await attempt(sql`SELECT * FROM accounts WHERE owner = ${identity[0].id}`);
-    const formattedAccounts = accounts.map((account) => ({
-      id: account.id,
-      username: account.username,
-      password: account.password,
-      website: account.website,
-      totp: account.totp,
-      algorithm: account.algorithm,
-    }));
-
-    return {accounts: formattedAccounts};
-  });
+  .use(card)
+  .use(phone)
+  .use(email)
+  .use(account)
+  .use(information);

@@ -1,15 +1,15 @@
-import {User, CreationProcess, Location} from '../types';
-import {sql, twilio, origin} from '../connection';
-import {generateProfile} from '../prompts';
-import {attempt, request} from '../utils';
+import {User, CreationProcess, Location} from '@types';
+import {sql, twilio, origin} from '@utils/connection';
+import {generateProfile} from '@utils/prompts';
+import {attempt, request} from '@utils/utils';
+import {checkIdentity} from '@utils/checks';
 import {allFakers} from '@faker-js/faker';
-import {checkIdentity} from '../checks';
-import {jwt} from '@elysiajs/jwt';
+import middleware from '@middleware';
 import {Elysia, t} from 'elysia';
 import {$} from 'bun';
 
 export default new Elysia({websocket: {idleTimeout: 300}})
-  .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
+  .use(middleware)
   .post('/creation-process', async ({headers, jwt, body}) => {
     const auth = headers['authorization'];
     const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : undefined;

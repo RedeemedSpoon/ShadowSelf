@@ -1,18 +1,11 @@
-import {sql, stripe, twilio, WSConnections} from '../connection';
-import {attempt, parseMessage} from '../utils';
+import {sql, stripe, twilio, WSConnections} from '@utils/connection';
+import {attempt, parseMessage} from '@utils/utils';
 import {Elysia, error} from 'elysia';
-import {type User} from '../types';
-import {jwt} from '@elysiajs/jwt';
+import middleware from '@middleware';
 import twilioClient from 'twilio';
 
 export default new Elysia()
-  .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
-  .derive(async ({headers, jwt}) => {
-    const auth = headers['authorization'];
-    const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : undefined;
-    const user = (await jwt.verify(token)) as User;
-    return {user};
-  })
+  .use(middleware)
   .post('/webhook-stripe', async ({request}) => {
     const signature = request.headers.get('stripe-signature')!;
     const secret = process.env.STRIPE_WEBHOOK_SECRET!;

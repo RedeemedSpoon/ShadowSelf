@@ -1,5 +1,5 @@
-import {contactTransporter, verificationTransporter, smtpTransporter} from './connection';
-import {type ContactDetail, type EmailContent, emailTemplate} from './types';
+import {contactTransporter, verificationTransporter, smtpTransporter} from '@utils/connection';
+import {type ContactDetail, type EmailContent, emailTemplate} from '@types';
 
 export async function contact(body: ContactDetail) {
   const mailOptions = {

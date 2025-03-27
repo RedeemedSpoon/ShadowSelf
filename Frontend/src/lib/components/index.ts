@@ -21,7 +21,7 @@ export {default as StepsItem} from './main/StepsItem.svelte';
 export {default as SelectMenu} from './main/SelectMenu.svelte';
 export {default as SearchInput} from './main/SearchInput.svelte';
 
-export {default as ContinuousProcess} from './main/ContinuousProcess.svelte';
+export {default as FlowStep} from './main/FlowStep.svelte';
 export {default as ExtensionLinks} from './main/ExtensionLinks.svelte';
 export {default as ActionIcon} from './main/ActionIcon.svelte';
 

@@ -1,19 +1,13 @@
-import {QueryResult, type User, pricingModal} from '../types';
-import {sql, stripe, origin} from '../connection';
-import {generateIdentityID} from '../crypto';
+import {sql, stripe, origin} from '@utils/connection';
+import {QueryResult, pricingModal} from '@types';
+import {generateIdentityID} from '@utils/crypto';
 import {Elysia, error} from 'elysia';
-import {jwt} from '@elysiajs/jwt';
-import {attempt} from '../utils';
-import {check} from '../checks';
+import middleware from '@middleware';
+import {attempt} from '@utils/utils';
+import {check} from '@utils/checks';
 
 export default new Elysia({prefix: '/billing'})
-  .use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string}))
-  .derive(async ({headers, jwt}) => {
-    const auth = headers['authorization'];
-    const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : undefined;
-    const user = (await jwt.verify(token)) as User;
-    return {user};
-  })
+  .use(middleware)
   .post('/portal', async ({body}) => {
     const {email, err} = check(body, ['email']);
     if (err) return error(400, err);
