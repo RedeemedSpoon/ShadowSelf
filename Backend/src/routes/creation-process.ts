@@ -30,7 +30,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
     cookie = cookie.split('.')[2];
     return {cookie};
   })
-  .ws('/ws/creation-process', {
+  .ws('/ws-creation-process', {
     query: t.Object({id: t.String()}),
     async message(ws, message: CreationProcess | 'ping') {
       if (message === 'ping') return ws.send('pong');

@@ -36,7 +36,7 @@
 
   async function initWebsocket() {
     const id = page.url.searchParams.get('id');
-    ws = new WebSocket(`wss://${page.url.hostname}/ws/creation-process?id=${id}`);
+    ws = new WebSocket(`wss://${page.url.hostname}/ws-creation-process?id=${id}`);
 
     ws.onopen = () => {
       pingInterval = setInterval(() => ws?.send('ping'), 5000);
@@ -45,9 +45,7 @@
 
     ws.onclose = (ws) => {
       clearInterval(pingInterval as number);
-      if (ws.code === 1014) {
-        notify(ws.reason, 'alert');
-      }
+      if (ws.code === 1014) notify(ws.reason, 'alert');
     };
 
     ws.onmessage = async (event) => {
@@ -60,6 +58,7 @@
 
       if (response?.error) return notify(response.error, 'alert');
       // if (response.sync) disabled = true;
+
       if (response.finish) {
         document.cookie = `creation-process=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${dev ? 'localhost' : 'shadowself.io'}`;
         return goto('/dashboard');
@@ -139,7 +138,6 @@
         await new Promise((resolve) => setTimeout(resolve, 1350));
         clearInterval(loaderInterval as number);
         clearInterval(pingInterval as number);
-
         reply('finish');
         break;
     }

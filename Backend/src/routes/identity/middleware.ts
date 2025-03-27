@@ -5,6 +5,8 @@ import middleware from '@middleware';
 
 export default (app: Elysia) =>
   app.use(middleware).derive(async ({user, params}) => {
+    if (!user) return error(401, 'You are not logged in');
+
     const identityID = (params as {id: string}).id;
     const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
     const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);

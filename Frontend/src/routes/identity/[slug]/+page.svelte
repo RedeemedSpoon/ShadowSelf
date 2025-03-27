@@ -48,7 +48,7 @@
   onMount(() => {
     let pingInterval: unknown;
 
-    ws = new WebSocket(`wss://${page.url.hostname}/ws/api/${data.identity?.id}`);
+    ws = new WebSocket(`wss://${page.url.hostname}/ws-api/${data.identity?.id}`);
 
     ws.onopen = () => (pingInterval = setInterval(() => ws?.send('ping'), 5000));
     ws.onerror = () => notify('Something went horribly wrong. Try reloading the page.', 'alert');
@@ -62,6 +62,7 @@
       if (event.data === 'pong') return;
 
       const response = JSON.parse(event.data) as WebSocketResponse;
+
       if (response.error) {
         notify(response.error, 'alert');
         $fetchIndex = 0;
