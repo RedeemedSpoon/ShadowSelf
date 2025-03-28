@@ -1,6 +1,7 @@
 import {sql, stripe, origin} from '@utils/connection';
 import {QueryResult, pricingModal} from '@types';
 import {generateIdentityID} from '@utils/crypto';
+import SessionCreateParams from 'stripe';
 import {Elysia, error} from 'elysia';
 import middleware from '@middleware';
 import {attempt} from '@utils/utils';
@@ -27,7 +28,7 @@ export default new Elysia({prefix: '/billing'})
 
     const type = query?.type as keyof typeof pricingModal;
     const identityID = generateIdentityID();
-    let option;
+    let option: SessionCreateParams.Checkout.SessionCreateParams;
 
     if (!type) return error(400, 'Missing or invalid query type. Try again');
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
@@ -38,7 +39,7 @@ export default new Elysia({prefix: '/billing'})
     if (customerId) {
       option = {
         customer: customerId,
-        ui_mode: 'custom',
+        ui_mode: 'custom' as 'embedded',
         metadata: {id: identityID, type},
         return_url: `${origin}/create?id=${identityID}`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
@@ -51,7 +52,7 @@ export default new Elysia({prefix: '/billing'})
     } else {
       option = {
         customer_email: user.email,
-        ui_mode: 'custom',
+        ui_mode: 'custom' as 'embedded',
         metadata: {id: identityID, type},
         return_url: `${origin}/create?id=${identityID}`,
         mode: type === 'lifetime' ? 'payment' : 'subscription',
@@ -59,7 +60,6 @@ export default new Elysia({prefix: '/billing'})
       };
     }
 
-    // @ts-expect-error Stripe smh...
     const session = await stripe.checkout.sessions.create(option);
     return {clientSecret: session.client_secret};
   })

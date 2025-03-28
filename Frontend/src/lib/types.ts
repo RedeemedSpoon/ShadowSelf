@@ -1,4 +1,6 @@
 export type Sections = 'info' | 'email' | 'phone' | 'card' | 'account';
+export type FullEmail = Email & {messageID: string; date: Date};
+export type Attachment = {filename: string; data: string};
 
 export interface Notification {
   id: number | null;
@@ -72,23 +74,6 @@ export interface AnimationSelector {
   delay?: number;
 }
 
-export interface Inbox {
-  messageID: string;
-  subject: string;
-  from: string;
-  to: string;
-  date: string;
-  references: string[] | null;
-  inReplyTo: string | null;
-  uid: number;
-  attachments: {
-    filename: string;
-    data: string;
-  }[];
-  body: string;
-  type: 'html' | 'text';
-}
-
 export interface EditorParams {
   subject: string;
   body: string;
@@ -96,16 +81,6 @@ export interface EditorParams {
     filename: string;
     data: string;
   }[];
-}
-
-export interface Message {
-  messageID: string;
-  status: string;
-  date: string;
-  error: string;
-  body: string;
-  from: string;
-  to: string;
 }
 
 export interface FullIdentity {
@@ -151,100 +126,95 @@ export interface CreationProcess {
   finish: boolean;
 }
 
-export interface FetchAPI {
-  accounts: {
-    id: number;
-    username: string;
-    password: string;
-    website: string;
-    totp: string;
-    algorithm: string;
-  }[];
-  emails: {
-    messagesCount: number;
-    sentMessagesCount: number;
-    draftsMessagesCount: number;
-    junkMessagesCount: number;
-    sent: Inbox[];
-    inbox: Inbox[];
-    junk: Inbox[];
-    drafts: Inbox[];
-  };
-  messages: Message[];
+export interface Message {
+  messageID: string;
+  status: string;
+  date: string;
+  error: string;
+  body: string;
+  from: string;
+  to: string;
 }
 
-export interface IdentityComponentParams {
-  ws: WebSocket;
-  token: string;
+export interface Email {
+  messageID: string;
+  subject: string;
+  from: string;
+  to: string;
+  date: string;
+  references: string[] | null;
+  inReplyTo: string | null;
+  uid: number;
+  attachments: Attachment[];
+  body: string;
+  type: 'html' | 'text';
 }
 
-export interface WebSocketResponse {
-  error?: string;
-  type?:
-    | 'regenerate-picture'
-    | 'regenerate-name'
-    | 'regenerate-bio'
-    | 'update-information'
-    | 'add-account'
-    | 'edit-account'
-    | 'remove-account'
-    | 'update-encryption'
-    | 'new-email'
-    | 'delete-email'
-    | 'send-email'
-    | 'save-draft'
-    | 'fetch-reply'
-    | 'load-more'
-    | 'forward-email'
-    | 'delete-message'
-    | 'fetch-conversation'
-    | 'send-message'
-    | 'new-message';
-  picture?: string;
-  ethnicity?: string;
-  name?: string;
-  age?: number;
-  sex?: string;
-  bio?: string;
-  id?: string;
-  username?: string;
-  password?: string;
+export interface Account {
+  id: number;
+  username: string;
+  password: string;
   website: string;
-  totp?: string;
+  totp: string;
   algorithm: string;
-  accounts?: {
-    id: number;
-    password: string;
-    totp?: string;
-  }[];
-  emails?: Inbox[];
-  newEmail?: Inbox;
-  fetchEmail?: Inbox;
-  sentEmail?: Inbox & {messageID: string; date: Date};
-  savedDraft?: Inbox & {messageID: string; date: Date};
-  forwardEmail?: Inbox & {messageID: string; date: Date};
+}
+
+export interface Inbox {
+  messagesCount: number;
+  sentMessagesCount: number;
+  draftsMessagesCount: number;
+  junkMessagesCount: number;
+  sent: Email[];
+  inbox: Email[];
+  junk: Email[];
+  drafts: Email[];
+}
+
+export interface APIResponse {
+  err: string;
+  accounts: Account[];
+  emails: Email[] | Inbox;
+  messages: Message[];
+  picture: string;
+  ethnicity: string;
+  name: string;
+  age: number;
+  sex: string;
+  bio: string;
+  id: string;
+  username: string;
+  password: string;
+  website: string;
+  totp: string;
+  algorithm: string;
+  fetchEmail: Email;
+  sentEmail: FullEmail;
+  savedDraft: FullEmail;
+  forwardEmail: FullEmail;
   draft: number;
-  uid?: number;
-  uuid?: string;
-  mailbox?: string;
-  from?: number;
-  subject?: string;
-  body?: string;
-  to?: string;
-  forward?: string;
-  inReplyTo?: string;
-  messageID?: string;
-  date?: Date;
-  attachments?: {
-    filename: string;
-    data: string;
-  }[];
-  newMessage?: Message;
-  addressee?: string;
-  conversation?: Message[];
-  messageSent?: Message;
-  isReply?: boolean;
-  sid?: string;
+  uid: number;
+  uuid: string;
+  mailbox: string;
+  from: number;
+  subject: string;
+  body: string;
+  to: string;
+  forward: string;
+  inReplyTo: string;
+  messageID: string;
+  date: Date;
+  attachments: Attachment[];
+  addressee: string;
+  messageSent: Message;
+  conversation: Message[];
+  isReply: boolean;
+  sid: string;
+}
+
+export interface WebSocketMessage {
+  type: 'email' | 'message';
+  message: Message;
+  email: Email;
 }
 
 export interface PricingModel {

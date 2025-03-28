@@ -1,8 +1,8 @@
 <script lang="ts">
   import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts} from '$component';
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
-  import {currentSection, fetchIndex, handleResponse, identity} from '$store';
-  import type {Sections, WebSocketResponse} from '$type';
+  import {currentSection, handleResponse, identity} from '$store';
+  import type {Sections, WebSocketMessage} from '$type';
   import {browser} from '$app/environment';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
@@ -61,13 +61,7 @@
       if (Number(event.data) == event.data) return;
       if (event.data === 'pong') return;
 
-      const response = JSON.parse(event.data) as WebSocketResponse;
-
-      if (response.error) {
-        notify(response.error, 'alert');
-        $fetchIndex = 0;
-      }
-
+      const response = JSON.parse(event.data) as WebSocketMessage;
       $handleResponse(response);
     };
 
@@ -77,7 +71,7 @@
 
 <svelte:head>
   <title>ShadowSelf - {data.identity?.name}'s Identity</title>
-  <meta name="description" content="Take control of your identity, personalize your preferences, and protect your privacy here." />
+  <meta name="description" content="{data.identity?.name}'s ShadowSelf Identity, use it to protect yourself and your data." />
 </svelte:head>
 
 <div id="identity">
@@ -95,7 +89,7 @@
     {#key $currentSection}
       {@const SvelteComponent = allSections[$currentSection]}
       <div class="mb-12 mt-8 w-full md:px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
-        <SvelteComponent {ws} token={data.token} />
+        <SvelteComponent {ws} />
       </div>
     {/key}
 

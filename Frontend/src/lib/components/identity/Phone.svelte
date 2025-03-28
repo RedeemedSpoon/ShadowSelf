@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
+  import type {WebSocketResponse, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, ReplyIcon, InboxIcon, BackIcon} from '$icon';
   import ConversationLists from './sub-components/ConversationLists.svelte';
   import ComposeMessage from './sub-components/ComposeMessage.svelte';
@@ -10,7 +10,7 @@
   import {ActionIcon, Loader} from '$component';
   import {conversation} from '$image';
 
-  let {ws, token}: IdentityComponentParams = $props();
+  let {ws}: {ws: WebSocket} = $props();
 
   let messages = $state() as FetchAPI;
 

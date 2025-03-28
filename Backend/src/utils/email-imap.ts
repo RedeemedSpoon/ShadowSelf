@@ -17,11 +17,11 @@ export async function listenForEmail(user: string, password: string) {
     });
 
     for (const message of messages) {
-      const response = await parseMassage(connection, message);
+      const email = await parseMassage(connection, message);
       const ws = WSConnections.find((ws) => ws.emailAddress === user);
       if (!ws) return;
 
-      ws.websocket.send(JSON.stringify({type: 'new-email', newEmail: response}));
+      ws.websocket.send(JSON.stringify({type: 'email', email}));
     }
   }
 

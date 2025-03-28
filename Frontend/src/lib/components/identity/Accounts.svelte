@@ -2,7 +2,6 @@
   import {LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon, UserIcon, WWWIcon} from '$icon';
   import {UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon, BackIcon} from '$icon';
   import {fetchIndex, identity, modalIndex, handleResponse, masterPassword} from '$store';
-  import type {WebSocketResponse, IdentityComponentParams, FetchAPI} from '$type';
   import MasterPassword from './sub-components/MasterPassword.svelte';
   import {ActionIcon, Tooltip, HoverCopyButton} from '$component';
   import AccountEdit from './sub-components/AccountEdit.svelte';
@@ -12,7 +11,7 @@
   import {fetchAPI} from '$lib';
   import {group} from '$image';
 
-  let {ws, token}: IdentityComponentParams = $props();
+  let {ws}: {ws: WebSocket} = $props();
 
   $masterPassword = localStorage.getItem('key-' + $identity.id) || '';
 
@@ -21,7 +20,7 @@
   let accounts = $state() as FetchAPI;
 
   onMount(async () => {
-    accounts = await fetchAPI('/api/account/' + $identity.id, token);
+    accounts = await fetchAPI('/api/account/' + $identity.id);
     target = null;
   });
 

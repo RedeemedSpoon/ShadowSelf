@@ -59,5 +59,5 @@ export default new Elysia()
     const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
     if (!ws) return;
 
-    ws?.websocket.send(JSON.stringify({type: 'new-message', newMessage: message}));
+    ws?.websocket.send(JSON.stringify({type: 'message', message}));
   });

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {Header, Footer, Notification} from '$component';
-  import {selectionMenuOpen, user} from '$store';
+  import {selectionMenuOpen, token, user} from '$store';
   import {onMount, type Snippet} from 'svelte';
   import type {LayoutData} from './$types';
   import '../app.css';
@@ -11,7 +11,9 @@
   }
 
   let {data, children}: Props = $props();
-  $effect(() => user.set(data.user));
+
+  user.set(data.user);
+  token.set(data.token);
 
   onMount(() => {
     document.querySelector('#app')?.classList.remove('hidden');

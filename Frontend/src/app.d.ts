@@ -4,6 +4,7 @@ declare global {
   namespace App {
     interface PageData {
       user: string;
+      token: string;
       homepageIds?: string[];
       contactOptions?: Option[];
       animations?: AnimationSelector[];
@@ -15,7 +16,6 @@ declare global {
       cookie?: string;
       faqs?: Faq[];
       identity?: FullIdentity;
-      token?: string;
       slug?: string;
     }
   }

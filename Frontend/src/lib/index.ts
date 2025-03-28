@@ -1,5 +1,5 @@
 import {notification, modalIndex, fetchIndex} from '$store';
-import type {FetchAPI, Notification} from '$type';
+import type {APIResponse, Notification} from '$type';
 import type {Cookies} from '@sveltejs/kit';
 import {dev} from '$app/environment';
 import {get} from 'svelte/store';
@@ -34,9 +34,11 @@ export async function updateModal(index = 1, condition = true) {
   };
 }
 
-export async function fetchAPI(url: string, token: string): Promise<FetchAPI> {
+export async function fetchAPI(url: string, method = 'GET', body?: Record<string, unknown>): Promise<APIResponse> {
   return await fetch(url, {
-    headers: {'Content-Type': 'application/json', authorization: `Bearer ${token}`},
+    method,
+    body: body ? JSON.stringify(body) : undefined,
+    headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
   })
     .then(async (res) => {
       const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';

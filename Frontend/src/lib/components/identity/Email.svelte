@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type {WebSocketResponse, IdentityComponentParams, EditorParams, FetchAPI} from '$type';
+  import type {WebSocketResponse, EditorParams, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, InboxIcon} from '$icon';
   import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
   import {identity, handleResponse, fetchIndex, modalIndex} from '$store';
@@ -10,7 +10,7 @@
   import {fetchAPI, notify} from '$lib';
   import {onMount} from 'svelte';
 
-  let {ws, token}: IdentityComponentParams = $props();
+  let {ws}: {ws: WebSocket} = $props();
 
   const reply: Writable<FetchAPI['emails']['inbox'][number][]> = writable([]);
   const target: Writable<FetchAPI['emails']['inbox'][number] | null> = writable();

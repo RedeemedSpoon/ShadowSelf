@@ -1,6 +1,7 @@
 import type {LayoutServerLoad} from './$types';
 import {redirect} from '@sveltejs/kit';
 import {fetchBackend} from '$lib';
+import {get} from 'svelte/store';
 import {token} from '$store';
 
 export const load: LayoutServerLoad = async ({cookies}) => {
@@ -12,5 +13,6 @@ export const load: LayoutServerLoad = async ({cookies}) => {
     redirect(302, '/');
   }
 
-  return {user: response.message || ''};
+  const user = response.message || '';
+  return {user, token: get(token)};
 };
