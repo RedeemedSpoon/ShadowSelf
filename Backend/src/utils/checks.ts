@@ -1,4 +1,4 @@
-import type {BodyField, ContactDetail, CheckIdentity, APIParams, WebsocketRequest} from '@types';
+import type {BodyField, ContactDetail, CheckIdentity, APIRequest} from '@types';
 import {toTitleCase} from '@utils/utils';
 import {$} from 'bun';
 
@@ -192,104 +192,105 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
   return body;
 }
 
-export async function checkAPI(body: WebsocketRequest): Promise<APIParams> {
-  if (!body) return body;
+export async function checkAPI(rawBody: unknown): Promise<APIRequest> {
+  if (!rawBody) return rawBody as APIRequest;
+  const body = rawBody as APIRequest;
 
   if (body.name && body.name.length > 30) {
-    return {error: 'Name is too long (<30 characters)'} as APIParams;
+    return {err: 'Name is too long (<30 characters)'} as APIRequest;
   }
 
   if (body.bio && body.bio.length > 126) {
-    return {error: 'Biography is too long (<126 characters)'} as APIParams;
+    return {err: 'Biography is too long (<126 characters)'} as APIRequest;
   }
 
   if (body.sex && body.sex !== 'male' && body.sex !== 'female') {
-    return {error: 'Sex must be either "male" or "female"'} as APIParams;
+    return {err: 'Sex must be either "male" or "female"'} as APIRequest;
   }
 
   if (body.age && (body.age < 18 || body.age > 60)) {
-    return {error: 'Age must be between 18 and 60'} as APIParams;
+    return {err: 'Age must be between 18 and 60'} as APIRequest;
   }
 
   if (body.ethnicity && !['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'].includes(body.ethnicity)) {
-    return {error: 'Ethnicity must be a valid ethnicity'} as APIParams;
+    return {err: 'Ethnicity must be a valid ethnicity'} as APIRequest;
   }
 
   if (body.picture && !/^[A-Za-z0-9+/=]+$/.test(body.picture)) {
-    return {error: 'Incorrect profile picture format'} as APIParams;
+    return {err: 'Incorrect profile picture format'} as APIRequest;
   }
 
   if (body.username && body.username.length > 25) {
-    return {error: 'Username is too long (<25 characters)'} as APIParams;
+    return {err: 'Username is too long (<25 characters)'} as APIRequest;
   }
 
   if (body.password && !/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
-    return {error: 'Password is too weak. You probably did not use a strong key'} as APIParams;
+    return {err: 'Password is too weak. You probably did not use a strong key'} as APIRequest;
   }
 
   if (body.website && !/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
-    return {error: 'Invalid website address, please try again'} as APIParams;
+    return {err: 'Invalid website address, please try again'} as APIRequest;
   }
 
   if (body.totp && !/^[A-Za-z0-9+/=]+$/.test(body.totp)) {
-    return {error: 'Invalid TOTP secret, please try again'} as APIParams;
+    return {err: 'Invalid TOTP secret, please try again'} as APIRequest;
   }
 
   if (body.algorithm && !['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
-    return {error: 'Inrecognized algorithm, please try again'} as APIParams;
+    return {err: 'Inrecognized algorithm, please try again'} as APIRequest;
   }
 
   if (body.uid && body.uid !== Number(body.uid)) {
-    return {error: 'Invalid email UID, please try again'} as APIParams;
+    return {err: 'Invalid email UID, please try again'} as APIRequest;
   }
 
   if (body.mailbox && !['INBOX', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
-    return {error: 'Non-existent mailbox, please try again'} as APIParams;
+    return {err: 'Non-existent mailbox, please try again'} as APIRequest;
   }
 
   if (body.from && body.from !== Number(body.from)) {
-    return {error: 'Invalid from value, please try again'} as APIParams;
+    return {err: 'Invalid from value, please try again'} as APIRequest;
   }
 
   if (body.to && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.to)) {
-    return {error: 'Invalid recipient email, please try again'} as APIParams;
+    return {err: 'Invalid recipient email, please try again'} as APIRequest;
   }
 
   if (body.forward && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.forward)) {
-    return {error: 'Invalid forward email, please try again'} as APIParams;
+    return {err: 'Invalid forward email, please try again'} as APIRequest;
   }
 
   if (body?.inReplyTo && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.inReplyTo)) {
-    return {error: 'Invalid recipient value, please try again'} as APIParams;
+    return {err: 'Invalid recipient value, please try again'} as APIRequest;
   }
 
   if (body?.references?.length && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.references[0])) {
-    return {error: 'Invalid recipient value, please try again'} as APIParams;
+    return {err: 'Invalid recipient value, please try again'} as APIRequest;
   }
 
   if (body.subject && body.subject.length > 126) {
-    return {error: 'Long subject (>126 characters), please try again'} as APIParams;
+    return {err: 'Long subject (>126 characters), please try again'} as APIRequest;
   }
 
   if (body.body && body.body.length < 2) {
-    return {error: 'Body is too short, please try again'} as APIParams;
+    return {err: 'Body is too short, please try again'} as APIRequest;
   }
 
   if (body.attachments && body.attachments.length > 10) {
-    return {error: 'Too many attachments, please try again'} as APIParams;
+    return {err: 'Too many attachments, please try again'} as APIRequest;
   }
 
   if (body.attachments && body.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
-    return {error: 'One or more attachments exceed the 15MB size limit, please try again'} as APIParams;
+    return {err: 'One or more attachments exceed the 15MB size limit, please try again'} as APIRequest;
   }
 
   if (body.sid && body.sid.length !== 34) {
-    return {error: 'Invalid message SID, please try again'} as APIParams;
+    return {err: 'Invalid message SID, please try again'} as APIRequest;
   }
 
   if (body.addressee && !/^\+(\d{10,13})$/.test(body.addressee)) {
-    return {error: 'Invalid phone number, please try again'} as APIParams;
+    return {err: 'Invalid phone number, please try again'} as APIRequest;
   }
 
-  return body as unknown as APIParams;
+  return body as unknown as APIRequest;
 }

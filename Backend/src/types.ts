@@ -127,25 +127,8 @@ export interface Location {
   ip: string;
 }
 
-export interface WebsocketRequest {
-  type:
-    | 'regenerate-picture'
-    | 'regenerate-name'
-    | 'regenerate-bio'
-    | 'update-information'
-    | 'add-account'
-    | 'edit-account'
-    | 'remove-account'
-    | 'update-encryption'
-    | 'fetch-reply'
-    | 'delete-email'
-    | 'send-email'
-    | 'save-draft'
-    | 'forward-email'
-    | 'delete-message'
-    | 'fetch-conversation'
-    | 'send-message'
-    | 'load-more';
+export interface APIRequest {
+  err: string;
   ethnicity: string;
   sex: string;
   age: number;
@@ -172,40 +155,6 @@ export interface WebsocketRequest {
   subject: string;
   body: string;
   to: string;
-  inReplyTo: string;
-  references: string[];
-  attachments: {
-    filename: string;
-    data: string;
-  }[];
-  sid: string;
-  addressee: string;
-  isReply: boolean;
-}
-
-export interface APIParams {
-  error: string;
-  ethnicity: string;
-  age: number;
-  sex: string;
-  name: string;
-  bio: string;
-  picture: string;
-  id: number;
-  username: string;
-  password: string;
-  website: string;
-  totp: string;
-  algorithm: string;
-  uid: number;
-  mailbox: string;
-  uuid: string;
-  from: number;
-  draft: number;
-  subject: string;
-  body: string;
-  to: string;
-  forward: string;
   inReplyTo: string;
   references: string[];
   attachments: {
