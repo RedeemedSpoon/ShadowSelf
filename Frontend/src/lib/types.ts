@@ -173,7 +173,7 @@ export interface Inbox {
 export interface APIResponse {
   err: string;
   accounts: Account[];
-  emails: Email[] | Inbox;
+  emails: Inbox;
   messages: Message[];
   picture: string;
   ethnicity: string;
@@ -187,6 +187,7 @@ export interface APIResponse {
   website: string;
   totp: string;
   algorithm: string;
+  nextEmails: Email[];
   fetchEmail: Email;
   sentEmail: FullEmail;
   savedDraft: FullEmail;

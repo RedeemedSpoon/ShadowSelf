@@ -61,7 +61,7 @@
     if (response.err) return notify(response.err, 'alert');
 
     const responseAccounts = $accounts.accounts.map((account) => {
-      const updatedAccount = response.accounts!.find((a) => a.id === account.id);
+      const updatedAccount = response.accounts.find((a) => a.id === account.id);
       return {
         ...account,
         password: updatedAccount!.password,

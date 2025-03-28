@@ -2,15 +2,15 @@
   import {mailbox, shredder, file, pencil} from '$image';
   import type {Writable} from 'svelte/store';
   import {LoadingButton} from '$component';
-  import type {FetchAPI} from '$type';
+  import type {Email} from '$type';
   import {ReplyIcon} from '$icon';
 
   interface Props {
-    target: Writable<FetchAPI['emails']['inbox'][number] | null>;
+    target: Writable<Email | null>;
+    reply: Writable<Email[]>;
     mode: Writable<'browse' | 'read' | 'write' | 'write-draft' | 'reply'>;
-    reply: Writable<FetchAPI['emails']['inbox'][number][]>;
-    inbox: FetchAPI['emails']['inbox'];
     loadMore: () => void;
+    inbox: Email[];
     label: string;
     count: number;
   }
@@ -18,7 +18,7 @@
   let {target, mode, reply, count, inbox, label, loadMore}: Props = $props();
   const className = 'bg-contain from-neutral-900 to-neutral-950/40 hover:text-neutral-400 py-7 w-full shadow-none';
 
-  function handleClick(email: FetchAPI['emails']['inbox'][0]) {
+  function handleClick(email: Email) {
     if ($target?.messageID === email.messageID) {
       $mode = label === 'Drafts' ? 'write-draft' : 'read';
     }

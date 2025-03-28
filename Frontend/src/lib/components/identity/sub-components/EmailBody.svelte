@@ -1,10 +1,10 @@
 <script lang="ts">
   import {AttachmentIcon} from '$icon';
-  import type {FetchAPI} from '$type';
   import DOMPurify from 'dompurify';
   import {base64ToBlob} from '$lib';
+  import type {Email} from '$type';
 
-  let {email}: {email: FetchAPI['emails']['inbox'][number]} = $props();
+  let {email}: {email: Email} = $props();
 
   let iframe = $state() as HTMLIFrameElement | null;
 </script>

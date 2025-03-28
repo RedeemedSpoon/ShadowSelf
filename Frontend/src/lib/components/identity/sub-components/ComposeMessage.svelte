@@ -1,15 +1,17 @@
 <script lang="ts">
-  import type {FetchAPI} from '$type';
+  import type {APIResponse, Message} from '$type';
+  import type {Writable} from 'svelte/store';
+  import {fetchAPI, notify} from '$lib';
   import {identity} from '$store';
-  import {notify} from '$lib';
 
   interface Props {
-    reply?: FetchAPI['messages'][number] | undefined;
-    messages?: FetchAPI['messages'];
-    ws: WebSocket;
+    mode: Writable<'browse' | 'read' | 'write' | 'reply'>;
+    discussion: Writable<Message | undefined>;
+    fullDiscussion: Writable<Message[]>;
+    messages: APIResponse;
   }
 
-  let {ws, messages, reply}: Props = $props();
+  let {messages, mode, discussion, fullDiscussion}: Props = $props();
 
   let charLimit = $state(160) as number;
   let showButton = $state(true) as boolean;
@@ -43,7 +45,35 @@
     }
   }
 
-  function sendMessage() {
+  async function sendMessage(body: {[key: string]: unknown}) {
+    const response = await fetchAPI('phone/send-message', 'POST', body);
+    if (response.err) return notify(response.err, 'alert');
+
+    $mode = 'read';
+    $discussion = response.messageSent;
+    const addressee = response.addressee;
+
+    if (response.isReply) {
+      const index = messages?.messages.findIndex((msg) => msg.from === addressee || msg.to === addressee);
+      if (index !== -1) messages?.messages.splice(index!, 1);
+
+      if ($fullDiscussion.find((msg) => msg.from === addressee || msg.to === addressee)) {
+        $fullDiscussion = [response.messageSent, ...$fullDiscussion];
+      } else {
+        $fullDiscussion = [response.messageSent];
+
+        setTimeout(async () => {
+          const response = await fetchAPI('phone/fetch-conversation', 'POST', {addressee});
+          if (response.err) return notify(response.err, 'alert');
+          $fullDiscussion = response.conversation;
+        }, 300);
+      }
+    } else $fullDiscussion = [];
+
+    messages?.messages.unshift(response.messageSent);
+  }
+
+  function next() {
     if (charLimit === 160) {
       notify('Please enter the message body', 'alert');
       return;
@@ -54,12 +84,12 @@
       return;
     }
 
-    if (reply) {
+    if ($discussion) {
       body = textarea.value;
-      addressee = $identity.phone === reply.from ? reply.to : reply.from;
+      addressee = $identity.phone === $discussion.from ? $discussion.to : $discussion.from;
     }
 
-    if (!reply && !secondStep) {
+    if (!$discussion && !secondStep) {
       body = textarea.value;
       textarea.value = '';
       secondStep = true;
@@ -67,30 +97,30 @@
     }
 
     if (!addressee) addressee = textarea.value.replace(/ /g, '').replace(/-/g, '');
-    const isReply = !!reply || messages?.find((message) => message.from === addressee || message.to === addressee);
-    ws.send(JSON.stringify({type: 'send-message', body, addressee, isReply}));
+    const isReply = !!$discussion || !!messages?.messages.find((message) => message.from === addressee || message.to === addressee);
+    sendMessage({body, addressee, isReply});
   }
 </script>
 
-<div class:reply={!!reply} class="my-4 flex min-h-[50vh] w-full flex-col items-center justify-center gap-8">
-  {#if reply}
-    {@const body = reply.body.length > 45 ? reply.body.slice(0, 45).trim() + '...' : reply.body}
+<div class:reply={!!$discussion} class="my-4 flex min-h-[50vh] w-full flex-col items-center justify-center gap-8">
+  {#if $discussion}
+    {@const body = $discussion.body.length > 45 ? $discussion.body.slice(0, 45).trim() + '...' : $discussion.body}
     <p class="ml-8 text-sm text-neutral-300">
       &#8625 Replying to : <span class="text-neutral-500">{body}</span>
     </p>
   {:else}
     <h3 class="text-center text-3xl text-neutral-300 md:text-5xl">{title}</h3>
   {/if}
-  <div class="relative {reply ? 'w-full' : 'md:w-3/4'}">
+  <div class="relative {$discussion ? 'w-full' : 'md:w-3/4'}">
     <textarea
       bind:this={textarea}
       oninput={handleInput}
       onfocusin={() => (showButton = false)}
       onfocusout={() => (showButton = true)}
       {placeholder}></textarea>
-    <button class:hidden={!showButton} onclick={sendMessage} id="send">→</button>
+    <button class:hidden={!showButton} onclick={next} id="send">→</button>
   </div>
-  <small class:ml-8={!!reply} class={charLimit === 0 ? 'text-red-500' : 'text-neutral-500'}>{hint}</small>
+  <small class:ml-8={!!$discussion} class={charLimit === 0 ? 'text-red-500' : 'text-neutral-500'}>{hint}</small>
 </div>
 
 <style lang="postcss">

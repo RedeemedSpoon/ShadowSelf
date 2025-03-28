@@ -1,13 +1,13 @@
 <script lang="ts">
-  import type {EditorParams, FetchAPI} from '$type';
+  import type {EditorParams, Email} from '$type';
   import type {Writable} from 'svelte/store';
   import {LoadingButton} from '$component';
   import {onMount} from 'svelte';
 
   interface Props {
     submit: (content: EditorParams, save: boolean, isdraft: boolean) => void;
-    target: Writable<FetchAPI['emails']['inbox'][number] | null>;
     mode: Writable<'browse' | 'read' | 'write' | 'write-draft' | 'reply'>;
+    target: Writable<Email | null>;
     isDraft: boolean;
   }
 

@@ -1,31 +1,32 @@
 <script lang="ts">
-  import {formatPhoneNumber, formatDate, toTitleCase} from '$lib';
-  import {type Writable} from 'svelte/store';
-  import type {FetchAPI} from '$type';
+  import {fetchAPI, notify, formatPhoneNumber, formatDate, toTitleCase} from '$lib';
+  import type {Writable} from 'svelte/store';
+  import type {Message} from '$type';
   import {identity} from '$store';
 
   interface Props {
     mode: Writable<'browse' | 'read' | 'write' | 'reply'>;
-    discussion: Writable<FetchAPI['messages'][number] | undefined>;
-    fullDiscussion: Writable<FetchAPI['messages']>;
-    messages: FetchAPI['messages'];
-    ws: WebSocket;
+    discussion: Writable<Message | undefined>;
+    fullDiscussion: Writable<Message[]>;
+    messages: Message[];
   }
 
-  let {messages, discussion, fullDiscussion, ws, mode}: Props = $props();
+  let {messages, discussion, fullDiscussion, mode}: Props = $props();
 
-  function handleClick(message: FetchAPI['messages'][number], addressee: string) {
-    ws.send(JSON.stringify({type: 'fetch-conversation', addressee}));
-
+  async function loadConversation(message: Message, addressee: string) {
     $fullDiscussion = [];
     $discussion = message;
     $mode = 'read';
+
+    const response = await fetchAPI('phone/fetch-conversation', 'POST', {addressee});
+    if (response.err) return notify(response.err, 'alert');
+    $fullDiscussion = response.conversation;
   }
 </script>
 
 {#each messages as message}
   {@const addressee = message.from === $identity.phone ? message.to : message.from}
-  <div class="message" aria-hidden="true" onclick={() => handleClick(message, addressee)}>
+  <div class="message" aria-hidden="true" onclick={() => loadConversation(message, addressee)}>
     <div>
       <p class="text-neutral-300">
         <span class="text-neutral-600">{addressee === message.to ? ' (You)' : ''}</span>

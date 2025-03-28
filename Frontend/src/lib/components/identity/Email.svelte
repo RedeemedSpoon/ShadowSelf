@@ -1,23 +1,21 @@
 <script lang="ts">
-  import type {WebSocketResponse, EditorParams, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, InboxIcon} from '$icon';
   import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
+  import type {APIResponse, EditorParams, Email, WebSocketMessage} from '$type';
   import {identity, handleResponse, fetchIndex, modalIndex} from '$store';
   import ComposeEmail from './sub-components/ComposeEmail.svelte';
   import EmailInbox from './sub-components/EmailInbox.svelte';
   import EmailBody from './sub-components/EmailBody.svelte';
-  import {writable, type Writable} from 'svelte/store';
   import {fetchAPI, notify} from '$lib';
+  import {writable} from 'svelte/store';
   import {onMount} from 'svelte';
 
-  let {ws}: {ws: WebSocket} = $props();
-
-  const reply: Writable<FetchAPI['emails']['inbox'][number][]> = writable([]);
-  const target: Writable<FetchAPI['emails']['inbox'][number] | null> = writable();
-  const mode: Writable<'browse' | 'read' | 'write' | 'write-draft' | 'reply'> = writable('browse');
+  const reply = writable<Email[]>([]);
+  const target = writable<Email | null>();
+  const mode = writable<'browse' | 'read' | 'write' | 'write-draft' | 'reply'>('browse');
 
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
-  let inbox = $state() as FetchAPI;
+  let inbox = $state() as APIResponse;
   let from = $state(7) as number;
 
   const showActionButtons = $derived(!$target || label === 'Junk');
@@ -34,20 +32,27 @@
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
 
-    inbox = await fetchAPI('/api/email/' + $identity.id, token);
+    inbox = await fetchAPI('email', 'GET');
     $target = null;
     from = 7;
   }
 
-  function loadMore() {
+  async function loadMore() {
     const messageCountString = label.toLowerCase() === 'inbox' ? 'messagesCount' : `${label.toLowerCase()}MessagesCount`;
     const total = inbox.emails[messageCountString as keyof typeof inbox.emails] as number;
     $fetchIndex = 1;
 
-    ws.send(JSON.stringify({type: 'load-more', mailbox: label, from: total - from}));
+    const response = await fetchAPI('email/load-more', 'POST', {mailbox: label, from: total - from});
+    if (response.err) return notify(response.err, 'alert');
+
+    const mailbox = response.mailbox.toLowerCase() as 'inbox';
+    inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.nextEmails!];
+
+    $fetchIndex = 0;
+    from += 7;
   }
 
-  function fetchReply(uuid?: string) {
+  async function fetchReply(uuid?: string) {
     let alreadyFetched;
 
     for (const mailbox of ['INBOX', 'Sent']) {
@@ -64,120 +69,97 @@
     }
 
     if (!alreadyFetched) {
-      ws.send(JSON.stringify({type: 'fetch-reply', uuid: uuid?.trim()}));
+      const response = await fetchAPI('email/fetch-reply', 'POST', {uuid: uuid?.trim()});
+      if (response.err) return notify(response.err, 'alert');
+      if (response.fetchEmail === null) return;
+
+      $reply = [...$reply, response.fetchEmail];
+      if (response.fetchEmail.inReplyTo) fetchReply(response.fetchEmail.inReplyTo);
     }
   }
 
-  function deleteEmail() {
-    if (label === 'Junk') return;
-    ws.send(JSON.stringify({type: 'delete-email', mailbox: label, uid: $target!.uid}));
-  }
-
-  function forwardEmail() {
+  async function forwardEmail() {
     $fetchIndex = 3;
     const forward = (document.querySelector('input[name="forward"]') as HTMLInputElement)?.value;
-    ws.send(JSON.stringify({type: 'forward-email', forward, uid: $target!.uid}));
+    const response = await fetchAPI('email/forward-email', 'POST', {forward, uid: $target!.uid});
+    if (response.err) return notify(response.err, 'alert');
+
+    inbox.emails.sent.unshift(response.forwardEmail);
+    $fetchIndex = 0;
+    $modalIndex = 0;
+
+    $mode = 'browse';
+    $target = null;
   }
 
-  function submit(content: EditorParams, save: boolean, isdraft?: boolean) {
+  async function submit(content: EditorParams, save: boolean, isdraft?: boolean) {
     if (content.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
       return notify('One attachment is too large (>15MB)', 'alert');
     }
 
     $fetchIndex = save ? 2 : 1;
-    const type = save ? 'save-draft' : 'send-email';
     const draft = isdraft ? $target!.uid : null;
 
     const inReplyTo = save ? $target?.inReplyTo || $target?.messageID : isdraft ? $target?.inReplyTo : $target?.messageID;
     const references = $target && inReplyTo ? ($target.references || []).concat([inReplyTo!]) : [];
-
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
-    ws.send(JSON.stringify({type, draft, inReplyTo, references, to, ...content}));
+
+    if (save) {
+      const response = await fetchAPI('email/save-draft', 'POST', {draft, inReplyTo, references, to, ...content});
+      if (response.err) return notify(response.err, 'alert');
+
+      if (response.draft) {
+        inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
+      }
+
+      inbox.emails.drafts.unshift(response.savedDraft);
+      inbox.emails.draftsMessagesCount++;
+    } else {
+      const response = await fetchAPI('email/send-email', 'POST', {draft, inReplyTo, references, to, ...content});
+      if (response.err) return notify(response.err, 'alert');
+
+      if (response.draft) {
+        inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
+      }
+
+      inbox.emails.sent.unshift(response.sentEmail);
+      inbox.emails.sentMessagesCount++;
+    }
+
+    $fetchIndex = 0;
+    $mode = 'browse';
+    $target = null;
   }
 
-  $handleResponse = (response: WebSocketResponse) => {
-    switch (response.type) {
-      case 'new-email': {
-        notify('New Email Received!', 'success');
-        inbox.emails.inbox.unshift(response.newEmail!);
-        inbox.emails.messagesCount++;
+  async function deleteEmail() {
+    if (label === 'Junk') return;
+    const response = await fetchAPI('email/delete-email', 'POST', {mailbox: label, uid: $target!.uid});
+    if (response.err) return notify(response.err, 'alert');
 
-        inbox.emails = {...inbox.emails};
-        break;
-      }
+    const mailbox = response.mailbox.toLowerCase() as 'inbox';
+    const messageCount = mailbox === 'inbox' ? 'messagesCount' : `${mailbox}MessagesCount`;
 
-      case 'send-email': {
-        if (response.draft) {
-          inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
-        }
+    const removedEmail = inbox.emails[mailbox].find((email) => email.uid === response.uid);
+    inbox.emails.junk.unshift(removedEmail!);
+    inbox.emails.junkMessagesCount++;
 
-        inbox.emails.sent.unshift(response.sentEmail!);
-        inbox.emails.sentMessagesCount++;
+    inbox.emails[mailbox] = inbox.emails[mailbox].filter((email) => email.uid !== response.uid);
+    inbox.emails[messageCount as keyof typeof inbox.emails]--;
 
-        $fetchIndex = 0;
-        $mode = 'browse';
-        $target = null;
-        break;
-      }
+    inbox.emails = {...inbox.emails};
+    $mode = 'browse';
+    $target = null;
+    from--;
+  }
 
-      case 'save-draft': {
-        if (response.draft) {
-          inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
-        }
+  $handleResponse = (response: WebSocketMessage) => {
+    if (response.type !== 'email') return;
+    notify('New Email Received!', 'success');
 
-        inbox.emails.drafts.unshift(response.savedDraft!);
-        inbox.emails.draftsMessagesCount++;
+    inbox.emails.inbox.unshift(response.email);
+    inbox.emails.messagesCount++;
 
-        $fetchIndex = 0;
-        $mode = 'browse';
-        $target = null;
-        break;
-      }
-
-      case 'forward-email': {
-        inbox.emails.sent.unshift(response.forwardEmail!);
-
-        $fetchIndex = 0;
-        $modalIndex = 0;
-        $mode = 'browse';
-        $target = null;
-        break;
-      }
-
-      case 'fetch-reply': {
-        if (response.fetchEmail === null) return;
-        $reply = [...$reply, response.fetchEmail!];
-        if (response.fetchEmail?.inReplyTo) fetchReply(response.fetchEmail.inReplyTo);
-        break;
-      }
-
-      case 'load-more': {
-        const mailbox = response.mailbox?.toLowerCase() as 'inbox';
-        inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.emails!];
-
-        $fetchIndex = 0;
-        from += 7;
-        break;
-      }
-
-      case 'delete-email': {
-        const mailbox = response.mailbox?.toLowerCase() as 'inbox';
-        const messageCount = mailbox === 'inbox' ? 'messagesCount' : `${mailbox}MessagesCount`;
-
-        const removedEmail = inbox.emails[mailbox].find((email) => email.uid === response.uid);
-        inbox.emails.junk.unshift(removedEmail!);
-        inbox.emails.junkMessagesCount++;
-
-        inbox.emails[mailbox] = inbox.emails[mailbox].filter((email) => email.uid !== response.uid);
-        inbox.emails[messageCount as keyof typeof inbox.emails]--;
-
-        inbox.emails = {...inbox.emails};
-        $mode = 'browse';
-        $target = null;
-        from--;
-        break;
-      }
-    }
+    inbox.emails = {...inbox.emails};
   };
 </script>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
   import {toTitleCase, base64ToBlob, formatPhoneNumber, fetchAPI, notify} from '$lib';
+  import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
   import InformationEdit from './sub-components/InformationEdit.svelte';
   import {ActionIcon, CopyButton, ReactiveButton} from '$component';
   import {currentSection, identity} from '$store';

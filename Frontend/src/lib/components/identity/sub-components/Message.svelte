@@ -1,10 +1,9 @@
 <script lang="ts">
   import {formatDate, toTitleCase} from '$lib';
-  import type {FetchAPI} from '$type';
+  import type {Message} from '$type';
   import {identity} from '$store';
 
-  let {message}: {message: FetchAPI['messages'][number]} = $props();
-
+  let {message}: {message: Message} = $props();
   const ownMessage = message.from === $identity.phone;
 </script>
 

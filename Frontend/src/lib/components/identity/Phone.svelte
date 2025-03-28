@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type {WebSocketResponse, FetchAPI} from '$type';
   import {SendIcon, TrashIcon, ReplyIcon, InboxIcon, BackIcon} from '$icon';
   import ConversationLists from './sub-components/ConversationLists.svelte';
   import ComposeMessage from './sub-components/ComposeMessage.svelte';
+  import type {WebSocketMessage, APIResponse, Message} from '$type';
   import Conversation from './sub-components/Conversation.svelte';
   import {fetchAPI, formatPhoneNumber, notify} from '$lib';
   import {writable, type Writable} from 'svelte/store';
@@ -10,80 +10,44 @@
   import {ActionIcon, Loader} from '$component';
   import {conversation} from '$image';
 
-  let {ws}: {ws: WebSocket} = $props();
+  let messages = $state() as APIResponse;
 
-  let messages = $state() as FetchAPI;
-
-  let fullDiscussion: Writable<FetchAPI['messages']> = writable([]);
+  let fullDiscussion: Writable<Message[]> = writable([]);
   const mode: Writable<'browse' | 'read' | 'write' | 'reply'> = writable('browse');
-  const discussion: Writable<FetchAPI['messages'][number] | undefined> = writable();
+  const discussion: Writable<Message | undefined> = writable();
 
   async function fetchMessages() {
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
-    messages = await fetchAPI('/api/phone/' + $identity.id, token);
+    messages = await fetchAPI('phone', 'GET');
   }
 
-  function deleteMessage() {
+  async function deleteMessage() {
     const addressee = $discussion?.from === $identity.phone ? $discussion?.to : $discussion?.from;
-    ws.send(JSON.stringify({type: 'delete-message', addressee}));
+    const response = await fetchAPI('phone/delete', 'POST', {addressee});
+    if (response.err) return notify(response.err, 'alert');
+
+    const index = messages.messages.findIndex((msg) => msg.from === response.addressee || msg.to === response.addressee);
+    if (index !== -1) messages.messages.splice(index, 1);
+
+    $discussion = undefined;
+    $fullDiscussion = [];
+    $mode = 'browse';
   }
 
-  $handleResponse = (response: WebSocketResponse) => {
-    switch (response.type) {
-      case 'new-message': {
-        notify('New Message Received!', 'success');
+  $handleResponse = (response: WebSocketMessage) => {
+    if (response.type !== 'message') return;
+    notify('New Message Received!', 'success');
 
-        const sender = response.newMessage?.from;
-        const alreadyExists = messages.messages!.findIndex((msg) => msg.from === sender || msg.to === sender);
+    const sender = response.message.from;
+    const alreadyExists = messages.messages.findIndex((msg) => msg.from === sender || msg.to === sender);
 
-        if (alreadyExists !== -1) {
-          messages.messages![alreadyExists] = response.newMessage!;
+    if (alreadyExists === -1) messages.messages.unshift(response.message!);
+    else messages.messages[alreadyExists] = response.message!;
 
-          if (($mode === 'read' || $mode === 'reply') && ($discussion?.from === sender || $discussion?.to === sender)) {
-            $discussion = response.newMessage;
-            $fullDiscussion = [response.newMessage!, ...$fullDiscussion];
-          }
-          return;
-        }
-
-        messages.messages!.unshift(response.newMessage!);
-        break;
-      }
-
-      case 'send-message': {
-        $mode = 'read';
-        $discussion = response.messageSent;
-
-        if (response.isReply) {
-          const index = messages.messages.findIndex((msg) => msg.from === response.addressee || msg.to === response.addressee);
-          if (index !== -1) messages.messages.splice(index, 1);
-
-          if ($fullDiscussion.find((msg) => msg.from === response.addressee || msg.to === response.addressee)) {
-            $fullDiscussion = [response.messageSent!, ...$fullDiscussion];
-          } else {
-            $fullDiscussion = [response.messageSent!];
-            setTimeout(() => ws.send(JSON.stringify({type: 'fetch-conversation', addressee: response.addressee})), 300);
-          }
-        } else $fullDiscussion = [];
-
-        messages.messages!.unshift(response.messageSent!);
-        break;
-      }
-
-      case 'delete-message': {
-        const index = messages.messages.findIndex((msg) => msg.from === response.addressee || msg.to === response.addressee);
-        if (index !== -1) messages.messages.splice(index, 1);
-
-        $discussion = undefined;
-        $fullDiscussion = [];
-        $mode = 'browse';
-        break;
-      }
-
-      case 'fetch-conversation':
-        $fullDiscussion = response.conversation!;
-        break;
+    if (($mode === 'read' || $mode === 'reply') && ($discussion?.from === sender || $discussion?.to === sender)) {
+      $fullDiscussion = [response.message, ...$fullDiscussion];
+      $discussion = response.message;
     }
   };
 </script>
@@ -116,7 +80,7 @@
           <h3 class="!text-2xl lg:!text-3xl">{formatPhoneNumber($identity.phone)}</h3>
           <p class="text-neutral-500">{messages.messages.length} Conversations</p>
         </div>
-        <ConversationLists {mode} {fullDiscussion} {discussion} messages={messages.messages} {ws} />
+        <ConversationLists {mode} {fullDiscussion} {discussion} messages={messages.messages} />
       </div>
     {:else if $mode === 'browse'}
       <section id="no-messages" style="background-image: url({conversation});">
@@ -132,11 +96,11 @@
 {/await}
 
 {#if $mode === 'write'}
-  <ComposeMessage {ws} messages={messages.messages} />
+  <ComposeMessage {discussion} {fullDiscussion} {mode} {messages} />
 {/if}
 
 {#if $mode === 'read' || $mode === 'reply'}
-  <Conversation {discussion} {ws} isReply={$mode === 'reply'} {fullDiscussion} />
+  <Conversation {discussion} {mode} {messages} {fullDiscussion} />
 {/if}
 
 <style lang="postcss">

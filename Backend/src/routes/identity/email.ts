@@ -59,8 +59,8 @@ export default new Elysia({prefix: '/email'})
     const {err, mailbox, from} = await checkAPI(body);
     if (err) return error(400, err);
 
-    const emails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, from!);
-    return {mailbox, from, emails};
+    const nextEmails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, from!);
+    return {mailbox, from, nextEmails};
   })
   .post('/forward-email/:id', async ({identity, body}) => {
     const {err, uid, forward} = await checkAPI(body);

@@ -1,35 +1,35 @@
 <script lang="ts">
   import ComposeMessage from './ComposeMessage.svelte';
+  import MessageComponent from './Message.svelte';
+  import type {APIResponse, Message} from '$type';
   import type {Writable} from 'svelte/store';
-  import Message from './Message.svelte';
   import {formatPhoneNumber} from '$lib';
-  import type {FetchAPI} from '$type';
   import {identity} from '$store';
 
   interface Props {
-    ws: WebSocket;
-    isReply: boolean;
-    discussion: Writable<FetchAPI['messages'][number] | undefined>;
-    fullDiscussion: Writable<FetchAPI['messages']>;
+    fullDiscussion: Writable<Message[]>;
+    discussion: Writable<Message | undefined>;
+    mode: Writable<'browse' | 'read' | 'write' | 'reply'>;
+    messages: APIResponse;
   }
 
-  let {discussion, fullDiscussion, ws, isReply}: Props = $props();
+  let {discussion, fullDiscussion, mode, messages}: Props = $props();
 
   const addressee = $discussion?.from === $identity.phone ? $discussion?.to : $discussion?.from;
 </script>
 
 <div class="my-8 flex w-full flex-col items-center justify-center gap-2 text-lg text-neutral-600">
   <p id="box">Addressee is {formatPhoneNumber(addressee!)}</p>
-  {#if isReply}
-    <ComposeMessage {ws} reply={$discussion} />
+  {#if $mode === 'reply'}
+    <ComposeMessage {discussion} {fullDiscussion} {mode} {messages} />
   {/if}
   <div class="flex w-full flex-col gap-12">
     {#key $fullDiscussion}
       {#each $fullDiscussion as message}
-        <Message {message} />
+        <MessageComponent {message} />
       {/each}
       {#if $fullDiscussion.length === 0}
-        <Message message={$discussion!} />
+        <MessageComponent message={$discussion!} />
       {/if}
     {/key}
   </div>
