@@ -16,7 +16,7 @@ export default new Elysia({prefix: '/email'})
     if (err) return error(400, err);
 
     const email = await fetchEmail(identity!.email, identity!.email_password, true, uuid!);
-    return {type: 'fetch-reply', uuid, fetchEmail: email};
+    return {uuid, fetchEmail: email};
   })
   .post('/send-email/:id', async ({identity, body}) => {
     const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body);
@@ -36,7 +36,7 @@ export default new Elysia({prefix: '/email'})
     delete (fullEmail as {password?: string}).password;
 
     const sentEmail = {...fullEmail, uid, type: response.type};
-    return {type: 'send-email', draft, sentEmail};
+    return {draft, sentEmail};
   })
   .post('/save-draft/:id', async ({identity, body}) => {
     const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body);
@@ -53,14 +53,14 @@ export default new Elysia({prefix: '/email'})
     delete (fullEmail as {email?: string}).email;
 
     const savedDraft = {...fullEmail, ...content};
-    return {type: 'save-draft', draft, savedDraft};
+    return {draft, savedDraft};
   })
   .post('/load-more/:id', async ({identity, body}) => {
     const {err, mailbox, from} = await checkAPI(body);
     if (err) return error(400, err);
 
     const emails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, from!);
-    return {type: 'load-more', mailbox, from, emails};
+    return {mailbox, from, emails};
   })
   .post('/forward-email/:id', async ({identity, body}) => {
     const {err, uid, forward} = await checkAPI(body);
@@ -105,12 +105,12 @@ export default new Elysia({prefix: '/email'})
     delete (fullEmail as {email?: string}).email;
 
     forwardEmail = {...fullEmail, uid: newUID.uid, type: response.type};
-    return {type: 'forward-email', uid, forward, forwardEmail};
+    return {uid, forward, forwardEmail};
   })
   .post('/delete-email/:id', async ({identity, body}) => {
     const {err, mailbox, uid} = await checkAPI(body);
     if (err) return error(400, err);
 
     await deleteEmail(identity!.email, identity!.email_password, mailbox!, (body as APIRequest).uid!);
-    return {type: 'delete-email', mailbox, uid};
+    return {mailbox, uid};
   });

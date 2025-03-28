@@ -1,4 +1,4 @@
-import {notification, modalIndex, fetchIndex} from '$store';
+import {notification, modalIndex, fetchIndex, identity} from '$store';
 import type {APIResponse, Notification} from '$type';
 import type {Cookies} from '@sveltejs/kit';
 import {dev} from '$app/environment';
@@ -35,15 +35,21 @@ export async function updateModal(index = 1, condition = true) {
 }
 
 export async function fetchAPI(url: string, method = 'GET', body?: Record<string, unknown>): Promise<APIResponse> {
-  return await fetch(url, {
+  const fullUrl = `/api/${url}/${get(identity).id}`;
+  return await fetch(fullUrl, {
     method,
     body: body ? JSON.stringify(body) : undefined,
     headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
   })
     .then(async (res) => {
       const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';
-      const message = await res.json();
-      return {...message, type};
+      if (res.headers.get('Content-Type')?.includes('application/json')) {
+        const message = await res.json();
+        return {...message, type};
+      } else {
+        const err = await res.text();
+        return {err, type};
+      }
     })
     .catch(() => ({message: 'An error occurred. Please try again later', type: 'alert'}));
 }

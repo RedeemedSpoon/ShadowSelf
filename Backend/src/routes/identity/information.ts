@@ -23,7 +23,7 @@ export default new Elysia({prefix: '/identity'})
     const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
 
     const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
-    return {type: 'regenerate-picture', picture};
+    return {picture};
   })
   .post('/regenerate-name/:id', async ({identity, body}) => {
     const data = {sex: identity!.sex};
@@ -36,7 +36,7 @@ export default new Elysia({prefix: '/identity'})
     const faker = allFakers[lang?.localization as keyof typeof allFakers];
     const name = faker.person.fullName({sex: sex as 'male' | 'female'});
 
-    return {type: 'regenerate-name', name};
+    return {name};
   })
   .post('/regenerate-bio/:id', async ({identity}) => {
     const locations = (await request('/extension-api', 'GET')) as Location[];
@@ -45,7 +45,7 @@ export default new Elysia({prefix: '/identity'})
     const faker = allFakers[lang?.localization as keyof typeof allFakers];
     const bio = faker.person.bio();
 
-    return {type: 'regenerate-bio', bio};
+    return {bio};
   })
   .post('/update-information/:id', async ({identity, body}) => {
     const data1 = {sex: identity!.sex, ethnicity: identity!.ethnicity, age: identity!.age};
@@ -56,5 +56,5 @@ export default new Elysia({prefix: '/identity'})
     await attempt(sql`UPDATE identities SET sex = ${sex!}, ethnicity = ${ethnicity!}, age = ${age!} WHERE id = ${identity!.id}`);
     await attempt(sql`UPDATE identities SET name = ${name!}, bio = ${bio!}, picture = ${picture!} WHERE id = ${identity!.id}`);
 
-    return {type: 'update-information', sex, ethnicity, age, name, bio, picture};
+    return {sex, ethnicity, age, name, bio, picture};
   });

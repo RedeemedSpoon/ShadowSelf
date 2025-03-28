@@ -1,17 +1,20 @@
 <script lang="ts">
   import {Modal, LoadingButton, InputWithIcon, ConfirmModal} from '$component';
   import {fetchIndex, identity, modalIndex, masterPassword} from '$store';
+  import type {Account, APIResponse} from '$type';
+  import type {Writable} from 'svelte/store';
   import {encrypt, decrypt} from '$crypto';
-  import type {FetchAPI} from '$type';
+  import {fetchAPI, notify} from '$lib';
   import {KeyIcon} from '$icon';
   import {lock} from '$image';
 
   interface Props {
-    accounts: FetchAPI;
-    ws: WebSocket;
+    accounts: Writable<APIResponse>;
+    mode: Writable<'view' | 'add' | 'edit'>;
+    target: Writable<Account | null>;
   }
 
-  let {accounts, ws}: Props = $props();
+  let {accounts, mode, target}: Props = $props();
 
   const className = {
     label: '!bg-neutral-900/50 !border-neutral-700',
@@ -37,7 +40,7 @@
     if (!$masterPassword) $masterPassword = base64Key;
 
     const updatedAccounts = await Promise.all(
-      accounts.accounts.map(async (account) => {
+      $accounts.accounts.map(async (account) => {
         const oldPassword = await decrypt(account.password);
         const oldTotp = account.totp ? await decrypt(account.totp) : 'unable to decrypt';
 
@@ -53,10 +56,24 @@
 
     $masterPassword = base64Key;
     localStorage.setItem('key-' + $identity.id, base64Key);
-    ws?.send(JSON.stringify({type: 'update-encryption', accounts: updatedAccounts}));
 
-    $fetchIndex = 0;
+    const response = await fetchAPI('account/update-encryption', 'POST', {accounts: updatedAccounts});
+    if (response.err) return notify(response.err, 'alert');
+
+    const responseAccounts = $accounts.accounts.map((account) => {
+      const updatedAccount = response.accounts!.find((a) => a.id === account.id);
+      return {
+        ...account,
+        password: updatedAccount!.password,
+        totp: updatedAccount!.totp || '',
+      };
+    });
+
+    $accounts.accounts = responseAccounts;
+    $mode = 'view';
     $modalIndex = 0;
+    $fetchIndex = 0;
+    $target = null;
   }
 
   async function removeMasterPassword() {

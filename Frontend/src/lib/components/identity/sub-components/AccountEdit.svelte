@@ -1,18 +1,19 @@
 <script lang="ts">
   import {KeyIcon, UserIcon, KeylockIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
   import {ActionIcon, LoadingButton, InputWithIcon, SelectMenu} from '$component';
-  import type {FetchAPI} from '$type';
+  import type {Account, APIResponse} from '$type';
+  import type {Writable} from 'svelte/store';
+  import {fetchAPI, notify} from '$lib';
   import {fetchIndex} from '$store';
   import {encrypt} from '$crypto';
-  import {notify} from '$lib';
 
   interface Props {
-    target: FetchAPI['accounts'][number];
-    mode: 'view' | 'add' | 'edit';
-    ws: WebSocket;
+    mode: Writable<'view' | 'add' | 'edit'>;
+    target: Writable<Account | null>;
+    accounts: Writable<APIResponse>;
   }
 
-  let {target, mode, ws}: Props = $props();
+  let {accounts, target, mode}: Props = $props();
   let showPassword = $state(false) as boolean;
 
   async function generatePassword() {
@@ -38,15 +39,31 @@
 
     const password = await encrypt(rawPassword);
     const totp = rawTotp ? await encrypt(rawTotp) : null;
+    const id = $mode === 'edit' ? $target!.id : null;
+    const body = {id, username, password, website, totp, algorithm};
 
-    const id = mode === 'edit' ? target!.id : null;
-    const type = mode === 'add' ? 'add-account' : 'edit-account';
+    if ($mode === 'add') {
+      const response = await fetchAPI('account/add-account', 'POST', body);
+      if (response.err) return notify(response.err, 'alert');
 
-    ws?.send(JSON.stringify({type, id, username, password, website, totp, algorithm}));
+      $accounts.accounts.push(response as unknown as Account);
+      $mode = 'view';
+      $fetchIndex = 0;
+      $target = null;
+    } else {
+      const response = await fetchAPI('account/edit-account', 'POST', body);
+      if (response.err) return notify(response.err, 'alert');
+
+      const otherAccounts = $accounts.accounts.filter((account) => account.id !== (response.id as unknown));
+      $accounts.accounts = [...otherAccounts, response] as unknown as APIResponse['accounts'];
+      $mode = 'view';
+      $fetchIndex = 0;
+      $target = null;
+    }
   }
 </script>
 
-{#if mode === 'add' || mode === 'edit'}
+{#if $mode === 'add' || $mode === 'edit'}
   <section class="flex flex-col items-center gap-8 p-8">
     <div class="flex gap-8 max-lg:flex-col">
       <div class="flex flex-col gap-2">
@@ -81,7 +98,7 @@
     </div>
 
     <LoadingButton onclick={addOrUpdateAccount}>
-      {mode === 'add' ? 'Add' : 'Update'} Account
+      {$mode === 'add' ? 'Add' : 'Update'} Account
     </LoadingButton>
   </section>
 {/if}

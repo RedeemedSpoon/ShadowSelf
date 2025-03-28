@@ -1,16 +1,11 @@
 <script lang="ts">
   import {TransferIcon, AddFundsIcon, RetrieveFundsIcon} from '$icon';
   import {ActionIcon} from '$component';
-  import {identity} from '$store';
   import {onMount} from 'svelte';
   import {fetchAPI} from '$lib';
   import {cart} from '$image';
 
-  let {ws}: {ws: WebSocket} = $props();
-
-  let purchases = $state();
-
-  onMount(async () => (purchases = await fetchAPI('/api/card/' + $identity.id, token)));
+  onMount(async () => console.log(await fetchAPI('card', 'GET')));
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">

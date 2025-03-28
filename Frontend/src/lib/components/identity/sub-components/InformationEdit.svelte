@@ -2,8 +2,7 @@
   import {ActionIcon, SelectMenu, Tooltip, LoadingButton} from '$component';
   import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon} from '$icon';
   import {identity, fetchIndex} from '$store';
-
-  let {ws}: {ws: WebSocket} = $props();
+  import {fetchAPI, notify} from '$lib';
 
   const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Latino', 'Arab', 'East asian', 'South asian'];
 
@@ -15,15 +14,27 @@
 
     $fetchIndex = 1;
     await new Promise((resolve) => setTimeout(resolve, 300));
-    ws.send(JSON.stringify({type: 'regenerate-picture', sex, age, ethnicity, bio}));
+    const response = await fetchAPI('identity/regenerate-picture', 'POST', {sex, age, ethnicity, bio});
+    if (response.err) return notify(response.err, 'alert');
+
+    const element = document.querySelector(`#profile`) as HTMLImageElement;
+    element.src = `data:image/png;base64,${response.picture}`;
+    $fetchIndex = 0;
   }
 
-  function regenerateName() {
-    ws.send(JSON.stringify({type: 'regenerate-name', sex: document.querySelector('.selected')!.id}));
+  async function regenerateName() {
+    const sex = document.querySelector('.selected')!.id;
+    const response = await fetchAPI('identity/regenerate-name', 'POST', {sex});
+    if (response.err) return notify(response.err, 'alert');
+
+    const element = document.querySelector(`input[name="name"]`) as HTMLInputElement;
+    element.value = response.name!;
   }
 
-  function regenerateBio() {
-    ws.send(JSON.stringify({type: 'regenerate-bio'}));
+  async function regenerateBio() {
+    const response = await fetchAPI('identity/regenerate-bio', 'POST');
+    const element = document.querySelector(`textarea`) as HTMLTextAreaElement;
+    element.value = response.bio!;
   }
 
   function changeToMale() {

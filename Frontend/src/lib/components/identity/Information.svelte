@@ -1,13 +1,10 @@
 <script lang="ts">
   import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
-  import {currentSection, identity, fetchIndex, handleResponse} from '$store';
+  import {toTitleCase, base64ToBlob, formatPhoneNumber, fetchAPI, notify} from '$lib';
   import InformationEdit from './sub-components/InformationEdit.svelte';
-  import {toTitleCase, base64ToBlob, formatPhoneNumber} from '$lib';
   import {ActionIcon, CopyButton, ReactiveButton} from '$component';
-  import type {WebSocketResponse} from '$type';
+  import {currentSection, identity} from '$store';
   import {EditIcon, BackIcon} from '$icon';
-
-  let {ws}: {ws: WebSocket} = $props();
 
   let activeStatus = $state(false);
   let isEditingMode = $state(false);
@@ -43,42 +40,18 @@
       const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
       const sex = document.querySelector('.selected')?.id;
 
-      ws.send(JSON.stringify({type: 'update-information', picture, name, bio, age, ethnicity, sex}));
+      const body = {picture, name, bio, age, ethnicity, sex};
+      const response = await fetchAPI('identity/update-information', 'POST', body);
+      if (response.err) return notify(response.err, 'alert');
+
+      $identity = {...$identity, ...response};
+      isEditingMode = false;
+      activeStatus = false;
     } else {
       isEditingMode = true;
       activeStatus = true;
     }
   }
-
-  $handleResponse = (response: WebSocketResponse) => {
-    switch (response.type) {
-      case 'regenerate-name': {
-        const element = document.querySelector(`input[name="name"]`) as HTMLInputElement;
-        element.value = response.name!;
-        break;
-      }
-
-      case 'regenerate-bio': {
-        const element = document.querySelector(`textarea`) as HTMLTextAreaElement;
-        element.value = response.bio!;
-        break;
-      }
-
-      case 'regenerate-picture': {
-        const element = document.querySelector(`#profile`) as HTMLImageElement;
-        element.src = `data:image/png;base64,${response.picture}`;
-        $fetchIndex = 0;
-        break;
-      }
-
-      case 'update-information': {
-        $identity = {...$identity, ...response};
-        isEditingMode = false;
-        activeStatus = false;
-        break;
-      }
-    }
-  };
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
@@ -92,7 +65,7 @@
 </section>
 
 {#if isEditingMode}
-  <InformationEdit {ws} />
+  <InformationEdit />
 {:else}
   <section class="grid place-items-center gap-8 sm:m-12 lg:grid-cols-[1fr_2fr] xl:gap-16">
     <h3 class="relative mt-4 hidden w-full !text-3xl max-md:inline">{$identity.name}, {$identity.age}</h3>

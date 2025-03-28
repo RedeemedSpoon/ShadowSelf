@@ -31,7 +31,7 @@ export default new Elysia({prefix: '/account'})
     if (website) await attempt(sql`UPDATE accounts SET website = ${website!} WHERE id = ${res[0].id}`);
     if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${res[0].id!}`);
 
-    return {type: 'add-account', username, password, website, totp, algorithm, id: res[0].id};
+    return {username, password, website, totp, algorithm, id: res[0].id};
   })
   .post('/edit-account/:id', async ({identity, body}) => {
     const {err, username, password, website, totp, algorithm, id} = await checkAPI(body);
@@ -43,14 +43,14 @@ export default new Elysia({prefix: '/account'})
     if (website) await attempt(sql`UPDATE accounts SET website = ${website!} WHERE id = ${id!}  AND owner = ${uid}`);
     if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${id!} AND owner = ${uid}`);
 
-    return {type: 'edit-account', username, password, website, totp, algorithm, id};
+    return {username, password, website, totp, algorithm, id};
   })
   .post('/remove-account/:id', async ({identity, body}) => {
     const {err, id} = await checkAPI(body);
     if (err) return error(400, err);
 
     await attempt(sql`DELETE FROM accounts WHERE id = ${id!} AND owner = ${identity!.id}`);
-    return {type: 'remove-account', id};
+    return {id};
   })
   .post('/update-encryption/:id', async ({identity, body}) => {
     const accounts = (body as APIRequest)?.accounts || null;
@@ -64,5 +64,5 @@ export default new Elysia({prefix: '/account'})
       if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!} WHERE id = ${id!} AND owner = ${identity!.id}`);
     }
 
-    return {type: 'update-encryption', accounts};
+    return {accounts};
   });

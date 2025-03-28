@@ -35,7 +35,7 @@ export default new Elysia({prefix: '/phone'})
     let conversation = [...sentMessages, ...receivedMessages].map((msg) => parseMessage(msg));
     conversation = conversation.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-    return {type: 'fetch-conversation', addressee, conversation};
+    return {addressee, conversation};
   })
   .post('/send-message/:id', async ({identity, body}) => {
     const {err, isReply, addressee, body: messageBody} = await checkAPI(body);
@@ -53,7 +53,7 @@ export default new Elysia({prefix: '/phone'})
       await new Promise((resolve) => setTimeout(resolve, 500));
       const messageSent = parseMessage(await twilio.messages(sid).fetch());
 
-      return {type: 'send-message', addressee, messageSent, isReply};
+      return {addressee, messageSent, isReply};
     } catch (e) {
       return error(400, e instanceof Error ? e.message : e);
     }
@@ -69,5 +69,5 @@ export default new Elysia({prefix: '/phone'})
       await twilio.messages(message.sid).remove();
     }
 
-    return {type: 'delete-message', addressee};
+    return {addressee};
   });
