@@ -194,7 +194,6 @@ export interface APIResponse {
   forwardEmail: FullEmail;
   draft: number;
   uid: number;
-  uuid: string;
   mailbox: string;
   from: number;
   subject: string;
@@ -208,7 +207,6 @@ export interface APIResponse {
   addressee: string;
   messageSent: Message;
   conversation: Message[];
-  isReply: boolean;
   sid: string;
 }
 

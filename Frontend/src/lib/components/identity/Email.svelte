@@ -52,14 +52,14 @@
     from += 7;
   }
 
-  async function fetchReply(uuid?: string) {
+  async function fetchReply(uid?: string) {
     let alreadyFetched;
 
     for (const mailbox of ['INBOX', 'Sent']) {
       if (alreadyFetched) continue;
 
       const box = mailbox.toLowerCase() as 'inbox' | 'sent';
-      const message = inbox.emails[box].find((email) => email.messageID.trim() === uuid?.trim());
+      const message = inbox.emails[box].find((email) => email.messageID.trim() === uid?.trim());
       if (!message) continue;
 
       alreadyFetched = true;
@@ -69,7 +69,7 @@
     }
 
     if (!alreadyFetched) {
-      const response = await fetchAPI('email/fetch-reply', 'POST', {uuid: uuid?.trim()});
+      const response = await fetchAPI('email/fetch-reply', 'POST', {uid: Number(uid?.trim())});
       if (response.err) return notify(response.err, 'alert');
       if (response.fetchEmail === null) return;
 
@@ -81,7 +81,7 @@
   async function forwardEmail() {
     $fetchIndex = 3;
     const forward = (document.querySelector('input[name="forward"]') as HTMLInputElement)?.value;
-    const response = await fetchAPI('email/forward-email', 'POST', {forward, uid: $target!.uid});
+    const response = await fetchAPI('email/forward-email', 'POST', {forward, uid: Number($target!.uid)});
     if (response.err) return notify(response.err, 'alert');
 
     inbox.emails.sent.unshift(response.forwardEmail);
@@ -133,7 +133,7 @@
 
   async function deleteEmail() {
     if (label === 'Junk') return;
-    const response = await fetchAPI('email/delete-email', 'POST', {mailbox: label, uid: $target!.uid});
+    const response = await fetchAPI('email/delete-email', 'POST', {mailbox: label, uid: Number($target!.uid)});
     if (response.err) return notify(response.err, 'alert');
 
     const mailbox = response.mailbox.toLowerCase() as 'inbox';

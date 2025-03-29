@@ -24,7 +24,7 @@ export default new Elysia({prefix: '/phone'})
     return {messages};
   })
   .post('/fetch-conversation/:id', async ({identity, body}) => {
-    const {err, addressee} = await checkAPI(body);
+    const {err, addressee} = await checkAPI(body, ['addressee']);
     if (err) return error(400, err);
 
     if (addressee === identity!.phone) return error(400, 'You cannot fetch your own conversation');
@@ -38,7 +38,7 @@ export default new Elysia({prefix: '/phone'})
     return {addressee, conversation};
   })
   .post('/send-message/:id', async ({identity, body}) => {
-    const {err, isReply, addressee, body: messageBody} = await checkAPI(body);
+    const {err, addressee, body: messageBody} = await checkAPI(body, ['addressee', 'body']);
     if (err) return error(400, err);
 
     if (addressee === identity!.phone) return error(400, 'You cannot send a message to yourself');
@@ -53,13 +53,13 @@ export default new Elysia({prefix: '/phone'})
       await new Promise((resolve) => setTimeout(resolve, 500));
       const messageSent = parseMessage(await twilio.messages(sid).fetch());
 
-      return {addressee, messageSent, isReply};
+      return {addressee, messageSent};
     } catch (e) {
       return error(400, e instanceof Error ? e.message : e);
     }
   })
   .post('/delete-message/:id', async ({body}) => {
-    const {err, addressee} = await checkAPI(body);
+    const {err, addressee} = await checkAPI(body, ['addressee']);
     if (err) return error(400, err);
 
     const receivedMessages = await twilio.messages.list({to: addressee});

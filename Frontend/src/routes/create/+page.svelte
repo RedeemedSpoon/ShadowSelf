@@ -93,7 +93,7 @@
           picture: server.identity.picture,
           ethnicity: (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value,
           name: (document.querySelector('input[name="name"]') as HTMLInputElement).value.trim(),
-          age: (document.querySelector('input[name="age"]') as HTMLInputElement).value.trim(),
+          age: Number((document.querySelector('input[name="age"]') as HTMLInputElement).value.trim()),
           bio: document.querySelector('textarea')?.value.trim(),
           sex: document.querySelector('.selected')?.id,
         };
@@ -185,7 +185,7 @@
         const regenerate = {
           ethnicity: (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value,
           name: (document.querySelector('input[name="name"]') as HTMLInputElement).value,
-          age: (document.querySelector('input[name="age"]') as HTMLInputElement).value,
+          age: Number((document.querySelector('input[name="age"]') as HTMLInputElement).value),
           bio: document.querySelector('textarea')?.value,
           sex: document.querySelector('.selected')?.id,
         };

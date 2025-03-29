@@ -1,8 +1,8 @@
 import middleware from '@middleware-api';
 import {checkAPI} from '@utils/checks';
-import {Elysia, error} from 'elysia';
 import {sql} from '@utils/connection';
 import {attempt} from '@utils/utils';
+import {Elysia, error} from 'elysia';
 import {APIRequest} from '@types';
 
 export default new Elysia({prefix: '/account'})
@@ -21,7 +21,8 @@ export default new Elysia({prefix: '/account'})
     return {accounts: formattedAccounts};
   })
   .post('/add-account/:id', async ({identity, body}) => {
-    const {err, username, password, website, totp, algorithm} = await checkAPI(body);
+    const fields = ['username', 'password', '?website', '?totp', '?algorithm'];
+    const {err, username, password, website, totp, algorithm} = await checkAPI(body, fields);
     if (err) return error(400, err);
 
     const res = await attempt(
@@ -34,7 +35,8 @@ export default new Elysia({prefix: '/account'})
     return {username, password, website, totp, algorithm, id: res[0].id};
   })
   .post('/edit-account/:id', async ({identity, body}) => {
-    const {err, username, password, website, totp, algorithm, id} = await checkAPI(body);
+    const fields = ['username', 'password', '?website', '?totp', '?algorithm', 'id'];
+    const {err, username, password, website, totp, algorithm, id} = await checkAPI(body, fields);
     if (err) return error(400, err);
 
     const uid = identity!.id;
@@ -46,7 +48,7 @@ export default new Elysia({prefix: '/account'})
     return {username, password, website, totp, algorithm, id};
   })
   .post('/remove-account/:id', async ({identity, body}) => {
-    const {err, id} = await checkAPI(body);
+    const {err, id} = await checkAPI(body, ['id']);
     if (err) return error(400, err);
 
     await attempt(sql`DELETE FROM accounts WHERE id = ${id!} AND owner = ${identity!.id}`);
@@ -57,7 +59,8 @@ export default new Elysia({prefix: '/account'})
     if (!accounts || typeof accounts !== 'object') return error(400, 'Accounts Array are required');
 
     for (const account of accounts) {
-      const {err, id, password, totp} = await checkAPI(account);
+      const fields = ['id', 'password', '?totp'];
+      const {err, id, password, totp} = await checkAPI(account, fields);
       if (err) return error(400, err);
 
       await attempt(sql`UPDATE accounts SET password = ${password!} WHERE id = ${id!} AND owner = ${identity!.id}`);

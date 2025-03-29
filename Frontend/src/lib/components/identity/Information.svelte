@@ -36,7 +36,7 @@
       const picture = (document.querySelector('#profile') as HTMLImageElement)!.src.split('data:image/png;base64,')[1];
       const name = (document.querySelector('input[name="name"]') as HTMLInputElement).value.trim();
       const bio = (document.querySelector('textarea') as HTMLTextAreaElement).value.trim();
-      const age = (document.querySelector('input[name="age"]') as HTMLInputElement).value.trim();
+      const age = Number((document.querySelector('input[name="age"]') as HTMLInputElement).value.trim());
       const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
       const sex = document.querySelector('.selected')?.id;
 

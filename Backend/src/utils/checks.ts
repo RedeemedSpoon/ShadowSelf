@@ -2,6 +2,8 @@ import type {BodyField, ContactDetail, CheckIdentity, APIRequest} from '@types';
 import {toTitleCase} from '@utils/utils';
 import {$} from 'bun';
 
+const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
+
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
   const body = rawBody as BodyField;
 
@@ -127,8 +129,16 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       break;
 
     case 'identity':
+      if (body.name!.trim().length < 2) {
+        return {err: 'Name must be at least 2 characters long'} as APIRequest;
+      }
+
       if (body.name!.length > 30) {
         return {error: 'Name is too long (<30 characters)'};
+      }
+
+      if (/[^a-zA-Z\s'-]/.test(body.name!)) {
+        return {err: 'Name contains invalid characters'} as APIRequest;
       }
 
       if (body.sex !== 'male' && body.sex !== 'female') {
@@ -139,8 +149,12 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Age must be between 18 and 60'};
       }
 
-      if (!['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'].includes(body.ethnicity!)) {
+      if (!ethnicities.includes(body.ethnicity!)) {
         return {error: 'Ethnicity must be a valid ethnicity'};
+      }
+
+      if (body.bio!.trim().length > 0 && body.bio!.trim().length < 10) {
+        return {err: 'Biography must be at least 10 characters long if provided'} as APIRequest;
       }
 
       if (body.bio!.length > 126) {
@@ -172,9 +186,6 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       break;
 
     case 'card':
-      // if (!/^\d{16}$/.test(body.card!)) {
-      //   return { error: 'Invalid credit card number, please try again' };
-      // }
       break;
 
     case 'finish': {
@@ -192,104 +203,272 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
   return body;
 }
 
-export async function checkAPI(rawBody: unknown): Promise<APIRequest> {
-  if (!rawBody) return rawBody as APIRequest;
+export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIRequest> {
+  if (!rawBody || typeof rawBody !== 'object') return {err: 'Invalid request body'} as APIRequest;
   const body = rawBody as APIRequest;
 
-  if (body.name && body.name.length > 30) {
-    return {err: 'Name is too long (<30 characters)'} as APIRequest;
-  }
+  for (const field of fields) {
+    const isOptional = field.startsWith('?');
+    const fieldType = isOptional ? field.slice(1) : field;
 
-  if (body.bio && body.bio.length > 126) {
-    return {err: 'Biography is too long (<126 characters)'} as APIRequest;
-  }
+    if (!Object.prototype.hasOwnProperty.call(body, field) && !isOptional) {
+      return {err: `${toTitleCase(field)} is a required field`} as APIRequest;
+    }
 
-  if (body.sex && body.sex !== 'male' && body.sex !== 'female') {
-    return {err: 'Sex must be either "male" or "female"'} as APIRequest;
-  }
+    if (isOptional && !body[fieldType as keyof APIRequest]) continue;
 
-  if (body.age && (body.age < 18 || body.age > 60)) {
-    return {err: 'Age must be between 18 and 60'} as APIRequest;
-  }
+    switch (fieldType) {
+      case 'name':
+        if (typeof body.name !== 'string') {
+          return {err: 'Name must be a string'} as APIRequest;
+        }
 
-  if (body.ethnicity && !['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'].includes(body.ethnicity)) {
-    return {err: 'Ethnicity must be a valid ethnicity'} as APIRequest;
-  }
+        if (body.name.trim().length < 2) {
+          return {err: 'Name must be at least 2 characters long'} as APIRequest;
+        }
 
-  if (body.picture && !/^[A-Za-z0-9+/=]+$/.test(body.picture)) {
-    return {err: 'Incorrect profile picture format'} as APIRequest;
-  }
+        if (/[^a-zA-Z\s'-]/.test(body.name)) {
+          return {err: 'Name contains invalid characters (only letters, spaces, hyphens, apostrophes allowed)'} as APIRequest;
+        }
 
-  if (body.username && body.username.length > 25) {
-    return {err: 'Username is too long (<25 characters)'} as APIRequest;
-  }
+        if (body.name.length > 30) {
+          return {err: 'Name is too long (<30 characters)'} as APIRequest;
+        }
+        break;
 
-  if (body.password && !/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
-    return {err: 'Password is too weak. You probably did not use a strong key'} as APIRequest;
-  }
+      case 'bio':
+        if (typeof body.bio !== 'string') {
+          return {err: 'Biography must be a string'} as APIRequest;
+        }
 
-  if (body.website && !/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
-    return {err: 'Invalid website address, please try again'} as APIRequest;
-  }
+        if (body.bio.trim().length > 0 && body.bio.trim().length < 10) {
+          return {err: 'Biography must be at least 10 characters long if provided'} as APIRequest;
+        }
 
-  if (body.totp && !/^[A-Za-z0-9+/=]+$/.test(body.totp)) {
-    return {err: 'Invalid TOTP secret, please try again'} as APIRequest;
-  }
+        if (body.bio.length > 126) {
+          return {err: 'Biography is too long (<126 characters)'} as APIRequest;
+        }
+        break;
 
-  if (body.algorithm && !['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
-    return {err: 'Inrecognized algorithm, please try again'} as APIRequest;
-  }
+      case 'sex':
+        if (body.sex !== 'male' && body.sex !== 'female') {
+          return {err: 'Sex must be either "male" or "female"'} as APIRequest;
+        }
+        break;
 
-  if (body.uid && body.uid !== Number(body.uid)) {
-    return {err: 'Invalid email UID, please try again'} as APIRequest;
-  }
+      case 'age':
+        if (typeof body.age !== 'number' || !Number.isInteger(body.age)) {
+          return {err: 'Age must be a whole number'} as APIRequest;
+        }
 
-  if (body.mailbox && !['INBOX', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
-    return {err: 'Non-existent mailbox, please try again'} as APIRequest;
-  }
+        if (body.age < 18 || body.age > 60) {
+          return {err: 'Age must be between 18 and 60'} as APIRequest;
+        }
+        break;
 
-  if (body.from && body.from !== Number(body.from)) {
-    return {err: 'Invalid from value, please try again'} as APIRequest;
-  }
+      case 'ethnicity':
+        if (typeof body.ethnicity !== 'string' || !Array.isArray(ethnicities) || !ethnicities.includes(body.ethnicity)) {
+          return {err: 'Ethnicity must be a valid ethnicity from the allowed list'} as APIRequest;
+        }
+        break;
 
-  if (body.to && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.to)) {
-    return {err: 'Invalid recipient email, please try again'} as APIRequest;
-  }
+      case 'picture':
+        if (typeof body.picture !== 'string') {
+          return {err: 'Picture data must be a string'} as APIRequest;
+        }
 
-  if (body.forward && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.forward)) {
-    return {err: 'Invalid forward email, please try again'} as APIRequest;
-  }
+        if (!/^[A-Za-z0-9+/=]+$/.test(body.picture)) {
+          return {err: 'Incorrect profile picture format'} as APIRequest;
+        }
+        break;
 
-  if (body?.inReplyTo && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.inReplyTo)) {
-    return {err: 'Invalid recipient value, please try again'} as APIRequest;
-  }
+      case 'username':
+        if (typeof body.username !== 'string') {
+          return {err: 'Username must be a string'} as APIRequest;
+        }
 
-  if (body?.references?.length && !/<([A-Za-z0-9+&=_-]+)@([A-Za-z0-9.-]+\.[A-Z|a-z]{2,})>/gm.test(body.references[0])) {
-    return {err: 'Invalid recipient value, please try again'} as APIRequest;
-  }
+        if (body.username.length > 25) {
+          return {err: 'Username is too long (<25 characters)'} as APIRequest;
+        }
+        break;
 
-  if (body.subject && body.subject.length > 126) {
-    return {err: 'Long subject (>126 characters), please try again'} as APIRequest;
-  }
+      case 'password':
+        if (typeof body.password !== 'string') {
+          return {err: 'Password must be a string'} as APIRequest;
+        }
 
-  if (body.body && body.body.length < 2) {
-    return {err: 'Body is too short, please try again'} as APIRequest;
-  }
+        if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
+          return {err: 'Password is too weak. Minimum 8 chars, requires letters and numbers.'} as APIRequest;
+        }
+        break;
 
-  if (body.attachments && body.attachments.length > 10) {
-    return {err: 'Too many attachments, please try again'} as APIRequest;
-  }
+      case 'website':
+        if (typeof body.website !== 'string') {
+          return {err: 'Website must be a string'} as APIRequest;
+        }
 
-  if (body.attachments && body.attachments.some((attachment) => attachment.data.length > 15 * 1024 * 1024)) {
-    return {err: 'One or more attachments exceed the 15MB size limit, please try again'} as APIRequest;
-  }
+        if (!/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
+          return {err: 'Invalid website address, please try again'} as APIRequest;
+        }
+        break;
 
-  if (body.sid && body.sid.length !== 34) {
-    return {err: 'Invalid message SID, please try again'} as APIRequest;
-  }
+      case 'totp':
+        if (typeof body.totp !== 'string') {
+          return {err: 'TOTP secret must be a string'} as APIRequest;
+        }
 
-  if (body.addressee && !/^\+(\d{10,13})$/.test(body.addressee)) {
-    return {err: 'Invalid phone number, please try again'} as APIRequest;
+        if (!/^[A-Za-z0-9+/=]+$/.test(body.totp)) {
+          return {err: 'Invalid TOTP secret, please try again'} as APIRequest;
+        }
+        break;
+
+      case 'algorithm':
+        if (typeof body.algorithm !== 'string') {
+          return {err: 'Algorithm must be a string'} as APIRequest;
+        }
+
+        if (!['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
+          return {err: 'Unrecognized algorithm, please try again'} as APIRequest;
+        }
+        break;
+
+      case 'id':
+        if (typeof body.id !== 'number' || !Number.isInteger(body.id) || body.uid < 1) {
+          return {err: 'Invalid ID (must be a positive integer), please try again'} as APIRequest;
+        }
+        break;
+
+      case 'uid':
+        if (typeof body.uid !== 'number' || !Number.isInteger(body.uid) || body.uid < 1) {
+          return {err: 'Invalid email UID (must be a positive integer), please try again'} as APIRequest;
+        }
+        break;
+
+      case 'sid':
+        if (typeof body.sid !== 'string') {
+          return {err: 'Message SID must be a string'} as APIRequest;
+        }
+
+        if (body.sid.length !== 34) {
+          return {err: 'Invalid message SID, please try again'} as APIRequest;
+        }
+        break;
+
+      case 'addressee':
+        if (typeof body.addressee !== 'string') {
+          return {err: 'Addressee must be a string'} as APIRequest;
+        }
+
+        if (!/^\+\d{10,15}$/.test(body.addressee)) {
+          return {err: 'Invalid phone number format (e.g. +1xxxxxxxxxx), please try again'} as APIRequest;
+        }
+        break;
+
+      case 'subject':
+        if (typeof body.subject !== 'string') {
+          return {err: 'Subject must be a string'} as APIRequest;
+        }
+
+        if (body.subject.length > 126) {
+          return {err: 'Long subject (>126 characters), please try again'} as APIRequest;
+        }
+        break;
+
+      case 'body':
+        if (typeof body.body !== 'string') {
+          return {err: 'Body must be a string'} as APIRequest;
+        }
+
+        if (body.body.trim().length < 2) {
+          return {err: 'Body is too short, please try again'} as APIRequest;
+        }
+        break;
+
+      case 'mailbox':
+        if (typeof body.mailbox !== 'string') {
+          return {err: 'Mailbox must be a string'} as APIRequest;
+        }
+
+        if (!['INBOX', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
+          return {err: 'Non-existent mailbox, please try again'} as APIRequest;
+        }
+        break;
+
+      case 'from':
+        if (typeof body.from !== 'string') {
+          return {err: 'From address must be a string'} as APIRequest;
+        }
+
+        if (!/^[\w\-+.%]+@([\w-]+\.)+[\w-]{2,}$/i.test(body.from)) {
+          return {err: 'Invalid from email address, please try again'} as APIRequest;
+        }
+
+        break;
+
+      case 'to':
+        if (typeof body.to !== 'string') {
+          return {err: 'To address must be a string'} as APIRequest;
+        }
+
+        if (!/^[\w\-+.%]+@([\w-]+\.)+[\w-]{2,}$/i.test(body.to)) {
+          return {err: 'Invalid recipient email, please try again'} as APIRequest;
+        }
+        break;
+
+      case 'forward':
+        if (typeof body.forward !== 'string') {
+          return {err: 'Forward address must be a string'} as APIRequest;
+        }
+
+        if (!/^[\w\-+.%]+@([\w-]+\.)+[\w-]{2,}$/i.test(body.forward)) {
+          return {err: 'Invalid forward email, please try again'} as APIRequest;
+        }
+        break;
+
+      case 'inReplyTo':
+        if (typeof body.inReplyTo !== 'string') {
+          return {err: 'inReplyTo must be a string'} as APIRequest;
+        }
+
+        if (body.inReplyTo && !/<[^<>]+@([^<>.]+\.)+[^<>.]+>/.test(body.inReplyTo)) {
+          return {err: 'Invalid inReplyTo value (should be Message-ID format like <id@domain>), please try again'} as APIRequest;
+        }
+        break;
+
+      case 'references':
+        if (!Array.isArray(body.references)) {
+          return {err: 'References must be an array'} as APIRequest;
+        }
+
+        for (const ref of body.references) {
+          if (typeof ref !== 'string' || !/<[^<>]+@([^<>.]+\.)+[^<>.]+>/.test(ref)) {
+            return {
+              err: 'Invalid reference value found (should be Message-ID format like <id@domain>), please try again',
+            } as APIRequest;
+          }
+        }
+        break;
+
+      case 'attachments':
+        if (!Array.isArray(body.attachments)) {
+          return {err: 'Attachments must be an array'} as APIRequest;
+        }
+
+        if (body.attachments.length > 10) {
+          return {err: 'Too many attachments (max 10), please try again'} as APIRequest;
+        }
+
+        for (const attachment of body.attachments) {
+          if (!attachment || typeof attachment !== 'object' || typeof attachment.data !== 'string') {
+            return {err: 'Invalid attachment format found (expected object with data string), please try again'} as APIRequest;
+          }
+
+          if (attachment.data.length * 0.75 > 15728640) {
+            return {err: 'One or more attachments exceed the 15MB size limit, please try again'} as APIRequest;
+          }
+        }
+        break;
+    }
   }
 
   return body as unknown as APIRequest;

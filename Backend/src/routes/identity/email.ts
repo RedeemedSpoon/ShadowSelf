@@ -12,14 +12,15 @@ export default new Elysia({prefix: '/email'})
     return emails;
   })
   .post('/fetch-reply/:id', async ({identity, body}) => {
-    const {err, uuid} = await checkAPI(body);
+    const {err, uid} = await checkAPI(body, ['uid']);
     if (err) return error(400, err);
 
-    const email = await fetchEmail(identity!.email, identity!.email_password, true, uuid!);
-    return {uuid, fetchEmail: email};
+    const email = await fetchEmail(identity!.email, identity!.email_password, true, uid!);
+    return {uid, fetchEmail: email};
   })
   .post('/send-email/:id', async ({identity, body}) => {
-    const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body);
+    const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
+    const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
     if (err) return error(400, err);
 
     const email = identity!.email;
@@ -39,7 +40,8 @@ export default new Elysia({prefix: '/email'})
     return {draft, sentEmail};
   })
   .post('/save-draft/:id', async ({identity, body}) => {
-    const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body);
+    const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
+    const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
     if (err) return error(400, err);
 
     const email = identity!.email;
@@ -56,14 +58,14 @@ export default new Elysia({prefix: '/email'})
     return {draft, savedDraft};
   })
   .post('/load-more/:id', async ({identity, body}) => {
-    const {err, mailbox, from} = await checkAPI(body);
+    const {err, mailbox, from} = await checkAPI(body, ['mailbox', 'from']);
     if (err) return error(400, err);
 
     const nextEmails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, from!);
     return {mailbox, from, nextEmails};
   })
   .post('/forward-email/:id', async ({identity, body}) => {
-    const {err, uid, forward} = await checkAPI(body);
+    const {err, uid, forward} = await checkAPI(body, ['uid', 'forward']);
     if (err) return error(400, err);
 
     const email = await fetchEmail(identity!.email, identity!.email_password, false, uid!);
@@ -108,7 +110,7 @@ export default new Elysia({prefix: '/email'})
     return {uid, forward, forwardEmail};
   })
   .post('/delete-email/:id', async ({identity, body}) => {
-    const {err, mailbox, uid} = await checkAPI(body);
+    const {err, mailbox, uid} = await checkAPI(body, ['mailbox', 'uid']);
     if (err) return error(400, err);
 
     await deleteEmail(identity!.email, identity!.email_password, mailbox!, (body as APIRequest).uid!);

@@ -45,7 +45,7 @@
     }
   }
 
-  async function sendMessage(body: {[key: string]: unknown}) {
+  async function sendMessage(isReply: boolean, body: {[key: string]: unknown}) {
     const response = await fetchAPI('phone/send-message', 'POST', body);
     if (response.err) return notify(response.err, 'alert');
 
@@ -53,7 +53,7 @@
     $discussion = response.messageSent;
     const addressee = response.addressee;
 
-    if (response.isReply) {
+    if (isReply) {
       const index = messages?.messages.findIndex((msg) => msg.from === addressee || msg.to === addressee);
       if (index !== -1) messages?.messages.splice(index!, 1);
 
@@ -98,7 +98,7 @@
 
     if (!addressee) addressee = textarea.value.replace(/ /g, '').replace(/-/g, '');
     const isReply = !!$discussion || !!messages?.messages.find((message) => message.from === addressee || message.to === addressee);
-    sendMessage({body, addressee, isReply});
+    sendMessage(isReply, {body, addressee});
   }
 </script>
 

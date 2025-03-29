@@ -143,7 +143,6 @@ export interface APIRequest {
   algorithm: string;
   uid: number;
   mailbox: string;
-  uuid: string;
   from: number;
   draft: number;
   forward: string;
@@ -157,13 +156,9 @@ export interface APIRequest {
   to: string;
   inReplyTo: string;
   references: string[];
-  attachments: {
-    filename: string;
-    data: string;
-  }[];
+  attachments: Attachment[];
   sid: string;
   addressee: string;
-  isReply: boolean;
 }
 
 export interface EmailContent {

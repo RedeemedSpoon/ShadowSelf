@@ -15,8 +15,9 @@ export default new Elysia({prefix: '/identity'})
     return {id, creation_date, proxy_server, user_agent, picture, name, bio, age, sex, ethnicity, location, email, phone, card};
   })
   .post('/regenerate-picture/:id', async ({identity, body}) => {
+    const fields = ['?sex', '?age', '?ethnicity', '?bio'];
     const data = {sex: identity!.sex, age: identity!.age, ethnicity: identity!.ethnicity, bio: identity!.bio};
-    const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!});
+    const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!}, fields);
     if (err) return error(400, error);
 
     const locations = (await request('/extension-api', 'GET')) as Location[];
@@ -26,8 +27,7 @@ export default new Elysia({prefix: '/identity'})
     return {picture};
   })
   .post('/regenerate-name/:id', async ({identity, body}) => {
-    const data = {sex: identity!.sex};
-    const {err, sex} = await checkAPI({...data, ...body!});
+    const {err, sex} = await checkAPI({sex: identity!.sex, ...body!}, ['?sex']);
     if (err) return error(400, err);
 
     const locations = (await request('/extension-api', 'GET')) as Location[];
@@ -48,9 +48,10 @@ export default new Elysia({prefix: '/identity'})
     return {bio};
   })
   .post('/update-information/:id', async ({identity, body}) => {
+    const fields = ['?sex', '?ethnicity', '?age', '?name', '?bio', '?picture'];
     const data1 = {sex: identity!.sex, ethnicity: identity!.ethnicity, age: identity!.age};
     const data2 = {name: identity!.name, bio: identity!.bio, picture: identity!.picture};
-    const {err, sex, ethnicity, age, name, bio, picture} = await checkAPI({...data1, ...data2, ...body!});
+    const {err, sex, ethnicity, age, name, bio, picture} = await checkAPI({...data1, ...data2, ...body!}, fields);
     if (err) return error(400, err);
 
     await attempt(sql`UPDATE identities SET sex = ${sex!}, ethnicity = ${ethnicity!}, age = ${age!} WHERE id = ${identity!.id}`);
