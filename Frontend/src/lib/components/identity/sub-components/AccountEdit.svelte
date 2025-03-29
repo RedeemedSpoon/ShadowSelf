@@ -92,7 +92,7 @@
         <InputWithIcon type="text" name="totp" placeholder="Totp Secret" icon={KeylockIcon} />
 
         <label for="algorithm">Algorithm</label>
-        <SelectMenu options={['SHA1', 'SHA256', 'SHA512']} name="algorithm" />
+        <SelectMenu options={['SHA1', 'SHA256', 'SHA512']} name="algorithm" value={$target?.algorithm} />
         <p>* Required Fields</p>
       </div>
     </div>

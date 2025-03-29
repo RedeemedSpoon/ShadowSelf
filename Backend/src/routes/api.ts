@@ -39,7 +39,7 @@ export default new Elysia()
     },
 
     async close(ws) {
-      const connection = WSConnections.find((connection) => connection.websocket === ws);
+      const connection = WSConnections.find((connection) => connection.websocket.id === ws.id);
       if (!connection) return;
 
       connection.imapConnection.end();

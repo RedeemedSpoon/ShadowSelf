@@ -344,6 +344,12 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         }
         break;
 
+      case 'uuid':
+        if (typeof body.uuid !== 'string') {
+          return {err: 'Email UUID must be a string'} as APIRequest;
+        }
+        break;
+
       case 'sid':
         if (typeof body.sid !== 'string') {
           return {err: 'Message SID must be a string'} as APIRequest;
@@ -351,6 +357,12 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
         if (body.sid.length !== 34) {
           return {err: 'Invalid message SID, please try again'} as APIRequest;
+        }
+        break;
+
+      case 'since':
+        if (typeof body.since !== 'number' || !Number.isInteger(body.since) || body.since < 1) {
+          return {err: 'Invalid since parameter (must be a positive integer), please try again'} as APIRequest;
         }
         break;
 

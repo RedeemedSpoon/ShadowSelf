@@ -28,7 +28,7 @@
   }
 </script>
 
-{#if count > 0 && inbox.length > 0}
+{#if count && inbox.length}
   {#each inbox as email}
     <div aria-hidden="true" class="container {$target?.messageID === email.messageID && 'target'}" onclick={() => handleClick(email)}>
       <div class="relative w-full md:w-1/2">
@@ -53,7 +53,7 @@
     </div>
   {/each}
   {#key inbox.length}
-    {#if inbox.length < count}
+    {#if count > 7 && inbox.length <= count}
       <LoadingButton {className} onclick={loadMore}>Load More</LoadingButton>
     {/if}
   {/key}

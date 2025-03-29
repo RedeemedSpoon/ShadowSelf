@@ -194,8 +194,10 @@ export interface APIResponse {
   forwardEmail: FullEmail;
   draft: number;
   uid: number;
+  uuid: string;
   mailbox: string;
   from: number;
+  since: number;
   subject: string;
   body: string;
   to: string;

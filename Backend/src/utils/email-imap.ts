@@ -31,10 +31,10 @@ export async function listenForEmail(user: string, password: string) {
   return connection;
 }
 
-export async function fetchMoreEmails(user: string, password: string, mailbox: string, from: number) {
-  if (from < 0) return [];
+export async function fetchMoreEmails(user: string, password: string, mailbox: string, since: number) {
+  if (since < 0) return [];
   const connection = await imapConnection(user, password);
-  const query = from - 7 < 0 ? `${1}:${from}` : `${from - 6}:${from}`;
+  const query = since - 7 < 0 ? `${1}:${since}` : `${since - 6}:${since}`;
   const inbox = await getInbox(mailbox, connection, query);
 
   connection.end();
@@ -63,13 +63,13 @@ export async function fetchRecentEmails(user: string, password: string) {
   };
 }
 
-export async function fetchEmail(user: string, password: string, isReply: boolean, id: string | number) {
+export async function fetchEmail(user: string, password: string, isReply: boolean, uuid: string | number) {
   const connection = await imapConnection(user, password);
   let reply = null;
 
   for (const mailbox of ['INBOX', 'Sent']) {
     await connection.openBox(mailbox);
-    const query = isReply ? [['HEADER', 'MESSAGE-ID', id]] : [['UID', id]];
+    const query = isReply ? [['HEADER', 'MESSAGE-ID', uuid]] : [['UID', uuid]];
 
     const message = await connection.search(query, {
       bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
@@ -185,7 +185,9 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
 
   let attachments =
     parts.filter(({disposition}) => {
-      const isAttachment = disposition && disposition.type.toUpperCase() === 'ATTACHMENT';
+      if (!disposition) return false;
+
+      const isAttachment = disposition.type.toUpperCase() === 'ATTACHMENT';
       const isNotAscFile = disposition.params.filename && !disposition.params.filename.includes('.asc');
 
       return isAttachment && isNotAscFile;

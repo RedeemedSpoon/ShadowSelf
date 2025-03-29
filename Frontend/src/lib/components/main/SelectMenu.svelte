@@ -54,7 +54,12 @@
   });
 </script>
 
-<input required bind:this={input} type="hidden" name={name.toLowerCase()} value={value || givenOptions[0].value} />
+<input
+  type="hidden"
+  bind:this={input}
+  name={name.toLowerCase()}
+  onclick={() => (btn.querySelector('span')!.innerText = input.value)}
+  value={value || givenOptions[0].value} />
 
 <div bind:this={select} id="select-input" class="relative z-20 min-w-[15vw]">
   <button type="button" bind:this={btn} onclick={handleBtnSelect}>

@@ -59,6 +59,8 @@
     for (const input of ['username', 'password', 'website', 'totp', 'algorithm']) {
       const element = document.querySelector('input[name="' + input + '"]') as HTMLInputElement;
       element.value = $target![input as keyof Account] as string;
+
+      if (input === 'algorithm') element.click();
     }
   }
 
@@ -86,8 +88,8 @@
       <ActionIcon icon={LockRemoveIcon} action={() => ($modalIndex = 3)} title="Remove Local Master Password" />
     </div>
     <ActionIcon disabled={!$masterPassword} icon={UserAddIcon} action={() => ($mode = 'add')} title="Add Accounts" />
-    <ActionIcon disabled={!target} icon={UserEditIcon} action={changeModeToEdit} title="Edit Accounts" />
-    <ActionIcon disabled={!target} icon={UserDeleteIcon} action={deleteAccount} title="Delete Accounts" />
+    <ActionIcon disabled={!$target} icon={UserEditIcon} action={changeModeToEdit} title="Edit Accounts" />
+    <ActionIcon disabled={!$target} icon={UserDeleteIcon} action={deleteAccount} title="Delete Accounts" />
   </div>
 </section>
 

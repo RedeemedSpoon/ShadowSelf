@@ -142,7 +142,9 @@ export interface APIRequest {
   totp: string;
   algorithm: string;
   uid: number;
+  uuid: string;
   mailbox: string;
+  since: number;
   from: number;
   draft: number;
   forward: string;

@@ -42,7 +42,7 @@
     const total = inbox.emails[messageCountString as keyof typeof inbox.emails] as number;
     $fetchIndex = 1;
 
-    const response = await fetchAPI('email/load-more', 'POST', {mailbox: label, from: total - from});
+    const response = await fetchAPI('email/load-more', 'POST', {mailbox: label, since: total - from});
     if (response.err) return notify(response.err, 'alert');
 
     const mailbox = response.mailbox.toLowerCase() as 'inbox';
@@ -52,14 +52,14 @@
     from += 7;
   }
 
-  async function fetchReply(uid?: string) {
+  async function fetchReply(uuid?: string) {
     let alreadyFetched;
 
     for (const mailbox of ['INBOX', 'Sent']) {
       if (alreadyFetched) continue;
 
       const box = mailbox.toLowerCase() as 'inbox' | 'sent';
-      const message = inbox.emails[box].find((email) => email.messageID.trim() === uid?.trim());
+      const message = inbox.emails[box].find((email) => email.messageID.trim() === uuid?.trim());
       if (!message) continue;
 
       alreadyFetched = true;
@@ -69,7 +69,7 @@
     }
 
     if (!alreadyFetched) {
-      const response = await fetchAPI('email/fetch-reply', 'POST', {uid: Number(uid?.trim())});
+      const response = await fetchAPI('email/fetch-reply', 'POST', {uuid: uuid?.trim()});
       if (response.err) return notify(response.err, 'alert');
       if (response.fetchEmail === null) return;
 
@@ -106,7 +106,10 @@
 
     if (save) {
       const response = await fetchAPI('email/save-draft', 'POST', {draft, inReplyTo, references, to, ...content});
-      if (response.err) return notify(response.err, 'alert');
+      if (response.err) {
+        $fetchIndex = 0;
+        return notify(response.err, 'alert');
+      }
 
       if (response.draft) {
         inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
@@ -116,7 +119,10 @@
       inbox.emails.draftsMessagesCount++;
     } else {
       const response = await fetchAPI('email/send-email', 'POST', {draft, inReplyTo, references, to, ...content});
-      if (response.err) return notify(response.err, 'alert');
+      if (response.err) {
+        $fetchIndex = 0;
+        return notify(response.err, 'alert');
+      }
 
       if (response.draft) {
         inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
@@ -150,6 +156,11 @@
     $mode = 'browse';
     $target = null;
     from--;
+  }
+
+  function reset(mailbox: 'INBOX' | 'Sent' | 'Drafts' | 'Junk') {
+    label = mailbox;
+    $target = null;
   }
 
   $handleResponse = (response: WebSocketMessage) => {
@@ -206,10 +217,10 @@
           {/if}
         </div>
         <div id="mailbox-labels" class="flex">
-          <button class:selected={label === 'INBOX'} onclick={() => ((label = 'INBOX'), ($target = null))}>Inbox</button>
-          <button class:selected={label === 'Sent'} onclick={() => ((label = 'Sent'), ($target = null))}>Sent</button>
-          <button class:selected={label === 'Drafts'} onclick={() => ((label = 'Drafts'), ($target = null))}>Drafts</button>
-          <button class:selected={label === 'Junk'} onclick={() => ((label = 'Junk'), ($target = null))}>Junk</button>
+          <button class:selected={label === 'INBOX'} onclick={() => reset('INBOX')}>Inbox</button>
+          <button class:selected={label === 'Sent'} onclick={() => reset('Sent')}>Sent</button>
+          <button class:selected={label === 'Drafts'} onclick={() => reset('Drafts')}>Drafts</button>
+          <button class:selected={label === 'Junk'} onclick={() => reset('Junk')}>Junk</button>
         </div>
       </div>
       {@const labels = [
