@@ -90,11 +90,11 @@
       Set/recover a master password that will be stored on this device. This ensures only you can access your accounts—no one else, not
       even us. You can change it anytime.
     </p>
-    <button onclick={() => ($modalIndex = 1)}>Add Password</button>
+    <button onclick={() => ($modalIndex = 2)}>Add Password</button>
   </section>
 {/if}
 
-<Modal id={1}>
+<Modal id={2}>
   <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
     <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Setup Master Password</h3>
     <p class="md:w-[40vw]">
@@ -106,7 +106,7 @@
   </div>
 </Modal>
 
-<Modal id={2}>
+<Modal id={3}>
   <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
     <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Change Master Password</h3>
     <p class="md:w-[40vw]">
@@ -118,7 +118,7 @@
   </div>
 </Modal>
 
-<ConfirmModal id={3} onclick={removeMasterPassword} text="Removing the local master password" />
+<ConfirmModal id={4} onclick={removeMasterPassword} text="Removing the local master password" />
 
 <style lang="postcss">
   #no-accounts {

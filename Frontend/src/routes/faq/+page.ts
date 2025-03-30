@@ -62,12 +62,12 @@ export const load: PageLoad = () => {
       {
         question: 'What happens if a synthetic identity is compromised?',
         answer:
-          "If you were to be compromised, don't panic! You can take several steps to mitigate the damage. First, change your ShadowSelf account password and enable two-factor authentication. If the identity itself has been exposed, well... You can always create a new one :)",
+          "If you were to be compromised, don't panic! You can take several steps to mitigate the damage. Change your ShadowSelf account password and enable two-factor authentication. Whereas if the identity itself has been exposed, well... You can always create a new one :)",
       },
       {
         question: 'What happen to a synthetic identity if I stopped paying?',
         answer:
-          "If your subscription lapses, your synthetic identities will be temporarily paused. You won't be able to access or use them until you renew your plan. However, your identities will still be saved, and you can reactivate them at any time.",
+          "If you stop paying for your subscription, your synthetic identity will get automatically deleted, and all traces will be wiped. But don't worry, we keep things affordable so you can easily stay on top of it!",
       },
       {
         question: 'Is there a mobile app for ShadowSelf?',

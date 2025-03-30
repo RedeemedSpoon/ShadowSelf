@@ -82,10 +82,10 @@
       <ActionIcon icon={BackIcon} action={() => ($mode = 'view')} title="Ignore Changes" />
     </div>
     <div class:hidden={!$masterPassword}>
-      <ActionIcon icon={LockEditIcon} action={() => ($modalIndex = 2)} title="Edit Master Password" />
+      <ActionIcon icon={LockEditIcon} action={() => ($modalIndex = 3)} title="Edit Master Password" />
     </div>
     <div class:hidden={!$masterPassword}>
-      <ActionIcon icon={LockRemoveIcon} action={() => ($modalIndex = 3)} title="Remove Local Master Password" />
+      <ActionIcon icon={LockRemoveIcon} action={() => ($modalIndex = 4)} title="Remove Local Master Password" />
     </div>
     <ActionIcon disabled={!$masterPassword} icon={UserAddIcon} action={() => ($mode = 'add')} title="Add Accounts" />
     <ActionIcon disabled={!$target} icon={UserEditIcon} action={changeModeToEdit} title="Edit Accounts" />

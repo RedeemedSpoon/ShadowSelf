@@ -55,7 +55,7 @@ export interface QueryResultIdentify {
   payment_intent: string;
   subscription_id: string;
   plan: 'monthly' | 'annually' | 'lifetime';
-  status: 'active' | 'inactive' | 'frozen';
+  status: 'active' | 'inactive';
   proxy_server: string;
   user_agent: string;
   location: string;

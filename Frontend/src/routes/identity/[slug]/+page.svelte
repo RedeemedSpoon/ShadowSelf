@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts} from '$component';
+  import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts, ConfirmModal} from '$component';
   import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
-  import {currentSection, handleResponse, identity} from '$store';
+  import {currentSection, handleResponse, identity, modalIndex} from '$store';
   import type {Sections, WebSocketMessage} from '$type';
   import {browser} from '$app/environment';
   import type {PageProps} from './$types';
@@ -94,15 +94,14 @@
     {/key}
 
     <hr class="mb-8 h-px w-full" />
-    <div class="flex w-full justify-between max-sm:flex-col-reverse">
-      <a class="sm:ml-8" href="/dashboard">
-        <button class="alt my-0 border-none">← Back</button>
+    <div class="flex w-full justify-between px-8 max-sm:flex-col-reverse">
+      <a href="/dashboard">
+        <button class="alt border-none">← Back</button>
       </a>
-      <div id="danger-actions">
-        <button>Cancel Subscription</button>
-        <div class="h-8 w-px bg-neutral-600 max-sm:hidden"></div>
-        <button>Delete Identity</button>
-      </div>
+      <form class="flex items-center" method="POST" action="?/delete">
+        <button type="button" onclick={() => ($modalIndex = 1)} class="alt w-fit">Delete Identity</button>
+        <ConfirmModal id={1} text="Deleting permanently this identity" name="delete" />
+      </form>
     </div>
   {:else}
     <div class="flex min-h-[50vh] flex-col items-center justify-center gap-8">
@@ -133,14 +132,6 @@
     @apply flex items-center gap-2 border-b bg-none text-neutral-500 shadow-transparent max-md:sm:-mx-3 lg:px-[4vw];
     @apply rounded-none border-b border-neutral-500 transition-colors duration-500 hover:border-neutral-400 hover:text-neutral-400;
     @apply disabled:cursor-pointer disabled:opacity-100 max-md:sm:scale-90;
-  }
-
-  #danger-actions {
-    @apply flex items-center gap-4 max-sm:ml-8 max-sm:flex-col max-sm:items-start;
-  }
-
-  #danger-actions button {
-    @apply alt hover:text-alert-600 border-none px-0 py-0 text-neutral-400;
   }
 
   .main {

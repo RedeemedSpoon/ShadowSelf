@@ -14,12 +14,12 @@ export default new Elysia({prefix: '/extension-api'})
   .get('/', () => {
     return [
       {
-        country: 'United States',
-        code: 'US',
-        city: 'Seattle',
-        localization: 'en',
-        ip: '91.240.75.212',
-        map: 'https://osm.org/go/WIXvEZw-',
+        country: 'Canada',
+        code: 'CA',
+        city: 'Toronto',
+        localization: 'en_CA',
+        ip: '24.68.162.126',
+        map: 'https://osm.org/go/ZX6E86v-',
       },
       {
         country: 'United Kingdom',
@@ -30,12 +30,12 @@ export default new Elysia({prefix: '/extension-api'})
         map: 'https://osm.org/go/euunRP',
       },
       {
-        country: 'Canada',
-        code: 'CA',
-        city: 'Toronto',
-        localization: 'en_CA',
-        ip: '24.68.162.126',
-        map: 'https://osm.org/go/ZX6E86v-',
+        country: 'Poland',
+        code: 'PL',
+        city: 'Warsaw',
+        localization: 'pl',
+        ip: '91.240.75.212',
+        map: 'https://osm.org/go/0OyyYZ1-',
       },
       {
         country: 'Sweden',
