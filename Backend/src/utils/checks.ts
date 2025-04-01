@@ -88,6 +88,12 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
           return {err: 'Subscription ID is invalid. Please try again'} as BodyField;
         }
         break;
+
+      case 'id':
+        if (body.id.length !== 12) {
+          return {err: 'Invalid ID, please try again'} as BodyField;
+        }
+        break;
     }
   }
 

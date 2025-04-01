@@ -98,8 +98,9 @@
       <a href="/dashboard">
         <button class="alt border-none">← Back</button>
       </a>
-      <form class="flex items-center" method="POST" action="?/delete">
+      <form class="flex items-center" method="POST">
         <button type="button" onclick={() => ($modalIndex = 1)} class="alt w-fit">Delete Identity</button>
+        <input type="hidden" name="id" value={data.identity.id} />
         <ConfirmModal id={1} text="Deleting permanently this identity" name="delete" />
       </form>
     </div>

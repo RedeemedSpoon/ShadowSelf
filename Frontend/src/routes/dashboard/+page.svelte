@@ -1,7 +1,7 @@
 <script lang="ts">
   import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon, ChevronIcon} from '$icon';
   import {EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon, AddUserIcon} from '$icon';
-  import {user, filterOverflow, sortAsc} from '$store';
+  import {user, filterOverflow, sortAsc, token} from '$store';
   import {onMount, type Component} from 'svelte';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
@@ -12,6 +12,11 @@
 
   let table = $state() as HTMLElement;
   let errorText = $state() as HTMLParagraphElement;
+
+  if (!$user) {
+    $user = data.user;
+    $token = data.token;
+  }
 
   const bottomLinks = {
     Issues: ['https://github.com/RedeemedSpoon/ShadowSelf/issues', IssuesIcon],

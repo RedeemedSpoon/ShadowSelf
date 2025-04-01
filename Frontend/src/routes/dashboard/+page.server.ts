@@ -2,11 +2,14 @@ import type {PageServerLoad} from './$types';
 import type {Identity, Option} from '$type';
 import {fetchBackend} from '$lib';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({parent}) => {
+  const otherObjects = await parent();
+
   const remains = await fetchBackend('/account/recovery-remaining', 'GET');
   const response = await fetchBackend('/api', 'GET');
   if (response.type === 'alert')
     return {
+      ...otherObjects,
       recoveryRemaining: remains.message,
       searchKeywords: [],
       identities: [],
@@ -25,6 +28,7 @@ export const load: PageServerLoad = async () => {
   });
 
   return {
+    ...otherObjects,
     recoveryRemaining: remains.message,
     searchKeywords,
     identities,

@@ -32,6 +32,7 @@ export interface BodyField {
   secret: string;
   token: string;
   code: string;
+  id: string;
   err: string;
 }
 

@@ -138,6 +138,13 @@ export default new Elysia({prefix: '/settings'})
     await attempt(sql`UPDATE users SET recovery = ARRAY[]::varchar(9)[] WHERE email = ${user!.email}`);
   })
   .delete('/full', async ({user}) => {
+    const account = await attempt(sql`SELECT id FROM users WHERE email = ${user!.email}`);
+    const allPuchases = await attempt(sql`SELECT * FROM identities WHERE owner = ${account?.[0].id}`);
+
+    for (const purchase of allPuchases) {
+      await request('/billing/cancel', 'DELETE', {id: purchase.id});
+    }
+
     await request('/billing/customer', 'DELETE', {email: user!.email});
     await attempt(sql`DELETE FROM users WHERE email = ${user!.email}`);
   });

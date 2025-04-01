@@ -1,11 +1,12 @@
-import {sql, stripe, origin} from '@utils/connection';
-import {QueryResult, pricingModal} from '@types';
+import {sql, stripe, origin, twilio} from '@utils/connection';
 import {generateIdentityID} from '@utils/crypto';
 import SessionCreateParams from 'stripe';
 import {Elysia, error} from 'elysia';
 import middleware from '@middleware';
 import {attempt} from '@utils/utils';
+import {pricingModal} from '@types';
 import {check} from '@utils/checks';
+import {$} from 'bun';
 
 export default new Elysia({prefix: '/billing'})
   .use(middleware)
@@ -63,24 +64,17 @@ export default new Elysia({prefix: '/billing'})
     const session = await stripe.checkout.sessions.create(option);
     return {clientSecret: session.client_secret};
   })
-  .delete('/cancel', async ({body, user}) => {
-    if (!user) return error(401, 'You are not logged in');
-
-    const {subscription, intent, err} = check(body, ['?subscription', '?intent']);
+  .delete('/cancel', async ({body}) => {
+    const {err, id} = check(body, ['id']);
     if (err) return error(400, err);
 
-    let identity: QueryResult[];
-    const result = await attempt(sql`SELECT id FROM users WHERE email = ${user.email}`);
-    const owner = result[0].id;
+    const identity = (await attempt(sql`SELECT * FROM identities WHERE id = ${id}`))?.[0] || null;
+    if (!identity) return error(404, 'Identity not found');
 
-    if (intent) identity = await attempt(sql`SELECT * FROM identities WHERE payment_intent = ${intent || 'nothing'}`);
-    else identity = await attempt(sql`SELECT * FROM identities WHERE subscription_id = ${subscription || 'nothing'}`);
+    const intent = identity.payment_intent;
+    const subscription = identity.subscription_id;
 
-    if (!identity[0]?.owner) return error(400, 'Subscription not found. Please try again');
-    if (identity[0]?.owner !== owner) return error(400, 'Subscription not found. Please try again');
-    if (subscription) await stripe.subscriptions.cancel(subscription);
-
-    const date = identity[0].creation_date;
+    const date = identity.creation_date;
     const difference = new Date().getTime() - new Date(date).getTime();
     const differenceInDays = difference / (1000 * 3600 * 24);
 
@@ -92,7 +86,13 @@ export default new Elysia({prefix: '/billing'})
       }
     }
 
-    await attempt(sql`DELETE FROM identities WHERE id = ${identity[0].id}`);
+    const username = identity.email.split('@')[0];
+    await $`userdel -r ${username}`.nothrow().quiet();
+    await twilio.incomingPhoneNumbers(identity.phone).remove();
+
+    await attempt(sql`DELETE FROM accounts WHERE owner = ${identity.id}`);
+    await attempt(sql`DELETE FROM identities WHERE id = ${identity.id}`);
+    return {success: true};
   })
   .group('/customer', (app) =>
     app
