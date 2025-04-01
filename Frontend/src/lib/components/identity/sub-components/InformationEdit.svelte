@@ -14,7 +14,7 @@
 
     $fetchIndex = 1;
     await new Promise((resolve) => setTimeout(resolve, 300));
-    const response = await fetchAPI('identity/regenerate-picture', 'POST', {sex, age, ethnicity, bio});
+    const response = await fetchAPI('identity/regenerate-picture', 'PATCH', {sex, age, ethnicity, bio});
     if (response.err) return notify(response.err, 'alert');
 
     const element = document.querySelector(`#profile`) as HTMLImageElement;
@@ -24,7 +24,7 @@
 
   async function regenerateName() {
     const sex = document.querySelector('.selected')!.id;
-    const response = await fetchAPI('identity/regenerate-name', 'POST', {sex});
+    const response = await fetchAPI('identity/regenerate-name', 'PATCH', {sex});
     if (response.err) return notify(response.err, 'alert');
 
     const element = document.querySelector(`input[name="name"]`) as HTMLInputElement;
@@ -32,7 +32,7 @@
   }
 
   async function regenerateBio() {
-    const response = await fetchAPI('identity/regenerate-bio', 'POST');
+    const response = await fetchAPI('identity/regenerate-bio', 'PATCH');
     const element = document.querySelector(`textarea`) as HTMLTextAreaElement;
     element.value = response.bio!;
   }

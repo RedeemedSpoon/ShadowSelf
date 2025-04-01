@@ -57,7 +57,7 @@
     $masterPassword = base64Key;
     localStorage.setItem('key-' + $identity.id, base64Key);
 
-    const response = await fetchAPI('account/update-encryption', 'POST', {accounts: updatedAccounts});
+    const response = await fetchAPI('account/update-encryption', 'PUT', {accounts: updatedAccounts});
     if (response.err) return notify(response.err, 'alert');
 
     const responseAccounts = $accounts.accounts.map((account) => {

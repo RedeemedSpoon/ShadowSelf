@@ -11,8 +11,15 @@ export default new Elysia({prefix: '/email'})
     const emails = await fetchRecentEmails(identity!.email, identity!.email_password);
     return {emails};
   })
-  .post('/fetch-reply/:id', async ({identity, body}) => {
-    const {err, uuid} = await checkAPI(body, ['uuid']);
+  .get('/load-more/:id', async ({identity, query}) => {
+    const {err, mailbox, since} = await checkAPI(query, ['mailbox', 'since']);
+    if (err) return error(400, err);
+
+    const nextEmails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, since!);
+    return {mailbox, since, nextEmails};
+  })
+  .get('/fetch-reply/:id', async ({identity, query}) => {
+    const {err, uuid} = await checkAPI(query, ['uuid']);
     if (err) return error(400, err);
 
     const email = await fetchEmail(identity!.email, identity!.email_password, true, uuid!);
@@ -38,31 +45,6 @@ export default new Elysia({prefix: '/email'})
 
     const sentEmail = {...fullEmail, uid, type: response.type};
     return {draft, sentEmail};
-  })
-  .post('/save-draft/:id', async ({identity, body}) => {
-    const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
-    const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
-    if (err) return error(400, err);
-
-    const email = identity!.email;
-    const password = identity!.email_password;
-    const content = {email, password, to, subject, body: emailBody, attachments, references, inReplyTo};
-
-    if (draft) await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
-    const fullEmail = await appendToMailbox(true, content);
-
-    delete (fullEmail as {password?: string}).password;
-    delete (fullEmail as {email?: string}).email;
-
-    const savedDraft = {...fullEmail, ...content};
-    return {draft, savedDraft};
-  })
-  .post('/load-more/:id', async ({identity, body}) => {
-    const {err, mailbox, since} = await checkAPI(body, ['mailbox', 'since']);
-    if (err) return error(400, err);
-
-    const nextEmails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, since!);
-    return {mailbox, since, nextEmails};
   })
   .post('/forward-email/:id', async ({identity, body}) => {
     const {err, uid, forward} = await checkAPI(body, ['uid', 'forward']);
@@ -109,7 +91,25 @@ export default new Elysia({prefix: '/email'})
     forwardEmail = {...fullEmail, uid: newUID.uid, type: response.type};
     return {uid, forward, forwardEmail};
   })
-  .post('/delete-email/:id', async ({identity, body}) => {
+  .put('/save-draft/:id', async ({identity, body}) => {
+    const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
+    const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
+    if (err) return error(400, err);
+
+    const email = identity!.email;
+    const password = identity!.email_password;
+    const content = {email, password, to, subject, body: emailBody, attachments, references, inReplyTo};
+
+    if (draft) await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
+    const fullEmail = await appendToMailbox(true, content);
+
+    delete (fullEmail as {password?: string}).password;
+    delete (fullEmail as {email?: string}).email;
+
+    const savedDraft = {...fullEmail, ...content};
+    return {draft, savedDraft};
+  })
+  .delete('/delete-email/:id', async ({identity, body}) => {
     const {err, mailbox, uid} = await checkAPI(body, ['mailbox', 'uid']);
     if (err) return error(400, err);
 

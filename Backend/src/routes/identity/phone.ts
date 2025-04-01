@@ -23,8 +23,8 @@ export default new Elysia({prefix: '/phone'})
     const messages = [...conversations.values()].reverse();
     return {messages};
   })
-  .post('/fetch-conversation/:id', async ({identity, body}) => {
-    const {err, addressee} = await checkAPI(body, ['addressee']);
+  .get('/fetch-conversation/:id', async ({identity, query}) => {
+    const {err, addressee} = await checkAPI(query, ['addressee']);
     if (err) return error(400, err);
 
     if (addressee === identity!.phone) return error(400, 'You cannot fetch your own conversation');
@@ -58,7 +58,7 @@ export default new Elysia({prefix: '/phone'})
       return error(400, e instanceof Error ? e.message : e);
     }
   })
-  .post('/delete-message/:id', async ({body}) => {
+  .delete('/delete-message/:id', async ({body}) => {
     const {err, addressee} = await checkAPI(body, ['addressee']);
     if (err) return error(400, err);
 

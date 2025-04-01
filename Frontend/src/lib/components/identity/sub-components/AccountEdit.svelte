@@ -51,7 +51,7 @@
       $fetchIndex = 0;
       $target = null;
     } else {
-      const response = await fetchAPI('account/edit-account', 'POST', body);
+      const response = await fetchAPI('account/edit-account', 'PUT', body);
       if (response.err) return notify(response.err, 'alert');
 
       const otherAccounts = $accounts.accounts.filter((account) => account.id !== (response.id as unknown));

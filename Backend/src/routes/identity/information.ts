@@ -14,7 +14,7 @@ export default new Elysia({prefix: '/identity'})
     const {id, creation_date, proxy_server, user_agent, location, email, phone, card} = identity!;
     return {id, creation_date, proxy_server, user_agent, picture, name, bio, age, sex, ethnicity, location, email, phone, card};
   })
-  .post('/regenerate-picture/:id', async ({identity, body}) => {
+  .patch('/regenerate-picture/:id', async ({identity, body}) => {
     const fields = ['?sex', '?age', '?ethnicity', '?bio'];
     const data = {sex: identity!.sex, age: identity!.age, ethnicity: identity!.ethnicity, bio: identity!.bio};
     const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!}, fields);
@@ -26,7 +26,7 @@ export default new Elysia({prefix: '/identity'})
     const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
     return {picture};
   })
-  .post('/regenerate-name/:id', async ({identity, body}) => {
+  .patch('/regenerate-name/:id', async ({identity, body}) => {
     const {err, sex} = await checkAPI({sex: identity!.sex, ...body!}, ['?sex']);
     if (err) return error(400, err);
 
@@ -38,7 +38,7 @@ export default new Elysia({prefix: '/identity'})
 
     return {name};
   })
-  .post('/regenerate-bio/:id', async ({identity}) => {
+  .patch('/regenerate-bio/:id', async ({identity}) => {
     const locations = (await request('/extension-api', 'GET')) as Location[];
     const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
 
@@ -47,7 +47,7 @@ export default new Elysia({prefix: '/identity'})
 
     return {bio};
   })
-  .post('/update-information/:id', async ({identity, body}) => {
+  .put('/update-information/:id', async ({identity, body}) => {
     const fields = ['?sex', '?ethnicity', '?age', '?name', '?bio', '?picture'];
     const data1 = {sex: identity!.sex, ethnicity: identity!.ethnicity, age: identity!.age};
     const data2 = {name: identity!.name, bio: identity!.bio, picture: identity!.picture};

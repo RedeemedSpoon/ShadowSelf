@@ -41,7 +41,7 @@
       const sex = document.querySelector('.selected')?.id;
 
       const body = {picture, name, bio, age, ethnicity, sex};
-      const response = await fetchAPI('identity/update-information', 'POST', body);
+      const response = await fetchAPI('identity/update-information', 'PUT', body);
       if (response.err) return notify(response.err, 'alert');
 
       $identity = {...$identity, ...response};

@@ -35,10 +35,19 @@ export async function updateModal(index = 1, condition = true) {
 }
 
 export async function fetchAPI(url: string, method = 'GET', body?: Record<string, unknown>): Promise<APIResponse> {
-  const fullUrl = `/api/${url}/${get(identity).id}`;
+  let fullUrl = `/api/${url}/${get(identity).id}`;
+  if (method === 'GET' && body) {
+    let index = 0;
+    for (const [key, value] of Object.entries(body)) {
+      if (index === 0) fullUrl += `?${key}=${encodeURIComponent(value as string)}`;
+      else fullUrl += `&${key}=${encodeURIComponent(value as string)}`;
+      index++;
+    }
+  }
+
   return await fetch(fullUrl, {
     method,
-    body: body ? JSON.stringify(body) : undefined,
+    body: body && method !== 'GET' ? JSON.stringify(body) : undefined,
     headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
   })
     .then(async (res) => {

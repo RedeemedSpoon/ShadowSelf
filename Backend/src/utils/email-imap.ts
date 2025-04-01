@@ -34,7 +34,7 @@ export async function listenForEmail(user: string, password: string) {
 export async function fetchMoreEmails(user: string, password: string, mailbox: string, since: number) {
   if (since < 0) return [];
   const connection = await imapConnection(user, password);
-  const query = since - 7 < 0 ? `${1}:${since}` : `${since - 6}:${since}`;
+  const query = Number(since) - 7 < 0 ? `${1}:${since}` : `${Number(since) - 6}:${since}`;
   const inbox = await getInbox(mailbox, connection, query);
 
   connection.end();

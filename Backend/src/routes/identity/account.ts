@@ -34,7 +34,7 @@ export default new Elysia({prefix: '/account'})
 
     return {username, password, website, totp, algorithm, id: res[0].id};
   })
-  .post('/edit-account/:id', async ({identity, body}) => {
+  .put('/edit-account/:id', async ({identity, body}) => {
     const fields = ['username', 'password', '?website', '?totp', '?algorithm', 'id'];
     const {err, username, password, website, totp, algorithm, id} = await checkAPI(body, fields);
     if (err) return error(400, err);
@@ -47,14 +47,7 @@ export default new Elysia({prefix: '/account'})
 
     return {username, password, website, totp, algorithm, id};
   })
-  .post('/remove-account/:id', async ({identity, body}) => {
-    const {err, id} = await checkAPI(body, ['id']);
-    if (err) return error(400, err);
-
-    await attempt(sql`DELETE FROM accounts WHERE id = ${id!} AND owner = ${identity!.id}`);
-    return {id};
-  })
-  .post('/update-encryption/:id', async ({identity, body}) => {
+  .put('/update-encryption/:id', async ({identity, body}) => {
     const accounts = (body as APIRequest)?.accounts || null;
     if (!accounts || typeof accounts !== 'object') return error(400, 'Accounts Array are required');
 
@@ -68,4 +61,11 @@ export default new Elysia({prefix: '/account'})
     }
 
     return {accounts};
+  })
+  .delete('/remove-account/:id', async ({identity, body}) => {
+    const {err, id} = await checkAPI(body, ['id']);
+    if (err) return error(400, err);
+
+    await attempt(sql`DELETE FROM accounts WHERE id = ${id!} AND owner = ${identity!.id}`);
+    return {id};
   });

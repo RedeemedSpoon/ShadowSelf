@@ -42,7 +42,7 @@
     const total = inbox.emails[messageCountString as keyof typeof inbox.emails] as number;
     $fetchIndex = 1;
 
-    const response = await fetchAPI('email/load-more', 'POST', {mailbox: label, since: total - from});
+    const response = await fetchAPI('email/load-more', 'GET', {mailbox: label, since: total - from});
     if (response.err) return notify(response.err, 'alert');
 
     const mailbox = response.mailbox.toLowerCase() as 'inbox';
@@ -69,7 +69,7 @@
     }
 
     if (!alreadyFetched) {
-      const response = await fetchAPI('email/fetch-reply', 'POST', {uuid: uuid?.trim()});
+      const response = await fetchAPI('email/fetch-reply', 'GET', {uuid: uuid?.trim()});
       if (response.err) return notify(response.err, 'alert');
       if (response.fetchEmail === null) return;
 
@@ -105,7 +105,7 @@
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
 
     if (save) {
-      const response = await fetchAPI('email/save-draft', 'POST', {draft, inReplyTo, references, to, ...content});
+      const response = await fetchAPI('email/save-draft', 'PUT', {draft, inReplyTo, references, to, ...content});
       if (response.err) {
         $fetchIndex = 0;
         return notify(response.err, 'alert');
@@ -139,7 +139,7 @@
 
   async function deleteEmail() {
     if (label === 'Junk') return;
-    const response = await fetchAPI('email/delete-email', 'POST', {mailbox: label, uid: Number($target!.uid)});
+    const response = await fetchAPI('email/delete-email', 'DELETE', {mailbox: label, uid: Number($target!.uid)});
     if (response.err) return notify(response.err, 'alert');
 
     const mailbox = response.mailbox.toLowerCase() as 'inbox';

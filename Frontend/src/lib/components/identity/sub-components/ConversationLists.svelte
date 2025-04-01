@@ -18,7 +18,7 @@
     $discussion = message;
     $mode = 'read';
 
-    const response = await fetchAPI('phone/fetch-conversation', 'POST', {addressee});
+    const response = await fetchAPI('phone/fetch-conversation', 'GET', {addressee});
     if (response.err) return notify(response.err, 'alert');
     $fullDiscussion = response.conversation;
   }
