@@ -86,6 +86,11 @@ export default new Elysia({prefix: '/billing'})
       }
     }
 
+    if (subscription) {
+      const result = await stripe.subscriptions.retrieve(subscription);
+      if (result.status !== 'canceled') await stripe.subscriptions.cancel(subscription);
+    }
+
     const username = identity.email.split('@')[0];
     await $`userdel -r ${username}`.nothrow().quiet();
     await twilio.incomingPhoneNumbers(identity.phone).remove();

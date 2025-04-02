@@ -1,5 +1,5 @@
 import {sql, stripe, twilio, WSConnections} from '@utils/connection';
-import {attempt, parseMessage} from '@utils/utils';
+import {attempt, parseMessage, request as req} from '@utils/utils';
 import {Elysia, error} from 'elysia';
 import middleware from '@middleware';
 import twilioClient from 'twilio';
@@ -36,6 +36,12 @@ export default new Elysia()
       await attempt(sql`INSERT INTO identities (id, owner, creation_date, plan) VALUES (${id}, ${owner}, ${date}, ${plan})`);
       if (intent) await attempt(sql`UPDATE identities SET payment_intent = ${intent} WHERE creation_date = ${date}`);
       else await attempt(sql`UPDATE identities SET subscription_id = ${subscription} WHERE creation_date = ${date}`);
+    }
+
+    if (event.type === 'customer.subscription.deleted') {
+      const subscriptionID = event.data.object.id;
+      const exist = await attempt(sql`SELECT id FROM identities WHERE subscription_id = ${subscriptionID}`);
+      if (exist.length) await req('/billing/cancel', 'DELETE', {id: exist[0].id});
     }
 
     return {received: true};
