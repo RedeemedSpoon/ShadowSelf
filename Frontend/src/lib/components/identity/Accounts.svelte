@@ -52,6 +52,7 @@
       })),
     );
   }
+
   async function changeModeToEdit() {
     $mode = 'edit';
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -65,7 +66,7 @@
   }
 
   async function deleteAccount() {
-    const response = await fetchAPI('account/remove-account', 'DELETE', {id: $target!.id});
+    const response = await fetchAPI('account/delete-account', 'DELETE', {id: $target!.id});
     if (response.err) return notify(response.err, 'alert');
 
     $accounts.accounts = $accounts.accounts.filter((account) => account.id !== (response.id as unknown));

@@ -58,7 +58,7 @@ export default new Elysia({prefix: '/phone'})
       return error(400, e instanceof Error ? e.message : e);
     }
   })
-  .delete('/delete-message/:id', async ({body}) => {
+  .delete('/delete-conversation/:id', async ({body}) => {
     const {err, addressee} = await checkAPI(body, ['addressee']);
     if (err) return error(400, err);
 

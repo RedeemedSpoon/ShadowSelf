@@ -24,7 +24,7 @@
 
   async function deleteMessage() {
     const addressee = $discussion?.from === $identity.phone ? $discussion?.to : $discussion?.from;
-    const response = await fetchAPI('phone/delete', 'DELETE', {addressee});
+    const response = await fetchAPI('phone/delete-conversation', 'DELETE', {addressee});
     if (response.err) return notify(response.err, 'alert');
 
     const index = messages.messages.findIndex((msg) => msg.from === response.addressee || msg.to === response.addressee);

@@ -12,8 +12,11 @@
 
 <div id="docs">
   <section>
-    {#each data.docs.section as section}
-      <h1>{section.title}</h1>
+    {#each data.docs.sections as section}
+      <ul class="my-2 text-3xl text-neutral-300">{section.title}</ul>
+      {#each section.more as subsection}
+        <li class="ml-8 text-xl text-neutral-400">{subsection.title}</li>
+      {/each}
     {/each}
   </section>
   <section></section>

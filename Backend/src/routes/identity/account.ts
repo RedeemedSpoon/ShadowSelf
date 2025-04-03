@@ -62,7 +62,7 @@ export default new Elysia({prefix: '/account'})
 
     return {accounts};
   })
-  .delete('/remove-account/:id', async ({identity, body}) => {
+  .delete('/delete-account/:id', async ({identity, body}) => {
     const {err, id} = await checkAPI(body, ['id']);
     if (err) return error(400, err);
 

@@ -221,14 +221,14 @@ export interface WebSocketMessage {
 }
 
 export interface Docs {
-  section: {
+  sections: {
     title: string;
-    subSection: {title: string; method: Method}[];
+    more: {title: string; method?: Method}[];
   }[];
   content: {
     title: string;
     description: string;
-    subPart?: {
+    routes?: {
       url: string;
       title: string;
       description: string;
@@ -238,7 +238,7 @@ export interface Docs {
       return: string;
     }[];
     code?: {
-      [key: Languages]: string;
+      [key in Languages]: string;
     };
   }[];
 }
