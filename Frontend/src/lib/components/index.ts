@@ -3,29 +3,30 @@ export {default as Notification} from './layout/Notification.svelte';
 export {default as Header} from './layout/Header.svelte';
 export {default as Footer} from './layout/Footer.svelte';
 
-export {default as Card} from './main/Card.svelte';
 export {default as Modal} from './main/Modal.svelte';
 export {default as Loader} from './main/Loader.svelte';
 export {default as Tooltip} from './main/Tooltip.svelte';
-export {default as ConfirmModal} from './main/ConfirmModal.svelte';
-
-export {default as CopyButton} from './main/CopyButton.svelte';
-export {default as LoadingButton} from './main/LoadingButton.svelte';
-export {default as InputWithIcon} from './main/InputWithIcon.svelte';
-export {default as ReactiveButton} from './main/ReactiveButton.svelte';
-export {default as InputWithButton} from './main/InputWithButton.svelte';
-export {default as HoverCopyButton} from './main/HoverCopyButton.svelte';
-
-export {default as Steps} from './main/Steps.svelte';
-export {default as StepsItem} from './main/StepsItem.svelte';
-export {default as SelectMenu} from './main/SelectMenu.svelte';
-export {default as SearchInput} from './main/SearchInput.svelte';
-
-export {default as FlowStep} from './main/FlowStep.svelte';
-export {default as ActionIcon} from './main/ActionIcon.svelte';
-export {default as ExtensionLinks} from './main/ExtensionLinks.svelte';
-export {default as CodeExample} from './main/CodeExample.svelte';
 export {default as HTTPMethod} from './main/HTTPMethod.svelte';
+export {default as ActionIcon} from './main/ActionIcon.svelte';
+
+export {default as CopyButton} from './main/buttons/CopyButton.svelte';
+export {default as LoadingButton} from './main/buttons/LoadingButton.svelte';
+export {default as ReactiveButton} from './main/buttons/ReactiveButton.svelte';
+export {default as HoverCopyButton} from './main/buttons/HoverCopyButton.svelte';
+
+export {default as InputWithButton} from './main/inputs/InputWithButton.svelte';
+export {default as InputWithIcon} from './main/inputs/InputWithIcon.svelte';
+export {default as SearchInput} from './main/inputs/SearchInput.svelte';
+export {default as SelectMenu} from './main/inputs/SelectMenu.svelte';
+
+export {default as Card} from './main/containers/Card.svelte';
+export {default as Steps} from './main/containers/Steps.svelte';
+export {default as FlowStep} from './main/containers/FlowStep.svelte';
+export {default as StepsItem} from './main/containers/StepsItem.svelte';
+
+export {default as ConfirmModal} from './main/reusable/ConfirmModal.svelte';
+export {default as ExtensionLinks} from './main/reusable/ExtensionLinks.svelte';
+export {default as CodeExample} from './main/reusable/CodeExample.svelte';
 
 export {default as IdentityCard} from './identity/Card.svelte';
 export {default as IdentityEmail} from './identity/Email.svelte';
