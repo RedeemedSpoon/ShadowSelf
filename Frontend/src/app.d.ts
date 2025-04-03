@@ -1,4 +1,4 @@
-import type {Faq, Settings, Option, Identity, AnimationSelector, FullIdentity} from '$type';
+import type {Faq, Settings, Option, Identity, AnimationSelector, FullIdentity, Docs} from '$type';
 
 declare global {
   namespace App {
@@ -17,6 +17,7 @@ declare global {
       faqs?: Faq[];
       identity?: FullIdentity;
       slug?: string;
+      docs?: Docs;
     }
   }
 }

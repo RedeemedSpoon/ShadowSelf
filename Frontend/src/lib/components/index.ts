@@ -22,8 +22,10 @@ export {default as SelectMenu} from './main/SelectMenu.svelte';
 export {default as SearchInput} from './main/SearchInput.svelte';
 
 export {default as FlowStep} from './main/FlowStep.svelte';
-export {default as ExtensionLinks} from './main/ExtensionLinks.svelte';
 export {default as ActionIcon} from './main/ActionIcon.svelte';
+export {default as ExtensionLinks} from './main/ExtensionLinks.svelte';
+export {default as CodeExample} from './main/CodeExample.svelte';
+export {default as HTTPMethod} from './main/HTTPMethod.svelte';
 
 export {default as IdentityCard} from './identity/Card.svelte';
 export {default as IdentityEmail} from './identity/Email.svelte';

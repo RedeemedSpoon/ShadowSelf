@@ -1,6 +1,8 @@
 export type Sections = 'info' | 'email' | 'phone' | 'card' | 'account';
 export type FullEmail = Email & {messageID: string; date: Date};
 export type Attachment = {filename: string; data: string};
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust' | 'c';
 
 export interface Notification {
   id: number | null;
@@ -216,6 +218,29 @@ export interface WebSocketMessage {
   type: 'email' | 'message';
   message: Message;
   email: Email;
+}
+
+export interface Docs {
+  section: {
+    title: string;
+    subSection: {title: string; method: Method}[];
+  }[];
+  content: {
+    title: string;
+    description: string;
+    subPart?: {
+      url: string;
+      title: string;
+      description: string;
+      method: Method;
+      query?: string;
+      body?: string;
+      return: string;
+    }[];
+    code?: {
+      [key: Languages]: string;
+    };
+  }[];
 }
 
 export interface PricingModel {
