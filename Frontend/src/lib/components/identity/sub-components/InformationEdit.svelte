@@ -2,7 +2,8 @@
   import {ActionIcon, SelectMenu, Tooltip, LoadingButton} from '$component';
   import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon} from '$icon';
   import {identity, fetchIndex} from '$store';
-  import {fetchAPI, notify} from '$lib';
+  import {fetchAPI} from '$fetch';
+  import {notify} from '$lib';
 
   const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Latino', 'Arab', 'East asian', 'South asian'];
 

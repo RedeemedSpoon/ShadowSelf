@@ -1,7 +1,7 @@
 import type {Actions, PageServerLoad} from './$types';
 import type {FullIdentity} from '$type';
 import {redirect} from '@sveltejs/kit';
-import {fetchBackend} from '$lib';
+import {fetchBackend} from '$fetch';
 
 export const load: PageServerLoad = async ({params}) => {
   const response = (await fetchBackend('/api/identity/' + params.slug)) as FullIdentity;

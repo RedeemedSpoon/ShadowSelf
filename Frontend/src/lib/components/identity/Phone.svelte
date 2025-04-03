@@ -4,11 +4,13 @@
   import ComposeMessage from './sub-components/ComposeMessage.svelte';
   import type {WebSocketMessage, APIResponse, Message} from '$type';
   import Conversation from './sub-components/Conversation.svelte';
-  import {fetchAPI, formatPhoneNumber, notify} from '$lib';
   import {writable, type Writable} from 'svelte/store';
   import {identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
+  import {formatPhoneNumber} from '$format';
   import {conversation} from '$image';
+  import {fetchAPI} from '$fetch';
+  import {notify} from '$lib';
 
   let messages = $state() as APIResponse;
 

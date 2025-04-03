@@ -3,9 +3,10 @@
   import {ActionIcon, LoadingButton, InputWithIcon, SelectMenu} from '$component';
   import type {Account, APIResponse} from '$type';
   import type {Writable} from 'svelte/store';
-  import {fetchAPI, notify} from '$lib';
   import {fetchIndex} from '$store';
   import {encrypt} from '$crypto';
+  import {fetchAPI} from '$fetch';
+  import {notify} from '$lib';
 
   interface Props {
     mode: Writable<'view' | 'add' | 'edit'>;

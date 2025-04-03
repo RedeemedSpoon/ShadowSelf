@@ -1,8 +1,10 @@
 <script lang="ts">
-  import {fetchAPI, notify, formatPhoneNumber, formatDate, toTitleCase} from '$lib';
+  import {formatPhoneNumber, formatDate, toTitleCase} from '$format';
   import type {Writable} from 'svelte/store';
   import type {Message} from '$type';
   import {identity} from '$store';
+  import {fetchAPI} from '$fetch';
+  import {notify} from '$lib';
 
   interface Props {
     mode: Writable<'browse' | 'read' | 'write' | 'reply'>;

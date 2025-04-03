@@ -1,7 +1,7 @@
 <script lang="ts">
   import {website, github} from '$image';
+  import {toTitleCase} from '$format';
   import {ChevronIcon} from '$icon';
-  import {toTitleCase} from '$lib';
 
   let {extension}: {extension: 'shadowself' | 'ublock' | 'canvas'} = $props();
   let expand = $state(false);

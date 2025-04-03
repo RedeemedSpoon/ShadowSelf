@@ -1,6 +1,7 @@
 import type {PageServerLoad} from './$types';
-import {createCookie, fetchBackend} from '$lib';
 import {redirect} from '@sveltejs/kit';
+import {fetchBackend} from '$fetch';
+import {createCookie} from '$lib';
 
 export const load: PageServerLoad = async (event) => {
   const id = event.url.searchParams.get('id') || '';

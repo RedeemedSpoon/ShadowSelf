@@ -1,10 +1,11 @@
 <script lang="ts">
-  import {toTitleCase, base64ToBlob, formatPhoneNumber, fetchAPI, notify} from '$lib';
-  import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon} from '$icon';
+  import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon, EditIcon, BackIcon} from '$icon';
   import InformationEdit from './sub-components/InformationEdit.svelte';
   import {ActionIcon, CopyButton, ReactiveButton} from '$component';
+  import {toTitleCase, formatPhoneNumber} from '$format';
   import {currentSection, identity} from '$store';
-  import {EditIcon, BackIcon} from '$icon';
+  import {base64ToBlob, notify} from '$lib';
+  import {fetchAPI} from '$fetch';
 
   let activeStatus = $state(false);
   let isEditingMode = $state(false);

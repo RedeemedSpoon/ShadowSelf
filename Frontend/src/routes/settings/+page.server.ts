@@ -1,6 +1,7 @@
 import type {PageServerLoad, Actions} from './$types';
-import {fetchBackend, createCookie} from '$lib';
 import {redirect} from '@sveltejs/kit';
+import {fetchBackend} from '$fetch';
+import {createCookie} from '$lib';
 import QRCode from 'qrcode';
 
 export const load: PageServerLoad = async () => {

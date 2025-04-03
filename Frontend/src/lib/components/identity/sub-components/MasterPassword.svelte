@@ -4,9 +4,10 @@
   import type {Account, APIResponse} from '$type';
   import type {Writable} from 'svelte/store';
   import {encrypt, decrypt} from '$crypto';
-  import {fetchAPI, notify} from '$lib';
+  import {fetchAPI} from '$fetch';
   import {KeyIcon} from '$icon';
   import {lock} from '$image';
+  import {notify} from '$lib';
 
   interface Props {
     accounts: Writable<APIResponse>;

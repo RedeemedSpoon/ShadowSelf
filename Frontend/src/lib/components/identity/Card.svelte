@@ -1,8 +1,8 @@
 <script lang="ts">
   import {TransferIcon, AddFundsIcon, RetrieveFundsIcon} from '$icon';
   import {ActionIcon} from '$component';
+  import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
-  import {fetchAPI} from '$lib';
   import {cart} from '$image';
 
   onMount(async () => console.log(await fetchAPI('card', 'GET')));

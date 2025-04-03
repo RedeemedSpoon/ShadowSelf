@@ -1,8 +1,9 @@
 <script lang="ts">
   import type {APIResponse, Message} from '$type';
   import type {Writable} from 'svelte/store';
-  import {fetchAPI, notify} from '$lib';
+  import {fetchAPI} from '$fetch';
   import {identity} from '$store';
+  import {notify} from '$lib';
 
   interface Props {
     mode: Writable<'browse' | 'read' | 'write' | 'reply'>;

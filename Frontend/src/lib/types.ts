@@ -1,8 +1,9 @@
 export type Sections = 'info' | 'email' | 'phone' | 'card' | 'account';
+export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust' | 'c';
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
 export type FullEmail = Email & {messageID: string; date: Date};
 export type Attachment = {filename: string; data: string};
-export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust' | 'c';
 
 export interface Notification {
   id: number | null;

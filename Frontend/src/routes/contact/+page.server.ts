@@ -1,6 +1,6 @@
 import type {Actions, PageServerLoad} from './$types';
+import {fetchBackend} from '$fetch';
 import type {Option} from '$type';
-import {fetchBackend} from '$lib';
 
 export const load: PageServerLoad = () => {
   return {

@@ -3,7 +3,7 @@
   import MessageComponent from './Message.svelte';
   import type {APIResponse, Message} from '$type';
   import type {Writable} from 'svelte/store';
-  import {formatPhoneNumber} from '$lib';
+  import {formatPhoneNumber} from '$format';
   import {identity} from '$store';
 
   interface Props {

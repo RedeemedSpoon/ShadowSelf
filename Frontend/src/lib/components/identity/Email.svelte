@@ -6,9 +6,10 @@
   import ComposeEmail from './sub-components/ComposeEmail.svelte';
   import EmailInbox from './sub-components/EmailInbox.svelte';
   import EmailBody from './sub-components/EmailBody.svelte';
-  import {fetchAPI, notify} from '$lib';
   import {writable} from 'svelte/store';
+  import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
+  import {notify} from '$lib';
 
   const reply = writable<Email[]>([]);
   const target = writable<Email | null>();

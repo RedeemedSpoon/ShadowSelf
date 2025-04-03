@@ -1,9 +1,8 @@
-import {notification, modalIndex, fetchIndex, identity} from '$store';
-import type {APIResponse, Notification} from '$type';
+import {notification, modalIndex, fetchIndex} from '$store';
 import type {Cookies} from '@sveltejs/kit';
+import type {Notification} from '$type';
 import {dev} from '$app/environment';
 import {get} from 'svelte/store';
-import {token} from '$store';
 
 export function notify(message: string, type: Notification['type'] = 'info') {
   const id = Math.floor(Math.random() * 10000);
@@ -32,55 +31,6 @@ export async function updateModal(index = 1, condition = true) {
   return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
     update({reset: false});
   };
-}
-
-export async function fetchAPI(url: string, method = 'GET', body?: Record<string, unknown>): Promise<APIResponse> {
-  let fullUrl = `/api/${url}/${get(identity).id}`;
-  if (method === 'GET' && body) {
-    let index = 0;
-    for (const [key, value] of Object.entries(body)) {
-      if (index === 0) fullUrl += `?${key}=${encodeURIComponent(value as string)}`;
-      else fullUrl += `&${key}=${encodeURIComponent(value as string)}`;
-      index++;
-    }
-  }
-
-  return await fetch(fullUrl, {
-    method,
-    body: body && method !== 'GET' ? JSON.stringify(body) : undefined,
-    headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
-  })
-    .then(async (res) => {
-      const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';
-      if (res.headers.get('Content-Type')?.includes('application/json')) {
-        const message = await res.json();
-        return {...message, type};
-      } else {
-        const err = await res.text();
-        return {err, type};
-      }
-    })
-    .catch(() => ({message: 'An error occurred. Please try again later', type: 'alert'}));
-}
-
-export async function fetchBackend(url: string, method = 'GET', body?: Record<string, unknown>) {
-  return await fetch('http://localhost:3000' + url, {
-    headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
-    body: body ? JSON.stringify(body) : undefined,
-    method,
-  })
-    .then(async (res) => {
-      const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';
-
-      if (res.headers.get('Content-Type')?.includes('application/json')) {
-        const message = await res.json();
-        return {...message, type};
-      } else {
-        const message = await res.text();
-        return {message, type};
-      }
-    })
-    .catch(() => ({message: 'An error occurred. Please try again later', type: 'alert'}));
 }
 
 export function createCookie(cookies: Cookies, name: string, value: string, short: boolean = false) {
@@ -112,30 +62,4 @@ export function base64ToBlob(base64: string, type = 'image/png'): Blob {
 
   const blob = new Blob(byteArrays, {type});
   return blob;
-}
-
-export function toTitleCase(str: string): string {
-  return str.replace(/\w\S*/g, (txt) => {
-    return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
-  });
-}
-
-export function formatDate(stringDate: string): string {
-  const date = new Date(stringDate).toLocaleString().split(', ');
-  if (date[0] !== new Date().toLocaleString().split(', ')[0]) return date[0];
-  else return date[1];
-}
-
-export function formatPhoneNumber(phoneNumber: string): string {
-  const cleaned = phoneNumber.replace(/\D/g, '');
-
-  if (cleaned[0] === '1') {
-    return cleaned.replace(/^(\+?1)(\d{3})(\d{3})(\d{4})$/, '+$1 $2 $3 $4'); // United States / Canada
-  } else if (cleaned[0] === '4' && cleaned[1] === '4') {
-    return cleaned.replace(/^(\+?44)(\d{4})(\d{6})$/, '+$1 $2 $3'); // United Kingdom
-  } else if (cleaned[0] === '4' && cleaned[1] === '6') {
-    return cleaned.replace(/^(\+?46)(\d{2})(\d{3})(\d{2})(\d{2})$/, '+$1 $2 $3 $4 $5'); // Sweden
-  } else {
-    return cleaned.replace(/^(\+?\d{1,4})(\d{1,4})(\d{1,4})(\d{1,4})$/, '+$1 $2 $3 $4'); // Rest of the world
-  }
 }

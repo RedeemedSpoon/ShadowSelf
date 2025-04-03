@@ -2,8 +2,8 @@
   import type {Snippet} from 'svelte';
   import {enhance} from '$app/forms';
   import {currentStep} from '$store';
-  import {Card} from '$component';
   import {updateFetch} from '$lib';
+  import {Card} from '$component';
 
   interface Props {
     shouldWait?: boolean;

@@ -7,11 +7,12 @@
   import AccountEdit from './sub-components/AccountEdit.svelte';
   import type {Account, APIResponse} from '$type';
   import {writable} from 'svelte/store';
-  import {fetchAPI, notify} from '$lib';
   import * as OTPAuth from 'otpauth';
   import {decrypt} from '$crypto';
+  import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
   import {group} from '$image';
+  import {notify} from '$lib';
 
   $masterPassword = localStorage.getItem('key-' + $identity.id) || '';
 

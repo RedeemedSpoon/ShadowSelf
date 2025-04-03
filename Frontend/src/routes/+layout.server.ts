@@ -1,6 +1,6 @@
 import type {LayoutServerLoad} from './$types';
 import {redirect} from '@sveltejs/kit';
-import {fetchBackend} from '$lib';
+import {fetchBackend} from '$fetch';
 import {get} from 'svelte/store';
 import {token} from '$store';
 

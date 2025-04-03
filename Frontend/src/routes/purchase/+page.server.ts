@@ -1,5 +1,5 @@
 import type {PageServerLoad, Actions} from './$types';
-import {fetchBackend} from '$lib';
+import {fetchBackend} from '$fetch';
 
 export const load: PageServerLoad = async () => {
   return {stripeKey: process.env.STRIPE_PUBLISHABLE_KEY};

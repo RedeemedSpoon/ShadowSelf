@@ -2,15 +2,15 @@
   import {browser} from '$app/environment';
   import {cubicOut} from 'svelte/easing';
   import {scrollYProgress} from '$store';
-  import {tweened} from 'svelte/motion';
+  import {Tween} from 'svelte/motion';
   import type {Snippet} from 'svelte';
   import {onMount} from 'svelte';
 
   let {children}: {children?: Snippet} = $props();
 
   let svgHeight = $state(0);
-  let y1 = tweened(50, {duration: 500, easing: cubicOut});
-  let y2 = tweened(50, {duration: 500, easing: cubicOut});
+  let y1 = new Tween(50, {duration: 500, easing: cubicOut});
+  let y2 = new Tween(50, {duration: 500, easing: cubicOut});
 
   $effect(() => {
     if (browser) {
@@ -37,7 +37,7 @@
         stroke="url(#tracing-gradient)"
         stroke-width="4" />
       <defs>
-        <linearGradient id="tracing-gradient" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={$y1} y2={$y2}>
+        <linearGradient id="tracing-gradient" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={y1.target} y2={y2.target}>
           <stop stop-color="#18CCFC" stop-opacity="0"></stop>
           <stop stop-color="#18CCFC"></stop>
           <stop offset="0.325" stop-color="#6344F5"></stop>

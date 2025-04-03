@@ -1,7 +1,8 @@
-import {createCookie, fetchBackend} from '$lib';
 import {redirect} from '@sveltejs/kit';
 import type {Actions} from './$types';
 import {dev} from '$app/environment';
+import {fetchBackend} from '$fetch';
+import {createCookie} from '$lib';
 import QRCode from 'qrcode';
 
 export const actions: Actions = {
