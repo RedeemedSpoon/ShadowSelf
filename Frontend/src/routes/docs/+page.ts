@@ -1,15 +1,5 @@
-import {
-  BookIcon,
-  DatabaseIcon,
-  LightBulbIcon,
-  RocketIcon,
-  UserIcon,
-  EmailIcon,
-  PhoneIcon,
-  CreditCardIcon,
-  WebsocketIcon,
-  MultiUsersIcon,
-} from '$icon';
+import {BookIcon, DatabaseIcon, LightBulbIcon, RocketIcon, WebsocketIcon} from '$icon';
+import {UserIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
 import type {PageLoad} from './$types';
 import type {Docs} from '$type';
 

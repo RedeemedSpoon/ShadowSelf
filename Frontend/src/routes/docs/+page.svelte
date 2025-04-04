@@ -2,12 +2,16 @@
   import type {PageData} from './$types';
   import {HTTPMethod} from '$component';
   import {formatCasing} from '$format';
+  import {page} from '$app/state';
 
   let {data}: {data: PageData} = $props();
 
-  function scrollTo(id: string) {
-    window.location.hash = id.replace(/\s/g, '-');
-  }
+  let anchor = $state(page.url.hash.slice(1));
+
+  const scrollTo = (hash: string) => {
+    window.location.hash = hash;
+    anchor = hash;
+  };
 </script>
 
 <svelte:head>
@@ -19,13 +23,14 @@
   <ol class="max-h-[calc(100vh-12.5rem)]">
     {#each data.docs.sections as section}
       {@const Icon = section.icon}
-      <ul class="mb-2 mt-6">
-        <li class="flex items-center gap-2 !text-3xl !text-neutral-300">
-          <Icon className="h-8 w-8 !stroke-neutral-300" fill={false} />
+      <ul class="mt-6">
+        <li class="title mb-3 flex items-center gap-2 !text-3xl !text-neutral-300">
+          <Icon className="h-8 w-8 cursor-default !stroke-neutral-300" fill={false} />
           {formatCasing(section.title)}
         </li>
         {#each section.more as subsection}
-          <li onclick={() => scrollTo(subsection.title)} class="my-[8px] ml-10">
+          {@const hash = subsection.title.replace(/\s/g, '-')}
+          <li aria-hidden="true" onclick={() => scrollTo(hash)} class={anchor === hash ? 'anchor' : ''}>
             <HTTPMethod method={subsection.method} />
             {formatCasing(subsection.title)}
           </li>
@@ -59,5 +64,14 @@
 
   li {
     @apply text-nowrap text-xl text-neutral-400;
+  }
+
+  ol li:not(.title) {
+    @apply my-1 ml-10 w-fit cursor-pointer select-none px-4 py-2 transition-all duration-300 ease-in-out;
+    @apply rounded-full hover:bg-neutral-300/10;
+  }
+
+  .anchor {
+    @apply bg-neutral-300/20 hover:!bg-neutral-300/20;
   }
 </style>
