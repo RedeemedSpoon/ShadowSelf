@@ -39,6 +39,7 @@
   };
 </script>
 
+<!-- eslint-disable -->
 {#if extension === 'shadowself'}
   <div class="group flex w-[350px] items-center justify-center gap-0">
     <button
@@ -84,7 +85,7 @@
         {/each}
       </div>
     {/if}
-    {#if extension !== 'shadowself'}
+    {#if extension === 'ublock' || extension === 'canvas'}
       <div id="sublinks" class="flex justify-evenly p-4">
         <a href={extensionInfo[extension].website} target="_blank">
           <img src={website} class="h-7 w-7" alt="Website" />Website

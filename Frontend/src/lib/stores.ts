@@ -1,4 +1,4 @@
-import type {Notification, PricingModel, Sections, WebSocketResponse, FullIdentity} from '$type';
+import type {Notification, PricingModel, Sections, FullIdentity, WebSocketMessage} from '$type';
 import {writable, type Writable} from 'svelte/store';
 import {allPricingModels} from '$type';
 
@@ -21,7 +21,7 @@ export const selectionInputOpen: Writable<boolean> = writable(false);
 
 export const identity: Writable<FullIdentity> = writable();
 export const masterPassword: Writable<string> = writable();
-export const handleResponse: Writable<(response: WebSocketResponse) => void> = writable(() => {});
+export const handleResponse: Writable<(response: WebSocketMessage) => void> = writable(() => {});
 
 export const notification: Writable<Notification> = writable({id: null, message: '', type: 'info'});
 export const pricingModel: Writable<PricingModel> = writable({name: 'Monthly', ...allPricingModels.monthly});

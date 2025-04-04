@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {cn} from '$cn';
   import {Motion} from 'svelte-motion';
+  import {cn} from '$cn';
 
   const paths = [
     'M-380 -189C-380 -189 -312 216 152 343C616 470 684 875 684 875',
@@ -73,7 +73,7 @@
 
     {#each paths as path, index (index)}
       <Motion isSVG={true}>
-        {#snippet children({motion})}
+        {#snippet children({motion}: {motion: unknown})}
           <path use:motion d={path} stroke={`url(#linearGradient-${index})`} stroke-opacity="0.4" stroke-width="0.5"></path>
         {/snippet}
       </Motion>
@@ -94,7 +94,7 @@
             repeat: Infinity,
             delay: Math.random() * 10,
           }}>
-          {#snippet children({motion})}
+          {#snippet children({motion}: {motion: unknown})}
             <linearGradient use:motion id={`linearGradient-${index}`} x1="100%" x2="100%" y1="100%" y2="100%">
               <stop stop-color="#18CCFC" stop-opacity="0"></stop>
               <stop stop-color="#18CCFC"></stop>

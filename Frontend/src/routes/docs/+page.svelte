@@ -6,7 +6,7 @@
 
   let {data}: {data: PageData} = $props();
 
-  let anchor = $state(page.url.hash.slice(1));
+  let anchor = $state(page.url.hash?.slice(1));
 
   const scrollTo = (hash: string) => {
     window.location.hash = hash;
@@ -19,6 +19,7 @@
   <meta name="description" content="Make use of the ShadowSelf API to interact with our services programmatically with ease" />
 </svelte:head>
 
+<!-- eslint-disable -->
 <div id="docs">
   <ol class="max-h-[calc(100vh-12.5rem)]">
     {#each data.docs.sections as section}
@@ -47,7 +48,7 @@
         <Icon className="h-12 w-12 !stroke-neutral-300" fill={false} />
         {formatCasing(content.title)}
       </h3>
-      <p>{content.description}</p>
+      <p>{@html content.description}</p>
       <hr />
     {/each}
   </section>
