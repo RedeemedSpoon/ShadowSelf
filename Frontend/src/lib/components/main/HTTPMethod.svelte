@@ -26,7 +26,7 @@
   }
 
   .patch {
-    @apply bg-orange-600 text-orange-100;
+    @apply bg-purple-600 text-purple-100;
   }
 
   .delete {

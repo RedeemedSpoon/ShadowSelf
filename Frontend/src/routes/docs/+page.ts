@@ -155,7 +155,58 @@ export const load: PageLoad = () => {
     },
   ];
 
-  const content: Docs['content'] = [];
+  const content: Docs['content'] = [
+    {
+      title: 'introduction',
+      description: 'This is the introduction.',
+      icon: BookIcon,
+    },
+    {
+      title: 'getting started',
+      description: 'Get started with ShadowSelf.',
+      icon: RocketIcon,
+    },
+    {
+      title: 'data overview',
+      description: 'Fetch all your identities.',
+      icon: DatabaseIcon,
+    },
+    {
+      title: 'general information',
+      description: 'Update your general information.',
+      icon: UserIcon,
+    },
+    {
+      title: 'email address',
+      description: 'Manage your email address.',
+      icon: EmailIcon,
+    },
+    {
+      title: 'phone number',
+      description: 'Manage your phone number.',
+      icon: PhoneIcon,
+    },
+    {
+      title: 'virtual card',
+      description: 'Manage your virtual card.',
+      icon: CreditCardIcon,
+    },
+    {
+      title: 'online accounts',
+      description: 'Manage your online accounts.',
+      icon: MultiUsersIcon,
+    },
+    {
+      title: 'websocket',
+      description: 'Add websocket support.',
+      icon: WebsocketIcon,
+    },
+    {
+      title: 'examples',
+      description: 'Learn how to use ShadowSelf.',
+      icon: LightBulbIcon,
+    },
+  ];
 
   return {docs: {sections, content}};
 };
