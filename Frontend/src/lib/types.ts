@@ -234,6 +234,7 @@ export interface Docs {
   }[];
   content: {
     title: string;
+    icon: Component;
     description: string;
     routes?: {
       url: string;

@@ -1,69 +1,62 @@
-export {default as SuccessIcon} from './Success.svelte';
-export {default as AlertIcon} from './Alert.svelte';
-export {default as InfoIcon} from './Info.svelte';
+export {default as SuccessIcon} from './status/Success.svelte';
+export {default as AlertIcon} from './status/Alert.svelte';
+export {default as InfoIcon} from './status/Info.svelte';
 
-export {default as CopyIcon} from './Copy.svelte';
-export {default as HappyIcon} from './Happy.svelte';
-export {default as DownloadIcon} from './Download.svelte';
+export {default as IssuesIcon} from './link/Issues.svelte';
+export {default as ChangelogIcon} from './link/Changelog.svelte';
+export {default as ExtensionIcon} from './link/Extension.svelte';
+export {default as ExternalLinkIcon} from './link/ExternalLink.svelte';
 
-export {default as RocketIcon} from './Rocket.svelte';
-export {default as SearchIcon} from './Search.svelte';
-export {default as FilterIcon} from './Filter.svelte';
-export {default as SortIcon} from './Sort.svelte';
+export {default as DownloadIcon} from './action/Download.svelte';
+export {default as SearchIcon} from './action/Search.svelte';
+export {default as FilterIcon} from './action/Filter.svelte';
+export {default as RepeatIcon} from './action/Repeat.svelte';
+export {default as CopyIcon} from './action/Copy.svelte';
+export {default as SortIcon} from './action/Sort.svelte';
+export {default as BackIcon} from './action/Back.svelte';
+export {default as EditIcon} from './action/Edit.svelte';
 
-export {default as MaleIcon} from './Male.svelte';
-export {default as FemaleIcon} from './Female.svelte';
-export {default as RepeatIcon} from './Repeat.svelte';
-export {default as BackIcon} from './Back.svelte';
+export {default as UserIcon} from './user/User.svelte';
+export {default as AddUserIcon} from './user/AddUser.svelte';
+export {default as UserAddIcon} from './user/UserAdd.svelte';
+export {default as UserEditIcon} from './user/UserEdit.svelte';
+export {default as MultiUsersIcon} from './user/MultiUsers.svelte';
+export {default as UserDeleteIcon} from './user/UserDelete.svelte';
 
-export {default as PinIcon} from './Pin.svelte';
-export {default as EmailIcon} from './Email.svelte';
-export {default as PhoneIcon} from './Phone.svelte';
-export {default as AddressIcon} from './Address.svelte';
-export {default as MultiUsersIcon} from './MultiUsers.svelte';
-export {default as CreditCardIcon} from './CreditCard.svelte';
-export {default as ExtensionIcon} from './Extension.svelte';
+export {default as LockRemoveIcon} from './auth/LockRemove.svelte';
+export {default as RecoveryIcon} from './auth/Recovery.svelte';
+export {default as LockEditIcon} from './auth/LockEdit.svelte';
+export {default as DatabaseIcon} from './auth/Database.svelte';
+export {default as KeylockIcon} from './auth/Keylock.svelte';
+export {default as LogoutIcon} from './auth/Logout.svelte';
+export {default as FemaleIcon} from './auth/Female.svelte';
+export {default as MaleIcon} from './auth/Male.svelte';
+export {default as EyeIcon} from './auth/Eye.svelte';
+export {default as KeyIcon} from './auth/Key.svelte';
 
-export {default as KeyIcon} from './Key.svelte';
-export {default as KeylockIcon} from './Keylock.svelte';
-export {default as LockEditIcon} from './LockEdit.svelte';
-export {default as LockRemoveIcon} from './LockRemove.svelte';
+export {default as WWWIcon} from './communication/WWW.svelte';
+export {default as SendIcon} from './communication/Send.svelte';
+export {default as TrashIcon} from './communication/Trash.svelte';
+export {default as LimitIcon} from './communication/Limit.svelte';
+export {default as EmailIcon} from './communication/Email.svelte';
+export {default as PhoneIcon} from './communication/Phone.svelte';
+export {default as InboxIcon} from './communication/Inbox.svelte';
+export {default as ReplyIcon} from './communication/Reply.svelte';
+export {default as ForwardIcon} from './communication/Forward.svelte';
+export {default as AddressIcon} from './communication/Address.svelte';
+export {default as TransferIcon} from './communication/Transfer.svelte';
+export {default as AddFundsIcon} from './communication/AddFunds.svelte';
+export {default as WebsocketIcon} from './communication/Websocket.svelte';
+export {default as CommunityIcon} from './communication/Community.svelte';
+export {default as AttachmentIcon} from './communication/Attachment.svelte';
+export {default as CreditCardIcon} from './communication/CreditCard.svelte';
+export {default as RetrieveFundsIcon} from './communication/RetrieveFunds.svelte';
 
-export {default as RecoveryIcon} from './Recovery.svelte';
-export {default as AddUserIcon} from './AddUser.svelte';
-export {default as UserIcon} from './User.svelte';
-
-export {default as UserAddIcon} from './UserAdd.svelte';
-export {default as UserEditIcon} from './UserEdit.svelte';
-export {default as UserDeleteIcon} from './UserDelete.svelte';
-
-export {default as LightBulbIcon} from './LightBulb.svelte';
-export {default as WebsocketIcon} from './Websocket.svelte';
-export {default as DatabaseIcon} from './Database.svelte';
-export {default as BookIcon} from './Book.svelte';
-
-export {default as InboxIcon} from './Inbox.svelte';
-export {default as ReplyIcon} from './Reply.svelte';
-export {default as ForwardIcon} from './Forward.svelte';
-export {default as AttachmentIcon} from './Attachment.svelte';
-
-export {default as EyeIcon} from './Eye.svelte';
-export {default as WWWIcon} from './WWW.svelte';
-export {default as SendIcon} from './Send.svelte';
-export {default as EditIcon} from './Edit.svelte';
-export {default as TrashIcon} from './Trash.svelte';
-
-export {default as LimitIcon} from './Limit.svelte';
-export {default as TransferIcon} from './Transfer.svelte';
-export {default as AddFundsIcon} from './AddFunds.svelte';
-export {default as RetrieveFundsIcon} from './RetrieveFunds.svelte';
-
-export {default as LogoutIcon} from './Logout.svelte';
-export {default as IssuesIcon} from './Issues.svelte';
-export {default as ChangelogIcon} from './Changelog.svelte';
-export {default as CommunityIcon} from './Community.svelte';
-
-export {default as ExternalLinkIcon} from './ExternalLink.svelte';
-export {default as CheckmarkIcon} from './Checkmark.svelte';
-export {default as QuestionIcon} from './Question.svelte';
-export {default as ChevronIcon} from './Chevron.svelte';
+export {default as CheckmarkIcon} from './miscellaneous/Checkmark.svelte';
+export {default as LightBulbIcon} from './miscellaneous/LightBulb.svelte';
+export {default as QuestionIcon} from './miscellaneous/Question.svelte';
+export {default as ChevronIcon} from './miscellaneous/Chevron.svelte';
+export {default as RocketIcon} from './miscellaneous/Rocket.svelte';
+export {default as HappyIcon} from './miscellaneous/Happy.svelte';
+export {default as BookIcon} from './miscellaneous/Book.svelte';
+export {default as PinIcon} from './miscellaneous/Pin.svelte';
