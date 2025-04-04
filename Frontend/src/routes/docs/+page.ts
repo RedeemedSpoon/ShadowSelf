@@ -1,3 +1,15 @@
+import {
+  BookIcon,
+  DatabaseIcon,
+  LightBulbIcon,
+  RocketIcon,
+  UserIcon,
+  EmailIcon,
+  PhoneIcon,
+  CreditCardIcon,
+  WebsocketIcon,
+  MultiUsersIcon,
+} from '$icon';
 import type {PageLoad} from './$types';
 import type {Docs} from '$type';
 
@@ -5,18 +17,22 @@ export const load: PageLoad = () => {
   const sections: Docs['sections'] = [
     {
       title: 'introduction',
+      icon: BookIcon,
       more: [{title: 'purpose'}, {title: 'uses cases'}, {title: 'important'}],
     },
     {
       title: 'getting started',
+      icon: RocketIcon,
       more: [{title: 'api key & access'}, {title: 'authentication'}, {title: 'test integration'}],
     },
     {
       title: 'data overview',
+      icon: DatabaseIcon,
       more: [{title: 'list identities', method: 'GET'}],
     },
     {
       title: 'general information',
+      icon: UserIcon,
       more: [
         {
           title: 'retrieve information',
@@ -42,6 +58,7 @@ export const load: PageLoad = () => {
     },
     {
       title: 'email address',
+      icon: EmailIcon,
       more: [
         {
           title: 'retrieve recent emails',
@@ -75,6 +92,7 @@ export const load: PageLoad = () => {
     },
     {
       title: 'phone number',
+      icon: PhoneIcon,
       more: [
         {
           title: 'retrieve messages',
@@ -96,10 +114,12 @@ export const load: PageLoad = () => {
     },
     {
       title: 'virtual card',
+      icon: CreditCardIcon,
       more: [{title: 'under development'}],
     },
     {
       title: 'online accounts',
+      icon: MultiUsersIcon,
       more: [
         {
           title: 'retrieve accounts',
@@ -125,11 +145,13 @@ export const load: PageLoad = () => {
     },
     {
       title: 'websocket',
+      icon: WebsocketIcon,
       more: [{title: 'email'}, {title: 'message'}],
     },
     {
       title: 'examples',
-      more: [{title: 'sending email'}, {title: 'fetch conversation'}, {title: 'editing account'}],
+      icon: LightBulbIcon,
+      more: [{title: 'sending email'}, {title: 'fetching conversation'}, {title: 'editing account'}],
     },
   ];
 

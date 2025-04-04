@@ -3,10 +3,11 @@
   import {logoBesideText} from '$image';
   import {scrollY, user} from '$store';
   import {page} from '$app/state';
-  import {CogIcon} from '$icon';
+  import {UserIcon} from '$icon';
 
   let isHome = $derived(page.url.pathname === '/');
   let shouldFocus = $derived(isHome && $scrollY < 150);
+  let hoverSettings = $state(false) as boolean;
 </script>
 
 <svelte:window bind:scrollY={$scrollY} />
@@ -23,8 +24,12 @@
       </div>
       <div id="auth-buttons">
         {#if $user}
-          <div class="flex gap-2">
-            <a href="/settings"><CogIcon className="fill-primary-600 h-7 w-7" /></a>
+          {@const className = 'fill-transparent  transition-all duration-300 ease-in-out stroke-primary-600 h-6 w-6'}
+          {@const events = {onmouseenter: () => (hoverSettings = true), onmouseleave: () => (hoverSettings = false)}}
+          <div class="flex items-center gap-2">
+            <a href="/settings" {...events} class="border-primary-600 rounded-full border-2 p-1">
+              <UserIcon className={className + (hoverSettings ? ' !fill-primary-600' : '')} fill={false} />
+            </a>
             <a href="/dashboard" class="group" id="username">{$user}<span></span></a>
           </div>
         {:else}

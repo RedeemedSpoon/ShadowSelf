@@ -37,6 +37,11 @@ export {default as UserAddIcon} from './UserAdd.svelte';
 export {default as UserEditIcon} from './UserEdit.svelte';
 export {default as UserDeleteIcon} from './UserDelete.svelte';
 
+export {default as LightBulbIcon} from './LightBulb.svelte';
+export {default as WebsocketIcon} from './Websocket.svelte';
+export {default as DatabaseIcon} from './Database.svelte';
+export {default as BookIcon} from './Book.svelte';
+
 export {default as InboxIcon} from './Inbox.svelte';
 export {default as ReplyIcon} from './Reply.svelte';
 export {default as ForwardIcon} from './Forward.svelte';
@@ -62,4 +67,3 @@ export {default as ExternalLinkIcon} from './ExternalLink.svelte';
 export {default as CheckmarkIcon} from './Checkmark.svelte';
 export {default as QuestionIcon} from './Question.svelte';
 export {default as ChevronIcon} from './Chevron.svelte';
-export {default as CogIcon} from './Cog.svelte';

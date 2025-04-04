@@ -12,17 +12,23 @@
 </svelte:head>
 
 <div id="docs">
-  <ul class="no-scrollbar sticky top-24 flex h-fit max-h-[calc(100vh-6rem)] flex-shrink-0 flex-col self-start overflow-y-auto pr-12">
+  <ol class="max-h-[calc(100vh-12.5rem)]">
     {#each data.docs.sections as section}
-      <li class="mb-2 mt-6 text-nowrap text-3xl text-neutral-300">{formatCasing(section.title)}</li>
-      {#each section.more as subsection}
-        <li class="my-[8px] ml-9 text-nowrap text-xl text-neutral-400">
-          <HTTPMethod method={subsection.method} />
-          {formatCasing(subsection.title)}
+      {@const Icon = section.icon}
+      <ul class="mb-2 mt-6">
+        <li class="flex items-center gap-2 text-nowrap text-3xl text-neutral-300">
+          <Icon className="h-8 w-8 !stroke-neutral-300" fill={false} />
+          {formatCasing(section.title)}
         </li>
-      {/each}
+        {#each section.more as subsection}
+          <li class="my-[8px] ml-10 text-nowrap text-xl text-neutral-400">
+            <HTTPMethod method={subsection.method} />
+            {formatCasing(subsection.title)}
+          </li>
+        {/each}
+      </ul>
     {/each}
-  </ul>
+  </ol>
   <span class="mr-12 w-px self-stretch bg-neutral-700"></span>
   <section class="flex w-full flex-col gap-8 self-stretch">
     <h2 class="mb-4 text-3xl text-neutral-300">Important Title</h2>
@@ -78,5 +84,9 @@
 <style lang="postcss">
   #docs {
     @apply mx-auto my-[12.5rem] flex w-5/6 text-neutral-400;
+  }
+
+  ol {
+    @apply no-scrollbar sticky top-36 flex flex-shrink-0 flex-col self-start overflow-y-auto pr-12;
   }
 </style>

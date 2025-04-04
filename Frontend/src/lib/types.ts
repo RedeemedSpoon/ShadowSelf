@@ -1,3 +1,5 @@
+import type {Component} from 'svelte';
+
 export type Sections = 'info' | 'email' | 'phone' | 'card' | 'account';
 export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust' | 'c';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -224,7 +226,11 @@ export interface WebSocketMessage {
 export interface Docs {
   sections: {
     title: string;
-    more: {title: string; method?: Method}[];
+    icon: Component;
+    more: {
+      title: string;
+      method?: Method;
+    }[];
   }[];
   content: {
     title: string;
