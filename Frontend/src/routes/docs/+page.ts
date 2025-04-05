@@ -9,7 +9,7 @@ export const load: PageLoad = () => {
     {
       title: 'introduction',
       icon: BookIcon,
-      more: [{title: 'purpose'}, {title: 'uses cases'}, {title: 'considerations'}],
+      more: [{title: 'purpose'}, {title: 'use cases'}, {title: 'considerations'}, {title: 'feedback & contributions'}],
     },
     {
       title: 'getting started',

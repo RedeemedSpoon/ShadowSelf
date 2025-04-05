@@ -1,7 +1,7 @@
 <p>
-  Welcome to the ShadowSelf API documentation. We are pleased to offer programmatic access to the core functionalities of the
-  ShadowSelf platform, allowing developers and users to integrate our synthetic identity management tools directly into their own
-  applications, workflows, and systems.
+  Welcome to the ShadowSelf API documentation. We are pleased to offer programmatic access to the <b>core functionalities</b> of the ShadowSelf
+  platform, allowing developers and users to integrate our synthetic identity management tools directly into their own applications, workflows,
+  and systems.
 </p>
 <p>
   This API is designed following <b>RESTful principles</b>, ensuring predictability, ease of use, and compatibility with standard HTTP
@@ -15,34 +15,29 @@
   code, this API provides the necessary endpoints and functionalities.
 </p>
 
-<h3>Purpose</h3>
+<h3 id="purpose">Purpose</h3>
 <p>
-  The primary purpose of the ShadowSelf API is to <b>empower users with programmatic control over their synthetic identities</b>. While
-  our web-based dashboard provides a user-friendly interface for managing personas, we understand the need for automation, integration,
-  and more advanced control that only an API can offer.
+  The primary purpose of the ShadowSelf API is to <b>give users programmatic control over their synthetic identities</b>. While our
+  web-based dashboard provides a user-friendly interface for managing personas, we understand the need for automation, integration, and
+  more advanced control that only an API can offer.
 </p>
-<p>Key objectives of this API include:</p>
+<p>Here are key objectives of this API include :</p>
 <ul>
   <li>
-    <b>Programmatic Management:</b> Create, retrieve, update, and delete synthetic identities and their associated attributes (like phone
-    numbers, emails, etc.) directly through code, bypassing the manual dashboard interface.
-  </li>
-  <li>
-    <b>Automation:</b> Enable the automation of repetitive tasks related to identity management, such as rotating identities based on specific
-    triggers or integrating identity creation into larger automated workflows.
+    <b>Automation:</b> Automate tasks like sending emails, replies to SMS, or interacting with third-party APIs.
   </li>
   <li>
     <b>Integration:</b> Facilitate the seamless integration of ShadowSelf's capabilities into third-party applications, custom scripts,
     or specialized tools.
   </li>
   <li>
+    <b>Programmatic Management:</b> Create, retrieve, update, and delete synthetic identities associated attributes (like phone numbers,
+    emails, etc.) directly through code, bypassing the manual dashboard interface.
+  </li>
+  <li>
     <b>Flexibility and Openness:</b> Offer developers the flexibility to build custom solutions tailored to their specific needs, fostering
     innovation and extending the utility of the ShadowSelf platform. We believe in openness and providing the tools necessary for users
     to interact with our service in the way that best suits them.
-  </li>
-  <li>
-    <b>Ease of Use:</b> Provide a straightforward and well-documented interface that allows developers to quickly get started and effectively
-    leverage the power of ShadowSelf programmatically.
   </li>
 </ul>
 <p>
@@ -50,20 +45,20 @@
   efficiency, automation, and custom integrations.
 </p>
 
-<h3>Use Cases</h3>
+<h3 id="use-cases">Use Cases</h3>
 <p>
   The ShadowSelf API opens up a variety of possibilities for developers and advanced users. Here are a few concrete examples
-  illustrating how you might leverage the API:
+  illustrating how you might leverage the API :
 </p>
 <ul>
   <li>
-    <b>Real-time Event Monitoring:</b> Utilize potential WebSocket connections (if offered via the API) or polling mechanisms to listen
-    for specific events related to your identities. For instance, you could build a notification system that alerts you immediately when
-    a new message or call is received on one of your synthetic phone numbers or email addresses.
+    <b>Real-time Event Monitoring:</b> Utilize potential WebSocket connections to listen for specific events related to your identities.
+    For instance, you could build a notification system that alerts you immediately when a new message is received on one of your synthetic
+    phone numbers or email addresses.
   </li>
   <li>
     <b>Custom Email/Messaging Client:</b> Develop your own specialized client application to manage communications associated with your
-    ShadowSelf email aliases. This could offer a tailored user interface, advanced filtering capabilities, or integration with other communication
+    ShadowSelf email addresses. This could offer a tailored user interface, advanced filtering capabilities, or integration with other communication
     tools, providing a more powerful alternative to generic clients or the web dashboard.
   </li>
   <li>
@@ -77,21 +72,20 @@
   privacy, security, or automation needs.
 </p>
 
-<h3>Considerations</h3>
+<h3 id="considerations">Considerations</h3>
 <p>
   As you utilize the ShadowSelf API, please be mindful that the platform is maintained with <b>limited resources</b>. We ask that you
-  interact with the API responsibly by <b>avoiding spamming requests</b> or implementing overly aggressive polling, ensuring your
-  integrations are efficient to minimize server load. Currently, we operate on a principle of <b>mutual respect and trust</b>,
-  foregoing strict rate limits.
+  interact with the API responsibly by <b>avoiding spamming requests</b> or implementing overly aggressive polling, ensuring your integrations
+  are efficient to minimize server load.
 </p>
 <p>
-  We trust our users to use the API fairly, allowing us to maintain an open environment. However, please understand that we reserve the
-  right to implement limits or block traffic if necessary to protect service stability for everyone. Your considerate usage helps us
-  keep the API accessible.
+  Currently, we operate on a principle of <b>mutual respect and trust</b>, foregoing strict rate limits. We trust our users to use the
+  API fairly, allowing us to maintain an open environment. However, please understand that we reserve the right to implement limits or
+  block traffic if necessary to protect service stability for everyone. Your considerate usage helps us keep the API accessible.
 </p>
 
-<h3>Feedback and Contributions</h3>
-<p>We are continuously looking to improve the API. If you:</p>
+<h3 id="feedback-&-contributions">Feedback and Contributions</h3>
+<p>We are continuously looking to <b>improve and expand</b> the ShadowSelf API. If you :</p>
 <ul>
   <li>Feel an important section or piece of information is missing from this documentation.</li>
   <li>Have suggestions for new API routes or features.</li>
@@ -99,6 +93,7 @@
   <li>Have any other feedback.</li>
 </ul>
 <p>
-  Please reach out to us! You can contact us via the <b>contact page on our website</b> or, preferably for technical issues and feature
-  requests, <b>open an issue on our public GitHub repository</b> (if available). Your feedback is invaluable in helping us enhance the platform.
+  Please reach out to us! You can contact us via our <a href="/contact">contact page</a> or, preferably for technical issues and
+  feature requests, open an issue on our <a href="https://github.com/RedeemedSpoon/ShadowSelf/issues">GitHub repository</a>. Your
+  feedback is invaluable in helping us enhance the platform.
 </p>
