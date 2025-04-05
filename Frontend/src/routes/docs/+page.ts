@@ -1,7 +1,7 @@
 import {BookIcon, DatabaseIcon, LightBulbIcon, RocketIcon, WebsocketIcon} from '$icon';
 import {UserIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
-import type {PageLoad} from './$types';
 import * as HTMLContent from './content';
+import type {PageLoad} from './$types';
 import type {Docs} from '$type';
 
 export const load: PageLoad = () => {
@@ -154,7 +154,7 @@ export const load: PageLoad = () => {
     },
     {
       title: 'getting started',
-      description: HTMLContent.introduction,
+      description: HTMLContent.gettingStarted,
       icon: RocketIcon,
     },
     {

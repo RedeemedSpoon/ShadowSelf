@@ -13,6 +13,7 @@ import card from './identity/card';
 export default new Elysia()
   .use(middleware)
   .group('/api', (app) => app.use(card).use(phone).use(email).use(account).use(information))
+  .get('/api/test', () => 'Authentication is working ;)')
   .get('/api', async ({user}) => {
     const result = await attempt(sql` SELECT * FROM users u JOIN identities i ON u.id = i.owner WHERE u.email = ${user!.email}`);
     if (!result.length) return error(400, 'No identities were found');

@@ -45,7 +45,7 @@
       {@const Icon = content.icon}
       {@const Description = content.description}
       <h2 class="flex items-center gap-2 text-5xl text-neutral-300">
-        <Icon className="h-12 w-12 !stroke-neutral-300" fill={false} />
+        <Icon className="h-14 w-14 !stroke-neutral-300 cursor-default" fill={false} />
         {formatCasing(content.title)}
       </h2>
       <Description />
