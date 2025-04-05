@@ -35,7 +35,7 @@
   }
 
   hr {
-    @apply h-px border-0 bg-neutral-500;
+    @apply h-0.5 border-0 bg-neutral-500;
   }
 
   label {

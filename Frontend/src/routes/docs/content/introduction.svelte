@@ -1,62 +1,3 @@
-<script lang="ts">
-  import type {PageData} from './$types';
-  import {HTTPMethod} from '$component';
-  import {formatCasing} from '$format';
-  import {page} from '$app/state';
-
-  let {data}: {data: PageData} = $props();
-
-  let anchor = $state(page.url.hash?.slice(1));
-
-  const scrollTo = (hash: string) => {
-    window.location.hash = hash;
-    anchor = hash;
-  };
-</script>
-
-<svelte:head>
-  <title>ShadowSelf - API Documentation</title>
-  <meta name="description" content="Make use of the ShadowSelf API to interact with our services programmatically with ease" />
-</svelte:head>
-
-<div id="docs">
-  <ol class="max-h-[calc(100vh-12.5rem)]">
-    {#each data.docs.sections as section}
-      {@const Icon = section.icon}
-      <ul class="mt-6">
-        <li class="title mb-3 flex items-center gap-2 !text-3xl !text-neutral-300">
-          <Icon className="h-8 w-8 cursor-default !stroke-neutral-300" fill={false} />
-          {formatCasing(section.title)}
-        </li>
-        {#each section.more as subsection}
-          {@const hash = subsection.title.replace(/\s/g, '-')}
-          <li aria-hidden="true" onclick={() => scrollTo(hash)} class={anchor === hash ? 'anchor' : ''}>
-            <HTTPMethod method={subsection.method} />
-            {formatCasing(subsection.title)}
-          </li>
-        {/each}
-      </ul>
-    {/each}
-  </ol>
-  <span class="mr-12 w-0.5 self-stretch bg-neutral-700"></span>
-  <section class="flex w-full flex-col gap-8 self-stretch">
-    <h1 class="basic-style text-6xl">API Documentation</h1>
-    {#each data.docs.content as content, i}
-      {@const Icon = content.icon}
-      {@const Description = content.description}
-      <h3 id={content.title.replace(/\s/g, '-')} class="flex items-center gap-2 text-5xl text-neutral-300">
-        <Icon className="h-12 w-12 !stroke-neutral-300" fill={false} />
-        {formatCasing(content.title)}
-      </h3>
-      <Description />
-      {#if i !== data.docs.content.length - 1}
-        <hr class="bg-neutral-7002 my-6" />
-      {/if}
-    {/each}
-  </section>
-</div>
-
-<h2>1. Introduction</h2>
 <p>
   Welcome to the ShadowSelf API documentation. We are pleased to offer programmatic access to the core functionalities of the
   ShadowSelf platform, allowing developers and users to integrate our synthetic identity management tools directly into their own
@@ -74,7 +15,7 @@
   code, this API provides the necessary endpoints and functionalities.
 </p>
 
-<h2>2. Purpose</h2>
+<h3>Purpose</h3>
 <p>
   The primary purpose of the ShadowSelf API is to <b>empower users with programmatic control over their synthetic identities</b>. While
   our web-based dashboard provides a user-friendly interface for managing personas, we understand the need for automation, integration,
@@ -109,7 +50,7 @@
   efficiency, automation, and custom integrations.
 </p>
 
-<h2>3. Use Cases</h2>
+<h3>Use Cases</h3>
 <p>
   The ShadowSelf API opens up a variety of possibilities for developers and advanced users. Here are a few concrete examples
   illustrating how you might leverage the API:
@@ -126,15 +67,9 @@
     tools, providing a more powerful alternative to generic clients or the web dashboard.
   </li>
   <li>
-    <b>Extending Internal Account Management:</b> ShadowSelf allows storing associated login credentials (like usernames, passwords, and
-    TOTP secrets) for the websites where you use your synthetic identities, similar to a password manager like KeePassXC but tied to the
-    identity. The API enables you to build custom tools or scripts to manage these stored credentials programmatically. You could, for example,
-    create scripts for bulk importing/exporting credentials, integrating with other secret management systems, or developing custom interfaces
-    for accessing this stored login data beyond our standard dashboard.
-  </li>
-  <li>
-    <b>Automated Workflows:</b> Integrate identity creation or selection into larger automated processes. For example, a testing framework
-    could automatically provision a new synthetic identity via the API for each test run, ensuring isolation and clean state.
+    <b>Extending Account Management:</b> The API enables you to build custom tools to manage these stored credentials programmatically.
+    You could, for example, create scripts for bulk importing/exporting credentials, integrating with other secret management systems, adding
+    new fields or developing custom interfaces for accessing this stored login data beyond our standard dashboard.
   </li>
 </ul>
 <p>
@@ -142,17 +77,20 @@
   privacy, security, or automation needs.
 </p>
 
-<h2>4. Important Considerations</h2>
+<h3>Considerations</h3>
 <p>
   As you utilize the ShadowSelf API, please be mindful that the platform is maintained with <b>limited resources</b>. We ask that you
   interact with the API responsibly by <b>avoiding spamming requests</b> or implementing overly aggressive polling, ensuring your
   integrations are efficient to minimize server load. Currently, we operate on a principle of <b>mutual respect and trust</b>,
-  foregoing strict rate limits. We trust our users to use the API fairly, allowing us to maintain an open environment. However, please
-  understand that we reserve the right to implement limits or block traffic if necessary to protect service stability for everyone.
-  Your considerate usage helps us keep the API accessible.
+  foregoing strict rate limits.
+</p>
+<p>
+  We trust our users to use the API fairly, allowing us to maintain an open environment. However, please understand that we reserve the
+  right to implement limits or block traffic if necessary to protect service stability for everyone. Your considerate usage helps us
+  keep the API accessible.
 </p>
 
-<h2>5. Feedback and Contributions</h2>
+<h3>Feedback and Contributions</h3>
 <p>We are continuously looking to improve the API. If you:</p>
 <ul>
   <li>Feel an important section or piece of information is missing from this documentation.</li>
@@ -164,26 +102,3 @@
   Please reach out to us! You can contact us via the <b>contact page on our website</b> or, preferably for technical issues and feature
   requests, <b>open an issue on our public GitHub repository</b> (if available). Your feedback is invaluable in helping us enhance the platform.
 </p>
-
-<style lang="postcss">
-  #docs {
-    @apply mx-auto my-[12.5rem] flex w-5/6 text-neutral-400;
-  }
-
-  ol {
-    @apply no-scrollbar sticky top-36 flex flex-shrink-0 flex-col self-start overflow-y-auto pr-12;
-  }
-
-  li {
-    @apply text-nowrap text-xl text-neutral-400;
-  }
-
-  ol li:not(.title) {
-    @apply my-1 ml-10 w-fit cursor-pointer select-none px-4 py-2 transition-all duration-300 ease-in-out;
-    @apply rounded-full hover:bg-neutral-300/10;
-  }
-
-  .anchor {
-    @apply bg-neutral-300/20 hover:!bg-neutral-300/20;
-  }
-</style>

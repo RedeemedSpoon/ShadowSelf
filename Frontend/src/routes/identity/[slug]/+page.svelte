@@ -1,9 +1,14 @@
 <script lang="ts">
-  import {IdentityInformation, IdentityEmail, IdentityPhone, IdentityCard, IdentityAccounts, ConfirmModal} from '$component';
-  import {InfoIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
+  import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, CreditCardIcon} from '$icon';
   import {currentSection, handleResponse, identity, modalIndex} from '$store';
   import type {Sections, WebSocketMessage} from '$type';
+  import IdentityInformation from './Information.svelte';
+  import IdentityAccounts from './Accounts.svelte';
+  import IdentityPhone from './Phone.svelte';
+  import IdentityEmail from './Email.svelte';
+  import IdentityCard from './Card.svelte';
   import {browser} from '$app/environment';
+  import {ConfirmModal} from '$component';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
   import {ChevronIcon} from '$icon';
@@ -93,7 +98,7 @@
       </div>
     {/key}
 
-    <hr class="mb-8 h-px w-full" />
+    <hr class="mb-8 h-0.5 w-full" />
     <div class="flex w-full justify-between px-8 max-sm:flex-col-reverse">
       <a href="/dashboard">
         <button class="alt border-none">← Back</button>

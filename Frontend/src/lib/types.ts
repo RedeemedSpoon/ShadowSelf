@@ -235,14 +235,13 @@ export interface Docs {
   content: {
     title: string;
     icon: Component;
-    description: string;
+    description: Component;
     routes?: {
       title: string;
-      description: string;
+      description: Component;
       method: Method;
       query?: string;
       body?: string;
-      return: string;
     }[];
     code?: {
       [key in Languages]: string;

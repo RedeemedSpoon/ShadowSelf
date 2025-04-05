@@ -68,9 +68,8 @@
 {#if isEditingMode}
   <InformationEdit />
 {:else}
-  <section class="grid place-items-center gap-8 sm:m-12 lg:grid-cols-[1fr_2fr] xl:gap-16">
-    <h3 class="relative mt-4 hidden w-full !text-3xl max-md:inline">{$identity.name}, {$identity.age}</h3>
-    <div class="group relative">
+  <section class="flex items-center gap-8 max-lg:flex-col sm:m-12 xl:gap-16 2xl:gap-24">
+    <div class="group relative sm:w-3/4 lg:w-1/2">
       <div id="overlay-profile"></div>
       <ReactiveButton
         text="Copy Image"
@@ -97,8 +96,8 @@
           alt="{$identity.name}'s profile picture" />
       {/key}
     </div>
-    <div class="flex flex-col gap-2 text-nowrap">
-      <h3 class="mt-4 !text-3xl max-md:hidden">{$identity.name}, {$identity.age}</h3>
+    <div class="flex flex-col gap-2 text-nowrap lg:w-1/2">
+      <h3 class="mt-4 !text-3xl">{$identity.name}, {$identity.age}</h3>
       <p class="text-lg text-neutral-500">{toTitleCase($identity.ethnicity)} {toTitleCase($identity.sex)}</p>
       <p>{$identity.bio}</p>
       <hr class="my-2 w-1/6" />
@@ -132,8 +131,8 @@
 
 <style lang="postcss">
   #overlay-profile {
-    @apply absolute inset-0 h-full w-full rounded-xl transition-all duration-300 max-md:w-3/4;
-    @apply min-w-[350px] group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080];
+    @apply absolute inset-0 h-full w-full min-w-[350px] rounded-xl transition-all duration-300 max-md:w-3/4;
+    @apply group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080] xl:min-w-[400px] 2xl:min-w-[500px];
   }
 
   #information > div {

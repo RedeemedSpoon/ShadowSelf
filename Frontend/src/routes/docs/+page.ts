@@ -1,6 +1,7 @@
 import {BookIcon, DatabaseIcon, LightBulbIcon, RocketIcon, WebsocketIcon} from '$icon';
 import {UserIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
 import type {PageLoad} from './$types';
+import * as HTMLContent from './content';
 import type {Docs} from '$type';
 
 export const load: PageLoad = () => {
@@ -8,7 +9,7 @@ export const load: PageLoad = () => {
     {
       title: 'introduction',
       icon: BookIcon,
-      more: [{title: 'purpose'}, {title: 'uses cases'}, {title: 'important'}],
+      more: [{title: 'purpose'}, {title: 'uses cases'}, {title: 'considerations'}],
     },
     {
       title: 'getting started',
@@ -148,52 +149,52 @@ export const load: PageLoad = () => {
   const content: Docs['content'] = [
     {
       title: 'introduction',
-      description: 'This is the introduction.',
+      description: HTMLContent.introduction,
       icon: BookIcon,
     },
     {
       title: 'getting started',
-      description: 'Get started with ShadowSelf.',
+      description: HTMLContent.introduction,
       icon: RocketIcon,
     },
     {
       title: 'data overview',
-      description: 'Fetch all your identities.',
+      description: HTMLContent.introduction,
       icon: DatabaseIcon,
     },
     {
       title: 'general information',
-      description: 'Update your general information.',
+      description: HTMLContent.introduction,
       icon: UserIcon,
     },
     {
       title: 'email address',
-      description: 'Manage your email address.',
+      description: HTMLContent.introduction,
       icon: EmailIcon,
     },
     {
       title: 'phone number',
-      description: 'Manage your phone number.',
+      description: HTMLContent.introduction,
       icon: PhoneIcon,
     },
     {
       title: 'virtual card',
-      description: 'Manage your virtual card.',
+      description: HTMLContent.introduction,
       icon: CreditCardIcon,
     },
     {
       title: 'online accounts',
-      description: 'Manage your online accounts.',
+      description: HTMLContent.introduction,
       icon: MultiUsersIcon,
     },
     {
       title: 'websocket',
-      description: 'Add websocket support.',
+      description: HTMLContent.introduction,
       icon: WebsocketIcon,
     },
     {
       title: 'examples',
-      description: 'Learn how to use ShadowSelf.',
+      description: HTMLContent.introduction,
       icon: LightBulbIcon,
     },
   ];

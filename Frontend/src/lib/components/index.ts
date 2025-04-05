@@ -28,12 +28,6 @@ export {default as ConfirmModal} from './main/reusable/ConfirmModal.svelte';
 export {default as ExtensionLinks} from './main/reusable/ExtensionLinks.svelte';
 export {default as CodeExample} from './main/reusable/CodeExample.svelte';
 
-export {default as IdentityCard} from './identity/Card.svelte';
-export {default as IdentityEmail} from './identity/Email.svelte';
-export {default as IdentityPhone} from './identity/Phone.svelte';
-export {default as IdentityAccounts} from './identity/Accounts.svelte';
-export {default as IdentityInformation} from './identity/Information.svelte';
-
 export {default as Slogan} from './homepage/Slogan.svelte';
 export {default as Card3D} from './homepage/Card3D.svelte';
 export {default as WordFlip} from './homepage/WordFlip.svelte';
