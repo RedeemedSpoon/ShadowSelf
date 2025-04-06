@@ -10,6 +10,7 @@
   format. Our goal is to provide an API that feels familiar and adheres to the best practices commonly found across modern web
   services, facilitating a smooth integration experience for developers of all skill levels.
 </p>
+<p class="hint">ShadowSelf API base URL: <code>https://shadowself.io/api</code></p>
 <p>
   Whether you are looking to automate identity management, build custom tools on top of our platform, or simply prefer interacting via
   code, this API provides the necessary endpoints and functionalities.

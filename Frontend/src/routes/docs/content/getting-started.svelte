@@ -61,16 +61,16 @@
   You can use a tool like <code>curl</code> in your terminal. Replace <code>$API_KEY</code> with your actual key :
 </p>
 
-<pre><code
+<pre class="language-curl"><code
     >curl -X GET "https://shadowself.io/api/test" \
      -H "Accept: application/json" \
      -H "Authorization: Bearer $API_KEY"</code></pre>
 
 <p>
-  If your API key is valid and API access is enabled for your account, you should receive a <code>200 OK</code> HTTP status code and
-  the following plain text response body :
-  <code>Authentication is working ;)</code>
+  If your API key is valid and API access is enabled for your account, you should receive a <code>200 OK</code> HTTP status code and the
+  following text :
 </p>
+<p class="hint">Response Text: <code>Authentication is working ;)</code></p>
 <p>If you don't receive the success message, double-check the following :</p>
 <ul>
   <li>Is the "API Access" toggle enabled in your ShadowSelf settings?</li>

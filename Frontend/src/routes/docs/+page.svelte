@@ -48,9 +48,11 @@
         <Icon className="h-14 w-14 !stroke-neutral-300 cursor-default" fill={false} />
         {formatCasing(content.title)}
       </h2>
-      <Description />
+      <div class="flex flex-col gap-4">
+        <Description />
+      </div>
       {#if i !== data.docs.content.length - 1}
-        <hr class="bg-neutral-7002 my-6" />
+        <hr class="bg-neutral-700" />
       {/if}
     {/each}
   </section>
@@ -79,22 +81,30 @@
   }
 
   :global(#content h3) {
-    @apply border-primary-700 w-fit scroll-mt-[12.5rem] border-b-2 pb-4 text-4xl text-neutral-300;
+    @apply border-primary-700 mt-6 w-fit scroll-mt-[12.5rem] border-b-2 pb-4 text-4xl text-neutral-300;
   }
 
   :global(#content code) {
     @apply rounded-xl bg-neutral-800 px-2 font-mono text-lg;
   }
 
-  :global(#content b) {
-    @apply text-neutral-300;
+  :global(#content .hint) {
+    @apply border-primary-700 my-2 ml-10 border-l-4 pl-4;
   }
 
-  :global(#content li) {
-    @apply my-3 ml-8 list-disc;
+  :global(#content pre) {
+    @apply w-full rounded-xl bg-neutral-800 p-4;
   }
 
   :global(#content ul) {
-    @apply -my-3;
+    @apply ml-10 list-disc;
+  }
+
+  :global(#content p) {
+    @apply leading-relaxed;
+  }
+
+  :global(#content b) {
+    @apply text-neutral-300;
   }
 </style>
