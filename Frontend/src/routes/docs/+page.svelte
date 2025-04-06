@@ -1,8 +1,24 @@
 <script lang="ts">
+  import 'highlight.js/styles/tokyo-night-dark.css';
   import type {PageData} from './$types';
   import {HTTPMethod} from '$component';
   import {formatCasing} from '$format';
   import {page} from '$app/state';
+  import hljs from 'highlight.js';
+  import {onMount} from 'svelte';
+
+  // @ts-expect-error No declaration file
+  import curl from 'highlightjs-curl';
+  import go from 'highlight.js/lib/languages/go';
+  import rust from 'highlight.js/lib/languages/rust';
+  import python from 'highlight.js/lib/languages/python';
+  import javascript from 'highlight.js/lib/languages/javascript';
+
+  hljs.registerLanguage('javascript', javascript);
+  hljs.registerLanguage('python', python);
+  hljs.registerLanguage('curl', curl);
+  hljs.registerLanguage('rust', rust);
+  hljs.registerLanguage('go', go);
 
   let {data}: {data: PageData} = $props();
 
@@ -12,6 +28,11 @@
     window.location.hash = hash;
     anchor = hash;
   };
+
+  onMount(() => {
+    hljs.highlightAll();
+    scrollTo(page.url.hash?.slice(1));
+  });
 </script>
 
 <svelte:head>

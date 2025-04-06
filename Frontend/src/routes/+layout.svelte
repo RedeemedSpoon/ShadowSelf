@@ -18,7 +18,6 @@
   onMount(() => {
     document.querySelector('#app')?.classList.remove('hidden');
     document.addEventListener('touchstart', (e) => e.preventDefault(), {passive: true});
-    window.addEventListener('load', () => window.scrollTo(0, 0));
   });
 </script>
 

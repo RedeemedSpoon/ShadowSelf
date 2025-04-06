@@ -1,7 +1,7 @@
 import type {Component} from 'svelte';
 
 export type Sections = 'info' | 'email' | 'phone' | 'card' | 'account';
-export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust' | 'c';
+export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export type FullEmail = Email & {messageID: string; date: Date};
