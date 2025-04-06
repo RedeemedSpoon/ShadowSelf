@@ -1,3 +1,7 @@
+<script>
+  import {LightBulbIcon} from '$icon';
+</script>
+
 <p>
   This section guides you through the initial steps required to start using the ShadowSelf API, including enabling access, obtaining
   credentials, and authenticating your requests.
@@ -70,7 +74,10 @@
   If your API key is valid and API access is enabled for your account, you should receive a <code>200 OK</code> HTTP status code and the
   following text :
 </p>
-<p class="hint">Response Text: <code>Authentication is working ;)</code></p>
+<div class="hint-container">
+  <LightBulbIcon className="stroke-primary-600" />
+  <p class="hint">Response Text: <code>Authentication is working ;)</code></p>
+</div>
 <p>If you don't receive the success message, double-check the following :</p>
 <ul>
   <li>Is the "API Access" toggle enabled in your ShadowSelf settings?</li>

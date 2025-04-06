@@ -1,16 +1,24 @@
 <script lang="ts">
   import type {Method} from '$type';
 
-  let {method}: {method: Method | undefined} = $props();
+  interface Props {
+    method?: Method;
+    alt?: boolean;
+  }
+  let {method, alt}: Props = $props();
 </script>
 
 {#if method}
-  <span class="{method.toLowerCase()} text-nowrap">{method}</span>
+  <span class="{method.toLowerCase()} {alt && 'alt'} text-nowrap">{method}</span>
 {/if}
 
 <style lang="postcss">
   span {
     @apply rounded-full bg-neutral-950 px-2 py-1 text-sm;
+  }
+
+  span.alt {
+    @apply px-0 pr-2 font-sans text-lg;
   }
 
   .get {
@@ -31,5 +39,25 @@
 
   .delete {
     @apply bg-red-600 text-red-100;
+  }
+
+  .get.alt {
+    @apply bg-transparent text-blue-600;
+  }
+
+  .post.alt {
+    @apply bg-transparent text-green-600;
+  }
+
+  .put.alt {
+    @apply bg-transparent text-yellow-600;
+  }
+
+  .patch.alt {
+    @apply bg-transparent text-purple-600;
+  }
+
+  .delete.alt {
+    @apply bg-transparent text-red-600;
   }
 </style>

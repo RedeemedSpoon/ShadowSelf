@@ -139,11 +139,6 @@ export const load: PageLoad = () => {
       icon: WebsocketIcon,
       more: [{title: 'email'}, {title: 'message'}],
     },
-    {
-      title: 'examples',
-      icon: LightBulbIcon,
-      more: [{title: 'sending email'}, {title: 'fetching conversation'}, {title: 'editing account'}],
-    },
   ];
 
   const content: Docs['content'] = [
@@ -159,43 +154,54 @@ export const load: PageLoad = () => {
     },
     {
       title: 'data overview',
-      description: HTMLContent.introduction,
+      description: 'This section will explain how to retrieve all of your identities from the API.',
       icon: DatabaseIcon,
+      routes: [
+        {
+          title: 'list identities',
+          description: HTMLContent.null,
+          url: '/',
+          method: 'GET',
+          code: {
+            curl: '',
+            python: '',
+            javascript: '',
+            rust: '',
+            go: '',
+          },
+          response: {},
+        },
+      ],
     },
     {
       title: 'general information',
-      description: HTMLContent.introduction,
+      description: HTMLContent.null,
       icon: UserIcon,
     },
     {
       title: 'email address',
-      description: HTMLContent.introduction,
+      description: HTMLContent.null,
       icon: EmailIcon,
     },
     {
       title: 'phone number',
-      description: HTMLContent.introduction,
+      description: HTMLContent.null,
       icon: PhoneIcon,
     },
     {
       title: 'virtual card',
-      description: HTMLContent.introduction,
+      description: HTMLContent.null,
       icon: CreditCardIcon,
     },
     {
       title: 'online accounts',
-      description: HTMLContent.introduction,
+      description: HTMLContent.null,
       icon: MultiUsersIcon,
     },
     {
       title: 'websocket',
-      description: HTMLContent.introduction,
+      description: HTMLContent.null,
       icon: WebsocketIcon,
-    },
-    {
-      title: 'examples',
-      description: HTMLContent.introduction,
-      icon: LightBulbIcon,
     },
   ];
 

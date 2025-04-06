@@ -1,7 +1,7 @@
 <script lang="ts">
   import 'highlight.js/styles/tokyo-night-dark.css';
   import type {PageData} from './$types';
-  import {HTTPMethod} from '$component';
+  import {APICode, HTTPMethod} from '$component';
   import {formatCasing} from '$format';
   import {page} from '$app/state';
   import hljs from 'highlight.js';
@@ -11,12 +11,14 @@
   import curl from 'highlightjs-curl';
   import go from 'highlight.js/lib/languages/go';
   import rust from 'highlight.js/lib/languages/rust';
+  import json from 'highlight.js/lib/languages/json';
   import python from 'highlight.js/lib/languages/python';
   import javascript from 'highlight.js/lib/languages/javascript';
 
   hljs.registerLanguage('javascript', javascript);
   hljs.registerLanguage('python', python);
   hljs.registerLanguage('curl', curl);
+  hljs.registerLanguage('json', json);
   hljs.registerLanguage('rust', rust);
   hljs.registerLanguage('go', go);
 
@@ -64,13 +66,34 @@
     <h1 class="basic-style text-6xl">API Documentation</h1>
     {#each data.docs.content as content, i}
       {@const Icon = content.icon}
-      {@const Description = content.description}
       <h2 class="flex items-center gap-2 text-5xl text-neutral-300">
         <Icon className="h-14 w-14 !stroke-neutral-300 cursor-default" fill={false} />
         {formatCasing(content.title)}
       </h2>
       <div class="flex flex-col gap-4">
-        <Description />
+        {#if typeof content.description === 'function'}
+          {@const Description = content.description}
+          <Description />
+        {:else}
+          <p>{content.description}</p>
+        {/if}
+        {#if content.routes}
+          <div class="flex gap-8 p-8">
+            {#each content.routes as route}
+              {@const RouteDescription = route.description}
+              <section class="w-1/2">
+                <h3 id={route.title.replace(/\s/g, '-')}>
+                  {formatCasing(route.title)} :
+                </h3>
+                <RouteDescription />
+              </section>
+              <section class="mt-6 w-1/2">
+                <APICode {route} />
+                <APICode response={route.response} />
+              </section>
+            {/each}
+          </div>
+        {/if}
       </div>
       {#if i !== data.docs.content.length - 1}
         <hr class="bg-neutral-700" />
@@ -109,8 +132,16 @@
     @apply rounded-xl bg-neutral-800 px-2 font-mono text-lg;
   }
 
+  :global(#content code.alt) {
+    @apply px-4 py-3 text-lg text-neutral-300;
+  }
+
+  :global(#content .hint-container) {
+    @apply ml-10 flex items-center gap-3;
+  }
+
   :global(#content .hint) {
-    @apply border-primary-700 my-2 ml-10 border-l-4 pl-4;
+    @apply border-primary-700 my-2 border-l-4 pl-4;
   }
 
   :global(#content pre) {

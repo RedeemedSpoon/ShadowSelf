@@ -21,6 +21,7 @@ export {default as SelectMenu} from './main/inputs/SelectMenu.svelte';
 
 export {default as Card} from './main/containers/Card.svelte';
 export {default as Steps} from './main/containers/Steps.svelte';
+export {default as APICode} from './main/containers/APICode.svelte';
 export {default as FlowStep} from './main/containers/FlowStep.svelte';
 export {default as StepsItem} from './main/containers/StepsItem.svelte';
 

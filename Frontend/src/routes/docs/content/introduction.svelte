@@ -1,3 +1,7 @@
+<script>
+  import {LightBulbIcon} from '$icon';
+</script>
+
 <p>
   Welcome to the ShadowSelf API documentation. We are pleased to offer programmatic access to the <b>core functionalities</b> of the ShadowSelf
   platform, allowing developers and users to integrate our synthetic identity management tools directly into their own applications, workflows,
@@ -10,7 +14,10 @@
   format. Our goal is to provide an API that feels familiar and adheres to the best practices commonly found across modern web
   services, facilitating a smooth integration experience for developers of all skill levels.
 </p>
-<p class="hint">ShadowSelf API base URL: <code>https://shadowself.io/api</code></p>
+<div class="hint-container">
+  <LightBulbIcon className="stroke-primary-600" />
+  <p class="hint">ShadowSelf API base URL: <code>https://shadowself.io/api</code></p>
+</div>
 <p>
   Whether you are looking to automate identity management, build custom tools on top of our platform, or simply prefer interacting via
   code, this API provides the necessary endpoints and functionalities.

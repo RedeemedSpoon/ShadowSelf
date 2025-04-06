@@ -235,18 +235,18 @@ export interface Docs {
   content: {
     title: string;
     icon: Component;
-    description: Component;
-    routes?: {
-      title: string;
-      description: Component;
-      method: Method;
-      query?: string;
-      body?: string;
-    }[];
-    code?: {
-      [key in Languages]: string;
-    };
+    description: Component | string;
+    routes?: Route[];
   }[];
+}
+
+export interface Route {
+  title: string;
+  description: Component;
+  method: Method;
+  url: string;
+  response: APIResponse;
+  code: {[key in Languages]: string};
 }
 
 export interface PricingModel {
