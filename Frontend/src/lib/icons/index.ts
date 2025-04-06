@@ -7,6 +7,12 @@ export {default as ChangelogIcon} from './link/Changelog.svelte';
 export {default as ExtensionIcon} from './link/Extension.svelte';
 export {default as ExternalLinkIcon} from './link/ExternalLink.svelte';
 
+export {default as GoIcon} from './languages/Go.svelte';
+export {default as CurlIcon} from './languages/Curl.svelte';
+export {default as RustIcon} from './languages/Rust.svelte';
+export {default as PythonIcon} from './languages/Python.svelte';
+export {default as JavascriptIcon} from './languages/Javascript.svelte';
+
 export {default as DownloadIcon} from './action/Download.svelte';
 export {default as SearchIcon} from './action/Search.svelte';
 export {default as FilterIcon} from './action/Filter.svelte';

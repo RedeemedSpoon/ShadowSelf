@@ -6,17 +6,22 @@
 
   interface Props {
     options: Option[] | string[];
+    fullIcons?: {[key: string]: Component};
+    callback?: (value: string) => void;
+    size?: 'small' | 'big';
     icon?: Component;
     value?: string;
     name: string;
   }
 
-  let {name, options, value, icon}: Props = $props();
+  let {name, options, value, icon, fullIcons, callback, size = 'big'}: Props = $props();
 
   let givenOptions: Option[] = $state([]);
+  let input = $state() as HTMLInputElement;
+  let key = $state(false);
+
   let btn: HTMLButtonElement;
   let select: HTMLDivElement;
-  let input: HTMLInputElement;
 
   if (typeof options[0] === 'string') {
     givenOptions = options.map((option) => {
@@ -39,8 +44,11 @@
     const target = e.target as HTMLLIElement;
     const span = btn.querySelector('span') as HTMLSpanElement;
 
-    span.innerText = target.innerText;
+    key = !key;
     input.value = target.id;
+    span.innerText = target.innerText;
+
+    if (callback) callback(input.value);
     btn.blur();
   }
 
@@ -61,20 +69,30 @@
   onclick={() => (btn.querySelector('span')!.innerText = input.value)}
   value={value || givenOptions[0].value} />
 
-<div bind:this={select} id="select-input" class="relative z-20 min-w-[15vw]">
-  <button type="button" bind:this={btn} onclick={handleBtnSelect}>
+<div bind:this={select} id="select-input" class="relative z-20 min-w-[9.5rem] {size === 'big' && '!min-w-[15vw]'}">
+  <button type="button" bind:this={btn} onclick={handleBtnSelect} class:little={size === 'small'}>
     <div class="flex items-center gap-2">
-      {#if icon}
-        {@const SvelteComponent = icon}
-        <SvelteComponent className="w-7 h-7 !stroke-none !fill-neutral-300" } />
-      {/if}
+      {#key key}
+        {#if icon || fullIcons}
+          {@const Icon = icon ? icon : fullIcons![input?.value.toLowerCase() || givenOptions[0].value]}
+          <Icon className="{size === 'small' ? 'w-5 h-5' : 'w-7 h-7'} !stroke-none !fill-neutral-300" } />
+        {/if}
+      {/key}
       <span>{givenOptions.find((option) => option.value === value)?.label || givenOptions[0].label}</span>
     </div>
-    <ChevronIcon className="rotate-90" />
+    <ChevronIcon className="{size === 'small' && 'w-5 h-5 mt-1'} !rotate-90" />
   </button>
   <ul onclick={handleSltClick} class:hidden={!$selectionInputOpen} aria-hidden={!$selectionInputOpen}>
     {#each givenOptions as option}
-      <li id={option.value}>{option.label}</li>
+      {#if fullIcons}
+        {@const Icon = fullIcons[option.value]}
+        <li class="flex items-center gap-2" id={option.value}>
+          <Icon className="{size === 'small' ? 'w-5 h-5' : 'w-7 h-7'} !stroke-none !fill-neutral-300" />
+          {option.label}
+        </li>
+      {:else}
+        <li id={option.value}>{option.label}</li>
+      {/if}
     {/each}
   </ul>
 </div>
@@ -82,6 +100,10 @@
 <style lang="postcss">
   ul {
     @apply max-h-[275px] overflow-y-scroll;
+  }
+
+  button.little {
+    @apply !px-2 !py-1 !text-lg;
   }
 
   li {
@@ -96,6 +118,6 @@
 
   #select-input ul {
     @apply absolute mt-4 rounded-xl shadow-2xl shadow-gray-950/50 ring-1 ring-gray-700/50;
-    @apply w-full transition-all duration-300 ease-in-out;
+    @apply !mx-0 w-full transition-all duration-300 ease-in-out;
   }
 </style>

@@ -129,22 +129,22 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 
   switch (kind) {
     case 'location':
-      if (!['US', 'CA', 'GB', 'SE'].includes(body.location!)) {
+      if (!['CA', 'GB', 'PL', 'SE'].includes(body.location!)) {
         return {error: 'Invalid location code'};
       }
       break;
 
     case 'identity':
       if (body.name!.trim().length < 2) {
-        return {err: 'Name must be at least 2 characters long'} as APIRequest;
+        return {error: 'Name must be at least 2 characters long'};
       }
 
       if (body.name!.length > 30) {
         return {error: 'Name is too long (<30 characters)'};
       }
 
-      if (/[^a-zA-Z\s'-]/.test(body.name!)) {
-        return {err: 'Name contains invalid characters'} as APIRequest;
+      if (!/^[\p{L}\p{N}\s]+$/u.test(body.name!)) {
+        return {error: 'Name contains invalid characters'};
       }
 
       if (body.sex !== 'male' && body.sex !== 'female') {
@@ -160,7 +160,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       }
 
       if (body.bio!.trim().length > 0 && body.bio!.trim().length < 10) {
-        return {err: 'Biography must be at least 10 characters long if provided'} as APIRequest;
+        return {error: 'Biography must be at least 10 characters long if provided'};
       }
 
       if (body.bio!.length > 126) {
@@ -182,7 +182,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       }
 
       const command = await $`id ${body.email!.split('@')[0]}`.quiet().nothrow();
-      return command.exitCode ? {error: 'Email address is already registered on our systems'} : body;
+      return command.exitCode === 0 ? {error: 'Email address is already registered on our systems'} : body;
     }
 
     case 'phone':

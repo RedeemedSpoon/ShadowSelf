@@ -21,11 +21,13 @@ export function formatPhoneNumber(phoneNumber: string): string {
   const cleaned = phoneNumber.replace(/\D/g, '');
 
   if (cleaned[0] === '1') {
-    return cleaned.replace(/^(\+?1)(\d{3})(\d{3})(\d{4})$/, '+$1 $2 $3 $4'); // United States / Canada
+    return cleaned.replace(/^(\+?1)(\d{3})(\d{3})(\d{4})$/, '+$1 $2 $3 $4'); // Canada
   } else if (cleaned[0] === '4' && cleaned[1] === '4') {
     return cleaned.replace(/^(\+?44)(\d{4})(\d{6})$/, '+$1 $2 $3'); // United Kingdom
   } else if (cleaned[0] === '4' && cleaned[1] === '6') {
     return cleaned.replace(/^(\+?46)(\d{2})(\d{3})(\d{2})(\d{2})$/, '+$1 $2 $3 $4 $5'); // Sweden
+  } else if (cleaned[0] === '4' && cleaned[1] === '8') {
+    return cleaned.replace(/^(\+?48)(\d{3})(\d{3})(\d{3})$/, '+$1 $2 $3 $4'); // Poland
   } else {
     return cleaned.replace(/^(\+?\d{1,4})(\d{1,4})(\d{1,4})(\d{1,4})$/, '+$1 $2 $3 $4'); // Rest of the world
   }

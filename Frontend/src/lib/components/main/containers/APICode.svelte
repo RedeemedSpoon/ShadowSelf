@@ -1,6 +1,7 @@
 <script lang="ts">
-  import {HTTPMethod} from '$component';
+  import {CurlIcon, GoIcon, JavascriptIcon, PythonIcon, RustIcon} from '$icon';
   import type {APIResponse, Languages, Route} from '$type';
+  import {HTTPMethod, SelectMenu} from '$component';
 
   interface Props {
     response?: APIResponse;
@@ -9,14 +10,27 @@
 
   let {response, route}: Props = $props();
 
+  const options = ['cURL', 'Python', 'Javascript', 'Rust', 'Go'];
+  const fullIcons = {
+    curl: CurlIcon,
+    python: PythonIcon,
+    javascript: JavascriptIcon,
+    rust: RustIcon,
+    go: GoIcon,
+  };
+
   let lang = $state('curl') as Languages;
+  const callback = (value: string) => {
+    lang = value as Languages;
+  };
 </script>
 
-<div class="rounded-t-xl bg-neutral-700 p-4">
+<div class="flex items-center justify-between rounded-t-xl bg-neutral-700 px-6 py-3">
   {#if response}
     <h5>Response</h5>
   {:else}
     <h5><HTTPMethod method={route?.method} alt={true} />{route?.url}</h5>
+    <SelectMenu {callback} {options} {fullIcons} size="small" name="lang" />
   {/if}
 </div>
 <div class="mb-8">

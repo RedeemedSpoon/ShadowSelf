@@ -118,12 +118,11 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           cookie.set({value: cookie.value + `&&${sanitizedEmail}`});
 
           const location = cookieStore[0];
-          const phoneType = location === 'US' ? 'tollFree' : location === 'CA' ? 'local' : 'mobile';
+          const phoneType = location === 'CA' ? 'local' : 'mobile';
 
           const result = await twilio.availablePhoneNumbers(location)[phoneType as 'local'].list({
             limit: 20,
             smsEnabled: true,
-            excludeAllAddressRequired: true,
           });
 
           const phone = result.map((phone) => ({phone: phone.phoneNumber, formatted: phone.friendlyName}));
