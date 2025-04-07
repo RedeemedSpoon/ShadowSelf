@@ -62,7 +62,7 @@
   <b>Authorization header</b> method.
 </p>
 <p>
-  You can use a tool like <code>curl</code> in your terminal. Replace <code>$API_KEY</code> with your actual key :
+  You can use a tool like <code>cURL</code> in your terminal. Replace <code>$API_KEY</code> with your actual key :
 </p>
 
 <pre class="language-curl"><code

@@ -1,7 +1,7 @@
 <script lang="ts">
   import 'highlight.js/styles/tokyo-night-dark.css';
-  import type {PageData} from './$types';
   import {APICode, HTTPMethod} from '$component';
+  import type {PageData} from './$types';
   import {formatCasing} from '$format';
   import {page} from '$app/state';
   import hljs from 'highlight.js';
@@ -15,6 +15,7 @@
   import python from 'highlight.js/lib/languages/python';
   import javascript from 'highlight.js/lib/languages/javascript';
 
+  hljs.configure({ignoreUnescapedHTML: true});
   hljs.registerLanguage('javascript', javascript);
   hljs.registerLanguage('python', python);
   hljs.registerLanguage('curl', curl);
@@ -63,7 +64,7 @@
   </ol>
   <span class="mr-12 w-0.5 self-stretch bg-neutral-700"></span>
   <section id="content" class="flex w-full flex-col gap-8 self-stretch">
-    <h1 class="basic-style text-6xl">API Documentation</h1>
+    <h1 class="basic-style text-6xl font-bold">API Documentation</h1>
     {#each data.docs.content as content, i}
       {@const Icon = content.icon}
       <h2 class="flex items-center gap-2 text-5xl text-neutral-300">
@@ -88,8 +89,8 @@
                 <RouteDescription />
               </section>
               <section class="mt-6 w-1/2">
-                <APICode {route} />
-                <APICode response={route.response} />
+                <APICode {hljs} {route} />
+                <APICode {hljs} response={route.response} />
               </section>
             {/each}
           </div>

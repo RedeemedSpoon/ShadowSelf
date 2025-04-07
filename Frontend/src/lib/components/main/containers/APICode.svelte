@@ -6,11 +6,15 @@
   interface Props {
     response?: APIResponse;
     route?: Route;
+    hljs?: any;
   }
 
-  let {response, route}: Props = $props();
+  let {response, route, hljs}: Props = $props();
 
+  let lang = $state('curl') as Languages;
+  const id = Math.random().toString(36).slice(2);
   const options = ['cURL', 'Python', 'Javascript', 'Rust', 'Go'];
+
   const fullIcons = {
     curl: CurlIcon,
     python: PythonIcon,
@@ -19,9 +23,9 @@
     go: GoIcon,
   };
 
-  let lang = $state('curl') as Languages;
   const callback = (value: string) => {
     lang = value as Languages;
+    setTimeout(() => hljs.highlightElement(document.getElementById(id)), 1);
   };
 </script>
 
@@ -37,7 +41,9 @@
   {#if response}
     <pre class="language-json"><code>{JSON.stringify(response, null, 2)}</code></pre>
   {:else}
-    <pre class="language-{lang}"><code>{route?.code[lang]}</code></pre>
+    {#key lang}
+      <pre {id} class="language-{lang}"><code>{route?.code[lang]}</code></pre>
+    {/key}
   {/if}
 </div>
 

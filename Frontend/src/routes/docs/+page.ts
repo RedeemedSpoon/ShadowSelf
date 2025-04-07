@@ -1,5 +1,5 @@
-import {BookIcon, DatabaseIcon, LightBulbIcon, RocketIcon, WebsocketIcon} from '$icon';
 import {UserIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
+import {BookIcon, DatabaseIcon, RocketIcon, WebsocketIcon} from '$icon';
 import * as HTMLContent from './content';
 import type {PageLoad} from './$types';
 import type {Docs} from '$type';
@@ -159,17 +159,11 @@ export const load: PageLoad = () => {
       routes: [
         {
           title: 'list identities',
-          description: HTMLContent.null,
+          description: HTMLContent.overview.description,
           url: '/',
           method: 'GET',
-          code: {
-            curl: '',
-            python: '',
-            javascript: '',
-            rust: '',
-            go: '',
-          },
-          response: {},
+          code: HTMLContent.overview.code,
+          response: HTMLContent.overview.response,
         },
       ],
     },

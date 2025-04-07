@@ -3,6 +3,7 @@ import type {Cookies} from '@sveltejs/kit';
 import type {Notification} from '$type';
 import {dev} from '$app/environment';
 import {get} from 'svelte/store';
+import path from 'path';
 
 export function notify(message: string, type: Notification['type'] = 'info') {
   const id = Math.floor(Math.random() * 10000);
