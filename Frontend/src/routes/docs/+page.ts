@@ -154,7 +154,8 @@ export const load: PageLoad = () => {
     },
     {
       title: 'data overview',
-      description: 'This section will explain how to retrieve all of your identities from the API.',
+      description:
+        'This section details how to retrieve your identity data via the API. It covers the primary endpoint for listing all your synthetic identities associated with your account. You can use the unique id returned for each identity in this list to perform more specific actions in subsequent API calls.',
       icon: DatabaseIcon,
       routes: [
         {

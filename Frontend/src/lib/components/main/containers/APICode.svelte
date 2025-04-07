@@ -31,28 +31,28 @@
 
 <div class="flex items-center justify-between rounded-t-xl bg-neutral-700 px-6 py-3">
   {#if response}
-    <h5>Response</h5>
+    <h6>Response</h6>
   {:else}
-    <h5><HTTPMethod method={route?.method} alt={true} />{route?.url}</h5>
+    <h6><HTTPMethod method={route?.method} alt={true} />{route?.url}</h6>
     <SelectMenu {callback} {options} {fullIcons} size="small" name="lang" />
   {/if}
 </div>
 <div class="mb-8">
   {#if response}
-    <pre class="language-json"><code>{JSON.stringify(response, null, 2)}</code></pre>
+    <pre class="language-json"><code class="!text-base">{JSON.stringify(response, null, 2)}</code></pre>
   {:else}
     {#key lang}
-      <pre {id} class="language-{lang}"><code>{route?.code[lang]}</code></pre>
+      <pre {id} class="language-{lang}"><code class="!text-base">{route?.code[lang]}</code></pre>
     {/key}
   {/if}
 </div>
 
 <style lang="postcss">
-  h5 {
+  h6 {
     @apply font-sans text-lg font-semibold text-neutral-300;
   }
 
   pre {
-    @apply !rounded-t-none;
+    @apply w-full overflow-x-scroll !rounded-t-none;
   }
 </style>

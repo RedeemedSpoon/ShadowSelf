@@ -1,1 +1,24 @@
-{}
+[
+  {
+    "id": "iqe38349c0ab",
+    "picture": "VBORw0KGgoAAAANSUhEUgAAA...",
+    "name": "Jane Doe",
+    "email": "jane@shadowself.io",
+    "phone": "+157761348902",
+    "card": 4315343685134104,
+    "country": "CA",
+    "location": "Toronto, Canada",
+    "accounts": 21
+  },
+  {
+    "id": "awe9ff12a4de",
+    "picture": "U43Feql4+LpjAucJ5RRqgmW...",
+    "name": "John Smith",
+    "email": "jsmith@shadowself.io",
+    "phone": "+443639910827",
+    "card": 4156253336608285,
+    "country": "GB",
+    "location": "London, United Kingdom",
+    "accounts": 6
+  }
+]

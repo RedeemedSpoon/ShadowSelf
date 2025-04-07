@@ -23,7 +23,7 @@ export default (app: Elysia) =>
     if (!user) user = await jwt.verify(token);
     if (!user) return error(401, 'You are not authenticated correctly');
 
-    if (path.slice(-4) === '/api' || path.slice(-9) === '/api/test') return {user};
+    if (path.slice(-4) === '/api' || path.slice(-5) === '/api/' || path.slice(-9) === '/api/test') return {user};
 
     const identityID = (params as {id: string}).id;
     const result = await attempt(sql`SELECT * FROM users WHERE email = ${user.email}`);

@@ -54,7 +54,7 @@
         </li>
         {#each section.more as subsection}
           {@const hash = subsection.title.replace(/\s/g, '-')}
-          <li aria-hidden="true" onclick={() => scrollTo(hash)} class={anchor === hash ? 'anchor' : ''}>
+          <li aria-hidden="true" onclick={() => scrollTo(hash)} class="{anchor === hash && 'anchor'} flex items-center gap-2">
             <HTTPMethod method={subsection.method} />
             {formatCasing(subsection.title)}
           </li>
@@ -79,11 +79,11 @@
           <p>{content.description}</p>
         {/if}
         {#if content.routes}
-          <div class="flex gap-8 p-8">
+          <div class="-mt-5 flex gap-8 p-4">
             {#each content.routes as route}
               {@const RouteDescription = route.description}
               <section class="w-1/2">
-                <h3 id={route.title.replace(/\s/g, '-')}>
+                <h3 class="mb-6" id={route.title.replace(/\s/g, '-')}>
                   {formatCasing(route.title)} :
                 </h3>
                 <RouteDescription />
@@ -129,12 +129,28 @@
     @apply border-primary-700 mt-6 w-fit scroll-mt-[12.5rem] border-b-2 pb-4 text-4xl text-neutral-300;
   }
 
+  :global(#content h5) {
+    @apply mb-3 pt-6 text-2xl text-neutral-300;
+  }
+
   :global(#content code) {
     @apply rounded-xl bg-neutral-800 px-2 font-mono text-lg;
   }
 
   :global(#content code.alt) {
     @apply px-4 py-3 text-lg text-neutral-300;
+  }
+
+  :global(#content .response-body code) {
+    @apply px-2 py-1;
+  }
+
+  :global(#content .response-body .string) {
+    @apply text-green-600;
+  }
+
+  :global(#content .response-body .integer) {
+    @apply text-yellow-600;
   }
 
   :global(#content .hint-container) {
