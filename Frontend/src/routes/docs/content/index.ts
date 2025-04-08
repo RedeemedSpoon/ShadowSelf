@@ -1,6 +1,6 @@
 export {default as gettingStarted} from './getting-started.svelte';
 export {default as introduction} from './introduction.svelte';
-export {default as virtualCard} from 'virtualCard.svelte';
+export {default as virtualCard} from './virtualCard.svelte';
 export {default as websocket} from './websocket.svelte';
 
 export {default as phoneNumber} from './phone-number';

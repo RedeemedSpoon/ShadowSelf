@@ -1,6 +1,6 @@
 import retrieveConversation from './retrieve-conversation';
-import retrieveMessages from './retrieve-messages';
 import deleteConversation from './delete-conversation';
+import retrieveMessages from './retrieve-messages';
 import sendMessage from './send-message';
 import type {Route} from '$type';
 

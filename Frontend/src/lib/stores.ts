@@ -16,12 +16,10 @@ export const scrollYProgress: Writable<number> = writable(0);
 export const modalIndex: Writable<number> = writable(0);
 export const fetchIndex: Writable<number> = writable(0);
 
-export const selectionMenuOpen: Writable<boolean> = writable(false);
-export const selectionInputOpen: Writable<boolean> = writable(false);
-
 export const identity: Writable<FullIdentity> = writable();
 export const masterPassword: Writable<string> = writable();
 export const handleResponse: Writable<(response: WebSocketMessage) => void> = writable(() => {});
 
+export const selectionMenuOpen: Writable<boolean> = writable(false);
 export const notification: Writable<Notification> = writable({id: null, message: '', type: 'info'});
 export const pricingModel: Writable<PricingModel> = writable({name: 'Monthly', ...allPricingModels.monthly});

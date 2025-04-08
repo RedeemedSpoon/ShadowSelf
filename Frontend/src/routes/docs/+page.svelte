@@ -28,7 +28,7 @@
   let anchor = $state(page.url.hash?.slice(1));
 
   const scrollTo = (hash: string) => {
-    window.location.hash = hash;
+    if (hash) window.location.hash = hash;
     anchor = hash;
   };
 
@@ -79,9 +79,9 @@
           <p>{content.description}</p>
         {/if}
         {#if content.routes}
-          <div class="-mt-5 flex gap-8 p-4">
-            {#each content.routes as route}
-              {@const RouteDescription = route.description}
+          {#each content.routes as route}
+            {@const RouteDescription = route.description}
+            <div class="-mt-5 flex gap-8 p-4">
               <section class="w-1/2">
                 <h3 class="mb-6" id={route.title.replace(/\s/g, '-')}>
                   {formatCasing(route.title)} :
@@ -92,8 +92,8 @@
                 <APICode {hljs} {route} />
                 <APICode {hljs} response={route.response} />
               </section>
-            {/each}
-          </div>
+            </div>
+          {/each}
         {/if}
       </div>
       {#if i !== data.docs.content.length - 1}

@@ -1,6 +1,5 @@
 <script lang="ts">
   import {onMount, type Component} from 'svelte';
-  import {selectionInputOpen} from '$store';
   import type {Option} from '$type';
   import {ChevronIcon} from '$icon';
 
@@ -16,6 +15,7 @@
 
   let {name, options, value, icon, fullIcons, callback, size = 'big'}: Props = $props();
 
+  let selectionInputOpen = $state(false);
   let givenOptions: Option[] = $state([]);
   let input = $state() as HTMLInputElement;
   let key = $state(false);
@@ -33,13 +33,13 @@
 
   function handleBtnSelect(e: MouseEvent) {
     e.stopPropagation();
-    if ($selectionInputOpen) btn.blur();
-    $selectionInputOpen = !$selectionInputOpen;
+    if (selectionInputOpen) btn.blur();
+    selectionInputOpen = !selectionInputOpen;
   }
 
   function handleSltClick(e: MouseEvent) {
     e.stopPropagation();
-    $selectionInputOpen = false;
+    selectionInputOpen = false;
 
     const target = e.target as HTMLLIElement;
     const span = btn.querySelector('span') as HTMLSpanElement;
@@ -54,7 +54,7 @@
 
   onMount(() => {
     function handleClick(e: MouseEvent) {
-      if (!select.contains(e.target as Node)) $selectionInputOpen = false;
+      if (!select.contains(e.target as Node)) selectionInputOpen = false;
     }
 
     document.addEventListener('click', handleClick);
@@ -82,7 +82,7 @@
     </div>
     <ChevronIcon className="{size === 'small' && 'w-5 h-5 mt-1'} !rotate-90" />
   </button>
-  <ul onclick={handleSltClick} class:hidden={!$selectionInputOpen} aria-hidden={!$selectionInputOpen}>
+  <ul onclick={handleSltClick} class:hidden={!selectionInputOpen} aria-hidden={!selectionInputOpen}>
     {#each givenOptions as option}
       {#if fullIcons}
         {@const Icon = fullIcons[option.value]}
