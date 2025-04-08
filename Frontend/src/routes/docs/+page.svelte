@@ -141,16 +141,20 @@
     @apply px-4 py-3 text-lg text-neutral-300;
   }
 
-  :global(#content .response-body code) {
-    @apply px-2 py-1;
-  }
-
-  :global(#content .response-body .string) {
+  :global(#content .string) {
     @apply text-green-600;
   }
 
-  :global(#content .response-body .integer) {
+  :global(#content .integer) {
     @apply text-yellow-600;
+  }
+
+  :global(#content .boolean) {
+    @apply text-blue-600;
+  }
+
+  :global(#content .optional) {
+    @apply font-semibold italic;
   }
 
   :global(#content .hint-container) {
