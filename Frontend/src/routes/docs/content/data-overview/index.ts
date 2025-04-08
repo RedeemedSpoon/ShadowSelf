@@ -1,5 +1,5 @@
-import type {Route} from '$type';
 import listIdentities from './list-identities';
+import type {Route} from '$type';
 
 const routes: Route[] = [
   {

@@ -94,7 +94,7 @@ export const load: PageLoad = () => {
       description:
         'This section details how to retrieve your identity data via the API. It covers the primary endpoint for listing all your synthetic identities associated with your account. You can use the unique id returned for each identity in this list to perform more specific actions in subsequent API calls.',
       icon: DatabaseIcon,
-      routes: rawContent.overview,
+      routes: rawContent.dataOverview,
     },
     {
       title: 'general information',
@@ -116,9 +116,8 @@ export const load: PageLoad = () => {
     },
     {
       title: 'virtual card',
-      description: '',
+      description: rawContent.virtualCard,
       icon: CreditCardIcon,
-      routes: rawContent.virtualCard,
     },
     {
       title: 'online accounts',
