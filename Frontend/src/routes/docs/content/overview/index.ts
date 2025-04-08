@@ -1,17 +1,15 @@
-import DescriptionComponent from './description.svelte';
+import type {Route} from '$type';
+import listIdentities from './list-identities';
 
-const modules = import.meta.glob('./*', {eager: true, as: 'raw'});
-
-const filesData = {
-  description: DescriptionComponent,
-  response: JSON.parse(modules['./response.json']),
-  code: {
-    go: modules['./example.go'],
-    javascript: modules['./example.js'],
-    python: modules['./example.py'],
-    rust: modules['./example.rs'],
-    curl: modules['./example.sh'],
+const routes: Route[] = [
+  {
+    title: 'list identities',
+    description: listIdentities.description,
+    url: '/',
+    method: 'GET',
+    code: listIdentities.code,
+    response: listIdentities.response,
   },
-};
+];
 
-export default filesData;
+export default routes;
