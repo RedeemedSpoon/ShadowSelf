@@ -1,1 +1,43 @@
-{}
+{
+  "messagesCount": 125,
+  "sentMessagesCount": 58,
+  "draftsMessagesCount": 3,
+  "junkMessagesCount": 12,
+  "inbox": [
+    {
+      "uid": 125,
+      "messageID": "<b4a7e1f0-1234-5678-abcd-ef1234567890@example.com>",
+      "from": "sender@example.com",
+      "to": "jane.doe@shadowself.io",
+      "subject": "Project Update",
+      "date": "2023-10-27T14:30:00Z",
+      "body": "Here is the latest update...",
+      "type": "text",
+      "inReplyTo": null,
+      "references": [],
+      "attachments": [
+        {
+          "filename": "report.pdf",
+          "data": "JVBERi0xLjcK..."
+        }
+      ]
+    }
+  ],
+  "sent": [
+    {
+      "uid": 58,
+      "messageID": "<a1b2c3d4-e5f6-7890-1234-567890abcdef@shadowself.io>",
+      "from": "jane.doe@shadowself.io",
+      "to": "recipient@example.org",
+      "subject": "Re: Meeting Request",
+      "date": "2023-10-26T09:15:00Z",
+      "body": "Yes, that time works...",
+      "type": "text",
+      "inReplyTo": "<f0e9d8c7-b6a5-4321-fedc-ba0987654321@example.org>",
+      "references": ["<f0e9d8c7-b6a5-4321-fedc-ba0987654321@example.org>"],
+      "attachments": []
+    }
+  ],
+  "drafts": [],
+  "junk": []
+}

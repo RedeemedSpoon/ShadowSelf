@@ -149,7 +149,7 @@
     @apply text-yellow-600;
   }
 
-  :global(#content .boolean) {
+  :global(#content .array) {
     @apply text-blue-600;
   }
 

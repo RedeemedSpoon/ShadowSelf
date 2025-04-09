@@ -1,1 +1,21 @@
-{}
+{
+  "draft": 123,
+  "sentEmail": {
+    "uid": 59,
+    "messageID": "<e5d4c3b2-a1f0-e9d8-c7b6-a543210fedcb@shadowself.io>",
+    "from": "jane.doe@shadowself.io",
+    "to": "recipient@example.com",
+    "subject": "API Test Email",
+    "date": "2023-10-28T11:00:00Z",
+    "body": "This is the <b>HTML</b> body of the test email.",
+    "type": "html",
+    "attachments": [
+      {
+        "filename": "document.pdf",
+        "data": "JVBERi0xLjcK..."
+      }
+    ],
+    "inReplyTo": "<f0e9d8c7-b6a5-4321-fedc-ba0987654321@example.org>",
+    "references": ["<f0e9d8c7-b6a5-4321-fedc-ba0987654321@example.org>"]
+  }
+}

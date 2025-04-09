@@ -1,1 +1,22 @@
-{}
+{
+  "draft": 45,
+  "savedDraft": {
+    "uid": 48,
+    "messageID": null,
+    "mailbox": "Drafts",
+    "from": "jane.doe@shadowself.io",
+    "to": "recipient@example.com",
+    "subject": "Updated Draft Subject",
+    "body": "Continuing to write this email...",
+    "type": "text",
+    "date": "2023-10-28T13:00:00Z",
+    "attachments": [
+      {
+        "filename": "idea.txt",
+        "data": "VGhpcyBpcyBteSB..."
+      }
+    ],
+    "inReplyTo": "<f0e9d8c7-b6a5-4321-fedc-ba0987654321@example.org>",
+    "references": ["<f0e9d8c7-b6a5-4321-fedc-ba0987654321@example.org>"]
+  }
+}

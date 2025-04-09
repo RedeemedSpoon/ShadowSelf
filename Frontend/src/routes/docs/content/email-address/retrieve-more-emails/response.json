@@ -1,1 +1,19 @@
-{}
+{
+  "mailbox": "INBOX",
+  "since": 104,
+  "nextEmails": [
+    {
+      "uid": 103,
+      "messageID": "<d2c1b0a9-f8e7-d6c5-b4a3-210987fedcba@domain.com>",
+      "from": "another.sender@domain.com",
+      "to": "jane.doe@shadowself.io",
+      "subject": "Follow Up",
+      "date": "2023-10-25T17:05:00Z",
+      "body": "Just checking in...",
+      "type": "text",
+      "inReplyTo": null,
+      "references": [],
+      "attachments": []
+    }
+  ]
+}
