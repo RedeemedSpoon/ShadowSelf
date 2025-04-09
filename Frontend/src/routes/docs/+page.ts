@@ -124,7 +124,8 @@ export const load: PageLoad = () => {
     },
     {
       title: 'online accounts',
-      description: '',
+      description:
+        "This section details the API endpoints for managing stored online account credentials associated with your synthetic identities. You can securely store website login information (username, password, website URL) and Time-based One-Time Password (TOTP) secrets for accounts you've signed up for using the identity's email or phone number, name etc...",
       icon: MultiUsersIcon,
       routes: rawContent.onlineAccounts,
     },

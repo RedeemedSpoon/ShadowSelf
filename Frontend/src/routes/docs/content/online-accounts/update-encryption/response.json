@@ -1,1 +1,13 @@
-{}
+{
+  "accounts": [
+    {
+      "id": 101,
+      "password": "U2FsdGVkX1+NewKeyEncPassDataOne==",
+      "totp": "U2FsdGVkX1+NewKeyEncTotpDataOne=="
+    },
+    {
+      "id": 102,
+      "password": "U2FsdGVkX1+NewKeyEncPassDataTwo=="
+    }
+  ]
+}
