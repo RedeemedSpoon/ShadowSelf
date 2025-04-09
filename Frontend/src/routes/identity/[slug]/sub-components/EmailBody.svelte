@@ -15,8 +15,8 @@
     <p class="text-sm text-neutral-500">{email.date}</p>
   </div>
   <div class="md:w-1/2">
-    <p class="text-sm text-neutral-400 md:text-right">From : {email.from}</p>
-    <p class="text-sm text-neutral-400 md:text-right">To : {email.to}</p>
+    <p class="text-sm text-neutral-400 md:text-right">From: {email.from}</p>
+    <p class="text-sm text-neutral-400 md:text-right">To: {email.to}</p>
   </div>
 </div>
 {#if email?.type === 'html'}
@@ -33,7 +33,7 @@
 
 {#if email?.attachments?.length && email?.attachments.length > 0}
   <div class="flex max-h-[10rem] flex-col gap-4 overflow-y-auto p-4">
-    <h3 class="!text-2xl text-neutral-300">{email.attachments.length} Attachment{email.attachments.length > 1 ? 's' : ''} :</h3>
+    <h3 class="!text-2xl text-neutral-300">{email.attachments.length} Attachment{email.attachments.length > 1 ? 's' : ''}:</h3>
     {#each email.attachments as attachment}
       <a href={URL.createObjectURL(base64ToBlob(attachment.data, 'application/octet-stream'))} download={attachment.filename}>
         <AttachmentIcon className="!w-6 !h-6" />{attachment.filename}</a>

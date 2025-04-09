@@ -84,7 +84,7 @@
             <div class="-mt-5 flex gap-8 p-4">
               <section class="w-1/2">
                 <h3 class="mb-6" id={route.title.replace(/\s/g, '-')}>
-                  {formatCasing(route.title)} :
+                  {formatCasing(route.title)}:
                 </h3>
                 <RouteDescription />
               </section>
@@ -151,6 +151,10 @@
 
   :global(#content .array) {
     @apply text-blue-600;
+  }
+
+  :global(#content .object) {
+    @apply text-red-600;
   }
 
   :global(#content .optional) {

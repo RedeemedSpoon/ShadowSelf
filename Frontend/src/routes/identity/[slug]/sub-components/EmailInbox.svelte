@@ -42,12 +42,12 @@
       </div>
       <div class="[*&>p]:!text-neutral-4 w-full md:w-1/2 [*&>p]:!truncate [*&>p]:!text-sm [*&>p]:md:!text-right">
         {#if label === 'INBOX'}
-          <p>From : {email.from}</p>
+          <p>From: {email.from}</p>
         {:else if label === 'Junk'}
-          <p>From : {email.from}</p>
-          <p>To : {email.to}</p>
+          <p>From: {email.from}</p>
+          <p>To: {email.to}</p>
         {:else}
-          <p>To : {email.to}</p>
+          <p>To: {email.to}</p>
         {/if}
       </div>
     </div>
@@ -83,7 +83,7 @@
   </section>
 {:else if label === 'Junk'}
   <section class="no-emails" style="background-image: url({shredder});">
-    <h3 class="mt-12">No Junk :)</h3>
+    <h3 class="mt-12">No Junk:)</h3>
     <p class="text-center md:w-1/2">No junk emails here! Keep it that way by sending only the emails you care about to your inbox.</p>
   </section>
 {/if}

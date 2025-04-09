@@ -107,7 +107,7 @@
   {#if $discussion}
     {@const body = $discussion.body.length > 45 ? $discussion.body.slice(0, 45).trim() + '...' : $discussion.body}
     <p class="ml-8 text-sm text-neutral-300">
-      &#8625 Replying to : <span class="text-neutral-500">{body}</span>
+      &#8625 Replying to: <span class="text-neutral-500">{body}</span>
     </p>
   {:else}
     <h3 class="text-center text-3xl text-neutral-300 md:text-5xl">{title}</h3>

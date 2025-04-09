@@ -28,14 +28,14 @@
   </p>
   <ul>
     <li>
-      <b>Protect Your True Identity :</b> Shield your personal information from prying eyes, reducing your vulnerability to cyber threats.
+      <b>Protect Your True Identity:</b> Shield your personal information from prying eyes, reducing your vulnerability to cyber threats.
     </li>
     <li>
-      <b>Enhance Online Security :</b> Create multiple layers of defense, making it significantly harder for malicious actors to compromise
+      <b>Enhance Online Security:</b> Create multiple layers of defense, making it significantly harder for malicious actors to compromise
       your security.
     </li>
     <li>
-      <b>Experience Digital Freedom :</b> Explore the internet without limitations, unburdened by the fear of being tracked or profiled.
+      <b>Experience Digital Freedom:</b> Explore the internet without limitations, unburdened by the fear of being tracked or profiled.
     </li>
   </ul>
   <h1>Our Commitment</h1>

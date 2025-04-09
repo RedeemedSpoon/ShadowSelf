@@ -29,7 +29,7 @@
   web-based dashboard provides a user-friendly interface for managing personas, we understand the need for automation, integration, and
   more advanced control that only an API can offer.
 </p>
-<p>Here are key objectives of this API include :</p>
+<p>Here are key objectives of this API include:</p>
 <ul>
   <li>
     <b>Automation:</b> Automate tasks like sending emails, replies to SMS, or interacting with third-party APIs.
@@ -56,7 +56,7 @@
 <h3 id="use-cases">Use Cases</h3>
 <p>
   The ShadowSelf API opens up a variety of possibilities for developers and advanced users. Here are a few concrete examples
-  illustrating how you might leverage the API :
+  illustrating how you might leverage the API:
 </p>
 <ul>
   <li>
@@ -93,7 +93,7 @@
 </p>
 
 <h3 id="feedback-&-contributions">Feedback and Contributions</h3>
-<p>We are continuously looking to <b>improve and expand</b> the ShadowSelf API. If you :</p>
+<p>We are continuously looking to <b>improve and expand</b> the ShadowSelf API. If you:</p>
 <ul>
   <li>Feel an important section or piece of information is missing from this documentation.</li>
   <li>Have suggestions for new API routes or features.</li>

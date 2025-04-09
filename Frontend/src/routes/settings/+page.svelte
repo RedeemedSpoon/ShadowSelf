@@ -144,24 +144,24 @@
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
-    <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials :</h2>
+    <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials:</h2>
     <form use:enhance={() => updateFetch(true, 1, true)} method="POST" action="?/email">
-      <label class="md:!w-fit" for="email">Email :</label>
+      <label class="md:!w-fit" for="email">Email:</label>
       <InputWithButton value={settings.email} placeholder="New address" type="email" index={1} label="Change Email" name="email" />
     </form>
     <form use:enhance={() => updateFetch(true, 3)} method="POST" action="?/username">
-      <label class="md:!w-fit" for="username">Username :</label>
+      <label class="md:!w-fit" for="username">Username:</label>
       <InputWithButton placeholder="New username" value={data.user} index={3} label="Change Username" name="username" />
     </form>
     <form use:enhance={() => updateFetch(true, 4)} method="POST" action="?/password">
-      <label class="md:!w-fit" for="password">Password :</label>
+      <label class="md:!w-fit" for="password">Password:</label>
       <InputWithButton placeholder="New password" type="password" index={4} label="Change Password" name="password" />
     </form>
     <hr />
 
-    <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" fill={true} />Two Factor Authentication :</h2>
+    <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" fill={true} />Two Factor Authentication:</h2>
     <form class="!gap-4" use:enhance={({formData}) => updateModal(2, !formData.has('remove'))} method="POST" action="?/checkOtp">
-      <label for="totp">Time-based one-time password :</label>
+      <label for="totp">Time-based one-time password:</label>
       {#if settings.OTP}
         <button formaction="?/generateOtp" type="submit" class="w-fit">Change 2FA</button>
         <button formaction="?/deleteOtp" type="submit" name="remove" class="disable w-fit">Remove 2FA</button>
@@ -171,7 +171,7 @@
     </form>
     <form class="flex-col" use:enhance method="POST" action="?/recovery">
       <div class="flex justify-between gap-4 max-md:flex-col md:items-center">
-        <label for="recovery">Remaining Recovery Codes :</label>
+        <label for="recovery">Remaining Recovery Codes:</label>
         <button disabled={!settings.OTP} type="submit" class="w-fit">Generate New Recovery Codes</button>
       </div>
     </form>
@@ -193,9 +193,9 @@
     {/if}
     <hr />
 
-    <h2 id="api"><KeyIcon className="!h-10 !w-10 cursor-default" />API Access & Key :</h2>
+    <h2 id="api"><KeyIcon className="!h-10 !w-10 cursor-default" />API Access & Key:</h2>
     <form use:enhance method="POST" action="?/toggleApi">
-      <label for="access">API Access :</label>
+      <label for="access">API Access:</label>
       {#if settings.API}
         <button name="disable" type="submit" class="disable w-fit">Disable API Access</button>
       {:else}
@@ -204,7 +204,7 @@
     </form>
     <form use:enhance method="POST" action="?/api">
       <div class="flex gap-4 max-md:flex-col md:items-center">
-        <label class="w-fit" for="key">API Key :</label>
+        <label class="w-fit" for="key">API Key:</label>
         {#if settings.API}
           <CopyButton text={settings.key} className="md:max-lg:max-w-[20vw]" change={false} />
         {/if}
@@ -213,9 +213,9 @@
     </form>
     <hr />
 
-    <h2 id="billing"><CreditCardIcon fill={true} className="!h-10 !w-10 cursor-default" />Billing Information :</h2>
+    <h2 id="billing"><CreditCardIcon fill={true} className="!h-10 !w-10 cursor-default" />Billing Information:</h2>
     <form>
-      <p class="text-xl font-semibold text-neutral-300">Payment Details :</p>
+      <p class="text-xl font-semibold text-neutral-300">Payment Details:</p>
       {#if settings.sessionUrl}
         <a href={settings.sessionUrl} target="_blank" rel="noopener noreferrer" id="stripe-link">Manage<ExternalLinkIcon /></a>
       {:else}
@@ -224,15 +224,15 @@
     </form>
     <hr />
 
-    <h2 id="danger"><InfoIcon fill={true} className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone :</h2>
+    <h2 id="danger"><InfoIcon fill={true} className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone:</h2>
     <form use:enhance={() => updateModal(0)} method="POST" action="?/session">
-      <label for="logout">Session Management :</label>
+      <label for="logout">Session Management:</label>
       <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>
       <button type="button" onclick={() => ($modalIndex = 4)} class="md:w-fit" name="revoke">Revoke All Session</button>
       <ConfirmModal id={4} name="revoke" text="Revoking all sessions" />
     </form>
     <form use:enhance={() => updateModal(0)} method="POST" action="?/delete">
-      <label for="delete">Account Deletion :</label>
+      <label for="delete">Account Deletion:</label>
       <button onclick={() => ($modalIndex = 5)} type="button" class="disable md:w-fit">Delete Account</button>
       <ConfirmModal id={5} name="delete" text="Deleting your account" />
     </form>

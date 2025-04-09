@@ -242,7 +242,7 @@
       {@const _ = fetchReply($target.inReplyTo)}
       {#each $reply as email}
         <h3 class="mt-8 flex items-center gap-2 !text-2xl text-neutral-300">
-          <ReplyIcon />In Reply To :
+          <ReplyIcon />In Reply To:
         </h3>
         <EmailBody {email} />
       {/each}

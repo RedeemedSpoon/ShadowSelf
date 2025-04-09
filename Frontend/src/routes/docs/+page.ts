@@ -98,19 +98,22 @@ export const load: PageLoad = () => {
     },
     {
       title: 'general information',
-      description: '',
+      description:
+        "This section covers API endpoints for managing your identity's general information, including name, bio, and picture. You can retrieve and update these details using the appropriate endpoints.",
       icon: UserIcon,
       routes: rawContent.generalInformation,
     },
     {
       title: 'email address',
-      description: '',
+      description:
+        "This section details the API endpoints for managing the email functionality associated with your synthetic identities. These endpoints allow you to interact with the identity's dedicated email account, enabling actions like retrieving emails, sending new messages, managing drafts, and deleting emails programmatically.",
       icon: EmailIcon,
       routes: rawContent.emailAddress,
     },
     {
       title: 'phone number',
-      description: '',
+      description:
+        'This section covers API endpoints for interacting with the virtual phone number associated with your synthetic identities, specifically for sending and receiving SMS messages. You can retrieve message history, fetch full conversations, send new messages, and manage conversations programmatically.',
       icon: PhoneIcon,
       routes: rawContent.phoneNumber,
     },
