@@ -25,7 +25,7 @@
         <code>attachments</code> (<span class="array">array</span>, <span class="optional">optional</span>): Array of attachment
         objects (max 10). Each object:
         <ul>
-          <li><code>filename</code> (<span class="string">string</span>)</li>
+          <li><code>filename</code> (<span class="string">string</span>): Filename.</li>
           <li><code>data</code> (<span class="string">string</span>): Base64 content (max ~15MB).</li>
         </ul>
       </li>

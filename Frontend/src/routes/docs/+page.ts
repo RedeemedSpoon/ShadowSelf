@@ -74,7 +74,7 @@ export const load: PageLoad = () => {
     {
       title: 'websocket',
       icon: WebsocketIcon,
-      more: [{title: 'email'}, {title: 'message'}],
+      more: [{title: 'email type'}, {title: 'message type'}],
     },
   ];
 
@@ -131,8 +131,10 @@ export const load: PageLoad = () => {
     },
     {
       title: 'websocket',
-      description: rawContent.websocket,
+      description: rawContent.websocketDesc,
       icon: WebsocketIcon,
+      // @ts-expect-error I don4t feel like explaining.
+      routes: rawContent.websocket,
     },
   ];
 

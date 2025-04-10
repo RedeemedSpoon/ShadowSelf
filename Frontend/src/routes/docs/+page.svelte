@@ -74,10 +74,17 @@
       <div class="flex flex-col gap-4">
         {#if typeof content.description === 'function'}
           {@const Description = content.description}
-          <Description />
+          {#if content.title === 'websocket'}
+            <Description>
+              <APICode {hljs} websocket={content.routes} />
+            </Description>
+          {:else}
+            <Description />
+          {/if}
         {:else}
           <p>{content.description}</p>
         {/if}
+
         {#if content.routes}
           {#each content.routes as route}
             {@const RouteDescription = route.description}

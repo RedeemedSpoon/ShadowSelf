@@ -46,7 +46,7 @@
   <li>
     <code>attachments</code> (<span class="array">array</span>): An array of attachment objects. Each object contains:
     <ul>
-      <li><code>filename</code> (<span class="string">string</span>)</li>
+      <li><code>filename</code> (<span class="string">string</span>): Name of the attachment file.</li>
       <li><code>data</code> (<span class="string">string</span>): Base64 encoded attachment data.</li>
     </ul>
   </li>

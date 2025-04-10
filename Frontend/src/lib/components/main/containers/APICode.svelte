@@ -5,11 +5,12 @@
 
   interface Props {
     response?: APIResponse;
+    websocket?: unknown;
+    hljs?: unknown;
     route?: Route;
-    hljs?: any;
   }
 
-  let {response, route, hljs}: Props = $props();
+  let {websocket, response, route, hljs}: Props = $props();
 
   let lang = $state('curl') as Languages;
   const id = Math.random().toString(36).slice(2);
@@ -25,6 +26,7 @@
 
   const callback = (value: string) => {
     lang = value as Languages;
+    // @ts-expect-error Unknown object
     setTimeout(() => hljs.highlightElement(document.getElementById(id)), 1);
   };
 </script>
@@ -32,6 +34,9 @@
 <div class="flex items-center justify-between rounded-t-xl bg-neutral-700 px-6 py-3">
   {#if response}
     <h6>Response</h6>
+  {:else if websocket}
+    <h6>Websocket</h6>
+    <SelectMenu {callback} {options} {fullIcons} size="small" name="lang" />
   {:else}
     <h6><HTTPMethod method={route?.method} alt={true} />{route?.url}</h6>
     <SelectMenu {callback} {options} {fullIcons} size="small" name="lang" />
@@ -42,7 +47,8 @@
     <pre class="language-json"><code class="!text-base">{JSON.stringify(response, null, 2)}</code></pre>
   {:else}
     {#key lang}
-      <pre {id} class="language-{lang}"><code class="!text-base">{route?.code[lang]}</code></pre>
+      {@const code = route?.code[lang] || (websocket as {[key in Languages]: string})[lang]}
+      <pre {id} class="language-{lang}"><code class="!text-base">{code}</code></pre>
     {/key}
   {/if}
 </div>
