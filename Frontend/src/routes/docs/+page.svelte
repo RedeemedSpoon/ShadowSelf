@@ -44,7 +44,7 @@
 </svelte:head>
 
 <div id="docs">
-  <ol class="max-h-[calc(100vh-12.5rem)]">
+  <ol class="max-h-[calc(100vh-12.5rem)] max-2xl:!hidden">
     {#each data.docs.sections as section}
       {@const Icon = section.icon}
       <ul class="mt-6">
@@ -62,16 +62,16 @@
       </ul>
     {/each}
   </ol>
-  <span class="mr-12 w-0.5 self-stretch bg-neutral-700"></span>
-  <section id="content" class="flex w-full flex-col gap-8 self-stretch">
-    <h1 class="basic-style text-6xl font-bold">API Documentation</h1>
+  <span class="mr-[1.5vw] w-0.5 self-stretch bg-neutral-700 max-2xl:!hidden"></span>
+  <section id="content" class="flex flex-col gap-8 self-stretch xl:w-3/4 xl:max-2xl:mx-auto">
+    <h1 class="basic-style text-4xl font-bold md:text-6xl">API Documentation</h1>
     {#each data.docs.content as content, i}
       {@const Icon = content.icon}
-      <h2 class="flex items-center gap-2 text-5xl text-neutral-300">
-        <Icon className="h-14 w-14 !stroke-neutral-300 cursor-default" fill={false} />
+      <h2 class="flex items-center gap-2 text-4xl text-neutral-300 md:text-5xl">
+        <Icon className="h-10 md:h-14 w-10 md:w-14 !stroke-neutral-300 cursor-default" fill={false} />
         {formatCasing(content.title)}
       </h2>
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-4 max-lg:max-w-[calc(100vw-2rem)]">
         {#if typeof content.description === 'function'}
           {@const Description = content.description}
           {#if content.title === 'websocket'}
@@ -88,14 +88,14 @@
         {#if content.routes}
           {#each content.routes as route}
             {@const RouteDescription = route.description}
-            <div class="-mt-5 flex gap-8 p-4">
-              <section class="w-1/2">
+            <div class="max-lg:max-w-screen -mt-5 flex gap-8 max-xl:flex-col md:p-4">
+              <section class="2xl:w-1/2">
                 <h3 class="mb-6" id={route.title.replace(/\s/g, '-')}>
                   {formatCasing(route.title)}:
                 </h3>
                 <RouteDescription />
               </section>
-              <section class="mt-6 w-1/2">
+              <section class="mt-6 2xl:w-1/2">
                 <APICode {hljs} {route} />
                 <APICode {hljs} response={route.response} />
               </section>
@@ -112,15 +112,15 @@
 
 <style lang="postcss">
   #docs {
-    @apply mx-auto my-[12.5rem] flex w-5/6 text-neutral-400;
+    @apply mx-auto my-[12.5rem] flex text-neutral-400 max-xl:px-[2vw] max-md:px-4 2xl:w-5/6;
   }
 
   ol {
-    @apply no-scrollbar sticky top-36 flex flex-shrink-0 flex-col self-start overflow-y-auto pr-12;
+    @apply no-scrollbar sticky top-36 flex flex-shrink-0 flex-col self-start overflow-y-auto pr-[1vw];
   }
 
   li {
-    @apply text-nowrap text-xl text-neutral-400;
+    @apply text-xl text-neutral-400 md:text-nowrap;
   }
 
   ol li:not(.title) {
@@ -181,7 +181,7 @@
   }
 
   :global(#content ul) {
-    @apply ml-10 list-disc;
+    @apply ml-4 list-disc md:ml-10;
   }
 
   :global(#content p) {

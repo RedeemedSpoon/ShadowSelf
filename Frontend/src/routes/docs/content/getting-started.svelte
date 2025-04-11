@@ -51,7 +51,7 @@
       practice to store your API key securely, for example, as an environment variable in your application or script, rather than
       hardcoding it.
     </p>
-    <p>Example header: <code>Authorization: Bearer 4bacf7ed2d69037aa29072ff0354e109</code></p>
+    <p>Example header: <code>Authorization: Bearer 4bacf7ed2.....</code></p>
   </li>
 </ul>
 

@@ -11,7 +11,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let api_key = env::var("API_KEY").expect("API_KEY missing");
     let identity_id = env::var("IDENTITY_ID").expect("IDENTITY_ID missing");
     let ws_url = Url::parse(&format!("wss://shadowself.io/ws-api/{}", identity_id))?;
-    let request = Request::builder().uri(ws_url.as_str()).header("Authorization", format!("Bearer {}", api_key)).header("Sec-WebSocket-Key",tungstenite::handshake::client::generate_key()).header("Sec-WebSocket-Version","13").header("Connection","Upgrade").header("Upgrade","websocket").header("Host", ws_url.host_str().unwrap_or("")).body(())?;
+    let request = Request::builder()
+        .uri(ws_url.as_str())
+        .header("Authorization", format!("Bearer {}", api_key))
+        .header("Sec-WebSocket-Key", tungstenite::handshake::client::generate_key())
+        .header("Sec-WebSocket-Version", "13")
+        .header("Connection", "Upgrade")
+        .header("Upgrade", "websocket")
+        .header("Host", ws_url.host_str().unwrap_or(""))
+        .body(())?; // The '?' applies to the result of .body()
 
     match connect_async_tls_with_config(request, None, false).await {
         Ok((ws_stream, _)) => {

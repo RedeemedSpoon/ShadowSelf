@@ -38,7 +38,7 @@
 </p>
 <p>These message types and the data they care as follows:</p>
 
-<div class="gap-8: grid grid-cols-2">
+<div class="grid gap-8 xl:grid-cols-2">
   <div>
     <h3 id="email-type">Email Type</h3>
     <ul class="mt-4">

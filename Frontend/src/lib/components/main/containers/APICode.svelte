@@ -31,7 +31,7 @@
   };
 </script>
 
-<div class="flex items-center justify-between rounded-t-xl bg-neutral-700 px-6 py-3">
+<div class="head px-6 py-3">
   {#if response}
     <h6>Response</h6>
   {:else if websocket}
@@ -54,11 +54,15 @@
 </div>
 
 <style lang="postcss">
+  .head {
+    @apply flex w-full max-w-[calc(100vw-4rem)] items-center justify-between rounded-t-xl bg-neutral-700 xl:max-w-[calc(50vw-10rem)];
+  }
+
   h6 {
     @apply font-sans text-lg font-semibold text-neutral-300;
   }
 
   pre {
-    @apply w-full overflow-x-scroll !rounded-t-none;
+    @apply w-full max-w-[calc(100vw-4rem)] overflow-x-scroll !rounded-t-none xl:max-w-[calc(50vw-10rem)];
   }
 </style>
