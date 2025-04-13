@@ -1,26 +1,32 @@
 <script lang="ts">
-  import {loadStripe, type Appearance, type Stripe, type StripeElements} from '@stripe/stripe-js';
+  import {loadStripe, type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
+  import {type Notification, type Billing, allPricingModels} from '$type';
   import {CheckmarkIcon, CreditCardIcon, QuestionIcon} from '$icon';
-  import {pricingModel, fetchIndex, modalIndex} from '$store';
-  import {type Notification, allPricingModels} from '$type';
   import {LoadingButton, Modal, Tooltip} from '$component';
+  import {pricingModel, modalIndex} from '$store';
+  import {notify, updateFetch} from '$lib';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
-  import {notify} from '$lib';
 
   interface Props {
     data: PageData;
-    form: Notification & {clientSecret: string; identityID: string};
+    form: Notification & Billing;
   }
 
   let {data, form}: Props = $props();
-  let clientSecret = $state() as string;
+
+  let paymentElement = $state() as StripePaymentElement;
   let elements = $state() as StripeElements;
-  let identityID = $state() as string;
   let stripe = $state() as Stripe;
+
+  let clientSecret = $state() as Billing['clientSecret'];
+  let identityID = $state() as Billing['identityID'];
+  let cardName = $state() as Billing['cardName'];
+  let last4 = $state() as Billing['last4'];
+  let step = $state() as Billing['step'];
 
   const features = [
     'Personal Attributes',
@@ -36,10 +42,17 @@
     if (form?.message) notify(form.message, form.type);
     if (form?.clientSecret) clientSecret = form.clientSecret;
     if (form?.identityID) identityID = form.identityID;
+    if (form?.cardName) cardName = form.cardName;
+    if (form?.last4) last4 = form.last4;
+    if (form?.step) {
+      step = form.step;
+      form.step = '' as Billing['step'];
+      handleCheckout();
+    }
   });
 
   onMount(async () => {
-    stripe = (await loadStripe(data.stripeKey!, {betas: ['custom_checkout_beta_5']})) as Stripe;
+    stripe = (await loadStripe(data.stripeKey!)) as Stripe;
   });
 
   function changeModel(model: string) {
@@ -48,42 +61,54 @@
   }
 
   async function handleCheckout() {
-    if (!clientSecret) return setTimeout(() => handleCheckout(), 100);
+    switch (step) {
+      case 'create': {
+        if (!clientSecret) return setTimeout(() => handleCheckout(), 100);
+        if (paymentElement) paymentElement.unmount();
 
-    const appearance = {
-      theme: 'flat',
-      variables: {
-        colorPrimary: '#4338ca',
-        colorBackground: '#1e293b',
-        colorText: '#cbd5e1',
-        colorDanger: '#ef4444',
-        borderRadius: '8px',
-        fontFamily: 'Inter, sans-serif',
-      },
-      rules: {
-        '.Input': {border: '2px solid #374151', backgroundColor: '#131c2e', color: '#cbd5e1'},
-        '.Input:focus': {borderColor: '#4f46e5', boxShadow: '0 0 0 1px #4f46e5'},
-      },
-    } as Appearance;
+        const appearance = {
+          theme: 'flat',
+          variables: {
+            colorPrimary: '#4338ca',
+            colorBackground: '#1e293b',
+            colorText: '#cbd5e1',
+            colorDanger: '#ef4444',
+            fontFamily: 'Inter, sans-serif',
+            borderRadius: '8px',
+          },
+          rules: {
+            '.Input': {border: '2px solid #374151', backgroundColor: '#131c2e', color: '#cbd5e1'},
+            '.Input:focus': {borderColor: '#4f46e5', boxShadow: '0 0 0 1px #4f46e5'},
+          },
+        } as Appearance;
 
-    elements = stripe.elements({clientSecret, appearance});
-    const paymentElement = elements.create('payment', {layout: 'tabs'});
-    const mountPoint = document.getElementById('payment');
-    paymentElement.mount(mountPoint!);
+        elements = stripe.elements({clientSecret, appearance});
+        paymentElement = elements.create('payment', {layout: 'tabs'});
+
+        const mountPoint = document.getElementById('payment');
+        paymentElement.mount(mountPoint!);
+        clientSecret = '';
+        break;
+      }
+
+      case 'auth': {
+        console.log(await stripe.confirmCardPayment(clientSecret));
+        break;
+      }
+
+      case 'confirm':
+        $modalIndex = 2;
+        break;
+
+      case 'finish':
+        window.location.href = '/create?id=' + identityID;
+        break;
+    }
   }
 
-  async function handlePayment() {
+  async function completePayment() {
     const return_url = page.url.origin + '/create?id=' + identityID;
     await stripe.confirmPayment({elements, confirmParams: {return_url: return_url}});
-  }
-
-  async function handleSubmit() {
-    fetchIndex.set(1);
-    setTimeout(() => (fetchIndex.set(0), modalIndex.set(1), handleCheckout()), 1000);
-
-    return async ({update}: {update: (arg0: {reset: boolean}) => void}) => {
-      update({reset: false});
-    };
   }
 </script>
 
@@ -103,6 +128,7 @@
         <button class:active={$pricingModel.name === model} type="button" onclick={() => changeModel(model)}>{model}</button>
       {/each}
     </section>
+
     <section id="tier-table">
       <h2 class="mt-8 text-3xl font-bold text-neutral-300 md:text-5xl">Complete Identity</h2>
       {#key $pricingModel.price}
@@ -119,8 +145,9 @@
         {/each}
       </ul>
     </section>
+
     <section id="payment-methods" class="my-10">
-      <form class="flex gap-6 px-8 max-sm:flex-col" method="POST" use:enhance={handleSubmit}>
+      <form class="flex gap-6 px-8 max-sm:flex-col" action="?/init" method="POST" use:enhance={() => updateFetch(true, 1)}>
         <input hidden value={$pricingModel.name} name="type" type="hidden" />
         <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="!w-8 !h-8" />Pay With Card</LoadingButton>
       </form>
@@ -137,8 +164,19 @@
 <Modal id={1}>
   <div class="m-4 flex flex-col gap-8">
     <div id="payment" class="min-h-96 min-w-96"></div>
-    <LoadingButton name="pay" index={2} onclick={handlePayment}>Pay ${$pricingModel.price}</LoadingButton>
+    <LoadingButton name="pay" index={2} onclick={completePayment}>Pay ${$pricingModel.price}</LoadingButton>
   </div>
+</Modal>
+
+<Modal id={2}>
+  <form method="POST" action="?/confirm" use:enhance={() => updateFetch(true, 2)} class="m-4 flex flex-col gap-8">
+    <h3 class="text-4xl font-bold text-neutral-300">Confirm Payment</h3>
+    <p class="w-[35rem] max-w-[80vw]">
+      Are you sure you want to pay ${$pricingModel.price} for an identity with your {cardName} credits card ending with ****{last4}?
+    </p>
+    <input hidden value={$pricingModel.name} name="type" type="hidden" />
+    <LoadingButton index={2} type="submit">Pay ${$pricingModel.price}</LoadingButton>
+  </form>
 </Modal>
 
 <style lang="postcss">

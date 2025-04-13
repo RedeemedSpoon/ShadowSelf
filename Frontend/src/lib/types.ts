@@ -3,6 +3,7 @@ import type {Component} from 'svelte';
 export type Sections = 'info' | 'email' | 'phone' | 'card' | 'account';
 export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type BillingSteps = 'create' | 'confirm' | 'auth' | 'finish';
 
 export type FullEmail = Email & {messageID: string; date: Date};
 export type Attachment = {filename: string; data: string};
@@ -248,6 +249,14 @@ export interface Route {
   response: APIResponse;
   code: {[key in Languages]: string};
 }
+
+export type Billing = {
+  step: BillingSteps;
+  clientSecret: string;
+  identityID: string;
+  cardName: string;
+  last4: number;
+};
 
 export interface PricingModel {
   name: string;

@@ -6,9 +6,14 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions = {
-  default: async ({request}) => {
+  init: async ({request}) => {
     const formData = await request.formData();
     const type = formData.get('type')?.toString().toLowerCase();
     return await fetchBackend(`/billing/checkout?type=${type}`, 'GET');
+  },
+  confirm: async ({request}) => {
+    const formData = await request.formData();
+    const type = formData.get('type')?.toString().toLowerCase();
+    return await fetchBackend(`/billing/checkout-after-confirm?type=${type}`, 'GET');
   },
 } satisfies Actions;

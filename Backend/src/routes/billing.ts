@@ -1,9 +1,9 @@
 import {sql, stripe, origin, twilio} from '@utils/connection';
 import {pricingModal, pricingTable} from '@types';
+import {attempt, toTitleCase} from '@utils/utils';
 import {generateIdentityID} from '@utils/crypto';
 import {Elysia, error} from 'elysia';
 import middleware from '@middleware';
-import {attempt} from '@utils/utils';
 import {check} from '@utils/checks';
 import Stripe from 'stripe';
 import {$} from 'bun';
@@ -34,10 +34,20 @@ export default new Elysia({prefix: '/billing'})
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
 
     const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
-    const customerId = customer[0]?.stripe_customer;
+    const customerID = customer[0]?.stripe_customer;
 
-    const paymentMethodResponse = await stripe.customers.retrieve(customerId as string);
-    const paymentMethod = (paymentMethodResponse as Stripe.Customer).invoice_settings.default_payment_method as string;
+    if (customerID) {
+      const request = await stripe.customers.retrieve(customerID);
+      const paymentMethodsID = (request as Stripe.Customer).invoice_settings.default_payment_method as string;
+
+      if (paymentMethodsID) {
+        const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodsID);
+        const cardName = toTitleCase(paymentMethod.card?.brand as string);
+        const last4 = paymentMethod.card?.last4;
+
+        return {step: 'confirm', cardName, last4};
+      }
+    }
 
     const metadata = {id: identityID, type};
     let clientSecret = '';
@@ -45,22 +55,19 @@ export default new Elysia({prefix: '/billing'})
     if (type === 'lifetime') {
       const paymentIntent = await stripe.paymentIntents.create({
         metadata,
-        customer: customerId,
+        customer: customerID,
         amount: pricingTable.lifetime,
-        payment_method: paymentMethod,
         payment_method_types: ['card'],
         currency: 'eur',
       });
 
-      console.log(paymentIntent.status);
       clientSecret = paymentIntent.client_secret!;
     } else {
       const subscriptionParams: Stripe.SubscriptionCreateParams = {
         metadata,
-        customer: customerId,
+        customer: customerID,
         items: [{price: pricingModal[type]}],
         payment_behavior: 'default_incomplete',
-        default_payment_method: paymentMethod,
         payment_settings: {
           save_default_payment_method: 'on_subscription',
           payment_method_types: ['card'],
@@ -69,10 +76,70 @@ export default new Elysia({prefix: '/billing'})
       };
 
       const subscription = await stripe.subscriptions.create(subscriptionParams);
-      clientSecret = ((subscription.latest_invoice as Stripe.Invoice).payment_intent as Stripe.PaymentIntent).client_secret!;
+      const paymentIntent = (subscription.latest_invoice as Stripe.Invoice).payment_intent as Stripe.PaymentIntent;
+
+      clientSecret = paymentIntent.client_secret!;
     }
 
-    return {clientSecret, identityID};
+    return {step: 'create', clientSecret, identityID};
+  })
+  .get('/checkout-after-confirm', async ({user, query}) => {
+    if (!user) return error(401, 'You are not logged in');
+
+    const type = query?.type as keyof typeof pricingModal;
+    const identityID = generateIdentityID();
+
+    if (!type) return error(400, 'Missing or invalid query type. Try again');
+    if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
+
+    const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
+    const customerID = customer[0]?.stripe_customer;
+
+    const request = await stripe.customers.retrieve(customerID);
+    const paymentMethodsID = (request as Stripe.Customer).invoice_settings.default_payment_method as string;
+
+    const metadata = {id: identityID, type};
+    let paymentIntent = '';
+
+    if (type === 'lifetime') {
+      paymentIntent = (
+        await stripe.paymentIntents.create({
+          metadata,
+          customer: customerID,
+          amount: pricingTable.lifetime,
+          payment_method_types: ['card'],
+          payment_method: paymentMethodsID,
+          confirmation_method: 'manual',
+          currency: 'eur',
+          confirm: false,
+        })
+      ).id;
+    } else {
+      const subscription = await stripe.subscriptions.create({
+        metadata,
+        customer: customerID,
+        items: [{price: pricingModal[type]}],
+        payment_behavior: 'default_incomplete',
+        payment_settings: {
+          save_default_payment_method: 'on_subscription',
+        },
+        expand: ['latest_invoice.payment_intent'],
+      });
+
+      paymentIntent = ((subscription.latest_invoice as Stripe.Invoice).payment_intent as Stripe.PaymentIntent).id;
+    }
+
+    await stripe.paymentIntents.confirm(paymentIntent, {
+      payment_method_options: {card: {request_three_d_secure: 'any'}},
+    });
+
+    const result = await stripe.paymentIntents.retrieve(paymentIntent);
+    const clientSecret = result.client_secret;
+    const status = result.status;
+
+    if (status === 'requires_payment_method') return error(400, 'Something went wrong. Please try again.');
+    else if (status === 'requires_action') return {step: 'auth', clientSecret};
+    else if (status === 'succeeded') return {step: 'finish', identityID};
   })
   .delete('/cancel', async ({body}) => {
     const {err, id} = check(body, ['id']);
