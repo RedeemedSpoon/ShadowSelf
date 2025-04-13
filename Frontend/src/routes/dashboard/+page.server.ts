@@ -27,7 +27,6 @@ export const load: PageServerLoad = async ({parent}) => {
     searchKeywords.push({label: identity.id, value: concat.toLowerCase()});
   });
 
-  console.log(identities);
   return {
     ...otherObjects,
     recoveryRemaining: remains.message,

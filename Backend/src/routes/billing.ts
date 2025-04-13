@@ -1,11 +1,11 @@
 import {sql, stripe, origin, twilio} from '@utils/connection';
+import {pricingModal, pricingTable} from '@types';
 import {generateIdentityID} from '@utils/crypto';
-import SessionCreateParams from 'stripe';
 import {Elysia, error} from 'elysia';
 import middleware from '@middleware';
 import {attempt} from '@utils/utils';
-import {pricingModal} from '@types';
 import {check} from '@utils/checks';
+import Stripe from 'stripe';
 import {$} from 'bun';
 
 export default new Elysia({prefix: '/billing'})
@@ -29,7 +29,6 @@ export default new Elysia({prefix: '/billing'})
 
     const type = query?.type as keyof typeof pricingModal;
     const identityID = generateIdentityID();
-    let option: SessionCreateParams.Checkout.SessionCreateParams;
 
     if (!type) return error(400, 'Missing or invalid query type. Try again');
     if (!pricingModal[type]) return error(400, 'Invalid query type. Try again');
@@ -37,32 +36,43 @@ export default new Elysia({prefix: '/billing'})
     const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
     const customerId = customer[0]?.stripe_customer;
 
-    if (customerId) {
-      option = {
+    const paymentMethodResponse = await stripe.customers.retrieve(customerId as string);
+    const paymentMethod = (paymentMethodResponse as Stripe.Customer).invoice_settings.default_payment_method as string;
+
+    const metadata = {id: identityID, type};
+    let clientSecret = '';
+
+    if (type === 'lifetime') {
+      const paymentIntent = await stripe.paymentIntents.create({
+        metadata,
         customer: customerId,
-        ui_mode: 'custom' as 'embedded',
-        metadata: {id: identityID, type},
-        return_url: `${origin}/create?id=${identityID}`,
-        mode: type === 'lifetime' ? 'payment' : 'subscription',
-        line_items: [{price: pricingModal[type], quantity: 1}],
-        saved_payment_method_options: {
-          payment_method_save: 'enabled',
-          allow_redisplay_filters: ['always'],
-        },
-      };
+        amount: pricingTable.lifetime,
+        payment_method: paymentMethod,
+        payment_method_types: ['card'],
+        currency: 'eur',
+      });
+
+      console.log(paymentIntent.status);
+      clientSecret = paymentIntent.client_secret!;
     } else {
-      option = {
-        customer_email: user.email,
-        ui_mode: 'custom' as 'embedded',
-        metadata: {id: identityID, type},
-        return_url: `${origin}/create?id=${identityID}`,
-        mode: type === 'lifetime' ? 'payment' : 'subscription',
-        line_items: [{price: pricingModal[type], quantity: 1}],
+      const subscriptionParams: Stripe.SubscriptionCreateParams = {
+        metadata,
+        customer: customerId,
+        items: [{price: pricingModal[type]}],
+        payment_behavior: 'default_incomplete',
+        default_payment_method: paymentMethod,
+        payment_settings: {
+          save_default_payment_method: 'on_subscription',
+          payment_method_types: ['card'],
+        },
+        expand: ['latest_invoice.payment_intent'],
       };
+
+      const subscription = await stripe.subscriptions.create(subscriptionParams);
+      clientSecret = ((subscription.latest_invoice as Stripe.Invoice).payment_intent as Stripe.PaymentIntent).client_secret!;
     }
 
-    const session = await stripe.checkout.sessions.create(option);
-    return {clientSecret: session.client_secret};
+    return {clientSecret, identityID};
   })
   .delete('/cancel', async ({body}) => {
     const {err, id} = check(body, ['id']);

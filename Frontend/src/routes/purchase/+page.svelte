@@ -1,22 +1,25 @@
 <script lang="ts">
+  import {loadStripe, type Appearance, type Stripe, type StripeElements} from '@stripe/stripe-js';
   import {CheckmarkIcon, CreditCardIcon, QuestionIcon} from '$icon';
   import {pricingModel, fetchIndex, modalIndex} from '$store';
   import {type Notification, allPricingModels} from '$type';
-  import {loadStripe, type Stripe} from '@stripe/stripe-js';
   import {LoadingButton, Modal, Tooltip} from '$component';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';
+  import {page} from '$app/state';
   import {onMount} from 'svelte';
   import {notify} from '$lib';
 
   interface Props {
     data: PageData;
-    form: Notification & {clientSecret: string};
+    form: Notification & {clientSecret: string; identityID: string};
   }
 
   let {data, form}: Props = $props();
   let clientSecret = $state() as string;
+  let elements = $state() as StripeElements;
+  let identityID = $state() as string;
   let stripe = $state() as Stripe;
 
   const features = [
@@ -32,6 +35,7 @@
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
     if (form?.clientSecret) clientSecret = form.clientSecret;
+    if (form?.identityID) identityID = form.identityID;
   });
 
   onMount(async () => {
@@ -44,48 +48,33 @@
   }
 
   async function handleCheckout() {
-    stripe.initCheckout({clientSecret}).then((checkout) => {
-      const paymentElement = checkout.createElement('payment', {layout: 'tabs'});
-      checkout.changeAppearance({
-        theme: 'flat',
-        variables: {
-          colorPrimary: '#4338ca',
-          colorBackground: '#1e293b',
-          colorText: '#cbd5e1',
-          colorDanger: '#ef4444',
-          colorSuccess: '#22c55e',
-          colorWarning: '#eab308',
-          colorTextPlaceholder: '#475569',
-          fontFamily: 'Inter, sans-serif',
-          fontWeightNormal: '500',
-          spacingUnit: '4px',
-          borderRadius: '8px',
-          tabLogoColor: 'dark',
-        },
-        rules: {
-          '.Input': {
-            marginTop: '14px',
-            marginBottom: '8px',
-            border: '2px solid #1e293b',
-            backgroundColor: '#131c2e',
-          },
-          '.Input:focus': {
-            boxShadow: '0 1px 1px 0 rgba(0, 0, 0, 0.07), 0 0 0 2px #4f46e5',
-          },
-        },
-      });
+    if (!clientSecret) return setTimeout(() => handleCheckout(), 100);
 
-      paymentElement.mount('#payment');
-      document.querySelector('button[name="pay"]')!.addEventListener('click', async () => {
-        fetchIndex.set(2);
-        await new Promise((resolve) => setTimeout(resolve, 650));
+    const appearance = {
+      theme: 'flat',
+      variables: {
+        colorPrimary: '#4338ca',
+        colorBackground: '#1e293b',
+        colorText: '#cbd5e1',
+        colorDanger: '#ef4444',
+        borderRadius: '8px',
+        fontFamily: 'Inter, sans-serif',
+      },
+      rules: {
+        '.Input': {border: '2px solid #374151', backgroundColor: '#131c2e', color: '#cbd5e1'},
+        '.Input:focus': {borderColor: '#4f46e5', boxShadow: '0 0 0 1px #4f46e5'},
+      },
+    } as Appearance;
 
-        checkout.confirm().then(async (result) => {
-          fetchIndex.set(0);
-          if (result.type === 'error') notify(result.error.message, 'alert');
-        });
-      });
-    });
+    elements = stripe.elements({clientSecret, appearance});
+    const paymentElement = elements.create('payment', {layout: 'tabs'});
+    const mountPoint = document.getElementById('payment');
+    paymentElement.mount(mountPoint!);
+  }
+
+  async function handlePayment() {
+    const return_url = page.url.origin + '/create?id=' + identityID;
+    await stripe.confirmPayment({elements, confirmParams: {return_url: return_url}});
   }
 
   async function handleSubmit() {
@@ -147,8 +136,8 @@
 
 <Modal id={1}>
   <div class="m-4 flex flex-col gap-8">
-    <div id="payment" class="sm:w-80"></div>
-    <LoadingButton name="pay" index={2}>Pay</LoadingButton>
+    <div id="payment" class="min-h-96 min-w-96"></div>
+    <LoadingButton name="pay" index={2} onclick={handlePayment}>Pay ${$pricingModel.price}</LoadingButton>
   </div>
 </Modal>
 

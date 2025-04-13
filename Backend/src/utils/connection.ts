@@ -43,9 +43,7 @@ export const contactTransporter = smtpTransporter('contact@shadowself.io', proce
 
 export const verificationTransporter = smtpTransporter('verification@shadowself.io', process.env.EMAIL_VERIFICATION!);
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2024-11-20.acacia; custom_checkout_beta=v1' as '2025-02-24.acacia',
-});
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {apiVersion: '2025-02-24.acacia'});
 
 export const twilio = twilioClient(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 

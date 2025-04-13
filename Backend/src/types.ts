@@ -211,3 +211,9 @@ export const pricingModal = {
   annually: process.env.ANNUAL_PRICE_ID,
   lifetime: process.env.LIFETIME_PRICE_ID,
 };
+
+export const pricingTable = {
+  monthly: 500,
+  annually: 5000,
+  lifetime: 20000,
+};
