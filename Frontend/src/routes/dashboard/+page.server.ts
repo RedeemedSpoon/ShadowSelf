@@ -7,6 +7,7 @@ export const load: PageServerLoad = async ({parent}) => {
 
   const remains = await fetchBackend('/account/recovery-remaining', 'GET');
   const response = await fetchBackend('/api', 'GET');
+
   if (response.type === 'alert')
     return {
       ...otherObjects,
@@ -16,12 +17,12 @@ export const load: PageServerLoad = async ({parent}) => {
     };
 
   const searchKeywords: Option[] = [];
-  const allIdentities = Object.values(response) as Identity[];
+  const identities = Object.values(response) as Identity[];
 
-  allIdentities.pop();
-  const identities = allIdentities.filter((identity) => identity.name);
+  identities.pop();
 
   identities.forEach((identity) => {
+    if (!identity.name) return;
     const concat = `${identity.name} ${identity.country} ${identity.location} ${identity.id} `;
     concat.concat(`${identity.email} ${identity.phone} ${identity.card} ${identity.accounts}`);
     searchKeywords.push({label: identity.id, value: concat.toLowerCase()});

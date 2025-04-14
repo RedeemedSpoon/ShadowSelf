@@ -102,24 +102,31 @@
       <p bind:this={errorText} id="error" class="!hidden">No results found.</p>
       <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
         {#each data.identities as identity}
-          {@const phone = identity.phone.replace('+', '').replace(/(\d{1})(\d{3})(\d{3})(\d{4})(\d{3})/, '+$1 $2 $3 $4$5')}
-          {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
-          <a href="/identity/{identity.id}" id="identity-{identity.id}">
-            <img loading="lazy" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s picture" />
-            <div class="text-nowrap">
-              <p class="!text-neutral-300">{identity.name}</p>
+          {#if !identity.name}
+            <a class="!flex !gap-6 max-md:mb-24" href="/create?id={identity.id}">
+              <AddUserIcon />
+              <p class="text-2xl !text-neutral-300 max-xl:!block">Continue Creation Process... (ID : {identity.id})</p>
+            </a>
+          {:else}
+            {@const phone = identity.phone.replace('+', '').replace(/(\d{1})(\d{3})(\d{3})(\d{4})(\d{3})/, '+$1 $2 $3 $4$5')}
+            {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
+            <a href="/identity/{identity.id}" id="identity-{identity.id}">
+              <img loading="lazy" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s picture" />
+              <div class="text-nowrap">
+                <p class="!text-neutral-300">{identity.name}</p>
+                <br />
+                <span class="inline-flex gap-2 text-sm text-neutral-500">
+                  <img src="https://flagsapi.com/{identity.country}/flat/24.png" alt="country flag" />
+                  {identity.location}
+                </span>
+              </div>
               <br />
-              <span class="inline-flex gap-2 text-sm text-neutral-500">
-                <img src="https://flagsapi.com/{identity.country}/flat/24.png" alt="country flag" />
-                {identity.location}
-              </span>
-            </div>
-            <br />
-            <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon className={'!h-6 !w-6 !stroke-primary-600'} />{identity.email}</p>
-            <p class="lg:max-xl:!flex"><PhoneIcon />{phone}</p>
-            <p><CreditCardIcon />{cardNumber}</p>
-            <p><MultiUsersIcon />{identity.accounts}</p>
-          </a>
+              <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon className={'!h-6 !w-6 !stroke-primary-600'} />{identity.email}</p>
+              <p class="lg:max-xl:!flex"><PhoneIcon />{phone}</p>
+              <p><CreditCardIcon />{cardNumber}</p>
+              <p><MultiUsersIcon />{identity.accounts}</p>
+            </a>
+          {/if}
         {/each}
         <a class="!flex !gap-6 max-md:mb-24" href="/purchase">
           <AddUserIcon />

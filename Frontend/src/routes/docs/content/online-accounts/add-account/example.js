@@ -1,7 +1,7 @@
 import axios from 'axios';
 import process from 'process';
-// Assume 'your_encryption_function' exists for client-side encryption
 
+// Assume 'your_encryption_function' exists for client-side encryption
 // Requires API_KEY and IDENTITY_ID environment variables
 const apiKey = process.env.API_KEY;
 const identityId = process.env.IDENTITY_ID;

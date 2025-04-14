@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 // Requires API_KEY and IDENTITY_ID environment variables
 const apiKey = process.env.API_KEY;
 const identityId = process.env.IDENTITY_ID;

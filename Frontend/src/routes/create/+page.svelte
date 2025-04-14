@@ -25,6 +25,7 @@
     const loader = document.querySelector('#loader-process') as HTMLParagraphElement;
 
     loaderInterval = setInterval(() => {
+      if (!loader) return;
       if (loader?.innerText.length === 3) loader!.innerText = '';
       else loader!.innerText += '.';
     }, 650);
