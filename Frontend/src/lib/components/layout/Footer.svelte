@@ -10,8 +10,8 @@
 
   const socialLinks = {
     'Github Repository': {href: 'https://github.com/RedeemedSpoon/ShadowSelf', img: github},
-    'Mastodon Account': {href: 'https://mastodon.social/@ShadowSelf', img: mastodon},
-    'Discord Server': {href: 'https://discord.gg/ShadowSelf', img: discord},
+    'Mastodon Account': {href: 'https://mastodon.social/@shadow_self', img: mastodon},
+    'Discord Server': {href: 'https://discord.gg/HaHBwsEa6w', img: discord},
   };
 </script>
 
