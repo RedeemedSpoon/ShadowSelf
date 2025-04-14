@@ -2,8 +2,8 @@
   import {loadStripe, type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
   import {type Notification, type Billing, allPricingModels} from '$type';
   import {CheckmarkIcon, CreditCardIcon, QuestionIcon} from '$icon';
+  import {pricingModel, modalIndex, fetchIndex} from '$store';
   import {LoadingButton, Modal, Tooltip} from '$component';
-  import {pricingModel, modalIndex} from '$store';
   import {notify, updateFetch} from '$lib';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
@@ -85,14 +85,18 @@
         elements = stripe.elements({clientSecret, appearance});
         paymentElement = elements.create('payment', {layout: 'tabs'});
 
-        const mountPoint = document.getElementById('payment');
+        const mountPoint = document.getElementById('payment-element');
         paymentElement.mount(mountPoint!);
         clientSecret = '';
+        $modalIndex = 1;
         break;
       }
 
       case 'auth': {
-        console.log(await stripe.confirmCardPayment(clientSecret));
+        stripe.confirmCardPayment(clientSecret).then((result) => {
+          if (result.error) return notify(result.error.message!, 'alert');
+          else window.location.href = '/create?id=' + identityID;
+        });
         break;
       }
 
@@ -107,8 +111,13 @@
   }
 
   async function completePayment() {
+    $fetchIndex = 2;
     const return_url = page.url.origin + '/create?id=' + identityID;
-    await stripe.confirmPayment({elements, confirmParams: {return_url: return_url}});
+    const result = await stripe.confirmPayment({elements, confirmParams: {return_url: return_url}});
+    if (result.error) {
+      notify(result.error.message!, 'alert');
+      $fetchIndex = 0;
+    }
   }
 </script>
 
@@ -163,19 +172,28 @@
 
 <Modal id={1}>
   <div class="m-4 flex flex-col gap-8">
-    <div id="payment" class="min-h-96 min-w-96"></div>
+    <div id="payment-element" class="min-h-96 min-w-96"></div>
     <LoadingButton name="pay" index={2} onclick={completePayment}>Pay ${$pricingModel.price}</LoadingButton>
   </div>
 </Modal>
 
 <Modal id={2}>
-  <form method="POST" action="?/confirm" use:enhance={() => updateFetch(true, 2)} class="m-4 flex flex-col gap-8">
+  <form method="POST" action="?/confirm" use:enhance={() => updateFetch(true, 2)} class="m-6 mb-2 flex flex-col gap-8">
     <h3 class="text-4xl font-bold text-neutral-300">Confirm Payment</h3>
     <p class="w-[35rem] max-w-[80vw]">
       Are you sure you want to pay ${$pricingModel.price} for an identity with your {cardName} credits card ending with ****{last4}?
     </p>
     <input hidden value={$pricingModel.name} name="type" type="hidden" />
-    <LoadingButton index={2} type="submit">Pay ${$pricingModel.price}</LoadingButton>
+    <LoadingButton index={2} type="submit" disabled={step === 'auth'}>
+      {$pricingModel.name === 'Lifetime' ? 'Pay' : 'Subscribe for'} ${$pricingModel.price}
+    </LoadingButton>
+    {#key step}
+      {#if step === 'auth'}
+        <p class="text-center text-sm text-neutral-500">Wait a moment. You might have to authenticate your card.</p>
+      {:else}
+        <br />
+      {/if}
+    {/key}
   </form>
 </Modal>
 

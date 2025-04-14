@@ -85,11 +85,7 @@
         focus: 'ring-2 ring-primary-700',
       },
       style: {
-        base: {
-          color: '#cbd5e1',
-          iconColor: '#94a3b8',
-          '::placeholder': {color: '#94a3b8'},
-        },
+        base: {color: '#cbd5e1', iconColor: '#94a3b8', '::placeholder': {color: '#94a3b8'}},
       },
     });
 

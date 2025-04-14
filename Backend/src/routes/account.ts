@@ -197,7 +197,7 @@ export default new Elysia({prefix: '/account'})
       await attempt(sql`UPDATE users SET recovery = ${recovery} WHERE email = ${email}`);
     }
 
-    if (payment) await request('/billing/customer', 'POST', {email, payment});
+    await request('/billing/customer', 'POST', {email, payment});
 
     const id = generateID();
     await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);

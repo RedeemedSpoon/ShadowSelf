@@ -17,6 +17,9 @@ export default new Elysia({prefix: '/billing'})
     const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${email}`);
     if (!customer[0].stripe_customer) return {sessionUrl: ''};
 
+    const hasPaymentMethod = await stripe.paymentMethods.list({customer: customer[0].stripe_customer, type: 'card'});
+    if (!hasPaymentMethod.data.length) return {sessionUrl: ''};
+
     const session = await stripe.billingPortal.sessions.create({
       customer: customer[0].stripe_customer,
       return_url: `${origin}/settings`,
@@ -36,17 +39,15 @@ export default new Elysia({prefix: '/billing'})
     const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user.email}`);
     const customerID = customer[0]?.stripe_customer;
 
-    if (customerID) {
-      const request = await stripe.customers.retrieve(customerID);
-      const paymentMethodsID = (request as Stripe.Customer).invoice_settings.default_payment_method as string;
+    const request = await stripe.customers.retrieve(customerID);
+    const paymentMethodsID = (request as Stripe.Customer).invoice_settings.default_payment_method as string;
 
-      if (paymentMethodsID) {
-        const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodsID);
-        const cardName = toTitleCase(paymentMethod.card?.brand as string);
-        const last4 = paymentMethod.card?.last4;
+    if (paymentMethodsID) {
+      const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodsID);
+      const cardName = toTitleCase(paymentMethod.card?.brand as string);
+      const last4 = paymentMethod.card?.last4;
 
-        return {step: 'confirm', cardName, last4};
-      }
+      return {step: 'confirm', cardName, last4};
     }
 
     const metadata = {id: identityID, type};
@@ -77,7 +78,6 @@ export default new Elysia({prefix: '/billing'})
 
       const subscription = await stripe.subscriptions.create(subscriptionParams);
       const paymentIntent = (subscription.latest_invoice as Stripe.Invoice).payment_intent as Stripe.PaymentIntent;
-
       clientSecret = paymentIntent.client_secret!;
     }
 
@@ -109,7 +109,6 @@ export default new Elysia({prefix: '/billing'})
           amount: pricingTable.lifetime,
           payment_method_types: ['card'],
           payment_method: paymentMethodsID,
-          confirmation_method: 'manual',
           currency: 'eur',
           confirm: false,
         })
@@ -130,7 +129,7 @@ export default new Elysia({prefix: '/billing'})
     }
 
     await stripe.paymentIntents.confirm(paymentIntent, {
-      payment_method_options: {card: {request_three_d_secure: 'any'}},
+      payment_method_options: {card: {request_three_d_secure: 'automatic'}},
     });
 
     const result = await stripe.paymentIntents.retrieve(paymentIntent);
@@ -138,7 +137,7 @@ export default new Elysia({prefix: '/billing'})
     const status = result.status;
 
     if (status === 'requires_payment_method') return error(400, 'Something went wrong. Please try again.');
-    else if (status === 'requires_action') return {step: 'auth', clientSecret};
+    else if (status === 'requires_action') return {step: 'auth', clientSecret, identityID};
     else if (status === 'succeeded') return {step: 'finish', identityID};
   })
   .delete('/cancel', async ({body}) => {
@@ -179,14 +178,24 @@ export default new Elysia({prefix: '/billing'})
   .group('/customer', (app) =>
     app
       .post('/', async ({body}) => {
-        const {email, payment, err} = check(body, ['email', 'payment']);
+        const {email, payment, err} = check(body, ['email', '?payment']);
         if (err) return error(400, err);
 
-        const customer = await stripe.customers.create({email, payment_method: payment});
-        await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
+        const object = payment ? {email, payment_method: payment, invoice_settings: {default_payment_method: payment}} : {email};
+        const customer = await stripe.customers.create(object);
+
+        if (payment) await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
         await attempt(sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`);
       })
-      .put('/', async ({body}: {body: {oldEmail: string; email: string}}) => {
+      .put('/', async ({body}: {body: {email: string; payment: string}}) => {
+        const {email, payment, err} = check(body, ['email']);
+        if (err) return error(400, err);
+
+        const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${email}`);
+        await stripe.paymentMethods.attach(payment, {customer: customer[0]?.stripe_customer});
+        await stripe.customers.update(customer[0]?.stripe_customer, {invoice_settings: {default_payment_method: payment}});
+      })
+      .patch('/', async ({body}: {body: {oldEmail: string; email: string}}) => {
         const {email, err} = check(body, ['email']);
         if (err) return error(400, err);
 
