@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {logo, github, tor, simplex} from '$image';
+  import {logo, github, mastodon, discord} from '$image';
 
   const navLinks = {
     Product: ['Homepage', 'Extension', 'Purchase'],
@@ -10,11 +10,8 @@
 
   const socialLinks = {
     'Github Repository': {href: 'https://github.com/RedeemedSpoon/ShadowSelf', img: github},
-    'Onion Website': {href: 'https://onion.torproject.org/', img: tor},
-    'SimpleX Community': {
-      href: 'https://simplex.chat/contact#/?v=2-7&smp=smp%3A%2F%2F0YuTwO05YJWS8rkjn9eLJDjQhFKvIYd8d4xG8X1blIU%3D%40smp8.simplex.im%2FBeFzdR4Kf7Q02gL-WYj4ARNuq-4w38La%23%2F%3Fv%3D1-3%26dh%3DMCowBQYDK2VuAyEARpdiglYHg8sSwh75mzI5PP8qMG-n8i1kD8_wjHATxzI%253D%26srv%3Dbeccx4yfxxbvyhqypaavemqurytl6hozr47wfc7uuecacjqdvwpw2xid.onion&data=%7B%22type%22%3A%22group%22%2C%22groupLinkId%22%3A%227l53Rzu4TIgWzfqdJrFRuA%3D%3D%22%7D',
-      img: simplex,
-    },
+    'Mastodon Account': {href: 'https://mastodon.social/@ShadowSelf', img: mastodon},
+    'Discord Server': {href: 'https://discord.gg/ShadowSelf', img: discord},
   };
 </script>
 

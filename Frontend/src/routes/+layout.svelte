@@ -36,10 +36,15 @@
   </div>
 </div>
 
-<noscript class="flex h-screen w-full flex-col items-center justify-center gap-8 text-center">
-  <h1>It looks like you <br />disabled JavaScript!</h1>
-  <p>That's fine. Please visit this page on our <a href="/">dark web</a> site instead (still requires JavaScript).</p>
-  <p class="text-sm">It's coming soon! we promise.</p>
+<noscript class="flex h-screen w-full flex-col items-center justify-center gap-2 text-center">
+  <h1 class="basic-style mb-5 text-4xl font-bold">Whoops! No JavaScript?</h1>
+  <p>Our app is pretty dynamic and kinda needs JavaScript to do... well, pretty much anything interactive.</p>
+  <p>So yeah, it's not really going to work without it enabled. ¯\_(ツ)_/¯</p>
+  <p>Sorry for the hassle! I'm sure you'll get it eventually.</p>
+  <p class="mt-4 text-sm text-neutral-500">
+    Well, at least you can see how it's all put together! The code is open source over on GitHub:
+    <a href="https://github.com/RedeemedSpoon/ShadowSelf" target="_blank" rel="noopener noreferrer">Check it out here!</a>
+  </p>
 </noscript>
 
 <style lang="postcss">

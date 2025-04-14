@@ -2,12 +2,6 @@ export {default as icon} from './logo/icon.svg';
 export {default as logo} from './logo/logo-white-text.svg';
 export {default as logoBesideText} from './logo/logo-beside-text.svg';
 
-export {default as tor} from './links/tor.svg';
-export {default as github} from './links/github.svg';
-export {default as simplex} from './links/simplex.svg';
-export {default as website} from './links/website.svg';
-export {default as systemDesign} from './system-design.webp';
-
 export {default as cart} from './empty-states/cart.svg';
 export {default as lock} from './empty-states/lock.svg';
 export {default as file} from './empty-states/file.svg';
@@ -21,6 +15,12 @@ export {default as canvas} from './extensions/canvas.svg';
 export {default as ublock} from './extensions/ublock.svg';
 export {default as screenshot} from './extensions/screenshot.webp';
 
+export {default as github} from './links/github.svg';
+export {default as discord} from './links/discord.svg';
+export {default as website} from './links/website.svg';
+export {default as mastodon} from './links/mastodon.svg';
+
+export {default as systemDesign} from './system-design.webp';
 export {default as circuitPattern} from './patterns/circuit-pattern.svg';
 export {default as worldMap} from './patterns/world-map.svg';
 
