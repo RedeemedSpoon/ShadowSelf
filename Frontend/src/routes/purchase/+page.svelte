@@ -87,6 +87,7 @@
 
         const mountPoint = document.getElementById('payment-element');
         paymentElement.mount(mountPoint!);
+
         clientSecret = '';
         $modalIndex = 1;
         break;
@@ -112,8 +113,9 @@
 
   async function completePayment() {
     $fetchIndex = 2;
-    const return_url = page.url.origin + '/create?id=' + identityID;
-    const result = await stripe.confirmPayment({elements, confirmParams: {return_url: return_url}});
+    const returnUrl = page.url.origin + '/create?id=' + identityID;
+    const result = await stripe.confirmPayment({elements, confirmParams: {return_url: returnUrl}});
+
     if (result.error) {
       notify(result.error.message!, 'alert');
       $fetchIndex = 0;
@@ -184,7 +186,7 @@
       Are you sure you want to pay ${$pricingModel.price} for an identity with your {cardName} credits card ending with ****{last4}?
     </p>
     <input hidden value={$pricingModel.name} name="type" type="hidden" />
-    <LoadingButton index={2} type="submit" disabled={step === 'auth'}>
+    <LoadingButton index={2} type="submit" disabled={step === 'auth' || step === 'finish'}>
       {$pricingModel.name === 'Lifetime' ? 'Pay' : 'Subscribe for'} ${$pricingModel.price}
     </LoadingButton>
     {#key step}

@@ -18,24 +18,51 @@ export default new Elysia()
       return error(400, err instanceof Error ? err.message : err);
     }
 
-    if (event.type === 'checkout.session.completed') {
-      const result = event.data.object;
-      const customer = result.customer! as string;
-      const email = result.customer_details!.email! as string;
-      await attempt(sql`UPDATE users SET stripe_customer = ${customer} WHERE email = ${email}`);
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object;
 
-      const subscription = result.subscription as string;
-      const intent = result.payment_intent as string;
-      const date = new Date(result.created * 1000);
-      const plan = result.metadata!.type;
-      const id = result.metadata!.id;
+      if (paymentIntent.invoice === null && paymentIntent.metadata?.id && paymentIntent.metadata?.type) {
+        const customerID = paymentIntent.customer! as string;
+        const intentID = paymentIntent.id;
 
-      const query = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
-      const owner = query[0].id;
+        const date = new Date(paymentIntent.created * 1000);
+        const identityID = paymentIntent.metadata.id;
+        const plan = paymentIntent.metadata.type;
 
-      await attempt(sql`INSERT INTO identities (id, owner, creation_date, plan) VALUES (${id}, ${owner}, ${date}, ${plan})`);
-      if (intent) await attempt(sql`UPDATE identities SET payment_intent = ${intent} WHERE creation_date = ${date}`);
-      else await attempt(sql`UPDATE identities SET subscription_id = ${subscription} WHERE creation_date = ${date}`);
+        const userQuery = await attempt(sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`);
+        const owner = userQuery[0].id;
+
+        const alreadyExists = await attempt(sql`SELECT id FROM identities WHERE id = ${identityID}`);
+        if (alreadyExists.length) return;
+
+        await attempt(
+          sql`INSERT INTO identities (id, owner, creation_date, plan, payment_intent) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${intentID})`,
+        );
+      }
+    }
+
+    if (event.type === 'invoice.paid') {
+      const invoice = event.data.object;
+
+      if (invoice.billing_reason === 'subscription_create' && invoice.subscription && invoice.customer) {
+        const customerID = invoice.customer! as string;
+        const subscriptionID = invoice.subscription! as string;
+        const date = new Date(invoice.created * 1000);
+
+        const subscription = await stripe.subscriptions.retrieve(subscriptionID);
+        const identityID = subscription.metadata!.id;
+        const plan = subscription.metadata!.type;
+
+        const userQuery = await attempt(sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`);
+        const owner = userQuery[0].id;
+
+        const alreadyExists = await attempt(sql`SELECT id FROM identities WHERE id = ${identityID}`);
+        if (alreadyExists.length) return;
+
+        await attempt(
+          sql`INSERT INTO identities (id, owner, creation_date, plan, subscription_id) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${subscriptionID})`,
+        );
+      }
     }
 
     if (event.type === 'customer.subscription.deleted') {
