@@ -5,6 +5,155 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-4-14
+
+### Added
+
+- Payment memorization
+- Confirmation and 3D secure payment
+- Continue creation process in dashboard
+- New mastodon account
+- New discord server
+
+### Changed
+
+- Fix new stripe webhook
+- Change checkout to backend regular payment
+- Fix recreatation of stripe customer each time
+
+### Removed
+
+- Stripe checkout
+- SimpleX link
+- Tor link
+
+## [0.6.7] - 2025-4-09
+
+### Added
+
+- Highlight.js
+- APICode component
+- HTTPMethod component
+- Full documentation page
+- Documentation section selection
+- Docs content directory and content
+- Documentation page responsiveness
+- Documentation anchor hash
+- Quick test API route
+- More icons
+- More alias
+- Docs types
+
+### Changed
+
+- Fix ESlint
+- Fix SelectMenu
+- Header settings icon
+- Move format/fetch functions to other files
+- Organize components in main into directories
+- Move identity component to routes
+- Organize icons into directories
+
+## [0.6.6] - 2025-4-02
+
+### Added
+
+- Delete identities
+- Cancel subscriptionw
+- Check body in API request
+- Query parameters in API
+
+### Changed
+
+- Correct HTTP verbs in API
+- Change Prompts to have adequate environment
+- Fix countless bugs
+- Rename API keys
+
+## [0.6.5] - 2025-3-28
+
+### Added
+
+- Middleware to avoid repeating code
+- API middleware and API key authentication
+- Implement URL fragments for easier navigation
+- Responsive design to full identity page
+
+### Changed
+
+- Move API routes to individual files
+- Rewrite whole websocket implementation to regular REST API
+- Made code more readable and prettier
+- Rename variables and functions
+- Better types in frontend
+
+## [0.6.4] - 2025-3-26
+
+### Added
+
+- Full phone section
+- ComposeMessage component
+- Frontend change when receiving new message
+- Replying to messages
+- Sending messages
+
+### Changed
+
+- Fix twilio webhooks issue
+- Fix types and stores
+
+### Removed
+
+- MMS promise from phone section
+
+## [0.6.3] - 2025-3-23
+
+### Added
+
+- Show full discussion
+- Conversation on phone section
+- Verify twilio signature
+- Delete messages feature
+
+### Changed
+
+- Rename object keys in API and frontend
+- Move svelte file to sub-components (identity page)
+- Divide phone section into components
+- Move some stores outside $stores
+- Redo some types
+
+## [0.6.2] - 2025-3-21
+
+### Added
+
+- $crypto.ts
+- Phone section main UI
+- HoverCopyButton component
+- WSConnections (correctly implemented this time)
+- Even more types
+
+### Changed
+
+- Divide general information section into components
+- Divide online account section into components
+- Online account section UI/TOTP
+- Fix websocket close issue
+
+## [0.6.1] - 2025-3-19
+
+### Added
+
+- Twilio messaging services
+- Twilio CLI webhooks to tmux
+- Route /phone/:id and related functions
+- Webhooks.ts (move all webhooks routes there)
+- More types
+
+### Remove
+
+- US opton from country listg due to A2P 10DLC
+
 ## [0.6.0] - 2025-3-16
 
 ### Added
@@ -177,7 +326,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Alpha version release
-- Update website from waitlist to alpha
 - New account table to database
 - New identity routes in elysiaJS
 - Temporary API/Extension route on elysiaJS
@@ -654,7 +802,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Image format and size
-- Better semantic style;
+- Better semantic style
 - Styling a bit
 
 ## [0.1.0] - 2024-10-31
