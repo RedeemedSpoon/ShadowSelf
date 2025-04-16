@@ -1,11 +1,17 @@
 import {redirect, type Handle} from '@sveltejs/kit';
+import {sequence} from '@sveltejs/kit/hooks';
+import csrf from '$csrf';
 
-export const handle: Handle = async ({event, resolve}) => {
+const allowedOrigins = ['https://shadowself.io', 'http://localhost:5000', 'http://localhost:3000'];
+
+const csrfProtect = csrf([], allowedOrigins);
+
+const authAndRedirects: Handle = async ({event, resolve}) => {
   const isLogged = event.cookies.get('token');
   const path = event.url.pathname;
 
   if (path === '/logout') {
-    event.cookies.delete('token', {domain: event.url.host, path: '/'});
+    event.cookies.delete('token', {domain: event.url.hostname, path: '/'});
     redirect(302, '/');
   }
 
@@ -23,3 +29,5 @@ export const handle: Handle = async ({event, resolve}) => {
 
   return resolve(event);
 };
+
+export const handle = sequence(csrfProtect, authAndRedirects);

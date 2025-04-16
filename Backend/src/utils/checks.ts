@@ -113,6 +113,10 @@ export function checkContact(Rawbody: unknown): ContactDetail {
     return {err: 'Subject is too long (<120 characters)'} as ContactDetail;
   }
 
+  if (!body.message.length) {
+    return {err: 'Message is empty'} as ContactDetail;
+  }
+
   if (body.email && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
     return {err: 'Please enter a valid email'} as ContactDetail;
   }
