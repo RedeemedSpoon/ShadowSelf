@@ -113,7 +113,7 @@
             <a href="/identity/{identity.id}" id="identity-{identity.id}">
               <img loading="lazy" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s picture" />
               <div class="text-nowrap">
-                <p class="!text-neutral-300">{identity.name}</p>
+                <p class="text-nowrap !text-neutral-300">{identity.name}</p>
                 <br />
                 <span class="inline-flex gap-2 text-sm text-neutral-500">
                   <img src="https://flagsapi.com/{identity.country}/flat/24.png" alt="country flag" />

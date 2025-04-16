@@ -30,7 +30,9 @@
             <a href="/settings" {...events} class="border-primary-600 rounded-full border-2 p-1">
               <UserIcon className={className + (hoverSettings ? ' !fill-primary-600' : '')} fill={false} />
             </a>
-            <a href="/dashboard" class="group" id="username">{$user}<span></span></a>
+            {#key $user}
+              <a href="/dashboard" class="group" id="username">{$user}<span></span></a>
+            {/key}
           </div>
         {:else}
           <a class="text-primary-600 hover:text-primary-700 underline max-xl:mr-2" href="/login">Log In</a>
