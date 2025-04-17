@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-import forms from '@tailwindcss/forms';
-import colors from 'tailwindcss/colors';
-import svgToDataUri from 'mini-svg-data-uri';
+import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette';
 import defaultTheme from 'tailwindcss/defaultTheme';
 import aspectRatio from '@tailwindcss/aspect-ratio';
-import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette';
+import svgToDataUri from 'mini-svg-data-uri';
+import colors from 'tailwindcss/colors';
+import forms from '@tailwindcss/forms';
 
 export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],

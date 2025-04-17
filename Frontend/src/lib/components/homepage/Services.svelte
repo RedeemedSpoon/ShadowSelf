@@ -14,13 +14,13 @@
     {
       title: 'Phone Services',
       description:
-        'Each identity comes with a functional permanent phone number. Use them to receive and send text messages. Protect yourself and avoid annoying calls or scams. Please note that you cannot make phone calls with them.',
+        'Each identity comes with a functional permanent phone number. Use it to receive and send text messages. Protect yourself and avoid annoying SMS or scams. Please note that you cannot make phone calls with it (yet).',
       images: [message, tower],
     },
     {
       title: 'Email Services',
       description:
-        'Each identity also comes with a permanent email address. Use it for sending and receiving and confirming emails. Keep yourself from unwanted emails, advertisements, spams and phishing attempts.',
+        'Each identity also comes with a permanent email address. Utilize it for sending and receiving and confirming emails. Keep yourself from unwanted emails, advertisements, spams and phishing attempts.',
       images: [email, router],
     },
     {

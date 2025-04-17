@@ -96,8 +96,9 @@
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
     <p class="mb-24 w-5/6">
-      We believe that we offer one of the most well-rounded solution for your online needs. Our service provides a great option without
-      compromising on both your privacy and wallet
+      We offers a holistic approach to your digital life, ensuring top-tier privacy doesn't break the bank. Forget juggling multiple
+      services or settling for less, our platform provides the well-rounded protection you need in one place. Get serious security that
+      respects both your privacy needs and your budget.
     </p>
   </div>
   <div class="h-fit w-fit">
@@ -106,12 +107,14 @@
 </section>
 
 <section id={data.homepageIds[7]} class="relative !mt-0 !h-screen overflow-hidden">
-  <h1 class="text-center text-6xl md:text-7xl">Join The Beta</h1>
-  <p class="z-10 w-3/5 text-center leading-relaxed text-neutral-400 lg:w-1/2 xl:w-1/3">
-    Join the alpha phase to be among the first to experience the power of ShadowSelf. In the meantime, stay tuned for updates and
-    exciting new additions in the <a href="https://github.com/RedeemedSpoon/ShadowSelf">Github</a> Repository. We're just as excited as
-    you are about this project, and we're dedicated to making the world a safer and freer place.
+  <h1 class="text-center text-6xl text-neutral-300 md:text-7xl">Unlock <span class="pretty-style italic">True</span> Privacy</h1>
+  <p class="z-10 w-3/5 text-center lg:w-1/2 xl:w-1/3">
+    Don't leave your online privacy to chance. ShadowSelf delivers the critical advantage you need, regardless of your current
+    expertise. Gain the control and security essential for navigating the modern web. It's time to step up.
   </p>
+  <a class="z-10 mt-8" href={$user ? '/dashboard' : '/signup'}>
+    <button class="bg-size-[75%] from-blue-600 via-indigo-600 to-purple-700 px-12 py-8 text-3xl">Take Control Now!</button>
+  </a>
   <BackgroundBeams />
 </section>
 

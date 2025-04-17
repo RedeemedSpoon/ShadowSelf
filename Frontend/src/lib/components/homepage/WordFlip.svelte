@@ -8,7 +8,7 @@
 </script>
 
 <div>
-  <h6 class="text-lg text-neutral-500 max-sm:text-sm">Powered by You, and The Community.</h6>
+  <h6 class="text-lg text-neutral-500 max-sm:text-sm">Powered by You, and the Community.</h6>
   <div class="relative flex">
     <h2 class="!text-6xl max-sm:!text-4xl md:!text-8xl">The</h2>
     {#key index}
