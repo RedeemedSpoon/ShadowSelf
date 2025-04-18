@@ -12,6 +12,7 @@ export const currentSection: Writable<Sections> = writable('info');
 export const scrollY: Writable<number> = writable(0);
 export const currentStep: Writable<number> = writable(1);
 export const scrollYProgress: Writable<number> = writable(0);
+export const scrollUsingTab: Writable<boolean> = writable(false);
 
 export const modalIndex: Writable<number> = writable(0);
 export const fetchIndex: Writable<number> = writable(0);

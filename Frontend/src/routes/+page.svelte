@@ -3,14 +3,21 @@
   import {BackgroundBeams, GridAndDotBackgrounds} from '$component';
   import {addAnimation, addTabScrollEvent} from '$dom';
   import {registration, management} from '$image';
+  import {user, scrollUsingTab} from '$store';
   import type {PageData} from './$types';
+  import {goto} from '$app/navigation';
   import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
-  import {user} from '$store';
 
   let {data}: {data: PageData} = $props();
 
   onMount(() => {
+    if (window.location.hash) {
+      scrollUsingTab.set(true);
+      setTimeout(() => scrollUsingTab.set(false), 150);
+      goto(window.location.hash);
+    }
+
     addTabScrollEvent(data.homepageIds);
     const disconnect = addAnimation(data.animations);
     return () => disconnect();

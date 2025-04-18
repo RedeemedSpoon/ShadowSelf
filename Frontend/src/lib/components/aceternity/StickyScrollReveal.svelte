@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {scrollYProgress, scrollY} from '$store';
+  import {scrollYProgress, scrollUsingTab, scrollY} from '$store';
   import {onMount, type Snippet} from 'svelte';
   import type {ServicesContent} from '$type';
   import {Card} from '$component';
@@ -21,11 +21,11 @@
   const gradient = ['purple', 'red', 'blue', 'green', 'orange'];
 
   $effect(() => {
-    if ($scrollY === 0) return;
+    if ($scrollY === 0 || $scrollUsingTab) return;
     if (!ref || ref.getBoundingClientRect().top === 0) return;
     overflow = ref.getBoundingClientRect().top;
 
-    if (overflow < 300) {
+    if (overflow < 300 && overflow > 0) {
       if ($scrollYProgress === 0 && direction === 'up') {
         document.querySelector('html')!.style.overflow = 'auto';
       } else if ($scrollYProgress >= 0.77 && direction === 'down') {
