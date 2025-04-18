@@ -1,12 +1,8 @@
 <script lang="ts">
+  import {scrollYProgress, scrollY} from '$store';
   import {onMount, type Snippet} from 'svelte';
   import type {ServicesContent} from '$type';
-  import {scrollYProgress} from '$store';
   import {Card} from '$component';
-
-  let activeCard = $state(0);
-  let direction = $state('down');
-  let ref: HTMLDivElement | undefined = $state();
 
   interface Props {
     content: ServicesContent[];
@@ -15,12 +11,34 @@
   }
 
   let {content, text, image}: Props = $props();
+
+  let overflow = $state(0);
+  let activeCard = $state(0);
+  let direction = $state('down');
+  let ref = $state() as HTMLDivElement;
+
   const cardsBreakpoints = content.map((_, index) => index / content.length);
   const gradient = ['purple', 'red', 'blue', 'green', 'orange'];
 
+  $effect(() => {
+    if ($scrollY === 0) return;
+    if (!ref || ref.getBoundingClientRect().top === 0) return;
+    overflow = ref.getBoundingClientRect().top;
+
+    if (overflow < 300) {
+      if ($scrollYProgress === 0 && direction === 'up') {
+        document.querySelector('html')!.style.overflow = 'auto';
+      } else if ($scrollYProgress >= 0.77 && direction === 'down') {
+        document.querySelector('html')!.style.overflow = 'auto';
+      } else {
+        document.querySelector('html')!.style.overflow = 'hidden';
+        ref.scrollIntoView({block: 'start', inline: 'nearest', behavior: 'smooth'});
+      }
+    }
+  });
+
   onMount(() => {
     const handleScroll = (e: Event) => {
-      if ($scrollYProgress >= 0.79 && direction === 'down') window.scrollBy(0, 150);
       const target = e.target as HTMLDivElement;
       $scrollYProgress = target.scrollTop / target.scrollHeight;
 
@@ -37,7 +55,7 @@
   });
 </script>
 
-<div bind:this={ref} id="main" class:!overflow-y-hidden={direction === 'down' && $scrollYProgress >= 0.79}>
+<div bind:this={ref} id="main" class:!overflow-y-hidden={overflow > 300}>
   <div class="max-w-xl max-sm:!h-[40rem]">
     {#each content as item, index (index)}
       {@render text?.({item: {...item, activeCard, index}})}
@@ -56,7 +74,7 @@
 
 <style lang="postcss">
   #main {
-    @apply no-scrollbar relative flex h-full w-full snap-y snap-mandatory;
+    @apply no-scrollbar relative flex h-full w-full snap-y snap-mandatory scroll-mt-52;
     @apply justify-evenly overflow-y-auto max-xl:justify-center xl:gap-x-2 xl:p-8;
   }
 
