@@ -26,7 +26,6 @@ export {default as worldMap} from './patterns/world-map.svg';
 
 export {default as registration} from './homepage/usecases/registration.svg';
 export {default as management} from './homepage/usecases/management.svg';
-export {default as satisfaction} from './homepage/satisfaction.webp';
 export {default as background} from './homepage/background.webp';
 export {default as dashboard} from './homepage/dashboard.webp';
 

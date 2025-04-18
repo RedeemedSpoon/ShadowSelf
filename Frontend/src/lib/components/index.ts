@@ -29,11 +29,12 @@ export {default as ConfirmModal} from './main/reusable/ConfirmModal.svelte';
 export {default as ExtensionLinks} from './main/reusable/ExtensionLinks.svelte';
 
 export {default as Slogan} from './homepage/Slogan.svelte';
-export {default as Card3D} from './homepage/Card3D.svelte';
+export {default as Billing} from './homepage/Billing.svelte';
 export {default as WordFlip} from './homepage/WordFlip.svelte';
-export {default as Services} from './homepage/Services.svelte';
 export {default as FeatureGrid} from './homepage/FeatureGrid.svelte';
-export {default as PricingTable} from './homepage/PricingTable.svelte';
+export {default as ServicesList} from './homepage/ServicesList.svelte';
+export {default as FloatingAvatars} from './homepage/FloatingAvatars.svelte';
+export {default as InteractiveCard} from './homepage/InteractiveCard.svelte';
 
 export {default as GridAndDotBackgrounds} from './aceternity/GridAndDotBackgrounds.svelte';
 export {default as StickyScrollReveal} from './aceternity/StickyScrollReveal.svelte';

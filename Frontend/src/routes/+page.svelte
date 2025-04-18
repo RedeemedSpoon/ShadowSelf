@@ -1,8 +1,8 @@
 <script lang="ts">
-  import {Slogan, Card3D, PricingTable, WordFlip, FeatureGrid, Services} from '$component';
+  import {Slogan, InteractiveCard, Billing, WordFlip, FeatureGrid, ServicesList, FloatingAvatars} from '$component';
   import {BackgroundBeams, GridAndDotBackgrounds} from '$component';
-  import {satisfaction, registration, management} from '$image';
   import {addAnimation, addTabScrollEvent} from '$dom';
+  import {registration, management} from '$image';
   import type {PageData} from './$types';
   import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
@@ -41,7 +41,7 @@
 </section>
 
 <section id={data.homepageIds[1]} class="!flex-col-reverse !px-[15vw] 2xl:!flex-row">
-  <Card3D />
+  <InteractiveCard />
   <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-20">
     <h6 class="-mb-4 ml-2 text-lg text-neutral-500 max-sm:text-sm">The Most Advanced Identity Masking Tool</h6>
     <h1 class="text-3xl text-neutral-300 sm:text-4xl md:text-5xl">
@@ -57,7 +57,7 @@
 </section>
 
 <section id={data.homepageIds[2]} class="relative sm:!h-screen">
-  <Services />
+  <ServicesList />
 </section>
 
 <section id={data.homepageIds[3]}>
@@ -89,7 +89,7 @@
 </section>
 
 <section id={data.homepageIds[5]}>
-  <PricingTable />
+  <Billing />
 </section>
 
 <section id={data.homepageIds[6]} class="xl:!flex-row xl:gap-x-16">
@@ -101,9 +101,7 @@
       respects both your privacy needs and your budget.
     </p>
   </div>
-  <div class="h-fit w-fit">
-    <img loading="lazy" class="animate-shake hidden min-w-[30vw] xl:block" src={satisfaction} alt="Customer satisfaction" />
-  </div>
+  <FloatingAvatars />
 </section>
 
 <section id={data.homepageIds[7]} class="relative !mt-0 !h-screen overflow-hidden">
