@@ -6,13 +6,13 @@ function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, 
   const promptRealismDetails = `Photorealistic, candid quality photo. Authentic natural features: realistic detailed skin texture (pores, slight imperfections, natural oils), lifelike eyes conveying emotion, natural unposed expression and posture. Use realistic, natural lighting suitable for the scene. Genuine human traits, personality, warmth, approachability, avoiding stereotypes. Integrate the following description naturally: ${bio}.`;
 
   const negativePromptStart =
-    'unrealistic, fake, illustration, painting, drawing, 3D render, cartoon, anime, sketch, doll-like, plastic skin, smooth skin, airbrushed, polished skin, exaggerated features, deformed, disfigured, extra limbs, bad anatomy, unrealistic body proportions, vacant stare, dead eyes, bad lighting, studio lighting (unless specified), blurry, low quality, noisy, watermark, signature, text, multiple people. ';
-
-  const probabilities = Math.floor(Math.random() * 7) + 1;
-  let sceneNegativePrompt = '';
-  let scenePrompt = '';
+    'unrealistic, fake, illustration, painting, drawing, 3D render, cartoon, anime, sketch, doll-like, plastic skin, smooth skin, airbrushed, polished skin, exaggerated features, deformed, disfigured, extra limbs, bad anatomy, unrealistic body proportions, vacant stare, dead eyes, bad lighting, studio lighting (unless specified), blurry, low quality, noisy, watermark, signature, text, multiple people.';
 
   const cityCountry = `${lang?.city}, ${lang?.country}`;
+  const probabilities = Math.floor(Math.random() * 7) + 1;
+
+  let sceneNegativePrompt = '';
+  let scenePrompt = '';
 
   switch (probabilities) {
     case 1: // Bustling Street
@@ -58,10 +58,8 @@ function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, 
       break;
   }
 
-  const finalPrompt = scenePrompt;
   const finalNegativePrompt = `${negativePromptStart} ${sceneNegativePrompt}`;
-
-  return {negativePrompt: finalNegativePrompt, prompt: finalPrompt};
+  return {negativePrompt: finalNegativePrompt, prompt: scenePrompt};
 }
 export async function generateProfile(lang: Location, age: number, sex: string, ethnicity: string, bio: string): Promise<string> {
   const {prompt, negativePrompt} = getPrompt(lang, ethnicity, age, sex, bio);
