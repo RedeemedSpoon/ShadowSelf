@@ -19,12 +19,18 @@ export default {
         scroll: 'scroll 180s linear infinite',
         orbit: 'orbit 1.5s ease-in-out calc(var(--index) * 0.1s) infinite',
         progress: 'progress 30s linear infinite',
+        sparkle: 'sparkle 3s linear calc(var(--delay) * 0.1s) infinite',
       },
       keyframes: {
         border: {'100%': {transform: 'rotate(-360deg)'}},
         progress: {
           '0%': {width: '0%'},
           '100%': {width: '100%'},
+        },
+        sparkle: {
+          '0%': {opacity: '0'},
+          '50%': {opacity: '1'},
+          '100%': {opacity: '0'},
         },
         shake: {
           '0%, 100%': {transform: 'translateY(0)'},

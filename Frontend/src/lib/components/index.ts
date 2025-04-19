@@ -3,11 +3,11 @@ export {default as Notification} from './layout/Notification.svelte';
 export {default as Header} from './layout/Header.svelte';
 export {default as Footer} from './layout/Footer.svelte';
 
-export {default as Modal} from './main/Modal.svelte';
-export {default as Loader} from './main/Loader.svelte';
-export {default as Tooltip} from './main/Tooltip.svelte';
-export {default as HTTPMethod} from './main/HTTPMethod.svelte';
-export {default as ActionIcon} from './main/ActionIcon.svelte';
+export {default as Loader} from './main/other/Loader.svelte';
+export {default as Tooltip} from './main/other/Tooltip.svelte';
+export {default as Sparkle} from './main/other/Sparkle.svelte';
+export {default as HTTPMethod} from './main/other/HTTPMethod.svelte';
+export {default as ActionIcon} from './main/other/ActionIcon.svelte';
 
 export {default as CopyButton} from './main/buttons/CopyButton.svelte';
 export {default as LoadingButton} from './main/buttons/LoadingButton.svelte';
@@ -20,6 +20,7 @@ export {default as SearchInput} from './main/inputs/SearchInput.svelte';
 export {default as SelectMenu} from './main/inputs/SelectMenu.svelte';
 
 export {default as Card} from './main/containers/Card.svelte';
+export {default as Modal} from './main/containers/Modal.svelte';
 export {default as Steps} from './main/containers/Steps.svelte';
 export {default as APICode} from './main/containers/APICode.svelte';
 export {default as FlowStep} from './main/containers/FlowStep.svelte';

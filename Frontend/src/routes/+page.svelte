@@ -1,6 +1,6 @@
 <script lang="ts">
   import {Slogan, InteractiveCard, Billing, WordFlip, FeatureGrid, ServicesList, FloatingAvatars} from '$component';
-  import {BackgroundBeams, GridAndDotBackgrounds} from '$component';
+  import {BackgroundBeams, GridAndDotBackgrounds, Sparkle} from '$component';
   import {addAnimation, addTabScrollEvent} from '$dom';
   import {registration, management} from '$image';
   import {user, scrollUsingTab} from '$store';
@@ -112,13 +112,20 @@
 </section>
 
 <section id={data.homepageIds[7]} class="relative !mt-0 !h-screen overflow-hidden">
-  <h1 class="text-center text-6xl text-neutral-300 md:text-7xl">Unlock <span class="pretty-style italic">True</span> Privacy</h1>
+  <h1 class="text-wrap text-center text-6xl text-neutral-300 md:text-7xl">
+    <div class="relative">
+      <Sparkle className="-top-4 right-[18rem]" size="w-9 h-9" delay={8} />
+      <Sparkle className="-top-6 right-96" size="w-7 h-7" delay={15} />
+      <Sparkle className="-bottom-24 right-[24rem]" delay={2} />
+    </div>
+    Unlock<span class="pretty-style ml-2 italic">True</span> Privacy
+  </h1>
   <p class="z-10 w-3/5 text-center lg:w-1/2 xl:w-1/3">
     Don't leave your online privacy to chance. ShadowSelf delivers the critical advantage you need, regardless of your current
     expertise. Gain the control and security essential for navigating the modern web. It's time to step up.
   </p>
   <a class="z-10 mt-8" href={$user ? '/dashboard' : '/signup'}>
-    <button class="bg-size-[75%] from-blue-600 via-indigo-600 to-purple-700 px-12 py-8 text-3xl">Take Control Now!</button>
+    <button id="action" style="background-position: 50%;">Take Control Now!</button>
   </a>
   <BackgroundBeams />
 </section>
@@ -140,6 +147,10 @@
 
     &:nth-child(6) {
       @apply max-lg:!my-0 2xl:!flex-row min-[1536px]:max-[1720px]:!flex-col;
+    }
+
+    #action {
+      @apply bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700 bg-[150%] px-12 py-8 text-3xl hover:!bg-[100%];
     }
   }
 </style>
