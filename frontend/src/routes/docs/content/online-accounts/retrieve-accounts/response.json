@@ -1,0 +1,20 @@
+{
+  "accounts": [
+    {
+      "id": 101,
+      "username": "service_user_jd",
+      "password": "U2FsdGVkX1+v3Qw8aK9ZgslkdjfgPQ5/7a8s9d0fGHJKl==",
+      "website": "https://service.example.com",
+      "totp": "U2FsdGVkX1+abcDefGhiJKLmnoPqrStuVwxYz012345=",
+      "algorithm": "SHA1"
+    },
+    {
+      "id": 102,
+      "username": "tester_05",
+      "password": "U2FsdGVkX1+qwertyUIOPasdfghJKLzxcvBNM098765=",
+      "website": "https://anothersite.net",
+      "totp": null,
+      "algorithm": null
+    }
+  ]
+}

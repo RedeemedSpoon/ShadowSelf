@@ -1,0 +1,22 @@
+{
+  "uid": 105,
+  "forward": "forward.recipient@another.com",
+  "forwardEmail": {
+    "uid": 60,
+    "messageID": "<a0b1c2d3-e4f5-a0b1-c2d3-e4f5a0b1c2d3@shadowself.io>",
+    "from": "jane.doe@shadowself.io",
+    "to": "forward.recipient@another.com",
+    "subject": "FWD: Project Update",
+    "date": "2023-10-28T12:00:00Z",
+    "body": "\n<p><strong>--- Forwarded Message ---</strong></p>\n<p><strong>From:</strong> sender@example.com</p>\n...",
+    "type": "html",
+    "attachments": [
+      {
+        "filename": "report.pdf",
+        "data": "JVBERi0xLjcK..."
+      }
+    ],
+    "inReplyTo": null,
+    "references": []
+  }
+}

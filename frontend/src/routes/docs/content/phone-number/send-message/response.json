@@ -1,0 +1,12 @@
+{
+  "addressee": "+14155550000",
+  "messageSent": {
+    "messageID": "SMzzzy9a8b7c6d5e4f3g2h1i0j9k8l7",
+    "status": "queued",
+    "date": "2023-10-28T14:00:00Z",
+    "error": "",
+    "body": "Hello from the API!",
+    "from": "+14155551234",
+    "to": "+14155550000"
+  }
+}

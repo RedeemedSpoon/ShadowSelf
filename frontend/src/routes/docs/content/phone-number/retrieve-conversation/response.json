@@ -1,0 +1,32 @@
+{
+  "addressee": "+14155550000",
+  "conversation": [
+    {
+      "messageID": "SMxxxc4e6e6f7g8h9i0j1k2l3m4n5o6p",
+      "status": "received",
+      "date": "2023-10-28T10:30:05Z",
+      "error": "",
+      "body": "Okay, sounds good!",
+      "from": "+14155550000",
+      "to": "+14155551234"
+    },
+    {
+      "messageID": "SMvvvw5d7d8e9f0g1h2i3j4k5l6m7n8",
+      "status": "delivered",
+      "date": "2023-10-28T10:29:50Z",
+      "error": "",
+      "body": "Great, thanks!",
+      "from": "+14155551234",
+      "to": "+14155550000"
+    },
+    {
+      "messageID": "SMyyyz3b1a2c3d4e5f6g7h8i9j0k1l2",
+      "status": "received",
+      "date": "2023-10-28T10:28:00Z",
+      "error": "",
+      "body": "Confirming receipt?",
+      "from": "+14155550000",
+      "to": "+14155551234"
+    }
+  ]
+}

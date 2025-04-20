@@ -1,0 +1,21 @@
+{
+  "uuid": "<a1b2c3d4-e5f6-7890-1234-567890abcdef@shadowself.io>",
+  "fetchEmail": {
+    "uid": 58,
+    "messageID": "<a1b2c3d4-e5f6-7890-1234-567890abcdef@shadowself.io>",
+    "from": "jane.doe@shadowself.io",
+    "to": "recipient@example.org",
+    "subject": "Re: Meeting Request",
+    "date": "2023-10-26T09:15:00Z",
+    "body": "<html><body>Yes, that time works for me. See you then...</body></html>",
+    "type": "html",
+    "inReplyTo": "<f0e9d8c7-b6a5-4321-fedc-ba0987654321@example.org>",
+    "references": ["<f0e9d8c7-b6a5-4321-fedc-ba0987654321@example.org>"],
+    "attachments": [
+      {
+        "filename": "calendar.ics",
+        "data": "QkVHSU46VkNBTEVOR..."
+      }
+    ]
+  }
+}

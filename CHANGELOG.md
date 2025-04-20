@@ -5,30 +5,345 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.00] - 2025-2-25
+## [0.7.0] - 2025-4-14
+
+### Added
+
+- Payment memorization
+- Confirmation and 3D secure payment
+- Continue creation process in dashboard
+- New mastodon account
+- New discord server
+
+### Changed
+
+- Fix new stripe webhook
+- Change checkout to backend regular payment
+- Fix recreatation of stripe customer each time
+
+### Removed
+
+- Stripe checkout
+- SimpleX link
+- Tor link
+
+## [0.6.7] - 2025-4-09
+
+### Added
+
+- Highlight.js
+- APICode component
+- HTTPMethod component
+- Full documentation page
+- Documentation section selection
+- Docs content directory and content
+- Documentation page responsiveness
+- Documentation anchor hash
+- Quick test API route
+- More icons
+- More alias
+- Docs types
+
+### Changed
+
+- Fix ESlint
+- Fix SelectMenu
+- Header settings icon
+- Move format/fetch functions to other files
+- Organize components in main into directories
+- Move identity component to routes
+- Organize icons into directories
+
+## [0.6.6] - 2025-4-02
+
+### Added
+
+- Delete identities
+- Cancel subscriptionw
+- Check body in API request
+- Query parameters in API
+
+### Changed
+
+- Correct HTTP verbs in API
+- Change Prompts to have adequate environment
+- Fix countless bugs
+- Rename API keys
+
+## [0.6.5] - 2025-3-28
+
+### Added
+
+- Middleware to avoid repeating code
+- API middleware and API key authentication
+- Implement URL fragments for easier navigation
+- Responsive design to full identity page
+
+### Changed
+
+- Move API routes to individual files
+- Rewrite whole websocket implementation to regular REST API
+- Made code more readable and prettier
+- Rename variables and functions
+- Better types in frontend
+
+## [0.6.4] - 2025-3-26
+
+### Added
+
+- Full phone section
+- ComposeMessage component
+- Frontend change when receiving new message
+- Replying to messages
+- Sending messages
+
+### Changed
+
+- Fix twilio webhooks issue
+- Fix types and stores
+
+### Removed
+
+- MMS promise from phone section
+
+## [0.6.3] - 2025-3-23
+
+### Added
+
+- Show full discussion
+- Conversation on phone section
+- Verify twilio signature
+- Delete messages feature
+
+### Changed
+
+- Rename object keys in API and frontend
+- Move svelte file to sub-components (identity page)
+- Divide phone section into components
+- Move some stores outside $stores
+- Redo some types
+
+## [0.6.2] - 2025-3-21
+
+### Added
+
+- $crypto.ts
+- Phone section main UI
+- HoverCopyButton component
+- WSConnections (correctly implemented this time)
+- Even more types
+
+### Changed
+
+- Divide general information section into components
+- Divide online account section into components
+- Online account section UI/TOTP
+- Fix websocket close issue
+
+## [0.6.1] - 2025-3-19
+
+### Added
+
+- Twilio messaging services
+- Twilio CLI webhooks to tmux
+- Route /phone/:id and related functions
+- Webhooks.ts (move all webhooks routes there)
+- More types
+
+### Remove
+
+- US opton from country listg due to A2P 10DLC
+
+## [0.6.0] - 2025-3-16
+
+### Added
+
+- New icon
+- CONTRIBUTING.md
+- Saving as drafts
+- Email forwarding
+- Lazy loading to most images
+- Editing and sending drafts
+- Add To key/value pair to email
+- Totp code generator on account section
+- Auto maintenance script and cron jobs
+
+### Changed
+
+- Rename store and functions
+- Fix cookie deletion on prod
+- Fix email searching function
+- Design and text for email section
+- Clearing and update UI for email section
+- Try catch statement for email parsing
+
+## [0.5.8] - 2025-2-12
+
+### Added
+
+- More checks
+- Sending emails/replies
+- Decoding RFC822 email better and quote printable text
+- Dynamic imap/smtp connection function
+- Update design/text and loading buttons
+- Show error to user
+
+### Changed
+
+- Fix vite inline svg
+- Fix load issue on section change
+- Update types
+
+## [0.5.7] - 2025-2-10
+
+### Added
+
+- New icons
+- Tooltip on ActionIcons
+- Quill.js for writing emails
+- Inbox/Sent/Drafts/Junk mailboxes
+- Get/send email attachments and download them
+- Divide Email.svelte into separate components
+- Fetch replies recursively
+- Auto-delete junk mailbox
+- /webhook-twilio route
+- Load more buttons
+
+### Changed
+
+- Better imap fetching functions
+- Fix loader not working
+
+## [0.5.6] - 2025-3-9
+
+### Added
+
+- /api/email route
+- FetchEmail functions
+- Websocket connection for email
+- listening for new emails
+- decode and parse email
+- Display and sanitize email on client
+- Imap-simple and DOMPurify libraries
+- Imap-email.ts for imap protocol functions
+- Empty inbox state and text
+
+### Changed
+
+- Update packages
+- Move email.ts to smtp-email.ts
+- Loader to accept bigger form
+
+## [0.5.5] - 2025-3-8
+
+### Added
+
+- New icons
+- /api/account route
+- Empty states account section
+- Encrypt/decrypt password/totp
+- Online account section on identity page
+- Local master password CRUD operations
+- Generating/seeing passwords
+- Adding/deleting/editing accounts
+
+## [0.5.4] - 2025-3-4
+
+### Added
+
+- Prompt.ts and better diverse prompt
+- Sharp.js to reseize profile picture
+
+### Changed
+
+- dashboard has lower resolution picture
+- Design and types
+
+## [0.5.3] - 2025-3-3
+
+### Added
+
+- New back button
+- /api/identity route
+- Websocket.ts backend
+- New checkAPI function
+- Functional edit section of identity
+- General information edit button and part
+- Format phone numbers and credit cards
+- Copy/download profile picture image
+- Websocket connection and ping/pong
+
+### Changed
+
+- Information section design
+- Copy design change
+
+## [0.5.2] - 2025-3-1
+
+### Added
+
+- New icons
+- New svg background images
+- FetchAPI function
+- Empty state sections
+- CopyButton component
+- Boilerplate code to all sections
+- General Information section to identity page
+- ActionIcons to all different section
+
+### Changed
+
+- Rename old fetchApi to fetchBackend
+- Move identity.ts to api.ts
+- Creation process transition
+- Profile picture prompt
+- Database varchar length
+- Overall design
+
+### Removed
+
+- Cancel icon
+- Moneyjar icon
+
+## [0.5.1] - 2025-2-27
+
+### Added
+
+- New icons
+- ActionIcon component
+- Identity individual page (barebone)
+- Top button selector on identity page
+- Identity error message
+- Back button
+
+### Changed
+
+- Release Dates
+- All lock file to .gitignore
+
+## [0.5.0] - 2025-2-25
 
 ### Added
 
 - Alpha version release
-- Upate website from waitlist to alpha
 - New account table to database
 - New identity routes in elysiaJS
 - Temporary API/Extension route on elysiaJS
-- New individual page for each of youridentity
-- Add more column to identities table on database
+- New individual page for each identity
+- More column to identities table on database
 - Dashboard actually retrieve your identities instead
 - New coming soon page to api docs and extension
 - New temporary text to individual identity pages
-- Add system design to project
+- System design to project
 - New icons to the project
 
 ### Changed
 
 - Update packages
-- Change some route's path
-- Change bcrypt to bcryptJS
-- Change available location for last time
-- Change waitlist to alpha version instead
+- Some route's path
+- Bcrypt to bcryptJS
+- Available location for last time
+- Waitlist to alpha version instead
 - Creation process is have icons and better design
 - Move redirect for sveltekit hooks to nginx instead
 - Move location variable to a request on extension instead
@@ -36,200 +351,195 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Temporary image and text to sync/extension on creation process
 - Disable some stuff waiting for the full release
 
-## [0.4.07] - 2025-2-21
+## [0.4.7] - 2025-2-21
 
 ### Added
 
-- Add active status to identity
-- Add finish process to creation (step 10)
-- Add email creation shell command
-- Add phone provision function
+- Active status to identity
+- Finish process to creation (step 10)
+- Email creation shell command
+- Phone provision function
 
 ### Changed
 
 - Fix types
 - Move origin to connection.ts
-- Change check identity function
-- Change identity database structure
+- Check identity function
+- Identity database structure
 - Rename code switch case to location
 
-## [0.4.06] - 2025-2-19
+## [0.4.6] - 2025-2-19
 
 ### Added
 
-- Add twilio to the creation process
-- Add phone registration to the creation process (step 4)
-- Add scrollability to SelectionMenu
+- Twilio to the creation process
+- Phone registration to the creation process (step 4)
+- Scrollability to SelectionMenu
 
-## [0.4.05] - 2025-2-17
+## [0.4.5] - 2025-2-17
 
 ### Added
 
-- Add responsive design to creation process
+- Responsive design to creation process
 
 ### Changed
 
-- Change ExtensionLinks to have better color
-- Change identities location
+- Identities location
 - Fix wrong var use in email check
-- Change transition in creation process to slide
+- ExtensionLinks to have better color
+- Transition in creation process to slide
 
-## [0.4.04] - 2025-2-15
+## [0.4.4] - 2025-2-15
 
 ### Added
 
-- Add new icons
-- Add redo name & bio button
-- Add ExtensionLinks component
-- Add extension download process (step 6)
-- Add extension syncing process (step 7)
-- Add ublock origin recommendation process (step 8)
-- Add canvas block recommendation process (step 9)
-- Add final confirmal process (step 10)
-- Add ping/pong mechanism to websocket
+- New icons
+- Redo name & bio button
+- ExtensionLinks component
+- Extension download process (step 6)
+- Extension syncing process (step 7)
+- Ublock origin recommendation process (step 8)
+- Canvas block recommendation process (step 9)
+- Final confirmal process (step 10)
+- Ping/pong mechanism to websocket
 
 ### Changed
 
-- Change email checking to include unicode & exclude dots
-- Change design to most all the creation process
+- Email checking to include unicode & exclude dots
+- Design to most all the creation process
 
-## [0.4.03] - 2025-2-12
+## [0.4.3] - 2025-2-12
 
 ### Added
 
-- Add new icons
-- Add stability AI and fakerjs to creation process
-- Add checks to the creation process
-- Add location choice process (step 1)
-- Add identity customization process (step 2)
-- Add email creation process (step 3)
+- New exiting icons
+- Stability AI and fakerjs to creation process
+- Checks to the creation process
+- Location choice process (step 1)
+- Identity customization process (step 2)
+- Email creation process (step 3)
 
 ### Changed
 
 - Update all packages.json
-- Change remote font from google to rsms
-- Change type to better accurate ones in creation process
+- Remote font from google to rsms
+- Type to better accurate ones in creation process
 - Fix error displays in creation process
 
-## [0.4.02] - 2025-2-7
+## [0.4.2] - 2025-2-7
 
 ### Added
 
-- Add ContinuousProcess component
-- Add error/retry message to creation process
-- Add design & markup to creation process
-- Add switch statement and logic to the process
-- Add alternative loader
+- ContinuousProcess component
+- Error/retry message to creation process
+- Design & markup to creation process
+- Switch statement and logic to the process
+- Alternative loader
 
 ### Changed
 
-- Change pricing/features text to be more clear and specific
-- Change first interaction in the creation process to regular HTTP request
-- Change routes in the initial creation process
-- Change database active column to status column
+- Pricing/features text to be more clear and specific
+- First interaction in the creation process to regular HTTP request
+- Routes in the initial creation process
+- Database active column to status column
 
 ### Removed
 
-- Remove stripe sending websocket message to client via WSConnections
-- Remove all crypto payment/wallet promises
+- Stripe sending websocket message to client via WSConnections
+- All crypto payment/wallet promises
 
-## [0.4.01] - 2025-2-1
-
-### Added
-
-- Add new route /create
-- Add new elysiaJS router for the identity creation process
-- Add new nginx websocket redirect reverse proxy
-- Add secure websocket communication between client & server
-- Add new column to identity table
-
-### Changed
-
-- Fixed some typo in name function
-- Change $EMAIL_SALT to $SECRET_SAUCE
-- Change tmux.sh to launch stripe instead of ssh, also onefetch
-
-## [0.4.00] - 2025-1-23
+## [0.4.1] - 2025-2-1
 
 ### Added
 
-- Add identities table in database
-- Add cancelation & auto refund system
-- Add purchase page markup & full design
-- Add payment method to settings when not registered yet
-- Add stripe portal page to settings when user has payment method
-- Add delete stripe customer and change stripe customer email
-- Add external link icon
+- New route /create
+- New elysiaJS router for the identity creation process
+- New nginx websocket redirect reverse proxy
+- Secure websocket communication between client & server
+- New column to identity table
 
 ### Changed
 
-- Change customer backend billing paths
-- Change email salt from $JWT_SECRET to $EMAIL_SALT
+- Fix some typo in name function
+- $EMAIL_SALT to $SECRET_SAUCE
+- Tmux.sh to launch stripe instead of ssh, also onefetch
+
+## [0.4.0] - 2025-1-23
+
+### Added
+
+- Identities table in database
+- Cancelation & auto refund system
+- Purchase page markup & full design
+- Payment method to settings when not registered yet
+- Stripe portal page to settings when user has payment method
+- Delete stripe customer and change stripe customer email
+- External link icon
+
+### Changed
+
+- Customer backend billing paths
+- Email salt from $JWT_SECRET to $EMAIL_SALT
 - Fix modal markup not showing black background overlay
-- Change price id from fixed value to env variable
+- Price id from fixed value to env variable
 - Move email function in backend to email.ts
 - Update faq answer & refund policy
 - Update packages
 
-## [0.3.10] - 2025-1-14
+## [0.3.9] - 2025-1-10
 
 ### Added
 
-- Add prefill when customer is already existing (partial fail)
-- Add design to payment form using stripe element
-- Add payment to signup
-
-## [0.3.09] - 2025-1-10
-
-### Added
-
-- Add a different reset email template
-- Add rewind to generate new recovery codes in dashboard
-- Add a pretty email verification template
-- Add filled icons switch to some
+- A different reset email template
+- A pretty email verification template
+- Rewind to generate new recovery codes in dashboard
+- Prefill when customer is already existing (partial fail)
+- Design to payment form using stripe element
+- Fill icons switch to some
+- Payment to signup
 
 ### Changed
 
 - Move changePricingModel to their respective places instead of $lib
 - Settings icon are now filled
-- Change purchase page design
+- Purchase page design
 - Modify faq question
 
-## [0.3.08] - 2025-1-06
+## [0.3.8] - 2025-1-06
 
 ### Added
 
-- Add Complete Email Process
-- Add Email as a signup requirement
-- Add forgot password on login
-- Add Email verification
-- Add Email to settings
-- Add Tooltip component
+- Complete Email Process
+- Email as a signup requirement
+- Forgot password on login
+- Email verification
+- Email to settings
+- Tooltip component
 
-## [0.3.07] - 2024-12-22
-
-### Added
-
-- Add stripe as payment processor
-- Add stripe keys and prices
-- Add billing backend route
-- Add checkout session
-- Add purchase page
-
-## [0.3.06] - 2024-12-12
+## [0.3.7] - 2024-12-22
 
 ### Added
 
-- Add responsiveness to settings page
-- Add new tailwind classes
-- Add server actions
+- Stripe as payment processor
+- Stripe keys and prices
+- Billing backend route
+- Checkout session
+- Purchase page
+
+## [0.3.6] - 2024-12-12
+
+### Added
+
+- Responsiveness to settings page
+- New tailwind classes
+- Server actions
 
 ### Changed
 
-- Change setting page design
-- Change $fetch store
+- Setting page design
+- $fetching store
 
-## [0.3.05] - 2024-12-11
+## [0.3.5] - 2024-12-11
 
 ### Added
 
@@ -241,160 +551,160 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Rename components
-- Move sendForm to $lib
-- Change Settings page design
+- Move updateFetch to $lib
+- Settings page design
 
-## [0.3.04] - 2024-12-9
-
-### Added
-
-- Add setting page (not functional yet)
-- Add temporary setting page Route
-- Add type to app.d.ts
-
-## [0.3.03] - 2024-12-8
+## [0.3.4] - 2024-12-9
 
 ### Added
 
-- Add a new row to purchase an identity
-- Add an interface when dashboard is empty
-- Add redirect when logged in/out
-- Add worldmap pattern
+- Setting page (not functional yet)
+- Temporary setting page Route
+- Type to app.d.ts
+
+## [0.3.3] - 2024-12-8
+
+### Added
+
+- A new row to purchase an identity
+- An interface when dashboard is empty
+- Redirect when logged in/out
+- Worldmap pattern
 
 ### Changed
 
-- Change header when logged in to show settings
+- Header when logged in to show settings
 
-## [0.3.02] - 2024-12-6
+## [0.3.2] - 2024-12-6
 
 ### Added
 
-- Add search functionality
-- Add filter/sort functionality
-- Add storing of filtering dashboard table
-- Add new icons to $icon
+- Search functionality
+- Filter/sort functionality
+- Storing of filtering dashboard table
+- New icons to $icon
 
 ## Changed
 
 - Modify dashboard-table responsiveness
-- Change table columns
+- Table columns
 
-## [0.3.01] - 2024-12-4
+## [0.3.1] - 2024-12-4
 
 ### Added
 
-- Add dashboard page
-- Add more icons to $icon
-- Add SearchInput component
-- Add empty dashboard interface
+- Dashboard page
+- More icons to $icon
+- SearchInput component
+- Empty dashboard interface
 
 ### Changed
 
 - Used recovery code get deleted automatically
-- Change buttons component
+- Buttons component
 
-## [0.3.00] - 2024-12-1
+## [0.3.0] - 2024-12-1
 
 ### Added
 
-- Add correct status code to backend
+- Correct status code to backend
 
 ### Changed
 
-- Change refund policy
-- Change form submit to keep data
-- Change name check to allow unicode
+- Refund policy
+- Form submit to keep data
+- Name check to allow unicode
 - Correct typescript errors
 
-## [0.2.09] - 2024-11-28
+## [0.2.9] - 2024-11-28
 
 ### Added
 
-- Add correct full login process
-- Add complete login UI and routes
-- Add remove and generate recovery tokens
-- Add forgot password fix
+- Correct full login process
+- Complete login UI and routes
+- Generate recovery tokens
+- Forgot password fix
 
-## [0.2.08] - 2024-11-26
+## [0.2.8] - 2024-11-26
 
 ### Added
 
-- Add style to signup
-- Add Input component
-- Add ReactiveButton component
-- Add waiting animation to signup
-- Add pretty create animation to signup
+- Style to signup
+- Input component
+- ReactiveButton component
+- Waiting animation to signup
+- Pretty create animation to signup
 
-## [0.2.07] - 2024-11-24
+## [0.2.7] - 2024-11-24
 
-- Add Step component
-- Add StepItem component
-- Add optional field to check function
-- Add copy/download function to signup
-- Add back control button to signup
-- Add signup text content
+- Step component
+- StepItem component
+- Optional field to check function
+- Copy/download function to signup
+- Back control button to signup
+- Signup text content
 
 ### Changed
 
 - Fix reactivity issue with signup derived variables
 - Fix lifecycle issue with signup when error occurs
 - Rename backup to recovery & code to token
-- Change icons component function to $icon
-- Change index.ts dom function to $dom
-- Change error page text and style
-- Change contact page form
+- Icons component function to $icon
+- Index.ts dom function to $dom
+- Error page text and style
+- Contact page form
 
-## [0.2.06] - 2024-11-22
+## [0.2.6] - 2024-11-22
 
 ### Added
 
-- Add signup server actions
+- Signup server actions
 
 ### Changed
 
 - Move cryptographic function from utils.ts to crypto.ts
 - Move repetitive code into functions
 
-## [0.2.05] - 2024-11-19
+## [0.2.5] - 2024-11-19
 
 ### Added
 
-- Add two factor authentication
-- Add recovery code
+- Two factor authentication
+- Recovery code
 
 ### Changed
 
-- Change signup to a step by step process
-- Change signup backend to be more divided
+- Signup to a step by step process
+- Signup backend to be more divided
 
-## [0.2.04] - 2024-11-17
+## [0.2.4] - 2024-11-17
 
 ### Added
 
-- Add login route
-- Add logout route
+- Login route
+- Logout route
 
 ### Changed
 
 - Fix reactivity issues with authentication
-- Change Layout component
+- Layout component
 
-## [0.2.03] - 2024-11-15
-
-### Added
-
-- Add token & user stores
-- Add cookies authentication
-- Add header authentication bearer
-- Add jwt onbefore handler
-- Add layout.server.ts
-
-## [0.2.02] - 2024-11-14
+## [0.2.3] - 2024-11-15
 
 ### Added
 
-- Add notification to sign up form
-- Add cookies to web application
+- Token & user stores
+- Cookies authentication
+- Header authentication bearer
+- JWT onbefore handler
+- Layout.server.ts
+
+## [0.2.2] - 2024-11-14
+
+### Added
+
+- Notification to sign up form
+- Cookies to web application
 
 ### Changed
 
@@ -402,105 +712,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Move check function to new file
 - Modify database structure
 
-## [0.2.01] - 2024-11-13
+## [0.2.1] - 2024-11-13
 
 ### Added
 
-- Add register route
-- Add password hash+salt function
-- Add jwt library
+- Register route
+- Password hash+salt function
+- JWT library
 
-## [0.2.00] - 2024-11-10
+## [0.2.0] - 2024-11-10
 
 ### Added
 
-- Finished legal and support pages
-- Add working contact form
-- Add ability to send email
+- Finish legal and support pages
+- Working contact form
+- Ability to send email
 
 ### Changed
 
-- Moved custom tailwind class to tailwind.config.js
+- Move custom tailwind class to tailwind.config.js
 
-## [0.1.07] - 2024-11-09
+## [0.1.7] - 2024-11-09
 
 ### Added
 
-- Add contact page
-- Add SelectMenu component
-- Add FAQ answer
+- Contact page
+- SelectMenu component
+- FAQ answers
 
 ### Changed
 
-- Change homepage responsiveness
+- Homepage responsiveness
 
-## [0.1.06] - 2024-11-08
+## [0.1.6] - 2024-11-08
 
 ### Added
 
-- Add FAQ page
-- Add about page
+- FAQ page
+- About page
 
 ### Changed
 
-- Change design of legal pages
+- Design of legal pages
 
-## [0.1.05] - 2024-11-06
-
-### Added
-
-- Add term of service
-- Add refund policy
-
-## [0.1.04] - 2024-11-05
+## [0.1.5] - 2024-11-06
 
 ### Added
 
-- Add privacy policy page
-- Add boilerplate for other pages
+- Term of service
+- Refund policy
+
+## [0.1.4] - 2024-11-05
+
+### Added
+
+- Privacy policy page
+- Boilerplate for other pages
 
 ### Changed
 
 - Fixed minor bugs and such
 
-## [0.1.03] - 2024-11-03
+## [0.1.3] - 2024-11-03
 
 ### Changed
 
 - Fixed homepage height issues
 - Fixed homepage phone responsiveness
 
-## [0.1.02] - 2024-11-02
+## [0.1.2] - 2024-11-02
 
 ### Added
 
-- Add sitemap.xml
-- Add robots.xml
+- Sitemap.xml
+- Robots.xml
 
 ### Changed
 
 - Fix bad page responsiveness
 - Fix sections overlap
 
-## [0.1.01] - 2024-11-01
+## [0.1.1] - 2024-11-01
 
 ### Added
 
-- Add nanocss to the project
-- Add lazy loading
+- Nanocss to the project
+- Lazy loading
 
 ### Changed
 
-- Change image format and size
-- Change to better semantic style
-- Change styling a bit
+- Image format and size
+- Better semantic style
+- Styling a bit
 
-## [0.1.00] - 2024-10-31
+## [0.1.0] - 2024-10-31
 
 ### Added
 
 - Launch the website in waitlist mode
-- Add responsiveness to website
+- Responsiveness to website
 
 ### Changed
 
@@ -512,20 +822,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New nginx config
-- Add firewall & security measures
+- Firewall & security measures
 - Bought a domain for shadowself
 - Bought a production server
 
 ### Changed
 
-- Change db env variables
-- tmux.sh also connect to production server
+- DB env variables
+- Tmux.sh also connect to production server
 
 ## [0.0.19] - 2024-10-27
 
 ### Added
 
-- Add observer animation
+- Observer animation
 - New Types
 
 ### Changed
@@ -537,24 +847,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add card component
+- Card component
 
 ### Changed
 
-- Change text gradients
-- Change card gradient
-- Change styles to be more colorful
+- Text gradients
+- Card gradient
+- Styles to be more colorful
 
 ## [0.0.17] - 2024-10-22
 
 ### Changed
 
-- Change product/reflection section titles
-- Change minor styles
+- Product/reflection section titles
+- Minor styles
 
 ### Removed
 
-- Remove hideout svg
+- Hideout svg
 
 ## [0.0.16] - 2024-10-21
 
@@ -565,112 +875,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Change structure a bit
-- Change the text to be more coherent
+- Restructure a bit
+- The text to be more coherent
 
 ## [0.0.15] - 2024-10-20
 
 ### Added
 
-- Add tracing beam to Capabilities section
-- Add background grid component
-- Add hideout pattern
+- Tracing beam to Capabilities section
+- Background grid component
+- Hideout pattern
 
 ## [0.0.14] - 2024-10-19
 
 ### Changed
 
-- Change Pricing section
+- Pricing section
 - Made Reflection section more colorful
-- Change to a much better slogan section
+- Much better slogan section
 
 ## [0.0.13] - 2024-10-15
 
 ### Added
 
-- Add Capabilities section
-- Add tab event to scroll sections
-- Add question to pricing section
+- Capabilities section
+- Tab event to scroll sections
+- Question to pricing section
 
 ## [0.0.12] - 2024-10-14
 
 ### Added
 
-- Add products section on homepage
-- Add dashboard image
+- Products section on homepage
+- Dashboard image
 
 ### Changed
 
-- Change pricing section style
+- Pricing section style
 
 ## [0.0.11] - 2024-10-13
 
 ### Added
 
-- Add feature layout on homepage
-- Add icons on homepage
+- Feature layout on homepage
+- Icons on homepage
 
 ### Changed
 
 - Destructure homepage into some external components
-- Change frontend structure
+- Frontend structure
 
 ## [0.0.10] - 2024-10-11
 
 ### Added
 
-- Add pricing section on homepage
-- Add pricing model
+- Pricing section on homepage
+- Pricing model
 
 ### Changed
 
-- Change home section text
-- Change icon images to components
-- Change slogan to another components
+- Home section text
+- Icon images to components
+- Slogan to another components
 - Made buttons have gradients
 
-## [0.0.09] - 2024-10-10
+## [0.0.9] - 2024-10-10
 
 ### Added
 
-- Add no script client support
-- Add reflection section on homepage
+- No script client support
+- Reflection section on homepage
 - Create highlight and underline effect on homepage
 
 ### Changed
 
 - Optimize images size for performance
 
-## [0.0.08] - 2024-10-09
+## [0.0.8] - 2024-10-09
 
 ### Added
 
-- Add transition on the homepage sections
+- Transition on the homepage sections
 
 ### Changed
 
-- Change message on duplicate and join
+- Message on duplicate and join
 - Darken background on even sections in homepage
 
-## [0.0.07] - 2024-10-08
+## [0.0.7] - 2024-10-08
 
 ### Added
 
-- Make 404 page
-- Add cheveron icon
-- Add slogan section
-- Add circuit board pattern
+- 404 page
+- Cheveron icon
+- Slogan section
+- Circuit board pattern
 
 ### Changed
 
-- Change home section text
+- Home section text
 - Disable links until it's ready
 
 ### Removed
 
-- Remove sparkle component
+- Sparkle component
 
-## [0.0.06] - 2024-10-07
+## [0.0.6] - 2024-10-07
 
 ### Added
 
@@ -679,19 +989,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Change environment variables name for db
-- Move some style to 'app.css'
+- Environment variables name for db
 - Implement some css-inline styles
+- Move some style to app.css
 
 ### Removed
 
-- Remove session community
+- Session community
 
-## [0.0.05] - 2024-10-06
+## [0.0.5] - 2024-10-06
 
 ### Added
 
-- Add ability to register to waitlist
+- Ability to register to waitlist
 - Connect backend to database (postgres.js)
 
 ### Changed
@@ -700,61 +1010,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Move database name and username to an environment variable
 - Fix small mistakes in frontend
 
-## [0.0.04] - 2024-10-03
+## [0.0.4] - 2024-10-03
 
 ### Added
 
-- Add notification component
-- Add info/success/error icons
-- Add svelte alias for ease of use
-- Add stores.ts for stores
-- Add types.ts for types
+- Notification component
+- Info/success/error icons
+- Svelte alias for ease of use
+- Stores.ts for stores
+- Types.ts for types
 
 ### Changed
 
 - Destructure index.ts into multiple files
-- Change header transition on homepage
+- Header transition on homepage
 - Refactor code
 
 ### Removed
 
-- Remove svelte contextAPI in favor of stores
+- Svelte contextAPI in favor of stores
 
-## [0.0.03] - 2024-10-02
+## [0.0.3] - 2024-10-02
 
 ### Added
 
-- Create header component
-- Create footer component
-- Create layout component
-- Add Icons : GitHub, Session, Tor
+- Header component
+- Footer component
+- Layout component
+- Icons for GitHub, SimpleX and Tor
 
 ## Changed
 
 - Header logo has text beside it instead of under it
 - App.css has global styles
 
-## [0.0.02] - 2024-10-01
+## [0.0.2] - 2024-10-01
 
 ### Added
 
-- Add meta-tags to the head
+- Meta-tags to the head
 - Support for 'prettier' for formatting code
 
 ### Changed
 
-- Change font to 'Inter'
+- Font to Inter
 - Modify logo & favicon
-- Restructure the 'static' directory
+- Restructure the static directory
 
-## [0.0.01] - 2024-9-30
+## [0.0.1] - 2024-9-30
 
 ### Added
 
 - Initial start
-- Add favicon
-- Add GPL-v3 license
-- Add README.md
-- Add support for bun
-- Add support for tailwindcss
-- Add configuration files to suit my needs
+- Favicon and logo
+- GPL-v3 license
+- Support for bun
+- Support for tailwindcss
+- Configuration files to suit my needs
