@@ -19,7 +19,7 @@ export default {
         scroll: 'scroll 180s linear infinite',
         orbit: 'orbit 1.5s ease-in-out calc(var(--index) * 0.1s) infinite',
         progress: 'progress 30s linear infinite',
-        sparkle: 'sparkle 3s linear calc(var(--delay) * 0.1s) infinite',
+        sparkle: 'sparkle 12s linear calc(var(--delay) * 0.3s) infinite',
       },
       keyframes: {
         border: {'100%': {transform: 'rotate(-360deg)'}},
@@ -28,9 +28,9 @@ export default {
           '100%': {width: '100%'},
         },
         sparkle: {
-          '0%': {opacity: '0'},
-          '50%': {opacity: '1'},
-          '100%': {opacity: '0'},
+          '40%': {opacity: '1'},
+          '50%': {opacity: '0'},
+          '60%': {opacity: '1'},
         },
         shake: {
           '0%, 100%': {transform: 'translateY(0)'},
@@ -127,11 +127,11 @@ function addCustomClasses({addComponents}) {
       backgroundColor: 'rgba(153, 153, 153, 0.15)',
     },
     '.image-shadow': {
-      filter: 'drop-shadow(0 5px 15px rgba(148, 163, 184, 0.15))',
+      filter: 'drop-shadow(0 5px 15px rgba(var(--shadow-color-rgb), 0.15))',
       transition: 'all 0.5s',
     },
     '.image-shadow:hover': {
-      filter: 'drop-shadow(10px 10px 25px rgba(148, 163, 184, 0.25))',
+      filter: 'drop-shadow(10px 10px 25px rgba(var(--shadow-color-rgb), 0.25))',
     },
     '.no-scrollbar': {
       msOverflowStyle: 'none',

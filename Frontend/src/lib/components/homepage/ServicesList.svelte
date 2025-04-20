@@ -1,39 +1,44 @@
 <script lang="ts">
-  import {card, tower, cloud, email, globe, money, message, server, router, identity} from '$image';
+  import {proxy, email, card, phone, identity} from '$image';
   import {StickyScrollReveal, TracingBeam} from '$component';
   import type {ServicesContent} from '$type';
   import {blur} from 'svelte/transition';
 
   const content: ServicesContent[] = [
     {
+      images: identity,
       title: 'Fake a Person',
+      style: '--shadow-color-rgb: 79, 70, 229;',
       description:
         'Create and manage private identities to shield your personal information. Customize them with names, bios, photos, etc. Then use them to sign up for accounts, authenticate to services, and maintain your sensitive data from the public eye.',
-      images: [identity, globe],
     },
     {
-      title: 'Phone Services',
-      description:
-        'Each identity comes with a functional permanent phone number. Use it to receive and send text messages. Protect yourself and avoid annoying SMS or scams. Please note that you cannot make phone calls with it (yet).',
-      images: [message, tower],
-    },
-    {
+      images: email,
       title: 'Email Services',
+      style: '--shadow-color-rgb: 225, 29, 72;',
       description:
-        'Each identity also comes with a permanent email address. Utilize it for sending and receiving and confirming emails. Keep yourself from unwanted emails, advertisements, spams and phishing attempts.',
-      images: [email, router],
+        'Each identity comes with a permanent email address. Utilize it for sending and receiving and confirming emails. Keep yourself from unwanted emails, advertisements, spams and phishing attempts.',
     },
     {
+      images: phone,
+      title: 'Phone Services',
+      style: '--shadow-color-rgb: 2, 132, 199;',
+      description:
+        'Each identity also comes with a functional permanent phone number. Use it to receive and send text messages. Protect yourself and avoid annoying SMS or scams. Please note that you cannot make phone calls with it (yet).',
+    },
+    {
+      images: card,
       title: 'Payment Services',
+      style: '--shadow-color-rgb: 22, 163, 74;',
       description:
         'Each identity has a virtual credit card to keep your primary card details secure. Enjoy hassle-free transactions, while protecting yourself from unauthorized charges, fraud, and identity theft.',
-      images: [money, card],
     },
     {
+      images: proxy,
       title: 'VPN Services',
+      style: '--shadow-color-rgb: 217, 119, 6;',
       description:
         'Finally Each identity has an address to disguise your location and route your traffic through our secure servers, making sure to bypass monitoring and interception from malicious threats.',
-      images: [server, cloud],
     },
   ];
 </script>
@@ -49,8 +54,7 @@
 
     {#snippet image({item})}
       <div id="box" in:blur={{opacity: 1, amount: 5, duration: 500}}>
-        <img loading="lazy" src={item.images[0]} alt={item.title} />
-        <img loading="lazy" src={item.images[1]} alt={item.title} />
+        <img loading="lazy" src={item.images} style={item.style} alt={item.title} />
       </div>
     {/snippet}
   </StickyScrollReveal>
@@ -66,7 +70,6 @@
   }
 
   #box > img {
-    @apply animate-shake image-shadow absolute h-1/3 object-contain transition-all duration-300 ease-in-out;
-    @apply first:bottom-12 first:right-20 last:left-16 last:top-24;
+    @apply animate-shake image-shadow absolute bottom-0 left-0 right-0 top-0 m-auto w-2/3 transition-all duration-300 ease-in-out;
   }
 </style>

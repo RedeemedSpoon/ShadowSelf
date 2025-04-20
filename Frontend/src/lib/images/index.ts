@@ -41,13 +41,8 @@ export {default as customer} from './homepage/features/customer.svg';
 export {default as terminal} from './homepage/features/terminal.svg';
 export {default as openSource} from './homepage/features/open-source.svg';
 
-export {default as card} from './homepage/services/card.webp';
-export {default as cloud} from './homepage/services/cloud.webp';
-export {default as email} from './homepage/services/email.webp';
-export {default as globe} from './homepage/services/globe.webp';
-export {default as money} from './homepage/services/money.webp';
-export {default as tower} from './homepage/services/tower.webp';
-export {default as router} from './homepage/services/router.webp';
-export {default as server} from './homepage/services/server.webp';
-export {default as message} from './homepage/services/message.webp';
-export {default as identity} from './homepage/services/identity.webp';
+export {default as card} from './homepage/services/card.svg';
+export {default as email} from './homepage/services/email.svg';
+export {default as proxy} from './homepage/services/proxy.svg';
+export {default as phone} from './homepage/services/phone.svg';
+export {default as identity} from './homepage/services/identity.svg';

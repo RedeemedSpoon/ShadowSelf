@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="url(#linearPinkRoseRedGradient)"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+
+  <defs>
+    <linearGradient id="linearPinkRoseRedGradient"
+                    gradientUnits="userSpaceOnUse"
+                    x1="0" y1="0" x2="24" y2="0">
+      <stop offset="0%" style="stop-color:#E73371; stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e11d48; stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b91c1c; stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" />
+  <path d="M3 7l9 6l9 -6" />
+</svg>

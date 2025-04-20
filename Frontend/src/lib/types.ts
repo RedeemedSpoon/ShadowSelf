@@ -65,7 +65,8 @@ export interface Registration {
 export interface ServicesContent {
   title: string;
   description: string;
-  images: string[];
+  style: string;
+  images: string;
 }
 
 export interface AnimationNode {
