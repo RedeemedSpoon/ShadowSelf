@@ -40,63 +40,48 @@
 </script>
 
 <!-- eslint-disable -->
-{#if extension === 'shadowself'}
+<div class="max-sm:scale-90">
   <div class="group flex w-[350px] items-center justify-center gap-0">
-    <button
-      disabled
-      class="group-hover:!from-primary-800 group-hover:!to-primary-800 !h-16 !rounded-r-none group-hover:!cursor-not-allowed">
-      <p>Download for {@html browserIcons['firefox']} Firefox</p>
-    </button>
-    <div class="z-10 h-8 w-[2px] bg-neutral-400/90 opacity-60 hover:cursor-not-allowed"></div>
-    <button
-      disabled
-      onclick={() => (expand = !expand)}
-      class="group-hover:!from-primary-800 group-hover:!to-primary-800 expand !-ml-[2px] {expand && '!rounded-b-none'}">
-      <span class:rotate-180={expand}><ChevronIcon className="rotate-90 cursor-not-allowed" /></span>
-    </button>
+    <a href={extensionInfo[extension]['firefox']} target="_blank" rel="noreferrer">
+      <button
+        class="group-hover:!from-primary-800 group-hover:!to-primary-800 !h-16 {extension !== 'canvas' &&
+          '!rounded-r-none !pr-8'} {expand && '!rounded-b-none'}">
+        <p>Download for {@html browserIcons['firefox']} Firefox</p>
+      </button>
+    </a>
+    {#if extension !== 'canvas'}
+      <div class="z-10 h-8 w-[2px] bg-neutral-300/90"></div>
+      <button
+        onclick={() => (expand = !expand)}
+        class="group-hover:!from-primary-800 group-hover:!to-primary-800 expand !-ml-1 {expand && '!rounded-b-none'}">
+        <span class:rotate-180={expand}><ChevronIcon className="rotate-90" /></span>
+      </button>
+    {/if}
   </div>
-{:else}
-  <div class="max-sm:scale-90">
-    <div class="group flex w-[350px] items-center justify-center gap-0">
-      <a href={extensionInfo[extension]['firefox']} target="_blank" rel="noreferrer">
-        <button
-          class="group-hover:!from-primary-800 group-hover:!to-primary-800 !h-16 {extension !== 'canvas' &&
-            '!rounded-r-none !pr-8'} {expand && '!rounded-b-none'}">
-          <p>Download for {@html browserIcons['firefox']} Firefox</p>
-        </button>
-      </a>
-      {#if extension !== 'canvas'}
-        <div class="z-10 h-8 w-[2px] bg-neutral-300/90"></div>
-        <button
-          onclick={() => (expand = !expand)}
-          class="group-hover:!from-primary-800 group-hover:!to-primary-800 expand !-ml-1 {expand && '!rounded-b-none'}">
-          <span class:rotate-180={expand}><ChevronIcon className="rotate-90" /></span>
-        </button>
-      {/if}
+
+  {#if expand && extension !== 'canvas'}
+    <div class="absolute">
+      {#each ['chrome', 'edge', 'opera'] as otherBrowser, i}
+        <a href={extensionInfo[extension][otherBrowser as 'firefox']} target="_blank" rel="noreferrer">
+          <button class="other-link !rounded-none {i === 2 && '!rounded-b-xl'}">
+            <p>Download for {@html browserIcons[otherBrowser as 'firefox']} {toTitleCase(otherBrowser)}</p>
+          </button>
+        </a>
+      {/each}
     </div>
-    {#if expand && extension !== 'canvas'}
-      <div class="absolute">
-        {#each ['chrome', 'edge', 'opera'] as otherBrowser, i}
-          <a href={extensionInfo[extension][otherBrowser as 'firefox']} target="_blank" rel="noreferrer">
-            <button class="other-link !rounded-none {i === 2 && '!rounded-b-xl'}">
-              <p>Download for {@html browserIcons[otherBrowser as keyof typeof browserIcons]} {toTitleCase(otherBrowser)}</p>
-            </button>
-          </a>
-        {/each}
-      </div>
-    {/if}
-    {#if extension === 'ublock' || extension === 'canvas'}
-      <div id="sublinks" class="flex justify-evenly p-4">
-        <a href={extensionInfo[extension].website} target="_blank">
-          <img src={website} class="h-7 w-7" alt="Website" />Website
-        </a>
-        <a href={extensionInfo[extension].github} target="_blank">
-          <img src={github} alt="Github" class="h-6 w-6" />Github
-        </a>
-      </div>
-    {/if}
-  </div>
-{/if}
+  {/if}
+
+  {#if extension === 'ublock' || extension === 'canvas'}
+    <div id="sublinks" class="flex justify-evenly p-4">
+      <a href={extensionInfo[extension].website} target="_blank">
+        <img src={website} class="h-7 w-7" alt="Website" />Website
+      </a>
+      <a href={extensionInfo[extension].github} target="_blank">
+        <img src={github} alt="Github" class="h-6 w-6" />Github
+      </a>
+    </div>
+  {/if}
+</div>
 
 <style lang="postcss">
   button {

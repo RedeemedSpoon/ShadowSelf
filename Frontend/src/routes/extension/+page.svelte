@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {RocketIcon, ChevronIcon} from '$icon';
+  import {ExtensionLinks} from '$component';
   import {screenshot} from '$image';
 </script>
 
@@ -9,21 +9,29 @@
 </svelte:head>
 
 <div id="extension">
-  <h1>Coming Soon<RocketIcon /></h1>
-  <p class="text-center">
-    We're working diligently to bring you the full ShadowSelf experience. While we're currently in the alpha phase, the complete
-    version will be available on <b>April 22th</b>. Stay tuned for the launch!
-  </p>
-  <a href="/"><button class="flex items-center gap-1">Go Home<ChevronIcon /></button></a>
-  <img loading="lazy" class="hidden" src={screenshot} alt="shadowself extension" />
+  <section class="flex flex-col items-start gap-6 max-md:items-center lg:w-1/2">
+    <h1 class="max-md:text-center">Download Browser Extension</h1>
+    <p class="mb-4 max-md:text-center">
+      ShadowSelf provides a VPN directly in your browser. Masks IP for bypassing censorship & geo-blocks, hides activity from your ISP.
+      Select different user agents to reduce fingerprinting & boost privacy.
+    </p>
+    <ExtensionLinks extension="shadowself" />
+  </section>
+  <img loading="lazy" src={screenshot} alt="shadowself extension" />
 </div>
 
 <style lang="postcss">
   #extension {
-    @apply mx-auto my-[15rem] flex min-h-[40vh] w-5/6 flex-col items-center justify-center gap-8 text-neutral-400 md:w-1/2;
+    @apply mx-auto my-[15rem] flex min-h-[40vh] items-center justify-between gap-8 text-neutral-400 sm:w-5/6 xl:w-3/4 2xl:w-2/3;
   }
 
   h1 {
-    @apply flex items-center gap-2 text-center text-6xl font-bold text-neutral-300 max-sm:scale-75;
+    @apply text-4xl font-bold text-neutral-300 max-sm:scale-75 lg:text-5xl;
+  }
+
+  img {
+    @apply border-primary-700 mr-[5vw] w-64 max-w-[50%] rounded-xl border-4 max-md:hidden lg:w-96;
+    @apply cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.0075];
+    @apply hover:shadow-8xl hover:shadow-neutral-950/40;
   }
 </style>
