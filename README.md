@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./Frontend/src/lib/images/logo/logo-white-text.svg">
-    <img alt="ShadowSelf" src="./Frontend/src/lib/images/logo/logo-black-text.svg" width="60%">
+    <source media="(prefers-color-scheme: dark)" srcset="./frontend/src/lib/images/logo/logo-white-text.svg">
+    <img alt="ShadowSelf" src="./frontend/src/lib/images/logo/logo-black-text.svg" width="60%">
   </picture>
 </p>
 
@@ -71,7 +71,7 @@ If you'd like to contribute, please [open an issue](https://github.com/RedeemedS
 
 Here is the project system design if that might help you understand the architecture of the project better :
 
-<img src="./Frontend/src/lib/images/system-design.webp" width="100%">
+<img src="./frontend/src/lib/images/system-design.webp" width="100%">
 
 ## License
 

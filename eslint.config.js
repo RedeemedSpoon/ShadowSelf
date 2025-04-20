@@ -40,6 +40,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['Frontend/build/', 'Frontend/.svelte-kit/'],
+    ignores: ['frontend/build/', 'frontend/.svelte-kit/'],
   },
 );
