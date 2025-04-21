@@ -33,6 +33,7 @@
     "qrcode": "^1.5.4",
     "quill": "^2.0.3",
     "svelte": "5.28.1",
+    "@tailwindcss/postcss": "^4.1.4",
     "svelte-adapter-bun": "^0.5.2",
     "svelte-check": "4.1.6",
     "svelte-motion": "^0.12.2",

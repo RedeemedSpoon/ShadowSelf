@@ -1,0 +1,110 @@
+/* -------------- CSS Variables -------------- */
+
+:root {
+  --color-primary: #4f39f6;
+  --color-primary-dark: #432dd7;
+
+  --color-neutral: #cad5e2;
+  --color-neutral-dark: #90a1b9;
+  --color-neutral-darker: #62748e;
+
+  --color-background-lighter: #1d293d;
+  --color-background-light: #0f172b;
+  --color-background: #020618;
+
+  --font-family-base: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-size-base: 1rem;
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+  --line-height-base: 1.5;
+}
+
+/* -------------- Reset & Basic Styles -------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+html {
+  font-size: 100%;
+  line-height: var(--line-height-base);
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-normal);
+  font-size: var(--font-size-base);
+  font-feature-settings:
+    'liga' 1,
+    'calt' 1;
+  text-rendering: optimizeSpeed;
+  background-color: var(--color-background);
+  color: var(--color-neutral);
+}
+
+/* -------------- Typography -------------- */
+
+h1,
+h2,
+h3 {
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: var(--font-size-base * 2);
+}
+
+h2 {
+  font-size: var(--font-size-base * 1.75);
+}
+
+h3 {
+  font-size: var(--font-size-base * 1.5);
+}
+
+a {
+  text-decoration: none;
+  color: var(--color-primary);
+  transition: color 0.15s ease-in-out;
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+small {
+  font-size: var(--font-size-base * 0.75);
+  color: var(--color-neutral-darker);
+}
+
+/* -------------- Forms -------------- */
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: var(--color-primary);
+  color: var(--color-neutral);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: background 0.15s ease-in-out;
+}
+
+button:hover {
+  background: var(--color-primary-dark);
+}
