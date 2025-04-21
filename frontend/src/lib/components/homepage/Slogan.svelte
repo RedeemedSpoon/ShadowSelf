@@ -5,14 +5,14 @@
   onMount(() => {
     setTimeout(() => {
       const underlineText = document.querySelector('#underline-text');
-      underlineText?.classList.add('!max-w-full');
+      underlineText?.classList.add('max-w-full!');
     }, 1250);
     setTimeout(() => {
       const highlight = document.querySelector('#highlight') as HTMLDivElement;
       const highlightedText = document.querySelector('#highlighted-text');
 
-      highlightedText?.classList.add('!text-neutral-300');
-      highlight?.classList.add('!max-w-full');
+      highlightedText?.classList.add('text-neutral-300!');
+      highlight?.classList.add('max-w-full!');
     }, 2000);
   });
 </script>

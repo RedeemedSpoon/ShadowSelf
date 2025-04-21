@@ -44,8 +44,8 @@
   <div class="group flex w-[350px] items-center justify-center gap-0">
     <a href={extensionInfo[extension]['firefox']} target="_blank" rel="noreferrer">
       <button
-        class="group-hover:!from-primary-800 group-hover:!to-primary-800 !h-16 {extension !== 'canvas' &&
-          '!rounded-r-none !pr-8'} {expand && '!rounded-b-none'}">
+        class="group-hover:from-primary-800! group-hover:to-primary-800! h-16! {extension !== 'canvas' &&
+          'rounded-r-none! pr-8!'} {expand && 'rounded-b-none!'}">
         <p>Download for {@html browserIcons['firefox']} Firefox</p>
       </button>
     </a>
@@ -53,7 +53,7 @@
       <div class="z-10 h-8 w-[2px] bg-neutral-300/90"></div>
       <button
         onclick={() => (expand = !expand)}
-        class="group-hover:!from-primary-800 group-hover:!to-primary-800 expand !-ml-1 {expand && '!rounded-b-none'}">
+        class="group-hover:from-primary-800! group-hover:to-primary-800! expand -ml-1! {expand && 'rounded-b-none!'}">
         <span class:rotate-180={expand}><ChevronIcon className="rotate-90" /></span>
       </button>
     {/if}
@@ -63,7 +63,7 @@
     <div class="absolute">
       {#each ['chrome', 'edge', 'opera'] as otherBrowser, i}
         <a href={extensionInfo[extension][otherBrowser as 'firefox']} target="_blank" rel="noreferrer">
-          <button class="other-link !rounded-none {i === 2 && '!rounded-b-xl'}">
+          <button class="other-link rounded-none! {i === 2 && 'rounded-b-xl!'}">
             <p>Download for {@html browserIcons[otherBrowser as 'firefox']} {toTitleCase(otherBrowser)}</p>
           </button>
         </a>

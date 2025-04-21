@@ -29,7 +29,7 @@
 
 <style lang="postcss">
   #gradient {
-    @apply via-primary-600 absolute -inset-1 rounded-2xl bg-gradient-to-r from-sky-500 via-30% to-purple-700;
+    @apply via-primary-600 bg-linear-to-r absolute -inset-1 rounded-2xl from-sky-500 via-30% to-purple-700;
     @apply opacity-90 blur transition-all duration-500 ease-in-out group-hover:scale-[1.02];
   }
 

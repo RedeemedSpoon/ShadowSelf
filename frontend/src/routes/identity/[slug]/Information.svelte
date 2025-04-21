@@ -76,8 +76,8 @@
         newText="Copied!"
         callback={copyImage}
         icon={CopyIcon}
-        upperClassname="group/copy absolute max-xl:!left-12 right-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
-        className="group-hover/copy:!text-neutral-400 text-neutral-100"
+        upperClassname="group/copy absolute max-xl:left-12! right-12 px-0 py-0 group-hover:opacity-100 bottom-8 opacity-0"
+        className="group-hover/copy:text-neutral-400! text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
       <ReactiveButton
         text="Download Image"
@@ -85,7 +85,7 @@
         callback={downloadImage}
         icon={DownloadIcon}
         upperClassname="group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 max-xl:bottom-20 xl:bottom-8 opacity-0"
-        className="group-hover/copy:!text-neutral-400 text-neutral-100"
+        className="group-hover/copy:text-neutral-400! text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
       {#key currentSection}
         <img
@@ -97,7 +97,7 @@
       {/key}
     </div>
     <div class="flex flex-col gap-2 text-nowrap lg:w-1/2">
-      <h3 class="mt-4 !text-3xl">{$identity.name}, {$identity.age}</h3>
+      <h3 class="text-3xl! mt-4">{$identity.name}, {$identity.age}</h3>
       <p class="text-lg text-neutral-500">{toTitleCase($identity.ethnicity)} {toTitleCase($identity.sex)}</p>
       <p>{$identity.bio}</p>
       <hr class="my-2 w-1/6" />

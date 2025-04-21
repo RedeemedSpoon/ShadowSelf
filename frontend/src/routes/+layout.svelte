@@ -31,7 +31,7 @@
   <div
     id="overlay"
     aria-hidden="true"
-    class={$selectionMenuOpen ? '!visible !opacity-35' : ''}
+    class={$selectionMenuOpen ? 'visible! opacity-35!' : ''}
     onclick={() => ($selectionMenuOpen = false)}>
   </div>
 </div>

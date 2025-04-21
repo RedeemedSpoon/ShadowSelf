@@ -26,8 +26,8 @@ export function addTabScrollEvent(sectionsIds: string[]) {
 
 export function addAnimation(elements: AnimationSelector[]) {
   function returnTranslate(type: AnimationNode['type']) {
-    if (window.innerWidth < 1269 || type === 'bottom') return '!translate-y-24';
-    return type === 'left' ? 'sm:!-translate-x-24' : 'sm:!translate-x-24';
+    if (window.innerWidth < 1269 || type === 'bottom') return 'translate-y-24!';
+    return type === 'left' ? 'sm:-translate-x-24!' : 'sm:translate-x-24!';
   }
 
   const nodes = elements.map((element) => {
@@ -37,7 +37,7 @@ export function addAnimation(elements: AnimationSelector[]) {
     query.forEach((node, key) => {
       const translate = returnTranslate(element.type);
 
-      node.classList.add('transition-all', '!duration-1000', 'ease-in-out', 'opacity-0', translate);
+      node.classList.add('transition-all', 'duration-1000!', 'ease-in-out', 'opacity-0', translate);
       object.push({
         node: node,
         delay: element.delay || 100 * key,
@@ -55,11 +55,11 @@ export function addAnimation(elements: AnimationSelector[]) {
 
       if (entry.isIntersecting) {
         setTimeout(() => {
-          entry.target.classList.add('!duration-1000');
+          entry.target.classList.add('duration-1000!');
           entry.target.classList.remove('opacity-0', translate);
         }, target?.delay);
       } else {
-        entry.target.classList.remove('!duration-1000');
+        entry.target.classList.remove('duration-1000!');
         entry.target.classList.add('opacity-0', translate);
       }
     });

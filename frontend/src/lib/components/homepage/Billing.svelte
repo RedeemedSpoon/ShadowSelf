@@ -44,7 +44,7 @@
   </div>
 </div>
 
-<Card className="!border-2 !border-neutral-400" upperClass="max-sm:scale-[0.65] max-lg:scale-75 hover:-translate-y-4">
+<Card className="border-2! border-neutral-400!" upperClass="max-sm:scale-[0.65] max-lg:scale-75 hover:-translate-y-4">
   <div class="flex flex-col items-center gap-8 px-8 py-6 text-center max-sm:px-16 md:items-start md:px-16">
     {#key $pricingModel.price}
       <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
@@ -62,11 +62,11 @@
         <ul>
           {#each section as item}
             <li>
-              <CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />
+              <CheckmarkIcon className="cursor-auto fill-green-500! w-6! h-6!" />
               {item}
               {#if index === 2}
                 <span title={title[section.indexOf(item)]}>
-                  <QuestionIcon className="cursor-help -ml-2 !w-4 !h-4 !fill-neutral-700" /></span>
+                  <QuestionIcon className="cursor-help -ml-2 w-4! h-4! fill-neutral-700!" /></span>
               {/if}
             </li>
           {/each}

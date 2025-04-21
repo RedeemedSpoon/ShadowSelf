@@ -44,11 +44,11 @@
 </div>
 <div class="mb-8">
   {#if response}
-    <pre class="language-json"><code class="!text-base">{JSON.stringify(response, null, 2)}</code></pre>
+    <pre class="language-json"><code class="text-base!">{JSON.stringify(response, null, 2)}</code></pre>
   {:else}
     {#key lang}
       {@const code = route?.code[lang] || (websocket as {[key in Languages]: string})[lang]}
-      <pre {id} class="language-{lang}"><code class="!text-base">{code}</code></pre>
+      <pre {id} class="language-{lang}"><code class="text-base!">{code}</code></pre>
     {/key}
   {/if}
 </div>

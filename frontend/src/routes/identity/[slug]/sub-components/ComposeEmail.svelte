@@ -73,14 +73,14 @@
     });
 
     document.querySelectorAll('#toolbar-container *').forEach((element) => {
-      if (element.classList.contains('ql-stroke')) element.classList.add('!stroke-neutral-300');
-      if (element.classList.contains('ql-fill')) element.classList.add('!fill-neutral-300');
-      if (element.classList.contains('ql-picker')) element.classList.add('!text-neutral-300');
-      if (element.classList.contains('ql-picker-label')) element.classList.add('hover:!text-neutral-300');
-      if (element.classList.contains('ql-picker-options')) element.classList.add('!bg-neutral-900');
+      if (element.classList.contains('ql-stroke')) element.classList.add('stroke-neutral-300!');
+      if (element.classList.contains('ql-fill')) element.classList.add('fill-neutral-300!');
+      if (element.classList.contains('ql-picker')) element.classList.add('text-neutral-300!');
+      if (element.classList.contains('ql-picker-label')) element.classList.add('hover:text-neutral-300!');
+      if (element.classList.contains('ql-picker-options')) element.classList.add('bg-neutral-900!');
       if (element.classList.contains('ql-picker-item')) {
-        element.classList.add('!text-neutral-300');
-        element.classList.add('hover:!text-neutral-500');
+        element.classList.add('text-neutral-300!');
+        element.classList.add('hover:text-neutral-500!');
       }
     });
 
@@ -128,7 +128,7 @@
   </div>
 
   <div id="toolbar-container">
-    <span class="ql-formats max-md:!hidden">
+    <span class="ql-formats max-md:hidden!">
       <select class="ql-font"></select>
       <select class="ql-size"></select>
     </span>

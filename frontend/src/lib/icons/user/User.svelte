@@ -4,7 +4,7 @@
     className?: string | undefined;
   }
 
-  let {className = '!h-12 !w-12', fill = true}: Props = $props();
+  let {className = 'h-12! w-12!', fill = true}: Props = $props();
 </script>
 
 {#if fill}

@@ -29,17 +29,17 @@
 
     const children = Array.from(table.children);
     children.forEach((child) => {
-      child.classList.add('!hidden');
-      child.classList.remove('!border-0');
+      child.classList.add('hidden!');
+      child.classList.remove('border-0!');
     });
 
     if (!result.length) {
-      errorText.classList.remove('!hidden');
+      errorText.classList.remove('hidden!');
       return;
     }
 
-    result.forEach((id) => table.querySelector('#identity-' + id)!.classList.remove('!hidden'));
-    errorText.classList.add('!hidden');
+    result.forEach((id) => table.querySelector('#identity-' + id)!.classList.remove('hidden!'));
+    errorText.classList.add('hidden!');
     fixBorder(children);
   }
 
@@ -65,9 +65,9 @@
   }
 
   function fixBorder(children: Element[]) {
-    const allVisible = children.filter((child) => !child.classList.contains('!hidden'));
-    allVisible[allVisible.length - 1].classList.remove('!border-0');
-    allVisible[0].classList.add('!border-0');
+    const allVisible = children.filter((child) => !child.classList.contains('hidden!'));
+    allVisible[allVisible.length - 1].classList.remove('border-0!');
+    allVisible[0].classList.add('border-0!');
   }
 
   onMount(() => {
@@ -99,13 +99,13 @@
           <SearchInput keywords={data.searchKeywords} {handleSearch} />
         </div>
       </div>
-      <p bind:this={errorText} id="error" class="!hidden">No results found.</p>
+      <p bind:this={errorText} id="error" class="hidden!">No results found.</p>
       <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
         {#each data.identities as identity}
           {#if !identity.name}
-            <a class="!flex !gap-6 max-md:mb-24" href="/create?id={identity.id}">
+            <a class="flex! gap-6! max-md:mb-24" href="/create?id={identity.id}">
               <AddUserIcon />
-              <p class="text-2xl !text-neutral-300 max-xl:!block">Continue Creation Process... (ID : {identity.id})</p>
+              <p class="text-neutral-300! max-xl:block! text-2xl">Continue Creation Process... (ID : {identity.id})</p>
             </a>
           {:else}
             {@const phone = identity.phone.replace('+', '').replace(/(\d{1})(\d{3})(\d{3})(\d{4})(\d{3})/, '+$1 $2 $3 $4$5')}
@@ -113,7 +113,7 @@
             <a href="/identity/{identity.id}" id="identity-{identity.id}">
               <img loading="lazy" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s picture" />
               <div class="text-nowrap">
-                <p class="text-nowrap !text-neutral-300">{identity.name}</p>
+                <p class="text-neutral-300! text-nowrap">{identity.name}</p>
                 <br />
                 <span class="inline-flex gap-2 text-sm text-neutral-500">
                   <img src="https://flagsapi.com/{identity.country}/flat/24.png" alt="country flag" />
@@ -121,16 +121,16 @@
                 </span>
               </div>
               <br />
-              <p class="md:max-lg:!flex lg:max-xl:!flex"><EmailIcon className={'!h-6 !w-6 !stroke-primary-600'} />{identity.email}</p>
-              <p class="lg:max-xl:!flex"><PhoneIcon />{phone}</p>
+              <p class="md:max-lg:flex! lg:max-xl:flex!"><EmailIcon className={'h-6! w-6! stroke-primary-600!'} />{identity.email}</p>
+              <p class="lg:max-xl:flex!"><PhoneIcon />{phone}</p>
               <p><CreditCardIcon />{cardNumber}</p>
               <p><MultiUsersIcon />{identity.accounts}</p>
             </a>
           {/if}
         {/each}
-        <a class="!flex !gap-6 max-md:mb-24" href="/purchase">
+        <a class="flex! gap-6! max-md:mb-24" href="/purchase">
           <AddUserIcon />
-          <p class="text-2xl !text-neutral-300 max-xl:!block">Create a new identity</p>
+          <p class="text-neutral-300! max-xl:block! text-2xl">Create a new identity</p>
         </a>
       </section>
     </div>
@@ -149,7 +149,7 @@
   {:else}
     <div id="empty">
       <h1 class="basic-style mt-16 max-md:text-5xl md:mt-28">Start by making an identity</h1>
-      <p class="mb-4 w-2/3 !text-neutral-300">
+      <p class="text-neutral-300! mb-4 w-2/3">
         You can craft as many identities as you want. They are completely isolated from each other and can be used for a variety of
         purposes.
       </p>

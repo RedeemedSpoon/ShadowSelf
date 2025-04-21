@@ -22,10 +22,10 @@
       </div>
     </div>
   {:else}
-    <div class="loader !block" style="--size: {size === 'big' ? '35px' : '15px'}">
+    <div class="loader block!" style="--size: {size === 'big' ? '35px' : '15px'}">
       {#each Array(5) as _, i}
         <div
-          class="orbe orbe-alt {primaryColor && 'after:!bg-primary-600'}"
+          class="orbe orbe-alt {primaryColor && 'after:bg-primary-600!'}"
           style="--index: {i}; --size-orbe-alt: {size === 'big' ? '8px' : '4px'}">
         </div>
       {/each}

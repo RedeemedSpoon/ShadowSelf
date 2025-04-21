@@ -44,12 +44,12 @@
 </svelte:head>
 
 <div id="docs">
-  <ol class="max-h-[calc(100vh-12.5rem)] max-2xl:!hidden">
+  <ol class="max-2xl:hidden! max-h-[calc(100vh-12.5rem)]">
     {#each data.docs.sections as section}
       {@const Icon = section.icon}
       <ul class="mt-6">
-        <li class="title mb-3 flex items-center gap-2 !text-3xl !text-neutral-300">
-          <Icon className="h-8 w-8 cursor-default !stroke-neutral-300" fill={false} />
+        <li class="title text-3xl! text-neutral-300! mb-3 flex items-center gap-2">
+          <Icon className="h-8 w-8 cursor-default stroke-neutral-300!" fill={false} />
           {formatCasing(section.title)}
         </li>
         {#each section.more as subsection}
@@ -62,13 +62,13 @@
       </ul>
     {/each}
   </ol>
-  <span class="mr-[1.5vw] w-0.5 self-stretch bg-neutral-700 max-2xl:!hidden"></span>
+  <span class="max-2xl:hidden! mr-[1.5vw] w-0.5 self-stretch bg-neutral-700"></span>
   <section id="content" class="flex flex-col gap-8 self-stretch xl:w-3/4 xl:max-2xl:mx-auto">
     <h1 class="basic-style text-4xl font-bold md:text-6xl">API Documentation</h1>
     {#each data.docs.content as content, i}
       {@const Icon = content.icon}
       <h2 class="flex items-center gap-2 text-4xl text-neutral-300 md:text-5xl">
-        <Icon className="h-10 md:h-14 w-10 md:w-14 !stroke-neutral-300 cursor-default" fill={false} />
+        <Icon className="h-10 md:h-14 w-10 md:w-14 stroke-neutral-300! cursor-default" fill={false} />
         {formatCasing(content.title)}
       </h2>
       <div class="flex flex-col gap-4 max-lg:max-w-[calc(100vw-2rem)]">
@@ -116,7 +116,7 @@
   }
 
   ol {
-    @apply no-scrollbar sticky top-36 flex flex-shrink-0 flex-col self-start overflow-y-auto pr-[1vw];
+    @apply no-scrollbar sticky top-36 flex shrink-0 flex-col self-start overflow-y-auto pr-[1vw];
   }
 
   li {

@@ -16,7 +16,7 @@
     <img id="logo" src={logoBesideText} alt="Shadowself Logo" width="276" />
   </a>
   <div id="nav-container">
-    <HamburgerMenu className="!w-16 !h-16">
+    <HamburgerMenu className="w-16! h-16!">
       <div id="navigation-links" class="xl:mr-4">
         <a href="/extension">Extension</a>
         <a href="/purchase">Purchase</a>
@@ -28,7 +28,7 @@
           {@const events = {onmouseenter: () => (hoverSettings = true), onmouseleave: () => (hoverSettings = false)}}
           <div class="flex items-center gap-2">
             <a href="/settings" {...events} class="border-primary-600 rounded-full border-2 p-1">
-              <UserIcon className={className + (hoverSettings ? ' !fill-primary-600' : '')} fill={false} />
+              <UserIcon className={className + (hoverSettings ? ' fill-primary-600!' : '')} fill={false} />
             </a>
             {#key $user}
               <a href="/dashboard" class="group" id="username">{$user}<span></span></a>

@@ -11,12 +11,12 @@ declare global {
       recoveryRemaining?: number;
       searchKeywords?: Option[];
       identities?: Identity[];
+      identity?: FullIdentity;
       settings?: Settings;
       stripeKey?: string;
       cookie?: string;
-      faqs?: Faq[];
-      identity?: FullIdentity;
       slug?: string;
+      faqs?: Faq[];
       docs?: Docs;
     }
   }

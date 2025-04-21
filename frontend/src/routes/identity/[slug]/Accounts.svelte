@@ -105,15 +105,15 @@
             onclick={() => handleClick(account as Account)}
             class="{target && $target?.id == account.id ? 'target' : ''} wrapper last:border-b-0">
             <div class="flex w-1/3 flex-col overflow-hidden">
-              <HoverCopyButton text={account.username} icon={UserIcon} color="!text-neutral-300" />
+              <HoverCopyButton text={account.username} icon={UserIcon} color="text-neutral-300!" />
               {#if account.website}
-                <HoverCopyButton text={account.website} size="small" icon={WWWIcon} color="!text-neutral-500" />
+                <HoverCopyButton text={account.website} size="small" icon={WWWIcon} color="text-neutral-500!" />
               {/if}
             </div>
             <div class="w-1/3 overflow-hidden">
               {#if account.totp}
                 <div class="flex flex-col items-center">
-                  <HoverCopyButton id={account.id.toString()} icon={KeylockIcon} color="!text-neutral-400" />
+                  <HoverCopyButton id={account.id.toString()} icon={KeylockIcon} color="text-neutral-400!" />
                   <div class="relative mt-2 h-1 w-1/2 rounded-2xl bg-neutral-800">
                     <div class="animate-progress bg-primary-700 absolute left-0 top-0 h-full rounded-2xl"></div>
                   </div>
@@ -132,7 +132,7 @@
                 </Tooltip>
               {:else}
                 <div class="flex flex-col">
-                  <HoverCopyButton text={account.password} icon={KeyIcon} color="!text-neutral-400" direction="end" />
+                  <HoverCopyButton text={account.password} icon={KeyIcon} color="text-neutral-400!" direction="end" />
                 </div>
               {/if}
             </div>

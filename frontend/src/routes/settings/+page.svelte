@@ -25,9 +25,9 @@
   const settings = $state(data.settings) as Settings & SettingsForm & Notification;
 
   const className = {
-    label: '!bg-neutral-900/50 !border-neutral-700',
+    label: 'bg-neutral-900/50! border-neutral-700!',
     icon: 'fill-neutral-700 stroke-neutral-700',
-    input: 'placeholder-neutral-700 !bg-neutral-900/50 !border-neutral-700',
+    input: 'placeholder-neutral-700 bg-neutral-900/50! border-neutral-700!',
   };
 
   const sections = [
@@ -65,8 +65,8 @@
 
   function handleClick(index: number) {
     const array = Array.from(list.children);
-    array.forEach((item) => item.classList.remove('!bg-neutral-300/10', 'border-l-4', '2xl:!pl-24'));
-    array[index + 1].classList.add('!bg-neutral-300/10', 'border-l-4', '2xl:!pl-24');
+    array.forEach((item) => item.classList.remove('bg-neutral-300/10!', 'border-l-4', '2xl:pl-24!'));
+    array[index + 1].classList.add('bg-neutral-300/10!', 'border-l-4', '2xl:pl-24!');
   }
 
   const copyRecovery = () => navigator.clipboard.writeText(settings.recovery.join('\n'));
@@ -130,7 +130,7 @@
       {@const SvelteComponent = section.icon}
       <a onclick={() => handleClick(i)} href="#{section.id}" style="top: {(i + 3.25) * 4}rem">
         <li class="flex items-center gap-2">
-          <SvelteComponent fill={true} className="!h-8 !w-8" /><span>{section.title}</span>
+          <SvelteComponent fill={true} className="h-8! w-8!" /><span>{section.title}</span>
         </li>
       </a>
     {/each}
@@ -140,23 +140,23 @@
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
-    <h2 id="credentials"><UserIcon className="!h-10 !w-10 cursor-default" />Basic Credentials:</h2>
+    <h2 id="credentials"><UserIcon className="h-10! w-10! cursor-default" />Basic Credentials:</h2>
     <form use:enhance={() => updateFetch(true, 1, true)} method="POST" action="?/email">
-      <label class="md:!w-fit" for="email">Email:</label>
+      <label class="md:w-fit!" for="email">Email:</label>
       <InputWithButton value={settings.email} placeholder="New address" type="email" index={1} label="Change Email" name="email" />
     </form>
     <form use:enhance={() => updateFetch(true, 3)} method="POST" action="?/username">
-      <label class="md:!w-fit" for="username">Username:</label>
+      <label class="md:w-fit!" for="username">Username:</label>
       <InputWithButton placeholder="New username" value={data.user} index={3} label="Change Username" name="username" />
     </form>
     <form use:enhance={() => updateFetch(true, 4)} method="POST" action="?/password">
-      <label class="md:!w-fit" for="password">Password:</label>
+      <label class="md:w-fit!" for="password">Password:</label>
       <InputWithButton placeholder="New password" type="password" index={4} label="Change Password" name="password" />
     </form>
     <hr />
 
-    <h2 id="2fa"><KeylockIcon className="!h-10 !w-10 cursor-default" fill={true} />Two Factor Authentication:</h2>
-    <form class="!gap-4" use:enhance={({formData}) => updateModal(2, !formData.has('remove'))} method="POST" action="?/checkOtp">
+    <h2 id="2fa"><KeylockIcon className="h-10! w-10! cursor-default" fill={true} />Two Factor Authentication:</h2>
+    <form class="gap-4!" use:enhance={({formData}) => updateModal(2, !formData.has('remove'))} method="POST" action="?/checkOtp">
       <label for="totp">Time-based one-time password:</label>
       {#if settings.OTP}
         <button formaction="?/generateOtp" type="submit" class="w-fit">Change 2FA</button>
@@ -189,7 +189,7 @@
     {/if}
     <hr />
 
-    <h2 id="api"><KeyIcon className="!h-10 !w-10 cursor-default" />API Access & Key:</h2>
+    <h2 id="api"><KeyIcon className="h-10! w-10! cursor-default" />API Access & Key:</h2>
     <form use:enhance method="POST" action="?/toggleApi">
       <label for="access">API Access:</label>
       {#if settings.API}
@@ -209,7 +209,7 @@
     </form>
     <hr />
 
-    <h2 id="billing"><CreditCardIcon fill={true} className="!h-10 !w-10 cursor-default" />Billing Information:</h2>
+    <h2 id="billing"><CreditCardIcon fill={true} className="h-10! w-10! cursor-default" />Billing Information:</h2>
     <form>
       <p class="text-xl font-semibold text-neutral-300">Payment Details:</p>
       {#if settings.sessionUrl}
@@ -220,7 +220,7 @@
     </form>
     <hr />
 
-    <h2 id="danger"><InfoIcon fill={true} className="mr-1 !h-9 !w-9 cursor-default" />Danger Zone:</h2>
+    <h2 id="danger"><InfoIcon fill={true} className="mr-1 h-9! w-9! cursor-default" />Danger Zone:</h2>
     <form use:enhance={() => updateModal(0)} method="POST" action="?/session">
       <label for="logout">Session Management:</label>
       <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>
@@ -236,8 +236,8 @@
 </div>
 
 <Modal id={1}>
-  <form class="!flex-col p-8" use:enhance={() => updateFetch(true, 2, true)} method="POST" action="?/access">
-    <h1 class="!-mb-2">Enter the access token</h1>
+  <form class="flex-col! p-8" use:enhance={() => updateFetch(true, 2, true)} method="POST" action="?/access">
+    <h1 class="-mb-2!">Enter the access token</h1>
     <p>We sent an email with the access token to the new address. Enter it below to continue</p>
     <InputWithIcon {className} type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
     <LoadingButton index={2} className="mt-2">Confirm</LoadingButton>
@@ -260,13 +260,13 @@
           <p class="ml-1 mt-2 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
         </div>
       </div>
-      <button type="submit" class="bottom-12 right-16 !w-fit md:absolute">Next →</button>
+      <button type="submit" class="w-fit! bottom-12 right-16 md:absolute">Next →</button>
     </form>
   {:else if settings.step === 2}
     <form use:enhance={() => updateFetch(true, 5)} method="POST" action="?/checkOtp">
       <input hidden name="secret" value={settings.secret} />
       <div class="flex flex-col gap-8 xl:m-8">
-        <h1 class="!-mb-2">Enter the verification token</h1>
+        <h1 class="-mb-2!">Enter the verification token</h1>
         <p>Enter the verification token generated by your authenticator app</p>
         <InputWithIcon type="number" name="token" {className} icon={KeylockIcon} placeholder="123456" />
         <LoadingButton index={5} className="mt-2">Verify</LoadingButton>
@@ -290,8 +290,8 @@
 </Modal>
 
 <Modal id={3}>
-  <form class="!flex-col p-8" use:enhance={() => updateFetch(true, 5)} method="POST" action="?/payment">
-    <h1 class="!-mb-2">Enter your credit card details</h1>
+  <form class="flex-col! p-8" use:enhance={() => updateFetch(true, 5)} method="POST" action="?/payment">
+    <h1 class="-mb-2!">Enter your credit card details</h1>
     <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
     <div id="payment"></div>
     <input hidden name="paymentID" />

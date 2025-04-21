@@ -18,9 +18,9 @@
   let {accounts, mode, target}: Props = $props();
 
   const className = {
-    label: '!bg-neutral-900/50 !border-neutral-700',
+    label: 'bg-neutral-900/50! border-neutral-700!',
     icon: 'fill-neutral-700 stroke-neutral-700',
-    input: 'placeholder-neutral-700 !bg-neutral-900/50 !border-neutral-700',
+    input: 'placeholder-neutral-700 bg-neutral-900/50! border-neutral-700!',
     wrapper: 'w-2/3',
   };
 
@@ -97,7 +97,7 @@
 
 <Modal id={2}>
   <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
-    <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Setup Master Password</h3>
+    <h3 class="text-3xl! md:text-5xl! w-full text-neutral-300">Setup Master Password</h3>
     <p class="md:w-[40vw]">
       Set/recover a master password to secure your accounts, ensuring only you can access them. You can update it anytime for added
       security.
@@ -109,7 +109,7 @@
 
 <Modal id={3}>
   <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
-    <h3 class="w-full !text-3xl text-neutral-300 md:!text-5xl">Change Master Password</h3>
+    <h3 class="text-3xl! md:text-5xl! w-full text-neutral-300">Change Master Password</h3>
     <p class="md:w-[40vw]">
       Change the master password of your accounts and automatically update all of your accounts. There is no going back once you set
       it.

@@ -13,7 +13,7 @@
 
   let addedClaseses = $state(alt ? 'alt ' : '');
   addedClaseses += onTop ? 'top-full ' : 'bottom-full ';
-  addedClaseses += nowrap ? '!text-nowrap' : '';
+  addedClaseses += nowrap ? 'text-nowrap!' : '';
 </script>
 
 <div class="group/tooltip relative w-fit">

@@ -56,7 +56,7 @@
 </script>
 
 <div bind:this={ref} id="main" class:!overflow-y-hidden={overflow > 300}>
-  <div class="max-w-xl max-sm:!h-[40rem]">
+  <div class="max-sm:h-[40rem]! max-w-xl">
     {#each content as item, index (index)}
       {@render text?.({item: {...item, activeCard, index}})}
     {/each}

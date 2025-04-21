@@ -79,7 +79,7 @@
     {#if $mode === 'browse' && messages?.messages?.length}
       <div class="mt-20 flex w-full flex-col items-center">
         <div class="mb-4 flex w-full justify-between max-md:flex-col">
-          <h3 class="!text-2xl lg:!text-3xl">{formatPhoneNumber($identity.phone)}</h3>
+          <h3 class="text-2xl! lg:text-3xl!">{formatPhoneNumber($identity.phone)}</h3>
           <p class="text-neutral-500">{messages.messages.length} Conversations</p>
         </div>
         <ConversationLists {mode} {fullDiscussion} {discussion} messages={messages.messages} />

@@ -31,7 +31,7 @@
     content="ShadowSelf is a platform that safeguard you and your sensitive data by creating synthetic identities that can be used to register and authenticate while concealing your actual identity from being at risk of misuse, breach, theft, or fraud." />
 </svelte:head>
 
-<section id={data.homepageIds[0]} class="!h-screen !p-8">
+<section id={data.homepageIds[0]} class="h-screen! p-8!">
   <Slogan />
   <p class="my-4 w-3/4 text-balance text-center max-sm:w-full lg:w-1/2">
     Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your personal information
@@ -47,7 +47,7 @@
   </div>
 </section>
 
-<section id={data.homepageIds[1]} class="!flex-col-reverse !px-[15vw] 2xl:!flex-row">
+<section id={data.homepageIds[1]} class="flex-col-reverse! px-[15vw]! 2xl:flex-row!">
   <InteractiveCard />
   <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-20">
     <h6 class="-mb-4 ml-2 text-lg text-neutral-500 max-sm:text-sm">The Most Advanced Identity Masking Tool</h6>
@@ -63,7 +63,7 @@
   </div>
 </section>
 
-<section id={data.homepageIds[2]} class="relative sm:!h-screen">
+<section id={data.homepageIds[2]} class="sm:h-screen! relative">
   <ServicesList />
 </section>
 
@@ -99,7 +99,7 @@
   <Billing />
 </section>
 
-<section id={data.homepageIds[6]} class="xl:!flex-row xl:gap-x-16">
+<section id={data.homepageIds[6]} class="xl:flex-row! xl:gap-x-16">
   <div class="flex flex-col items-start gap-8">
     <WordFlip />
     <p class="mb-24 w-5/6">
@@ -111,7 +111,7 @@
   <FloatingAvatars />
 </section>
 
-<section id={data.homepageIds[7]} class="relative !mt-0 !h-screen overflow-hidden">
+<section id={data.homepageIds[7]} class="mt-0! h-screen! relative overflow-hidden">
   <h1 class="text-wrap text-center text-6xl text-neutral-300 md:text-7xl">
     <div class="relative">
       <Sparkle className="-top-4 right-[18rem]" size="w-9 h-9" delay={26} />
@@ -142,7 +142,7 @@
     }
 
     &:nth-child(7) {
-      @apply !mb-0 bg-gradient-to-b from-neutral-900 from-25% to-neutral-950/25;
+      @apply bg-linear-to-b !mb-0 from-neutral-900 from-25% to-neutral-950/25;
     }
 
     &:nth-child(6) {
@@ -150,7 +150,7 @@
     }
 
     #action {
-      @apply bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-700 bg-[150%] px-12 py-8 text-3xl hover:!bg-[100%];
+      @apply bg-linear-to-r from-blue-500 via-indigo-600 to-purple-700 bg-[150%] px-12 py-8 text-3xl hover:!bg-[100%];
     }
   }
 </style>

@@ -28,7 +28,7 @@
 
 <style lang="postcss">
   .notification {
-    @apply fixed bottom-12 left-8 z-[999] flex items-center border-l-8 bg-neutral-800 bg-opacity-90 p-6;
+    @apply z-999 fixed bottom-12 left-8 flex items-center border-l-8 bg-neutral-800 bg-opacity-90 p-6;
     @apply cursor-pointer shadow-md shadow-neutral-950 hover:bg-neutral-900;
     @apply max-sm:-left-6 max-sm:bottom-4 max-sm:scale-75;
   }

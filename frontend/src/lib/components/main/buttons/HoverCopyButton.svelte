@@ -33,9 +33,9 @@
   onclick={handleClick}>
   {#if icon}
     {@const SvelteComponent = isActivated ? CheckmarkIcon : isHovered ? CopyIcon : icon}
-    <SvelteComponent className="{size === 'big' ? 'w-6 h-6' : 'w-4 h-4'} {isHovered && !isActivated && '!fill-none'}" />
+    <SvelteComponent className="{size === 'big' ? 'w-6 h-6' : 'w-4 h-4'} {isHovered && !isActivated && 'fill-none!'}" />
   {/if}
-  <p bind:this={buttonText} {id} class={size === 'big' ? '!text-xl' : '!text-sm'}>{text}</p>
+  <p bind:this={buttonText} {id} class={size === 'big' ? 'text-xl!' : 'text-sm!'}>{text}</p>
 </button>
 
 <style lang="postcss">

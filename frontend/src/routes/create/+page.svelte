@@ -225,13 +225,13 @@
             <div id={location.code} class="locations-box" onclick={() => handleEvent('locations', location.code)} aria-hidden="true">
               <img src="https://flagsapi.com/{location.code}/flat/48.png" alt="country flag" />
               <div class="w-full">
-                <p class="!text-left text-xl !text-neutral-300 md:text-2xl">{location.country}, {location.city}</p>
-                <p class="flex items-center gap-1 !text-left tracking-wider !text-neutral-300">
+                <p class="text-left! text-neutral-300! text-xl md:text-2xl">{location.country}, {location.city}</p>
+                <p class="text-left! text-neutral-300! flex items-center gap-1 tracking-wider">
                   <PinIcon className="h-4 w-4 inline" />
                   {location.ip}
                 </p>
               </div>
-              <a class="flex flex-row gap-1 !text-neutral-300 max-sm:hidden" target="_blank" href={location.map}>
+              <a class="text-neutral-300! flex flex-row gap-1 max-sm:hidden" target="_blank" href={location.map}>
                 Link <ExternalLinkIcon className="h-4 w-4" />
               </a>
             </div>
@@ -301,7 +301,7 @@
         <p class="lg:w-1/2">Enter an email address to be associated with your identity. It can only contain letters and numbers.</p>
         <div class="flex items-center gap-3 max-sm:flex-col">
           <InputWithIcon icon={EmailIcon} type="email" fill={true} value={server.email} placeholder="Username" name="email" />
-          <label class="!mt-0" for="email">@shadowself.io</label>
+          <label class="mt-0!" for="email">@shadowself.io</label>
         </div>
         <small>
           Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as
@@ -322,7 +322,7 @@
         <h3>Make your virtual card</h3>
         <p class="lg:w-1/2">Forge your own virtual card that you can use to make payments.</p>
         <p>Currently unavailable</p>
-        <!-- <CreditCardIcon className={'!h-6 !w-6 fill-neutral-300'} fill={true} /> -->
+        <!-- <CreditCardIcon className={'h-6! w-6! fill-neutral-300'} fill={true} /> -->
         <!-- <InputWithIcon icon={LimitIcon} type="number" value={'100'} placeholder="100$" name="limit" /> -->
       {:else if $currentStep === 6}
         <h3>Install our browser extension</h3>
@@ -346,8 +346,8 @@
             <ExtensionLinks extension={'ublock'} />
           </div>
           <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
-            <h3 class="mb-8 pl-4 !text-left max-xl:hidden">Install ublock origin (optional)</h3>
-            <p class="short !text-neutral-300">
+            <h3 class="text-left! mb-8 pl-4 max-xl:hidden">Install ublock origin (optional)</h3>
+            <p class="short text-neutral-300!">
               uBlock Origin is a powerful, open-source ad blocker that boosts online privacy by blocking ads, trackers, and malicious
               scripts. Lightweight and efficient, it ensures a cleaner, more secure web experience. Combined with our tools, it keeps
               your privacy protected.
@@ -367,13 +367,13 @@
             <ExtensionLinks extension={'canvas'} />
           </div>
           <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
-            <h3 class="mb-8 pl-4 !text-left max-xl:hidden">Install canvas blocker (optional)</h3>
-            <p class="text-pretty !text-left !text-neutral-300">
+            <h3 class="text-left! mb-8 pl-4 max-xl:hidden">Install canvas blocker (optional)</h3>
+            <p class="text-left! text-neutral-300! text-pretty">
               Canvas Blocker protects against browser fingerprinting by blocking tracking techniques based on unique device
               characteristics. It enhances privacy by preventing websites from creating identifiable profiles. Paired with Shadowself,
               it ensures your identity remains untraceable.
             </p>
-            <p class="text-pretty !text-left">
+            <p class="text-left! text-pretty">
               Note: Canvas Blocker is only available for Firefox and its forks, offering fingerprinting protection exclusively on these
               browsers, not on Chrome or other Chromium-based browsers.
             </p>
@@ -393,7 +393,7 @@
         <Modal>
           <div class="flex flex-col gap-4">
             <h1 class="ml-2 text-5xl font-semibold text-neutral-300">Are you sure?</h1>
-            <p class="mb-2 !text-left">
+            <p class="text-left! mb-2">
               You will not be able to change some important configurations later on.
               <br class="max-md:hidden" /> Are you sure you want to proceed?
             </p>

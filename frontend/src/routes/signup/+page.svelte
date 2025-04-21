@@ -117,14 +117,14 @@
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
-    <h1 class="!-mb-2">Verify your email address</h1>
+    <h1 class="-mb-2!">Verify your email address</h1>
     <p>We sent you an email with an access token. Enter it below to continue</p>
     <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={3} action="checkUsername">
-    <h1 class="!-mb-2">Enter your username</h1>
+    <h1 class="-mb-2!">Enter your username</h1>
     <p>Enter a username for your account. You can change it later</p>
     <InputWithIcon type="text" name="username" icon={UserIcon} placeholder="Greed" />
     <LoadingButton className="mt-2">Continue</LoadingButton>
@@ -159,7 +159,7 @@
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={6} action="checkOTP">
-    <h1 class="!-mb-2">Enter the verification token</h1>
+    <h1 class="-mb-2!">Enter the verification token</h1>
     <p>Enter the verification token that was generated automatically by your authenticator app</p>
     <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
     <LoadingButton className="mt-2">Verify</LoadingButton>
@@ -184,7 +184,7 @@
   </StepsItem>
 
   <StepsItem {backStep} index={8} action="askBilling">
-    <h1 class="!-mb-2">Want to add a payment option?</h1>
+    <h1 class="-mb-2!">Want to add a payment option?</h1>
     <p>You will need a payment method to use ShadowSelf in it full capacity. We currently only accept credit cards</p>
     <div class="mt-8 flex justify-between gap-2 px-8 max-md:flex-col-reverse">
       <button class="alt" name="skip" type="submit">Skip for now</button>
@@ -193,7 +193,7 @@
   </StepsItem>
 
   <StepsItem {backStep} index={9} action="addBilling">
-    <h1 class="!-mb-2">Enter your credit card details</h1>
+    <h1 class="-mb-2!">Enter your credit card details</h1>
     <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
     <div id="payment"></div>
     <input hidden name="paymentID" />
@@ -203,7 +203,7 @@
 
   <StepsItem shouldWait={true} {backStep} index={10} action="create">
     <HappyIcon className="w-36 h-36 -mt-12" />
-    <h1 class="!-mb-2 text-center">And we're done, <span class="pretty-style">{username}</span></h1>
+    <h1 class="-mb-2! text-center">And we're done, <span class="pretty-style">{username}</span></h1>
     <p class="-mt-2 mb-4 text-center">
       Just click the button below to finish setting up your account. You can still go back to make changes
     </p>

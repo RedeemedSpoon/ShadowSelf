@@ -134,7 +134,7 @@
     <p class="text-center text-neutral-400">All plans include a 14-day refund, 24/7 support and the same level of security.</p>
   </section>
   <div id="purchase-box">
-    <section id="plans" class="!flex-row !gap-0">
+    <section id="plans" class="flex-row! gap-0!">
       {#each ['Monthly', 'Annually', 'Lifetime'] as model}
         <button class:active={$pricingModel.name === model} type="button" onclick={() => changeModel(model)}>{model}</button>
       {/each}
@@ -152,7 +152,7 @@
       {/key}
       <ul class="mt-4 grid gap-x-12 gap-y-4 text-center sm:grid-cols-2">
         {#each features as feature}
-          <li><CheckmarkIcon className="cursor-auto !fill-green-500 !w-6 !h-6" />{feature}</li>
+          <li><CheckmarkIcon className="cursor-auto fill-green-500! w-6! h-6!" />{feature}</li>
         {/each}
       </ul>
     </section>
@@ -160,12 +160,12 @@
     <section id="payment-methods" class="my-10">
       <form class="flex gap-6 px-8 max-sm:flex-col" action="?/init" method="POST" use:enhance={() => updateFetch(true, 1)}>
         <input hidden value={$pricingModel.name} name="type" type="hidden" />
-        <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="!w-8 !h-8" />Pay With Card</LoadingButton>
+        <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="w-8! h-8!" />Pay With Card</LoadingButton>
       </form>
       <Tooltip
         tip="Due to legal (KYC) and technical reasons, we require your credit card in order to create a virtual card. Sorry for the inconvenience!">
         <p class="mt-3 flex items-center gap-1 text-sm text-neutral-400 hover:cursor-help">
-          Why do we not support crypto<QuestionIcon className="!w-3 !h-3 hover:cursor-help" />
+          Why do we not support crypto<QuestionIcon className="w-3! h-3! hover:cursor-help" />
         </p>
       </Tooltip>
     </section>

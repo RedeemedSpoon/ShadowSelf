@@ -1,7 +1,7 @@
 <script lang="ts">
   import {sortAsc} from '$store';
 
-  let {className = '!h-8 !w-8 stroke-neutral-400 hover:stroke-neutral-300'}: {className?: string | undefined} = $props();
+  let {className = 'h-8! w-8! stroke-neutral-400 hover:stroke-neutral-300'}: {className?: string | undefined} = $props();
 </script>
 
 <div aria-hidden="true">

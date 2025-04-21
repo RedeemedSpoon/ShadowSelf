@@ -51,7 +51,7 @@
     <div class="cell" class:bottom-cells={index + 1 > 4} class:border-r={(index + 1) % 4 === 0}>
       <img src={feature.image} alt={feature.title} />
       <h3 class="text-2xl font-bold md:text-3xl">{feature.title}</h3>
-      <p class="hidden text-lg !leading-8 text-neutral-400 lg:block">{feature.description}</p>
+      <p class="leading-8! hidden text-lg text-neutral-400 lg:block">{feature.description}</p>
     </div>
   {/each}
 </div>
@@ -59,11 +59,11 @@
 <style lang="postcss">
   .cell {
     @apply flex flex-col items-baseline justify-center gap-4 border-l border-neutral-700 p-8 transition-all duration-500 ease-in-out lg:pt-[7vh];
-    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-gradient-to-t from-neutral-800/75 to-neutral-900 max-xl:border;
+    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-linear-to-t from-neutral-800/75 to-neutral-900 max-xl:border;
   }
 
   .cell.bottom-cells {
-    @apply bg-size-200 bg-pos-100 hover:bg-pos-0 bg-gradient-to-b from-neutral-800/75 to-neutral-900;
+    @apply bg-size-200 bg-pos-100 hover:bg-pos-0 bg-linear-to-b from-neutral-800/75 to-neutral-900;
     @apply border-t border-neutral-700 lg:pb-[7vh] lg:pt-8;
   }
 

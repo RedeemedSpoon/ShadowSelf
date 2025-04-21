@@ -1,6 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@config '../tailwind.config.js';
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 @layer base {
   html {
@@ -10,7 +19,7 @@
   button {
     @apply shadow-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
     @apply cursor-pointer text-nowrap rounded-md px-6 py-4 text-xl text-neutral-300 transition-all;
-    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 from-primary-800 to-primary-600 bg-gradient-to-t;
+    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 from-primary-800 to-primary-600 bg-linear-to-t;
     @apply disabled:hover:bg-pos-0 disabled:hover:shadow-primary-950 disabled:shadow-primary-950 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
@@ -31,7 +40,7 @@
 
   h1,
   h2 {
-    @apply pretty-style z-10 text-7xl font-medium !leading-tight;
+    @apply pretty-style leading-tight! z-10 text-7xl font-medium;
   }
 
   hr {
@@ -49,7 +58,7 @@
   input[type='number'],
   input[type='password'],
   textarea {
-    @apply rounded-xl border p-4 !outline-none transition-all duration-300 placeholder:text-neutral-700;
+    @apply outline-hidden! rounded-xl border p-4 transition-all duration-300 placeholder:text-neutral-700;
     @apply focus:ring-primary-600 border-neutral-800 bg-neutral-800/30 text-lg text-neutral-300 focus:ring-2;
   }
 

@@ -45,21 +45,21 @@
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
-    <h1 class="!-mb-2">Give us your email</h1>
+    <h1 class="-mb-2!">Give us your email</h1>
     <p>Write below the account's email address and we will send a reset token to get access back</p>
     <InputWithIcon type="email" name="email" placeholder="example@domain.tld" fill={true} icon={EmailIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={3} action="checkAccess">
-    <h1 class="!-mb-2">Enter the recovery token</h1>
+    <h1 class="-mb-2!">Enter the recovery token</h1>
     <p>We sent you an email with an recovery token. Enter it below to continue</p>
     <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={4} action="checkOTP">
-    <h1 class="!-mb-2">Enter the verification token</h1>
+    <h1 class="-mb-2!">Enter the verification token</h1>
     <p>Open your two-factor authentication app to view your verification token and verify your identity</p>
     <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
     <p class="-mt-4 max-md:text-sm">
@@ -70,7 +70,7 @@
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={5} action="checkRecovery">
-    <h1 class="!-mb-2">Enter one of your recovery codes</h1>
+    <h1 class="-mb-2!">Enter one of your recovery codes</h1>
     <p>Use one of the recovery tokens we gave when you first created your account to verify your authenticity</p>
     <InputWithIcon type="number" name="code" icon={RecoveryIcon} placeholder="123456789" />
     <LoadingButton className="mt-2">Check</LoadingButton>

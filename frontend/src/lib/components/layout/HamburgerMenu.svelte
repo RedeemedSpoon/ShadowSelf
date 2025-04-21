@@ -27,7 +27,7 @@
     <path d="M4 12l16 0" />
     <path d="M4 18l16 0" />
   </svg>
-  <div class={$selectionMenuOpen ? '!visible !-translate-x-12 !opacity-100' : ''} id="humberger-menu-container">
+  <div class={$selectionMenuOpen ? 'visible! -translate-x-12! opacity-100!' : ''} id="humberger-menu-container">
     {@render children?.()}
   </div>
 </div>
@@ -37,7 +37,7 @@
 
 <style lang="postcss">
   #humberger-menu-container {
-    @apply invisible absolute -right-12 top-24 !z-[1000] translate-x-0 opacity-0 transition-all duration-300 ease-in-out sm:-right-24;
+    @apply z-1000! invisible absolute -right-12 top-24 translate-x-0 opacity-0 transition-all duration-300 ease-in-out sm:-right-24;
     @apply rounded-2xl border-2 border-neutral-700 bg-neutral-950 bg-opacity-75 p-8 backdrop-blur-md;
     @apply flex flex-col-reverse items-center justify-center gap-6 md:flex-row;
   }

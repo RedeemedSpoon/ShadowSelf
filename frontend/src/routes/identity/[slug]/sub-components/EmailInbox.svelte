@@ -33,14 +33,14 @@
     <div aria-hidden="true" class="container {$target?.messageID === email.messageID && 'target'}" onclick={() => handleClick(email)}>
       <div class="relative w-full md:w-1/2">
         <div class:ml-12={email.inReplyTo}>
-          <h3 class="!truncate !text-2xl text-neutral-300">{email.subject}</h3>
+          <h3 class="truncate! text-2xl! text-neutral-300">{email.subject}</h3>
           <p class="text-sm text-neutral-500">{email.date}</p>
         </div>
         {#if email.inReplyTo}
           <ReplyIcon className="stroke-neutral-600 absolute left-0 top-1/2 -translate-y-1/2" />
         {/if}
       </div>
-      <div class="[*&>p]:!text-neutral-4 w-full md:w-1/2 [*&>p]:!truncate [*&>p]:!text-sm [*&>p]:md:!text-right">
+      <div class="[*&>p]:text-neutral-4! [*&>p]:truncate! [*&>p]:text-sm! md:[*&>p]:text-right! w-full md:w-1/2">
         {#if label === 'INBOX'}
           <p>From: {email.from}</p>
         {:else if label === 'Junk'}
