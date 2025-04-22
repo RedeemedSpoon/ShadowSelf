@@ -46,7 +46,7 @@
   @reference "$style";
 
   footer {
-    @apply sticky z-40 flex w-full flex-col bg-neutral-950 pt-24 opacity-75;
+    @apply sticky z-40 flex w-full flex-col bg-neutral-950/75 pt-24;
   }
 
   img:not([alt='ShadowSelf']) {

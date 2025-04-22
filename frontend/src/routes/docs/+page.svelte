@@ -126,7 +126,7 @@
   }
 
   ol li:not(.title) {
-    @apply my-1 ml-10 w-fit cursor-pointer select-none px-4 py-2 transition-all duration-300 ease-in-out;
+    @apply ml-10 w-fit cursor-pointer select-none px-4 py-2 transition-all duration-300 ease-in-out;
     @apply rounded-full hover:bg-neutral-300/10;
   }
 

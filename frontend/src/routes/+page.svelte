@@ -73,7 +73,9 @@
     <div id="account" class="mt-6 flex items-center justify-center gap-16 text-balance text-center max-lg:flex-col xl:gap-32">
       <div class="flex flex-col items-center gap-8 sm:w-[30rem]">
         <img src={registration} width="200" alt="Account Registration" class="max-sm:w-[150px]" />
-        <h2 class="from-red-500 to-rose-600 text-3xl font-bold sm:text-4xl">Account Registration</h2>
+        <h2 style="background-image: linear-gradient(to bottom, #ef4444, #e11d48);" class="text-3xl font-bold sm:text-4xl">
+          Account Registration
+        </h2>
         <p class="max-sm:px-8">
           Use our service to create untrackable accounts and register for services while still concealing your actual identity from
           being at risk.
@@ -81,7 +83,9 @@
       </div>
       <div class="flex flex-col items-center gap-8 sm:w-[30rem]">
         <img src={management} width="200" alt="Account Managenent" class="max-sm:w-[150px]" />
-        <h2 class="from-green-500 to-emerald-600 text-3xl font-bold sm:text-4xl">Account Managenent</h2>
+        <h2 style="background-image: linear-gradient(to bottom, #22c55e, #059669);" class="text-3xl font-bold sm:text-4xl">
+          Account Managenent
+        </h2>
         <p class="max-sm:px-8">
           Add, delete, and update entries to manage your online accounts. Create, generate and store passwords/usernames, implement
           TOTP, etc.

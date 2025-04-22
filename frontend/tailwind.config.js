@@ -70,15 +70,13 @@ function addCustomClasses({addComponents}) {
       },
     },
     '.basic-style': {
-      backgroundImage:
-        'linear-gradient(to bottom,var(--tw-gradient-stops)); --tw-gradient-from: #4f46e5 var(--tw-gradient-from-position); --tw-gradient-to: rgba(79,70,229,0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from),var(--tw-gradient-to); --tw-gradient-to: #4338ca var(--tw-gradient-to-position); ',
+      backgroundImage: 'linear-gradient(to bottom, #4f46e5, #4338ca)',
     },
     '.pretty-style': {
-      backgroundImage:
-        'linear-gradient(to right,var(--tw-gradient-stops)); --tw-gradient-from: #0284c7 var(--tw-gradient-from-position); --tw-gradient-to: rgba(2,132,199,0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from),var(--tw-gradient-to); --tw-gradient-to: rgba(79,70,229,0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from),#4f46e5 var(--tw-gradient-via-position),var(--tw-gradient-to); --tw-gradient-via-position: 30%; --tw-gradient-to: #9333ea var(--tw-gradient-to-position);',
+      backgroundImage: 'linear-gradient(to right, #0284c7, #4f46e5 30%, #9333ea)',
       color: 'transparent',
+      WebkitBackgroundClip: 'text',
       backgroundClip: 'text',
-      webkitBackgroundClip: 'text',
     },
     '.enable': {
       backgroundImage: 'linear-gradient(to bottom, var(--tw-gradient-stops));',
@@ -108,9 +106,9 @@ function addCustomClasses({addComponents}) {
     },
     '.hover-gradient-small': {
       backgroundSize: '150% 150%',
-      backgroundPosition: '0% 0%',
+      backgroundPosition: '50% 50%',
       '&:hover': {
-        backgroundPosition: '50% 50%',
+        backgroundPosition: '100% 100%',
       },
     },
     '.hover-gradient-large': {

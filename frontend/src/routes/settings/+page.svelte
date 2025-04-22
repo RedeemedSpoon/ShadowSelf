@@ -130,7 +130,7 @@
       {@const SvelteComponent = section.icon}
       <a onclick={() => handleClick(i)} href="#{section.id}" style="top: {(i + 3.25) * 4}rem">
         <li class="flex items-center gap-2">
-          <SvelteComponent fill={true} className="h-8! w-8!" /><span>{section.title}</span>
+          <SvelteComponent fill={true} className="h-8 w-8" /><span>{section.title}</span>
         </li>
       </a>
     {/each}
@@ -322,7 +322,7 @@
   }
 
   #title {
-    @apply sticky top-36 py-4 pl-16 text-4xl font-semibold text-neutral-100;
+    @apply sticky top-28 py-4 pl-16 text-4xl font-semibold text-neutral-100;
   }
 
   #recovery {

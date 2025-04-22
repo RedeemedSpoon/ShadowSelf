@@ -17,7 +17,7 @@
 </script>
 
 <div class="group/tooltip relative w-fit">
-  <span class="{addedClaseses} group-hover/tooltip:visible group-hover/tooltip:opacity-100">{tip}</span>
+  <span class="{addedClaseses} group-hover/tooltip:!visible group-hover/tooltip:!opacity-100">{tip}</span>
   {@render children?.()}
 </div>
 

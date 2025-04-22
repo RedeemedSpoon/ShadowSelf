@@ -48,7 +48,7 @@
 
   header {
     @apply fixed top-0 z-50 flex w-full items-center justify-evenly py-4 backdrop-blur-md md:px-20;
-    @apply select-none bg-neutral-950 opacity-75 transition-all duration-1000 ease-in-out;
+    @apply select-none bg-neutral-950/75 transition-all duration-1000 ease-in-out;
   }
 
   #nav-container {

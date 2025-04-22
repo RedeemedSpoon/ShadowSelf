@@ -2,7 +2,7 @@ import {redirect, type Handle} from '@sveltejs/kit';
 import {sequence} from '@sveltejs/kit/hooks';
 import csrf from '$csrf';
 
-const allowedOrigins = ['https://shadowself.io', 'http://localhost:5000', 'http://localhost:3000'];
+const allowedOrigins = ['https://shadowself.io', 'https://localhost'];
 
 const csrfProtect = csrf([], allowedOrigins);
 

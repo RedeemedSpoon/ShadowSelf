@@ -44,7 +44,7 @@
   }
 
   .box {
-    @apply from-neutral-900 to-[#1a2437] shadow-inner;
+    @apply from-neutral-900 to-[#1a2437] shadow-inner shadow-neutral-950/50;
   }
 
   .mono {

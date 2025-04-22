@@ -9,6 +9,8 @@ export default defineConfig({
     port: 5000,
     strictPort: true,
     hmr: {
+      host: 'localhost',
+      protocol: 'ws',
       clientPort: 5000,
     },
   },

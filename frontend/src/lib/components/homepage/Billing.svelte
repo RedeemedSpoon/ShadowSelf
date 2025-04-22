@@ -92,11 +92,11 @@
   }
 
   #pricing-model button {
-    @apply bg-none px-10 py-6 text-2xl font-medium text-neutral-500 shadow-xl hover:text-neutral-600;
+    @apply bg-none px-10 py-6 text-2xl font-medium text-neutral-500 shadow-none hover:text-neutral-600;
   }
 
   #select-model-box {
-    @apply absolute left-0 h-full w-1/3 rounded-full bg-neutral-300 opacity-15 transition-all duration-300 ease-in-out;
+    @apply absolute left-0 h-full w-1/3 rounded-full bg-neutral-300/15 transition-all duration-300 ease-in-out;
   }
 
   ul {

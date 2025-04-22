@@ -3,7 +3,7 @@
 
 @layer base {
   html {
-    @apply no-scrollbar overflow-x-hidden scroll-smooth bg-neutral-900 font-sans text-neutral-300 antialiased has-[.no-scroll]:overflow-hidden;
+    @apply no-scrollbar !overflow-x-hidden scroll-smooth bg-neutral-900 font-sans text-neutral-300 antialiased has-[.no-scroll]:overflow-hidden;
   }
 
   button {
@@ -30,7 +30,7 @@
 
   h1,
   h2 {
-    @apply pretty-style leading-tight! z-10 text-7xl font-medium;
+    @apply pretty-style z-10 text-7xl font-medium !leading-tight;
   }
 
   hr {
@@ -46,10 +46,14 @@
   input[type='email'],
   input[type='search'],
   input[type='number'],
-  input[type='password'],
+  input[type='password'] {
+    @apply outline-hidden rounded-xl border p-4 transition-all duration-300 placeholder:text-neutral-700;
+    @apply focus:ring-primary-600 focus:ring-3 border-neutral-800 bg-neutral-800/30 text-lg text-neutral-300;
+  }
+
   textarea {
-    @apply outline-hidden! rounded-xl border p-4 transition-all duration-300 placeholder:text-neutral-700;
-    @apply focus:ring-primary-600 border-neutral-800 bg-neutral-800/30 text-lg text-neutral-300 focus:ring-2;
+    @apply outline-hidden! rounded-xl! p-4! border transition-all duration-300 placeholder:text-neutral-700;
+    @apply focus:ring-primary-600 focus:ring-3! border-neutral-800! bg-neutral-800/30! text-lg! text-neutral-300;
   }
 
   input[type='number'] {
