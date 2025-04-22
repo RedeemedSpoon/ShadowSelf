@@ -49,6 +49,9 @@
       <div id="text" class:opacity-30={item.activeCard !== item.index}>
         <h1 class="text-5xl font-normal md:text-7xl 2xl:text-nowrap">{item.title}</h1>
         <p>{item.description}</p>
+        {#if item.activeCard === 0}
+          <p class="mt-4 animate-bounce text-neutral-500">↓ Scroll down for more</p>
+        {/if}
       </div>
     {/snippet}
 
@@ -72,6 +75,6 @@
   }
 
   #box > img {
-    @apply animate-shake image-shadow absolute bottom-0 left-0 right-0 top-0 m-auto w-2/3 transition-all duration-300 ease-in-out;
+    @apply animate-shake image-shadow absolute bottom-0 left-0 right-0 top-6 m-auto w-2/3 transition-all duration-300 ease-in-out;
   }
 </style>

@@ -3,20 +3,16 @@
   import {BackgroundBeams, GridAndDotBackgrounds, Sparkle} from '$component';
   import {addAnimation, addTabScrollEvent} from '$dom';
   import {registration, management} from '$image';
-  import {user, scrollUsingTab} from '$store';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
   import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
+  import {user} from '$store';
 
   let {data}: {data: PageData} = $props();
 
   onMount(() => {
-    if (window.location.hash) {
-      scrollUsingTab.set(true);
-      setTimeout(() => scrollUsingTab.set(false), 150);
-      goto(window.location.hash);
-    }
+    if (window.location.hash) goto(window.location.hash);
 
     addTabScrollEvent(data.homepageIds);
     const disconnect = addAnimation(data.animations);
@@ -116,7 +112,7 @@
 </section>
 
 <section id={data.homepageIds[7]} class="mt-0! h-screen! relative overflow-hidden">
-  <h1 class="text-wrap text-center text-6xl text-neutral-300 md:text-7xl">
+  <h1 class="text-wrap text-center text-4xl text-neutral-300 md:text-7xl">
     <div class="relative">
       <Sparkle className="-top-4 right-[18rem]" size="w-9 h-9" delay={26} />
       <Sparkle className="-top-6 right-96" size="w-7 h-7" delay={45} />
@@ -156,7 +152,7 @@
     }
 
     #action {
-      @apply bg-linear-to-r hover-gradient-small from-blue-500 via-indigo-600 to-purple-700 px-12 py-8 text-3xl;
+      @apply bg-linear-to-r hover-gradient-small from-blue-500 via-indigo-600 to-purple-700 sm:px-12 sm:py-8 sm:text-3xl;
     }
   }
 </style>

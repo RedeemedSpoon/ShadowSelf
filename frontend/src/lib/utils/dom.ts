@@ -1,16 +1,12 @@
 import type {AnimationNode, AnimationSelector} from '$type';
-import {scrollY, scrollUsingTab} from '$store';
 import {goto} from '$app/navigation';
 import {get} from 'svelte/store';
+import {scrollY} from '$store';
 
 export function addTabScrollEvent(sectionsIds: string[]) {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') {
       e.preventDefault();
-
-      scrollUsingTab.set(true);
-      setTimeout(() => scrollUsingTab.set(false), 150);
-      document.querySelector('html')!.style.overflow = 'auto';
 
       let currentSection = Math.ceil((get(scrollY) + 10) / (window.innerHeight - 200));
       if ((currentSection === 1 && e.shiftKey) || (currentSection === sectionsIds.length && !e.shiftKey)) {

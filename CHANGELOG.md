@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2025-4-23
+
+### Added
+
+- Beta release
+- Early work on browsers extension
+- Extension main file and structure
+- Global.css and HTML head (extensions)
+- Extension manifest.json
+- Extension icons
+
+### Changed
+
+- Move to tailwindcss v4
+- Fix tailwind v4 migration issues
+- Revert scrollhack to old ways (add text instead)
+- Lowercase the root directories names
+- Fix svelte LSP-recommented issues
+- Add reduce motion on homepage
+
+## [0.8.1] - 2025-4-21
+
+### Added
+
+- FloatingAvatars component
+- Extension UI mockup image
+- Extension page
+
+### Changed
+
+- Solution section on homepage right section
+- Services section on homepage to use new images
+
+### Removed
+
+- Satisfaction image
+- Services images
+
+## [0.8.0] - 2025-4-19
+
+### Added
+
+- CSRF protection
+- Sparkle component
+- Dynamic nginx caching system
+- Check to contact form
+
+### Changed
+
+- Remane homepage components
+- Join section on homepage to be final
+- Fix scrollhack on homepage
+
 ## [0.7.0] - 2025-4-14
 
 ### Added
@@ -19,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix new stripe webhook
 - Change checkout to backend regular payment
-- Fix recreatation of stripe customer each time
+- Fix recreation of stripe customer each time
 
 ### Removed
 

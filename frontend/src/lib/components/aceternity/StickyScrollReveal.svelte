@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {scrollYProgress, scrollUsingTab, scrollY} from '$store';
   import {onMount, type Snippet} from 'svelte';
   import type {ServicesContent} from '$type';
+  import {scrollYProgress} from '$store';
   import {Card} from '$component';
 
   interface Props {
@@ -14,28 +14,10 @@
 
   let overflow = $state(0);
   let activeCard = $state(0);
-  let direction = $state('down');
   let ref = $state() as HTMLDivElement;
 
   const cardsBreakpoints = content.map((_, index) => index / content.length);
   const gradient = ['purple', 'red', 'blue', 'green', 'orange'];
-
-  $effect(() => {
-    if ($scrollY === 0 || $scrollUsingTab) return;
-    if (!ref || ref.getBoundingClientRect().top === 0) return;
-    overflow = ref.getBoundingClientRect().top;
-
-    if (overflow < 300 && overflow > 0) {
-      if ($scrollYProgress === 0 && direction === 'up') {
-        document.querySelector('html')!.style.overflow = 'auto';
-      } else if ($scrollYProgress >= 0.77 && direction === 'down') {
-        document.querySelector('html')!.style.overflow = 'auto';
-      } else {
-        document.querySelector('html')!.style.overflow = 'hidden';
-        ref.scrollIntoView({block: 'start', inline: 'nearest', behavior: 'smooth'});
-      }
-    }
-  });
 
   onMount(() => {
     const handleScroll = (e: Event) => {
@@ -50,7 +32,6 @@
     };
 
     ref?.addEventListener('scroll', handleScroll);
-    ref?.addEventListener('wheel', (e) => (direction = e.deltaY > 0 ? 'down' : 'up'));
     return () => ref?.removeEventListener('scroll', handleScroll);
   });
 </script>
@@ -74,7 +55,7 @@
   @reference "$style";
 
   #main {
-    @apply no-scrollbar relative flex h-full w-full snap-y snap-mandatory scroll-mt-52;
+    @apply no-scrollbar relative flex h-full w-full snap-y snap-mandatory scroll-mt-16;
     @apply justify-evenly overflow-y-auto max-xl:justify-center xl:gap-x-2 xl:p-8;
   }
 
