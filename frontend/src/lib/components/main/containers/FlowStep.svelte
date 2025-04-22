@@ -29,7 +29,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   section {
     @apply flex flex-col items-center justify-center gap-8 py-12;

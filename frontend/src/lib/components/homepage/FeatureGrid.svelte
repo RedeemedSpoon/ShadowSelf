@@ -57,15 +57,15 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   .cell {
     @apply flex flex-col items-baseline justify-center gap-4 border-l border-neutral-700 p-8 transition-all duration-500 ease-in-out lg:pt-[7vh];
-    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-linear-to-t from-neutral-800/75 to-neutral-900 max-xl:border;
+    @apply hover-gradient-large bg-linear-to-t from-neutral-800/75 to-neutral-900 max-xl:border;
   }
 
   .cell.bottom-cells {
-    @apply bg-size-200 bg-pos-100 hover:bg-pos-0 bg-linear-to-b from-neutral-800/75 to-neutral-900;
+    @apply hover-gradient-large-reverse bg-linear-to-b from-neutral-800/75 to-neutral-900;
     @apply border-t border-neutral-700 lg:pb-[7vh] lg:pt-8;
   }
 

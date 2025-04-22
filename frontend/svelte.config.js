@@ -19,6 +19,8 @@ const config = {
       },
     }),
     alias: {
+      $style: 'src/app.css',
+      $tailwind: 'tailwind.config.js',
       $image: 'src/lib/images',
       $icon: 'src/lib/icons',
       $component: 'src/lib/components',

@@ -200,7 +200,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #editor {
     @apply !h-[50vh] !min-h-96 rounded-b-xl border-neutral-800 bg-neutral-800/30 text-neutral-300;

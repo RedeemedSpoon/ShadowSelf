@@ -13,7 +13,7 @@
 {/if}
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   span {
     @apply rounded-full bg-neutral-950 px-2 py-1 text-sm;

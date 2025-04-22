@@ -84,7 +84,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   button {
     @apply flex cursor-pointer items-center gap-2 rounded-xl px-6 shadow-none duration-300;

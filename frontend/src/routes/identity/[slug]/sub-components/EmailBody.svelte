@@ -42,7 +42,7 @@
 {/if}
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   a {
     @apply flex items-center gap-2;

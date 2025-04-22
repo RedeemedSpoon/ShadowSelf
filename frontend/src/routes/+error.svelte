@@ -20,7 +20,7 @@
 </section>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   section {
     @apply my-[10rem] flex h-fit w-screen flex-col items-center justify-center gap-8 text-center;

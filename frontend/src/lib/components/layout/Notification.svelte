@@ -27,23 +27,23 @@
 {/if}
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   .notification {
-    @apply z-999 fixed bottom-12 left-8 flex items-center border-l-8 bg-neutral-800 bg-opacity-90 p-6;
+    @apply z-999 fixed bottom-12 left-8 flex items-center border-l-8 bg-neutral-800 p-6 opacity-90;
     @apply cursor-pointer shadow-md shadow-neutral-950 hover:bg-neutral-900;
     @apply max-sm:-left-6 max-sm:bottom-4 max-sm:scale-75;
   }
 
   .alert {
-    @apply border-alert-500;
+    @apply border-red-500;
   }
 
   .info {
-    @apply border-info-500;
+    @apply border-yellow-500;
   }
 
   .success {
-    @apply border-success-500;
+    @apply border-green-500;
   }
 </style>

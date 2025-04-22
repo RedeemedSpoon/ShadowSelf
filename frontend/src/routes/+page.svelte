@@ -125,13 +125,13 @@
     expertise. Gain the control and security essential for navigating the modern web. It's time to step up.
   </p>
   <a class="z-10 mt-8" href={$user ? '/dashboard' : '/signup'}>
-    <button id="action" style="background-position: 50%;">Take Control Now!</button>
+    <button id="action">Take Control Now!</button>
   </a>
   <BackgroundBeams />
 </section>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   section {
     @apply h-fit min-h-[50rem] w-full transition-all duration-[1500ms] ease-in-out last:mb-0;
@@ -152,7 +152,7 @@
     }
 
     #action {
-      @apply bg-linear-to-r from-blue-500 via-indigo-600 to-purple-700 bg-[150%] px-12 py-8 text-3xl hover:!bg-[100%];
+      @apply bg-linear-to-r hover-gradient-small from-blue-500 via-indigo-600 to-purple-700 px-12 py-8 text-3xl;
     }
   }
 </style>

@@ -98,7 +98,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   ul {
     @apply max-h-[275px] overflow-y-scroll;

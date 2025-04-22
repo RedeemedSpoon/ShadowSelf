@@ -55,7 +55,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   .head {
     @apply flex w-full max-w-[calc(100vw-4rem)] items-center justify-between rounded-t-xl bg-neutral-700 xl:max-w-[calc(50vw-10rem)];

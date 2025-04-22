@@ -21,7 +21,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #backdrop {
     @apply fixed inset-0 z-50 h-full w-full bg-black/40;

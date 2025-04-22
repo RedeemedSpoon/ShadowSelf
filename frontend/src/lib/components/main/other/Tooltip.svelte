@@ -22,7 +22,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   span {
     @apply invisible absolute z-30 my-2 whitespace-pre-line text-wrap rounded-xl px-4 py-3 text-sm opacity-0;

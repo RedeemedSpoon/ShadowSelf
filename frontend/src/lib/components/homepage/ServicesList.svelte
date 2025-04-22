@@ -61,7 +61,7 @@
 </TracingBeam>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #text {
     @apply flex h-full min-w-[325px] snap-center flex-col justify-start gap-4 text-balance pt-16 max-xl:ml-32 max-md:mx-[10vw];

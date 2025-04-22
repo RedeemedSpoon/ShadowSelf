@@ -48,7 +48,7 @@
 </noscript>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "../app.css";
 
   #overlay {
     @apply invisible fixed inset-0 z-40 h-screen w-screen;

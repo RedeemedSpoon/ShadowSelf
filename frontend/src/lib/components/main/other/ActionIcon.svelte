@@ -31,7 +31,7 @@
 </Tooltip>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   button {
     @apply w-fit cursor-pointer rounded-lg border-2 border-neutral-300/75 p-1 max-sm:scale-90;

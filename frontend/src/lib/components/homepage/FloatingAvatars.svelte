@@ -60,7 +60,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   img {
     @apply border-primary-600 absolute max-w-fit cursor-pointer rounded-full border-4 shadow-xl;

@@ -28,7 +28,7 @@
 {/if}
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #gradient {
     @apply via-primary-600 bg-linear-to-r absolute -inset-1 rounded-2xl from-sky-500 via-30% to-purple-700;

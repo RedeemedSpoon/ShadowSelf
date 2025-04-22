@@ -44,7 +44,7 @@
 {/each}
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   .message {
     @apply flex w-full justify-between border-b border-neutral-700 py-4 max-md:flex-col-reverse md:items-center md:px-8;

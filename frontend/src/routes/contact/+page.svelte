@@ -60,7 +60,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #contact {
     @apply mx-auto my-[10rem] flex h-fit w-11/12 flex-col gap-12 md:w-3/4 xl:w-2/3;

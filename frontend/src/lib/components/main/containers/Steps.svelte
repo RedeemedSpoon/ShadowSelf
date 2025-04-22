@@ -18,7 +18,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   div {
     @apply h-full bg-repeat pb-[6rem] pt-[9rem] md:pb-[10rem] md:pt-[15rem];

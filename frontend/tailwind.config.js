@@ -49,9 +49,6 @@ export default {
       colors: {
         primary: colors.indigo,
         neutral: colors.slate,
-        success: colors.green,
-        info: colors.yellow,
-        alert: colors.red,
       },
     },
     fontFamily: {
@@ -107,6 +104,30 @@ function addCustomClasses({addComponents}) {
       backgroundColor: 'rgba(79, 57, 246, 0.65) !important',
       '&:hover': {
         opacity: '1 !important',
+      },
+    },
+    '.hover-gradient-small': {
+      backgroundSize: '150% 150%',
+      backgroundPosition: '0% 0%',
+      '&:hover': {
+        backgroundPosition: '50% 50%',
+      },
+    },
+    '.hover-gradient-large': {
+      backgroundSize: '200% 200%',
+      backgroundPosition: '0% 0%',
+      '&:hover': {
+        backgroundPosition: '100% 100%',
+      },
+      '&:disabled': {
+        backgroundPosition: '0% 0%',
+      },
+    },
+    '.hover-gradient-large-reverse': {
+      backgroundSize: '200% 200%',
+      backgroundPosition: '100% 100%',
+      '&:hover': {
+        backgroundPosition: '0% 0%',
       },
     },
     '.small-icon': {

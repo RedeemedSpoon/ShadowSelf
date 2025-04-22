@@ -29,7 +29,7 @@
 {/if}
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   form {
     @apply flex flex-col items-end gap-4 px-8 py-12 md:gap-8 md:p-16;

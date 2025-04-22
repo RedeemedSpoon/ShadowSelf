@@ -126,7 +126,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #identity {
     @apply mx-auto my-[10rem] flex w-3/4 flex-col items-center text-neutral-400 sm:w-5/6 xl:w-2/3;

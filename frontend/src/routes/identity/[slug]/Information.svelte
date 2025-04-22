@@ -130,7 +130,7 @@
 {/if}
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #overlay-profile {
     @apply absolute inset-0 h-full w-full min-w-[350px] rounded-xl transition-all duration-300 max-md:w-3/4;

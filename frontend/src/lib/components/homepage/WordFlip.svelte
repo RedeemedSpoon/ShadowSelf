@@ -21,7 +21,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   h1 {
     @apply pretty-style absolute ml-[120px] text-6xl max-sm:ml-[70px] max-sm:mt-1 max-sm:text-4xl md:-mt-1 md:ml-[185px] md:text-8xl;

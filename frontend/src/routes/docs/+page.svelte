@@ -111,7 +111,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #docs {
     @apply mx-auto my-[12.5rem] flex text-neutral-400 max-xl:px-[2vw] max-md:px-4 2xl:w-5/6;

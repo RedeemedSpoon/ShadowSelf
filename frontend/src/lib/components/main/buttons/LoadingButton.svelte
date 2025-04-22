@@ -23,7 +23,7 @@
 </button>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   button {
     @apply flex items-center justify-center gap-3 text-nowrap;

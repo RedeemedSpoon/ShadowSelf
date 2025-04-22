@@ -73,7 +73,7 @@
 </div>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #main {
     @apply no-scrollbar relative flex h-full w-full snap-y snap-mandatory scroll-mt-52;

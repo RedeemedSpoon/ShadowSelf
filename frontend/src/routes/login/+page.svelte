@@ -78,7 +78,7 @@
 </Steps>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   h1 {
     @apply -mt-4 mb-4 text-4xl font-bold text-neutral-300 max-md:text-2xl md:text-nowrap;

@@ -301,7 +301,7 @@
 </Modal>
 
 <style lang="postcss">
-  @reference "tailwindcss";
+  @reference "$style";
 
   #settings {
     @apply grid h-full min-h-screen w-full pt-[5rem] text-neutral-400 xl:grid-cols-[1fr_3fr];
@@ -310,7 +310,7 @@
   #stripe-link {
     @apply shadow-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
     @apply flex justify-center gap-1 rounded-md px-6 py-4 text-xl text-neutral-300 transition-all md:w-fit;
-    @apply bg-size-200 bg-pos-0 hover:bg-pos-100 from-primary-800 to-primary-600 bg-gradient-to-t;
+    @apply hover-gradient-large from-primary-800 to-primary-600 bg-gradient-to-t;
   }
 
   h1:not(.basic-style) {
