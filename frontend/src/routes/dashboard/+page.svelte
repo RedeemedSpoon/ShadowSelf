@@ -164,6 +164,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #dashboard {
     @apply mx-auto mb-[4rem] mt-[10rem] flex h-fit w-5/6 flex-col gap-12;
   }

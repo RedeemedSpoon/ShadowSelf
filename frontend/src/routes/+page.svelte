@@ -131,6 +131,8 @@
 </section>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   section {
     @apply h-fit min-h-[50rem] w-full transition-all duration-[1500ms] ease-in-out last:mb-0;
     @apply flex flex-col items-center justify-center gap-6 sm:py-16 2xl:py-32;

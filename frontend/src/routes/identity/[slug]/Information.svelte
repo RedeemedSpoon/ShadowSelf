@@ -130,6 +130,8 @@
 {/if}
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #overlay-profile {
     @apply absolute inset-0 h-full w-full min-w-[350px] rounded-xl transition-all duration-300 max-md:w-3/4;
     @apply group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080] xl:min-w-[400px] 2xl:min-w-[500px];

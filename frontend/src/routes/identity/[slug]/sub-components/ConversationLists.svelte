@@ -44,6 +44,8 @@
 {/each}
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   .message {
     @apply flex w-full justify-between border-b border-neutral-700 py-4 max-md:flex-col-reverse md:items-center md:px-8;
     @apply cursor-pointer select-none last:border-none hover:bg-neutral-300/5;

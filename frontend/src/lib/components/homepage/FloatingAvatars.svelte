@@ -60,6 +60,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   img {
     @apply border-primary-600 absolute max-w-fit cursor-pointer rounded-full border-4 shadow-xl;
     @apply transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:shadow-neutral-950;

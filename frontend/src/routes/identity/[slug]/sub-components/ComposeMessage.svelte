@@ -125,6 +125,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #send {
     @apply alt rounded-full border-2 border-neutral-500 px-3 py-2 text-2xl font-bold text-neutral-500;
     @apply absolute right-8 top-4 cursor-pointer bg-neutral-800 opacity-70 hover:opacity-100;

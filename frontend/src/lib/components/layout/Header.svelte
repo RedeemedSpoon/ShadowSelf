@@ -44,6 +44,8 @@
 </header>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   header {
     @apply fixed top-0 z-50 flex w-full items-center justify-evenly py-4 backdrop-blur-md md:px-20;
     @apply select-none bg-neutral-950 bg-opacity-75 transition-all duration-1000 ease-in-out;

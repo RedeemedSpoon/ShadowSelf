@@ -37,6 +37,8 @@
 </button>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   button {
     @apply flex w-fit items-center gap-2;
   }

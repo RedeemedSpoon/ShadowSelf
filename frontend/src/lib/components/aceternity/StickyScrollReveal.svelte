@@ -73,6 +73,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #main {
     @apply no-scrollbar relative flex h-full w-full snap-y snap-mandatory scroll-mt-52;
     @apply justify-evenly overflow-y-auto max-xl:justify-center xl:gap-x-2 xl:p-8;

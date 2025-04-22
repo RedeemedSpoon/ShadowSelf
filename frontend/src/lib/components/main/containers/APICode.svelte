@@ -42,6 +42,7 @@
     <SelectMenu {callback} {options} {fullIcons} size="small" name="lang" />
   {/if}
 </div>
+
 <div class="mb-8">
   {#if response}
     <pre class="language-json"><code class="text-base!">{JSON.stringify(response, null, 2)}</code></pre>
@@ -54,6 +55,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   .head {
     @apply flex w-full max-w-[calc(100vw-4rem)] items-center justify-between rounded-t-xl bg-neutral-700 xl:max-w-[calc(50vw-10rem)];
   }

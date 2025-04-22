@@ -301,6 +301,8 @@
 </Modal>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #settings {
     @apply grid h-full min-h-screen w-full pt-[5rem] text-neutral-400 xl:grid-cols-[1fr_3fr];
   }

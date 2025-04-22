@@ -43,6 +43,8 @@
 </footer>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   footer {
     @apply sticky z-40 flex w-full flex-col bg-neutral-950 bg-opacity-75 pt-24;
   }

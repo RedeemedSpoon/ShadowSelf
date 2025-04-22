@@ -21,6 +21,8 @@
 </article>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   article {
     @apply relative flex items-center justify-between rounded-3xl bg-[#0b1225] px-8 py-6;
   }

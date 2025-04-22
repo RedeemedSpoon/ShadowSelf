@@ -36,6 +36,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #box {
     @apply w-fit rounded-full bg-neutral-800/75 px-2 py-1 text-sm text-neutral-500 transition duration-300;
     @apply my-8 cursor-pointer ease-in-out hover:bg-neutral-800 hover:text-neutral-400/85;

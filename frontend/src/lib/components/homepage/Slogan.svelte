@@ -34,6 +34,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #background {
     @apply animate-scroll absolute inset-0 -z-10 h-full min-h-[50rem] w-full bg-cover bg-center bg-repeat-x;
   }

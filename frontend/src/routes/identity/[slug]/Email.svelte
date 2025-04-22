@@ -265,6 +265,8 @@
 <ComposeEmail {submit} isDraft={label === 'Drafts' && $mode === 'write-draft'} {target} {mode} />
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   h3 {
     @apply text-5xl text-neutral-300;
   }

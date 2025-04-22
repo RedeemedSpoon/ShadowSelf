@@ -42,6 +42,8 @@
 {/if}
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   a {
     @apply flex items-center gap-2;
   }

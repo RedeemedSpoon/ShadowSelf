@@ -156,6 +156,8 @@
 <AccountEdit {accounts} {target} {mode} />
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #no-accounts {
     @apply mb-12 mt-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
   }

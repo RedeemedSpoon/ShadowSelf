@@ -36,6 +36,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #humberger-menu-container {
     @apply z-1000! invisible absolute -right-12 top-24 translate-x-0 opacity-0 transition-all duration-300 ease-in-out sm:-right-24;
     @apply rounded-2xl border-2 border-neutral-700 bg-neutral-950 bg-opacity-75 p-8 backdrop-blur-md;

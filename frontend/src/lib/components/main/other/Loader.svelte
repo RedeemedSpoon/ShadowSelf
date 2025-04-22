@@ -34,6 +34,8 @@
 {/if}
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   .wrapper {
     @apply absolute z-30 flex h-full w-full items-center justify-center rounded-xl bg-black/40;
   }

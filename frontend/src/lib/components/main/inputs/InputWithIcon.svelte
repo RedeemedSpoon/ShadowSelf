@@ -28,6 +28,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   label {
     @apply ring-primary-600 flex items-center justify-center transition-all duration-300 ease-in-out group-focus-within/input:ring-2;
     @apply rounded-l-xl border border-neutral-800 !border-r-transparent bg-transparent;

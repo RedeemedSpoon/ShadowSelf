@@ -22,6 +22,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   span {
     @apply invisible absolute z-30 my-2 whitespace-pre-line text-wrap rounded-xl px-4 py-3 text-sm opacity-0;
     @apply bg-neutral-950/85 text-neutral-300 shadow-black drop-shadow-2xl transition-all duration-200 ease-in-out;

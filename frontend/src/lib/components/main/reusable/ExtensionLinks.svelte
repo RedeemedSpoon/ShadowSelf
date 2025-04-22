@@ -84,6 +84,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   button {
     @apply flex cursor-pointer items-center gap-2 rounded-xl px-6 shadow-none duration-300;
     @apply from-primary-700 to-primary-700 hover:to-primary-800 hover:from-primary-800;

@@ -80,6 +80,8 @@
 </Card>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #purchase {
     @apply rounded-none rounded-b-xl border-t-2 border-neutral-400 shadow-md;
     @apply mt-8 flex w-full items-end justify-center gap-1 p-8 text-4xl font-semibold;

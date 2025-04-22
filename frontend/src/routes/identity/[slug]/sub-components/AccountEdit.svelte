@@ -105,6 +105,8 @@
 {/if}
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   label {
     @apply ml-2 mt-2 text-neutral-300;
   }

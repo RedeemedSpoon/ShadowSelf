@@ -31,6 +31,8 @@
 </Tooltip>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   button {
     @apply w-fit cursor-pointer rounded-lg border-2 border-neutral-300/75 p-1 max-sm:scale-90;
     @apply !bg-none !shadow-transparent transition-none hover:bg-neutral-300/10;

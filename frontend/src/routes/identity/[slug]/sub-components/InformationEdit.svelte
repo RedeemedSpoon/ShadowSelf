@@ -95,6 +95,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   .sex-box {
     @apply flex h-12 w-1/2 items-center justify-center gap-px font-semibold transition-all duration-300 ease-in-out;
     @apply cursor-pointer rounded-lg border border-neutral-800 bg-neutral-800/30 p-3 hover:text-neutral-400;

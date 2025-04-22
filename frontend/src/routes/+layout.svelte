@@ -48,6 +48,8 @@
 </noscript>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #overlay {
     @apply invisible fixed inset-0 z-40 h-screen w-screen;
     @apply bg-black opacity-0 transition-all duration-300 ease-in-out;

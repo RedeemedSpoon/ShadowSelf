@@ -200,6 +200,8 @@
 </Modal>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   #purchase {
     @apply mx-auto my-[9rem] flex h-fit w-fit flex-col gap-16;
   }

@@ -57,6 +57,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   .cell {
     @apply flex flex-col items-baseline justify-center gap-4 border-l border-neutral-700 p-8 transition-all duration-500 ease-in-out lg:pt-[7vh];
     @apply bg-size-200 bg-pos-0 hover:bg-pos-100 bg-linear-to-t from-neutral-800/75 to-neutral-900 max-xl:border;

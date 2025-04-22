@@ -13,6 +13,8 @@
 {/if}
 
 <style lang="postcss">
+  @reference "tailwindcss";
+
   span {
     @apply rounded-full bg-neutral-950 px-2 py-1 text-sm;
   }
