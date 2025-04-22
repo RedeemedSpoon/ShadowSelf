@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {Tooltip} from '$component';
   import {profilePictures} from '$image';
+  import {Tooltip} from '$component';
 
   const avatars = [
     {
@@ -49,7 +49,7 @@
 </script>
 
 <div class="w-2/3 pl-[10vw] max-xl:hidden">
-  {#each avatars as avatar}
+  {#each avatars as avatar, id (id)}
     {@const style = `width: ${avatar.size * 0.65}rem; height: ${avatar.size * 0.65}rem`}
     <div class={'relative ' + avatar.position}>
       <Tooltip nowrap={true} tip={avatar.description} alt={true} onTop={false}>

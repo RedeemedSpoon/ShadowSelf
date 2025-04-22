@@ -45,14 +45,14 @@
 
 <div id="docs">
   <ol class="max-2xl:hidden! max-h-[calc(100vh-12.5rem)]">
-    {#each data.docs.sections as section}
+    {#each data.docs.sections as section (section.title)}
       {@const Icon = section.icon}
       <ul class="mt-6">
         <li class="title text-3xl! text-neutral-300! mb-3 flex items-center gap-2">
           <Icon className="h-8 w-8 cursor-default stroke-neutral-300!" fill={false} />
           {formatCasing(section.title)}
         </li>
-        {#each section.more as subsection}
+        {#each section.more as subsection (subsection.title)}
           {@const hash = subsection.title.replace(/\s/g, '-')}
           <li aria-hidden="true" onclick={() => scrollTo(hash)} class="{anchor === hash && 'anchor'} flex items-center gap-2">
             <HTTPMethod method={subsection.method} />
@@ -65,7 +65,7 @@
   <span class="max-2xl:hidden! mr-[1.5vw] w-0.5 self-stretch bg-neutral-700"></span>
   <section id="content" class="flex flex-col gap-8 self-stretch xl:w-3/4 xl:max-2xl:mx-auto">
     <h1 class="basic-style text-4xl font-bold md:text-6xl">API Documentation</h1>
-    {#each data.docs.content as content, i}
+    {#each data.docs.content as content, i (content.title)}
       {@const Icon = content.icon}
       <h2 class="flex items-center gap-2 text-4xl text-neutral-300 md:text-5xl">
         <Icon className="h-10 md:h-14 w-10 md:w-14 stroke-neutral-300! cursor-default" fill={false} />
@@ -86,7 +86,7 @@
         {/if}
 
         {#if content.routes}
-          {#each content.routes as route}
+          {#each content.routes as route (route.title)}
             {@const RouteDescription = route.description}
             <div class="max-lg:max-w-screen -mt-5 flex gap-8 max-xl:flex-col md:p-4">
               <section class="2xl:w-1/2">

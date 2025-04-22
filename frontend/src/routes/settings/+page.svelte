@@ -126,7 +126,7 @@
 <div id="settings">
   <ul bind:this={list} class="flex flex-col bg-neutral-800/40 pt-24 max-xl:hidden">
     <li id="title">Sections</li>
-    {#each sections as section, i}
+    {#each sections as section, i (section.id)}
       {@const SvelteComponent = section.icon}
       <a onclick={() => handleClick(i)} href="#{section.id}" style="top: {(i + 3.25) * 4}rem">
         <li class="flex items-center gap-2">
@@ -173,7 +173,7 @@
     </form>
     {#if settings.OTP}
       <div id="recovery" class={settings.recovery.length ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1'}>
-        {#each settings.recovery as code}
+        {#each settings.recovery as code, id (id)}
           <p>{code}</p>
         {:else}
           <p>No Codes Left</p>

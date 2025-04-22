@@ -221,7 +221,7 @@
           Choose the location of your synthetic identity. You will be able to access this location via our extension afterwards.
         </p>
         <div class="flex cursor-pointer flex-col">
-          {#each server.locations as location}
+          {#each server.locations as location (location.code)}
             <div id={location.code} class="locations-box" onclick={() => handleEvent('locations', location.code)} aria-hidden="true">
               <img src="https://flagsapi.com/{location.code}/flat/48.png" alt="country flag" />
               <div class="w-full">
@@ -257,11 +257,7 @@
           <div class="flex w-full flex-col gap-4 md:w-1/2 lg:w-1/3">
             <div class="flex items-end gap-4">
               <label for="name">Name</label>
-              <ActionIcon
-                title="regenerate a random name"
-                icon={RepeatIcon}
-                action={() => handleEvent('repeat-name')}
-                size={'small'} />
+              <ActionIcon title="regenerate a random name" icon={RepeatIcon} action={() => handleEvent('repeat-name')} size="small" />
             </div>
             <input bind:value={server.identity.name} type="text" placeholder="John Doe" name="name" />
 
@@ -330,7 +326,7 @@
           With our browser extension, you can access our VPN services, change user agents, and view your identity information.
         </p>
         <img loading="lazy" class="my-4 h-64 rounded-xl border border-neutral-700" src={screenshot} alt="shadowself extension" />
-        <ExtensionLinks extension={'shadowself'} />
+        <ExtensionLinks extension="shadowself" />
       {:else if $currentStep === 7}
         <h3>Sync the extension with your account</h3>
         <p class="lg:w-1/2">Securely authenticate and link your identity to the extension by clicking the button below.</p>
@@ -343,7 +339,7 @@
           <div class="flex flex-col items-center gap-4">
             <img class="h-52 w-52" src={ublock} alt="ublock origin" />
             <h3 class="mb-8 font-semibold">uBlock Origin</h3>
-            <ExtensionLinks extension={'ublock'} />
+            <ExtensionLinks extension="ublock" />
           </div>
           <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
             <h3 class="text-left! mb-8 pl-4 max-xl:hidden">Install ublock origin (optional)</h3>
@@ -364,7 +360,7 @@
           <div class="flex flex-col items-center gap-4">
             <img class="h-52 w-52" src={canvas} alt="canvas blocker" />
             <h3 class="mb-8 font-semibold">Canvas Blocker</h3>
-            <ExtensionLinks extension={'canvas'} />
+            <ExtensionLinks extension="canvas" />
           </div>
           <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
             <h3 class="text-left! mb-8 pl-4 max-xl:hidden">Install canvas blocker (optional)</h3>

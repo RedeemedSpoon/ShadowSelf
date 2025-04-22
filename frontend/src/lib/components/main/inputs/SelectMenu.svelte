@@ -83,7 +83,7 @@
     <ChevronIcon className="{size === 'small' && 'w-5 h-5 mt-1'} rotate-90!" />
   </button>
   <ul onclick={handleSltClick} class:hidden={!selectionInputOpen} aria-hidden={!selectionInputOpen}>
-    {#each givenOptions as option}
+    {#each givenOptions as option (option.value)}
       {#if fullIcons}
         {@const Icon = fullIcons[option.value]}
         <li class="flex items-center gap-2" id={option.value}>

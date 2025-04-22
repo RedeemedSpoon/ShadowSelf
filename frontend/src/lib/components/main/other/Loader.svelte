@@ -16,14 +16,14 @@
   {#if type === 'card'}
     <div class="wrapper">
       <div class="loader" style="--size: 50px">
-        {#each Array(5) as _, i}
+        {#each Array(5) as _, i (i)}
           <div class="orbe" style="--index: {i}; --size-orbe: 10px"></div>
         {/each}
       </div>
     </div>
   {:else}
     <div class="loader block!" style="--size: {size === 'big' ? '35px' : '15px'}">
-      {#each Array(5) as _, i}
+      {#each Array(5) as _, i (i)}
         <div
           class="orbe orbe-alt {primaryColor && 'after:bg-primary-600!'}"
           style="--index: {i}; --size-orbe-alt: {size === 'big' ? '8px' : '4px'}">

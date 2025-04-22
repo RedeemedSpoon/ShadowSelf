@@ -61,7 +61,7 @@
 
   {#if expand && extension !== 'canvas'}
     <div class="absolute">
-      {#each ['chrome', 'edge', 'opera'] as otherBrowser, i}
+      {#each ['chrome', 'edge', 'opera'] as otherBrowser, i (i)}
         <a href={extensionInfo[extension][otherBrowser as 'firefox']} target="_blank" rel="noreferrer">
           <button class="other-link rounded-none! {i === 2 && 'rounded-b-xl!'}">
             <p>Download for {@html browserIcons[otherBrowser as 'firefox']} {toTitleCase(otherBrowser)}</p>

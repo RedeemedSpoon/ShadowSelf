@@ -230,7 +230,7 @@
         {thisLabel: 'Drafts', data: inbox.emails.drafts, count: inbox.emails.draftsMessagesCount},
         {thisLabel: 'Junk', data: inbox.emails.junk, count: inbox.emails.junkMessagesCount},
       ]}
-      {#each labels as { thisLabel, data, count }}
+      {#each labels as { thisLabel, data, count } (thisLabel)}
         {#if label === thisLabel}
           <EmailInbox {loadMore} inbox={data} {count} {label} {target} {mode} {reply} />
         {/if}
@@ -240,7 +240,7 @@
     <EmailBody email={$target!} />
     {#if $target?.inReplyTo}
       {@const _ = fetchReply($target.inReplyTo)}
-      {#each $reply as email}
+      {#each $reply as email (email.messageID)}
         <h3 class="text-2xl! mt-8 flex items-center gap-2 text-neutral-300">
           <ReplyIcon />In Reply To:
         </h3>

@@ -25,7 +25,7 @@
   {/if}
   <div class="flex w-full flex-col gap-12">
     {#key $fullDiscussion}
-      {#each $fullDiscussion as message}
+      {#each $fullDiscussion as message, id (id)}
         <MessageComponent {message} />
       {/each}
       {#if $fullDiscussion.length === 0}

@@ -29,7 +29,7 @@
 </script>
 
 {#if count && inbox.length}
-  {#each inbox as email}
+  {#each inbox as email, id (id)}
     <div aria-hidden="true" class="container {$target?.messageID === email.messageID && 'target'}" onclick={() => handleClick(email)}>
       <div class="relative w-full md:w-1/2">
         <div class:ml-12={email.inReplyTo}>

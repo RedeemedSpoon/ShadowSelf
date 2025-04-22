@@ -99,11 +99,11 @@
   {#key $accounts.accounts}
     <section class="min-h-[40vh]">
       {#await decryptAll($accounts) then decryptedAccounts}
-        {#each decryptedAccounts as account}
+        {#each decryptedAccounts as account (account.id)}
           <div
             aria-hidden="true"
             onclick={() => handleClick(account as Account)}
-            class="{target && $target?.id == account.id ? 'target' : ''} wrapper last:border-b-0">
+            class="wrapper last:border-b-0 {$target && $target?.id == account.id && 'target'}">
             <div class="flex w-1/3 flex-col overflow-hidden">
               <HoverCopyButton text={account.username} icon={UserIcon} color="text-neutral-300!" />
               {#if account.website}

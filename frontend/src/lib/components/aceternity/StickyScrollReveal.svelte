@@ -61,9 +61,7 @@
       {@render text?.({item: {...item, activeCard, index}})}
     {/each}
   </div>
-  <Card
-    upperClass={'h-[435px] w-[450px] hidden top-0 xl:max-2xl:scale-90 max-xl:scale-75 lg:block sticky'}
-    color={gradient[activeCard]}>
+  <Card upperClass="h-[435px] w-[450px] hidden top-0 xl:max-2xl:scale-90 max-xl:scale-75 lg:block sticky" color={gradient[activeCard]}>
     <div id="wrapper" class={gradient[activeCard]}>
       {#key activeCard}
         {@render image?.({item: content[activeCard]})}

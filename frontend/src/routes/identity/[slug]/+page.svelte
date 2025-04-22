@@ -1,8 +1,8 @@
 <script lang="ts">
   import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, CreditCardIcon} from '$icon';
   import {currentSection, handleResponse, identity, modalIndex} from '$store';
-  import type {Sections, WebSocketMessage} from '$type';
   import IdentityInformation from './Information.svelte';
+  import type {Sections, WebSocketMessage} from '$type';
   import IdentityAccounts from './Accounts.svelte';
   import IdentityPhone from './Phone.svelte';
   import IdentityEmail from './Email.svelte';
@@ -82,7 +82,7 @@
 <div id="identity">
   {#if data.identity && browser}
     <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
-      {#each Object.keys(allSections) as section, i}
+      {#each Object.keys(allSections) as section, i (i)}
         {@const Icon = sectionsNames[i].icon}
         <button class:main={section === $currentSection} onclick={() => handleClick(section as Sections)}>
           <Icon className="h-6 w-6" />

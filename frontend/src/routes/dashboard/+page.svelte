@@ -101,7 +101,7 @@
       </div>
       <p bind:this={errorText} id="error" class="hidden!">No results found.</p>
       <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
-        {#each data.identities as identity}
+        {#each data.identities as identity (identity.id)}
           {#if !identity.name}
             <a class="flex! gap-6! max-md:mb-24" href="/create?id={identity.id}">
               <AddUserIcon />
@@ -121,13 +121,14 @@
                 </span>
               </div>
               <br />
-              <p class="md:max-lg:flex! lg:max-xl:flex!"><EmailIcon className={'h-6! w-6! stroke-primary-600!'} />{identity.email}</p>
+              <p class="md:max-lg:flex! lg:max-xl:flex!"><EmailIcon className="h-6! w-6! stroke-primary-600!" />{identity.email}</p>
               <p class="lg:max-xl:flex!"><PhoneIcon />{phone}</p>
               <p><CreditCardIcon />{cardNumber}</p>
               <p><MultiUsersIcon />{identity.accounts}</p>
             </a>
           {/if}
         {/each}
+
         <a class="flex! gap-6! max-md:mb-24" href="/purchase">
           <AddUserIcon />
           <p class="text-neutral-300! max-xl:block! text-2xl">Create a new identity</p>
@@ -138,7 +139,7 @@
     <div class="-my-8 flex justify-between max-md:hidden lg:mx-6">
       <a href="/logout"><button><LogoutIcon />Logout</button></a>
       <div class="flex lg:gap-3">
-        {#each Object.entries(bottomLinks) as [name, [url, Icon]]}
+        {#each Object.entries(bottomLinks) as [name, [url, Icon]] (name)}
           {@const SvelteComponent = Icon as Component}
           <a href={url as string} rel="external">
             <button><SvelteComponent />{name}</button>

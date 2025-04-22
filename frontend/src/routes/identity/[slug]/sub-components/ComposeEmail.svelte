@@ -180,7 +180,7 @@
       </div>
       <div class="max-h-24 flex-col overflow-y-auto">
         {#key attachments}
-          {#each attachments as attachment}
+          {#each attachments as attachment (attachment.filename)}
             <div class="flex items-center gap-2">
               <p class="text-sm text-neutral-500">{attachment.filename}</p>
               <button

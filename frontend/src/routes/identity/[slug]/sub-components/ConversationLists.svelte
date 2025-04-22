@@ -26,7 +26,7 @@
   }
 </script>
 
-{#each messages as message}
+{#each messages as message, id (id)}
   {@const addressee = message.from === $identity.phone ? message.to : message.from}
   <div class="message" aria-hidden="true" onclick={() => loadConversation(message, addressee)}>
     <div>

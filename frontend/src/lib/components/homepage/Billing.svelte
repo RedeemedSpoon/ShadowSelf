@@ -36,7 +36,7 @@
   </p>
   <div id="pricing-model">
     <div id="select-model-box"></div>
-    {#each ['Monthly', 'Annually', 'Lifetime'] as model}
+    {#each ['Monthly', 'Annually', 'Lifetime'] as model (model)}
       <button type="button" class:!text-neutral-300={model === $pricingModel.name} onclick={() => changePricingModel(model)}>
         {model}
       </button>
@@ -60,7 +60,7 @@
     <div class="flex w-full gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
       {#each sections as section, index (index)}
         <ul>
-          {#each section as item}
+          {#each section as item, id (id)}
             <li>
               <CheckmarkIcon className="cursor-auto fill-green-500! w-6! h-6!" />
               {item}

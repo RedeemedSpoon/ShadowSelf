@@ -20,7 +20,7 @@
     <div class="flex flex-col items-center gap-6">
       <a href="/"><img loading="lazy" src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div class="flex justify-center gap-4">
-        {#each Object.entries(socialLinks) as [key, value]}
+        {#each Object.entries(socialLinks) as [key, value], id (id)}
           <a rel="external" href={value.href}>
             <img src={value.img} alt={key} height="32" />
           </a>
@@ -28,10 +28,10 @@
       </div>
     </div>
     <nav class="flex flex-wrap justify-start gap-12 px-8 xl:gap-24">
-      {#each Object.entries(navLinks) as [key, value]}
+      {#each Object.entries(navLinks) as [key, value], id (id)}
         <div class="flex flex-col gap-6">
           <p class="font-bold text-neutral-400">{key}</p>
-          {#each value as link}
+          {#each value as link, id (id)}
             {@const url = link === 'Homepage' ? '/' : `/${link.toLowerCase().replace(/ /g, '-')}`}
             <a href={url}>{link}</a>
           {/each}

@@ -66,7 +66,7 @@
   <div class="flex w-full flex-col gap-4">
     <div class="flex items-end gap-4">
       <label for="name">Name</label>
-      <ActionIcon title="regenerate a random name" icon={RepeatIcon} action={regenerateName} size={'small'} />
+      <ActionIcon title="regenerate a random name" icon={RepeatIcon} action={regenerateName} size="small" />
     </div>
     <input value={$identity.name} type="text" placeholder="John Doe" name="name" />
 

@@ -135,7 +135,7 @@
   </section>
   <div id="purchase-box">
     <section id="plans" class="flex-row! gap-0!">
-      {#each ['Monthly', 'Annually', 'Lifetime'] as model}
+      {#each ['Monthly', 'Annually', 'Lifetime'] as model (model)}
         <button class:active={$pricingModel.name === model} type="button" onclick={() => changeModel(model)}>{model}</button>
       {/each}
     </section>
@@ -151,7 +151,7 @@
         </div>
       {/key}
       <ul class="mt-4 grid gap-x-12 gap-y-4 text-center sm:grid-cols-2">
-        {#each features as feature}
+        {#each features as feature, id (id)}
           <li><CheckmarkIcon className="cursor-auto fill-green-500! w-6! h-6!" />{feature}</li>
         {/each}
       </ul>
