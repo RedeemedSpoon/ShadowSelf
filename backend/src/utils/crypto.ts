@@ -1,5 +1,5 @@
 import {genSalt, hash, compare} from 'bcryptjs';
-import {pseudoRandomBytes} from 'crypto';
+import {randomBytes} from 'crypto';
 import * as OTPAuth from 'otpauth';
 
 export function createTOTP(secret: string, username: string): OTPAuth.TOTP {
@@ -18,15 +18,15 @@ export function getSecret(): string {
 }
 
 export function generateID(): string {
-  return pseudoRandomBytes(4).toString('hex');
+  return randomBytes(4).toString('hex');
 }
 
 export function generateIdentityID(): string {
-  return pseudoRandomBytes(6).toString('hex');
+  return randomBytes(6).toString('hex');
 }
 
 export function getAPIKey(): string {
-  return pseudoRandomBytes(16).toString('hex');
+  return randomBytes(16).toString('hex');
 }
 
 export function getRecovery() {

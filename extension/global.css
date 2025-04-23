@@ -3,6 +3,7 @@
 :root {
   --color-primary: #4f39f6;
   --color-primary-dark: #432dd7;
+  --color-primary-darker: #372aac;
 
   --color-neutral: #cad5e2;
   --color-neutral-dark: #90a1b9;
@@ -49,6 +50,8 @@ body {
   text-rendering: optimizeSpeed;
   background-color: var(--color-background);
   color: var(--color-neutral);
+  height: 560px;
+  width: 340px;
 }
 
 /* -------------- Typography -------------- */
@@ -98,13 +101,20 @@ select {
 
 button {
   cursor: pointer;
-  background: var(--color-primary);
   color: var(--color-neutral);
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
-  transition: background 0.15s ease-in-out;
+  transition: all 0.15s ease-in-out;
+  background-size: 200% 200%;
+  background-image: linear-gradient(to top, var(--color-primary-darker) 0%, var(--color-primary) 100%);
+  box-shadow:
+    oklch(35.9% 0.144 278.697) 0 10px 15px -3px,
+    oklch(35.9% 0.144 278.697) 0 4px 6px -4px;
 }
 
 button:hover {
-  background: var(--color-primary-dark);
+  background-position: 100% 100%;
+  box-shadow:
+    oklch(25.7% 0.09 281.288) 0 10px 15px -3px,
+    oklch(25.7% 0.09 281.288) 0 4px 6px -4px;
 }
