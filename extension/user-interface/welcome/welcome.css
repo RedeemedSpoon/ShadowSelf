@@ -3,8 +3,24 @@ main {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  margin: 0 15px;
   text-align: center;
+  height: 100%;
+  padding: 0 25px;
   row-gap: 15px;
+  box-shadow: 0 0 200px rgba(0, 0, 0, 0.5) inset;
+  background-image: url('../../assets/background.webp');
+  background-size: 100% 100%;
+  background-size: auto 100%;
+  background-position: center center;
+  background-repeat: repeat;
+  animation: scroll 240s linear infinite;
+}
+
+@keyframes scroll {
+  0% {
+    background-position-x: 0;
+  }
+  100% {
+    background-position-x: 9600px;
+  }
 }
