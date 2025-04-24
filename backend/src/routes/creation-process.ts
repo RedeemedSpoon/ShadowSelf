@@ -148,11 +148,6 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           break;
         }
 
-        case 'sync': {
-          ws.send({sync: ws.data.cookie['token'].value});
-          break;
-        }
-
         case 'finish': {
           const [location, picture, name, bio, age, sex, ethnicity, email, phone, card] = cookieStore;
           const params = {location, picture, name, bio, age: Number(age), sex, ethnicity, email, phone, card};

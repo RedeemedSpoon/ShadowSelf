@@ -129,7 +129,6 @@ export interface CreationProcess {
   phone: {phone: string; formatted: string}[];
   email: string;
   card: string;
-  sync: string;
   finish: boolean;
 }
 

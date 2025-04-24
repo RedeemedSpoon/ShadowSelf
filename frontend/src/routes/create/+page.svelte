@@ -58,8 +58,6 @@
       $fetchIndex = 0;
 
       if (response?.error) return notify(response.error, 'alert');
-      // if (response.sync) disabled = true;
-
       if (response.finish) {
         document.cookie = `creation-process=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${dev ? 'localhost' : 'shadowself.io'}`;
         return goto('/dashboard');
@@ -120,7 +118,7 @@
         break;
 
       case 6:
-        reply('sync');
+        $currentStep = 7;
         break;
 
       case 7:
@@ -132,10 +130,6 @@
         break;
 
       case 9:
-        $currentStep = 10;
-        break;
-
-      case 10:
         await new Promise((resolve) => setTimeout(resolve, 1350));
         clearInterval(loaderInterval as number);
         clearInterval(pingInterval as number);
@@ -194,10 +188,6 @@
         reply('identities', {regenerate});
         break;
       }
-
-      case 'sync':
-        // disabled = false;
-        break;
     }
   }
 </script>
@@ -214,7 +204,7 @@
       <h3 id="loader-process">.</h3>
     </div>
   {:then}
-    <FlowStep {disabled} finalStep={10} handleClick={respondServer}>
+    <FlowStep {disabled} finalStep={9} handleClick={respondServer}>
       {#if $currentStep === 1}
         <h3>Choose your location</h3>
         <p class="lg:w-1/2">
@@ -325,15 +315,9 @@
         <p class="lg:w-1/2">
           With our browser extension, you can access our VPN services, change user agents, and view your identity information.
         </p>
-        <img loading="lazy" class="my-4 h-64 rounded-xl border border-neutral-700" src={screenshot} alt="shadowself extension" />
+        <img loading="lazy" class="my-4 h-72 rounded-xl border border-neutral-700" src={screenshot} alt="shadowself extension" />
         <ExtensionLinks extension="shadowself" />
       {:else if $currentStep === 7}
-        <h3>Sync the extension with your account</h3>
-        <p class="lg:w-1/2">Securely authenticate and link your identity to the extension by clicking the button below.</p>
-        <button disabled class="flex items-center justify-center gap-2 text-wrap sm:w-1/3" onclick={() => handleEvent('sync')}>
-          <ExtensionIcon />Sync with extension
-        </button>
-      {:else if $currentStep === 8}
         <div class="flex items-center justify-center gap-6 max-xl:flex-col sm:gap-16 sm:p-8">
           <h3 class="xl:hidden">Install ublock origin (optional)</h3>
           <div class="flex flex-col items-center gap-4">
@@ -354,7 +338,7 @@
             </p>
           </div>
         </div>
-      {:else if $currentStep === 9}
+      {:else if $currentStep === 8}
         <div class="flex items-center justify-center gap-6 max-xl:flex-col sm:gap-16 sm:p-8">
           <h3 class="xl:hidden">Install ublock origin (optional)</h3>
           <div class="flex flex-col items-center gap-4">
@@ -375,7 +359,7 @@
             </p>
           </div>
         </div>
-      {:else if $currentStep === 10}
+      {:else if $currentStep === 9}
         <HappyIcon className="w-40 h-40" />
         <h3>Your identity is now ready!</h3>
         <p class="lg:w-1/2">
