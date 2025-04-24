@@ -3,6 +3,7 @@
   import {EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon, AddUserIcon} from '$icon';
   import {user, filterOverflow, sortAsc, token} from '$store';
   import {onMount, type Component} from 'svelte';
+  import {formatPhoneNumber} from '$format';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
   import {worldMap} from '$image';
@@ -108,7 +109,6 @@
               <p class="text-neutral-300! max-xl:block! text-2xl">Continue Creation Process... (ID : {identity.id})</p>
             </a>
           {:else}
-            {@const phone = identity.phone.replace('+', '').replace(/(\d{1})(\d{3})(\d{3})(\d{4})(\d{3})/, '+$1 $2 $3 $4$5')}
             {@const cardNumber = identity.card.toString().replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1-$2-$3-$4')}
             <a href="/identity/{identity.id}" id="identity-{identity.id}">
               <img loading="lazy" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s picture" />
@@ -122,7 +122,7 @@
               </div>
               <br />
               <p class="md:max-lg:flex! lg:max-xl:flex!"><EmailIcon className="h-6! w-6! stroke-primary-600!" />{identity.email}</p>
-              <p class="lg:max-xl:flex!"><PhoneIcon />{phone}</p>
+              <p class="lg:max-xl:flex!"><PhoneIcon />{formatPhoneNumber(identity.phone)}</p>
               <p><CreditCardIcon />{cardNumber}</p>
               <p><MultiUsersIcon />{identity.accounts}</p>
             </a>

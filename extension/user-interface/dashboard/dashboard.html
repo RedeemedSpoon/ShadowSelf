@@ -19,7 +19,22 @@
         <img src="../../assets/logo-beside.svg" alt="ShadowSelf" />
       </a>
     </header>
-    <main></main>
+    <main>
+      <section id="loading">
+        <h3 id="loading-button">Loading</h3>
+        <small id="loading-error"></small>
+      </section>
+      <section id="list-identities">
+        <h1>Welcome, <span id="username"></span></h1>
+      </section>
+      <section id="no-identities">
+        <h1>No identities yet</h1>
+        <p>Use numerous distinct personas, each operating independently to serving various needs or objectives.</p>
+        <a href="https://shadowself.io/purchase">
+          <button type="button">Purchase one</button>
+        </a>
+      </section>
+    </main>
     <hr />
     <footer>
       <div>
@@ -27,7 +42,7 @@
         <a href="https://mastodon.social/@shadow_self"> <span id="mastodon"></span>Mastodon </a>
         <a href="https://discord.gg/HaHBwsEa6w"> <span id="discord"></span>Discord </a>
       </div>
-      <p><span id="logout"></span>logout</p>
+      <p id="logout-button"><span id="logout"></span>logout</p>
     </footer>
     <script type="module" src="./dashboard.js"></script>
   </body>

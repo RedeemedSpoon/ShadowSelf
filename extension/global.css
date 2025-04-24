@@ -90,8 +90,9 @@ a:hover {
 }
 
 small {
-  font-size: var(--font-size-base * 0.75);
-  color: var(--color-neutral-darker);
+  white-space: pre-line;
+  font-size: calc(var(--font-size-base) / 1.5);
+  color: var(--color-alert);
 }
 
 hr {

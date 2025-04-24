@@ -26,12 +26,6 @@ main {
   animation: scroll 360s linear infinite;
 }
 
-main small {
-  white-space: pre-line;
-  font-size: calc(var(--font-size-base) / 1.5);
-  color: var(--color-alert);
-}
-
 main img {
   width: 65%;
 }

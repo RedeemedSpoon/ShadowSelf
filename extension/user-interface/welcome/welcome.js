@@ -1,4 +1,4 @@
-import {origin, sleep, request, store} from '../../shared.js';
+import {origin, sleep, request, store, remove} from '../../shared.js';
 
 async function fetchCookie() {
   let shadowselfTab, cookie;
@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await store('identities', response.identities);
     await sleep(500);
 
+    await store('already-synced', true);
     location.href = '../dashboard/dashboard.html';
   });
 });

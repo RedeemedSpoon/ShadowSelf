@@ -42,7 +42,7 @@
   @reference "$style";
 
   button {
-    @apply alt flex w-fit items-center gap-2 py-0.5;
+    @apply alt flex w-fit items-center gap-x-2 py-0;
   }
 
   p {
