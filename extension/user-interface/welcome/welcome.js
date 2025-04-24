@@ -11,15 +11,16 @@ async function fetchCookie() {
     chrome.tabs.update(shadowselfTab.id, {active: true});
     await sleep(1000);
 
-    cookie = await chrome.cookies.getAll({
-      storeId: shadowselfTab.cookieStoreId,
-      url: 'https://' + origin,
-      name: 'token',
-    });
+    cookie =
+      (await chrome.cookies.getAll({
+        storeId: shadowselfTab.cookieStoreId,
+        url: 'https://' + origin,
+        name: 'token',
+      })) || [];
   });
 
   while (!cookie) await sleep(25);
-  return cookie[0].value;
+  return cookie[0]?.value;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

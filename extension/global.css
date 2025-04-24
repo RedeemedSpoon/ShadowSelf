@@ -94,6 +94,12 @@ small {
   color: var(--color-neutral-darker);
 }
 
+hr {
+  border: 0;
+  margin: 1rem;
+  border-top: 2px solid var(--color-background-lighter);
+}
+
 /* -------------- Forms -------------- */
 
 input,
