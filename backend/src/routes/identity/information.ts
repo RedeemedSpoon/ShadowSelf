@@ -20,7 +20,7 @@ export default new Elysia({prefix: '/identity'})
     const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!}, fields);
     if (err) return error(400, error);
 
-    const locations = (await request('/extension-api', 'GET')) as Location[];
+    const locations = (await request('/locations', 'GET')) as Location[];
     const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
 
     const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
@@ -30,7 +30,7 @@ export default new Elysia({prefix: '/identity'})
     const {err, sex} = await checkAPI({sex: identity!.sex, ...body!}, ['?sex']);
     if (err) return error(400, err);
 
-    const locations = (await request('/extension-api', 'GET')) as Location[];
+    const locations = (await request('/locations', 'GET')) as Location[];
     const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
 
     const faker = allFakers[lang?.localization as keyof typeof allFakers];
@@ -39,7 +39,7 @@ export default new Elysia({prefix: '/identity'})
     return {name};
   })
   .patch('/regenerate-bio/:id', async ({identity}) => {
-    const locations = (await request('/extension-api', 'GET')) as Location[];
+    const locations = (await request('/locations', 'GET')) as Location[];
     const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
 
     const faker = allFakers[lang?.localization as keyof typeof allFakers];

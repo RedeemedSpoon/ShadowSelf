@@ -1,3 +1,13 @@
+@keyframes scroll {
+  0% {
+    background-position-x: 0;
+  }
+
+  100% {
+    background-position-x: 9600px;
+  }
+}
+
 main {
   display: flex;
   flex-direction: column;
@@ -11,16 +21,22 @@ main {
   background-image: url('../../assets/background.webp');
   background-size: 100% 100%;
   background-size: auto 100%;
-  background-position: center center;
   background-repeat: repeat;
-  animation: scroll 240s linear infinite;
+  background-position: center center;
+  animation: scroll 360s linear infinite;
 }
 
-@keyframes scroll {
-  0% {
-    background-position-x: 0;
-  }
-  100% {
-    background-position-x: 9600px;
-  }
+main small {
+  white-space: pre-line;
+  font-size: calc(var(--font-size-base) / 1.5);
+  color: var(--color-alert);
+}
+
+main img {
+  width: 65%;
+}
+
+main button {
+  margin-top: 20px;
+  margin-bottom: 5px;
 }

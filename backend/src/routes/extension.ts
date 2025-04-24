@@ -1,17 +1,19 @@
-import middleware from '@middleware';
+import {attempt, resizeImage} from '@utils/utils';
+import {sql} from '@utils/connection';
 import {Elysia, error} from 'elysia';
+import middleware from '@middleware';
 
-export default new Elysia({prefix: '/extension-api'})
+export default new Elysia()
   .use(middleware)
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(14);
-    const auth = ['/'];
+    const auth = ['/locations', '/extension-api'];
 
     if (auth.some((p) => relativePath === p) && !user) {
       return error(401, 'You are not authorized to access this route');
     }
   })
-  .get('/', () => {
+  .get('/locations', () => {
     return [
       {
         country: 'Canada',
@@ -46,4 +48,22 @@ export default new Elysia({prefix: '/extension-api'})
         map: 'https://osm.org/go/0bCz19',
       },
     ];
-  });
+  })
+  .group('/extension-api', (app) =>
+    app.get('/', async ({user}) => {
+      const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
+      if (!result.length) return error(400, 'User not found');
+
+      const {username, id} = result[0];
+      const allIdentities = await attempt(sql`SELECT * FROM identities WHERE owner = ${id}`);
+      if (!allIdentities.length) return {username, identities: []};
+
+      const identities = allIdentities.map(async (identity) => {
+        if (!identity.name) return {id: identity.id};
+        const {id, picture, name, location, proxy_server, user_agent} = identity;
+        return {id, picture: await resizeImage(picture), name, location, proxy_server, user_agent};
+      });
+
+      return {username, identities};
+    }),
+  );

@@ -1,6 +1,6 @@
 import {read} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const auth = await read('auth');
-  if (!auth) location.href = '../welcome/welcome.html';
+  const cookie = await read('cookie');
+  if (!cookie) location.href = '../welcome/welcome.html';
 });

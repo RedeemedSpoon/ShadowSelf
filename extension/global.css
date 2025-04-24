@@ -13,6 +13,10 @@
   --color-background-light: #0f172b;
   --color-background: #020618;
 
+  --color-alert: #fb2c36;
+  --color-success: #00c951;
+  --color-info: #fd9a00;
+
   --font-family-base: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-size-base: 1rem;
   --font-weight-normal: 400;
@@ -112,7 +116,13 @@ button {
     oklch(35.9% 0.144 278.697) 0 4px 6px -4px;
 }
 
-button:hover {
+button:disabled {
+  filter: brightness(0.6);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
   background-position: 100% 100%;
   box-shadow:
     oklch(25.7% 0.09 281.288) 0 10px 15px -3px,

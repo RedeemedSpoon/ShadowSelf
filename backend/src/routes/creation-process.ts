@@ -47,7 +47,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
       switch (message.kind) {
         case 'locations': {
-          ws.send({locations: await request('/extension-api', 'GET')});
+          ws.send({locations: await request('/locations', 'GET')});
           break;
         }
 
@@ -60,7 +60,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           }
 
           const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
-          const locations = (await request('/extension-api', 'GET')) as Location[];
+          const locations = (await request('/locations', 'GET')) as Location[];
           const lang = locations.find((location) => location.code === (cookieStore[0] || message.location));
 
           let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};
@@ -159,7 +159,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const {error} = await checkIdentity('finish', params);
           if (error) return ws.send({error});
 
-          const allLocations = (await request('/extension-api', 'GET')) as Location[];
+          const allLocations = (await request('/locations', 'GET')) as Location[];
           const loc = allLocations.find((loc) => loc.code === location);
           const fullLocation = `${loc!.code}, ${loc!.city}, ${loc!.country}`;
           const proxyServer = loc!.ip;
