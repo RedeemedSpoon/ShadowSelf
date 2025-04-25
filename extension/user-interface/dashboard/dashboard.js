@@ -4,16 +4,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cookie = await read('cookie');
   if (!cookie) location.href = '../welcome/welcome.html';
 
-  const loadingSection = document.getElementById('loading');
   const logoutBtn = document.getElementById('logout-button');
-  const identitiesSection = document.getElementById('list-identities');
-  const noIdentitiesSection = document.getElementById('no-identities');
-  const alreadySynced = await read('already-synced');
-
   logoutBtn.addEventListener('click', async () => {
     await remove('cookie');
     location.href = '../welcome/welcome.html';
   });
+
+  const identities = await initialize();
+  await listIdentities(identities);
+  addSearch(identities);
+});
+
+function addSearch(identities) {
+  const searchBox = document.getElementById('input[type=search]');
+  searchBox.addEventListener('input', () => {
+    console.log(searchBox.value, identities);
+  });
+}
+
+async function listIdentities() {}
+
+async function initialize() {
+  const loadingSection = document.getElementById('loading');
+  const identitiesSection = document.getElementById('list-identities');
+  const noIdentitiesSection = document.getElementById('no-identities');
+  const alreadySynced = await read('already-synced');
 
   if (alreadySynced) await remove('already-synced');
   else {
@@ -47,5 +62,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!identities.length) return (noIdentitiesSection.style.display = 'flex');
   else identitiesSection.style.display = 'flex';
 
-  document.getElementById('username').innerText = username;
-});
+  const usernameElement = document.getElementById('username');
+  usernameElement.innerText = username.length > 6 ? username.slice(0, 6) + '..' : username;
+
+  return identities;
+}

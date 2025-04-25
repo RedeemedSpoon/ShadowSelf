@@ -110,6 +110,24 @@ select {
   font: inherit;
 }
 
+input,
+textarea,
+select {
+  padding: 0.5rem;
+  background-color: transparent;
+  color: var(--color-neutral);
+  transition: all 0.15s ease-in-out;
+  border-bottom: 1px solid var(--color-background-lighter);
+  outline: none;
+}
+
+input::placeholder,
+input::-webkit-input-placeholder,
+input::-moz-placeholder {
+  color: var(--color-background-lighter);
+  opacity: 1;
+}
+
 button {
   cursor: pointer;
   color: var(--color-neutral);
