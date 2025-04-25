@@ -17,8 +17,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function addSearch(identities) {
   const searchBox = document.getElementById('search');
+  const container = document.getElementById('container');
+  const notFound = document.getElementById('not-found');
+
   searchBox.addEventListener('input', () => {
-    console.log(searchBox.value, identities);
+    const value = searchBox.value.toLowerCase();
+    const foundIdentities = identities.filter((identity) => identity.name.toLowerCase().includes(value));
+
+    if (foundIdentities.length) {
+      notFound.classList.remove('shown');
+      container.classList.remove('not-found');
+
+      identities.forEach((identity) => {
+        const element = document.getElementById(identity.id);
+        element.classList.add('hidden');
+        element.classList.remove('last');
+      });
+
+      foundIdentities.forEach((identity, index) => {
+        const element = document.getElementById(identity.id);
+        element.classList.remove('hidden');
+
+        if (index === foundIdentities.length - 1) {
+          element.classList.add('last');
+        }
+      });
+    } else {
+      notFound.classList.add('shown');
+      container.classList.add('not-found');
+    }
   });
 }
 
@@ -29,6 +56,7 @@ async function listIdentities(identities) {
 
     const identityElement = document.createElement('div');
     identityElement.classList.add('identity');
+    identityElement.id = identity.id;
 
     const picture = document.createElement('img');
     picture.src = 'data:image/png;base64,' + identity.picture;
@@ -76,7 +104,7 @@ async function initialize() {
     await sleep(750);
     const response = await request(`https://${origin}/extension-api`, 'GET');
     if (typeof response !== 'object') {
-      loadingError.innerText = response + '\nPlease try again.';
+      loadingError.innerText = response + '\nTry logging out and logging back in.';
       clearInterval(loading);
       return;
     }

@@ -137,7 +137,7 @@ label {
   height: 20px;
   position: absolute;
   display: inline-block;
-  background-color: var(--color-background-lighter);
+  background-color: var(--color-neutral-darker);
   -webkit-mask: url('../../assets/graphics/search.svg') no-repeat center;
   mask: url('../../assets/graphics/search.svg') no-repeat center;
   cursor: pointer;
@@ -157,7 +157,8 @@ label {
   gap: 10px;
 }
 
-.identity:last-child {
+.identity:last-child,
+.identity.last {
   border-bottom: none;
 }
 
@@ -187,4 +188,21 @@ label {
   width: 48px;
   height: 48px;
   border-radius: 50%;
+}
+
+#not-found {
+  display: none;
+  margin-top: 25px;
+}
+
+.shown {
+  display: block !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.not-found > *:not(:first-child) {
+  display: none;
 }

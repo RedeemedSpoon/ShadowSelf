@@ -1,4 +1,4 @@
-import {origin, sleep, request, store, remove} from '../../shared.js';
+import {origin, sleep, request, store} from '../../shared.js';
 
 async function fetchCookie() {
   let shadowselfTab, cookie;

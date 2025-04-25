@@ -117,14 +117,14 @@ select {
   background-color: transparent;
   color: var(--color-neutral);
   transition: all 0.15s ease-in-out;
-  border-bottom: 1px solid var(--color-background-lighter);
+  border-bottom: 1px solid var(--color-neutral-darker);
   outline: none;
 }
 
 input::placeholder,
 input::-webkit-input-placeholder,
 input::-moz-placeholder {
-  color: var(--color-background-lighter);
+  color: var(--color-neutral-darker);
   opacity: 1;
 }
 
