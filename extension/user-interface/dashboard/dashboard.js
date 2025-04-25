@@ -4,12 +4,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cookie = await read('cookie');
   if (!cookie) location.href = '../welcome/welcome.html';
 
-  const logoutBtn = document.getElementById('logout-button');
-  logoutBtn.addEventListener('click', async () => {
-    await remove('cookie');
-    location.href = '../welcome/welcome.html';
-  });
-
   const identities = await initialize();
   listIdentities(identities);
   addSearch(identities);
@@ -78,8 +72,13 @@ async function listIdentities(identities) {
 
     container.appendChild(identityElement);
     identityElement.addEventListener('click', () => {
-      const query = `id=${identity.id}&location=${identity.location}&proxy=${identity.proxyServer}`;
-      window.location.href = `../proxy/proxy.html?${query}`;
+      const query = new URLSearchParams({
+        id: identity.id,
+        location: identity.location,
+        proxy: identity.proxyServer,
+      });
+
+      window.location.href = `../proxy/proxy.html?${query.toString()}`;
     });
   }
 }
@@ -88,10 +87,11 @@ async function initialize() {
   const loadingSection = document.getElementById('loading');
   const identitiesSection = document.getElementById('list-identities');
   const noIdentitiesSection = document.getElementById('no-identities');
-  const alreadySynced = await read('already-synced');
 
-  if (alreadySynced) await remove('already-synced');
-  else {
+  const params = new URLSearchParams(window.location.search);
+  const ignore = params.has('ignore') && params.get('ignore') === 'true';
+
+  if (!ignore) {
     const loadingBtn = document.getElementById('loading-button');
     const loadingError = document.getElementById('loading-error');
     loadingSection.style.display = 'flex';

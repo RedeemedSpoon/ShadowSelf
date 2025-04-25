@@ -58,6 +58,11 @@ body {
   width: 340px;
 }
 
+body:not(#welcome) {
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+}
+
 /* -------------- Typography -------------- */
 
 h1,
@@ -152,4 +157,78 @@ button:hover:not(:disabled) {
   box-shadow:
     oklch(25.7% 0.09 281.288) 0 10px 15px -3px,
     oklch(25.7% 0.09 281.288) 0 4px 6px -4px;
+}
+
+/* -------------- Footer -------------- */
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: calc(var(--font-size-base) * 0.75);
+  margin: 0 1.5rem 1rem 1.5rem;
+}
+
+footer div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+footer span {
+  width: 16px;
+  height: 16px;
+  background-color: var(--color-neutral-dark);
+  transition: background-color 0.15s ease-in-out;
+}
+
+#github {
+  -webkit-mask: url('../../assets/footer/github.svg') no-repeat center;
+  mask: url('../../assets/footer/github.svg') no-repeat center;
+}
+
+#mastodon {
+  -webkit-mask: url('../../assets/footer/mastodon.svg') no-repeat center;
+  mask: url('../../assets/footer/mastodon.svg') no-repeat center;
+}
+
+#discord {
+  -webkit-mask: url('../../assets/footer/discord.svg') no-repeat center;
+  mask: url('../../assets/footer/discord.svg') no-repeat center;
+}
+
+#logout {
+  background-color: var(--color-primary);
+  -webkit-mask: url('../../assets/footer/logout.svg') no-repeat center;
+  mask: url('../../assets/footer/logout.svg') no-repeat center;
+}
+
+footer > div > a {
+  display: flex;
+  align-items: center;
+  color: var(--color-neutral-dark);
+  gap: 3px;
+}
+
+footer > a {
+  display: flex;
+  align-items: center;
+  color: var(--color-primary);
+  transition: color 0.15s ease-in-out;
+  cursor: pointer;
+  gap: 3px;
+}
+
+footer > div > a:hover {
+  color: var(--color-neutral-darker);
+}
+
+footer > div > a:hover span {
+  background-color: var(--color-neutral-darker);
+}
+
+footer > a:hover {
+  color: var(--color-primary-dark);
+}
+
+footer > a:hover #logout {
+  background-color: var(--color-primary-dark);
 }
