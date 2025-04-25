@@ -58,12 +58,13 @@ export default new Elysia()
       const allIdentities = await attempt(sql`SELECT * FROM identities WHERE owner = ${id}`);
       if (!allIdentities.length) return {username, identities: []};
 
-      const identities = allIdentities.map(async (identity) => {
+      const identitiesPromises = allIdentities.map(async (identity) => {
         if (!identity.name) return {id: identity.id};
+
         const {id, picture, name, location, proxy_server, user_agent} = identity;
-        return {id, picture: await resizeImage(picture), name, location, proxy_server, user_agent};
+        return {id, picture: await resizeImage(picture), name, location, proxyServer: proxy_server, userAgent: user_agent};
       });
 
-      return {username, identities};
+      return {username, identities: await Promise.all(identitiesPromises)};
     }),
   );

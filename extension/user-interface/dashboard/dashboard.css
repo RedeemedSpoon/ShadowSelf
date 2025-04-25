@@ -142,3 +142,49 @@ label {
   mask: url('../../assets/graphics/search.svg') no-repeat center;
   cursor: pointer;
 }
+
+.identity {
+  position: relative;
+  display: grid;
+  align-items: center;
+  justify-items: start;
+  grid-template-columns: 53px 150px 0px 36px;
+  transition: background-color 0.15s ease-in-out;
+  border-bottom: 1px solid var(--color-background-lighter);
+  user-select: none;
+  cursor: pointer;
+  padding: 10px;
+  gap: 10px;
+}
+
+.identity:last-child {
+  border-bottom: none;
+}
+
+.identity:hover {
+  background-color: var(--color-background-light);
+}
+
+.identity h3 {
+  font-size: var(--font-size-base);
+  text-wrap: nowrap;
+  width: 150px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: -10px;
+}
+
+.identity p {
+  position: absolute;
+  margin-top: 25px;
+  margin-left: 73px;
+  color: var(--color-neutral-darker);
+  font-size: calc(var(--font-size-base) * 0.75);
+}
+
+.identity img:first-child {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}

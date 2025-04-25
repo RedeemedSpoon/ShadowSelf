@@ -11,18 +11,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   const identities = await initialize();
-  await listIdentities(identities);
+  listIdentities(identities);
   addSearch(identities);
 });
 
 function addSearch(identities) {
-  const searchBox = document.getElementById('input[type=search]');
+  const searchBox = document.getElementById('search');
   searchBox.addEventListener('input', () => {
     console.log(searchBox.value, identities);
   });
 }
 
-async function listIdentities() {}
+async function listIdentities(identities) {
+  const container = document.getElementById('container');
+  for (const identity of identities) {
+    if (!identity.name) continue;
+
+    const identityElement = document.createElement('div');
+    identityElement.classList.add('identity');
+
+    const picture = document.createElement('img');
+    picture.src = 'data:image/png;base64,' + identity.picture;
+    identityElement.appendChild(picture);
+
+    const name = document.createElement('h3');
+    name.innerText = identity.name;
+    identityElement.appendChild(name);
+
+    const location = document.createElement('p');
+    const text = identity.location.split(', ');
+    location.innerText = text[1] + ', ' + text[2];
+    identityElement.appendChild(location);
+
+    const countryFlag = document.createElement('img');
+    countryFlag.alt = text[2];
+    countryFlag.src = `https://flagsapi.com/${text[0]}/flat/32.png`;
+    identityElement.appendChild(countryFlag);
+
+    container.appendChild(identityElement);
+    identityElement.addEventListener('click', () => {
+      const query = `id=${identity.id}&location=${identity.location}&proxy=${identity.proxyServer}`;
+      window.location.href = `../proxy/proxy.html?${query}`;
+    });
+  }
+}
 
 async function initialize() {
   const loadingSection = document.getElementById('loading');
