@@ -9,12 +9,15 @@
   --color-neutral-dark: #90a1b9;
   --color-neutral-darker: #62748e;
 
+  --color-hover: #0c1021;
   --color-background-lighter: #1d293d;
   --color-background-light: #0f172b;
   --color-background: #020618;
 
   --color-alert: #fb2c36;
+  --color-alert-hover: #79252e;
   --color-success: #00c951;
+  --color-success-hover: #12663b;
   --color-info: #fd9a00;
 
   --font-family-base: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;

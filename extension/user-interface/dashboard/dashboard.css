@@ -87,7 +87,7 @@ label {
 }
 
 .identity:hover {
-  background-color: var(--color-background-light);
+  background-color: var(--color-hover);
 }
 
 .identity h3 {
