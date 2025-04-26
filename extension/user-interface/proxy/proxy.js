@@ -19,7 +19,7 @@ async function ConfigureVPN() {
   const countryContainer = document.getElementById('country');
 
   status.textContent = 'Disconnected';
-  powerBtn.addEventListener('click', async () => {
+  container.addEventListener('click', async () => {
     if (status.textContent.includes('ing')) return;
 
     powerBtn.classList.add('processing');

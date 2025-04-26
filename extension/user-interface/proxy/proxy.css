@@ -33,7 +33,6 @@
   transition: all 0.25s ease-in-out;
   border-radius: 50%;
   cursor: pointer;
-  padding: 8px;
 }
 
 #button-container:hover:not(.processing) {
@@ -48,6 +47,7 @@
   -webkit-mask: url('../../assets/graphics/power.svg') no-repeat center;
   mask: url('../../assets/graphics/power.svg') no-repeat center;
   transition: all 0.25s ease-in-out;
+  margin: 8px;
 }
 
 #power.processing {
@@ -108,7 +108,12 @@
 #bandwidth {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-evenly;
+  margin-top: 30px;
+}
+
+#kill-switch {
   margin: 0 auto;
-  width: 60%;
+  width: fit-content;
+  margin-top: 25px;
 }
