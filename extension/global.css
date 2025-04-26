@@ -159,6 +159,37 @@ button:hover:not(:disabled) {
     oklch(25.7% 0.09 281.288) 0 4px 6px -4px;
 }
 
+/* -------------- Header -------------- */
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1rem 1.5rem;
+}
+
+header a {
+  color: var(--color-neutral);
+  transition: color 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+header a:hover {
+  color: var(--color-primary);
+}
+
+header span {
+  display: block;
+  max-width: 0;
+  height: 2px;
+  background-color: var(--color-primary-dark);
+  transition: max-width 0.15s ease-in-out;
+}
+
+header a:hover span {
+  max-width: 100%;
+}
+
 /* -------------- Footer -------------- */
 
 footer {

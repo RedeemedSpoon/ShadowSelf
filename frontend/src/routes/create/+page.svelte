@@ -2,8 +2,8 @@
   import {FlowStep, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
   import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon, LimitIcon} from '$icon';
   import {PhoneIcon, EmailIcon, CreditCardIcon, UserIcon, ExtensionIcon, PinIcon} from '$icon';
+  import {ublock, canvas, screenshot, countriesFlags} from '$image';
   import {currentStep, fetchIndex, modalIndex} from '$store';
-  import {ublock, canvas, screenshot} from '$image';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
@@ -213,10 +213,10 @@
         <div class="flex cursor-pointer flex-col">
           {#each server.locations as location (location.code)}
             <div id={location.code} class="locations-box" onclick={() => handleEvent('locations', location.code)} aria-hidden="true">
-              <img src="https://flagsapi.com/{location.code}/flat/48.png" alt="country flag" />
+              <img src={countriesFlags[location.code.toLowerCase()]} class="h-14 w-14" alt="country flag" />
               <div class="w-full">
                 <p class="text-left! text-neutral-300! text-xl md:text-2xl">{location.country}, {location.city}</p>
-                <p class="text-left! text-neutral-300! flex items-center gap-1 tracking-wider">
+                <p class="text-left! text-neutral-300! -mt-2 flex items-center gap-1 tracking-wider">
                   <PinIcon className="h-4 w-4 inline" />
                   {location.ip}
                 </p>

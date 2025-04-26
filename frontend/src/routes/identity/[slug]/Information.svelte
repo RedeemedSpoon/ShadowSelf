@@ -5,6 +5,7 @@
   import {toTitleCase, formatPhoneNumber} from '$format';
   import {currentSection, identity} from '$store';
   import {base64ToBlob, notify} from '$lib';
+  import {countriesFlags} from '$image';
   import {fetchAPI} from '$fetch';
 
   let activeStatus = $state(false);
@@ -103,10 +104,7 @@
       <hr class="my-2 w-1/6" />
       <p class="flex items-center gap-2 md:text-nowrap">
         Located in
-        <img
-          class="h-[22px] max-md:hidden"
-          src={`https://flagsapi.com/${$identity.location.split(',')[0]}/flat/24.png`}
-          alt={$identity.location} />
+        <img class="h-4 max-md:hidden" src={countriesFlags[$identity.location.split(',')[0].toLowerCase()]} alt={$identity.location} />
         {$identity.location.split(',')[1]}, {$identity.location.split(',')[2]} ({$identity.proxy_server})
       </p>
       <p class="-mt-2">Created {date}</p>

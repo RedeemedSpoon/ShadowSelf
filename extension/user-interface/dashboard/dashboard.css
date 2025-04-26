@@ -1,4 +1,5 @@
 header {
+  display: block;
   width: 50%;
   margin: 1rem auto;
 }
@@ -111,6 +112,11 @@ label {
   width: 48px;
   height: 48px;
   border-radius: 50%;
+}
+
+.identity body {
+  width: 30px;
+  height: auto;
 }
 
 #not-found {

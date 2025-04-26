@@ -2,11 +2,11 @@
   import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon, ChevronIcon} from '$icon';
   import {EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon, AddUserIcon} from '$icon';
   import {user, filterOverflow, sortAsc, token} from '$store';
+  import {worldMap, countriesFlags} from '$image';
   import {onMount, type Component} from 'svelte';
   import {formatPhoneNumber} from '$format';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
-  import {worldMap} from '$image';
   import {notify} from '$lib';
 
   const {data}: {data: PageData} = $props();
@@ -61,6 +61,7 @@
 
     const children = Array.from(table.children);
     const reverse = children.reverse();
+
     table.replaceChildren(...reverse);
     fixBorder(children);
   }
@@ -116,7 +117,7 @@
                 <p class="text-neutral-300! text-nowrap">{identity.name}</p>
                 <br />
                 <span class="inline-flex gap-2 text-sm text-neutral-500">
-                  <img src="https://flagsapi.com/{identity.country}/flat/24.png" alt="country flag" />
+                  <img src={countriesFlags[identity.country.toLowerCase()]} class="w-5" alt="country flag" />
                   {identity.location}
                 </span>
               </div>

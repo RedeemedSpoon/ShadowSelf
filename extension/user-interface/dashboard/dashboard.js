@@ -1,4 +1,4 @@
-import {origin, request, read, store, remove, sleep} from '../../shared.js';
+import {origin, request, read, store, sleep} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const cookie = await read('cookie');
@@ -65,9 +65,11 @@ async function listIdentities(identities) {
     location.innerText = text[1] + ', ' + text[2];
     identityElement.appendChild(location);
 
-    const countryFlag = document.createElement('img');
-    countryFlag.alt = text[2];
-    countryFlag.src = `https://flagsapi.com/${text[0]}/flat/32.png`;
+    const url = chrome.runtime.getURL(`assets/countries/${text[0].toLowerCase()}.svg`);
+    const stream = await (await fetch(url)).text();
+    const countryFlag = new DOMParser().parseFromString(stream, 'text/html').documentElement;
+
+    countryFlag.classList.add('flag');
     identityElement.appendChild(countryFlag);
 
     container.appendChild(identityElement);

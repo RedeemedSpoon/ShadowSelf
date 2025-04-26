@@ -1,5 +1,13 @@
-const modules = import.meta.glob('./homepage/profile-pictures/**', {eager: true});
-export const profilePictures = Object.values(modules).map((module) => (module as {default: string}).default);
+const profileModules = import.meta.glob('./homepage/profile-pictures/**', {eager: true});
+export const profilePictures = Object.values(profileModules).map((module) => (module as {default: string}).default);
+
+const flagsModules = import.meta.glob('./countries/**', {eager: true});
+export const countriesFlags = Object.fromEntries(
+  Object.entries(flagsModules).map(([path, module]) => [
+    path.match(/\/([^/]+)\.\w+$/)?.[1] ?? path,
+    (module as {default: string}).default,
+  ]),
+);
 
 export {default as icon} from './logo/icon.svg';
 export {default as logo} from './logo/logo-white-text.svg';
