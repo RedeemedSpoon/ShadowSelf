@@ -112,6 +112,11 @@
   margin-top: 30px;
 }
 
+#bandwidth span {
+  color: var(--color-neutral-darker);
+  font-size: calc(var(--font-size-base) * 0.85);
+}
+
 #kill-switch {
   margin: 0 auto;
   width: fit-content;

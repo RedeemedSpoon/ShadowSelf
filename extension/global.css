@@ -14,10 +14,10 @@
   --color-background-light: #0f172b;
   --color-background: #020618;
 
-  --color-alert: #fb2c36;
-  --color-alert-hover: #79252e;
-  --color-success: #00c951;
-  --color-success-hover: #12663b;
+  --color-alert: #e7000b;
+  --color-alert-hover: rgba(231, 0, 11, 0.5);
+  --color-success: #00a63e;
+  --color-success-hover: rgba(0, 166, 62, 0.5);
   --color-info: #fd9a00;
 
   --font-family-base: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
