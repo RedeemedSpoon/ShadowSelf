@@ -12,11 +12,67 @@
     <link rel="stylesheet" href="../../global.css" media="all" />
     <link rel="stylesheet" href="./user-agent.css" media="all" />
   </head>
+
   <body>
     <header>
       <a href="../dashboard/dashboard.html?ignore=true">← Back<span></span></a>
     </header>
-    <main></main>
+    <main>
+      <section id="system">
+        <label class="container">
+          <input type="checkbox" />
+          <span class="checkmark"></span>
+          <p>Use Actual User Agent</p>
+        </label>
+      </section>
+      <div id="or">
+        <hr />
+        <h3>OR</h3>
+      </div>
+      <section id="user-agent">
+        <div>
+          <p>Device</p>
+          <div class="custom-select">
+            <div class="selected-value">Desktop</div>
+            <ul>
+              <li>Desktop</li>
+              <li>Laptop</li>
+              <li>Tablet</li>
+              <li>Phone</li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <p>Operating System</p>
+          <div class="custom-select">
+            <div class="selected-value">Windows</div>
+            <ul>
+              <li>Windows</li>
+              <li>macOS</li>
+              <li>Linux</li>
+              <li>Android</li>
+              <li>iOS</li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <p>Web Browser</p>
+          <div class="custom-select">
+            <div class="selected-value">Chrome</div>
+            <ul>
+              <li>Chrome</li>
+              <li>Firefox</li>
+              <li>Safari</li>
+              <li>Edge</li>
+              <li>Opera</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+      <small> User Agent is an HTTP header string sent by clients identifying the browser, rendering engine, version, and OS. </small>
+    </main>
     <hr />
     <footer>
       <div>

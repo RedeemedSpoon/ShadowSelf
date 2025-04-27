@@ -225,6 +225,64 @@ button:hover:not(:disabled) {
   transform: rotate(45deg);
 }
 
+/* -------------- Select Dropdown -------------- */
+
+.custom-select {
+  position: relative;
+  display: inline-block;
+  background: var(--color-background-light);
+  border: 1px solid var(--color-neutral-darker);
+  border-radius: 5px;
+  padding: 5px;
+  cursor: pointer;
+  width: 120px;
+}
+
+.custom-select ul {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  padding: 0;
+  margin: 5px 0 0 0;
+  border-radius: 5px;
+  border: 1px solid var(--color-neutral-darker);
+  background: var(--color-background);
+  list-style: none;
+  width: 100%;
+  z-index: 1;
+}
+
+.custom-select.open ul {
+  display: block;
+}
+
+.custom-select li {
+  padding: 5px;
+}
+
+.custom-select li:hover {
+  background: var(--color-hover);
+}
+
+.custom-select::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  margin-top: -3px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--color-neutral);
+  transition: transform 0.15s ease-in-out;
+}
+
+.custom-select.open::after {
+  transform: rotate(180deg);
+}
+
 /* -------------- Header -------------- */
 
 header {
