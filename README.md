@@ -16,6 +16,7 @@ By utilizing such fabricated identities, you can register for online services wh
 ### Requirements
 
 - `Bun` as the runtime, dependency manager and bundler, needed for the backend
+
 - `PostgreSQL` as the database, configured for the backend
 
 ### Frontend
@@ -69,10 +70,10 @@ sudo cp tmux.sh /usr/bin/{script} # Change {script} to the name of script you wa
 
 If you'd like to contribute, please [open an issue](https://github.com/RedeemedSpoon/ShadowSelf/issues) or [open a pull request](https://github.com/RedeemedSpoon/ShadowSelf/pulls).
 
-Here is the project system design if that might help you understand the architecture of the project better :
+Here is the project system design if that might help you understand the architecture of the project better:
 
 <img src="./frontend/src/lib/images/system-design.webp" width="100%">
 
 ## License
 
-This project is licensed under the GPL-3.0 License. This license allows you to use, modify, and distribute this project. To view a copy of this license, visit [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html).
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). This license allows you to use, modify, and distribute this project under its terms. To view a copy of this license, visit [https://www.gnu.org/licenses/agpl-3.0.html](https://www.gnu.org/licenses/agpl-3.0.html).
