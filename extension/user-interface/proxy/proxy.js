@@ -1,4 +1,4 @@
-import {sleep} from '../../shared.js';
+import {sleep, request, origin} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
@@ -39,16 +39,21 @@ async function ConfigureVPN(id) {
     status.textContent = isConnected ? 'Disconnecting' : 'Connecting';
 
     const interval = setInterval(() => {
-      if (status.textContent.includes('...')) status.textContent = isConnected ? 'Disconnecting' : 'Connecting';
+      if (status.textContent.includes('ed') || status.textContent.includes('wrong')) clearInterval(interval);
+      else if (status.textContent.includes('...')) status.textContent = isConnected ? 'Disconnecting' : 'Connecting';
       else status.textContent += '.';
     }, 300);
 
-    // Send request to connect to proxy...
-    await sleep(1000);
+    await sleep(650);
+    if (isConnected) {
+      // do something
+    } else {
+      const response = await request(`https://${origin}/extension-api/connect/${id}`, 'GET');
+      if (!response.username) return (status.textContent = 'Something went wrong');
+      chrome.runtime.sendMessage({type: 'connect', response});
+    }
 
-    clearInterval(interval);
     status.textContent = isConnected ? 'Disconnected' : 'Connected';
-
     [countryContainer, container, powerBtn].forEach((element) => {
       element.classList.remove('processing');
       element.classList.toggle('active');

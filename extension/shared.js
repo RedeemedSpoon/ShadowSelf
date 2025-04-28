@@ -12,10 +12,6 @@ export async function remove(key) {
   return await chrome.storage.local.remove(key);
 }
 
-export async function reset() {
-  return await chrome.storage.local.clear();
-}
-
 export async function sleep(time) {
   await new Promise((resolve) => setTimeout(resolve, time));
 }

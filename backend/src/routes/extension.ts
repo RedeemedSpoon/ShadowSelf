@@ -1,18 +1,10 @@
+import {generateTempCredentials} from '@utils/crypto';
 import {attempt, resizeImage} from '@utils/utils';
+import middleware from '@middleware-api';
 import {sql} from '@utils/connection';
 import {Elysia, error} from 'elysia';
-import middleware from '@middleware';
 
 export default new Elysia()
-  .use(middleware)
-  .onBeforeHandle(({user, path}) => {
-    const relativePath = path.slice(14);
-    const auth = ['/locations', '/extension-api'];
-
-    if (auth.some((p) => relativePath === p) && !user) {
-      return error(401, 'You are not authorized to access this route');
-    }
-  })
   .get('/locations', () => {
     return [
       {
@@ -50,21 +42,37 @@ export default new Elysia()
     ];
   })
   .group('/extension-api', (app) =>
-    app.get('/', async ({user}) => {
-      const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
-      if (!result.length) return error(400, 'User not found');
+    app
+      .use(middleware)
+      .get('/', async ({user}) => {
+        const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
+        if (!result.length) return error(400, 'User not found');
 
-      const {username, id} = result[0];
-      const allIdentities = await attempt(sql`SELECT * FROM identities WHERE owner = ${id}`);
-      if (!allIdentities.length) return {username, identities: []};
+        const {username, id} = result[0];
+        const allIdentities = await attempt(sql`SELECT * FROM identities WHERE owner = ${id}`);
+        if (!allIdentities.length) return {username, identities: []};
 
-      const identitiesPromises = allIdentities.map(async (identity) => {
-        if (!identity.name) return {id: identity.id};
+        const identitiesPromises = allIdentities.map(async (identity) => {
+          if (!identity.name) return {id: identity.id};
 
-        const {id, picture, name, location, proxy_server, user_agent} = identity;
-        return {id, picture: await resizeImage(picture), name, location, proxyServer: proxy_server, userAgent: user_agent};
-      });
+          const {id, picture, name, location, proxy_server, user_agent} = identity;
+          return {id, picture: await resizeImage(picture), name, location, proxyServer: proxy_server, userAgent: user_agent};
+        });
 
-      return {username, identities: await Promise.all(identitiesPromises)};
-    }),
+        return {username, identities: await Promise.all(identitiesPromises)};
+      })
+      .get('/connect/:id', ({identity}) => {
+        const {username, password} = generateTempCredentials();
+        const country = identity?.location.split(', ')[0].toLowerCase();
+
+        return {
+          server: `${country}.shadowself.io`,
+          protocol: 'socks5',
+          port: 1080,
+          username,
+          password,
+        };
+      })
+      .get('/disconnect/:id', () => {})
+      .get('/check/:id', () => {}),
   );
