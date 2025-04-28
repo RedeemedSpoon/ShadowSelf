@@ -112,7 +112,7 @@
   margin-top: 30px;
 }
 
-#bandwidth span {
+#bandwidth .metric {
   color: var(--color-neutral-darker);
   font-size: calc(var(--font-size-base) * 0.85);
 }

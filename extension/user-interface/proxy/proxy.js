@@ -1,3 +1,5 @@
+import {sleep} from '../../shared.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const [id, location, proxy] = params.values();
@@ -9,22 +11,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('ip-address').textContent = proxy.split('/')[0];
   document.getElementById('location').textContent = place.join(', ');
 
-  await ConfigureVPN();
+  await ConfigureVPN(id);
+
+  const checkbox = document.querySelector('input[type="checkbox"]');
+  checkbox.addEventListener('change', () => {
+    // Toggle kill switch
+  });
 });
 
-async function ConfigureVPN() {
+async function ConfigureVPN(id) {
   const status = document.getElementById('status');
   const powerBtn = document.getElementById('power');
-  const container = document.getElementById('button-container');
   const countryContainer = document.getElementById('country');
+  const container = document.getElementById('button-container');
+  const downloadSpeed = document.querySelector('#download .speed');
+  const uploadSpeed = document.querySelector('#upload .speed');
 
   status.textContent = 'Disconnected';
   container.addEventListener('click', async () => {
     if (status.textContent.includes('ing')) return;
 
-    powerBtn.classList.add('processing');
-    container.classList.add('processing');
-    countryContainer.classList.add('processing');
+    [countryContainer, container, powerBtn].forEach((element) => {
+      element.classList.add('processing');
+    });
 
     const isConnected = status.textContent === 'Connected';
     status.textContent = isConnected ? 'Disconnecting' : 'Connecting';
@@ -34,17 +43,17 @@ async function ConfigureVPN() {
       else status.textContent += '.';
     }, 300);
 
-    setTimeout(() => {
-      clearInterval(interval);
-      status.textContent = isConnected ? 'Disconnected' : 'Connected';
+    // Send request to connect to proxy...
+    await sleep(1000);
 
-      countryContainer.classList.remove('processing');
-      container.classList.remove('processing');
-      powerBtn.classList.remove('processing');
+    clearInterval(interval);
+    status.textContent = isConnected ? 'Disconnected' : 'Connected';
 
-      countryContainer.classList.toggle('active');
-      container.classList.toggle('active');
-      powerBtn.classList.toggle('active');
-    }, 1200);
+    [countryContainer, container, powerBtn].forEach((element) => {
+      element.classList.remove('processing');
+      element.classList.toggle('active');
+    });
+
+    // Calculate network speed
   });
 }
