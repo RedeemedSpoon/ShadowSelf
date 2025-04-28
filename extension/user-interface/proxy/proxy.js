@@ -50,7 +50,7 @@ async function ConfigureVPN(id) {
     } else {
       const response = await request(`https://${origin}/extension-api/connect/${id}`, 'GET');
       if (!response.username) return (status.textContent = 'Something went wrong');
-      chrome.runtime.sendMessage({type: 'connect', response});
+      chrome.runtime.sendMessage({type: 'connect', ...response});
     }
 
     status.textContent = isConnected ? 'Disconnected' : 'Connected';

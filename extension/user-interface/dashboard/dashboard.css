@@ -1,7 +1,7 @@
 header {
   display: block;
-  width: 50%;
   margin: 1rem auto;
+  width: 50%;
 }
 
 section {
@@ -23,7 +23,6 @@ section {
 
 #list-identities {
   justify-content: start;
-  overflow-y: scroll;
 }
 
 #list-identities > div:first-child {

@@ -1,4 +1,4 @@
-import {origin, sleep, request, store, remove} from '../../shared.js';
+import {origin, sleep, request, store, remove, isChrome} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
@@ -54,16 +54,19 @@ async function fetchCookie() {
     if (tabs.length) shadowselfTab = tabs[0];
     else shadowselfTab = await chrome.tabs.create({url: `https://${origin}/dashboard`, active: true});
 
-    chrome.windows.update(shadowselfTab.windowId, {focused: true});
-    chrome.tabs.update(shadowselfTab.id, {active: true});
-    await sleep(1000);
+    if (!isChrome) {
+      chrome.windows.update(shadowselfTab.windowId, {focused: true});
+      chrome.tabs.update(shadowselfTab.id, {active: true});
+    }
 
-    cookie =
-      (await chrome.cookies.getAll({
-        storeId: shadowselfTab.cookieStoreId,
-        url: 'https://' + origin,
-        name: 'token',
-      })) || [];
+    await sleep(1000);
+    const option = {
+      storeId: shadowselfTab.cookieStoreId,
+      url: 'https://' + origin,
+      name: 'token',
+    };
+
+    cookie = (await chrome.cookies.getAll(option)) || [];
   });
 
   while (!cookie) await sleep(25);
