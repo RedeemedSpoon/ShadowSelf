@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  document.querySelectorAll('.custom-select').forEach(giveReactivity);
+  const selectMenus = document.querySelectorAll('.custom-select');
+  selectMenus.forEach(giveReactivity);
 
   ['device', 'os', 'browser'].forEach((id) => {
     const select = document.querySelector(`#${id} .selected-value`);
@@ -10,6 +11,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const checkbox = document.querySelector('input[type="checkbox"]');
   checkbox.addEventListener('change', () => {
+    if (checkbox.checked) selectMenus.forEach((select) => select.classList.add('disabled'));
+    else selectMenus.forEach((select) => select.classList.remove('disabled'));
     // Toggle actual user agent
   });
 });
@@ -19,6 +22,7 @@ function giveReactivity(select) {
   const list = select.querySelector('ul');
 
   select.onclick = (e) => {
+    if (select.classList.contains('disabled')) return;
     if (!list.contains(e.target) || e.target.tagName === 'LI') {
       select.classList.toggle('open');
     }

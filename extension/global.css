@@ -233,8 +233,9 @@ button:hover:not(:disabled) {
   background: var(--color-background-light);
   border: 1px solid var(--color-neutral-darker);
   border-radius: 5px;
-  padding: 5px;
+  user-select: none;
   cursor: pointer;
+  padding: 5px;
   width: 120px;
 }
 
@@ -255,6 +256,11 @@ button:hover:not(:disabled) {
 
 .custom-select.open ul {
   display: block;
+}
+
+.custom-select.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .custom-select li {
