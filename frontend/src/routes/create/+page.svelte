@@ -75,7 +75,7 @@
   }
 
   async function respondServer() {
-    if (![7, 8, 9].includes($currentStep)) {
+    if (![6, 7, 8, 9].includes($currentStep)) {
       $fetchIndex = 1;
       await new Promise((resolve) => setTimeout(resolve, 650));
     }
@@ -301,8 +301,8 @@
           icon={PhoneIcon}
           name="phone" />
         <small>
-          Important: These phone numbers are local and support both SMS and voice calls. However, if left inactive, they may be
-          reclaimed by the provider. To avoid this, make sure to keep them in use.
+          Important: These phone numbers are either mobile or local. However, if left inactive, they may be reclaimed by the provider.
+          To avoid this, make sure to keep them in use.
         </small>
       {:else if $currentStep === 5}
         <h3>Make your virtual card</h3>
@@ -315,7 +315,12 @@
         <p class="lg:w-1/2">
           With our browser extension, you can access our VPN services, change user agents, and view your identity information.
         </p>
-        <img loading="lazy" class="my-4 h-72 rounded-xl border border-neutral-700" src={screenshot} alt="shadowself extension" />
+        <div class="relative -mb-24 inline-block">
+          <img loading="lazy" id="screenshot" src={screenshot} class="block h-auto w-80" alt="shadowself extension" />
+          <div
+            class="pointer-events-none absolute inset-0 h-full w-full bg-gradient-to-b from-transparent via-transparent via-[15%] to-slate-900 to-[70%]">
+          </div>
+        </div>
         <ExtensionLinks extension="shadowself" />
       {:else if $currentStep === 7}
         <div class="flex items-center justify-center gap-6 max-xl:flex-col sm:gap-16 sm:p-8">

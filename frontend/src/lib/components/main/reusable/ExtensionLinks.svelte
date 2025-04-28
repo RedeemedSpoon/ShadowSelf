@@ -40,7 +40,7 @@
 </script>
 
 <!-- eslint-disable -->
-<div class="max-sm:scale-90">
+<div class="z-10 max-sm:scale-90">
   <div class="group flex w-[350px] items-center justify-center gap-0">
     <a href={extensionInfo[extension]['firefox']} target="_blank" rel="noreferrer">
       <button
