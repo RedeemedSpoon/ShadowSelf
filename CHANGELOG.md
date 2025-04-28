@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.4] - 2025-4-27
+
+### Added
+
+- More icons
+- Dashboard search functionality
+- Local country flag instead of flagsapi.com
+- Proxy user interface in the browser extension
+- User-agent UI in the browser extension
+- Custom checkbox and select menu
+
+### Changed
+
+- Change lisence for GPL-v3 to AGPL-v3
+- Update step 5 in creation process for better design
+- Actual user interface instead of mockup image in the extension page
+- Rework link to include params to ignore instead of using click event
+- Extension download page image background
+- Move most extension css to global.css
+
+## [0.8.3] - 2025-4-25
+
+### Added
+
+- New /extension-api route
+- Dashboard user interface and design
+- Footer and icons in the browser extension
+- Welcome user interface in the browser extension
+- Dashbaoh both empty and full states
+
+### Changed
+
+- Move old backend route /extension-api to /locations
+- Crypto uses randomBytes() instead of pseudoRandomBytes()
+- Move all util and helper function to shared.js
+- Fix phone number format on regular dashboard
+
+### Removed
+
+- Step 6 in creation process
+
 ## [0.8.2] - 2025-4-23
 
 ### Added
@@ -22,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix tailwind v4 migration issues
 - Revert scrollhack to old ways (add text instead)
 - Lowercase the root directories names
-- Fix svelte LSP-recommented issues
+- Fix svelte LSP-recommended issues
 - Add reduce motion on homepage
 
 ## [0.8.1] - 2025-4-21
@@ -54,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Remane homepage components
+- Rename homepage components
 - Join section on homepage to be final
 - Fix scrollhack on homepage
 
@@ -205,7 +246,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Remove
 
-- US opton from country listg due to A2P 10DLC
+- US option from country list due to A2P 10DLC
 
 ## [0.6.0] - 2025-3-16
 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import {ExtensionLinks} from '$component';
   import {screenshot} from '$image';
+  import {Card} from '$component';
 </script>
 
 <svelte:head>
@@ -17,7 +18,9 @@
     </p>
     <ExtensionLinks extension="shadowself" />
   </section>
-  <img loading="lazy" src={screenshot} alt="shadowself extension" />
+  <Card className="w-64! lg:w-96!" upperClass="hover:scale-[1.025] mr-[5vw]">
+    <img loading="lazy" src={screenshot} alt="shadowself extension" />
+  </Card>
 </div>
 
 <style lang="postcss">
@@ -32,8 +35,6 @@
   }
 
   img {
-    @apply border-primary-700 mr-[5vw] w-64 max-w-[50%] rounded-xl border-4 max-md:hidden lg:w-96;
-    @apply cursor-pointer transition-all duration-300 ease-in-out hover:scale-[1.0075];
-    @apply hover:shadow-8xl hover:shadow-neutral-950/40;
+    @apply w-64 rounded-xl max-md:hidden lg:w-96;
   }
 </style>
