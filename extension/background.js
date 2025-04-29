@@ -1,4 +1,6 @@
-import {store} from './shared.js';
+import {read, store} from './shared.js';
+
+let currentAuthHandler = null;
 
 chrome.runtime.onMessage.addListener((request) => {
   switch (request.type) {
@@ -55,7 +57,41 @@ async function connect(request) {
 
     await store('proxyConfig', {host: server, port});
     await store('proxyCredentials', {username, password});
+    await setupAuthListener();
   });
 }
 
 function disconnect() {}
+
+async function setupAuthListener() {
+  await clearAuthListener();
+
+  currentAuthHandler = async (details, callback) => {
+    if (!details.isProxy) {
+      callback();
+      return;
+    }
+
+    console.log(`Proxy authentication required by: ${details.challenger.host}:${details.challenger.port}`);
+    const credentials = await read('proxyCredentials');
+
+    callback({
+      authCredentials: {
+        username: credentials.username,
+        password: credentials.password,
+      },
+    });
+  };
+
+  if (!chrome.webRequest.onAuthRequired.hasListener(currentAuthHandler)) {
+    chrome.webRequest.onAuthRequired.addListener(currentAuthHandler, {urls: ['<all_urls>']}, ['asyncBlocking']);
+  }
+}
+
+async function clearAuthListener() {
+  if (currentAuthHandler && chrome.webRequest.onAuthRequired.hasListener(currentAuthHandler)) {
+    chrome.webRequest.onAuthRequired.removeListener(currentAuthHandler);
+  }
+
+  currentAuthHandler = null;
+}

@@ -29,5 +29,5 @@
     "type": "module"
   },
   "host_permissions": ["*://*/*"],
-  "permissions": ["notifications", "cookies", "storage", "proxy", "tabs"]
+  "permissions": ["webRequest", "webRequestAuthProvider", "notifications", "cookies", "storage", "proxy", "tabs"]
 }
