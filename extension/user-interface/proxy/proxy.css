@@ -6,7 +6,6 @@
   height: 225px;
   overflow: hidden;
   border-bottom: 3px solid var(--color-alert);
-  transition: all 0.25s ease-in-out;
   z-index: -1;
 }
 
@@ -30,7 +29,6 @@
 #button-container {
   background-color: var(--color-background);
   border: 3px solid var(--color-alert);
-  transition: all 0.25s ease-in-out;
   border-radius: 50%;
   cursor: pointer;
 }
@@ -46,7 +44,6 @@
   background-color: var(--color-alert);
   -webkit-mask: url('../../assets/graphics/power.svg') no-repeat center;
   mask: url('../../assets/graphics/power.svg') no-repeat center;
-  transition: all 0.25s ease-in-out;
   margin: 8px;
 }
 
@@ -68,6 +65,13 @@
 
 .active.processing {
   border-color: var(--color-success-hover) !important;
+}
+
+.transition {
+  -webkit-transition: all 0.25s ease-in-out;
+  -moz-transition: all 0.25s ease-in-out;
+  -o-transition: all 0.25s ease-in-out;
+  transition: all 0.25s ease-in-out;
 }
 
 #details {

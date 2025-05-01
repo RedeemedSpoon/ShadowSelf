@@ -1,73 +1,94 @@
 import {isChrome, store} from './shared.js';
 
-chrome.runtime.onMessage.addListener((request) => {
-  switch (request.type) {
-    case 'connect': {
-      connect(request);
-      break;
-    }
+chrome.runtime.onMessage.addListener(async (request) => {
+  let error;
 
-    case 'disconnect': {
-      disconnect(request);
+  switch (request.type) {
+    case 'connect':
+      error = await connect(request);
       break;
-    }
+
+    case 'disconnect':
+      error = await disconnect(request);
+      break;
   }
+
+  return error;
 });
 
 async function connect(request) {
   const {server, domain, protocol, port, username, password} = request;
 
   if (!(await chrome.extension.isAllowedIncognitoAccess())) {
-    return chrome.notifications.create('proxy-error', {
+    chrome.notifications.create('proxy-error-incognito', {
       type: 'basic',
-      title: 'Proxy Error',
-      message: 'Your browser does not allow incognito access to proxy settings. Please enable incognito mode and try again.',
+      title: 'Proxy Setup Error',
+      message: 'Please enable "Allow in Incognito" for this extension in chrome://extensions.',
       iconUrl: 'assets/favicon.ico',
     });
+
+    return true;
   }
 
-  let proxySettings;
+  const proxyApi = isChrome ? chrome.proxy : browser.proxy;
+  const settingsValue = isChrome
+    ? {mode: 'fixed_servers', rules: {singleProxy: {scheme: protocol, host: domain, port: port}}}
+    : {proxyType: 'manual', socksVersion: 5, socks: `${protocol}://${server}:${port}`, proxyDNS: false};
+
+  await proxyApi.settings.clear({scope: 'regular'});
+  await proxyApi.settings.set({value: settingsValue, scope: 'regular'});
+
+  const error = await testProxyConnection();
+  if (error) return error;
+
   await store('proxyConfig', {host: server, port});
   await store('proxyCredentials', {username, password});
-
-  if (isChrome) {
-    proxySettings = {
-      scope: 'regular',
-      value: {
-        mode: 'fixed_servers',
-        rules: {
-          singleProxy: {
-            scheme: protocol,
-            host: domain,
-            port: port,
-          },
-        },
-      },
-    };
-
-    await chrome.proxy.settings.clear({scope: 'regular'});
-    chrome.proxy.settings.set(proxySettings, async () => {
-      if (chrome.runtime.lastError) {
-        return chrome.notifications.create('proxy-error', {
-          type: 'basic',
-          title: 'Proxy Error',
-          message: 'Proxy settings could not be applied. Please try again later.',
-          iconUrl: 'assets/favicon.ico',
-        });
-      }
-    });
-    return;
-  }
-
-  proxySettings = {
-    socksVersion: 5,
-    socks: `${protocol}://${server}:${port}`,
-    proxyType: 'manual',
-    proxtDNS: false,
-  };
-
-  browser.proxy.settings.clear({scope: 'regular'});
-  browser.proxy.settings.set({value: proxySettings, scope: 'regular'});
+  return error;
 }
 
-function disconnect() {}
+async function disconnect() {
+  await chrome.proxy.settings.clear({scope: 'regular'});
+  await store('proxyCredentials', null);
+  await store('proxyConfig', null);
+  return !!chrome.runtime.lastError;
+}
+
+async function testProxyConnection() {
+  const apiErr = !!chrome.runtime.lastError;
+  if (apiErr) return await displayError();
+
+  const ctrl = new AbortController();
+  const timerID = setTimeout(() => ctrl.abort(), 5000);
+  let testOK = false;
+
+  try {
+    const response = await fetch('https://connectivitycheck.gstatic.com/generate_204', {
+      method: 'GET',
+      signal: ctrl.signal,
+      cache: 'no-store',
+      mode: 'no-cors',
+    });
+
+    clearTimeout(timerID);
+    if (response.ok || (response.status >= 200 && response.status < 300)) {
+      testOK = true;
+    }
+  } catch {
+    clearTimeout(timerID);
+  }
+
+  if (!testOK) return await displayError();
+  return false;
+}
+
+async function displayError() {
+  chrome.notifications.create('proxy-err', {
+    type: 'basic',
+    title: 'Proxy Error',
+    message: 'Failed to apply proxy settings, please try again later.',
+    iconUrl: 'assets/favicon.ico',
+  });
+
+  await disconnect();
+  return true;
+}
