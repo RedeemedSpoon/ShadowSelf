@@ -66,7 +66,8 @@ export default new Elysia()
         const country = identity?.location.split(', ')[0].toLowerCase();
 
         return {
-          server: `${country}.shadowself.io`,
+          domain: `${country}.shadowself.io`,
+          server: identity?.proxy_server,
           protocol: 'socks5',
           port: 1080,
           username,

@@ -28,6 +28,6 @@
     "scripts": ["background.js"],
     "type": "module"
   },
-  "host_permissions": ["*://*/*"],
-  "permissions": ["webRequest", "webRequestAuthProvider", "notifications", "cookies", "storage", "proxy", "tabs"]
+  "host_permissions": ["<all_urls>"],
+  "permissions": ["notifications", "cookies", "storage", "proxy", "tabs"]
 }

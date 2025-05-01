@@ -1,6 +1,4 @@
-import {read, store} from './shared.js';
-
-let currentAuthHandler = null;
+import {isChrome, store} from './shared.js';
 
 chrome.runtime.onMessage.addListener((request) => {
   switch (request.type) {
@@ -17,26 +15,9 @@ chrome.runtime.onMessage.addListener((request) => {
 });
 
 async function connect(request) {
-  const {server, protocol, port, username, password} = request;
+  const {server, domain, protocol, port, username, password} = request;
 
-  const proxySettings = {
-    value: {
-      mode: 'fixed_servers',
-      rules: {
-        singleProxy: {
-          scheme: protocol,
-          host: server,
-          port: port,
-        },
-        bypassList: ['<local>'],
-      },
-    },
-    scope: 'regular',
-  };
-
-  const allowed = await chrome.extension.isAllowedIncognitoAccess();
-
-  if (!allowed) {
+  if (!(await chrome.extension.isAllowedIncognitoAccess())) {
     return chrome.notifications.create('proxy-error', {
       type: 'basic',
       title: 'Proxy Error',
@@ -45,53 +26,48 @@ async function connect(request) {
     });
   }
 
-  chrome.proxy.settings.set(proxySettings, async () => {
-    if (chrome.runtime.lastError) {
-      return chrome.notifications.create('proxy-error', {
-        type: 'basic',
-        title: 'Proxy Error',
-        message: 'Proxy settings could not be applied. Please try again later.',
-        iconUrl: 'assets/favicon.ico',
-      });
-    }
+  let proxySettings;
+  await store('proxyConfig', {host: server, port});
+  await store('proxyCredentials', {username, password});
 
-    await store('proxyConfig', {host: server, port});
-    await store('proxyCredentials', {username, password});
-    await setupAuthListener();
-  });
+  if (isChrome) {
+    proxySettings = {
+      scope: 'regular',
+      value: {
+        mode: 'fixed_servers',
+        rules: {
+          singleProxy: {
+            scheme: protocol,
+            host: domain,
+            port: port,
+          },
+        },
+      },
+    };
+
+    await chrome.proxy.settings.clear({scope: 'regular'});
+    chrome.proxy.settings.set(proxySettings, async () => {
+      if (chrome.runtime.lastError) {
+        return chrome.notifications.create('proxy-error', {
+          type: 'basic',
+          title: 'Proxy Error',
+          message: 'Proxy settings could not be applied. Please try again later.',
+          iconUrl: 'assets/favicon.ico',
+        });
+      }
+    });
+    return;
+  }
+
+  proxySettings = {
+    socksVersion: 5,
+    socks: `${protocol}://${server}:${port}`,
+    proxyType: 'manual',
+    proxtDNS: false,
+  };
+
+  browser.proxy.settings.clear({scope: 'regular'});
+  browser.proxy.settings.set({value: proxySettings, scope: 'regular'});
 }
 
 function disconnect() {}
-
-async function setupAuthListener() {
-  await clearAuthListener();
-
-  currentAuthHandler = async (details, callback) => {
-    if (!details.isProxy) {
-      callback();
-      return;
-    }
-
-    console.log(`Proxy authentication required by: ${details.challenger.host}:${details.challenger.port}`);
-    const credentials = await read('proxyCredentials');
-
-    callback({
-      authCredentials: {
-        username: credentials.username,
-        password: credentials.password,
-      },
-    });
-  };
-
-  if (!chrome.webRequest.onAuthRequired.hasListener(currentAuthHandler)) {
-    chrome.webRequest.onAuthRequired.addListener(currentAuthHandler, {urls: ['<all_urls>']}, ['asyncBlocking']);
-  }
-}
-
-async function clearAuthListener() {
-  if (currentAuthHandler && chrome.webRequest.onAuthRequired.hasListener(currentAuthHandler)) {
-    chrome.webRequest.onAuthRequired.removeListener(currentAuthHandler);
-  }
-
-  currentAuthHandler = null;
-}

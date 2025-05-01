@@ -31,6 +31,6 @@
   "externally_connectable": {
     "matches": ["*://*.shadowself.io/*"]
   },
-  "host_permissions": ["*://*/*"],
+  "host_permissions": ["<all_urls>"],
   "permissions": ["notifications", "cookies", "storage", "proxy", "tabs"]
 }
