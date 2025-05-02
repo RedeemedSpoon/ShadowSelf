@@ -70,8 +70,8 @@ export default new Elysia()
           server: identity?.proxy_server,
           protocol: 'https',
           port: 3128,
-          username,
-          password,
+          username: 'proxyuser',
+          password: 'thepassword',
         };
       })
       .get('/disconnect/:id', () => {})

@@ -27,18 +27,12 @@ async function ConfigureVPN(id, proxy) {
   const activeElements = [countryContainer, container, powerBtn];
 
   const proxyConfig = await read('proxyConfig');
-  if (proxyConfig?.host === proxy) {
+  if (proxyConfig?.ip === proxy) {
     status.textContent = 'Connected';
     activeElements.forEach((el) => el.classList.add('active'));
   }
 
-  setTimeout(
-    () =>
-      activeElements.forEach((element) => {
-        element.classList.add('transition');
-      }),
-    100,
-  );
+  setTimeout(() => activeElements.forEach((element) => element.classList.add('transition')), 100);
 
   container.addEventListener('click', async () => {
     if (status.textContent.includes('ting')) return;

@@ -1,23 +1,44 @@
-import {isChrome, store} from './shared.js';
+import {isChrome, read, store} from './shared.js';
 
-chrome.runtime.onMessage.addListener(async (request) => {
-  let error;
+chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
+  (async () => {
+    let error;
+    switch (request.type) {
+      case 'connect':
+        error = await connect(request);
+        break;
 
-  switch (request.type) {
-    case 'connect':
-      error = await connect(request);
-      break;
+      case 'disconnect':
+        error = await disconnect(request);
+        break;
+    }
 
-    case 'disconnect':
-      error = await disconnect(request);
-      break;
-  }
+    sendResponse(error);
+  })();
 
-  return error;
+  return true;
 });
 
+chrome.webRequest.onAuthRequired.addListener(
+  async (details, callback) => {
+    const config = await read('proxyConfig');
+    const creds = await read('proxyCredentials');
+    console.log(config, creds, details);
+
+    const canAuthenticate = config && creds?.username && details.isProxy;
+    const sameChallenger = details.challenger.host === config.host && details.challenger.port === config.port;
+
+    if (canAuthenticate && sameChallenger) {
+      const auth = {username: creds.username, password: creds.password};
+      callback({authCredentials: auth});
+    } else callback();
+  },
+  {urls: ['<all_urls>']},
+  ['asyncBlocking'],
+);
+
 async function connect(request) {
-  const {server, domain, protocol, port, username, password} = request;
+  const {server, protocol, port, username, domain, password} = request;
 
   if (!(await chrome.extension.isAllowedIncognitoAccess())) {
     chrome.notifications.create('proxy-error-incognito', {
@@ -32,8 +53,8 @@ async function connect(request) {
 
   const proxyApi = isChrome ? chrome.proxy : browser.proxy;
   const settingsValue = isChrome
-    ? {mode: 'fixed_servers', rules: {singleProxy: {scheme: protocol, host: domain, port: port}}}
-    : {proxyType: 'manual', socksVersion: 5, socks: `${protocol}://${server}:${port}`, proxyDNS: false};
+    ? {mode: 'fixed_servers', rules: {singleProxy: {host: server, port, scheme: protocol}}}
+    : {proxyDNS: false, proxyType: 'manual', ssl: `${protocol}://${domain}:${port}`};
 
   await proxyApi.settings.clear({scope: 'regular'});
   await proxyApi.settings.set({value: settingsValue, scope: 'regular'});
@@ -41,7 +62,7 @@ async function connect(request) {
   const error = await testProxyConnection();
   if (error) return error;
 
-  await store('proxyConfig', {host: server, port});
+  await store('proxyConfig', {host: domain, ip: server, port});
   await store('proxyCredentials', {username, password});
   return error;
 }
@@ -59,7 +80,6 @@ async function testProxyConnection() {
 
   const ctrl = new AbortController();
   const timerID = setTimeout(() => ctrl.abort(), 5000);
-  let testOK = false;
 
   try {
     const response = await fetch('https://connectivitycheck.gstatic.com/generate_204', {
@@ -70,14 +90,13 @@ async function testProxyConnection() {
     });
 
     clearTimeout(timerID);
-    if (response.ok || (response.status >= 200 && response.status < 300)) {
-      testOK = true;
+    if (!response.ok || (response.status <= 200 && response.status > 300)) {
+      return await displayError();
     }
   } catch {
     clearTimeout(timerID);
   }
 
-  if (!testOK) return await displayError();
   return false;
 }
 

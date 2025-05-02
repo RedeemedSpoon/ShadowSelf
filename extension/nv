@@ -25,9 +25,12 @@
     }
   },
   "background": {
-    "scripts": ["background.js"],
+    "service_worker": "background.js",
     "type": "module"
   },
+  "externally_connectable": {
+    "matches": ["*://*.shadowself.io/*"]
+  },
   "host_permissions": ["<all_urls>"],
-  "permissions": ["notifications", "cookies", "storage", "proxy", "tabs", "webRequest", "webRequestAuthProvider"]
+  "permissions": ["notifications", "cookies", "storage", "proxy", "tabs"]
 }
