@@ -68,8 +68,8 @@ export default new Elysia()
         return {
           domain: `${country}.shadowself.io`,
           server: identity?.proxy_server,
-          protocol: 'socks5',
-          port: 1080,
+          protocol: 'https',
+          port: 3128,
           username,
           password,
         };
