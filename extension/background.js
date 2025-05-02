@@ -1,4 +1,4 @@
-import {isChrome, read, store} from './shared.js';
+import {isChrome, read, store, remove} from './shared.js';
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   (async () => {
@@ -69,8 +69,8 @@ async function connect(request) {
 
 async function disconnect() {
   await chrome.proxy.settings.clear({scope: 'regular'});
-  await store('proxyCredentials', null);
-  await store('proxyConfig', null);
+  await remove('proxyCredentials');
+  await remove('proxyConfig');
   return !!chrome.runtime.lastError;
 }
 

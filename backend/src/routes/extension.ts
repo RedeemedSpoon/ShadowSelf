@@ -1,4 +1,4 @@
-import {generateTempCredentials} from '@utils/crypto';
+import {generateProxyPassword} from '@utils/crypto';
 import {attempt, resizeImage} from '@utils/utils';
 import middleware from '@middleware-api';
 import {sql} from '@utils/connection';
@@ -62,18 +62,17 @@ export default new Elysia()
         return {username, identities: await Promise.all(identitiesPromises)};
       })
       .get('/connect/:id', ({identity}) => {
-        const {username, password} = generateTempCredentials();
         const country = identity?.location.split(', ')[0].toLowerCase();
+        const password = 'pwd-' + generateProxyPassword();
+        const username = 'usr-' + identity?.id;
 
         return {
           domain: `${country}.shadowself.io`,
           server: identity?.proxy_server,
           protocol: 'https',
           port: 3128,
-          username: 'proxyuser',
-          password: 'thepassword',
+          username,
+          password,
         };
-      })
-      .get('/disconnect/:id', () => {})
-      .get('/check/:id', () => {}),
+      }),
   );

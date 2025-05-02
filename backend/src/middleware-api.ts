@@ -6,7 +6,7 @@ import {jwt} from '@elysiajs/jwt';
 export default (app: Elysia) =>
   app.use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string})).derive(async ({headers, jwt, params, path, cookie}) => {
     const auth = headers['authorization'];
-    const token = auth && auth.startsWith('Bearer ') ? auth.slice(7) : cookie['token']?.value;
+    const token = auth && auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : cookie['token']?.value;
 
     if (!token) return error(401, 'You are not authenticated correctly');
     let user;

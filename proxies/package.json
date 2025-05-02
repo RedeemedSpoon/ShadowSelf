@@ -1,0 +1,16 @@
+{
+  "name": "ShadowSelf",
+  "version": "0.0.1",
+  "license": "AGPL-3.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile proxy ./index.ts"
+  },
+  "devDependencies": {
+    "bun-types": "^1.2.11",
+    "elysia": "^1.2.25"
+  },
+  "type": "module",
+  "module": "index.ts"
+}

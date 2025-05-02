@@ -15,6 +15,12 @@ tmux send-keys -t $session:$window 'clear' C-m
 tmux send-keys -t $session:$window 'bun dev' C-m
 sleep 0.5
 
+tmux split-window -t $session:1 -v
+tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/proxies' C-m
+tmux send-keys -t $session:$window 'clear' C-m
+tmux send-keys -t $session:$window 'bun dev' C-m
+sleep 0.5
+
 window=2
 tmux new-window -t $session:$window -n 'Webhooks'
 tmux send-keys -t $session:$window 'clear' C-m

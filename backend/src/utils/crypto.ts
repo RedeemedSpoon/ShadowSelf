@@ -35,10 +35,8 @@ export function getRecovery() {
   });
 }
 
-export function generateTempCredentials() {
-  const username = 'usr-' + randomBytes(6).toString('hex');
-  const password = 'pwd-' + randomBytes(6).toString('hex');
-  return {username, password};
+export function generateProxyPassword() {
+  return 'pwd-' + randomBytes(16).toString('hex');
 }
 
 export async function createHash(string: string): Promise<string> {

@@ -43,6 +43,7 @@ CREATE TABLE identities (
   "subscription_id" varchar(28),
   "plan" varchar(8),
   "proxy_server" cidr,
+  "proxy_password" varchar(32),
   "user_agent" varchar(7),
   "location" text,
   "picture" text,
