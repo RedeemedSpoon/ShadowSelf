@@ -32,7 +32,7 @@ export default new Elysia()
 
     return await Promise.all(allIdentitiesPromises);
   })
-  .get('/api/extension', async ({user}) => {
+  .get('/api/proxy', async ({user}) => {
     const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
     if (!result.length) return error(400, 'User not found');
 

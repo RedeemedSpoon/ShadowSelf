@@ -1,11 +1,12 @@
-import {User, CreationProcess} from '@types';
 import {sql, twilio, origin} from '@utils/connection';
+import {generateProxyPassword} from '@utils/crypto';
+import {attempt, proxyRequest} from '@utils/utils';
 import {generateProfile} from '@utils/prompts';
+import {User, CreationProcess} from '@types';
 import {checkIdentity} from '@utils/checks';
 import {allFakers} from '@faker-js/faker';
 import locations from '@utils/locations';
 import middleware from '@middleware';
-import {attempt} from '@utils/utils';
 import {Elysia, t} from 'elysia';
 import {$} from 'bun';
 
@@ -157,6 +158,9 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const loc = locations.find((loc) => loc.code === location);
           const fullLocation = `${loc!.code}, ${loc!.city}, ${loc!.country}`;
           const proxyServer = loc!.ip;
+
+          const proxyPassword = generateProxyPassword();
+          await proxyRequest(loc!.code.toLowerCase(), 'POST', {username: identityID, password: proxyPassword});
 
           const emailUsername = email!.split('@')[0];
           const emailPassword = (await $`openssl rand -base64 24`.quiet()).stdout.toString('utf-8').trim();

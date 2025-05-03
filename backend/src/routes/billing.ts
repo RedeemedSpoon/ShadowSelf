@@ -1,6 +1,6 @@
+import {attempt, toTitleCase, proxyRequest} from '@utils/utils';
 import {sql, stripe, origin, twilio} from '@utils/connection';
 import {pricingModal, pricingTable} from '@types';
-import {attempt, toTitleCase} from '@utils/utils';
 import {generateIdentityID} from '@utils/crypto';
 import {Elysia, error} from 'elysia';
 import middleware from '@middleware';
@@ -77,8 +77,8 @@ export default new Elysia({prefix: '/billing'})
       };
 
       const subscription = await stripe.subscriptions.create(subscriptionParams);
-      const paymentIntent = (subscription.latest_invoice as Stripe.Invoice).payment_intent as Stripe.PaymentIntent;
-      clientSecret = paymentIntent.client_secret!;
+      const paymentIntent = (subscription.latest_invoice as Stripe.Invoice as unknown as Stripe.Charge).payment_intent;
+      clientSecret = (paymentIntent as Stripe.PaymentIntent).client_secret!;
     }
 
     return {step: 'create', clientSecret, identityID};
@@ -125,7 +125,8 @@ export default new Elysia({prefix: '/billing'})
         expand: ['latest_invoice.payment_intent'],
       });
 
-      paymentIntent = ((subscription.latest_invoice as Stripe.Invoice).payment_intent as Stripe.PaymentIntent).id;
+      const invoices = subscription.latest_invoice as unknown as Stripe.Charge;
+      paymentIntent = (invoices.payment_intent as Stripe.PaymentIntent).id;
     }
 
     await stripe.paymentIntents.confirm(paymentIntent, {
@@ -158,7 +159,8 @@ export default new Elysia({prefix: '/billing'})
       if (intent) await stripe.refunds.create({payment_intent: intent});
       else {
         const invoices = await stripe.invoices.list({subscription: subscription, limit: 1});
-        await stripe.refunds.create({payment_intent: invoices.data[0]?.payment_intent?.toString()});
+        const PaymentIntent = (invoices.data[0] as unknown as Stripe.Charge)?.payment_intent?.toString();
+        await stripe.refunds.create({payment_intent: PaymentIntent});
       }
     }
 
@@ -171,8 +173,12 @@ export default new Elysia({prefix: '/billing'})
     await $`userdel -r ${username}`.nothrow().quiet();
     await twilio.incomingPhoneNumbers(identity.phone).remove();
 
+    const country = identity.location.split(', ')[0].toLowerCase();
+    await proxyRequest(country, 'DELETE', {username: identity.id});
+
     await attempt(sql`DELETE FROM accounts WHERE owner = ${identity.id}`);
     await attempt(sql`DELETE FROM identities WHERE id = ${identity.id}`);
+
     return {success: true};
   })
   .group('/customer', (app) =>

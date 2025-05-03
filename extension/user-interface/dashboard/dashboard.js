@@ -108,7 +108,7 @@ async function initialize() {
     }, 250);
 
     await sleep(750);
-    const response = await request(`https://${origin}/api/extension`, 'GET');
+    const response = await request(`https://${origin}/api/proxy`, 'GET');
     if (typeof response !== 'object') {
       loadingError.innerText = response + '\nTry logging out and logging back in.';
       clearInterval(loading);

@@ -197,10 +197,9 @@ export default new Elysia({prefix: '/account'})
       await attempt(sql`UPDATE users SET recovery = ${recovery} WHERE email = ${email}`);
     }
 
-    await request('/billing/customer', 'POST', {email, payment});
-
     const id = generateID();
     await attempt(sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`);
+    await request('/billing/customer', 'POST', {email, payment});
 
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};

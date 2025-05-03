@@ -1,4 +1,5 @@
 import {Elysia, error} from 'elysia';
+import {$} from 'bun';
 
 const app = new Elysia()
   .onError(({error}) => ({message: error instanceof Error ? error.message : error}))
@@ -9,8 +10,18 @@ const app = new Elysia()
     if (token !== process.env.SECRET_KEY) return error(403, 'You are not allowed to do this');
   })
   .get('/', () => "Hello from one of ShadowSelf's proxies!")
-  .post('/', async ({body}) => console.log(body))
-  .delete('/', async ({body}) => console.log(body))
+  .post('/', async ({body}) => {
+    const {username, password} = body;
+    const command = await $`htpasswd -b /etc/squid/passwd usr-${username} pwd-${password}`.quiet().nothrow();
+    if (command.exitCode !== 0) return error(500, 'Failed to create user');
+    return {message: 'User created successfully'};
+  })
+  .delete('/', async ({body}) => {
+    const {username} = body;
+    const command = await $`htpasswd -D /etc/squid/passwd usr-${username}`.quiet().nothrow();
+    if (command.exitCode !== 0) return error(500, 'Failed to delete user');
+    return {message: 'User deleted successfully'};
+  })
   .listen(4000);
 
 console.log(`Elysia is running at ${app.server?.hostname}:${app.server?.port}`);

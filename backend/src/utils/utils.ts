@@ -49,3 +49,16 @@ export async function request(url: string, method = 'GET', body?: object) {
     .then((res) => res.json())
     .catch((err) => err);
 }
+
+export async function proxyRequest(code: string, method = 'GET', body?: object) {
+  return fetch(`https://${code}.shadowself.io/`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.SECRET_KEY}`,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+    method,
+  })
+    .then((res) => res.json())
+    .catch((err) => err);
+}
