@@ -21,7 +21,7 @@ export default (app: Elysia) =>
     if (!user) user = await jwt.verify(token);
     if (!user) return error(401, 'You are not authenticated correctly');
 
-    const excludedPaths = /(?:\/api\/extension|\/api)\/?$|\/api\/test$/;
+    const excludedPaths = /(?:\/api\/proxy|\/api)\/?$|\/api\/test$/;
     if (excludedPaths.test(path)) return {user};
 
     const identityID = (params as {id: string}).id;

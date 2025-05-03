@@ -11,13 +11,13 @@ const app = new Elysia()
   })
   .get('/', () => "Hello from one of ShadowSelf's proxies!")
   .post('/', async ({body}) => {
-    const {username, password} = body;
+    const {username, password} = body as {username: string; password: string};
     const command = await $`htpasswd -b /etc/squid/passwd usr-${username} pwd-${password}`.quiet().nothrow();
     if (command.exitCode !== 0) return error(500, 'Failed to create user');
     return {message: 'User created successfully'};
   })
   .delete('/', async ({body}) => {
-    const {username} = body;
+    const {username} = body as {username: string};
     const command = await $`htpasswd -D /etc/squid/passwd usr-${username}`.quiet().nothrow();
     if (command.exitCode !== 0) return error(500, 'Failed to delete user');
     return {message: 'User deleted successfully'};

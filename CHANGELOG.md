@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Change lisence for GPL-v3 to AGPL-v3
+- Change licence for GPL-v3 to AGPL-v3
 - Update step 5 in creation process for better design
 - Actual user interface instead of mockup image in the extension page
 - Rework link to include params to ignore instead of using click event

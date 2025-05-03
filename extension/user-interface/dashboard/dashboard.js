@@ -76,7 +76,7 @@ async function listIdentities(identities) {
     identityElement.addEventListener('click', () => {
       const query = new URLSearchParams({
         location: identity.location,
-        proxy: identity.proxyServer,
+        server: identity.server,
         domain: identity.domain,
         protocol: identity.protocol,
         port: identity.port,

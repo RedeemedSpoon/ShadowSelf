@@ -2,16 +2,16 @@ import {sleep, read} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
-  const [location, proxy, domain, protocol, port, username, password] = params.values();
+  const [location, server, domain, protocol, port, username, password] = params.values();
 
   const [country, ...place] = location.split(', ');
   const url = chrome.runtime.getURL(`assets/countries/${country.toLowerCase()}.svg`);
 
   document.getElementById('country-background').style.backgroundImage = `url("${url}")`;
-  document.getElementById('ip-address').textContent = proxy.split('/')[0];
+  document.getElementById('ip-address').textContent = server.split('/')[0];
   document.getElementById('location').textContent = place.join(', ');
 
-  await ConfigureVPN(proxy, {server: proxy, protocol, port, username, domain, password});
+  await ConfigureVPN(server, {server, protocol, port, username, domain, password});
 
   const checkbox = document.querySelector('input[type="checkbox"]');
   checkbox.addEventListener('change', () => {

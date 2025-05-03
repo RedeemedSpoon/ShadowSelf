@@ -1,15 +1,19 @@
 import {isChrome, read, store, remove} from './shared.js';
 
+chrome.runtime.onStartup.addListener(updateIcon);
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   (async () => {
     let error;
+
     switch (request.type) {
       case 'connect':
         error = await connect(request);
+        await updateIcon();
         break;
 
       case 'disconnect':
         error = await disconnect(request);
+        await updateIcon();
         break;
     }
 
@@ -19,14 +23,22 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   return true;
 });
 
+async function updateIcon() {
+  const isVPNEnabled = await read('isVPNEnabled');
+  if (!isVPNEnabled) return;
+
+  chrome.action.setIcon({
+    path: isVPNEnabled === 'on' ? 'assets/icon-enabled.png' : 'assets/icon-disabled.png',
+  });
+}
+
 chrome.webRequest.onAuthRequired.addListener(
   async (details, callback) => {
     const config = await read('proxyConfig');
     const creds = await read('proxyCredentials');
-    console.log(config, creds, details);
 
     const canAuthenticate = config && creds?.username && details.isProxy;
-    const sameChallenger = details.challenger.host === config.host && details.challenger.port === config.port;
+    const sameChallenger = details.challenger.host === config.host && details.challenger.port === Number(config.port);
 
     if (canAuthenticate && sameChallenger) {
       const auth = {username: creds.username, password: creds.password};
@@ -53,24 +65,26 @@ async function connect(request) {
 
   const proxyApi = isChrome ? chrome.proxy : browser.proxy;
   const settingsValue = isChrome
-    ? {mode: 'fixed_servers', rules: {singleProxy: {host: server, port, scheme: protocol}}}
+    ? {mode: 'fixed_servers', rules: {singleProxy: {host: server, port: Number(port), scheme: protocol}}}
     : {proxyDNS: false, proxyType: 'manual', ssl: `${protocol}://${domain}:${port}`};
 
   await proxyApi.settings.clear({scope: 'regular'});
   await proxyApi.settings.set({value: settingsValue, scope: 'regular'});
 
-  const error = await testProxyConnection();
-  if (error) return error;
-
   await store('proxyConfig', {host: domain, ip: server, port});
   await store('proxyCredentials', {username, password});
+
+  const error = await testProxyConnection();
+  if (!error) await store('isVPNEnabled', 'on');
   return error;
 }
 
 async function disconnect() {
   await chrome.proxy.settings.clear({scope: 'regular'});
+  await store('isVPNEnabled', 'off');
   await remove('proxyCredentials');
   await remove('proxyConfig');
+
   return !!chrome.runtime.lastError;
 }
 
