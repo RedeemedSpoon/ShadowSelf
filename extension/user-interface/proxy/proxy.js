@@ -7,15 +7,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const [country, ...place] = location.split(', ');
   const url = chrome.runtime.getURL(`assets/countries/${country.toLowerCase()}.svg`);
 
+  await ConfigureVPN(server, {server, protocol, port, username, domain, password});
   document.getElementById('country-background').style.backgroundImage = `url("${url}")`;
   document.getElementById('ip-address').textContent = server.split('/')[0];
   document.getElementById('location').textContent = place.join(', ');
 
-  await ConfigureVPN(server, {server, protocol, port, username, domain, password});
+  const killSwitch = await read('killSwitch');
+  document.querySelector('input[type="checkbox"]').checked = killSwitch;
 
   const checkbox = document.querySelector('input[type="checkbox"]');
-  checkbox.addEventListener('change', () => {
-    // Toggle kill switch
+  checkbox.addEventListener('change', async () => {
+    await chrome.runtime.sendMessage({type: 'killSwitch', enabled: checkbox.checked});
   });
 });
 

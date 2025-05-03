@@ -1,6 +1,12 @@
 import {isChrome, read, store, remove} from './shared.js';
 
-chrome.runtime.onStartup.addListener(updateIcon);
+chrome.runtime.onStartup.addListener(async () => {
+  const killSwitch = await read('killSwitch');
+  const isVPNEnabled = await read('isVPNEnabled');
+  if (killSwitch && !isVPNEnabled) disableNetworking();
+  await updateIcon();
+});
+
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   (async () => {
     let error;
@@ -15,6 +21,10 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
         error = await disconnect(request);
         await updateIcon();
         break;
+
+      case 'killSwitch':
+        await toggleKillSwitch(request.enabled);
+        break;
     }
 
     sendResponse(error);
@@ -23,13 +33,21 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   return true;
 });
 
+async function toggleKillSwitch(enabled) {
+  await store('killSwitch', enabled);
+  const isVPNEnabled = await read('isVPNEnabled');
+  const proxyApi = isChrome ? chrome.proxy : browser.proxy;
+
+  if (enabled && !isVPNEnabled) disableNetworking();
+  else await proxyApi.settings.clear({scope: 'regular'});
+}
+
 async function updateIcon() {
   const isVPNEnabled = await read('isVPNEnabled');
   if (!isVPNEnabled) return;
 
-  chrome.action.setIcon({
-    path: isVPNEnabled === 'on' ? 'assets/icon-enabled.png' : 'assets/icon-disabled.png',
-  });
+  const path = isVPNEnabled === 'on' ? 'enabled' : 'disabled';
+  chrome.action.setIcon({path: `assets/icon-${path}.png`});
 }
 
 chrome.webRequest.onAuthRequired.addListener(
@@ -56,7 +74,7 @@ async function connect(request) {
     chrome.notifications.create('proxy-error-incognito', {
       type: 'basic',
       title: 'Proxy Setup Error',
-      message: 'Please enable "Allow in Incognito" for this extension in chrome://extensions.',
+      message: 'Please enable incognito/private mode in your browser settings to use ShadowSelf.',
       iconUrl: 'assets/favicon.ico',
     });
 
@@ -80,7 +98,10 @@ async function connect(request) {
 }
 
 async function disconnect() {
-  await chrome.proxy.settings.clear({scope: 'regular'});
+  const killSwitch = await read('killSwitch');
+  if (killSwitch) disableNetworking();
+  else await chrome.proxy.settings.clear({scope: 'regular'});
+
   await store('isVPNEnabled', 'off');
   await remove('proxyCredentials');
   await remove('proxyConfig');
@@ -124,4 +145,12 @@ async function displayError() {
 
   await disconnect();
   return true;
+}
+
+async function disableNetworking() {
+  const proxyApi = isChrome ? chrome.proxy : browser.proxy;
+  const proxyConfig = isChrome
+    ? {mode: 'fixed_servers', rules: {singleProxy: {host: '127.0.0.1', port: 9, scheme: 'http'}}}
+    : {proxyDNS: false, proxyType: 'manual', ssl: 'https://127.0.0.1:9', http: 'http://127.0.0.1:9'};
+  await proxyApi.settings.set({value: proxyConfig, scope: 'regular'});
 }
