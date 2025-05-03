@@ -1,4 +1,5 @@
 User-agent: *
+
 Allow: /
 Disallow: /ws/
 Disallow: /api/

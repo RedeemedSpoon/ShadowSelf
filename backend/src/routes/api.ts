@@ -43,7 +43,7 @@ export default new Elysia()
     const identitiesPromises = allIdentities.map(async (identity) => {
       if (!identity.name) return {id: identity.id};
 
-      const {id, picture, name, location, proxy_server, proxy_password, user_agent} = identity;
+      const {id, picture, name, location, proxy_server, proxy_password} = identity;
       return {
         id,
         name,
@@ -55,7 +55,6 @@ export default new Elysia()
         port: 3128,
         username: 'usr-' + id,
         password: 'pwd-' + proxy_password,
-        agent: user_agent,
       };
     });
 

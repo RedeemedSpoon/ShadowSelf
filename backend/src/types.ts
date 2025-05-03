@@ -59,7 +59,6 @@ export interface QueryResultIdentify {
   status: 'active' | 'inactive';
   proxy_server: string;
   proxy_password: string;
-  user_agent: string;
   location: string;
   picture: string;
   name: string;

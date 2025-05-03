@@ -21,9 +21,6 @@
   </li>
   <li><code>proxy_server</code> (<span class="string">string</span>): The proxy server address associated with this identity.</li>
   <li>
-    <code>user_agent</code> (<span class="string">string</span>): The browser user agent string associated with this identity.
-  </li>
-  <li>
     <code>picture</code> (<span class="string">string</span>): A base64 encoded string representing the identity's profile picture.
     Prepend <code>data:image/png;base64,</code> to display.
   </li>

@@ -94,7 +94,6 @@ export interface FullIdentity {
   id: string;
   creation_date: Date;
   proxy_server: string;
-  user_agent: string;
   location: string;
   picture: string;
   name: string;
