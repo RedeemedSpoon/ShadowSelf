@@ -75,9 +75,13 @@ async function listIdentities(identities) {
     container.appendChild(identityElement);
     identityElement.addEventListener('click', () => {
       const query = new URLSearchParams({
-        id: identity.id,
         location: identity.location,
         proxy: identity.proxyServer,
+        domain: identity.domain,
+        protocol: identity.protocol,
+        port: identity.port,
+        username: identity.username,
+        password: identity.password,
       });
 
       window.location.href = `../proxy/proxy.html?${query.toString()}`;
@@ -104,7 +108,7 @@ async function initialize() {
     }, 250);
 
     await sleep(750);
-    const response = await request(`https://${origin}/extension-api`, 'GET');
+    const response = await request(`https://${origin}/api/extension`, 'GET');
     if (typeof response !== 'object') {
       loadingError.innerText = response + '\nTry logging out and logging back in.';
       clearInterval(loading);

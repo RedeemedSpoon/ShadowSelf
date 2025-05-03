@@ -58,6 +58,7 @@ export interface QueryResultIdentify {
   plan: 'monthly' | 'annually' | 'lifetime';
   status: 'active' | 'inactive';
   proxy_server: string;
+  proxy_password: string;
   user_agent: string;
   location: string;
   picture: string;
@@ -117,15 +118,6 @@ export interface CheckIdentity {
   ethnicity?: string;
   picture?: string;
   location?: string;
-}
-
-export interface Location {
-  localization: string;
-  country: string;
-  city: string;
-  code: string;
-  map: string;
-  ip: string;
 }
 
 export interface APIRequest {

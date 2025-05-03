@@ -3,6 +3,6 @@ Allow: /
 Disallow: /ws/
 Disallow: /api/
 Disallow: /identity/
-Disallow: /extension-api/
+Disallow: /create
 
 Sitemap: https://shadowself.io/sitemap.xml

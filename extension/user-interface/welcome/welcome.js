@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     button.innerText = 'Syncing...';
     await sleep(750);
 
-    const response = await request(`https://${origin}/extension-api`, 'GET');
+    const response = await request(`https://${origin}/api/extension`, 'GET');
     if (typeof response !== 'object') {
       status.innerText = response;
       button.innerText = 'Synchronize';

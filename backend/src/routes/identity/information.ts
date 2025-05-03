@@ -1,11 +1,10 @@
 import {generateProfile} from '@utils/prompts';
-import {request, attempt} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
 import middleware from '@middleware-api';
+import locations from '@utils/locations';
 import {checkAPI} from '@utils/checks';
 import {sql} from '@utils/connection';
 import {Elysia, error} from 'elysia';
-import {Location} from '@types';
 
 export default new Elysia({prefix: '/identity'})
   .use(middleware)
@@ -20,9 +19,7 @@ export default new Elysia({prefix: '/identity'})
     const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!}, fields);
     if (err) return error(400, error);
 
-    const locations = (await request('/locations', 'GET')) as Location[];
     const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
-
     const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
     return {picture};
   })
@@ -30,18 +27,14 @@ export default new Elysia({prefix: '/identity'})
     const {err, sex} = await checkAPI({sex: identity!.sex, ...body!}, ['?sex']);
     if (err) return error(400, err);
 
-    const locations = (await request('/locations', 'GET')) as Location[];
     const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
-
     const faker = allFakers[lang?.localization as keyof typeof allFakers];
     const name = faker.person.fullName({sex: sex as 'male' | 'female'});
 
     return {name};
   })
   .patch('/regenerate-bio/:id', async ({identity}) => {
-    const locations = (await request('/locations', 'GET')) as Location[];
     const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
-
     const faker = allFakers[lang?.localization as keyof typeof allFakers];
     const bio = faker.person.bio();
 

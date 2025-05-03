@@ -32,6 +32,35 @@ export default new Elysia()
 
     return await Promise.all(allIdentitiesPromises);
   })
+  .get('/api/extension', async ({user}) => {
+    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
+    if (!result.length) return error(400, 'User not found');
+
+    const {username, id} = result[0];
+    const allIdentities = await attempt(sql`SELECT * FROM identities WHERE owner = ${id}`);
+    if (!allIdentities.length) return {username, identities: []};
+
+    const identitiesPromises = allIdentities.map(async (identity) => {
+      if (!identity.name) return {id: identity.id};
+
+      const {id, picture, name, location, proxy_server, proxy_password, user_agent} = identity;
+      return {
+        id,
+        name,
+        location,
+        picture: await resizeImage(picture),
+        domain: `${location.split(',')[0].toLowerCase()}.shadowself.io`,
+        server: proxy_server,
+        protocol: 'https',
+        port: 3128,
+        username: 'usr-' + id,
+        password: 'pwd-' + proxy_password,
+        agent: user_agent,
+      };
+    });
+
+    return {username, identities: await Promise.all(identitiesPromises)};
+  })
   .ws('/ws-api/:id', {
     async open(ws) {
       const identity = ws.data.identity;

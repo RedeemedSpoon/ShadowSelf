@@ -1,10 +1,11 @@
-import {User, CreationProcess, Location} from '@types';
+import {User, CreationProcess} from '@types';
 import {sql, twilio, origin} from '@utils/connection';
 import {generateProfile} from '@utils/prompts';
-import {attempt, request} from '@utils/utils';
 import {checkIdentity} from '@utils/checks';
 import {allFakers} from '@faker-js/faker';
+import locations from '@utils/locations';
 import middleware from '@middleware';
+import {attempt} from '@utils/utils';
 import {Elysia, t} from 'elysia';
 import {$} from 'bun';
 
@@ -47,7 +48,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
       switch (message.kind) {
         case 'locations': {
-          ws.send({locations: await request('/locations', 'GET')});
+          ws.send({locations});
           break;
         }
 
@@ -60,7 +61,6 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           }
 
           const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
-          const locations = (await request('/locations', 'GET')) as Location[];
           const lang = locations.find((location) => location.code === (cookieStore[0] || message.location));
 
           let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};
@@ -154,8 +154,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const {error} = await checkIdentity('finish', params);
           if (error) return ws.send({error});
 
-          const allLocations = (await request('/locations', 'GET')) as Location[];
-          const loc = allLocations.find((loc) => loc.code === location);
+          const loc = locations.find((loc) => loc.code === location);
           const fullLocation = `${loc!.code}, ${loc!.city}, ${loc!.country}`;
           const proxyServer = loc!.ip;
 

@@ -1,8 +1,8 @@
-import {sleep, request, origin, read} from '../../shared.js';
+import {sleep, read} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
-  const [id, location, proxy] = params.values();
+  const [location, proxy, domain, protocol, port, username, password] = params.values();
 
   const [country, ...place] = location.split(', ');
   const url = chrome.runtime.getURL(`assets/countries/${country.toLowerCase()}.svg`);
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('ip-address').textContent = proxy.split('/')[0];
   document.getElementById('location').textContent = place.join(', ');
 
-  await ConfigureVPN(id, proxy);
+  await ConfigureVPN(proxy, {server: proxy, protocol, port, username, domain, password});
 
   const checkbox = document.querySelector('input[type="checkbox"]');
   checkbox.addEventListener('change', () => {
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-async function ConfigureVPN(id, proxy) {
+async function ConfigureVPN(proxy, response) {
   const status = document.getElementById('status');
   const powerBtn = document.getElementById('power');
   const countryContainer = document.getElementById('country');
@@ -51,7 +51,7 @@ async function ConfigureVPN(id, proxy) {
     }, 250);
 
     await sleep(850);
-    const error = await ToggleVPN(wasConnected, id);
+    const error = await ToggleVPN(wasConnected, response);
 
     activeElements.forEach((el) => el.classList.remove('processing'));
     status.textContent = error ? 'Something went wrong' : wasConnected ? 'Disconnected' : 'Connected';
@@ -59,12 +59,7 @@ async function ConfigureVPN(id, proxy) {
   });
 }
 
-async function ToggleVPN(wasConnected, id) {
-  if (wasConnected) {
-    return await chrome.runtime.sendMessage({type: 'disconnect'});
-  } else {
-    const response = await request(`https://${origin}/extension-api/connect/${id}`, 'GET');
-    if (!response?.username) return true;
-    return await chrome.runtime.sendMessage({type: 'connect', ...response});
-  }
+async function ToggleVPN(wasConnected, response) {
+  if (wasConnected) return await chrome.runtime.sendMessage({type: 'disconnect'});
+  else return await chrome.runtime.sendMessage({type: 'connect', ...response});
 }
