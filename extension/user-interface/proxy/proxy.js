@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const killSwitch = await read('killSwitch');
   document.querySelector('input[type="checkbox"]').checked = killSwitch;
+  getBandwidthSpeed();
 
   const checkbox = document.querySelector('input[type="checkbox"]');
   checkbox.addEventListener('change', async () => {
@@ -57,11 +58,66 @@ async function ConfigureVPN(proxy, response) {
 
     activeElements.forEach((el) => el.classList.remove('processing'));
     status.textContent = error ? 'Something went wrong' : wasConnected ? 'Disconnected' : 'Connected';
-    if (!error) activeElements.forEach((el) => el.classList.toggle('active'));
+
+    if (!error) {
+      activeElements.forEach((el) => el.classList.toggle('active'));
+      if (!wasConnected) getBandwidthSpeed();
+      else document.querySelectorAll('.speed').forEach((el) => (el.textContent = 'N/A'));
+    }
   });
 }
 
 async function ToggleVPN(wasConnected, response) {
   if (wasConnected) return await chrome.runtime.sendMessage({type: 'disconnect'});
   else return await chrome.runtime.sendMessage({type: 'connect', ...response});
+}
+
+async function getBandwidthSpeed() {
+  const download = document.querySelector('#download .speed');
+  const upload = document.querySelector('#upload .speed');
+  const isVPNEnabled = await read('isVPNEnabled');
+
+  if (!isVPNEnabled) {
+    download.textContent = 'N/A';
+    upload.textContent = 'N/A';
+    return;
+  }
+
+  download.textContent = '---';
+  upload.textContent = '---';
+
+  const downloadStart = performance.now();
+  const downloadPromise = fetch('https://cachefly.cachefly.net/10mb.test', {
+    method: 'GET',
+    cache: 'no-store',
+    signal: AbortSignal.timeout(10000),
+  }).catch(() => null);
+
+  const uploadStart = performance.now();
+  const dataToUpload = new Blob([new Uint8Array(1024 * 1024)]);
+  const uploadPromise = fetch('https://httpbin.org/post', {
+    method: 'POST',
+    cache: 'no-store',
+    body: dataToUpload,
+    signal: AbortSignal.timeout(10000),
+  }).catch(() => null);
+
+  const responses = await Promise.all([downloadPromise, uploadPromise]);
+
+  for (let i = 0; i < responses.length; i++) {
+    let speed = 0;
+    const element = i === 0 ? download : upload;
+    const start = i === 0 ? downloadStart : uploadStart;
+    const sizeBytes = i === 0 ? 10 * 1024 * 1024 : 1024 * 1024;
+
+    if (responses[i] && responses[i].ok) {
+      const end = performance.now();
+      const duration = (end - start) / 1000;
+
+      if (duration > 0) {
+        speed = (sizeBytes * 8) / duration / 1000000;
+        element.textContent = speed.toFixed(2);
+      }
+    }
+  }
 }
