@@ -1,19 +1,26 @@
+import {read, store} from '../../shared.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
   const selectMenus = document.querySelectorAll('.custom-select');
-  selectMenus.forEach(giveReactivity);
+  const checkbox = document.querySelector('input[type="checkbox"]');
+  const list = ['device', 'os', 'browser'];
 
-  ['device', 'os', 'browser'].forEach((id) => {
+  selectMenus.forEach(giveReactivity);
+  list.forEach(addListener);
+
+  list.forEach(async (id) => {
+    const value = await read(`agent-${id}`);
+    if (!value) return;
+
     const select = document.querySelector(`#${id} .selected-value`);
-    select.addEventListener('modified', () => {
-      // Change user agent
-    });
+    select.textContent = value;
+    select.dispatchEvent(new Event('modified'));
   });
 
-  const checkbox = document.querySelector('input[type="checkbox"]');
-  checkbox.addEventListener('change', () => {
+  checkbox.addEventListener('change', async () => {
     if (checkbox.checked) selectMenus.forEach((select) => select.classList.add('disabled'));
     else selectMenus.forEach((select) => select.classList.remove('disabled'));
-    // Toggle actual user agent
+    await store('actualAgent', checkbox.checked);
   });
 });
 
@@ -41,5 +48,29 @@ function giveReactivity(select) {
         select.classList.remove('open');
       }
     });
+  });
+}
+
+function addListener(id) {
+  const select = document.querySelector(`#${id} .selected-value`);
+  select.addEventListener('modified', async () => {
+    if (id === 'device') {
+      const oses = document.querySelectorAll(`#os li`);
+      const devices = select.textContent.toLowerCase();
+
+      oses.forEach((os) => {
+        os.classList.remove('hidden');
+        if (!os.classList.contains(devices)) {
+          os.classList.add('hidden');
+        }
+      });
+
+      const selectValue = document.querySelector(`#os .selected-value`);
+      const firstResult = document.querySelector(`#os .${devices}`);
+      selectValue.textContent = firstResult.textContent;
+      selectValue.dispatchEvent(new Event('modified'));
+    }
+
+    await store(`agent-${id}`, select.textContent);
   });
 }
