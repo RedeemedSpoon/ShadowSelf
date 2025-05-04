@@ -113,8 +113,9 @@ async function getBandwidthSpeed() {
     if (responses[i] && responses[i].ok) {
       const end = performance.now();
       const duration = (end - start) / 1000;
+      const isVPNStillEnabled = await read('isVPNEnabled');
 
-      if (duration > 0) {
+      if (duration > 0 && isVPNStillEnabled) {
         speed = (sizeBytes * 8) / duration / 1000000;
         element.textContent = speed.toFixed(2);
       }

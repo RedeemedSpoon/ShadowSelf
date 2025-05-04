@@ -32,5 +32,14 @@
     "matches": ["*://*.shadowself.io/*"]
   },
   "host_permissions": ["<all_urls>"],
-  "permissions": ["notifications", "cookies", "storage", "proxy", "tabs", "webRequest", "webRequestAuthProvider"]
+  "permissions": [
+    "notifications",
+    "cookies",
+    "storage",
+    "proxy",
+    "tabs",
+    "webRequest",
+    "webRequestAuthProvider",
+    "declarativeNetRequestWithHostAccess"
+  ]
 }

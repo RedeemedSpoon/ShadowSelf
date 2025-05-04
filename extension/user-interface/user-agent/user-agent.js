@@ -14,13 +14,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const select = document.querySelector(`#${id} .selected-value`);
     select.textContent = value;
+
     select.dispatchEvent(new Event('modified'));
   });
 
+  checkbox.checked = await read('actualAgent');
   checkbox.addEventListener('change', async () => {
     if (checkbox.checked) selectMenus.forEach((select) => select.classList.add('disabled'));
     else selectMenus.forEach((select) => select.classList.remove('disabled'));
+
     await store('actualAgent', checkbox.checked);
+    chrome.runtime.sendMessage({type: 'userAgent'});
   });
 });
 
@@ -67,10 +71,13 @@ function addListener(id) {
 
       const selectValue = document.querySelector(`#os .selected-value`);
       const firstResult = document.querySelector(`#os .${devices}`);
+
       selectValue.textContent = firstResult.textContent;
       selectValue.dispatchEvent(new Event('modified'));
+      return;
     }
 
     await store(`agent-${id}`, select.textContent);
+    chrome.runtime.sendMessage({type: 'userAgent'});
   });
 }
