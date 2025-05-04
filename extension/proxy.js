@@ -13,7 +13,7 @@ export async function toggleKillSwitch(enabled) {
   const isVPNEnabled = await read('isVPNEnabled');
   const proxyApi = isChrome ? chrome.proxy : browser.proxy;
 
-  if (enabled && !isVPNEnabled) disableNetworking();
+  if (enabled && isVPNEnabled === 'off') disableNetworking();
   else await proxyApi.settings.clear({scope: 'regular'});
 }
 

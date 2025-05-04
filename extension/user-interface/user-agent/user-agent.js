@@ -9,6 +9,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   list.forEach(addListener);
 
   list.forEach(async (id) => {
+    if (id === 'device') {
+      const select = document.querySelector(`#${id} .selected-value`);
+      const value = await read('agent-os');
+      if (!value) return;
+
+      if (['Windows', 'macOS', 'Linux', 'ChromeOS'].includes(value)) {
+        select.textContent = 'Laptop';
+      } else if (['iPadOS', 'FireOS'].includes(value)) {
+        select.textContent = 'Tablet';
+      } else {
+        select.textContent = 'Phone';
+      }
+
+      select.dispatchEvent(new Event('modified'));
+      return;
+    }
+
     const value = await read(`agent-${id}`);
     if (!value) return;
 
@@ -18,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     select.dispatchEvent(new Event('modified'));
   });
 
-  checkbox.checked = await read('actualAgent');
   checkbox.addEventListener('change', async () => {
     if (checkbox.checked) selectMenus.forEach((select) => select.classList.add('disabled'));
     else selectMenus.forEach((select) => select.classList.remove('disabled'));
@@ -26,6 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await store('actualAgent', checkbox.checked);
     chrome.runtime.sendMessage({type: 'userAgent'});
   });
+
+  checkbox.checked = await read('actualAgent');
+  checkbox.dispatchEvent(new Event('change'));
 });
 
 function giveReactivity(select) {

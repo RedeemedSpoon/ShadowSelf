@@ -41,7 +41,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
 chrome.runtime.onStartup.addListener(async () => {
   const killSwitch = await read('killSwitch');
   const isVPNEnabled = await read('isVPNEnabled');
-  if (killSwitch && !isVPNEnabled) disableNetworking();
+  if (killSwitch && isVPNEnabled === 'off') disableNetworking();
   await updateIcon();
 });
 

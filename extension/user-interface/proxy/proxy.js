@@ -77,7 +77,7 @@ async function getBandwidthSpeed() {
   const upload = document.querySelector('#upload .speed');
   const isVPNEnabled = await read('isVPNEnabled');
 
-  if (!isVPNEnabled) {
+  if (isVPNEnabled === 'off') {
     download.textContent = 'N/A';
     upload.textContent = 'N/A';
     return;
@@ -115,7 +115,7 @@ async function getBandwidthSpeed() {
       const duration = (end - start) / 1000;
       const isVPNStillEnabled = await read('isVPNEnabled');
 
-      if (duration > 0 && isVPNStillEnabled) {
+      if (duration > 0 && isVPNStillEnabled === 'on') {
         speed = (sizeBytes * 8) / duration / 1000000;
         element.textContent = speed.toFixed(2);
       }
