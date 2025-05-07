@@ -1,8 +1,8 @@
 import {UserIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
-import {BookIcon, DatabaseIcon, RocketIcon, WebsocketIcon} from '$icon';
+import {BookIcon, DatabaseIcon, RocketIcon, WebsocketIcon, ProxyIcon} from '$icon';
 import * as rawContent from './content';
 import type {PageLoad} from './$types';
-import type {Docs} from '$type';
+import type {Docs, Route} from '$type';
 
 export const load: PageLoad = () => {
   const sections: Docs['sections'] = [
@@ -19,7 +19,10 @@ export const load: PageLoad = () => {
     {
       title: 'data overview',
       icon: DatabaseIcon,
-      more: [{title: 'list identities', method: 'GET'}],
+      more: [
+        {title: 'list identities', method: 'GET'},
+        {title: 'list proxies', method: 'GET'},
+      ],
     },
     {
       title: 'general information',
@@ -76,6 +79,11 @@ export const load: PageLoad = () => {
       icon: WebsocketIcon,
       more: [{title: 'email type'}, {title: 'message type'}],
     },
+    {
+      title: 'proxy',
+      icon: ProxyIcon,
+      more: [{title: 'implementation'}],
+    },
   ];
 
   const content: Docs['content'] = [
@@ -92,7 +100,7 @@ export const load: PageLoad = () => {
     {
       title: 'data overview',
       description:
-        'This section details how to retrieve your identity data via the API. It covers the primary endpoint for listing all your synthetic identities associated with your account. You can use the unique id returned for each identity in this list to perform more specific actions in subsequent API calls.',
+        'This section details how to retrieve your identity data via the API. It covers the two primary endpoint for listing all your synthetic identities associated with your account. You can use the unique id returned for each identity in this list to perform more specific actions in subsequent API calls.',
       icon: DatabaseIcon,
       routes: rawContent.dataOverview,
     },
@@ -133,8 +141,13 @@ export const load: PageLoad = () => {
       title: 'websocket',
       description: rawContent.websocketDesc,
       icon: WebsocketIcon,
-      // @ts-expect-error I don't feel like explaining.
-      routes: rawContent.websocket,
+      routes: rawContent.websocket as unknown as Route[],
+    },
+    {
+      title: 'proxy',
+      description: rawContent.proxyDesc,
+      icon: ProxyIcon,
+      routes: rawContent.proxy as unknown as Route[],
     },
   ];
 

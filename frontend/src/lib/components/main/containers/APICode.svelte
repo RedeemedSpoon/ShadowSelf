@@ -5,12 +5,13 @@
 
   interface Props {
     response?: APIResponse;
-    websocket?: unknown;
+    alt?: unknown;
+    title?: string;
     hljs?: unknown;
     route?: Route;
   }
 
-  let {websocket, response, route, hljs}: Props = $props();
+  let {alt, response, route, hljs, title}: Props = $props();
 
   let lang = $state('curl') as Languages;
   const id = Math.random().toString(36).slice(2);
@@ -34,8 +35,8 @@
 <div class="head px-6 py-3">
   {#if response}
     <h6>Response</h6>
-  {:else if websocket}
-    <h6>Websocket</h6>
+  {:else if alt}
+    <h6>{title!.slice(0, 1).toUpperCase() + title!.slice(1)}</h6>
     <SelectMenu {callback} {options} {fullIcons} size="small" name="lang" />
   {:else}
     <h6><HTTPMethod method={route?.method} alt={true} />{route?.url}</h6>
@@ -48,7 +49,7 @@
     <pre class="language-json"><code class="text-base!">{JSON.stringify(response, null, 2)}</code></pre>
   {:else}
     {#key lang}
-      {@const code = route?.code[lang] || (websocket as {[key in Languages]: string})[lang]}
+      {@const code = route?.code[lang] || (alt as {[key in Languages]: string})[lang]}
       <pre {id} class="language-{lang}"><code class="text-base!">{code}</code></pre>
     {/key}
   {/if}

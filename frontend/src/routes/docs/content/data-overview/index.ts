@@ -1,4 +1,5 @@
 import listIdentities from './list-identities';
+import listProxies from './list-proxies';
 import type {Route} from '$type';
 
 const routes: Route[] = [
@@ -9,6 +10,14 @@ const routes: Route[] = [
     method: 'GET',
     code: listIdentities.code,
     response: listIdentities.response,
+  },
+  {
+    title: 'list proxies',
+    description: listProxies.description,
+    url: '/',
+    method: 'GET',
+    code: listProxies.code,
+    response: listProxies.response,
   },
 ];
 

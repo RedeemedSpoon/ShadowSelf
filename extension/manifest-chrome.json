@@ -4,7 +4,7 @@
   "homepage_url": "https://shadowself.io",
   "author": "RedeemedSpoon (contact@shadowself.io)",
   "description": "Safeguard your privacy with synthetic identities and take control of your digital life.",
-  "version": "0.0.0.0",
+  "version": "1.0.0",
   "manifest_version": 3,
   "incognito": "spanning",
   "icons": {

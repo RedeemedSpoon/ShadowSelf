@@ -47,14 +47,14 @@
   <ol class="max-2xl:hidden! max-h-[calc(100vh-12.5rem)]">
     {#each data.docs.sections as section (section.title)}
       {@const Icon = section.icon}
-      <ul class="mt-6">
-        <li class="title text-3xl! text-neutral-300! mb-3 flex items-center gap-2">
+      <ul class="mt-4">
+        <li class="title text-3xl! text-neutral-300! mb-2 flex items-center gap-2">
           <Icon className="h-8 w-8 cursor-default stroke-neutral-300!" fill={false} />
           {formatCasing(section.title)}
         </li>
         {#each section.more as subsection (subsection.title)}
           {@const hash = subsection.title.replace(/\s/g, '-')}
-          <li aria-hidden="true" onclick={() => scrollTo(hash)} class="{anchor === hash && 'anchor'} flex items-center gap-2">
+          <li aria-hidden="true" onclick={() => scrollTo(hash)} class="{anchor === hash && 'anchor'} my-2 flex items-center gap-2">
             <HTTPMethod method={subsection.method} />
             {formatCasing(subsection.title)}
           </li>
@@ -74,9 +74,9 @@
       <div class="flex flex-col gap-4 max-lg:max-w-[calc(100vw-2rem)]">
         {#if typeof content.description === 'function'}
           {@const Description = content.description}
-          {#if content.title === 'websocket'}
+          {#if content.title === 'websocket' || content.title === 'proxy'}
             <Description>
-              <APICode {hljs} websocket={content.routes} />
+              <APICode {hljs} alt={content.routes} title={content.title} />
             </Description>
           {:else}
             <Description />
@@ -126,12 +126,12 @@
   }
 
   ol li:not(.title) {
-    @apply ml-10 w-fit cursor-pointer select-none px-4 py-2 transition-all duration-300 ease-in-out;
+    @apply ml-10 w-fit cursor-pointer select-none px-4 py-1 transition-all duration-300 ease-in-out;
     @apply rounded-full hover:bg-neutral-300/10;
   }
 
   .anchor {
-    @apply bg-neutral-300/20 hover:!bg-neutral-300/20;
+    @apply bg-neutral-300/15 hover:!bg-neutral-300/15;
   }
 
   :global(#content h3) {

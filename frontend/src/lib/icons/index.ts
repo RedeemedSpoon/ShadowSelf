@@ -48,6 +48,7 @@ export {default as EmailIcon} from './communication/Email.svelte';
 export {default as PhoneIcon} from './communication/Phone.svelte';
 export {default as InboxIcon} from './communication/Inbox.svelte';
 export {default as ReplyIcon} from './communication/Reply.svelte';
+export {default as ProxyIcon} from './communication/Proxy.svelte';
 export {default as ForwardIcon} from './communication/Forward.svelte';
 export {default as AddressIcon} from './communication/Address.svelte';
 export {default as TransferIcon} from './communication/Transfer.svelte';
