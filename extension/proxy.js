@@ -33,7 +33,7 @@ export async function connect(request) {
 
   const proxyApi = isChrome ? chrome.proxy : browser.proxy;
   const settingsValue = isChrome
-    ? {mode: 'fixed_servers', rules: {singleProxy: {host: server, port: Number(port), scheme: protocol}}}
+    ? {mode: 'fixed_servers', rules: {singleProxy: {host: domain, port: Number(port), scheme: protocol}}}
     : {proxyDNS: false, proxyType: 'manual', ssl: `${protocol}://${domain}:${port}`};
 
   await proxyApi.settings.clear({scope: 'regular'});
