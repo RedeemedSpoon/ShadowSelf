@@ -5,6 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2025-5-06
+
+### Added
+
+- New proxy icon
+- Proxy documentation section
+- Documentation list proxies addition
+- Change OS based on device in user agent page
+- Update icon based on proxy settings
+- test Connection bandwidth speed
+- Store and display user agent
+- Spool user agent headers
+- Actual kill switch
+
+### Changed
+
+- User agent will not be stored in the backend
+- Divide background.js into proxy.js and user-agent.js
+
+## [0.8.6] - 2025-5-03
+
+### Added
+
+- Squid conf file
+- proxy web server
+- Squid Authentication
+- Proxies directory and related configurations
+- Test connection after proxy authentication
+- Add/Delete linux accounts for proxies
+- Display browser error notifications
+- New database columns
+- Transition design
+
+### Changed
+
+- Move /api-extension to /api/proxy
+- Move most background logic to functions
+- Tmux listen for proxy web server
+- Fix bearer lowercase bug
+
+### Removed
+
+- Dante and socks5
+- Temporary credentials generation
+- Backend extension.ts
+
+## [0.8.5] - 2025-4-30
+
+### Added
+
+- Dante socks5 conf file
+- Proxy authentication process
+- OpenVPN configuration file
+- Generate temporary credentials for extension (user/pass)
+- Independent manifest.json for each firefox and chrome
+- Incognito check before connecting to proxy
+- Send and react to browser messages
+
+### Changed
+
+- Disable select menu after checkbox click
+- Fix chrome authentication
+- Improve API middleware
+
 ## [0.8.4] - 2025-4-27
 
 ### Added
@@ -587,7 +651,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A different reset email template
 - A pretty email verification template
 - Rewind to generate new recovery codes in dashboard
-- Prefill when customer is already existing (partial fail)
 - Design to payment form using stripe element
 - Fill icons switch to some
 - Payment to signup
