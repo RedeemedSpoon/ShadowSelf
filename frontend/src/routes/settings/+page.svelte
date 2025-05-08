@@ -4,7 +4,7 @@
   import {loadStripe, type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Settings, SettingsForm} from '$type';
   import {notify, updateFetch, updateModal} from '$lib';
-  import {modalIndex, fetchIndex} from '$store';
+  import {modalIndex, fetchIndex, user} from '$store';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
@@ -55,6 +55,7 @@
     if (form && Object.hasOwn(form, 'OTP')) settings.OTP = form.OTP;
     if (form && Object.hasOwn(form, 'API')) settings.API = form.API;
 
+    if (form?.username) $user = form.username;
     if (form?.recovery) settings.recovery = form.recovery;
     if (form?.secret) settings.secret = form.secret;
     if (form?.email) newEmailValue = form.email;

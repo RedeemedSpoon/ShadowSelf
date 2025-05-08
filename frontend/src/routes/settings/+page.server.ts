@@ -36,7 +36,7 @@ export const actions: Actions = {
 
     const response = await fetchBackend('/settings/username', 'PUT', {username});
     if (response.type === 'alert') return response;
-    return {message: 'Successfully changed username', type: 'success'};
+    return {message: 'Successfully changed username', type: 'success', username};
   },
   password: async ({request}) => {
     const form = await request.formData();

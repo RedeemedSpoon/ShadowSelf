@@ -8,6 +8,7 @@
   let isHome = $derived(page.url.pathname === '/');
   let shouldFocus = $derived(isHome && $scrollY < 150);
   let hoverSettings = $state(false) as boolean;
+  let username = $derived($user);
 </script>
 
 <svelte:window bind:scrollY={$scrollY} />
@@ -30,9 +31,7 @@
             <a href="/settings" {...events} class="border-primary-600 rounded-full border-2 p-1">
               <UserIcon className={className + (hoverSettings ? ' fill-primary-600!' : '')} fill={false} />
             </a>
-            {#key $user}
-              <a href="/dashboard" class="group" id="username">{$user}<span></span></a>
-            {/key}
+            <a href="/dashboard" class="group" id="username">{username}<span></span></a>
           </div>
         {:else}
           <a class="text-primary-600 hover:text-primary-700 underline max-xl:mr-2" href="/login">Log In</a>
