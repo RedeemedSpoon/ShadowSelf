@@ -1,3 +1,5 @@
+import {Location} from '@types';
+
 export default [
   {
     country: 'Canada',
@@ -31,4 +33,4 @@ export default [
     localization: 'sv',
     map: 'https://osm.org/go/0bCz19',
   },
-];
+] as Location[];

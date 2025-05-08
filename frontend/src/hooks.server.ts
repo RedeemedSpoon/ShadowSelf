@@ -2,10 +2,7 @@ import {redirect, type Handle} from '@sveltejs/kit';
 import {sequence} from '@sveltejs/kit/hooks';
 import csrf from '$csrf';
 
-const allowedOrigins = ['https://shadowself.io', 'https://localhost'];
-
-const csrfProtect = csrf([], allowedOrigins);
-
+const csrfProtect = csrf([], ['https://shadowself.io', 'https://localhost']);
 const authAndRedirects: Handle = async ({event, resolve}) => {
   const isLogged = event.cookies.get('token');
   const path = event.url.pathname;

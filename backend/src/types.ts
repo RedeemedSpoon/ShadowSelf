@@ -12,6 +12,15 @@ export interface WSConnection {
   emailAddress: string;
 }
 
+export interface Location {
+  localization: string;
+  country: string;
+  code: string;
+  city: string;
+  ip: string;
+  map: string;
+}
+
 export interface ContactDetail {
   category: 'question' | 'feedback' | 'collaboration' | 'bug' | 'help' | 'other';
   message: string;

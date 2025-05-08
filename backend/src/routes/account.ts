@@ -11,25 +11,22 @@ export default new Elysia({prefix: '/account'})
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(8);
     const signUp = ['/signup', 'signup-email', '/signup-username', '/signup-otp', '/signup-recovery', '/signup-create'];
-    const logIn = ['/login', '/login-email', '/login-otp', '/login-recovery'];
-    const mustNotLogIn = [...signUp, ...logIn];
+    const otherPaths = ['/login', '/login-email', '/login-otp', '/login-recovery', '/recovery-remaining'];
+    const mustNotLogIn = [...signUp, ...otherPaths];
 
-    if (mustNotLogIn.some((p) => relativePath === p) && user) {
+    if (mustNotLogIn.some((p) => relativePath === p || relativePath === p + '/') && user) {
       return error(401, 'You are already logged in');
     }
   })
   .get('/', async ({user}) => {
-    if (!user) return;
+    if (!user) return error(401, 'You are not logged in');
 
-    const result = await attempt(sql`SELECT revoke_session, username FROM users WHERE email = ${user.email}`);
-    if (!result[0].revoke_session.includes(user.id)) return error(401, 'Not authorized');
-
+    const result = await attempt(sql`SELECT revoke_session, username FROM users WHERE email = ${user!.email}`);
+    if (!result[0].revoke_session.includes(user!.id)) return error(401, 'Not authorized');
     return result[0].username;
   })
   .get('/recovery-remaining', async ({user}) => {
-    if (!user) return;
-
-    const result = await attempt(sql`SELECT recovery FROM users WHERE email = ${user.email}`);
+    const result = await attempt(sql`SELECT recovery FROM users WHERE email = ${user!.email}`);
     return result[0]?.recovery.length;
   })
   .post('/login', async ({jwt, body}) => {

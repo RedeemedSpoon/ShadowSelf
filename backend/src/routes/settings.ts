@@ -10,11 +10,10 @@ export default new Elysia({prefix: '/settings'})
   .use(middleware)
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(9);
-    const putPaths = ['/email', '/username', '/password'];
-    const otherPaths = ['', '/', '/revoke', '/otp', '/recovery', '/payment', '/api-access', '/api-key', '/full'];
-    const mustLogIn = [...putPaths, ...otherPaths];
+    const paths = ['', '/revoke', '/otp', '/recovery', '/payment', '/api-access', '/api-key', '/full'];
+    const mustLogIn = [...paths, '/email', '/username', '/password'];
 
-    if (mustLogIn.some((p) => relativePath === p) && !user) {
+    if (mustLogIn.some((p) => relativePath === p || relativePath === p + '/') && !user) {
       return error(401, 'You are not logged in');
     }
   })

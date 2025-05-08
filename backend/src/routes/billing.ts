@@ -10,6 +10,14 @@ import {$} from 'bun';
 
 export default new Elysia({prefix: '/billing'})
   .use(middleware)
+  .onBeforeHandle(({user, path}) => {
+    const relativePath = path.slice(9);
+    const paths = ['/checkout', '/checkout-after-confirm'];
+
+    if (mustLogIn.some((p) => relativePath === p || relativePath === p + '/') && !user) {
+      return error(401, 'You are not logged in');
+    }
+  })
   .post('/portal', async ({body}) => {
     const {email, err} = check(body, ['email']);
     if (err) return error(400, err);
@@ -28,8 +36,6 @@ export default new Elysia({prefix: '/billing'})
     return {sessionUrl: session.url};
   })
   .get('/checkout', async ({user, query}) => {
-    if (!user) return error(401, 'You are not logged in');
-
     const type = query?.type as keyof typeof pricingModal;
     const identityID = generateIdentityID();
 
@@ -84,8 +90,6 @@ export default new Elysia({prefix: '/billing'})
     return {step: 'create', clientSecret, identityID};
   })
   .get('/checkout-after-confirm', async ({user, query}) => {
-    if (!user) return error(401, 'You are not logged in');
-
     const type = query?.type as keyof typeof pricingModal;
     const identityID = generateIdentityID();
 
