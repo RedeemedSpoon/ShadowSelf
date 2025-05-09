@@ -12,7 +12,7 @@ export default new Elysia({prefix: '/billing'})
   .use(middleware)
   .onBeforeHandle(({user, path}) => {
     const relativePath = path.slice(9);
-    const paths = ['/checkout', '/checkout-after-confirm'];
+    const mustLogIn = ['/checkout', '/checkout-after-confirm'];
 
     if (mustLogIn.some((p) => relativePath === p || relativePath === p + '/') && !user) {
       return error(401, 'You are not logged in');

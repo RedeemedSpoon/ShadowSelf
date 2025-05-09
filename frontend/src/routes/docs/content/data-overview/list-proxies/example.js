@@ -1,22 +1,25 @@
 import axios from 'axios';
-import process from 'process';
 
 const apiKey = process.env.API_KEY;
-if (!apiKey) {
-  console.error('API_KEY missing.');
-  process.exit(1);
-}
-
 const apiUrl = 'https://shadowself.io/api/proxy';
 
 async function listProxies() {
   try {
     const response = await axios.get(apiUrl, {
-      headers: {Authorization: `Bearer ${apiKey}`, Accept: 'application/json'},
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: 'application/json',
+      },
     });
     console.log(JSON.stringify(response.data, null, 2));
   } catch (error) {
-    console.error('Error listing proxies:', error.response?.data || error.message);
+    let message = 'Error listing proxies: ';
+    if (error.response) {
+      message += `${error.response.status} - ${JSON.stringify(error.response.data)}`;
+    } else {
+      message += error.message;
+    }
+    console.error(message);
   }
 }
 

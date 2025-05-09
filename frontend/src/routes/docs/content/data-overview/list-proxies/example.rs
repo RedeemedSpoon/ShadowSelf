@@ -1,17 +1,28 @@
-use std::env;
-use std::error::Error;
+use std::{env, error::Error};
+use reqwest::Client;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    let api_key = env::var("API_KEY").expect("API_KEY missing");
+async fn main() -> Result<(), Box<dyn Error>> {
+    let api_key = env::var("API_KEY").unwrap();
     let api_url = "https://shadowself.io/api/proxy";
-    let client = reqwest::Client::new();
 
-    let res = client.get(api_url)
+    let client = Client::new();
+    let response = client
+        .get(api_url)
         .bearer_auth(api_key)
         .header("Accept", "application/json")
-        .send().await?;
+        .send()
+        .await?;
 
-    println!("{}", res.text().await?);
+    if !response.status().is_success() {
+        let status = response.status();
+        let err_text = response.text().await?;
+        eprintln!("API error: {}\n{}", status, err_text);
+        return Err(Box::from(format!("API error: {}", status)));
+    }
+
+    let body_text = response.text().await?;
+    println!("{}", body_text);
+
     Ok(())
 }

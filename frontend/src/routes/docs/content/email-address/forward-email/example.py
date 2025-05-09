@@ -1,32 +1,32 @@
-import os
-import requests
-import json
+import os, requests, json
 
-# Requires API_KEY and IDENTITY_ID environment variables
-api_key = os.environ.get('API_KEY')
-identity_id = os.environ.get('IDENTITY_ID')
-
-if not api_key or not identity_id:
-    print("Error: API_KEY and IDENTITY_ID env vars must be set.")
-    exit(1)
-
+api_key = os.environ['API_KEY']
+identity_id = os.environ['IDENTITY_ID']
 api_url = f"https://shadowself.io/api/email/forward-email/{identity_id}"
 
 headers = {
-    'Authorization': f'Bearer {api_key}',
-    'Content-Type': 'application/json'
+  'Authorization': f'Bearer {api_key}',
+  'Content-Type': 'application/json'
 }
-
-payload = {
-    "uid": 105,
-    "forward": "forward.recipient@another.com"
-}
+payload = {"uid": 105, "forward": "forward.recipient@another.com"}
 
 try:
-    response = requests.post(api_url, headers=headers, json=payload)
-    response.raise_for_status()
-    print(json.dumps(response.json(), indent=2))
+  response = requests.post(api_url, headers=headers, json=payload)
+  response.raise_for_status()
+  if response.status_code == 204 or not response.content:
+    print(f"Request successful (Status: {response.status_code})")
+  else:
+    try:
+      print(json.dumps(response.json(), indent=2))
+    except json.JSONDecodeError:
+      print(response.text)
+except requests.exceptions.HTTPError as e:
+  error_body = e.response.text
+  try:
+    error_json = e.response.json()
+    error_body = json.dumps(error_json, indent=2)
+  except json.JSONDecodeError:
+    pass
+  print(f"API error: {e.response.status_code}\n{error_body}")
 except requests.exceptions.RequestException as e:
-    print(f"Request failed: {e}")
-except Exception as e:
-    print(f"An error occurred: {e}")
+  print(f"Request failed: {e}")

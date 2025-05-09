@@ -1,18 +1,11 @@
 import axios from 'axios';
 
-// Requires API_KEY and IDENTITY_ID environment variables
 const apiKey = process.env.API_KEY;
 const identityId = process.env.IDENTITY_ID;
 const apiUrl = `https://shadowself.io/api/identity/regenerate-picture/${identityId}`;
-
-// Optional payload: Specify fields or send empty object {}
 const payload = {age: 25, ethnicity: 'asian'};
 
 async function regeneratePicture() {
-  if (!apiKey || !identityId) {
-    console.error('Error: API_KEY and IDENTITY_ID environment variables must be set.');
-    return;
-  }
   try {
     const response = await axios.patch(apiUrl, payload, {
       headers: {
@@ -22,7 +15,15 @@ async function regeneratePicture() {
     });
     console.log(JSON.stringify(response.data, null, 2));
   } catch (error) {
-    console.error('Error regenerating picture:', error.response?.data || error.message);
+    let message = 'Error regenerating picture: ';
+    if (error.response) {
+      const status = error.response.status;
+      const data = JSON.stringify(error.response.data);
+      message += `${status} - ${data}`;
+    } else {
+      message += error.message;
+    }
+    console.error(message);
   }
 }
 

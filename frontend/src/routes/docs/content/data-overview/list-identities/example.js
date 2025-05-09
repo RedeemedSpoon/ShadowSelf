@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 const apiKey = process.env.API_KEY;
 const apiUrl = 'https://shadowself.io/api/';
 
@@ -12,7 +13,13 @@ async function listIdentities() {
     });
     console.log(JSON.stringify(response.data, null, 2));
   } catch (error) {
-    console.error('Error fetching identities:', error.response?.data || error.message);
+    let errorMessage = 'Fetch error: ';
+    if (error.response && error.response.data) {
+      errorMessage += JSON.stringify(error.response.data);
+    } else {
+      errorMessage += error.message;
+    }
+    console.error(errorMessage);
   }
 }
 

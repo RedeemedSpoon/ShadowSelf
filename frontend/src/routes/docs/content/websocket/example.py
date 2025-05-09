@@ -1,46 +1,45 @@
-import os, asyncio, websockets, json
+import os
+import asyncio
+import websockets
+import json
 
-PING_INTERVAL = 45 # seconds
+PING_INTERVAL_S = 45
 
-async def ws_client(uri, headers):
-    async for websocket in websockets.connect(uri, extra_headers=headers, ping_interval=None):
-        print(f"Connected to {uri.split('/')[-1]}")
+async def handle_messages(websocket):
+    async for message_str in websocket:
         try:
-            # Background task to send pings
-            async def send_pings():
-                while True:
-                    await asyncio.sleep(PING_INTERVAL)
-                    try: await websocket.send("ping")
-                    except websockets.ConnectionClosed: break
-            ping_task = asyncio.create_task(send_pings())
+            event = json.loads(message_str)
+            if isinstance(event, dict) and event.get('type'):
+                print(f"Received event: {event.get('type')}")
+        except json.JSONDecodeError:
+            pass
 
-            # Listen for messages
-            async for message_str in websocket:
-                if message_str == 'pong': continue # Silently handle pong
-                try:
-                    event = json.loads(message_str)
-                    print(f"Received event: {event.get('type', 'Unknown')}")
-                except json.JSONDecodeError:
-                    print(f"Received non-JSON: {message_str[:50]}...")
-
-            # Clean up ping task if message loop exits
-            ping_task.cancel()
-            try: await ping_task
-            except asyncio.CancelledError: pass
-
-        except websockets.ConnectionClosed as e:
-            print(f"Connection closed: {e.code}")
+async def ws_client_manager(uri, headers):
+    while True:
+        try:
+            async with websockets.connect(
+                uri, extra_headers=headers, ping_interval=PING_INTERVAL_S
+            ) as websocket:
+                await handle_messages(websocket)
+        except websockets.ConnectionClosedError as e:
+            print(f"Connection closed error: {e.code} {e.reason}")
+        except websockets.ConnectionClosedOK:
+            print("Connection closed normally.")
+            break
         except Exception as e:
-            print(f"Error: {e}")
-        finally:
-             print("Disconnected. Attempting reconnect...")
-             await asyncio.sleep(5) # Wait before reconnecting
-
+            print(f"Connection error: {e}")
+        print("Attempting to reconnect in 5 seconds...")
+        await asyncio.sleep(5)
 
 async def main():
-    api_key=os.environ.get('API_KEY'); identity_id=os.environ.get('IDENTITY_ID')
-    if not api_key or not identity_id: exit("API_KEY/IDENTITY_ID missing.")
-    uri=f"wss://shadowself.io/ws-api/{identity_id}"; headers={'Authorization':f'Bearer {api_key}'}
-    await ws_client(uri, headers)
+    api_key = os.environ['API_KEY']
+    identity_id = os.environ['IDENTITY_ID']
+    uri = f"wss://shadowself.io/ws-api/{identity_id}"
+    headers = {'Authorization': f'Bearer {api_key}'}
+    await ws_client_manager(uri, headers)
 
-if __name__ == "__main__": asyncio.run(main())
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Exiting...")

@@ -1,21 +1,11 @@
 import axios from 'axios';
-import process from 'process';
 
-// Requires API_KEY and IDENTITY_ID environment variables
 const apiKey = process.env.API_KEY;
 const identityId = process.env.IDENTITY_ID;
 const apiUrl = `https://shadowself.io/api/email/delete-email/${identityId}`;
-
-const payload = {
-  mailbox: 'INBOX',
-  uid: 105,
-};
+const payload = {mailbox: 'INBOX', uid: 105};
 
 async function deleteEmail() {
-  if (!apiKey || !identityId) {
-    console.error('Error: API_KEY and IDENTITY_ID env vars must be set.');
-    process.exit(1);
-  }
   try {
     const response = await axios.delete(apiUrl, {
       headers: {
@@ -24,10 +14,21 @@ async function deleteEmail() {
       },
       data: payload,
     });
-    console.log('Move to Junk successful. Response:');
-    console.log(JSON.stringify(response.data, null, 2));
+    if (response.status === 204 || !response.data) {
+      console.log(`Delete successful (Status: ${response.status})`);
+    } else {
+      console.log(JSON.stringify(response.data, null, 2));
+    }
   } catch (error) {
-    console.error('Error moving email to Junk:', error.response?.data || error.message);
+    let message = 'Error deleting email: ';
+    if (error.response) {
+      const status = error.response.status;
+      const data = JSON.stringify(error.response.data);
+      message += `${status} - ${data}`;
+    } else {
+      message += error.message;
+    }
+    console.error(message);
   }
 }
 

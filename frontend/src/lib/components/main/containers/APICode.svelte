@@ -46,11 +46,11 @@
 
 <div class="mb-8">
   {#if response}
-    <pre class="language-json"><code class="text-base!">{JSON.stringify(response, null, 2)}</code></pre>
+    <pre class="language-json"><code>{JSON.stringify(response, null, 2)}</code></pre>
   {:else}
     {#key lang}
       {@const code = route?.code[lang] || (alt as {[key in Languages]: string})[lang]}
-      <pre {id} class="language-{lang}"><code class="text-base!">{code}</code></pre>
+      <pre {id} class="language-{lang}"><code>{code}</code></pre>
     {/key}
   {/if}
 </div>
@@ -67,6 +67,10 @@
   }
 
   pre {
-    @apply w-full max-w-[calc(100vw-4rem)] overflow-x-scroll !rounded-t-none xl:max-w-[calc(50vw-10rem)];
+    @apply no-scrollbar w-full max-w-[calc(100vw-4rem)] overflow-x-scroll !rounded-t-none xl:max-w-[calc(50vw-10rem)];
+  }
+
+  code {
+    @apply text-base! no-scrollbar;
   }
 </style>

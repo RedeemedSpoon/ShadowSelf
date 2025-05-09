@@ -101,7 +101,7 @@
   @reference "$style";
 
   ul {
-    @apply max-h-[275px] overflow-y-scroll;
+    @apply no-scrollbar max-h-[275px] overflow-y-scroll;
   }
 
   button.little {

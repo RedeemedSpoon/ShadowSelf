@@ -2,14 +2,24 @@ import os
 import requests
 import json
 
-api_key = os.environ.get('API_KEY')
-if not api_key: exit("API_KEY missing.")
-
+api_key = os.environ['API_KEY']
 api_url = "https://shadowself.io/api/proxy"
-headers = {'Authorization': f'Bearer {api_key}', 'Accept': 'application/json'}
+headers = {
+    'Authorization': f'Bearer {api_key}',
+    'Accept': 'application/json'
+}
 
 try:
     response = requests.get(api_url, headers=headers)
     response.raise_for_status()
     print(json.dumps(response.json(), indent=2))
-except Exception as e: print(f"Request failed: {e}")
+except requests.exceptions.HTTPError as e:
+    error_body = e.response.text
+    try:
+        error_json = e.response.json()
+        error_body = json.dumps(error_json, indent=2)
+    except json.JSONDecodeError:
+        pass
+    print(f"API error: {e.response.status_code}\n{error_body}")
+except requests.exceptions.RequestException as e:
+    print(f"Request failed: {e}")

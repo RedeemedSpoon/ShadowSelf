@@ -1,28 +1,28 @@
-use std::env;
-use std::error::Error;
+use std::{env, error::Error};
 use serde_json::json;
+use reqwest::Client;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // Requires API_KEY and IDENTITY_ID environment variables
-    let api_key = env::var("API_KEY").expect("API_KEY not set");
-    let identity_id = env::var("IDENTITY_ID").expect("IDENTITY_ID not set");
+  let api_key = env::var("API_KEY").unwrap();
+  let identity_id = env::var("IDENTITY_ID").unwrap();
 
-    let api_url = format!("https://shadowself.io/api/identity/regenerate-bio/{}", identity_id);
+  let api_url = format!(
+    "https://shadowself.io/api/identity/regenerate-bio/{}",
+    identity_id
+  );
+  let payload = json!({});
+  let client = Client::new();
 
-    // Send empty JSON object as payload for PATCH
-    let payload = json!({});
+  let response = client
+    .patch(&api_url)
+    .bearer_auth(api_key)
+    .json(&payload)
+    .send()
+    .await?
+    .error_for_status()?;
 
-    let client = reqwest::Client::new();
+  println!("{}", response.text().await?);
 
-    let res = client
-        .patch(&api_url)
-        .bearer_auth(api_key)
-        .json(&payload)
-        .send()
-        .await?;
-
-    println!("{}", res.text().await?);
-
-    Ok(())
+  Ok(())
 }
