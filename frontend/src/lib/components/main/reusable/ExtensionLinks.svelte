@@ -18,10 +18,10 @@
 
   const extensionInfo = {
     shadowself: {
-      firefox: '',
-      chrome: '',
-      edge: '',
-      opera: '',
+      firefox: 'https://addons.mozilla.org/en-US/firefox/addon/shadowself',
+      chrome: 'https://chromewebstore.google.com/detail/shadowself/paaidpbnnoopadhdodbjgfhfhhonmbmf',
+      edge: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      opera: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     },
     ublock: {
       website: 'https://ublockorigin.com',
