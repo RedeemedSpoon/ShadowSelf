@@ -8,41 +8,88 @@
   <h6>Want a refund? Cool, just check out our refund policy first.</h6>
   <section>
     <p>
-      <span>TLDR</span> Not sure if Shadowself is right for you? No problem! You have 14 days to change your mind and receive a full refund.
-      Simply delete your identity in the identity individual page, and if it was created less than 14 days ago, you’ll be eligible and get
-      refunded automatically within a few short minutes.
+      <span>TLDR</span> Not sure if Shadowself is right for you? No problem! If you purchased an identity and it was created less than 14
+      days ago, you can get a full refund. Just delete that specific identity from its individual page, and if eligible, your refund will
+      be processed automatically, usually within a few minutes on our end.
     </p>
   </section>
+
+  <h3>Our Commitment</h3>
   <p>
-    We, Shadowself, are committed to providing you with the highest services quality and customer satisfaction. That's why we offer a
-    refund policy for anyone who finds our service unsatisfactory.
+    At Shadowself, we are committed to your satisfaction and aim to provide high-quality services. We understand that sometimes a
+    service may not be the right fit, which is why we offer this refund policy.
   </p>
-  <h3>Refund Eligibility</h3>
+
+  <h3>Eligibility for a Refund</h3>
+  <p>You are eligible for a full refund under the following conditions:</p>
+  <ul>
+    <li>
+      The refund request is made within <b>14 calendar days</b> of the initial purchase and creation date of the specific Shadowself identity
+      you wish to have refunded.
+    </li>
+    <li>You initiate the refund request by deleting the specific identity via its individual page on our platform.</li>
+    <li>
+      You have not violated our <a href="/terms-of-service">Terms of Service</a> in relation to the identity or your account.
+    </li>
+  </ul>
   <p>
-    To ensure your satisfaction, we offer a 14-day, no-questions-asked refund policy. This means you may request a full refund within
-    14 days of your initial purchase, provided that you have not violated any of our terms and conditions.
+    This 14-day refund policy applies to the initial purchase of each individual identity. If you purchase multiple identities at
+    different times, the 14-day window applies separately to each from its respective purchase/creation date.
   </p>
+
   <h3>How to Request a Refund</h3>
+  <p>To request a refund, please follow these steps:</p>
+  <ol>
+    <li>Navigate to the individual page of the Shadowself identity for which you are seeking a refund.</li>
+    <li>Delete the identity in the confirmation modal.</li>
+    <li>
+      Our system will automatically check if the identity was created less than 14 days ago. If eligible, the refund process will be
+      initiated automatically.
+    </li>
+  </ol>
   <p>
-    To request a refund, please visit your individual identity page and delete it. If it was created less than 14 days ago, you will be
-    eligible for a full refund. And if you'd like to help us improve our service state a reason for the refund.
+    Optionally, you can let us know the reason for your refund request by contacting us through our <a href="/contact">contact page</a
+    >. Your feedback is valuable and helps us improve our service, but providing a reason is not required for an eligible refund.
   </p>
-  <h3>Refund Processing Time</h3>
-  <p>
-    Upon receipt of your refund request, our systems will take care of request automatically. You can expect your refund to be complete
-    within a few minutes. there might be disputes with stripe but we will find a way to resolve them.
-  </p>
+
+  <h3>Refund Processing</h3>
+  <p>Once an eligible refund is initiated by deleting the identity:</p>
+  <ul>
+    <li>Our system will process the refund request automatically, typically within a few minutes.</li>
+    <li>The refund will be issued to the original payment method used for the purchase.</li>
+    <li>
+      Please note that while we process the refund promptly on our end, it may take your bank or payment provider an additional <b
+        >5-10 business days</b> (or longer, depending on the provider) to reflect the refunded amount in your account. This timeframe is
+      outside of our direct control.
+    </li>
+  </ul>
+
+  <h3>Non-Refundable Circumstances</h3>
+  <p>Refunds will generally not be provided in the following circumstances:</p>
+  <ul>
+    <li>Requests made after the 14-day eligibility period for the specific identity has expired.</li>
+    <li>If you have violated our <a href="/terms-of-service">Terms of Service</a>.</li>
+  </ul>
+
   <h3>Data Privacy</h3>
   <p>
-    Rest assured that any personal information provided during the refund process will be handled with the utmost care and in
-    accordance with our Privacy Policy.
+    Any personal information processed in relation to your refund request will be handled in accordance with our <a
+      href="/privacy-policy">Privacy Policy</a
+    >. Deleting an identity as part of the refund process will also be subject to the data handling practices outlined therein.
   </p>
+
+  <h3>Changes to this Refund Policy</h3>
+  <p>
+    We reserve the right to modify this Refund Policy at any time. Any changes will be effective immediately upon posting the updated
+    policy on our Website. We encourage you to periodically review this page for the latest information on our refund practices.
+  </p>
+
   <h3>Contact Us</h3>
   <p>
-    Should you have any questions or concerns regarding our refund policy or service, please do not hesitate to contact us and we will
-    get back to you as soon as possible.
+    If you have any questions or concerns regarding this Refund Policy, or if you encounter any issues with the automated refund
+    process, please do not hesitate to contact us via our <a href="/contact">contact page</a>.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: January 23, 2025</small>
+  <small class="text-lg text-neutral-500">Last updated: May 13, 2025</small>
 </div>
 
 <style lang="postcss">
@@ -62,6 +109,14 @@
 
   h6 {
     @apply -mt-6 text-xl text-neutral-300 md:mb-4 md:text-2xl;
+  }
+
+  li {
+    @apply list-inside list-disc pl-8;
+
+    & b {
+      @apply font-semibold text-neutral-300;
+    }
   }
 
   section {
