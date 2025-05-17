@@ -1,4 +1,4 @@
-import {isChrome, read} from './shared.js';
+import {isChrome, read} from '../shared.js';
 
 export async function spoofUserAgent() {
   const userAgent = await getUserAgent();

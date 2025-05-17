@@ -1,4 +1,4 @@
-import {isChrome, read, store, remove} from './shared.js';
+import {isChrome, read, store, remove} from '../shared.js';
 
 export async function updateIcon() {
   const isVPNEnabled = await read('isVPNEnabled');
