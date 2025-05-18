@@ -2,7 +2,7 @@
 
 -- Environment Variables
 \set USER_NAME `echo $DB_USER`
-\set USER_PASSWORD `echo $DB_USER_PWD`
+\set USER_PASSWORD `echo $DB_PASSWORD`
 \set DATABASE `echo $DB_NAME`
 
 -- Create Database

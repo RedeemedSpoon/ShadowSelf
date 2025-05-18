@@ -1,9 +1,11 @@
 FROM nginx:alpine
 
+ENV CERTS /certs/*
+
 WORKDIR /etc/nginx 
 
 COPY nginx.conf .
 
-COPY ../.certs/* .
+COPY $CERTS .
 
 EXPOSE 80 

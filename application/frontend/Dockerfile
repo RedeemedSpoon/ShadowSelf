@@ -1,5 +1,7 @@
 FROM oven/bun:latest
 
+ENV STRIPE_PUBLISHABLE_KEY ""
+
 WORKDIR /app
 
 COPY frontend/ .

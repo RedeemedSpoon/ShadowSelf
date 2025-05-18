@@ -1,5 +1,7 @@
 FROM alpine:latest
 
+ENV CERTS /certs-ovpn/*
+
 RUN apk add --no-cache openvpn
 
 RUN mkdir -p /etc/openvpn/keys /dev/net
@@ -8,7 +10,7 @@ RUN mknod /dev/net/tun c 10 200 && chmod 600 /dev/net/tun
 
 WORKDIR /etc/openvpn/keys
 
-COPY ../.certs/openvpn/* /
+COPY $CERTS .
 
 RUN chmod 600 server.key ta.key
 
