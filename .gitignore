@@ -1,3 +1,4 @@
+server
 bun.lockb
 package-lock.json
 pnpm-lock.yaml
@@ -8,6 +9,6 @@ Thumbs.db
 .output
 
 build
-server
 node_modules
 .svelte-kit
+.certs

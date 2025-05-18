@@ -2,7 +2,7 @@ FROM nginx:alpine
 
 WORKDIR /etc/nginx 
 
-COPY nginx.conf .
+COPY nginx/nginx.conf .
 
 COPY ../.certs/* .
 
