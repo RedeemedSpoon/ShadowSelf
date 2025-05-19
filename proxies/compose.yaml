@@ -1,0 +1,48 @@
+name: shadowself-proxies
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      PEM_FILES: $SHADOWSELF_PATH/.certs/*.pem
+    restart: always
+    init: true
+
+  openvpn:
+    build: ./openvpn
+    expose:
+      - 1194/udp
+    environment:
+      EASYRSA_PKI: $SHADOWSELF_PATH/.certs/openVPN/ 
+    restart: always
+    init: true
+
+  squid:
+    build: ./squid
+    ports:
+      - 3128:3128
+    depends_on:
+      - openvpn
+    volumes:
+      - users:/etc/squid/passwd
+    restart: always
+    init: true
+
+  server:
+    build: .
+    expose:
+      - 4000
+    env_file:
+      - .env
+    volumes:
+      - users:/etc/squid/passwd
+    depends_on:
+      - nginx
+    restart: always
+    init: true
+
+volumes:
+  users:

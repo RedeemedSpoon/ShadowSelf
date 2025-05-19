@@ -1,0 +1,50 @@
+name: shadowself-core
+
+services:
+  nginx:
+    build: .
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      PEM_FILES: $SHADOWSELF_PATH/.certs/*.pem
+    restart: always
+    init: true
+
+  postgres:
+    build: ./database
+    expose:
+      - 5432
+    env_file:
+      - ./database/.env
+    volumes:
+      - data:/var/lib/postgresql/data
+    restart: always
+    init: true
+
+  backend:
+    build: ./backend 
+    expose:
+      - 3000
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - postgres
+      - nginx
+    restart: always
+    init: true
+
+  frontend:
+    build: ./frontend
+    expose:
+      - 5000
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+      - nginx
+    restart: always
+    init: true
+
+volumes:
+  data:

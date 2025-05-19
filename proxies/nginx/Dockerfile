@@ -1,11 +1,11 @@
 FROM nginx:alpine
 
-ENV CERTS /certs/*
+ENV PEM_FILES ''
 
 WORKDIR /etc/nginx 
 
-COPY nginx/nginx.conf .
+COPY nginx.conf .
 
-COPY $CERTS .
+COPY $PEM_FILES ./
 
-EXPOSE 80 
+EXPOSE 80 443
