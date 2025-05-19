@@ -18,4 +18,4 @@ RUN chmod +x ./server
 
 EXPOSE 3000
 
-CMD [ "./server" ]
+CMD [ "NODE_ENV=prod", "./server" ]
