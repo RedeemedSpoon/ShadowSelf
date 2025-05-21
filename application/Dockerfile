@@ -1,15 +1,13 @@
 FROM nginx:alpine
 
-ENV PEM_FILES ''
-
 WORKDIR /etc/nginx 
+
+COPY .certs/*.pem ./
 
 COPY nginx.conf .
 
-RUN sed -i "s|http://localhost|http://frontend|g" nginx.conf
+RUN sed -i "s|http://localhost:5000|http://frontend:5000|g" nginx.conf
 
-RUN sed -i "s|http://localhost|http://backend|g" nginx.conf
-
-COPY $PEM_FILES ./
+RUN sed -i "s|http://localhost:3000|http://backend:3000|g" nginx.conf
 
 EXPOSE 80 443

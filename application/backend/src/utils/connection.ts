@@ -13,9 +13,9 @@ export const production = process.env.NODE_ENV === 'prod';
 export const sql = postgres({
   host: production ? 'postgres' : 'localhost',
   port: 5432,
-  database: process.env.DB_NAME,
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
+  database: process.env.POSTGRES_DB,
+  username: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
 });
 
 export function smtpTransporter(user: string, pass: string) {

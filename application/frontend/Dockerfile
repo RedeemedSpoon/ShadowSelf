@@ -4,9 +4,11 @@ ENV STRIPE_PUBLISHABLE_KEY ""
 
 WORKDIR /app
 
-COPY frontend/ .
+COPY package.json .
 
 RUN bun install
+
+COPY . .
 
 RUN bun run build
 

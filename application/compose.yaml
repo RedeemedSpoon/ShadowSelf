@@ -6,8 +6,6 @@ services:
     ports:
       - 80:80
       - 443:443
-    environment:
-      PEM_FILES: $SHADOWSELF_PATH/.certs/*.pem
     restart: always
     init: true
 
@@ -28,6 +26,7 @@ services:
       - 3000
     env_file:
       - ./backend/.env
+      - ./database/.env
     depends_on:
       - postgres
       - nginx

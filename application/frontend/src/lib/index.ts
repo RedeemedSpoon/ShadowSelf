@@ -1,7 +1,6 @@
 import {notification, modalIndex, fetchIndex} from '$store';
 import type {Cookies} from '@sveltejs/kit';
 import type {Notification} from '$type';
-import {dev} from '$app/environment';
 import {get} from 'svelte/store';
 
 export function notify(message: string, type: Notification['type'] = 'info') {
@@ -36,11 +35,10 @@ export async function updateModal(index = 1, condition = true) {
 export function createCookie(cookies: Cookies, name: string, value: string, short: boolean = false) {
   return cookies.set(name, value, {
     path: '/',
-    domain: dev ? 'localhost' : 'shadowself.io',
+    secure: true,
+    sameSite: 'strict',
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     maxAge: short ? 3_600_000 : 2_592_000_000,
-    sameSite: 'strict',
-    secure: true,
   });
 }
 

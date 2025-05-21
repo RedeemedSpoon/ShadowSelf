@@ -125,7 +125,7 @@ export const actions: Actions = {
     if (!response.cookie) return response;
 
     createCookie(cookies, 'token', response.cookie);
-    cookies.delete('signup', {domain: dev ? 'localhost' : 'shadowself.io', path: '/'});
+    cookies.delete('signup', {path: '/'});
     redirect(302, '/dashboard');
   },
 };

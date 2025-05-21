@@ -13,6 +13,8 @@ export const load: LayoutServerLoad = async ({cookies}) => {
     redirect(302, '/');
   }
 
+  if (response.status !== 200) return;
+
   const user = response.message || '';
   return {user, token: get(token)};
 };

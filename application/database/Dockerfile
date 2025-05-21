@@ -1,6 +1,6 @@
 FROM postgres:alpine
 
-ENV DB_USERNAME, DB_PASSWORD, DB_NAME
+ENV POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
 
 WORKDIR /docker-entrypoint-initdb.d
 

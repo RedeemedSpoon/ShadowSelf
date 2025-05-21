@@ -33,8 +33,8 @@ export async function fetchAPI(url: string, method = 'GET', body?: Record<string
 }
 
 export async function fetchBackend(url: string, method = 'GET', body?: Record<string, unknown>) {
-  const host = process.env.NODE_ENV === 'prod' ? 'backend' : 'localhost:3000';
-  return await fetch('https://' + host + url, {
+  const host = process.env.NODE_ENV === 'prod' ? 'backend:3000' : 'localhost:3000';
+  return await fetch('http://' + host + url, {
     headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
     body: body ? JSON.stringify(body) : undefined,
     method,
