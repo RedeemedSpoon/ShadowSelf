@@ -1,7 +1,5 @@
 FROM alpine:latest
 
-ENV EASYRSA_PKI ''
-
 RUN apk add --no-cache openvpn
 
 RUN mkdir -p /etc/openvpn/keys /dev/net
@@ -10,7 +8,7 @@ RUN mknod /dev/net/tun c 10 200 && chmod 600 /dev/net/tun
 
 WORKDIR /etc/openvpn/keys
 
-COPY $EASYRSA_PKI .
+COPY ./certs/openvpn/* ./
 
 RUN chmod 600 server.key ta.key
 

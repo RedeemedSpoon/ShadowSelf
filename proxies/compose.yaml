@@ -6,8 +6,6 @@ services:
     ports:
       - 80:80
       - 443:443
-    environment:
-      PEM_FILES: $SHADOWSELF_PATH/.certs/*.pem
     restart: always
     init: true
 
@@ -15,8 +13,6 @@ services:
     build: ./openvpn
     cap_add:
       - NET_ADMIN
-    environment:
-      EASYRSA_PKI: $SHADOWSELF_PATH/.certs/openVPN/ 
     restart: always
     init: true
 

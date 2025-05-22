@@ -1,7 +1,5 @@
 FROM nginx:alpine
 
-ENV PEM_FILES ''
-
 ARG SUBDOMAINS 'us'
 
 WORKDIR /etc/nginx 
@@ -12,6 +10,6 @@ RUN sed -i "s|http://localhost|http://server|g" nginx.conf
 
 RUN sed -i "s|[TLD]|$SUBDOMAINS|g" nginx.conf
 
-COPY $PEM_FILES ./
+COPY .certs/*.pem ./
 
 EXPOSE 80 443
