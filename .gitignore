@@ -11,5 +11,6 @@ Thumbs.db
 build
 node_modules
 .svelte-kit
+.easy-pki
 .certs
 .env

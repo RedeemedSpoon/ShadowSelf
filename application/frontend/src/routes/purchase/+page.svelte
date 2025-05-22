@@ -174,7 +174,8 @@
 
 <Modal id={1}>
   <div class="m-4 flex flex-col gap-8">
-    <div id="payment-element" class="min-h-96 min-w-96"></div>
+    <h3 class="text-4xl font-bold text-neutral-300 text-center">Checkout</h3>
+    <div id="payment-element" class="min-h-80 min-w-96"></div>
     <LoadingButton name="pay" index={2} onclick={completePayment}>Pay ${$pricingModel.price}</LoadingButton>
   </div>
 </Modal>

@@ -7,13 +7,12 @@ import {token} from '$store';
 export const load: LayoutServerLoad = async ({cookies}) => {
   token.set(cookies.get('token') || '');
   const response = await fetchBackend('/account');
+  if (response.message === 'You are not logged in') return;
 
   if (response.message === 'Not authorized') {
     cookies.delete('token', {path: '/'});
     redirect(302, '/');
   }
-
-  if (response.status !== 200) return;
 
   const user = response.message || '';
   return {user, token: get(token)};

@@ -11,4 +11,3 @@ build
 server
 node_modules
 .svelte-kit
-.git

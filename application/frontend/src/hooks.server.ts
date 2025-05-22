@@ -8,7 +8,7 @@ const authAndRedirects: Handle = async ({event, resolve}) => {
   const path = event.url.pathname;
 
   if (path === '/logout') {
-    event.cookies.delete('token', {domain: event.url.hostname, path: '/'});
+    event.cookies.delete('token', {path: '/'});
     redirect(302, '/');
   }
 

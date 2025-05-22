@@ -6,9 +6,5 @@ pnpm-lock.yaml
 Thumbs.db
 .DS_Store
 .output
-
-build
-server
 node_modules
-.svelte-kit
-.git
+proxy

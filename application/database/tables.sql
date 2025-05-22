@@ -1,26 +1,11 @@
 -- NOTHING SENSITIVE HERE, THIS IS JUST FOR INITIALIZATION OF THE DATABASE
 
--- Environment Variables
-\set NAME `echo $POSTGRES_USER`
-\set PASSWORD `echo $POSTGRES_PASSWORD`
-\set DATABASE `echo $POSTGRES_DB`
-
--- Create Database
-DROP DATABASE IF EXISTS :DATABASE;
-CREATE DATABASE :DATABASE;
-\connect :DATABASE;
-
--- Create User
-DROP USER IF EXISTS :NAME;
-CREATE USER :"NAME" WITH PASSWORD :'PASSWORD';
-
--- Grant Privileges
-GRANT ALL privileges on database :DATABASE to :NAME;
-ALTER DATABASE :DATABASE OWNER TO :NAME;
-ALTER USER :NAME SUPERUSER;
+-- Delete Existing Tables
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS identities;
+DROP TABLE IF EXISTS accounts;
 
 -- Create Tables
-DROP TABLE IF EXISTS users;
 CREATE TABLE users (
   "id" SERIAL PRIMARY KEY,
   "username" varchar(25) NOT NULL,
@@ -34,7 +19,6 @@ CREATE TABLE users (
   "api_key" varchar(32)
 );
 
-DROP TABLE IF EXISTS identities;
 CREATE TABLE identities (
   "id" varchar(12) PRIMARY KEY,
   "owner" integer NOT NULL REFERENCES users(id),
@@ -58,7 +42,6 @@ CREATE TABLE identities (
   "status" varchar(8) DEFAULT 'inactive'
 );
 
-DROP TABLE IF EXISTS accounts;
 CREATE TABLE accounts (
   "id" SERIAL PRIMARY KEY,
   "owner" varchar(12) NOT NULL REFERENCES identities(id),
