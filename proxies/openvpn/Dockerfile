@@ -1,14 +1,12 @@
 FROM alpine:latest
 
-RUN apk add --no-cache openvpn
+RUN apk add --no-cache openvpn bash
 
-RUN mkdir -p /etc/openvpn/keys /dev/net
-
-RUN mknod /dev/net/tun c 10 200 && chmod 600 /dev/net/tun
+RUN mkdir -p /etc/openvpn/keys
 
 WORKDIR /etc/openvpn/keys
 
-COPY ./certs/openvpn/* ./
+COPY .easy-pki/* ./
 
 RUN chmod 600 server.key ta.key
 

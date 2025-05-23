@@ -2,7 +2,10 @@ name: shadowself-proxies
 
 services:
   nginx:
-    build: ./nginx
+    build: 
+      context: ./nginx
+      args:
+        SUBDOMAIN: us
     ports:
       - 80:80
       - 443:443
@@ -13,13 +16,15 @@ services:
     build: ./openvpn
     cap_add:
       - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    ports:
+      - 3128:3128
     restart: always
     init: true
 
   squid:
     build: ./squid
-    ports:
-      - 3128:3128
     network_mode: service:openvpn
     depends_on:
       - openvpn

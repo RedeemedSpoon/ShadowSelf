@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN apk add --no-cache squid openrc apache2-utils busybox-initscripts
+RUN apk add --no-cache squid openrc apache2-utils
 
 WORKDIR /etc/squid
 
