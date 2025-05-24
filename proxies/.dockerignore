@@ -6,5 +6,6 @@ pnpm-lock.yaml
 Thumbs.db
 .DS_Store
 .output
+
 node_modules
 proxy
