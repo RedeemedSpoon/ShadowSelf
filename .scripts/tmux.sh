@@ -4,19 +4,19 @@ session="Shadowself"
 
 window=1
 tmux new-session -d -s $session -n 'Server'
-tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/frontend' C-m
+tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/application/frontend' C-m
 tmux send-keys -t $session:$window 'clear' C-m
 tmux send-keys -t $session:$window 'bun dev' C-m
 sleep 0.5
 
 tmux split-window -t $session:1 -h
-tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/backend' C-m
+tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/application/backend' C-m
 tmux send-keys -t $session:$window 'clear' C-m
 tmux send-keys -t $session:$window 'bun dev' C-m
 sleep 0.5
 
 tmux split-window -t $session:1 -v
-tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/proxies' C-m
+tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/proxies/src' C-m
 tmux send-keys -t $session:$window 'clear' C-m
 tmux send-keys -t $session:$window 'bun dev' C-m
 sleep 0.5
@@ -32,7 +32,7 @@ tmux send-keys -t $session:$window 'twilio phone-numbers:update $PHONE_NUMBER --
 
 window=3
 tmux new-window -t $session:$window -n 'Database'
-tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/backend' C-m
+tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/application/database' C-m
 tmux send-keys -t $session:$window 'clear' C-m
 tmux send-keys -t $session:$window 'psql postgresql://$DB_USER:$DB_USER_PWD@localhost:5432/$DB_NAME' C-m
 

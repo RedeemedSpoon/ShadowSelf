@@ -21,7 +21,7 @@ services:
     init: true
 
   backend:
-    build: ./backend 
+    build: ./backend
     expose:
       - 3000
     env_file:

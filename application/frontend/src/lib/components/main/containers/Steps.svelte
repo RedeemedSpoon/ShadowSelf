@@ -6,13 +6,19 @@
 
   let {children}: {children: Snippet} = $props();
 
+  let div = $state() as HTMLDivElement;
   onMount(() => currentStep.set(1));
 </script>
 
 <div style="background-image: url({circuitPattern})">
   {#key $currentStep}
-    <section in:fly={{delay: 500, x: 35, opacity: 0, duration: 500}} out:fly={{x: -35, opacity: 0, duration: 500}}>
-      {@render children?.()}
+    <section
+      style="height: {div?.clientHeight}px !important;"
+      in:fly={{delay: 500, x: 35, opacity: 0, duration: 500}}
+      out:fly={{x: -35, opacity: 0, duration: 500}}>
+      <div class="absolute h-0" bind:this={div}>
+        {@render children?.()}
+      </div>
     </section>
   {/key}
 </div>
@@ -21,7 +27,7 @@
   @reference "$style";
 
   div {
-    @apply h-full bg-repeat pb-[6rem] pt-[9rem] md:pb-[10rem] md:pt-[15rem];
+    @apply h-full bg-repeat pb-16 pt-16 md:pb-24 md:pt-28;
   }
 
   section {

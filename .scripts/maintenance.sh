@@ -1,7 +1,7 @@
 #!/bin/bash
 
-LOG_FILE="/ShadowSelf/maintenance.log"
-CRON_JOB="0 3 * * * /ShadowSelf/maintenance.sh"
+LOG_FILE="/ShadowSelf/.scripts/maintenance.log"
+CRON_JOB="0 3 * * * /ShadowSelf/.scripts/maintenance.sh"
 ALL_CRON_JOB=$(crontab -l 2>/dev/null)
 
 echo "---------- Maintenance script started at: $(date) ----------" >> $LOG_FILE

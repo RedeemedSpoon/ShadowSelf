@@ -2,7 +2,7 @@ name: shadowself-proxies
 
 services:
   nginx:
-    build: 
+    build:
       context: ./nginx
       args:
         SUBDOMAIN: us
