@@ -34,7 +34,7 @@ window=3
 tmux new-window -t $session:$window -n 'Database'
 tmux send-keys -t $session:$window 'cd $SHADOWSELF_PATH/application/database' C-m
 tmux send-keys -t $session:$window 'clear' C-m
-tmux send-keys -t $session:$window 'psql postgresql://$DB_USER:$DB_USER_PWD@localhost:5432/$DB_NAME' C-m
+tmux send-keys -t $session:$window 'psql postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/$POSTGRES_DB' C-m
 
 window=4
 tmux new-window -t $session:$window -n 'Code'

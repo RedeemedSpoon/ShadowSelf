@@ -46,14 +46,14 @@
   input[type='email'],
   input[type='search'],
   input[type='number'],
-  input[type='password'] {
+  input[type='password'],
+  textarea {
     @apply outline-hidden rounded-xl border p-4 transition-all duration-300 placeholder:text-neutral-700;
-    @apply focus:ring-primary-600 focus:ring-3 border-neutral-800 bg-neutral-800/30 text-lg text-neutral-300;
+    @apply focus:ring-primary-600! focus:ring-3! border-neutral-800! bg-neutral-800/30! text-lg! text-neutral-300;
   }
 
   textarea {
-    @apply outline-hidden! rounded-xl! p-4! placeholder:text-neutral-700! border transition-all duration-300;
-    @apply focus:ring-primary-600! focus:ring-3! border-neutral-800! bg-neutral-800/30! text-lg! text-neutral-300;
+    @apply resize-none! rounded-xl! border!;
   }
 
   input[type='number'] {

@@ -17,6 +17,13 @@ section {
   row-gap: 10px;
 }
 
+#no-identities {
+  background-image: url('../../assets/graphics/identity.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 200px;
+}
+
 #no-identities a {
   margin-top: 15px;
 }

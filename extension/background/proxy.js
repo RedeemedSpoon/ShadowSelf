@@ -24,7 +24,7 @@ export async function connect(request) {
     chrome.notifications.create('proxy-error-incognito', {
       type: 'basic',
       title: 'Proxy Setup Error',
-      message: 'Please enable incognito/private mode in your browser settings to use ShadowSelf.',
+      message: 'Please allow incognito/private access in your browser settings to use ShadowSelf.',
       iconUrl: 'assets/favicon.ico',
     });
 
