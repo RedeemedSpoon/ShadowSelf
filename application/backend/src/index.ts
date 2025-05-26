@@ -9,9 +9,7 @@ import settings from './routes/settings';
 import account from './routes/account';
 import billing from './routes/billing';
 import api from './routes/api';
-import {generateProxyPassword} from '@utils/crypto';
 
-console.log(generateProxyPassword());
 const app = new Elysia()
   .onError(({error}) => ({message: error instanceof Error ? error.message : error}))
   .get('/', () => 'Hello from ShadowSelf!')

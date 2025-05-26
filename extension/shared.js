@@ -1,4 +1,4 @@
-export const origin = chrome.runtime.getManifest().version === '0.0.0.0' ? 'localhost' : 'shadowself.io';
+export const origin = chrome.runtime.getManifest().version === '0.0.0' ? 'localhost' : 'shadowself.io';
 export const isChrome = !!chrome.runtime.getManifest().externally_connectable;
 
 export async function read(key) {

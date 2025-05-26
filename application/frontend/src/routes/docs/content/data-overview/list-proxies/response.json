@@ -9,7 +9,7 @@
       "domain": "ca.shadowself.io",
       "server": "192.0.2.10",
       "protocol": "https",
-      "port": 3128,
+      "port": 3129,
       "username": "usr-ide38349c0ab",
       "password": "pwd-proxyPasswordForJane"
     },
@@ -21,7 +21,7 @@
       "domain": "gb.shadowself.io",
       "server": "198.51.100.20",
       "protocol": "https",
-      "port": 3128,
+      "port": 3129,
       "username": "usr-ide9ff12a4de",
       "password": "pwd-proxyPasswordForJohn"
     }

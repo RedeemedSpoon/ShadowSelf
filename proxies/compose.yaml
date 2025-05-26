@@ -19,7 +19,7 @@ services:
     devices:
       - /dev/net/tun
     ports:
-      - 3128:3128
+      - 3129:3129
     restart: always
     init: true
 
@@ -34,11 +34,11 @@ services:
     init: true
 
   server:
-    build: .
+    build: ./src
     expose:
       - 4000
     env_file:
-      - .env
+      - src/.env
     volumes:
       - users:/etc/squid/passwd
     depends_on:

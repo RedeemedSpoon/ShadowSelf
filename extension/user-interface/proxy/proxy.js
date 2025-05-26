@@ -39,7 +39,6 @@ async function ConfigureVPN(proxy, response) {
 
   container.addEventListener('click', async () => {
     if (status.textContent.includes('ting')) return;
-
     activeElements.forEach((el) => el.classList.add('processing'));
 
     const wasConnected = status.textContent === 'Connected';

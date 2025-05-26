@@ -177,10 +177,8 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const messagingService = twilio.messaging.v1.services(process.env.TWILIO_MESSAGING_SERVICE!);
           messagingService.phoneNumbers.create({phoneNumberSid: result.sid});
 
-          await attempt(sql`UPDATE identities SET location = ${fullLocation} WHERE id = ${identityID}`);
-          await attempt(
-            sql`UPDATE identities SET proxy_server = ${proxyServer}, proxy_password = ${proxyPassword.slice(4)} WHERE id = ${identityID}`,
-          );
+          await attempt(sql`UPDATE identities SET location = ${fullLocation}, proxy_server = ${proxyServer} WHERE id = ${identityID}`);
+          await attempt(sql`UPDATE identities SET proxy_password = ${proxyPassword.slice(4)} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`);
 

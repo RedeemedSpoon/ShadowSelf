@@ -6,10 +6,14 @@ WORKDIR /etc/squid
 
 COPY squid.conf .
 
+COPY .certs/* ./
+
 RUN squid -z
 
-EXPOSE 3128
+EXPOSE 3129
 
 VOLUME [ "/etc/squid/passwd" ]
+
+RUN rm /var/run/squid.pid
 
 CMD ["squid", "-N"]
