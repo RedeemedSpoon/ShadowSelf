@@ -48,16 +48,20 @@
   input[type='number'],
   input[type='password'],
   textarea {
-    @apply outline-hidden rounded-xl border p-4 transition-all duration-300 placeholder:text-neutral-700;
-    @apply focus:ring-primary-600! focus:ring-3! border-neutral-800! bg-neutral-800/30! text-lg! text-neutral-300;
+    @apply outline-hidden! rounded-xl border p-4 transition-all duration-300 placeholder:text-neutral-700;
+    @apply focus:ring-primary-600! focus:ring-2! border-neutral-800 bg-neutral-800/30 text-lg text-neutral-300;
   }
 
   textarea {
-    @apply resize-none! rounded-xl! border!;
+    @apply rounded-xl! p-4! placeholder:text-neutral-700! border! border-neutral-800! bg-neutral-800/30! text-lg!;
   }
 
   input[type='number'] {
     @apply [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none;
+  }
+
+  input#search {
+    @apply focus:ring-primary-600! focus:ring-0!;
   }
 
   form > * {
