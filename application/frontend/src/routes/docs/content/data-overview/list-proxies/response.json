@@ -1,5 +1,5 @@
 {
-  "username": "Greed",
+  "username": "Admin",
   "identities": [
     {
       "id": "ide38349c0ab",
@@ -8,8 +8,8 @@
       "picture": "U2FsdGVkX1+abc...",
       "domain": "ca.shadowself.io",
       "server": "192.0.2.10",
-      "protocol": "https",
-      "port": 3128,
+      "https": 3128,
+      "socks5": 1080,
       "username": "usr-ide38349c0ab",
       "password": "pwd-proxyPasswordForJane"
     },
@@ -20,8 +20,8 @@
       "picture": "U2FsdGVkX1+def...",
       "domain": "gb.shadowself.io",
       "server": "198.51.100.20",
-      "protocol": "https",
-      "port": 3128,
+      "https": 3128,
+      "socks5": 1080,
       "username": "usr-ide9ff12a4de",
       "password": "pwd-proxyPasswordForJohn"
     }

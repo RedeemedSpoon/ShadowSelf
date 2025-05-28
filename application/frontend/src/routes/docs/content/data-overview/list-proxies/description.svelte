@@ -32,9 +32,11 @@
         this identity.
       </li>
       <li>
-        <code>protocol</code> (<span class="string">string</span>): The protocol required for the proxy connection (always `https`).
+        <code>https</code> (<span class="string">number</span>): The HTTPS port, TLS encryption is required.
       </li>
-      <li><code>port</code> (<span class="integer">integer</span>): The port number for the proxy connection (always `3128`).</li>
+      <li>
+        <code>socks5</code> (<span class="string">number</span>): The Socks port, version 5 only.
+      </li>
       <li>
         <code>username</code> (<span class="string">string</span>): The username required for proxy authentication (prefixed with
         `usr-`).

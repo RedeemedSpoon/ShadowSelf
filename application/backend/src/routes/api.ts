@@ -51,8 +51,8 @@ export default new Elysia()
         picture: await resizeImage(picture),
         domain: `${location.split(',')[0].toLowerCase()}.shadowself.io`,
         server: proxy_server,
-        protocol: 'https',
-        port: 3128,
+        https: 3128,
+        socks5: 1080,
         username: 'usr-' + id,
         password: 'pwd-' + proxy_password,
       };
