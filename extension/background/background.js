@@ -55,6 +55,7 @@ chrome.webRequest.onAuthRequired.addListener(
 
     if (canAuthenticate && sameChallenger) {
       const auth = {username: creds.username, password: creds.password};
+      console.log(auth);
       callback({authCredentials: auth});
     } else callback();
   },

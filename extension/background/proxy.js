@@ -5,7 +5,7 @@ export async function updateIcon() {
   if (!isVPNEnabled) return;
 
   const path = isVPNEnabled === 'on' ? 'enabled' : 'disabled';
-  chrome.action.setIcon({path: `assets/icon-${path}.png`});
+  chrome.action.setIcon({path: `../assets/icon-${path}.png`});
 }
 
 export async function toggleKillSwitch(enabled) {
@@ -34,7 +34,7 @@ export async function connect(request) {
   const proxyApi = isChrome ? chrome.proxy : browser.proxy;
   const settingsValue = isChrome
     ? {mode: 'fixed_servers', rules: {singleProxy: {host: domain, port: Number(port), scheme: protocol}}}
-    : {proxyDNS: false, proxyType: 'manual', ssl: `${protocol}://${domain}:${port}`};
+    : {proxyDNS: false, proxyType: 'manual', ssl: `${domain}:${port}`};
 
   await proxyApi.settings.clear({scope: 'regular'});
   await proxyApi.settings.set({value: settingsValue, scope: 'regular'});

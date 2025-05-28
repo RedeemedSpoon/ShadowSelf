@@ -52,7 +52,7 @@ export default new Elysia()
         domain: `${location.split(',')[0].toLowerCase()}.shadowself.io`,
         server: proxy_server,
         protocol: 'https',
-        port: 3129,
+        port: 3128,
         username: 'usr-' + id,
         password: 'pwd-' + proxy_password,
       };

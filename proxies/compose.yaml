@@ -19,7 +19,7 @@ services:
     devices:
       - /dev/net/tun
     ports:
-      - 3129:3129
+      - 3128:3128
     restart: always
     init: true
 
