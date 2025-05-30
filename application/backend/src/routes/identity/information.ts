@@ -4,6 +4,7 @@ import middleware from '@middleware-api';
 import locations from '@utils/locations';
 import {checkAPI} from '@utils/checks';
 import {sql} from '@utils/connection';
+import {attempt} from '@utils/utils';
 import {Elysia, error} from 'elysia';
 
 export default new Elysia({prefix: '/identity'})

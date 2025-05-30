@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.3] - 2025-5-30
+
+### Added
+
+- Update to final README.md
+- Dante back to support SOCK5 in firfox and API
+- update.sh to automatically update docker container globally
+- User icon when no identities in extension page
+
+### Changed
+
+- Extension TLS issues is chromium
+- Change to Realistic prompts when generating avatars
+- Fix signup/login transition design issues
+- Move shell files into .scripts/
+- Fix global design issues
+- Fix paths issues
+- Change ports
+
+## [0.9.2] - 2025-5-14
+
+### Added
+
+- Docker environment variables
+- Application docker compose
+- Proxies docker compose
+
+### Changed
+
+- Divide Database into roles.sql and tables.sql
+- Correct host to include docker container name
+- Change database environment variable names
+- Fix Docker issues
+
+### Removed
+
+- Nginx Caching
+- Domains form cookie creation
+
+## [0.9.1] - 2025-5-16
+
+### Added
+
+- .dockerignore files
+- Proxy dockerfiles
+- Frontend dockerfiles
+- Backned dockerfiles
+- Extension links/urls
+- Database seperate directory
+
+### Changed
+
+- Move core web server to application/ directory
+- move extension background code to background/ directory
+- Fix backend pre request code to better catch errors
+- renew Legal policy page to be more pro-GDPR
+- Docker container intern paths
+
 ## [0.9.0] - 2025-5-06
 
 ### Added
