@@ -78,8 +78,6 @@ async function listIdentities(identities) {
         location: identity.location,
         server: identity.server,
         domain: identity.domain,
-        protocol: identity.protocol,
-        port: identity.port,
         username: identity.username,
         password: identity.password,
       });

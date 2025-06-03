@@ -2,12 +2,12 @@ import {sleep, read} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
-  const [location, server, domain, protocol, port, username, password] = params.values();
+  const [location, server, domain, username, password] = params.values();
 
   const [country, ...place] = location.split(', ');
   const url = chrome.runtime.getURL(`assets/countries/${country.toLowerCase()}.svg`);
 
-  await ConfigureVPN(server, {server, protocol, port, username, domain, password});
+  await ConfigureVPN(server, {server, username, domain, password});
   document.getElementById('country-background').style.backgroundImage = `url("${url}")`;
   document.getElementById('ip-address').textContent = server.split('/')[0];
   document.getElementById('location').textContent = place.join(', ');

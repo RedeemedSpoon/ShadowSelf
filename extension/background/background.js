@@ -51,11 +51,10 @@ chrome.webRequest.onAuthRequired.addListener(
     const creds = await read('proxyCredentials');
 
     const canAuthenticate = config && creds?.username && details.isProxy;
-    const sameChallenger = details.challenger.host === config.host && details.challenger.port === Number(config.port);
+    const sameChallenger = details.challenger.host === config.host;
 
     if (canAuthenticate && sameChallenger) {
       const auth = {username: creds.username, password: creds.password};
-      console.log(auth);
       callback({authCredentials: auth});
     } else callback();
   },
