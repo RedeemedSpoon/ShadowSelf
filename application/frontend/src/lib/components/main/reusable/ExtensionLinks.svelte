@@ -20,8 +20,8 @@
     shadowself: {
       firefox: 'https://addons.mozilla.org/en-US/firefox/addon/shadowself',
       chrome: 'https://chromewebstore.google.com/detail/shadowself/paaidpbnnoopadhdodbjgfhfhhonmbmf',
-      edge: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      opera: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      edge: 'https://microsoftedge.microsoft.com/addons/detail/shadowself/fjlfnbhdginnpjnlkhhbjhejgaamhdhb',
+      opera: 'https://addons.opera.com/en/extensions/details/shadowself',
     },
     ublock: {
       website: 'https://ublockorigin.com',

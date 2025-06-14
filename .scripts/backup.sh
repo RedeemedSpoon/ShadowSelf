@@ -8,6 +8,7 @@ DB_USER=$(grep POSTGRES_USER ${SHADOWSELF_PATH}/application/database/.env | cut 
 DB_PASSWORD=$(grep POSTGRES_PASSWORD ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
 DB_NAME=$(grep POSTGRES_DB ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
 
+echo "Backing up database..."
 ssh -i "$SSH_KEY" ${REMOTE_USER}@${REMOTE_HOST} "
   set -e
   CONTAINER_ID=\$(docker ps -q --filter 'label=com.docker.compose.project=shadowself-core' --filter 'ancestor=postgres')
