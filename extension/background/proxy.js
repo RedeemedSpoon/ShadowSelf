@@ -25,7 +25,7 @@ export async function connect(request) {
       type: 'basic',
       title: 'Proxy Setup Error',
       message: 'Please allow incognito/private access in your browser settings to use ShadowSelf.',
-      iconUrl: 'assets/favicon.ico',
+      iconUrl: '../assets/favicon.ico',
     });
 
     return true;
@@ -90,7 +90,7 @@ export async function displayError() {
     type: 'basic',
     title: 'Proxy Error',
     message: 'Failed to apply proxy settings, please try again later.',
-    iconUrl: 'assets/favicon.ico',
+    iconUrl: '../assets/favicon.ico',
   });
 
   await disconnect();
