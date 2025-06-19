@@ -6,6 +6,7 @@ pnpm-lock.yaml
 
 Thumbs.db
 .DS_Store
+.dccache
 .output
 
 build

@@ -1,8 +1,8 @@
+import {attempt, error, resizeImage} from '@utils/utils';
 import {sql, WSConnections} from '@utils/connection';
-import {attempt, resizeImage} from '@utils/utils';
 import {listenForEmail} from '@utils/email-imap';
 import middleware from '@middleware-api';
-import {Elysia, error} from 'elysia';
+import {Elysia} from 'elysia';
 
 import information from './identity/information';
 import account from './identity/account';
@@ -14,9 +14,9 @@ export default new Elysia()
   .use(middleware)
   .group('/api', (app) => app.use(card).use(phone).use(email).use(account).use(information))
   .get('/api/test', () => 'Authentication is working ;)')
-  .get('/api', async ({user}) => {
+  .get('/api', async ({set, user}) => {
     const result = await attempt(sql` SELECT * FROM users u JOIN identities i ON u.id = i.owner WHERE u.email = ${user!.email}`);
-    if (!result.length) return error(400, 'No identities were found');
+    if (!result.length) return error(set, 400, 'No identities were found');
 
     const allIdentitiesPromises = result.map(async (identity) => {
       if (!identity.name) return {id: identity.id};
@@ -32,9 +32,9 @@ export default new Elysia()
 
     return await Promise.all(allIdentitiesPromises);
   })
-  .get('/api/proxy', async ({user}) => {
+  .get('/api/proxy', async ({set, user}) => {
     const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
-    if (!result.length) return error(400, 'User not found');
+    if (!result.length) return error(set, 400, 'User not found');
 
     const {username, id} = result[0];
     const allIdentities = await attempt(sql`SELECT * FROM identities WHERE owner = ${id}`);

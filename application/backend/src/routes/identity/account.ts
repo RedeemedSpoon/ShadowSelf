@@ -1,9 +1,9 @@
+import {attempt, error} from '@utils/utils';
 import middleware from '@middleware-api';
 import {checkAPI} from '@utils/checks';
 import {sql} from '@utils/connection';
-import {attempt} from '@utils/utils';
-import {Elysia, error} from 'elysia';
 import {APIRequest} from '@types';
+import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/account'})
   .use(middleware)
@@ -20,10 +20,10 @@ export default new Elysia({prefix: '/account'})
 
     return {accounts: formattedAccounts};
   })
-  .post('/add-account/:id', async ({identity, body}) => {
+  .post('/add-account/:id', async ({set, identity, body}) => {
     const fields = ['username', 'password', '?website', '?totp', '?algorithm'];
     const {err, username, password, website, totp, algorithm} = await checkAPI(body, fields);
-    if (err) return error(400, err);
+    if (err) return error(set, 400, err);
 
     const res = await attempt(
       sql`INSERT INTO accounts (owner, username, password) VALUES (${identity!.id}, ${username!}, ${password!}) RETURNING id`,
@@ -34,10 +34,10 @@ export default new Elysia({prefix: '/account'})
 
     return {username, password, website, totp, algorithm, id: res[0].id};
   })
-  .put('/edit-account/:id', async ({identity, body}) => {
+  .put('/edit-account/:id', async ({set, identity, body}) => {
     const fields = ['username', 'password', '?website', '?totp', '?algorithm', 'id'];
     const {err, username, password, website, totp, algorithm, id} = await checkAPI(body, fields);
-    if (err) return error(400, err);
+    if (err) return error(set, 400, err);
 
     const uid = identity!.id;
     await attempt(sql`UPDATE accounts SET username = ${username!}, password = ${password!} WHERE id= ${id} AND owner = ${uid}`);
@@ -47,14 +47,14 @@ export default new Elysia({prefix: '/account'})
 
     return {username, password, website, totp, algorithm, id};
   })
-  .put('/update-encryption/:id', async ({identity, body}) => {
+  .put('/update-encryption/:id', async ({set, identity, body}) => {
     const accounts = (body as APIRequest)?.accounts || null;
-    if (!accounts || typeof accounts !== 'object') return error(400, 'Accounts Array are required');
+    if (!accounts || typeof accounts !== 'object') return error(set, 400, 'Accounts Array are required');
 
     for (const account of accounts) {
       const fields = ['id', 'password', '?totp'];
       const {err, id, password, totp} = await checkAPI(account, fields);
-      if (err) return error(400, err);
+      if (err) return error(set, 400, err);
 
       await attempt(sql`UPDATE accounts SET password = ${password!} WHERE id = ${id!} AND owner = ${identity!.id}`);
       if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!} WHERE id = ${id!} AND owner = ${identity!.id}`);
@@ -62,9 +62,9 @@ export default new Elysia({prefix: '/account'})
 
     return {accounts};
   })
-  .delete('/delete-account/:id', async ({identity, body}) => {
+  .delete('/delete-account/:id', async ({set, identity, body}) => {
     const {err, id} = await checkAPI(body, ['id']);
-    if (err) return error(400, err);
+    if (err) return error(set, 400, err);
 
     await attempt(sql`DELETE FROM accounts WHERE id = ${id!} AND owner = ${identity!.id}`);
     return {id};

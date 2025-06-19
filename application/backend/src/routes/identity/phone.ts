@@ -1,9 +1,9 @@
-import {parseMessage} from '@utils/utils';
+import {parseMessage, error} from '@utils/utils';
 import {twilio} from '@utils/connection';
 import middleware from '@middleware-api';
 import {checkAPI} from '@utils/checks';
-import {Elysia, error} from 'elysia';
 import {Message} from '@types';
+import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/phone'})
   .use(middleware)
@@ -23,11 +23,11 @@ export default new Elysia({prefix: '/phone'})
     const messages = [...conversations.values()].reverse();
     return {messages};
   })
-  .get('/fetch-conversation/:id', async ({identity, query}) => {
+  .get('/fetch-conversation/:id', async ({set, identity, query}) => {
     const {err, addressee} = await checkAPI(query, ['addressee']);
-    if (err) return error(400, err);
+    if (err) return error(set, 400, err);
 
-    if (addressee === identity!.phone) return error(400, 'You cannot fetch your own conversation');
+    if (addressee === identity!.phone) return error(set, 400, 'You cannot fetch your own conversation');
 
     const sentMessages = await twilio.messages.list({to: addressee});
     const receivedMessages = await twilio.messages.list({from: addressee});
@@ -37,12 +37,12 @@ export default new Elysia({prefix: '/phone'})
 
     return {addressee, conversation};
   })
-  .post('/send-message/:id', async ({identity, body}) => {
+  .post('/send-message/:id', async ({set, identity, body}) => {
     const {err, addressee, body: messageBody} = await checkAPI(body, ['addressee', 'body']);
-    if (err) return error(400, err);
+    if (err) return error(set, 400, err);
 
-    if (addressee === identity!.phone) return error(400, 'You cannot send a message to yourself');
-    if (messageBody.length > 160) return error(400, 'Message is too long (<160 characters)');
+    if (addressee === identity!.phone) return error(set, 400, 'You cannot send a message to yourself');
+    if (messageBody.length > 160) return error(set, 400, 'Message is too long (<160 characters)');
 
     const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE;
     const params = {body: messageBody, messagingServiceSid, from: identity!.phone, to: addressee};
@@ -55,12 +55,12 @@ export default new Elysia({prefix: '/phone'})
 
       return {addressee, messageSent};
     } catch (e) {
-      return error(400, e instanceof Error ? e.message : e);
+      return error(set, 400, e instanceof Error ? e.message : (e as string));
     }
   })
-  .delete('/delete-conversation/:id', async ({body}) => {
+  .delete('/delete-conversation/:id', async ({set, body}) => {
     const {err, addressee} = await checkAPI(body, ['addressee']);
-    if (err) return error(400, err);
+    if (err) return error(set, 400, err);
 
     const receivedMessages = await twilio.messages.list({to: addressee});
     const sentMessages = await twilio.messages.list({from: addressee});

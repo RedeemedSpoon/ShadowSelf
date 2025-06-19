@@ -1,7 +1,8 @@
 import {checkContact} from '@utils/checks';
 import {contact} from '@utils/email-smtp';
-import {Elysia, error} from 'elysia';
 import {ContactDetail} from '@types';
+import {error} from '@utils/utils';
+import {Elysia} from 'elysia';
 
 import creationProcess from './routes/creation-process';
 import webhooks from './routes/webhooks';
@@ -11,14 +12,18 @@ import billing from './routes/billing';
 import api from './routes/api';
 
 const app = new Elysia()
-  .onError(({error}) => ({message: error instanceof Error ? error.message : error}))
+  .onError(async ({error}) => {
+    if (error instanceof Error) return {message: error.message};
+    else if (error instanceof Response) return {message: await error.text()};
+    else return {message: error};
+  })
   .get('/', () => 'Hello from ShadowSelf!')
-  .post('/contact', async ({body}) => {
+  .post('/contact', async ({body, set}) => {
     const {err} = checkContact(body);
-    if (err) return error(400, err);
+    if (err) return error(set, 400, err);
 
     const result = await contact(body as ContactDetail);
-    if (result.err) return error(500, result.err);
+    if (result.err) return error(set, 500, result.err);
     return result.message;
   })
   .use(creationProcess)

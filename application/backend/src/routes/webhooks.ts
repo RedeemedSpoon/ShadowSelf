@@ -1,12 +1,12 @@
+import {attempt, error, parseMessage, request as req} from '@utils/utils';
 import {sql, stripe, twilio, WSConnections} from '@utils/connection';
-import {attempt, parseMessage, request as req} from '@utils/utils';
-import {Elysia, error} from 'elysia';
 import middleware from '@middleware';
 import twilioClient from 'twilio';
+import {Elysia} from 'elysia';
 
 export default new Elysia()
   .use(middleware)
-  .post('/webhook-stripe', async ({request}) => {
+  .post('/webhook-stripe', async ({set, request}) => {
     const signature = request.headers.get('stripe-signature')!;
     const secret = process.env.STRIPE_WEBHOOK_SECRET!;
     const body = await request.text();
@@ -15,7 +15,7 @@ export default new Elysia()
     try {
       event = await stripe.webhooks.constructEventAsync(body, signature, secret);
     } catch (err) {
-      return error(400, err instanceof Error ? err.message : err);
+      return error(set, 400, err instanceof Error ? err.message : (err as string));
     }
 
     if (event.type === 'payment_intent.succeeded') {
@@ -73,7 +73,7 @@ export default new Elysia()
 
     return {received: true};
   })
-  .post('/webhook-twilio', async ({body, request}) => {
+  .post('/webhook-twilio', async ({set, body, request}) => {
     const website = request.headers.get('X-Forwarded-Proto') + '://' + request.headers.get('X-Forwarded-Host');
     const url = `${website}/webhook-twilio`;
 
@@ -82,7 +82,7 @@ export default new Elysia()
     const auth = process.env.TWILIO_TOKEN!;
 
     if (!twilioClient.validateRequest(auth, signature, url, rawBody)) {
-      return error(400, 'Invalid signature');
+      return error(set, 400, 'Invalid signature');
     }
 
     await new Promise((resolve) => setTimeout(resolve, 1000));

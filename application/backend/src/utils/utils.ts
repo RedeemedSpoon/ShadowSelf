@@ -2,6 +2,11 @@ import {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
 import {QueryResult} from '@types';
 import sharp from 'sharp';
 
+export function error(set: {[key: string]: unknown}, status: number, message: string) {
+  set.status = status;
+  return message;
+}
+
 export async function attempt(func: Promise<unknown>): Promise<QueryResult[]> {
   try {
     return (await func) as QueryResult[];
