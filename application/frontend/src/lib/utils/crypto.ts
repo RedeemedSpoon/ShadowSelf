@@ -1,8 +1,6 @@
 import {masterPassword} from '$store';
 import {get} from 'svelte/store';
 
-const iv = new Uint8Array(12).fill(0x01);
-
 export async function getMasterKey() {
   const keyBuffer = new Uint8Array(
     atob(get(masterPassword))
@@ -16,6 +14,7 @@ export async function getMasterKey() {
 export async function encrypt(unencryptedPassword: string, key?: CryptoKey) {
   key = key || (await getMasterKey());
 
+  const iv = crypto.getRandomValues(new Uint8Array(12));
   const encodedPassword = new TextEncoder().encode(unencryptedPassword);
   const encryptedBuffer = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, encodedPassword);
   const encryptedData = new Uint8Array(iv.length + encryptedBuffer.byteLength);
@@ -36,6 +35,7 @@ export async function decrypt(encryptedPassword: string) {
       .map((char) => char.charCodeAt(0)),
   );
 
+  const iv = encryptedData.slice(0, 12);
   const encryptedPasswordBuffer = encryptedData.slice(12);
   try {
     const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, encryptedPasswordBuffer);

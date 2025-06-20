@@ -18,7 +18,10 @@
   let showPassword = $state(false) as boolean;
 
   async function generatePassword() {
-    const password = window.crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const randomValues = window.crypto.getRandomValues(new Uint8Array(32));
+    const password = Array.from(randomValues, (byte) => charset[byte ** byte % charset.length]).join('');
+
     const element = document.querySelector('input[name="password"]') as HTMLInputElement;
     element.value = password;
   }
