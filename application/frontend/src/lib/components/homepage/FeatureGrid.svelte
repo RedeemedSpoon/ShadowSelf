@@ -48,7 +48,7 @@
 
 <div class="grid grid-cols-2 px-[6vw] max-sm:scale-75 xl:grid-cols-4 xl:max-2xl:px-[3vw]">
   {#each features as feature, index (index)}
-    <div class="cell" class:bottom-cells={index + 1 > 4} class:border-r={(index + 1) % 4 === 0}>
+    <div class:bottom-cells={index + 1 > 4} class:border-r={(index + 1) % 4 === 0}>
       <img src={feature.image} alt={feature.title} />
       <h3 class="text-2xl font-bold md:text-3xl">{feature.title}</h3>
       <p class="leading-8! hidden text-lg text-neutral-400 lg:block">{feature.description}</p>
@@ -59,12 +59,12 @@
 <style lang="postcss">
   @reference "$style";
 
-  .cell {
+  div > div {
     @apply flex flex-col items-baseline justify-center gap-4 border-l border-neutral-700 p-8 transition-all duration-500 ease-in-out lg:pt-[7vh];
     @apply hover-gradient-large bg-linear-to-t from-neutral-800/75 to-neutral-900 max-xl:border;
   }
 
-  .cell.bottom-cells {
+  .bottom-cells {
     @apply hover-gradient-large-reverse bg-linear-to-b from-neutral-800/75 to-neutral-900;
     @apply border-t border-neutral-700 lg:pb-[7vh] lg:pt-8;
   }

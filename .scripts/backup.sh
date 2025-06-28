@@ -4,9 +4,9 @@ set -e
 REMOTE_USER="root"
 REMOTE_HOST="shadowself.io"
 
-DB_USER=$(grep POSTGRES_USER ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
-DB_PASSWORD=$(grep POSTGRES_PASSWORD ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
-DB_NAME=$(grep POSTGRES_DB ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
+DB_USER=$(grep POSTGRES_USER ${LOCAL_PATH}/application/database/.env | cut -d '=' -f2)
+DB_PASSWORD=$(grep POSTGRES_PASSWORD ${LOCAL_PATH}/application/database/.env | cut -d '=' -f2)
+DB_NAME=$(grep POSTGRES_DB ${LOCAL_PATH}/application/database/.env | cut -d '=' -f2)
 
 echo "Backing up database..."
 ssh -i "$SSH_KEY" ${REMOTE_USER}@${REMOTE_HOST} "

@@ -19,20 +19,20 @@ RSYNC_EXCLUDES=(
 update_server() {
     local server_address="$1"
     local component_path="$2"
-    local local_path="${SHADOWSELF_PATH}/${component_path}"
+    local local_path="${LOCAL_PATH}/${component_path}"
     echo "Updating ${server_address}..."
 
     rsync -a --delete "${RSYNC_EXCLUDES[@]}" \
         "${local_path}/" \
-        "$SSH_USER@$server_address:\$SHADOWSELF_PATH/${component_path}/" > /dev/null 2>&1
+        "$SSH_USER@$server_address:${SERVER_PATH}/${component_path}/"
 
     ssh "$SSH_USER@$server_address" "
         set -e;
-        cd \"\$SHADOWSELF_PATH/${component_path}\";
-        docker-compose down;
-        docker-compose build --build-arg SUBDOMAIN=${server_address};
-        docker-compose up -d --remove-orphans;
-    " > /dev/null 2>&1
+        cd \"${SERVER_PATH}/${component_path}\";
+        docker compose down;
+        docker compose build --build-arg SUBDOMAIN=${server_address};
+        docker compose up -d --remove-orphans;
+    "
 }
 
 update_server "$DOMAIN" "application"
