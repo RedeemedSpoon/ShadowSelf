@@ -10,7 +10,7 @@ COPY .certs/* ./
 
 RUN squid -z
 
-EXPOSE 3129
+EXPOSE 3128
 
 VOLUME [ "/etc/squid/passwd" ]
 
