@@ -14,6 +14,4 @@ EXPOSE 3128
 
 VOLUME [ "/etc/squid/passwd" ]
 
-RUN rm /var/run/squid.pid
-
 CMD ["squid", "-N"]

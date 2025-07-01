@@ -100,8 +100,8 @@ export async function displayError() {
 export async function disableNetworking() {
   const proxyApi = isChrome ? chrome.proxy : browser.proxy;
   const proxyConfig = isChrome
-    ? {mode: 'fixed_servers', rules: {singleProxy: {host: '127.0.0.1', port: 9, scheme: 'http'}}}
-    : {proxyDNS: false, proxyType: 'manual', ssl: 'https://127.0.0.1:9', http: 'http://127.0.0.1:9'};
+    ? {mode: 'fixed_servers', rules: {singleProxy: {host: '127.0.0.1', port: 9, scheme: 'http'}, bypassList: ['shadowself.io']}}
+    : {proxyDNS: false, proxyType: 'manual', ssl: 'https://127.0.0.1:9', http: 'http://127.0.0.1:9', passthrough: 'shadowself.io'};
 
   await proxyApi.settings.set({value: proxyConfig, scope: 'regular'});
 }
