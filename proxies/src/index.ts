@@ -1,13 +1,21 @@
-import {Elysia, error} from 'elysia';
+import {Elysia} from 'elysia';
 import {$} from 'bun';
 
 const app = new Elysia()
   .onError(({error}) => ({message: error instanceof Error ? error.message : error}))
-  .onBeforeHandle(({headers}) => {
+  .onBeforeHandle(({headers, set}) => {
     const auth = headers['authorization'];
     const token = auth && auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : undefined;
-    if (!token) return error(401, 'You are not authenticated correctly');
-    if (token !== process.env.SECRET_KEY) return error(403, 'You are not allowed to do this');
+
+    if (!token) {
+      set.status = 401;
+      return 'You are not authenticated correctly';
+    }
+
+    if (token !== process.env.SECRET_KEY) {
+      set.status = 403;
+      return 'You are not permitted to access this route';
+    }
   })
   .get('/', () => "Hello from one of ShadowSelf's proxies!")
   .post('/', async ({body}) => {
