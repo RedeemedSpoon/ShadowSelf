@@ -12,4 +12,8 @@ RUN chown root:dante danted.conf && chmod 640 danted.conf
 
 EXPOSE 1080
 
+VOLUME [ "/etc/passwd" ]
+
+VOLUME [ "/etc/shadow" ]
+
 CMD ["danted", "-N"]

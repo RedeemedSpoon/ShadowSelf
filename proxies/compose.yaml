@@ -30,7 +30,7 @@ services:
     depends_on:
       - openvpn
     volumes:
-      - squid-users:/etc/squid/passwd
+      - /etc/squid/passwd:/etc/squid/passwd:ro
     restart: always
     init: true
 
@@ -40,8 +40,8 @@ services:
     depends_on:
       - openvpn
     volumes:
-      - dante-passwd:/etc/passwd
-      - dante-shadow:/etc/shadow
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/shadow:/etc/shadow:ro
     restart: always
     init: true
 
@@ -52,15 +52,10 @@ services:
     env_file:
       - src/.env
     volumes:
-      - squid-users:/etc/squid/passwd
-      - dante-passwd:/etc/passwd
-      - dante-shadow:/etc/shadow
+      - /etc/squid/passwd:/etc/squid/passwd
+      - /etc/passwd:/etc/passwd
+      - /etc/shadow:/etc/shadow
     depends_on:
       - nginx
     restart: always
     init: true
-
-volumes:
-  squid-users:
-  dante-passwd:
-  dante-shadow:
