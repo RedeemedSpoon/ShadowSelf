@@ -1,19 +1,11 @@
-FROM alpine:latest
+FROM debian:12-slim
 
-RUN apk add --no-cache dante-server
-
-RUN addgroup -S dante && adduser -S -G dante -h /tmp -s /sbin/nologin dante
+RUN apt-get update && apt-get install -y dante-server && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /etc
 
 COPY danted.conf . 
 
-RUN chown root:dante danted.conf && chmod 640 danted.conf
-
 EXPOSE 1080
 
-VOLUME [ "/etc/passwd" ]
-
-VOLUME [ "/etc/shadow" ]
-
-CMD ["danted", "-N"]
+CMD ["danted"]
