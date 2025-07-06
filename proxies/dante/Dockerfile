@@ -6,6 +6,8 @@ WORKDIR /etc
 
 COPY danted.conf . 
 
+COPY .certs/* ./
+
 EXPOSE 1080
 
-CMD ["danted"]
+CMD ["danted", "-f", "/etc/danted.conf"]

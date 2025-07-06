@@ -56,7 +56,7 @@ async function ConfigureVPN(proxy, response) {
     const error = await ToggleVPN(wasConnected, response);
 
     activeElements.forEach((el) => el.classList.remove('processing'));
-    status.textContent = error ? 'Something went wrong' : wasConnected ? 'Disconnected' : 'Connected';
+    status.textContent = error ? 'Error Occurred' : wasConnected ? 'Disconnected' : 'Connected';
 
     if (!error) {
       activeElements.forEach((el) => el.classList.toggle('active'));

@@ -1,9 +1,10 @@
-import {connect, disconnect, updateIcon, toggleKillSwitch, disableNetworking} from './proxy.js';
+import {connect, disconnect, toggleKillSwitch} from './proxy.js';
+import {updateIcon, disableNetworking} from './utils.js';
 import {spoofUserAgent} from './user-agent.js';
 import {read, store} from '../shared.js';
 
 chrome.runtime.onInstalled.addListener(async () => {
-  await store('agent-browser', 'Chrome');
+  await store('agent-browser', 'chrome');
   await store('agent-os', 'Windows');
   await store('actualAgent', true);
 });
@@ -44,20 +45,3 @@ chrome.runtime.onStartup.addListener(async () => {
   if (killSwitch && isVPNEnabled === 'off') disableNetworking();
   await updateIcon();
 });
-
-chrome.webRequest.onAuthRequired.addListener(
-  async (details, callback) => {
-    const config = await read('proxyConfig');
-    const creds = await read('proxyCredentials');
-
-    const canAuthenticate = config && creds?.username && details.isProxy;
-    const sameChallenger = details.challenger.host === config.host;
-
-    if (canAuthenticate && sameChallenger) {
-      const auth = {username: creds.username, password: creds.password};
-      callback({authCredentials: auth});
-    } else callback();
-  },
-  {urls: ['<all_urls>']},
-  ['asyncBlocking'],
-);

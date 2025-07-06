@@ -1,56 +1,35 @@
-import {isChrome, read, store, remove} from '../shared.js';
-
-export async function updateIcon() {
-  const isVPNEnabled = await read('isVPNEnabled');
-  if (!isVPNEnabled) return;
-
-  const path = isVPNEnabled === 'on' ? 'enabled' : 'disabled';
-  chrome.action.setIcon({path: `../assets/icon-${path}.png`});
-}
+import {testProxyConnection, disableNetworking, createProxyRule, clearRule, checkIncognito} from './utils.js';
+import {read, store, remove, isChrome} from '../shared.js';
 
 export async function toggleKillSwitch(enabled) {
-  await store('killSwitch', enabled);
   const isVPNEnabled = await read('isVPNEnabled');
-  const proxyApi = isChrome ? chrome.proxy : browser.proxy;
+  await store('killSwitch', enabled);
 
-  if (enabled && isVPNEnabled === 'off') disableNetworking();
-  else if (!enabled && isVPNEnabled !== 'on') await proxyApi.settings.clear({scope: 'regular'});
+  if (isVPNEnabled === 'on') return;
+  if (enabled) disableNetworking();
+  else await clearRule();
 }
 
 export async function connect(request) {
   const {server, username, domain, password} = request;
 
-  if (!(await chrome.extension.isAllowedIncognitoAccess())) {
-    chrome.notifications.create('proxy-error-incognito', {
-      type: 'basic',
-      title: 'Proxy Setup Error',
-      message: 'Please allow incognito/private access in your browser settings to use ShadowSelf.',
-      iconUrl: '../assets/favicon.ico',
-    });
-
-    return true;
-  }
-
-  const proxyApi = isChrome ? chrome.proxy : browser.proxy;
-  const settingsValue = isChrome
-    ? {mode: 'fixed_servers', rules: {singleProxy: {host: domain, port: 3128, scheme: 'https'}}}
-    : {proxyDNS: false, proxyType: 'manual', socks: `${domain}:1080`, socksVersion: 5};
-
-  await proxyApi.settings.clear({scope: 'regular'});
-  await proxyApi.settings.set({value: settingsValue, scope: 'regular'});
+  if (await checkIncognito()) return true;
+  if (isChrome) await createProxyRule(domain);
 
   await store('proxyConfig', {host: domain, ip: server});
   await store('proxyCredentials', {username, password});
-
   const error = await testProxyConnection();
-  if (!error) await store('isVPNEnabled', 'on');
+
+  if (error) disconnect();
+  else await store('isVPNEnabled', 'on');
+
   return error;
 }
 
 export async function disconnect() {
   const killSwitch = await read('killSwitch');
   if (killSwitch) disableNetworking();
-  else await chrome.proxy.settings.clear({scope: 'regular'});
+  else await clearRule();
 
   await store('isVPNEnabled', 'off');
   await remove('proxyCredentials');
@@ -59,49 +38,29 @@ export async function disconnect() {
   return !!chrome.runtime.lastError;
 }
 
-export async function testProxyConnection() {
-  const apiErr = !!chrome.runtime.lastError;
-  if (apiErr) return await displayError();
+chrome.webRequest.onAuthRequired.addListener(
+  async (details, callback) => {
+    const config = await read('proxyConfig');
+    const creds = await read('proxyCredentials');
 
-  const ctrl = new AbortController();
-  const timerID = setTimeout(() => ctrl.abort(), 5000);
+    const canAuthenticate = config && creds?.username && details.isProxy;
+    const sameChallenger = details.challenger.host === config.host;
 
-  try {
-    const response = await fetch('https://connectivitycheck.gstatic.com/generate_204', {
-      method: 'GET',
-      signal: ctrl.signal,
-      cache: 'no-store',
-      mode: 'no-cors',
-    });
+    if (canAuthenticate && sameChallenger) {
+      const auth = {username: creds.username, password: creds.password};
+      callback({authCredentials: auth});
+    } else callback();
+  },
+  {urls: ['<all_urls>']},
+  ['asyncBlocking'],
+);
 
-    clearTimeout(timerID);
-    if (!response.ok || (response.status <= 200 && response.status > 300)) {
-      return await displayError();
-    }
-  } catch {
-    clearTimeout(timerID);
-  }
-
-  return false;
-}
-
-export async function displayError() {
-  chrome.notifications.create('proxy-err', {
-    type: 'basic',
-    title: 'Proxy Error',
-    message: 'Failed to apply proxy settings, please try again later.',
-    iconUrl: '../assets/favicon.ico',
-  });
-
-  await disconnect();
-  return true;
-}
-
-export async function disableNetworking() {
-  const proxyApi = isChrome ? chrome.proxy : browser.proxy;
-  const proxyConfig = isChrome
-    ? {mode: 'fixed_servers', rules: {singleProxy: {host: '127.0.0.1', port: 9, scheme: 'http'}, bypassList: ['shadowself.io']}}
-    : {proxyDNS: false, proxyType: 'manual', ssl: 'https://127.0.0.1:9', http: 'http://127.0.0.1:9', passthrough: 'shadowself.io'};
-
-  await proxyApi.settings.set({value: proxyConfig, scope: 'regular'});
+if (!isChrome) {
+  chrome.proxy.onRequest.addListener(
+    async () => {
+      const {host} = await read('proxyConfig');
+      return host ? {type: 'https', host, port: 3128} : {type: 'direct'};
+    },
+    {urls: ['<all_urls>']},
+  );
 }
