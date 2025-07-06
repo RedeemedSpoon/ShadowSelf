@@ -7,16 +7,11 @@
 <p>Requires identity <code>:id</code> path parameter and JSON payload specifying mailbox and UID to move to Junk.</p>
 <ul>
   <li>
-    Request Body (JSON):
-    <ul>
-      <li>
-        <code>mailbox</code> (<span class="string">string</span>): Mailbox where the email currently resides (e.g., "INBOX", "Sent",
-        "Drafts"). Cannot be "Junk".
-      </li>
-      <li>
-        <code>uid</code> (<span class="integer">integer</span>): UID of the email within the specified mailbox (positive integer).
-      </li>
-    </ul>
+    <code>mailbox</code> (<span class="string">string</span>): Mailbox where the email currently resides (e.g., "INBOX", "Sent",
+    "Drafts"). Cannot be "Junk".
+  </li>
+  <li>
+    <code>uid</code> (<span class="integer">integer</span>): UID of the email within the specified mailbox (positive integer).
   </li>
 </ul>
 

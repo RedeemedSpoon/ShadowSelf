@@ -20,7 +20,6 @@ services:
       - /dev/net/tun
     ports:
       - 3128:3128
-      - 1080:1080
     restart: always
     init: true
 
@@ -34,17 +33,6 @@ services:
     restart: always
     init: true
 
-  dante:
-    build: ./dante
-    network_mode: service:openvpn
-    depends_on:
-      - openvpn
-    volumes:
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/shadow:/etc/shadow:ro
-    restart: always
-    init: true
-
   server:
     build: ./src
     expose:
@@ -53,8 +41,6 @@ services:
       - src/.env
     volumes:
       - /etc/squid/passwd:/etc/squid/passwd
-      - /etc/passwd:/etc/passwd
-      - /etc/shadow:/etc/shadow
     depends_on:
       - nginx
     restart: always

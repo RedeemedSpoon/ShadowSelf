@@ -29,14 +29,14 @@ export function getAPIKey(): string {
   return randomBytes(16).toString('hex');
 }
 
+export function generateProxyPassword() {
+  return randomBytes(16).toString('hex');
+}
+
 export function getRecovery() {
   return [...new Array(6)].map(() => {
     return Math.floor(Math.random() * 900_000_000) + 100_000_000;
   });
-}
-
-export function generateProxyPassword() {
-  return 'pwd-' + randomBytes(16).toString('hex');
 }
 
 export async function createHash(string: string): Promise<string> {

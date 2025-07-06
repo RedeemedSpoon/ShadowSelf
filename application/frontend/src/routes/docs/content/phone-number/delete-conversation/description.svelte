@@ -9,13 +9,8 @@
 </p>
 <ul>
   <li>
-    Request Body (JSON):
-    <ul>
-      <li>
-        <code>addressee</code> (<span class="string">string</span>): The E.164 formatted phone number of the other party whose
-        conversation history should be deleted.
-      </li>
-    </ul>
+    <code>addressee</code> (<span class="string">string</span>): The E.164 formatted phone number of the other party whose conversation
+    history should be deleted.
   </li>
 </ul>
 

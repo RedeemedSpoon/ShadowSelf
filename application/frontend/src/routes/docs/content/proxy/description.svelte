@@ -46,10 +46,10 @@
       </li>
       <li>
         <b>Port Number:</b> Use the value from the <code>port</code> key in the API response. This will typically always be
-        <code>3128</code> or <code>1080</code>.
+        <code>3128</code>.
       </li>
       <li>
-        <b>Proxy Type / Protocol:</b> Configure your client to use an "HTTPS Proxy" or "SOCKS5 Proxy".
+        <b>Protocol:</b> Configure your client to use an HTTPS Proxy.
       </li>
       <li>
         <b>Username:</b> For authentication, provide the value from the <code>username</code> key in the API response.

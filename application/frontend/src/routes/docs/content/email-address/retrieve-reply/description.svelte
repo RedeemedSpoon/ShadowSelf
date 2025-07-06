@@ -17,15 +17,15 @@
     <code>fetchEmail</code> (<span class="object">object</span>): An object containing the full email details, or null if not found.
     Includes:
     <ul>
-      <li><code>uid</code> (<span class="integer">integer</span>)</li>
-      <li><code>messageID</code> (<span class="string">string</span>)</li>
-      <li><code>from</code> (<span class="string">string</span>)</li>
-      <li><code>to</code> (<span class="string">string</span>)</li>
-      <li><code>subject</code> (<span class="string">string</span>)</li>
-      <li><code>date</code> (<span class="string">string</span>)</li>
-      <li><code>body</code> (<span class="string">string</span>)</li>
-      <li><code>type</code> (<span class="string">string</span>)</li>
-      <li><code>inReplyTo</code> (<span class="string">string</span>)</li>
+      <li><code>uid</code> (<span class="integer">integer</span>): The UID of the email.</li>
+      <li><code>messageID</code> (<span class="string">string</span>): The globally unique Message-ID header value.</li>
+      <li><code>from</code> (<span class="string">string</span>): Sender's email address.</li>
+      <li><code>to</code> (<span class="string">string</span>): Primary recipient's email address.</li>
+      <li><code>subject</code> (<span class="string">string</span>): Email subject line.</li>
+      <li><code>date</code> (<span class="string">string</span>): Date and time (ISO 8601 format).</li>
+      <li><code>body</code> (<span class="string">string</span>): A snippet or the full body of the email.</li>
+      <li><code>type</code> (<span class="string">string</span>): Format of the body ('html' or 'text').</li>
+      <li><code>inReplyTo</code> (<span class="string">string</span>): The Message-ID this email is replying to.</li>
       <li><code>references</code> (<span class="array">array</span> of <span class="string">string</span>)</li>
       <li>
         <code>attachments</code> (<span class="array">array</span>): Array of objects with <code>filename</code> (<span class="string"

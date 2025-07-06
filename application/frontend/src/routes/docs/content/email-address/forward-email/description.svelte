@@ -6,13 +6,8 @@
 <h5>Request</h5>
 <p>Requires identity <code>:id</code> path parameter and JSON payload with UID and forward address.</p>
 <ul>
-  <li>
-    Request Body (JSON):
-    <ul>
-      <li><code>uid</code> (<span class="integer">integer</span>): UID of the email to forward (positive integer).</li>
-      <li><code>forward</code> (<span class="string">string</span>): Recipient email address for forwarding.</li>
-    </ul>
-  </li>
+  <li><code>uid</code> (<span class="integer">integer</span>): UID of the email to forward (positive integer).</li>
+  <li><code>forward</code> (<span class="string">string</span>): Recipient email address for forwarding.</li>
 </ul>
 
 <h5>Response Body</h5>

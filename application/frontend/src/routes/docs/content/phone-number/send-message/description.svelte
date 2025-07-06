@@ -4,17 +4,11 @@
 <p>Requires the identity <code>:id</code> as a path parameter and a JSON payload containing the recipient and message body.</p>
 <ul>
   <li>
-    Request Body (JSON):
-    <ul>
-      <li>
-        <code>addressee</code> (<span class="string">string</span>): The recipient's phone number in E.164 format (e.g.,
-        `+14155550000`). Cannot be the identity's own number.
-      </li>
-      <li>
-        <code>body</code> (<span class="string">string</span>): The text content of the SMS message. Must be between 2 and 160
-        characters.
-      </li>
-    </ul>
+    <code>addressee</code> (<span class="string">string</span>): The recipient's phone number in E.164 format (e.g., `+14155550000`).
+    Cannot be the identity's own number.
+  </li>
+  <li>
+    <code>body</code> (<span class="string">string</span>): The text content of the SMS message. Must be between 2 and 160 characters.
   </li>
 </ul>
 

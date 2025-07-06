@@ -7,28 +7,23 @@
 <p>Requires identity <code>:id</code> path parameter and JSON payload with draft details. Uses PUT.</p>
 <ul>
   <li>
-    Request Body (JSON): Structure matches "Send Email" body.
-    <ul>
-      <li>
-        <code>draft</code> (<span class="integer">integer</span>, <span class="optional">optional</span>): UID of existing draft to
-        replace. Omit to create new.
-      </li>
-      <li><code>to</code> (<span class="string">string</span>): Draft recipient.</li>
-      <li><code>subject</code> (<span class="string">string</span>): Draft subject.</li>
-      <li><code>body</code> (<span class="string">string</span>): Draft body.</li>
-      <li>
-        <code>inReplyTo</code> (<span class="string">string</span>, <span class="optional">optional</span>): Draft In-Reply-To header
-        (Message-ID format).
-      </li>
-      <li>
-        <code>references</code> (<span class="array">array</span>, <span class="optional">optional</span>): Draft References header
-        (array of Message-IDs).
-      </li>
-      <li>
-        <code>attachments</code> (<span class="array">array</span>, <span class="optional">optional</span>): Draft attachments (array
-        of objects with <code>filename</code> and <code>data</code>).
-      </li>
-    </ul>
+    <code>draft</code> (<span class="integer">integer</span>, <span class="optional">optional</span>): UID of existing draft to
+    replace. Omit to create new.
+  </li>
+  <li><code>to</code> (<span class="string">string</span>): Draft recipient.</li>
+  <li><code>subject</code> (<span class="string">string</span>): Draft subject.</li>
+  <li><code>body</code> (<span class="string">string</span>): Draft body.</li>
+  <li>
+    <code>inReplyTo</code> (<span class="string">string</span>, <span class="optional">optional</span>): Draft In-Reply-To header
+    (Message-ID format).
+  </li>
+  <li>
+    <code>references</code> (<span class="array">array</span>, <span class="optional">optional</span>): Draft References header (array
+    of Message-IDs).
+  </li>
+  <li>
+    <code>attachments</code> (<span class="array">array</span>, <span class="optional">optional</span>): Draft attachments (array of
+    objects with <code>filename</code> and <code>data</code>).
   </li>
 </ul>
 

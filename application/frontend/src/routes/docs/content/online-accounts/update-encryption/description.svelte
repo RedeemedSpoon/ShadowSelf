@@ -14,18 +14,13 @@
 <p>Requires identity <code>:id</code> path parameter and JSON payload with an array of accounts with newly re-encrypted data.</p>
 <ul>
   <li>
-    Request Body (JSON):
+    <code>accounts</code> (<span class="array">array</span>): Array of account objects to update. Each object:
     <ul>
+      <li><code>id</code> (<span class="integer">integer</span>): Unique ID of the account entry.</li>
+      <li><code>password</code> (<span class="string">string</span>): Newly <b>client-side re-encrypted</b> password data.</li>
       <li>
-        <code>accounts</code> (<span class="array">array</span>): Array of account objects to update. Each object:
-        <ul>
-          <li><code>id</code> (<span class="integer">integer</span>): Unique ID of the account entry.</li>
-          <li><code>password</code> (<span class="string">string</span>): Newly <b>client-side re-encrypted</b> password data.</li>
-          <li>
-            <code>totp</code> (<span class="string">string</span>, <span class="optional">optional</span>): Newly
-            <b>client-side re-encrypted</b> TOTP secret. Include only if the entry has a TOTP secret.
-          </li>
-        </ul>
+        <code>totp</code> (<span class="string">string</span>, <span class="optional">optional</span>): Newly
+        <b>client-side re-encrypted</b> TOTP secret. Include only if the entry has a TOTP secret.
       </li>
     </ul>
   </li>

@@ -5,12 +5,7 @@
   Requires the identity <code>:id</code> (owner) path parameter and JSON payload specifying the unique ID of the account entry to delete.
 </p>
 <ul>
-  <li>
-    Request Body (JSON):
-    <ul>
-      <li><code>id</code> (<span class="integer">integer</span>): The unique ID of the account entry to delete (positive integer).</li>
-    </ul>
-  </li>
+  <li><code>id</code> (<span class="integer">integer</span>): The unique ID of the account entry to delete (positive integer).</li>
 </ul>
 
 <h5>Response Body</h5>

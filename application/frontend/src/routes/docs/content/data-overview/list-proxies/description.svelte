@@ -32,10 +32,7 @@
         this identity.
       </li>
       <li>
-        <code>https</code> (<span class="string">number</span>): The HTTPS port, TLS encryption is required.
-      </li>
-      <li>
-        <code>socks5</code> (<span class="string">number</span>): The Socks port, version 5 only.
+        <code>port</code> (<span class="string">number</span>): The HTTPS port, TLS encryption is required.
       </li>
       <li>
         <code>username</code> (<span class="string">string</span>): The username required for proxy authentication (prefixed with

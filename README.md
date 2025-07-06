@@ -33,8 +33,6 @@ If you're looking for areas to contribute, focusing on other parts of the applic
 
 - `Squid` : Acts as the HTTPS proxy server, providing access to the OpenVPN network.
 
-- `Dante` : Acts as the SOCKS5 proxy server, also providing access to the OpenVPN network.
-
 ### Application
 
 To run the application locally with Docker, execute `docker-compose up --build`. Note that this requires all necessary configuration files and environment variables to be correctly set up beforehand.
@@ -80,8 +78,6 @@ For direct development or setup of individual components, please refer to the ma
 - `./proxy` To start the production-ready server.
 
 - `squid -f squid.conf` To start the Squid proxy server using the squid.conf configuration file.
-
-- `danted -f danted.conf` : To start the Dante SOCKS5 proxy server utalizing the danted.conf configuration.
 
 - `openvpn --config server.conf` To start the OpenVPN server and associated PKI infrastructure.
 

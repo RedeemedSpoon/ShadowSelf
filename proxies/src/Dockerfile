@@ -16,8 +16,4 @@ EXPOSE 4000
 
 VOLUME [ "/etc/squid/passwd" ]
 
-VOLUME [ "/etc/passwd" ]
-
-VOLUME [ "/etc/shadow" ]
-
 CMD [ "./proxy" ]
