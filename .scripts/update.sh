@@ -20,7 +20,7 @@ update_server() {
     local server_address="$1"
     local component_path="$2"
     local local_path="${LOCAL_PATH}/${component_path}"
-    echo "Updating ${server_address}..."
+    echo "🔄 Updating ${server_address}..."
 
     rsync -a --delete "${RSYNC_EXCLUDES[@]}" \
         "${local_path}/" \

@@ -10,7 +10,7 @@ DB_NAME=$(grep POSTGRES_DB ${LOCAL_PATH}/application/database/.env | cut -d '=' 
 
 BACKUP_FILE="db_backup.sql.gz"
 
-echo "Backing up database..."
+echo "📦 Backing up database..."
 
 ssh -i "$SSH_KEY" ${REMOTE_USER}@${REMOTE_HOST} "
   set -e
@@ -19,4 +19,4 @@ ssh -i "$SSH_KEY" ${REMOTE_USER}@${REMOTE_HOST} "
     pg_dump -U ${DB_USER} -d ${DB_NAME}
 " | gzip > "${BACKUP_FILE}"
 
-echo "Database backup completed and saved to ${BACKUP_FILE}"
+echo "✅ Database backup completed and saved to ${BACKUP_FILE}"
