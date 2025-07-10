@@ -12,31 +12,10 @@ services:
     init: true
 
   certbot:
-    image: certbot/certbot
+    build: ./certbot
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
-    command: |
-      sh -c '
-        trap exit TERM;
-
-        until certbot certonly --webroot -w /var/www/certbot --email contact@shadowself.io --no-eff-email  
-          --agree-tos --non-interactive \
-          -d shadowself.io \
-          -d www.shadowself.io \
-          -d mail.shadowself.io \
-          -d us.shadowself.io \
-          -d ca.shadowself.io \
-          -d gb.shadowself.io \
-          -d se.shadowself.io; do
-            sleep 5;
-          done
-
-        while :; do
-          certbot renew
-          sleep 12h & wait $${!};
-        done;
-      '
     depends_on:
       - nginx
     restart: always
