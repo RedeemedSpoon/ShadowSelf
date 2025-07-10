@@ -43,5 +43,4 @@ tmux send-keys -t $session:$window 'clear' C-m
 tmux send-keys -t $session:$window 'onefetch' C-m
 sleep 0.5
 
-
 tmux attach-session -t $session

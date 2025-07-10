@@ -11,9 +11,9 @@ RSYNC_EXCLUDES=(
     --exclude 'pnpm-lock.yaml'
     --exclude 'Thumbs.db'
     --exclude '.DS_Store'
-    --exclude 'build/'
     --exclude 'node_modules/'
     --exclude '.svelte-kit/'
+    --exclude 'build/'
 )
 
 update_server() {
@@ -22,10 +22,10 @@ update_server() {
     local local_path="${LOCAL_PATH}/${component_path}"
     echo "🔄 Updating ${server_address}..."
 
-    rsync -a --delete "${RSYNC_EXCLUDES[@]}" \
-        "${local_path}/" \
+    rsync -a --delete "${RSYNC_EXCLUDES[@]}" "${local_path}/" \
         "$SSH_USER@$server_address:${SERVER_PATH}/${component_path}/"
 
+    echo "📡 Deploying ${server_address}..."
     ssh "$SSH_USER@$server_address" "
         set -e;
         cd \"${SERVER_PATH}/${component_path}\";

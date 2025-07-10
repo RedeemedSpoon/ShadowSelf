@@ -98,8 +98,8 @@ To set up the browser extension, navigate to its directory. Based on your browse
 To quickly spawn a `tmux` session with all servers running and other relevant processes, follow these steps:
 
 - `cd .scripts` To navigate to the scripts directory.
-- `chmod +x tmux.sh` To make the `tmux` script executable.
-- `bash tmux.sh` To run the script and start the `tmux` session.
+- `chmod +x tmux-session.sh` To make the `tmux-session` script executable.
+- `bash tmux-session.sh` To run the script and start the `tmux-session` session.
 
 ## Contribution
 
