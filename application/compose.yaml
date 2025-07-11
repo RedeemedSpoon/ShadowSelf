@@ -39,6 +39,10 @@ services:
     env_file:
       - ./backend/.env
       - ./database/.env
+    volumes:
+      - /etc/passwd:/etc/passwd
+      - /etc/shadow:/etc/shadow
+      - /etc/group:/etc/group
     depends_on:
       - postgres
       - nginx
