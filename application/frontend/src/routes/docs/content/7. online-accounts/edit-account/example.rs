@@ -1,36 +1,23 @@
-use std::{env, error::Error};
-use serde_json::json;
+use std::env;
 use reqwest::Client;
+use serde_json::json;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-  let api_key = env::var("API_KEY").unwrap();
-  let identity_id = env::var("IDENTITY_ID").unwrap();
-
-  let api_url = format!(
-    "https://shadowself.io/api/account/edit-account/{}",
-    identity_id
-  );
-  let account_entry_id = 101;
-  let new_encrypted_password = "U2FsdGVkX1+UpdatedPassDataLooksLikeThisMaybe==";
-
-  let payload = json!({
-    "id": account_entry_id,
-    "username": "jd_service_user_revised",
-    "password": new_encrypted_password,
-    "website": "https://service-updated.example.com"
-  });
-
-  let client = Client::new();
-  let response = client
-    .put(&api_url)
-    .bearer_auth(api_key)
-    .json(&payload)
-    .send()
-    .await?
-    .error_for_status()?;
-
-  println!("{}", response.text().await?);
-
-  Ok(())
+async fn main() {
+    let url = format!(
+        "https://shadowself.io/api/account/edit-account/{}",
+        env::var("IDENTITY_ID").unwrap()
+    );
+    let payload = json!({
+        "id": 101,
+        "username": "jd_service_user_revised",
+        "password": "U2FsdGVkX1+UpdatedPassDataLooksLikeThisMaybe==",
+        "website": "https://service-updated.example.com"
+    });
+    let response = Client::new()
+        .put(&url)
+        .bearer_auth(env::var("API_KEY").unwrap())
+        .json(&payload)
+        .send().await.unwrap().text().await.unwrap();
+    println!("{}", response);
 }

@@ -1,33 +1,15 @@
 import axios from 'axios';
 
-const apiKey = process.env.API_KEY;
-const identityId = process.env.IDENTITY_ID;
-const apiUrl = `https://shadowself.io/api/identity/regenerate-bio/${identityId}`;
-
-async function regenerateBio() {
-  try {
-    const response = await axios.patch(
-      apiUrl,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+const url = `https://shadowself.io/api/identity/regenerate-bio/${process.env.IDENTITY_ID}`;
+axios
+  .patch(
+    url,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.API_KEY}`,
+        'Content-Type': 'application/json',
       },
-    );
-    console.log(JSON.stringify(response.data, null, 2));
-  } catch (error) {
-    let message = 'Error regenerating bio: ';
-    if (error.response) {
-      const status = error.response.status;
-      const data = JSON.stringify(error.response.data);
-      message += `${status} - ${data}`;
-    } else {
-      message += error.message;
-    }
-    console.error(message);
-  }
-}
-
-regenerateBio();
+    },
+  )
+  .then((res) => console.log(res.data));

@@ -1,35 +1,17 @@
-use std::{env, error::Error};
-use serde_json::json;
+use std::env;
 use reqwest::Client;
+use serde_json::json;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-  let api_key = env::var("API_KEY").unwrap();
-  let identity_id = env::var("IDENTITY_ID").unwrap();
-
-  let api_url = format!(
-    "https://shadowself.io/api/phone/delete-conversation/{}",
-    identity_id
-  );
-  let payload = json!({ "addressee": "+14155550000" });
-
-  let client = Client::new();
-  let response = client
-    .delete(&api_url)
-    .bearer_auth(api_key)
-    .json(&payload)
-    .send()
-    .await?
-    .error_for_status()?;
-
-  let status = response.status();
-  let body_text = response.text().await?;
-
-  if status.as_u16() == 204 || (status.is_success() && body_text.is_empty()) {
-    println!("Delete successful (Status: {})", status);
-  } else {
-    println!("{}", body_text);
-  }
-
-  Ok(())
+async fn main() {
+    let url = format!(
+        "https://shadowself.io/api/phone/delete-conversation/{}",
+        env::var("IDENTITY_ID").unwrap()
+    );
+    let response = Client::new()
+        .delete(&url)
+        .bearer_auth(env::var("API_KEY").unwrap())
+        .json(&json!({ "addressee": "+14155550000" }))
+        .send().await.unwrap().text().await.unwrap();
+    println!("{}", response);
 }

@@ -28,8 +28,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     .put(&api_url)
     .bearer_auth(api_key)
     .json(&payload)
-    .send()
-    .await?
+    .send().await?
     .error_for_status()?;
 
   println!("{}", response.text().await?);

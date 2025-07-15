@@ -1,40 +1,16 @@
 import WebSocket from 'ws';
 
-const apiKey = process.env.API_KEY;
-const identityId = process.env.IDENTITY_ID;
-const wsUrl = `wss://shadowself.io/ws-api/${identityId}`;
-const headers = {Authorization: `Bearer ${apiKey}`};
-let pingIntervalId = null;
+const url = `wss://shadowself.io/ws-api/${process.env.IDENTITY_ID}`;
+const headers = {Authorization: `Bearer ${process.env.API_KEY}`};
+const ws = new WebSocket(url, {headers});
 
-function handleMessage(data) {
-  try {
-    const event = JSON.parse(data.toString());
-    if (event && event.type) {
-      console.log(`Received event: ${event.type}`);
-    }
-  } catch (e) {
-    console.error('Error parsing WebSocket message:', e);
+ws.on('open', () => {
+  setInterval(() => ws.ping(), 45000);
+});
+
+ws.on('message', (data) => {
+  const event = JSON.parse(data);
+  if (event.type) {
+    console.log(`Received event: ${event.type}`);
   }
-}
-
-function connect() {
-  const ws = new WebSocket(wsUrl, {headers});
-
-  ws.on('open', () => {
-    if (pingIntervalId) clearInterval(pingIntervalId);
-    pingIntervalId = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) ws.ping();
-    }, 45000);
-  });
-
-  ws.on('message', handleMessage);
-  ws.on('error', (err) => console.error('WebSocket error:', err.message));
-  ws.on('close', (code, reason) => {
-    if (pingIntervalId) clearInterval(pingIntervalId);
-    if (code !== 1000) {
-      const reasonStr = reason ? reason.toString() : 'unknown';
-      console.error(`WebSocket closed: ${code} - ${reasonStr}`);
-    }
-  });
-}
-connect();
+});

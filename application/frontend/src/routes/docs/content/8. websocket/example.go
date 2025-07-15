@@ -5,41 +5,24 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type EventBase struct{ Type string `json:"type"` }
-
 func main() {
-	apiKey := os.Getenv("API_KEY")
-	identityId := os.Getenv("IDENTITY_ID")
-	wsURL := fmt.Sprintf("wss://shadowself.io/ws-api/%s", identityId)
-	headers := http.Header{"Authorization": {"Bearer " + apiKey}}
-
-	conn, _, err := websocket.DefaultDialer.Dial(wsURL, headers)
-	if err != nil {
-		fmt.Printf("Dial error: %v\n", err)
-		os.Exit(1)
-	}
+	url := fmt.Sprintf("wss://shadowself.io/ws-api/%s", os.Getenv("IDENTITY_ID"))
+	headers := http.Header{"Authorization": {"Bearer " + os.Getenv("API_KEY")}}
+	conn, _, _ := websocket.DefaultDialer.Dial(url, headers)
 	defer conn.Close()
 
 	go func() {
-		ticker := time.NewTicker(45 * time.Second)
-		defer ticker.Stop()
-		for range ticker.C {
-			if wErr := conn.WriteMessage(websocket.PingMessage, nil); wErr != nil {
-				fmt.Printf("Ping failed: %v\n", wErr)
-				return
-			}
+		for range time.Tick(45 * time.Second) {
+			conn.WriteMessage(websocket.PingMessage, nil)
 		}
 	}()
 
 	for {
-		_, message, rErr := conn.ReadMessage()
-		if rErr != nil {
-			fmt.Printf("Read error: %v\n", rErr)
-			break
-		}
-		var baseEvent EventBase
-		if json.Unmarshal(message, &baseEvent) == nil && baseEvent.Type != "" {
-			fmt.Printf("Received event: %s\n", baseEvent.Type)
+		_, msg, _ := conn.ReadMessage()
+		var event map[string]interface{}
+		json.Unmarshal(msg, &event)
+		if event != nil && event["type"] != nil {
+			fmt.Printf("Received event: %s\n", event["type"])
 		}
 	}
 }
