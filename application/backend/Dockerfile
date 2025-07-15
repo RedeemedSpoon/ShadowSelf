@@ -21,6 +21,6 @@ RUN chmod +x ./server
 
 EXPOSE 3000
 
-VOLUME [ "/etc/passwd", "/etc/shadow", "/etc/group" ]
+VOLUME [ "/etc/passwd", "/etc/shadow", "/etc/group", "/home" ]
 
 CMD ["./server"]

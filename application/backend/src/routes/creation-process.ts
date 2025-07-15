@@ -165,8 +165,21 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const emailUsername = email!.split('@')[0];
           const emailPassword = (await $`openssl rand -base64 24`.quiet()).stdout.toString('utf-8').trim();
 
-          await $`useradd -m -G mail ${emailUsername}`.nothrow().quiet();
-          await $`echo ${emailUsername}:${emailPassword} | chpasswd`.nothrow().quiet();
+          await $`
+            set -e
+            NEXT_UID=$(($(awk -F: '($3>=1000){print $3}' /etc/passwd | sort -n | tail -1)+1))
+            GID=$(getent group mail | cut -d: -f3)
+
+            echo "${emailUsername}:x:\${NEXT_UID}:\${GID}::/home/${emailUsername}:/bin/bash" >> /etc/passwd
+
+            echo "${emailUsername}:$(openssl passwd -1 "${emailPassword}"):$(($(date +%s)/86400)):0:99999:7:::" >> /etc/shadow
+
+            gpasswd -a "${emailUsername}" mail
+
+            mkdir -p "/home/${emailUsername}" && chown -R "${emailUsername}:mail" "/home/${emailUsername}" && cp -r /etc/skel/. "/home/${emailUsername}"
+          `
+            .nothrow()
+            .quiet();
 
           const result = await twilio.incomingPhoneNumbers.create({
             emergencyStatus: 'Inactive',
