@@ -34,12 +34,12 @@ function fail() {
 
 function success() {
     echo -e "${GREEN}[PASS]${NC} $1"
-    sleep 0.5
+    sleep 0.35
 }
 
 function header() {
     echo -e "\n${YELLOW}--- $1 ---${NC}"
-    sleep 0.25
+    sleep 0.35
 }
 
 ## --- SCRIPT START --- ##

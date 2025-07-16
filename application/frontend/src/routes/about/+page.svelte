@@ -51,7 +51,7 @@
   <p>
     Make sure to star us on <a href="https://github.com/RedeemedSpoon/ShadowSelf" rel="external">GitHub</a>, follow us on
     <a href="https://mastodon.social/@shadow_self" rel="external">Mastodon</a>
-    and Join our community on <a href="https://discord.gg/HaHBwsEa6w" rel="external">Discord</a>
+    and Join our community on <a href="https://discord.gg/Yf4z7kucUf" rel="external">Discord</a>
   </p>
 </div>
 
