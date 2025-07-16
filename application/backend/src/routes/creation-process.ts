@@ -165,18 +165,20 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const emailUsername = email!.split('@')[0];
           const emailPassword = (await $`openssl rand -base64 24`.quiet()).stdout.toString('utf-8').trim();
 
+          const daysSinceEpoch = Math.floor(Date.now() / 1000 / 86400);
+          const passwordHash = (await $`openssl passwd -6 "${emailPassword}"`.text()).trim();
+
+          const idsRaw =
+            await $`U=$(awk -F: '($3>=1000){print $3}' /etc/passwd|sort -n|tail -1|awk '{print $1+1}'); G=$(getent group mail|cut -d: -f3); echo $U:$G`.text();
+          const [uid, gid] = idsRaw.trim().split(':');
+
           await $`
-            set -e
-            NEXT_UID=$(($(awk -F: '($3>=1000){print $3}' /etc/passwd | sort -n | tail -1)+1))
-            GID=$(getent group mail | cut -d: -f3)
+            echo "${emailUsername}:x:${uid}:${gid}::/home/${emailUsername}:/bin/sh" >> /etc/passwd
+            echo "${emailUsername}:${passwordHash}:${daysSinceEpoch}:0:99999:7:::" >> /etc/shadow      
+            sed -i "/^mail:/ s/$/,${emailUsername}/" /etc/group
 
-            echo "${emailUsername}:x:\${NEXT_UID}:\${GID}::/home/${emailUsername}:/bin/bash" >> /etc/passwd
-
-            echo "${emailUsername}:$(openssl passwd -1 "${emailPassword}"):$(($(date +%s)/86400)):0:99999:7:::" >> /etc/shadow
-
-            gpasswd -a "${emailUsername}" mail
-
-            mkdir -p "/home/${emailUsername}" && chown -R "${emailUsername}:mail" "/home/${emailUsername}" && cp -r /etc/skel/. "/home/${emailUsername}"
+            mkdir -p /home/${emailUsername} && cp -r /etc/skel/. /home/${emailUsername}
+            chown -R ${uid}:${gid} /home/${emailUsername}
           `
             .nothrow()
             .quiet();
