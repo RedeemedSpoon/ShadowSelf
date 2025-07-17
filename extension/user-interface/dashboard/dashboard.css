@@ -1,0 +1,143 @@
+header {
+  display: block;
+  margin: 1rem auto;
+  width: 50%;
+}
+
+section {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  margin: auto;
+  padding: 25px;
+  row-gap: 10px;
+}
+
+#no-identities {
+  background-image: url('../../assets/graphics/identity.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 200px;
+}
+
+#no-identities a {
+  margin-top: 15px;
+}
+
+#list-identities {
+  justify-content: start;
+}
+
+#list-identities > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-wrap: nowrap;
+  gap: 10px;
+}
+
+#username {
+  color: transparent;
+  display: inline-flex;
+  background-image: linear-gradient(to right, #0284c7, #4f46e5 30%, #9333ea);
+  background-clip: text;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100px;
+}
+
+#search-box {
+  position: relative;
+  align-items: center;
+  display: flex;
+}
+
+input {
+  width: 100px;
+  padding-left: 25px;
+}
+
+label {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  display: inline-block;
+  background-color: var(--color-neutral-darker);
+  -webkit-mask: url('../../assets/graphics/search.svg') no-repeat center;
+  mask: url('../../assets/graphics/search.svg') no-repeat center;
+  cursor: pointer;
+}
+
+.identity {
+  position: relative;
+  display: grid;
+  align-items: center;
+  justify-items: start;
+  grid-template-columns: 53px 150px 0px 36px;
+  transition: background-color 0.15s ease-in-out;
+  border-bottom: 1px solid var(--color-background-lighter);
+  user-select: none;
+  cursor: pointer;
+  padding: 10px;
+  gap: 10px;
+}
+
+.identity:last-child,
+.identity.last {
+  border-bottom: none;
+}
+
+.identity:hover {
+  background-color: var(--color-hover);
+}
+
+.identity h3 {
+  font-size: var(--font-size-base);
+  text-wrap: nowrap;
+  width: 150px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: -10px;
+}
+
+.identity p {
+  position: absolute;
+  margin-top: 25px;
+  margin-left: 73px;
+  color: var(--color-neutral-darker);
+  font-size: calc(var(--font-size-base) * 0.75);
+}
+
+.identity img:first-child {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.identity body {
+  width: 30px;
+  height: auto;
+}
+
+#not-found {
+  display: none;
+  margin-top: 25px;
+}
+
+.shown {
+  display: block !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.not-found > *:not(:first-child) {
+  display: none;
+}

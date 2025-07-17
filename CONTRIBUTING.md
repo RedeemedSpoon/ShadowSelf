@@ -131,7 +131,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Redeem
 Here are some quick guidelines to help you get started:
 
 - **Stick to JavaScript Basics**  
-   The code in this repo follows the usual JavaScript practices, so keep it simple. Use camelCase for variables, functions, and method names, UPPER_CASE for constants, and PascalCase for classes and React components. If you’re working with TypeScript, feel free to use interfaces when needed.
+   The code in this repo follows the usual JavaScript practices, so keep it simple. Use camelCase for variables, functions, and method names, UPPER_CASE for constants, and PascalCase for classes and Svelte components. If you’re working with TypeScript, feel free to use interfaces when needed.
 - **Prettier Is Your Friend**  
    Before you submit your code, run it through **Prettier** to make sure everything’s nicely formatted. We’ve got a `.prettierrc` file set up with our preferences. It’ll save you time and keep things consistent!
 

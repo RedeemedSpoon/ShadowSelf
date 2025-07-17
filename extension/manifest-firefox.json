@@ -1,0 +1,48 @@
+{
+  "name": "ShadowSelf",
+  "short_name": "ShadowSelf",
+  "homepage_url": "https://shadowself.io",
+  "author": "RedeemedSpoon (contact@shadowself.io)",
+  "description": "Safeguard your privacy with synthetic identities and take control of your digital life.",
+  "version": "1.1.0",
+  "manifest_version": 3,
+  "incognito": "spanning",
+  "icons": {
+    "16": "assets/icons/icon-16x16.png",
+    "32": "assets/icons/icon-32x32.png",
+    "48": "assets/icons/icon-48x48.png",
+    "64": "assets/icons/icon-64x64.png",
+    "96": "assets/icons/icon-96x96.png"
+  },
+  "action": {
+    "default_title": "ShadowSelf",
+    "default_popup": "user-interface/dashboard/dashboard.html",
+    "default_area": "navbar",
+    "default_icon": {
+      "16": "assets/icons/icon-16x16.png",
+      "32": "assets/icons/icon-32x32.png",
+      "48": "assets/icons/icon-48x48.png"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "verfication@shadowself.io",
+      "strict_min_version": "126.0"
+    }
+  },
+  "background": {
+    "scripts": ["background/background.js"],
+    "type": "module"
+  },
+  "host_permissions": ["<all_urls>"],
+  "permissions": [
+    "webRequest",
+    "webRequestAuthProvider",
+    "declarativeNetRequestWithHostAccess",
+    "notifications",
+    "cookies",
+    "storage",
+    "proxy",
+    "tabs"
+  ]
+}

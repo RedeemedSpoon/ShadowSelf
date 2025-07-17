@@ -1,0 +1,66 @@
+name: shadowself-core
+
+services:
+  nginx:
+    build: .
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/www/certbot:/var/www/certbot
+    restart: always
+    init: true
+
+  certbot:
+    build: ./certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/www/certbot:/var/www/certbot
+    depends_on:
+      - nginx
+    restart: always
+    init: true
+
+  postgres:
+    build: ./database
+    expose:
+      - 5432
+    env_file:
+      - ./database/.env
+    volumes:
+      - data:/var/lib/postgresql/data
+    restart: always
+    init: true
+
+  backend:
+    build: ./backend
+    expose:
+      - 3000
+    env_file:
+      - ./backend/.env
+      - ./database/.env
+    volumes:
+      - /etc/passwd:/etc/passwd
+      - /etc/shadow:/etc/shadow
+      - /etc/group:/etc/group
+      - /home:/home
+    depends_on:
+      - postgres
+      - nginx
+    restart: always
+    init: true
+
+  frontend:
+    build: ./frontend
+    expose:
+      - 5000
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+      - nginx
+    restart: always
+    init: true
+
+volumes:
+  data:

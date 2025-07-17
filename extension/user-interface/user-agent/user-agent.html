@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="Safeguard your privacy with synthetic identities and take control of your digital life." />
+    <title>ShadowSelf - User Agents</title>
+    <link rel="icon" href="../../assets/favicon.ico" />
+    <link rel="stylesheet" href="../global.css" media="all" />
+    <link rel="stylesheet" href="./user-agent.css" media="all" />
+  </head>
+
+  <body>
+    <header>
+      <a href="../dashboard/dashboard.html?ignore=true">← Back<span></span></a>
+    </header>
+    <main>
+      <section id="system">
+        <label class="container">
+          <input type="checkbox" />
+          <span class="checkmark"></span>
+          <p>Use Actual User Agent</p>
+        </label>
+      </section>
+      <div id="or">
+        <hr />
+        <h3>OR</h3>
+      </div>
+      <section id="user-agent">
+        <div id="device">
+          <p>Device</p>
+          <div class="custom-select">
+            <div class="selected-value">Laptop</div>
+            <ul>
+              <li>Laptop</li>
+              <li>Tablet</li>
+              <li>Phone</li>
+            </ul>
+          </div>
+        </div>
+        <div id="os">
+          <p>Operating System</p>
+          <div class="custom-select">
+            <div class="selected-value">Windows</div>
+            <ul>
+              <li class="laptop">Windows</li>
+              <li class="laptop">macOS</li>
+              <li class="laptop">Linux</li>
+              <li class="laptop">ChromeOS</li>
+              <li class="tablet">iPadOS</li>
+              <li class="tablet">FireOS</li>
+              <li class="phone">iOS</li>
+              <li class="phone">Android</li>
+              <li class="phone">HarmonyOS</li>
+            </ul>
+          </div>
+        </div>
+        <div id="browser">
+          <p>Web Browser</p>
+          <div class="custom-select">
+            <div class="selected-value">Chrome</div>
+            <ul>
+              <li>Chrome</li>
+              <li>Firefox</li>
+              <li>Safari</li>
+              <li>Edge</li>
+              <li>Opera</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+      <small> User Agent is an HTTP header string sent by clients identifying the browser, rendering engine, version, and OS. </small>
+    </main>
+    <hr />
+    <footer>
+      <div>
+        <a href="https://github.com/RedeemedSpoon/ShadowSelf"><span id="github"></span>GitHub</a>
+        <a href="https://mastodon.social/@shadow_self"><span id="mastodon"></span>Mastodon</a>
+        <a href="https://discord.gg/Yf4z7kucUf"><span id="discord"></span>Discord</a>
+      </div>
+      <a href="../welcome/welcome.html?delete=true"><span id="logout"></span>logout</a>
+    </footer>
+    <script type="module" src="./user-agent.js"></script>
+  </body>
+</html>

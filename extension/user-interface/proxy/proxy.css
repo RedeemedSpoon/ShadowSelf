@@ -1,0 +1,128 @@
+#country {
+  position: absolute;
+  top: -25px;
+  left: 0;
+  width: 100%;
+  height: 225px;
+  overflow: hidden;
+  border-bottom: 3px solid var(--color-alert);
+  z-index: -1;
+}
+
+#country-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  filter: brightness(0.5) contrast(1.25) saturate(1.15) opacity(0.125);
+  background-blend-mode: overlay;
+}
+
+#connect {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 25px;
+  gap: 40px;
+}
+
+#button-container {
+  background-color: var(--color-background);
+  border: 3px solid var(--color-alert);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+#button-container:hover:not(.processing) {
+  background-color: var(--color-hover);
+}
+
+#power {
+  width: 80px;
+  height: 80px;
+  display: block;
+  background-color: var(--color-alert);
+  -webkit-mask: url('../../assets/graphics/power.svg') no-repeat center;
+  mask: url('../../assets/graphics/power.svg') no-repeat center;
+  margin: 8px;
+}
+
+#power.processing {
+  opacity: 0.5;
+}
+
+#power.active {
+  background-color: var(--color-success);
+}
+
+.active {
+  border-color: var(--color-success) !important;
+}
+
+.processing {
+  border-color: var(--color-alert-hover) !important;
+}
+
+.active.processing {
+  border-color: var(--color-success-hover) !important;
+}
+
+.transition {
+  -webkit-transition: all 0.25s ease-in-out;
+  -moz-transition: all 0.25s ease-in-out;
+  -o-transition: all 0.25s ease-in-out;
+  transition: all 0.25s ease-in-out;
+}
+
+#details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 25px 0;
+}
+
+#details h3 {
+  font-size: calc(var(--font-size-base) * 1.75);
+  color: var(--color-primary);
+  margin-left: -24px;
+}
+
+#details h1 {
+  font-size: calc(var(--font-size-base) * 2);
+  color: var(--color-neutral);
+}
+
+#details p {
+  font-size: calc(var(--font-size-base) * 1.25);
+  color: var(--color-neutral-darker);
+}
+
+#ip {
+  width: 24px;
+  height: 24px;
+  margin-top: 3px;
+  margin-left: 2px;
+  position: absolute;
+  display: inline-block;
+  background-color: var(--color-primary);
+  -webkit-mask: url('../../assets/graphics/pin.svg') no-repeat center;
+  mask: url('../../assets/graphics/pin.svg') no-repeat center;
+}
+
+#bandwidth {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  margin-top: 30px;
+}
+
+#bandwidth .metric {
+  color: var(--color-neutral-darker);
+  font-size: calc(var(--font-size-base) * 0.85);
+}
+
+#kill-switch {
+  margin: 0 auto;
+  width: fit-content;
+  margin-top: 25px;
+}

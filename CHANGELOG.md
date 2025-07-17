@@ -5,6 +5,269 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5] - 2025-7-17
+
+### Added
+
+- Basic test script
+- Query database script
+- Discord warnings script
+- Extension packing script
+- Pull certificates script
+- Docker backend bind mount for adding linux users
+- Lets-encrypt docker
+
+### Changed
+
+- Rename old scripts
+- Improved script environment variables integration
+- Echo statement with now some emojis
+- Restructure docs content paths
+- Shortened docs example code
+- Change discord invite link
+- Latino ethnicity to slav
+
+## [0.9.4] - 2025-7-6
+
+### Added
+
+- Extension 1.1.0 version
+- Backup database script
+- Secure IV for encryption
+- Kill switch exception for shadowself.io
+- Bind mount for docker instead of volumes
+
+### Changed
+
+- Update packages
+- Extension versions
+- Fix firefox proxy connection method/protocol
+- replace error() depricated function
+- Error handling layout.server.ts
+- Documentation svelte code
+- Fix maintenance script
+- Edge extension link
+
+### Removed
+
+- Dante SOCKS5 support (unsecure)
+
+## [0.9.3] - 2025-5-30
+
+### Added
+
+- Update to final README.md
+- Dante back to support SOCK5 in firfox and API
+- update.sh to automatically update docker container globally
+- User icon when no identities in extension page
+
+### Changed
+
+- Extension TLS issues is chromium
+- Change to Realistic prompts when generating avatars
+- Fix signup/login transition design issues
+- Move shell files into .scripts/
+- Fix global design issues
+- Fix paths issues
+- Change ports
+
+## [0.9.2] - 2025-5-14
+
+### Added
+
+- Docker environment variables
+- Application docker compose
+- Proxies docker compose
+
+### Changed
+
+- Divide Database into roles.sql and tables.sql
+- Correct host to include docker container name
+- Change database environment variable names
+- Fix Docker issues
+
+### Removed
+
+- Nginx Caching
+- Domains form cookie creation
+
+## [0.9.1] - 2025-5-16
+
+### Added
+
+- .dockerignore files
+- Proxy dockerfiles
+- Frontend dockerfiles
+- Backned dockerfiles
+- Extension links/urls
+- Database seperate directory
+
+### Changed
+
+- Move core web server to application/ directory
+- move extension background code to background/ directory
+- Fix backend pre request code to better catch errors
+- renew Legal policy page to be more pro-GDPR
+- Docker container intern paths
+
+## [0.9.0] - 2025-5-06
+
+### Added
+
+- New proxy icon
+- Proxy documentation section
+- Documentation list proxies addition
+- Change OS based on device in user agent page
+- Update icon based on proxy settings
+- test Connection bandwidth speed
+- Store and display user agent
+- Spool user agent headers
+- Actual kill switch
+
+### Changed
+
+- User agent will not be stored in the backend
+- Divide background.js into proxy.js and user-agent.js
+
+## [0.8.6] - 2025-5-03
+
+### Added
+
+- Squid conf file
+- proxy web server
+- Squid Authentication
+- Proxies directory and related configurations
+- Test connection after proxy authentication
+- Add/Delete linux accounts for proxies
+- Display browser error notifications
+- New database columns
+- Transition design
+
+### Changed
+
+- Move /api-extension to /api/proxy
+- Move most background logic to functions
+- Tmux listen for proxy web server
+- Fix bearer lowercase bug
+
+### Removed
+
+- Dante and socks5
+- Temporary credentials generation
+- Backend extension.ts
+
+## [0.8.5] - 2025-4-30
+
+### Added
+
+- Dante socks5 conf file
+- Proxy authentication process
+- OpenVPN configuration file
+- Generate temporary credentials for extension (user/pass)
+- Independent manifest.json for each firefox and chrome
+- Incognito check before connecting to proxy
+- Send and react to browser messages
+
+### Changed
+
+- Disable select menu after checkbox click
+- Fix chrome authentication
+- Improve API middleware
+
+## [0.8.4] - 2025-4-27
+
+### Added
+
+- More icons
+- Dashboard search functionality
+- Local country flag instead of flagsapi.com
+- Proxy user interface in the browser extension
+- User-agent UI in the browser extension
+- Custom checkbox and select menu
+
+### Changed
+
+- Change licence for GPL-v3 to AGPL-v3
+- Update step 5 in creation process for better design
+- Actual user interface instead of mockup image in the extension page
+- Rework link to include params to ignore instead of using click event
+- Extension download page image background
+- Move most extension css to global.css
+
+## [0.8.3] - 2025-4-25
+
+### Added
+
+- New /extension-api route
+- Dashboard user interface and design
+- Footer and icons in the browser extension
+- Welcome user interface in the browser extension
+- Dashbaoh both empty and full states
+
+### Changed
+
+- Move old backend route /extension-api to /locations
+- Crypto uses randomBytes() instead of pseudoRandomBytes()
+- Move all util and helper function to shared.js
+- Fix phone number format on regular dashboard
+
+### Removed
+
+- Step 6 in creation process
+
+## [0.8.2] - 2025-4-23
+
+### Added
+
+- Beta release
+- Early work on browsers extension
+- Extension main file and structure
+- Global.css and HTML head (extensions)
+- Extension manifest.json
+- Extension icons
+
+### Changed
+
+- Move to tailwindcss v4
+- Fix tailwind v4 migration issues
+- Revert scrollhack to old ways (add text instead)
+- Lowercase the root directories names
+- Fix svelte LSP-recommended issues
+- Add reduce motion on homepage
+
+## [0.8.1] - 2025-4-21
+
+### Added
+
+- FloatingAvatars component
+- Extension UI mockup image
+- Extension page
+
+### Changed
+
+- Solution section on homepage right section
+- Services section on homepage to use new images
+
+### Removed
+
+- Satisfaction image
+- Services images
+
+## [0.8.0] - 2025-4-19
+
+### Added
+
+- CSRF protection
+- Sparkle component
+- Dynamic nginx caching system
+- Check to contact form
+
+### Changed
+
+- Rename homepage components
+- Join section on homepage to be final
+- Fix scrollhack on homepage
+
 ## [0.7.0] - 2025-4-14
 
 ### Added
@@ -19,7 +282,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix new stripe webhook
 - Change checkout to backend regular payment
-- Fix recreatation of stripe customer each time
+- Fix recreation of stripe customer each time
 
 ### Removed
 
@@ -152,7 +415,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Remove
 
-- US opton from country listg due to A2P 10DLC
+- US option from country list due to A2P 10DLC
 
 ## [0.6.0] - 2025-3-16
 
@@ -493,7 +756,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A different reset email template
 - A pretty email verification template
 - Rewind to generate new recovery codes in dashboard
-- Prefill when customer is already existing (partial fail)
 - Design to payment form using stripe element
 - Fill icons switch to some
 - Payment to signup

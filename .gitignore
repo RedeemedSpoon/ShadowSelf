@@ -1,17 +1,22 @@
+server
 bun.lockb
 package-lock.json
 pnpm-lock.yaml
 *.lock
 
+ShadowSelf-Chromium.zip
+ShadowSelf-Firefox.zip
+db_backup.sql.gz
+db_backup.sql
+
 Thumbs.db
 .DS_Store
+.dccache
 .output
 
 build
-server
 node_modules
 .svelte-kit
-vite.config.ts.*.mjs
-
-*.env
-*.pem
+.easy-pki
+.certs
+.env

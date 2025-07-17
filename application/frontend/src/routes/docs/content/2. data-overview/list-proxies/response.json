@@ -1,0 +1,27 @@
+{
+  "username": "Admin",
+  "identities": [
+    {
+      "id": "ide38349c0ab",
+      "name": "Jane Doe",
+      "location": "CA, Toronto, Canada",
+      "picture": "U2FsdGVkX1+abc...",
+      "domain": "ca.shadowself.io",
+      "server": "192.0.2.10",
+      "port": 3128,
+      "username": "usr-ide38349c0ab",
+      "password": "pwd-proxyPasswordForJane"
+    },
+    {
+      "id": "ide9ff12a4de",
+      "name": "John Smith",
+      "location": "GB, London, United Kingdom",
+      "picture": "U2FsdGVkX1+def...",
+      "domain": "gb.shadowself.io",
+      "server": "198.51.100.20",
+      "port": 3128,
+      "username": "usr-ide9ff12a4de",
+      "password": "pwd-proxyPasswordForJohn"
+    }
+  ]
+}
