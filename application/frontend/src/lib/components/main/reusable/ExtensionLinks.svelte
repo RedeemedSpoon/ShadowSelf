@@ -21,7 +21,7 @@
       firefox: 'https://addons.mozilla.org/en-US/firefox/addon/shadowself',
       chrome: 'https://chromewebstore.google.com/detail/shadowself/paaidpbnnoopadhdodbjgfhfhhonmbmf',
       edge: 'https://microsoftedge.microsoft.com/addons/detail/shadowself/fjlfnbhdginnpjnlkhhbjhejgaamhdhb',
-      opera: 'https://addons.opera.com/en/extensions/details/shadowself',
+      opera: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     },
     ublock: {
       website: 'https://ublockorigin.com',

@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5] - 2025-7-17
+
+### Added
+
+- Basic test script
+- Query database script
+- Discord warnings script
+- Extension packing script
+- Pull certificates script
+- Docker backend bind mount for adding linux users
+- Lets-encrypt docker
+
+### Changed
+
+- Rename old scripts
+- Improved script environment variables integration
+- Echo statement with now some emojis
+- Restructure docs content paths
+- Shortened docs example code
+- Change discord invite link
+- Latino ethnicity to slav
+
+## [0.9.4] - 2025-7-6
+
+### Added
+
+- Extension 1.1.0 version
+- Backup database script
+- Secure IV for encryption
+- Kill switch exception for shadowself.io
+- Bind mount for docker instead of volumes
+
+### Changed
+
+- Update packages
+- Extension versions
+- Fix firefox proxy connection method/protocol
+- replace error() depricated function
+- Error handling layout.server.ts
+- Documentation svelte code
+- Fix maintenance script
+- Edge extension link
+
+### Removed
+
+- Dante SOCKS5 support (unsecure)
+
 ## [0.9.3] - 2025-5-30
 
 ### Added
