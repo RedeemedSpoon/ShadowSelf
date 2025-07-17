@@ -1,16 +1,17 @@
 #!/bin/bash
 
 ## --- ENVIRONMENT --- ##
-if [[ -z "$SHADOWSELF_PROXY_USERNAME" || -z "$SHADOWSELF_PROXY_PASSWORD" || -z "$SHADOWSELF_API_TOKEN" ]]; then
+SHADOWSELF_PATH=$(dirname "$(realpath "$0")")
+PROXY_USERNAME=$(grep PROXY_USERNAME "${SHADOWSELF_PATH}/.env" | cut -d '=' -f2)
+PROXY_PASSWORD=$(grep PROXY_PASSWORD "${SHADOWSELF_PATH}/.env" | cut -d '=' -f2)
+API_TOKEN=$(grep API_TOKEN "${SHADOWSELF_PATH}/.env" | cut -d '=' -f2)
+
+if [[ -z "$PROXY_USERNAME" || -z "$PROXY_PASSWORD" || -z "$API_TOKEN" ]]; then
   echo "Error: Environment variables SHADOWSELF_PROXY_USERNAME, SHADOWSELF_PROXY_PASSWORD, and SHADOWSELF_API_TOKEN are required."
   exit 1
 fi
 
 ## --- CONFIGURATION --- ##
-PROXY_USERNAME=${SHADOWSELF_PROXY_USERNAME}
-PROXY_PASSWORD=${SHADOWSELF_PROXY_PASSWORD}
-API_TOKEN=${SHADOWSELF_API_TOKEN}
-
 TARGET_DOMAIN="shadowself.io"
 SUBDOMAINS=("mail" "us" "gb" "ca" "se")
 API_ENDPOINT="https://shadowself.io/api/test"

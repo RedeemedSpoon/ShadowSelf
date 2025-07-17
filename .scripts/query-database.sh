@@ -8,11 +8,12 @@ fi
 
 REMOTE_USER="root"
 REMOTE_HOST="shadowself.io"
+SHADOWSELF_PATH=$(dirname "$(dirname "$(realpath "$0")")")
 SAFE_SQL_COMMAND=$(printf "%q" "$1")
 
-DB_USER=$(grep POSTGRES_USER ${LOCAL_PATH}/application/database/.env | cut -d '=' -f2)
-DB_PASSWORD=$(grep POSTGRES_PASSWORD ${LOCAL_PATH}/application/database/.env | cut -d '=' -f2)
-DB_NAME=$(grep POSTGRES_DB ${LOCAL_PATH}/application/database/.env | cut -d '=' -f2)
+DB_USER=$(grep POSTGRES_USER ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
+DB_PASSWORD=$(grep POSTGRES_PASSWORD ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
+DB_NAME=$(grep POSTGRES_DB ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
 
 ssh -i "$SSH_KEY" ${REMOTE_USER}@${REMOTE_HOST} "
   set -e

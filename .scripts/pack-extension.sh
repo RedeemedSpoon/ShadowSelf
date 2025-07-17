@@ -1,6 +1,7 @@
 #!/bin/bash
 
-EXTENSION_DIR=$LOCAL_PATH/extension
+SHADOWSELF_PATH=$(dirname "$(dirname "$(realpath "$0")")")
+EXTENSION_DIR="$SHADOWSELF_PATH/extension"
 SLEEP_TIME=0.25
 
 echo "📦 Starting packaging of browser extensions..."

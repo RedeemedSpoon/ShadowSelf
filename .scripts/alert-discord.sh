@@ -1,16 +1,17 @@
 #!/bin/bash
 
 # --- CONFIG ---
-WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
+SHADOWSELF_PATH=$(dirname "$(realpath "$0")")
+WEBHOOK_URL=$(grep WEBHOOK_URL "${SHADOWSELF_PATH}/.env" | cut -d '=' -f2)
 
 if [ -z "$WEBHOOK_URL" ]; then
-    echo "ERROR: The DISCORD_WEBHOOK_URL environment variable is not set." >&2
+    echo "ERROR: The WEBHOOK_URL environment variable is not set." >&2
     exit 255
 fi
 
 # --- EXECUTION ---
-echo "🏃 Running health-check.sh..."
-bash ./health-check.sh
+echo "🏃 Running health check script..."
+bash "$SHADOWSELF_PATH/health-check.sh"
 EXIT_CODE=$?
 
 # --- ANALYSIS ---

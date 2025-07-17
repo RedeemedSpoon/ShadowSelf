@@ -1,10 +1,12 @@
 #!/bin/bash
 set -e
 
+SERVER_PATH="/root/ShadowSelf"
+SHADOWSELF_PATH=$(dirname "$(dirname "$(realpath "$0")")")
+
 SSH_USER="root"
 DOMAIN="shadowself.io"
 SUBDOMAINS=("us" "ca" "gb" "se")
-
 RSYNC_EXCLUDES=(
     --exclude 'bun.lockb'
     --exclude 'package-lock.json'
@@ -19,7 +21,7 @@ RSYNC_EXCLUDES=(
 update_server() {
     local server_address="$1"
     local component_path="$2"
-    local local_path="${LOCAL_PATH}/${component_path}"
+    local local_path="${SHADOWSELF_PATH}/${component_path}"
     echo "🔄 Updating ${server_address}..."
 
     rsync -a --delete "${RSYNC_EXCLUDES[@]}" "${local_path}/" \
@@ -31,7 +33,7 @@ update_server() {
         cd \"${SERVER_PATH}/${component_path}\";
         docker compose down;
         docker compose build --build-arg SUBDOMAIN=${server_address};
-        docker compose up -d --remove-orphans;
+        docker compose up -d;
     "
 }
 

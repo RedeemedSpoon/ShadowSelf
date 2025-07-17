@@ -1,11 +1,13 @@
 #!/bin/bash
 
-if [ ! -f "$(pwd)/maintenance.log" ]; then
-  touch "$(pwd)/maintenance.log"
+SHADOWSELF_PATH=$(dirname "$(realpath "$0")")
+
+if [ ! -f "$SHADOWSELF_PATH/maintenance.log" ]; then
+  touch "$SHADOWSELF_PATH/maintenance.log"
 fi
 
-LOG_FILE="$(pwd)/maintenance.log"
-CRON_JOB="0 3 * * * $(pwd)/maintenance.sh"
+LOG_FILE="$SHADOWSELF_PATH/maintenance.log"
+CRON_JOB="0 3 * * * $SHADOWSELF_PATH/maintenance.sh"
 ALL_CRON_JOB=$(crontab -l 2>/dev/null)
 
 echo "🛠️ ---------- Maintenance script started at: $(date) ----------" >> $LOG_FILE
