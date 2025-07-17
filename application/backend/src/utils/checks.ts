@@ -2,7 +2,7 @@ import type {BodyField, ContactDetail, CheckIdentity, APIRequest} from '@types';
 import {toTitleCase} from '@utils/utils';
 import {$} from 'bun';
 
-const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
+const ethnicities = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
   const body = rawBody as BodyField;
@@ -277,7 +277,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'ethnicity':
-        if (typeof body.ethnicity !== 'string' || !Array.isArray(ethnicities) || !ethnicities.includes(body.ethnicity)) {
+        if (typeof body.ethnicity !== 'string' || !ethnicities.includes(body.ethnicity)) {
           return {err: 'Ethnicity must be a valid ethnicity from the allowed list'} as APIRequest;
         }
         break;

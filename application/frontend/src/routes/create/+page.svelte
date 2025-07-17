@@ -12,7 +12,7 @@
   import {notify} from '$lib';
 
   let {data}: {data: PageData} = $props();
-  const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Latino', 'Arab', 'East asian', 'South asian'];
+  const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
 
   let disabled = $state(true);
   let server = $state() as CreationProcess;

@@ -61,7 +61,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             cookie.set({value: cookie.value + `&&${location}`});
           }
 
-          const ethnicities = ['caucasian', 'black', 'hispanic', 'latino', 'arab', 'east asian', 'south asian'];
+          const ethnicities = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
           const lang = locations.find((location) => location.code === (cookieStore[0] || message.location));
 
           let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};

@@ -5,7 +5,7 @@
   import {fetchAPI} from '$fetch';
   import {notify} from '$lib';
 
-  const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Latino', 'Arab', 'East asian', 'South asian'];
+  const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
 
   async function regeneratePicture() {
     const bio = (document.querySelector('textarea') as HTMLTextAreaElement).value.trim();
