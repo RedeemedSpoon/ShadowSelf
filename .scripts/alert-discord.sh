@@ -68,7 +68,7 @@ JSON_PAYLOAD=$(printf '{
     "title": "%s",
     "description": "%s",
     "color": 15158332,
-    "footer": { "text": "shadowSelf Health Monitoring" },
+    "footer": { "text": "ShadowSelf Health Monitoring" },
     "timestamp": "%s"
   }]
 }' "$TITLE" "$DESCRIPTION" "$TIMESTAMP")

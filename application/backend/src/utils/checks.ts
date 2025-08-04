@@ -177,15 +177,15 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       break;
 
     case 'email': {
-      if (!/^[\p{L}\p{N}]+@shadowself\.io$/u.test(body.email!)) {
-        return {error: 'Invalid email address, please try again'};
+      if (!/^[a-zA-Z0-9_-]+@shadowself\.io$/.test(body.email!)) {
+        return {error: 'Invalid email address. Use only letters, numbers, underscores, and hyphens.'};
       }
 
       if (body.email!.length > 48) {
         return {error: 'Email is too long (<48 characters)'};
       }
 
-      const command = await $`id ${body.email!.split('@')[0]}`.quiet().nothrow();
+      const command = await $`id $EMAIL_ADDRESS`.env({EMAIL_ADDRESS: body.email!}).quiet().nothrow();
       return command.exitCode === 0 ? {error: 'Email address is already registered on our systems'} : body;
     }
 
