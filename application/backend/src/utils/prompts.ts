@@ -1,4 +1,4 @@
-import {blobToBase64} from '@utils/utils';
+import {GoogleGenAI} from '@google/genai';
 import {Location} from '@types';
 
 function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, bio: string) {
@@ -70,23 +70,22 @@ function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, 
 }
 
 export async function generateProfile(lang: Location, age: number, sex: string, ethnicity: string, bio: string): Promise<string> {
-  const {prompt, negativePrompt} = getPrompt(lang, ethnicity, age, sex, bio);
+  const {prompt} = getPrompt(lang, ethnicity, age, sex, bio);
+  const apiKey = process.env.GEMINI_API_KEY;
+  const ai = new GoogleGenAI({apiKey});
 
-  const formData = new FormData();
-  formData.append('prompt', prompt);
-  formData.append('aspect_ratio', '1:1');
-  formData.append('output_format', 'png');
-  formData.append('negative_prompt', negativePrompt);
-
-  const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/core', {
-    method: 'POST',
-    body: formData,
-    headers: {
-      authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
-      accept: 'image/*',
-    },
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash-image-preview',
+    contents: prompt,
+    config: {temperature: 0.9},
   });
 
-  const blob = await response.blob();
-  return await blobToBase64(blob);
+  for (const part of response.candidates![0]!.content!.parts!) {
+    if (part.text) {
+      console.log(part.text);
+    } else if (part.inlineData) {
+      const imageData = part.inlineData.data;
+      return imageData!;
+    }
+  }
 }
