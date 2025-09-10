@@ -5,7 +5,7 @@ import adapter from 'svelte-adapter-bun';
 const config = {
   preprocess: vitePreprocess(),
   kit: {
-    csrf: {checkOrigin: false},
+    csrf: {trustedOrigins: ['*']},
     adapter: adapter({
       out: 'build',
       assets: true,
