@@ -9,6 +9,7 @@ export const load: LayoutServerLoad = async ({cookies}) => {
   const response = await fetchBackend('/account');
 
   if (response.message === 'You are not logged in') return;
+  else if (response.message === 'An error occurred. Please try again later') return;
   else if (response.message === 'Not authorized') {
     cookies.delete('token', {path: '/'});
     redirect(302, '/');

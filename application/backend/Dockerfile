@@ -15,7 +15,7 @@ RUN bun install
 
 COPY . .
 
-RUN bun run build
+RUN bun run build ./src/index.ts --compile --minify --sourcemap --bytecode --outfile server
 
 RUN chmod +x ./server
 
