@@ -51,7 +51,7 @@ echo "========================================="
 
 
 # 1. DNS Resolution (Main Domain + Subdomains)
-header "1. 🧭 DNS Resolution Check"
+header "1. DNS Resolution Check"
 echo "Checking main domain: $TARGET_DOMAIN"
 
 host "$TARGET_DOMAIN" > /dev/null 2>&1
@@ -71,7 +71,7 @@ done
 
 
 # 2. Port Scan (Strict Check)
-header "2. 🔌 Port Accessibility Check"
+header "2. Port Accessibility Check"
 echo "Scanning $TARGET_DOMAIN for open TCP ports. This may take a moment..."
 
 FOUND_PORTS=$(nmap -sT --open "$TARGET_DOMAIN" 2>/dev/null | grep '/tcp' | awk '{print $1}' | sort -V | paste -sd ' ')
@@ -87,7 +87,7 @@ success "All expected ports are open, and no unexpected ports were found."
 
 
 # 3. HTTP Status (OK Status)
-header "3. 🌐 HTTP Status Check"
+header "3. HTTP Status Check"
 echo "Checking for a 2xx success status from https://$TARGET_DOMAIN"
 
 http_status=$(curl -s -o /dev/null -w "%{http_code}" "https://$TARGET_DOMAIN")
@@ -98,7 +98,7 @@ success "Received HTTP status code: $http_status"
 
 
 # 4. TLS Certificate (Valid Cert)
-header "4. 🔒 TLS Certificate Validity"
+header "4. TLS Certificate Validity"
 echo "Verifying TLS certificate for https://$TARGET_DOMAIN using openssl..."
 
 openssl_output=$(echo | openssl s_client -servername "$TARGET_DOMAIN" -connect "$TARGET_DOMAIN":443 2>&1)
@@ -112,7 +112,7 @@ success "TLS certificate is valid and trusted."
 
 
 # 5. API Authentication (Custom Response)
-header "5. 🔑 API Authentication and Response"
+header "5. API Authentication and Response"
 echo "Testing authenticated endpoint: $API_ENDPOINT"
 
 api_response=$(curl -s -H "Authorization: Bearer $API_TOKEN" "$API_ENDPOINT")
@@ -125,7 +125,7 @@ success "API returned the correct authentication message."
 
 
 # 6. Email (Basic Handshake)
-header "6. 📧 Email Deliverability Handshake Test"
+header "6. Email Deliverability Handshake Test"
 echo "Testing connection to an external email server ($TEST_ADDRESS)..."
 
 swaks --to "$TEST_ADDRESS" \
@@ -139,7 +139,7 @@ success "Successfully completed SMTP handshake with an external server."
 
 
 # 7. Proxy Connection (Connectivity Test)
-header "7. 🕵️ Proxy Connectivity Test"
+header "7. Proxy Connectivity Test"
 echo "Checking connection to the internet via proxy: $PROXY_SERVER"
 
 curl -s --proxy "$PROXY_SERVER" --head https://www.example.com > /dev/null
@@ -150,7 +150,7 @@ success "Proxy server is routing traffic correctly."
 
 
 # 8. Speed (Response Time)
-header "8. ⚡ Website Speed Test"
+header "8. Website Speed Test"
 echo "Measuring total response time for https://$TARGET_DOMAIN"
 
 response_time=$(curl -s -o /dev/null -w "%{time_total}" "https://$TARGET_DOMAIN")
@@ -162,6 +162,6 @@ success "Response time is within limits ($response_time s)."
 
 # --- ALL TESTS PASSED ---
 echo -e "\n${GREEN}=============================================="
-echo -e " 🎉 All health checks passed successfully! 🎉"
+echo -e "   All health checks passed successfully!"
 echo -e "==============================================${NC}"
 exit 0

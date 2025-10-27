@@ -22,12 +22,12 @@ update_server() {
     local server_address="$1"
     local component_path="$2"
     local local_path="${SHADOWSELF_PATH}/${component_path}"
-    echo "🔄 Updating ${server_address}..."
+    echo "Updating ${server_address}..."
 
     rsync -a --delete "${RSYNC_EXCLUDES[@]}" "${local_path}/" \
         "$SSH_USER@$server_address:${SERVER_PATH}/${component_path}/"
 
-    echo "📡 Deploying ${server_address}..."
+    echo "Deploying ${server_address}..."
     ssh "$SSH_USER@$server_address" "
         set -e;
         cd \"${SERVER_PATH}/${component_path}\";
