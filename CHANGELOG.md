@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update packages
 - Extension versions
 - Fix firefox proxy connection method/protocol
-- replace error() depricated function
+- replace error() deprecated function
 - Error handling layout.server.ts
 - Documentation svelte code
 - Fix maintenance script
@@ -98,9 +98,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .dockerignore files
 - Proxy dockerfiles
 - Frontend dockerfiles
-- Backned dockerfiles
+- Backend dockerfiles
 - Extension links/urls
-- Database seperate directory
+- Database separate directory
 
 ### Changed
 

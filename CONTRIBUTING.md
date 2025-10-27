@@ -8,7 +8,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 >
 > - Star the project
 > - Post about it online
-> - Refer this project in your project's readme
+> - Refer this project in your project's README
 > - Mention the project at local meetups and tell your friends/colleagues
 
 ## Table of Contents
@@ -29,7 +29,7 @@ If you then still feel the need to ask a question and need clarification, we rec
 
 - Open an [Issue](https://github.com/RedeemedSpoon/ShadowSelf/issues/new).
 - Provide as much context as you can about what you're running into.
-- Provide project and platform versions (nodejs, npm, etc), depending on what seems relevant.
+- Provide project and platform versions, depending on what seems relevant.
 
 We will then take care of the issue as soon as possible.
 
@@ -102,9 +102,9 @@ We use GitHub issues to track bugs and errors. If you run into an issue with the
 
 Once it's filed:
 
-- The project team will label the issue accordingly.
-- We will try to reproduce the issue with your provided steps. If there are no reproduction steps or no obvious way to reproduce the issue, the team will ask you for those steps and mark the issue as `needs-repro`. Bugs with the `needs-repro` tag will not be addressed until they are reproduced.
-- If the team is able to reproduce the issue, it will be marked `needs-fix`, as well as possibly other tags (such as `critical`), and the issue will be left to be [implemented by someone](#your-first-code-contribution).
+- We will label the issue accordingly.
+- We will try to reproduce the issue with your provided steps. If there are no reproduction steps or no obvious way to reproduce the issue, we will ask you for those steps and mark the issue as `needs-repro`. Bugs with the `needs-repro` tag will not be addressed until they are reproduced.
+- If we are able to reproduce the issue, it will be marked `needs-fix`, as well as possibly other tags (such as `critical`), and the issue will be left to be [implemented by someone](#your-first-code-contribution).
 
 ## Suggesting Enhancements
 
@@ -114,7 +114,7 @@ This section guides you through submitting an enhancement suggestion for Shadows
 
 - Make sure that you are using the latest version.
 - Perform a [search](https://github.com/RedeemedSpoon/ShadowSelf/issues) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
-- Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to convince the project's developers of the merits of this feature. Keep in mind that we want features that will be useful to the majority of our users and not just a small subset.
+- Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to convince us of the merits of this feature. Keep in mind that we want features that will be useful to the majority of our users and not just a small subset.
 
 #### How Do I Submit a Good Enhancement Suggestion?
 
@@ -130,16 +130,14 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Redeem
 
 Here are some quick guidelines to help you get started:
 
-- **Stick to JavaScript Basics**  
-   The code in this repo follows the usual JavaScript practices, so keep it simple. Use camelCase for variables, functions, and method names, UPPER_CASE for constants, and PascalCase for classes and Svelte components. If you’re working with TypeScript, feel free to use interfaces when needed.
+- **Stick to TypeScript Basics**  
+   The code in this repo follows the usual TypeScript practices, so keep it simple. Use camelCase for variables, functions, and method names, UPPER_CASE for constants, and PascalCase for classes and Svelte components. If you’re working with TypeScript, feel free to use interfaces when needed.
 - **Prettier Is Your Friend**  
    Before you submit your code, run it through **Prettier** to make sure everything’s nicely formatted. We’ve got a `.prettierrc` file set up with our preferences. It’ll save you time and keep things consistent!
-
 - **Trust Your Instincts**  
    We keep things pretty flexible, so if you’re not sure about something, just use your best judgment. We'll clean things up during the code review if needed.
-
 - **No Over-Formatting**  
-   Don’t stress too much about formatting — Prettier will handle that for you. Focus on writing clear, functional code first, and let Prettier do the rest.
+   Don’t stress too much about formatting, Prettier will handle that for you. Focus on writing clear, functional code first, and let Prettier do the rest.
 
 # Commit Messages
 
