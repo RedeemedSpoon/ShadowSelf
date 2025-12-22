@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const [country, ...place] = location.split(', ');
   const url = chrome.runtime.getURL(`assets/countries/${country.toLowerCase()}.svg`);
 
-  await ConfigureVPN(server, {server, username, domain, password});
+  await configureVPN(server, {server, username, domain, password});
   document.getElementById('country-background').style.backgroundImage = `url("${url}")`;
   document.getElementById('ip-address').textContent = server.split('/')[0];
   document.getElementById('location').textContent = place.join(', ');
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-async function ConfigureVPN(proxy, response) {
+async function configureVPN(proxy, response) {
   const status = document.getElementById('status');
   const powerBtn = document.getElementById('power');
   const countryContainer = document.getElementById('country');
@@ -53,7 +53,7 @@ async function ConfigureVPN(proxy, response) {
     }, 250);
 
     await sleep(850);
-    const error = await ToggleVPN(wasConnected, response);
+    const error = await toggleVPN(wasConnected, response);
 
     activeElements.forEach((el) => el.classList.remove('processing'));
     status.textContent = error ? 'Error Occurred' : wasConnected ? 'Disconnected' : 'Connected';
@@ -66,7 +66,7 @@ async function ConfigureVPN(proxy, response) {
   });
 }
 
-async function ToggleVPN(wasConnected, response) {
+async function toggleVPN(wasConnected, response) {
   if (wasConnected) return await chrome.runtime.sendMessage({type: 'disconnect'});
   else return await chrome.runtime.sendMessage({type: 'connect', ...response});
 }

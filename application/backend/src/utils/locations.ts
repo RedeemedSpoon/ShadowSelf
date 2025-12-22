@@ -2,6 +2,14 @@ import {Location} from '@types';
 
 export default [
   {
+    country: 'United States',
+    code: 'US',
+    city: 'Seattle',
+    localization: 'en_US',
+    ip: '91.240.75.212',
+    map: 'https://osm.org/go/WIXvEZp-',
+  },
+  {
     country: 'Canada',
     code: 'CA',
     city: 'Toronto',
@@ -16,14 +24,6 @@ export default [
     localization: 'en_GB',
     ip: '153.869.12.56',
     map: 'https://osm.org/go/euunRP',
-  },
-  {
-    country: 'Poland',
-    code: 'PL',
-    city: 'Warsaw',
-    localization: 'pl',
-    ip: '91.240.75.212',
-    map: 'https://osm.org/go/0OyyYZ1-',
   },
   {
     country: 'Sweden',

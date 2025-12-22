@@ -133,7 +133,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 
   switch (kind) {
     case 'location':
-      if (!['CA', 'GB', 'PL', 'SE'].includes(body.location!)) {
+      if (!['US', 'CA', 'GB', 'SE'].includes(body.location!)) {
         return {error: 'Invalid location code'};
       }
       break;

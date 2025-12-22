@@ -40,7 +40,8 @@ export default new Elysia({websocket: {idleTimeout: 300}})
       const cookie = ws.data.cookie['creation-process'];
       if (!cookie) return ws.close(1014, 'You do not have permission to perform this action');
 
-      const [validationCookie, ...cookieStore] = cookie.value?.split('&&') || [];
+      const cookieValue = cookie.value || '';
+      const [validationCookie, ...cookieStore] = (cookieValue as string).split('&&') || [];
       const identityID = ws.data.query.id;
 
       //@ts-expect-error JWT only accept objects

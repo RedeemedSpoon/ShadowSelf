@@ -115,4 +115,6 @@ export async function generateProfile(lang: Location, age: number, sex: string, 
       return imageData!;
     }
   }
+
+  return '';
 }

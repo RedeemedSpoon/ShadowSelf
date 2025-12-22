@@ -11,7 +11,7 @@
     },
     {
       image: profilePictures[1],
-      description: 'Sophie Miller\nWarsaw, Poland 🇵🇱',
+      description: 'Sophie Miller\nSeattle, United States 🇺🇲',
       position: 'top-24 -left-24',
       size: 18,
     },
@@ -41,7 +41,7 @@
     },
     {
       image: profilePictures[6],
-      description: 'Peter Clark\nWarsaw, Poland 🇵🇱',
+      description: 'Peter Clark\nSeattle, United States 🇺🇲',
       position: 'right-72 top-40',
       size: 12,
     },
