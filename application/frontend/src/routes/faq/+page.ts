@@ -1,5 +1,5 @@
-import type {PageLoad} from './$types';
-import type {Faq} from '$type';
+import type { PageLoad } from './$types';
+import type { Faq } from '$type';
 
 export const load: PageLoad = () => {
   return {
@@ -86,7 +86,8 @@ export const load: PageLoad = () => {
       },
       {
         question: 'What are the third-party services used by ShadowSelf?',
-        answer: "We're still under heavy development, so we don't know anything yet :(",
+        answer:
+          "We utilize a robust stack to keep you hidden. For identities, we use Gemini Nano on Banana for image generation and Twilio for phone lines. Infrastructure runs on Vultr with domains via Epik. For fiat payments, we use Stripe. Our sovereign crypto engine relies on Coinsbee for gift cards, Trocador for swaps, and data feeds/RPCs from CoinGecko, Blockchair, and Alchemy. Plus, tons of JS libraries, obviously.",
       },
       {
         question: 'Can I integrate ShadowSelf with other infrastructures and apps?',
