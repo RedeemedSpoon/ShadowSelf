@@ -351,9 +351,9 @@ footer span {
   mask: url('../../assets/footer/mastodon.svg') no-repeat center;
 }
 
-#discord {
-  -webkit-mask: url('../../assets/footer/discord.svg') no-repeat center;
-  mask: url('../../assets/footer/discord.svg') no-repeat center;
+#tor {
+  -webkit-mask: url('../../assets/footer/tor.svg') no-repeat center;
+  mask: url('../../assets/footer/tor.svg') no-repeat center;
 }
 
 #logout {

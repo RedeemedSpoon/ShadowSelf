@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {logo, github, mastodon, discord} from '$image';
+  import {logo, github, mastodon, tor} from '$image';
 
   const navLinks = {
     Product: ['Homepage', 'Extension', 'Purchase'],
@@ -11,7 +11,7 @@
   const socialLinks = {
     'Github Repository': {href: 'https://github.com/RedeemedSpoon/ShadowSelf', img: github},
     'Mastodon Account': {href: 'https://mastodon.social/@shadow_self', img: mastodon},
-    'Discord Server': {href: 'https://discord.gg/Yf4z7kucUf', img: discord},
+    'Onion Website': {href: 'https://www.torproject.org/download/', img: tor},
   };
 </script>
 

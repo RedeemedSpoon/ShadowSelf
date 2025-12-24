@@ -26,8 +26,8 @@ export {default as canvas} from './extensions/canvas.svg';
 export {default as ublock} from './extensions/ublock.svg';
 export {default as screenshot} from './extensions/screenshot.webp';
 
+export {default as tor} from './links/tor.svg';
 export {default as github} from './links/github.svg';
-export {default as discord} from './links/discord.svg';
 export {default as website} from './links/website.svg';
 export {default as mastodon} from './links/mastodon.svg';
 export {default as systemDesign} from './system-design.webp';
