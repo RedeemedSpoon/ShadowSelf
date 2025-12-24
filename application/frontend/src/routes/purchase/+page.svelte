@@ -1,9 +1,9 @@
 <script lang="ts">
   import {loadStripe, type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
   import {type Notification, type Billing, allPricingModels} from '$type';
-  import {CheckmarkIcon, CreditCardIcon, QuestionIcon} from '$icon';
+  import {CheckmarkIcon, CreditCardIcon, WalletIcon} from '$icon';
   import {pricingModel, modalIndex, fetchIndex} from '$store';
-  import {LoadingButton, Modal, Tooltip} from '$component';
+  import {LoadingButton, Modal} from '$component';
   import {notify, updateFetch} from '$lib';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
@@ -32,7 +32,7 @@
     'Personal Attributes',
     'Account Management',
     'Email Address',
-    'Virtual Card',
+    'Crypto Wallet',
     'Phone Number',
     'VPN Access',
     'And More...',
@@ -161,13 +161,8 @@
       <form class="flex gap-6 px-8 max-sm:flex-col" action="?/init" method="POST" use:enhance={() => updateFetch(true, 1)}>
         <input hidden value={$pricingModel.name} name="type" type="hidden" />
         <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="w-8! h-8!" />Pay With Card</LoadingButton>
+        <LoadingButton className="px-10 py-6 font-semibold"><WalletIcon className="w-8! h-8!" />Pay With Crypto</LoadingButton>
       </form>
-      <Tooltip
-        tip="Due to legal (KYC) and technical reasons, we require your credit card in order to create a virtual card. Sorry for the inconvenience!">
-        <p class="mt-3 flex items-center gap-1 text-sm text-neutral-400 hover:cursor-help">
-          Why do we not support crypto<QuestionIcon className="w-3! h-3! hover:cursor-help" />
-        </p>
-      </Tooltip>
     </section>
   </div>
 </div>

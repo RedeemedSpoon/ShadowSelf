@@ -32,9 +32,6 @@
   <li><code>location</code> (<span class="string">string</span>): The formatted location string (e.g., "City, Country").</li>
   <li><code>email</code> (<span class="string">string</span>): The primary email associated with this identity.</li>
   <li>
-    <code>phone</code> (<span class="string">string</span>): The virtual phone number associated with this identity (E.164 format).
-  </li>
-  <li>
-    <code>card</code> (<span class="string">string</span>): The virtual payment card number associated with this identity.
+    <code>phone</code> (<span class="string">string</span>): The phone number associated with this identity (E.164 format).
   </li>
 </ul>

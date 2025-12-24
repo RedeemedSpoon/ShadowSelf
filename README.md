@@ -7,7 +7,7 @@
 
 ## ShadowSelf Overview
 
-[ShadowSelf](https://shadowself.io) is a web application that allows any individual to safeguard their privacy and anonymity in the digital age. With it, you can generate synthetic identities, complete with functional phone numbers, virtual cards, email addresses, proxies and even more personalizable attributes.
+[ShadowSelf](https://shadowself.io) is a web application that allows any individual to safeguard their privacy and anonymity in the digital age. With it, you can generate synthetic identities, complete with functional phone numbers, crypto wallets, email addresses, proxies and even more personalizable attributes.
 
 By utilizing such fabricated identities, you can register for online services while concealing you true identity, offering a significant step toward protecting you privacy & right to remain anonymous online.
 

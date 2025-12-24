@@ -49,8 +49,8 @@ export {default as customer} from './homepage/features/customer.svg';
 export {default as terminal} from './homepage/features/terminal.svg';
 export {default as openSource} from './homepage/features/open-source.svg';
 
-export {default as card} from './homepage/services/card.svg';
 export {default as email} from './homepage/services/email.svg';
 export {default as proxy} from './homepage/services/proxy.svg';
 export {default as phone} from './homepage/services/phone.svg';
+export {default as crypto} from './homepage/services/crypto.svg';
 export {default as identity} from './homepage/services/identity.svg';

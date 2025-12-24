@@ -195,11 +195,11 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       }
       break;
 
-    case 'card':
+    case 'crypto':
       break;
 
     case 'finish': {
-      const validationKinds = ['location', 'identity', 'email', 'phone', 'card'];
+      const validationKinds = ['location', 'identity', 'email', 'phone', 'crypto'];
 
       for (const validationKind of validationKinds) {
         const {error} = await checkIdentity(validationKind, body);

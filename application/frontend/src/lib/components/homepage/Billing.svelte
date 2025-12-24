@@ -22,7 +22,7 @@
 
   const sections = [
     ['Personal Attributes', 'Email Address', 'Phone Number'],
-    ['Virtual Card', 'VPN Access', 'Account Management'],
+    ['Crypto Wallet', 'VPN Access', 'Account Management'],
     ['14 Day Refund', '24/7 Support'],
   ];
 

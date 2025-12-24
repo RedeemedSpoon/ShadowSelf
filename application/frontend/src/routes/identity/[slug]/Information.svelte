@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {CopyIcon, CreditCardIcon, DownloadIcon, EmailIcon, PhoneIcon, EditIcon, BackIcon} from '$icon';
+  import {CopyIcon, WalletIcon, DownloadIcon, EmailIcon, PhoneIcon, EditIcon, BackIcon} from '$icon';
   import InformationEdit from './sub-components/InformationEdit.svelte';
   import {ActionIcon, CopyButton, ReactiveButton} from '$component';
   import {toTitleCase, formatPhoneNumber} from '$format';
@@ -119,8 +119,8 @@
           <CopyButton alt={true} change={false} text={formatPhoneNumber($identity.phone)} />
         </div>
         <div>
-          <CreditCardIcon fill={true} className="text-primary-700 cursor-default" />
-          <CopyButton alt={true} change={false} text={$identity.card.toString().replace(/\d{4}(?=\d)/g, '$& ')} />
+          <WalletIcon fill={true} className="text-primary-700 cursor-default" />
+          <CopyButton alt={true} change={false} text={'help'} />
         </div>
       </div>
     </div>

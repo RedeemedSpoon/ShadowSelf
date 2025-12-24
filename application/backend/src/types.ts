@@ -78,7 +78,6 @@ export interface QueryResultIdentify {
   email: string;
   email_password: string;
   phone: string;
-  card: number;
 }
 
 export interface QueryResultAccount {
@@ -104,7 +103,7 @@ export interface CreationProcess {
   location: string;
   email: string;
   phone: string;
-  card: string;
+  crypto: string;
   regenerate: RegenerateIdentity;
   identity: RegenerateIdentity & {picture: string};
   repeat: {
@@ -118,7 +117,6 @@ export interface CheckIdentity {
   error?: string;
   email?: string;
   phone?: string;
-  card?: string;
   name?: string;
   bio?: string;
   age?: number;

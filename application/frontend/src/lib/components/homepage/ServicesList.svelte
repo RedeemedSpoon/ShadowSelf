@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {proxy, email, card, phone, identity} from '$image';
+  import {proxy, email, crypto, phone, identity} from '$image';
   import {StickyScrollReveal, TracingBeam} from '$component';
   import type {ServicesContent} from '$type';
   import {blur} from 'svelte/transition';
@@ -27,11 +27,11 @@
         'Each identity also comes with a functional permanent phone number. Use it to receive and send text messages. Protect yourself and avoid annoying SMS or scams. Please note that you cannot make phone calls with it (yet).',
     },
     {
-      images: card,
+      images: crypto,
       title: 'Payment Services',
       style: '--shadow-color-rgb: 22, 163, 74;',
       description:
-        'Each identity has a virtual credit card to keep your primary card details secure. Enjoy hassle-free transactions, while protecting yourself from unauthorized charges, fraud, and identity theft.',
+        'Bypass the banking system entirely. Manage your wealth with a sovereign, non-custodial wallet designed for anonymity. Spend instantly on real-world goods via untraceable gift cards and scrub your digital trail with built-in asset swapping.',
     },
     {
       images: proxy,

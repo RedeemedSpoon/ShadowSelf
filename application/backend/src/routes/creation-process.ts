@@ -132,27 +132,27 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           break;
         }
 
-        case 'card': {
+        case 'crypto': {
           const {phone, error} = await checkIdentity('phone', message);
           if (error) return ws.send({error});
 
           cookie.set({value: cookie.value + `&&${phone}`});
-          ws.send({card: '4242 4242 4242 4242'});
+          ws.send({crypto: ''});
           break;
         }
 
         case 'extension': {
-          const {card, error} = await checkIdentity('card', message);
-          if (error) return ws.send({error});
+          // const {crypto, error} = await checkIdentity('crypto', message);
+          // if (error) return ws.send({error});
 
-          cookie.set({value: cookie.value + `&&${card}`});
+          // cookie.set({value: cookie.value + `&&${crypto}`});
           ws.send({_: null});
           break;
         }
 
         case 'finish': {
-          const [location, picture, name, bio, age, sex, ethnicity, email, phone, card] = cookieStore;
-          const params = {location, picture, name, bio, age: Number(age), sex, ethnicity, email, phone, card};
+          const [location, picture, name, bio, age, sex, ethnicity, email, phone] = cookieStore;
+          const params = {location, picture, name, bio, age: Number(age), sex, ethnicity, email, phone};
           const {error} = await checkIdentity('finish', params);
           if (error) return ws.send({error});
 
@@ -200,7 +200,6 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
           await attempt(sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET phone = ${phone}  WHERE id = ${identityID}`);
-          await attempt(sql`UPDATE identities SET card = ${card} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`);
 
           cookie.remove();

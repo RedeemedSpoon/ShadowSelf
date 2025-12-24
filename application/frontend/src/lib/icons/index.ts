@@ -4,7 +4,6 @@ export {default as InfoIcon} from './status/Info.svelte';
 
 export {default as IssuesIcon} from './link/Issues.svelte';
 export {default as ChangelogIcon} from './link/Changelog.svelte';
-export {default as ExtensionIcon} from './link/Extension.svelte';
 export {default as ExternalLinkIcon} from './link/ExternalLink.svelte';
 
 export {default as GoIcon} from './languages/Go.svelte';
@@ -43,21 +42,17 @@ export {default as KeyIcon} from './auth/Key.svelte';
 export {default as WWWIcon} from './communication/WWW.svelte';
 export {default as SendIcon} from './communication/Send.svelte';
 export {default as TrashIcon} from './communication/Trash.svelte';
-export {default as LimitIcon} from './communication/Limit.svelte';
 export {default as EmailIcon} from './communication/Email.svelte';
 export {default as PhoneIcon} from './communication/Phone.svelte';
 export {default as InboxIcon} from './communication/Inbox.svelte';
 export {default as ReplyIcon} from './communication/Reply.svelte';
 export {default as ProxyIcon} from './communication/Proxy.svelte';
+export {default as WalletIcon} from './communication/Wallet.svelte';
 export {default as ForwardIcon} from './communication/Forward.svelte';
-export {default as AddressIcon} from './communication/Address.svelte';
-export {default as TransferIcon} from './communication/Transfer.svelte';
-export {default as AddFundsIcon} from './communication/AddFunds.svelte';
 export {default as WebsocketIcon} from './communication/Websocket.svelte';
 export {default as CommunityIcon} from './communication/Community.svelte';
 export {default as AttachmentIcon} from './communication/Attachment.svelte';
 export {default as CreditCardIcon} from './communication/CreditCard.svelte';
-export {default as RetrieveFundsIcon} from './communication/RetrieveFunds.svelte';
 
 export {default as CheckmarkIcon} from './miscellaneous/Checkmark.svelte';
 export {default as LightBulbIcon} from './miscellaneous/LightBulb.svelte';

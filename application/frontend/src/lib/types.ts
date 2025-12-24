@@ -1,6 +1,6 @@
 import type {Component} from 'svelte';
 
-export type Sections = 'info' | 'email' | 'phone' | 'card' | 'account';
+export type Sections = 'info' | 'email' | 'phone' | 'crypto' | 'account';
 export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export type BillingSteps = 'create' | 'confirm' | 'auth' | 'finish';
@@ -50,7 +50,6 @@ export interface Identity {
   location: string;
   email: string;
   phone: string;
-  card: number;
   accounts: number;
 }
 
@@ -104,7 +103,6 @@ export interface FullIdentity {
   ethnicity: string;
   email: string;
   phone: string;
-  card: number;
 }
 
 export interface CreationProcess {
@@ -128,7 +126,7 @@ export interface CreationProcess {
   repeat: {name: string; bio: string};
   phone: {phone: string; formatted: string}[];
   email: string;
-  card: string;
+  crypto: string;
   finish: boolean;
 }
 

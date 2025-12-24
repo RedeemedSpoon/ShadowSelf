@@ -38,7 +38,6 @@ CREATE TABLE identities (
   "email" varchar(48),
   "email_password" varchar(33),
   "phone" varchar(15),
-  "card" varchar(16),
   "status" varchar(8) DEFAULT 'inactive'
 );
 

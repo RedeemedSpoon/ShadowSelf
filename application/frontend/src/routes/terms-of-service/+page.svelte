@@ -32,10 +32,10 @@
   <p>
     Shadowself ("the Service") is a web application designed to empower users in protecting their online privacy and anonymity. The
     Service enables the generation and management of synthetic digital identities. These identities are configurable and may include
-    elements such as temporary phone numbers, virtual payment card details (for authorized use), temporary email addresses, proxy
-    service integration, and generated personal data attributes (e.g., names, nationalities). The primary purpose of the Service is to
-    provide users with tools to manage their digital footprint when registering for and interacting with third-party online services
-    and related activities.
+    elements such as temporary phone numbers, secure crypto wallets (for authorized use), temporary email addresses, proxy service
+    integration, and generated personal data attributes (e.g., names, nationalities). The primary purpose of the Service is to provide
+    users with tools to manage their digital footprint when registering for and interacting with third-party online services and
+    related activities.
   </p>
 
   <h3>User Accounts</h3>

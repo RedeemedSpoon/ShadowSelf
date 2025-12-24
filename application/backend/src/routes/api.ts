@@ -6,13 +6,13 @@ import {Elysia} from 'elysia';
 
 import information from './identity/information';
 import account from './identity/account';
+import crypto from './identity/crypto';
 import phone from './identity/phone';
 import email from './identity/email';
-import card from './identity/card';
 
 export default new Elysia()
   .use(middleware)
-  .group('/api', (app) => app.use(card).use(phone).use(email).use(account).use(information))
+  .group('/api', (app) => app.use(crypto).use(phone).use(email).use(account).use(information))
   .get('/api/test', () => 'Authentication is working ;)')
   .get('/api', async ({set, user}) => {
     const result = await attempt(sql` SELECT * FROM users u JOIN identities i ON u.id = i.owner WHERE u.email = ${user!.email}`);
@@ -20,14 +20,14 @@ export default new Elysia()
 
     const allIdentitiesPromises = result.map(async (identity) => {
       if (!identity.name) return {id: identity.id};
-      const {id, picture, name, location, email, phone, card} = identity;
+      const {id, picture, name, location, email, phone} = identity;
 
       const lowResPic = await resizeImage(picture);
       const accounts = await attempt(sql`SELECT * FROM accounts WHERE owner = ${id}`);
       const formattedLocation = location.slice(4).trim();
       const country = location.split(',')[0];
 
-      return {id, picture: lowResPic, name, email, phone, card, country, location: formattedLocation, accounts: accounts?.length};
+      return {id, picture: lowResPic, name, email, phone, country, location: formattedLocation, accounts: accounts?.length};
     });
 
     return await Promise.all(allIdentitiesPromises);

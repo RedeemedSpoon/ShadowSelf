@@ -1,12 +1,12 @@
 <script lang="ts">
-  import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, CreditCardIcon} from '$icon';
+  import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, WalletIcon} from '$icon';
   import {currentSection, handleResponse, identity, modalIndex} from '$store';
   import IdentityInformation from './Information.svelte';
   import type {Sections, WebSocketMessage} from '$type';
   import IdentityAccounts from './Accounts.svelte';
+  import IdentityCrypto from './Crypto.svelte';
   import IdentityPhone from './Phone.svelte';
   import IdentityEmail from './Email.svelte';
-  import IdentityCard from './Card.svelte';
   import {browser} from '$app/environment';
   import {ConfirmModal} from '$component';
   import type {PageProps} from './$types';
@@ -28,7 +28,7 @@
     {name: 'Information', icon: InfoIcon},
     {name: 'Email', icon: EmailIcon},
     {name: 'Phone', icon: PhoneIcon},
-    {name: 'Card', icon: CreditCardIcon},
+    {name: 'Crypto', icon: WalletIcon},
     {name: 'Accounts', icon: MultiUsersIcon},
   ];
 
@@ -36,7 +36,7 @@
     info: IdentityInformation,
     email: IdentityEmail,
     phone: IdentityPhone,
-    card: IdentityCard,
+    crypto: IdentityCrypto,
     account: IdentityAccounts,
   };
 

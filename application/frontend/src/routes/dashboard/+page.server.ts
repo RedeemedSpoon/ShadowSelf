@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({parent}) => {
   identities.forEach((identity) => {
     if (!identity.name) return;
     const concat = `${identity.name} ${identity.country} ${identity.location} ${identity.id} `;
-    concat.concat(`${identity.email} ${identity.phone} ${identity.card} ${identity.accounts}`);
+    concat.concat(`${identity.email} ${identity.phone} ${identity.accounts}`);
     searchKeywords.push({label: identity.id, value: concat.toLowerCase()});
   });
 

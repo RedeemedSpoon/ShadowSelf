@@ -34,10 +34,10 @@
       hashed format (meaning it's not human-readable and we cannot see your actual password).
     </li>
     <li>
-      <b>Payment Information:</b> If you choose to make payments for our services, these are processed by a secure third-party payment processor
-      (e.g., Stripe). We do not directly collect, store, or process your full credit card numbers or bank account details. The payment processor
-      may provide us with limited information such as a transaction ID, the last four digits of your card, and your billing country for
-      record-keeping and service provision.
+      <b>Payment Information:</b> If you choose to make payments for our services using fiat money, these are processed by a secure third-party
+      payment processor (e.g., Stripe). We do not directly collect, store, or process your full credit card numbers or bank account details.
+      The payment processor may provide us with limited information such as a transaction ID, the last four digits of your card, and your
+      billing country for record-keeping and service provision.
     </li>
     <li>
       <b>Contact Information:</b> If you choose to contact us via our <a href="/contact">contact page</a> or directly, you may provide your

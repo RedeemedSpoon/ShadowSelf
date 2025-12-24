@@ -1,7 +1,7 @@
 <script lang="ts">
   import {FlowStep, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
-  import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon, LimitIcon} from '$icon';
-  import {PhoneIcon, EmailIcon, CreditCardIcon, UserIcon, ExtensionIcon, PinIcon} from '$icon';
+  import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
+  import {PhoneIcon, EmailIcon, WalletIcon, UserIcon, PinIcon} from '$icon';
   import {ublock, canvas, screenshot, countriesFlags} from '$image';
   import {currentStep, fetchIndex, modalIndex} from '$store';
   import type {CreationProcess} from '$type';
@@ -109,12 +109,12 @@
 
       case 4: {
         const phone = document.querySelector('input[name="phone"]') as HTMLInputElement;
-        reply('card', {phone: phone.value});
+        reply('crypto', {phone: phone.value});
         break;
       }
 
       case 5:
-        reply('extension', {card: server.card});
+        reply('extension');
         break;
 
       case 6:
@@ -305,11 +305,9 @@
           To avoid this, make sure to keep them in use.
         </small>
       {:else if $currentStep === 5}
-        <h3>Make your virtual card</h3>
-        <p class="lg:w-1/2">Forge your own virtual card that you can use to make payments.</p>
+        <h3>Make your crypto wallet</h3>
+        <p class="lg:w-1/2">Forge your own secure crypto wallet that you can use to make anonymous payments and buy gift cards.</p>
         <p>Currently unavailable</p>
-        <!-- <CreditCardIcon className={'h-6! w-6! fill-neutral-300'} fill={true} /> -->
-        <!-- <InputWithIcon icon={LimitIcon} type="number" value={'100'} placeholder="100$" name="limit" /> -->
       {:else if $currentStep === 6}
         <h3>Install our browser extension</h3>
         <p class="lg:w-1/2">

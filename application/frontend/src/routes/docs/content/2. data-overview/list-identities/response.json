@@ -5,7 +5,6 @@
     "name": "John Doe",
     "email": "john.doe@shadowself.io",
     "phone": "+157761348902",
-    "card": 4315343685134104,
     "country": "CA",
     "location": "Toronto, Canada",
     "accounts": 21
@@ -16,7 +15,6 @@
     "name": "Jane Doe",
     "email": "jane@shadowself.io",
     "phone": "+443639910827",
-    "card": 4156253336608285,
     "country": "GB",
     "location": "London, United Kingdom",
     "accounts": 6

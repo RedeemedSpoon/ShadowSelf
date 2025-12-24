@@ -30,9 +30,6 @@
     <code>phone</code> (<span class="string">string</span>): The phone number associated with this identity in the E164 standard format
   </li>
   <li>
-    <code>card</code> (<span class="integer">integer</span>): The virtual payment card number associated with this identity,
-  </li>
-  <li>
     <code>country</code> (<span class="string">string</span>): The ISO 3166 country code derived from the identity's location.
   </li>
   <li>

@@ -1,5 +1,5 @@
-import {UserIcon, EmailIcon, PhoneIcon, CreditCardIcon, MultiUsersIcon} from '$icon';
 import {BookIcon, DatabaseIcon, RocketIcon, WebsocketIcon, ProxyIcon} from '$icon';
+import {UserIcon, EmailIcon, PhoneIcon, WalletIcon, MultiUsersIcon} from '$icon';
 import * as rawContent from './content';
 import type {PageLoad} from './$types';
 import type {Docs, Route} from '$type';
@@ -59,8 +59,8 @@ export const load: PageLoad = () => {
       ],
     },
     {
-      title: 'virtual card',
-      icon: CreditCardIcon,
+      title: 'crypto wallet',
+      icon: WalletIcon,
       more: [{title: 'under development'}],
     },
     {
@@ -121,14 +121,14 @@ export const load: PageLoad = () => {
     {
       title: 'phone number',
       description:
-        'This section covers API endpoints for interacting with the virtual phone number associated with your synthetic identities, specifically for sending and receiving SMS messages. You can retrieve message history, fetch full conversations, send new messages, and manage conversations programmatically.',
+        'This section covers API endpoints for interacting with the phone number associated with your synthetic identities, specifically for sending and receiving SMS messages. You can retrieve message history, fetch full conversations, send new messages, and manage conversations programmatically.',
       icon: PhoneIcon,
       routes: rawContent.phoneNumber,
     },
     {
-      title: 'virtual card',
-      description: rawContent.virtualCard,
-      icon: CreditCardIcon,
+      title: 'crypto wallet',
+      description: rawContent.cryptoWallet,
+      icon: WalletIcon,
     },
     {
       title: 'online accounts',
