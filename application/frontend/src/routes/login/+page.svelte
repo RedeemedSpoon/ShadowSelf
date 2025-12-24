@@ -37,7 +37,7 @@
       <InputWithIcon type="password" icon={KeyIcon} name="password" placeholder="correct horse battery staple" />
     </div>
 
-    <div class="-mb-2 mt-4 flex justify-between text-nowrap px-3 max-md:flex-col md:items-center">
+    <div class="mt-4 -mb-2 flex justify-between px-3 text-nowrap max-md:flex-col md:items-center">
       <a class="text-md max-md:text-sm" href="/signup">Don't have an account?</a>
       <span aria-hidden="true" class="text-md max-md:text-sm" onclick={() => currentStep.set(2)}>Forgot Password?</span>
     </div>

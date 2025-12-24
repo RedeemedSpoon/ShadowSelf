@@ -18,7 +18,7 @@
 </script>
 
 <div id="background" style="background-image: url({background})"></div>
-<div class="-mb-2 mt-[5vh] flex max-sm:-mb-4 max-sm:scale-90">
+<div class="mt-[5vh] -mb-2 flex max-sm:-mb-4 max-sm:scale-90">
   <h2 class="mr-5">Your</h2>
   <h2>Privacy<span id="underline-text"></span></h2>
   <h2>,</h2>

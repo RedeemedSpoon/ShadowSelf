@@ -71,11 +71,11 @@
   }
 
   h3 {
-    @apply border-primary-700 cursor-pointer border-b-2 py-6 pl-4 pr-12 text-[1.65rem] text-neutral-300;
+    @apply border-primary-700 cursor-pointer border-b-2 py-6 pr-12 pl-4 text-[1.65rem] text-neutral-300;
   }
 
   h4 {
-    @apply absolute right-4 top-7 cursor-pointer select-none;
+    @apply absolute top-7 right-4 cursor-pointer select-none;
     @apply text-3xl text-neutral-300 transition-all duration-300 ease-in-out;
   }
 

@@ -215,13 +215,13 @@
             <div id={location.code} class="locations-box" onclick={() => handleEvent('locations', location.code)} aria-hidden="true">
               <img src={countriesFlags[location.code.toLowerCase()]} class="h-14 w-14" alt="country flag" />
               <div class="w-full">
-                <p class="text-left! text-neutral-300! text-xl md:text-2xl">{location.country}, {location.city}</p>
-                <p class="text-left! text-neutral-300! -mt-2 flex items-center gap-1 tracking-wider">
+                <p class="text-left! text-xl text-neutral-300! md:text-2xl">{location.country}, {location.city}</p>
+                <p class="-mt-2 flex items-center gap-1 text-left! tracking-wider text-neutral-300!">
                   <PinIcon className="h-4 w-4 inline" />
                   {location.ip}
                 </p>
               </div>
-              <a class="text-neutral-300! flex flex-row gap-1 max-sm:hidden" target="_blank" href={location.map}>
+              <a class="flex flex-row gap-1 text-neutral-300! max-sm:hidden" target="_blank" href={location.map}>
                 Link <ExternalLinkIcon className="h-4 w-4" />
               </a>
             </div>
@@ -329,7 +329,7 @@
             <ExtensionLinks extension="ublock" />
           </div>
           <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
-            <h3 class="text-left! mb-8 pl-4 max-xl:hidden">Install ublock origin (optional)</h3>
+            <h3 class="mb-8 pl-4 text-left! max-xl:hidden">Install ublock origin (optional)</h3>
             <p class="short text-neutral-300!">
               uBlock Origin is a powerful, open-source ad blocker that boosts online privacy by blocking ads, trackers, and malicious
               scripts. Lightweight and efficient, it ensures a cleaner, more secure web experience. Combined with our tools, it keeps
@@ -350,8 +350,8 @@
             <ExtensionLinks extension="canvas" />
           </div>
           <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
-            <h3 class="text-left! mb-8 pl-4 max-xl:hidden">Install canvas blocker (optional)</h3>
-            <p class="text-left! text-neutral-300! text-pretty">
+            <h3 class="mb-8 pl-4 text-left! max-xl:hidden">Install canvas blocker (optional)</h3>
+            <p class="text-left! text-pretty text-neutral-300!">
               Canvas Blocker protects against browser fingerprinting by blocking tracking techniques based on unique device
               characteristics. It enhances privacy by preventing websites from creating identifiable profiles. Paired with Shadowself,
               it ensures your identity remains untraceable.
@@ -376,7 +376,7 @@
         <Modal>
           <div class="flex flex-col gap-4">
             <h1 class="ml-2 text-5xl font-semibold text-neutral-300">Are you sure?</h1>
-            <p class="text-left! mb-2">
+            <p class="mb-2 text-left!">
               You will not be able to change some important configurations later on.
               <br class="max-md:hidden" /> Are you sure you want to proceed?
             </p>
@@ -405,7 +405,7 @@
   @reference "$style";
 
   #create-identity {
-    @apply mx-auto mb-[4rem] mt-[10rem] flex min-h-[60vh] w-5/6 items-center justify-center;
+    @apply mx-auto mt-[10rem] mb-[4rem] flex min-h-[60vh] w-5/6 items-center justify-center;
   }
 
   h3 {
@@ -413,7 +413,7 @@
   }
 
   p {
-    @apply text-balance text-center text-neutral-400 md:px-4;
+    @apply text-center text-balance text-neutral-400 md:px-4;
   }
 
   label {
@@ -421,11 +421,11 @@
   }
 
   small {
-    @apply !text-pretty text-center text-[1rem] text-neutral-400 lg:w-1/2;
+    @apply text-center text-[1rem] !text-pretty text-neutral-400 lg:w-1/2;
   }
 
   .short {
-    @apply text-pretty !text-left text-lg leading-[1.65] md:!text-xl md:!leading-[1.85];
+    @apply !text-left text-lg leading-[1.65] text-pretty md:!text-xl md:!leading-[1.85];
   }
 
   textarea {

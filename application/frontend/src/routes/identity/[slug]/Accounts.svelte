@@ -115,7 +115,7 @@
                 <div class="flex flex-col items-center">
                   <HoverCopyButton id={account.id.toString()} icon={KeylockIcon} color="text-neutral-400!" />
                   <div class="relative mt-2 h-1 w-1/2 rounded-2xl bg-neutral-800">
-                    <div class="animate-progress bg-primary-700 absolute left-0 top-0 h-full rounded-2xl"></div>
+                    <div class="animate-progress bg-primary-700 absolute top-0 left-0 h-full rounded-2xl"></div>
                   </div>
                 </div>
                 {@const _ = createTOTPGenerator(account.totp, account.algorithm, account.id)}
@@ -159,7 +159,7 @@
   @reference "$style";
 
   #no-accounts {
-    @apply mb-12 mt-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
+    @apply mt-12 mb-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
   }
 
   .wrapper {

@@ -16,7 +16,7 @@
 </script>
 
 <footer>
-  <div class="mx-auto flex select-none flex-col-reverse items-center gap-16 px-4 lg:flex-row">
+  <div class="mx-auto flex flex-col-reverse items-center gap-16 px-4 select-none lg:flex-row">
     <div class="flex flex-col items-center gap-6">
       <a href="/"><img loading="lazy" src={logo} alt="ShadowSelf" width="216" height="216" /></a>
       <div class="flex justify-center gap-4">
@@ -54,6 +54,6 @@
   }
 
   footer > p {
-    @apply mb-8 mt-24 w-full text-center text-sm text-neutral-500;
+    @apply mt-24 mb-8 w-full text-center text-sm text-neutral-500;
   }
 </style>

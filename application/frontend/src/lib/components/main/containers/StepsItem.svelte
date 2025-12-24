@@ -36,7 +36,7 @@
   }
 
   button {
-    @apply z-10 -mb-8 ml-0 mt-4 w-fit text-left md:ml-9 md:mt-9;
+    @apply z-10 mt-4 -mb-8 ml-0 w-fit text-left md:mt-9 md:ml-9;
   }
 
   span {

@@ -118,7 +118,7 @@
           disabled={$target && $mode !== 'write-draft'} />
       </div>
       <div class="flex w-full flex-col max-md:mt-12 md:items-end">
-        <h3 class="mb-2 mr-10 text-xl font-semibold text-neutral-300">Body Type</h3>
+        <h3 class="mr-10 mb-2 text-xl font-semibold text-neutral-300">Body Type</h3>
         <div class="flex flex-row">
           <div class="box {!isTypeHTML && 'selected'}" onclick={() => (isTypeHTML = false)} aria-hidden="true">Raw Text</div>
           <div class="box {isTypeHTML && 'selected'}" onclick={() => (isTypeHTML = true)} aria-hidden="true">HTML</div>
@@ -227,7 +227,7 @@
   }
 
   input:disabled {
-    @apply cursor-not-allowed select-none opacity-50;
+    @apply cursor-not-allowed opacity-50 select-none;
   }
 
   .box {

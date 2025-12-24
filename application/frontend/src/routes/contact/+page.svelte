@@ -79,6 +79,6 @@
   }
 
   label {
-    @apply ml-2 mt-4;
+    @apply mt-4 ml-2;
   }
 </style>

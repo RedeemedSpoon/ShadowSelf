@@ -9,9 +9,9 @@
   let iframe = $state() as HTMLIFrameElement | null;
 </script>
 
-<div class="mb-4 mt-8 flex justify-between max-md:flex-col md:mx-4 md:items-center">
+<div class="mt-8 mb-4 flex justify-between max-md:flex-col md:mx-4 md:items-center">
   <div class="relative md:w-1/2">
-    <h3 class="text-2xl! truncate text-neutral-300">{email.subject}</h3>
+    <h3 class="truncate text-2xl! text-neutral-300">{email.subject}</h3>
     <p class="text-sm text-neutral-500">{email.date}</p>
   </div>
   <div class="md:w-1/2">
@@ -28,7 +28,7 @@
     onload={() => ((iframe!.style.height = iframe!.contentWindow!.document.body.scrollHeight + 70 + 'px'), window.scrollTo(0, 0))}
     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
 {:else}
-  <p class="whitespace-pre-line rounded-lg bg-neutral-800 p-8 text-neutral-300">{email?.body}</p>
+  <p class="rounded-lg bg-neutral-800 p-8 whitespace-pre-line text-neutral-300">{email?.body}</p>
 {/if}
 
 {#if email?.attachments?.length && email?.attachments.length > 0}

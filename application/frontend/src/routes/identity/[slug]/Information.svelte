@@ -98,7 +98,7 @@
       {/key}
     </div>
     <div class="flex flex-col gap-2 text-nowrap lg:w-1/2">
-      <h3 class="text-3xl! mt-4">{$identity.name}, {$identity.age}</h3>
+      <h3 class="mt-4 text-3xl!">{$identity.name}, {$identity.age}</h3>
       <p class="text-lg text-neutral-500">{toTitleCase($identity.ethnicity)} {toTitleCase($identity.sex)}</p>
       <p>{$identity.bio}</p>
       <hr class="my-2 w-1/6" />

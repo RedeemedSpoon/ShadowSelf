@@ -107,13 +107,13 @@
           {#if !identity.name}
             <a class="flex! gap-6! max-md:mb-24" href="/create?id={identity.id}">
               <AddUserIcon />
-              <p class="text-neutral-300! max-xl:block! text-2xl">Continue Creation Process... (ID : {identity.id})</p>
+              <p class="text-2xl text-neutral-300! max-xl:block!">Continue Creation Process... (ID : {identity.id})</p>
             </a>
           {:else}
             <a href="/identity/{identity.id}" id="identity-{identity.id}">
               <img loading="lazy" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s picture" />
               <div class="text-nowrap">
-                <p class="text-neutral-300! text-nowrap">{identity.name}</p>
+                <p class="text-nowrap text-neutral-300!">{identity.name}</p>
                 <br />
                 <span class="inline-flex gap-2 text-sm text-neutral-500">
                   <img src={countriesFlags[identity.country.toLowerCase()]} class="w-5" alt="country flag" />
@@ -131,7 +131,7 @@
 
         <a class="flex! gap-6! max-md:mb-24" href="/purchase">
           <AddUserIcon />
-          <p class="text-neutral-300! max-xl:block! text-2xl">Create a new identity</p>
+          <p class="text-2xl text-neutral-300! max-xl:block!">Create a new identity</p>
         </a>
       </section>
     </div>
@@ -150,7 +150,7 @@
   {:else}
     <div id="empty">
       <h1 class="basic-style mt-16 max-md:text-5xl md:mt-28">Start by making an identity</h1>
-      <p class="text-neutral-300! mb-4 w-2/3">
+      <p class="mb-4 w-2/3 text-neutral-300!">
         You can craft as many identities as you want. They are completely isolated from each other and can be used for a variety of
         purposes.
       </p>
@@ -168,7 +168,7 @@
   @reference "$style";
 
   #dashboard {
-    @apply mx-auto mb-[4rem] mt-[10rem] flex h-fit w-5/6 flex-col gap-12;
+    @apply mx-auto mt-[10rem] mb-[4rem] flex h-fit w-5/6 flex-col gap-12;
   }
 
   #empty {
@@ -199,6 +199,6 @@
   }
 
   #error {
-    @apply absolute inset-y-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl !text-neutral-500;
+    @apply absolute inset-y-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl !text-neutral-500;
   }
 </style>

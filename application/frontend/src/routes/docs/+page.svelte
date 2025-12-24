@@ -44,11 +44,11 @@
 </svelte:head>
 
 <div id="docs">
-  <ol class="max-2xl:hidden! max-h-[calc(100vh-12.5rem)]">
+  <ol class="max-h-[calc(100vh-12.5rem)] max-2xl:hidden!">
     {#each data.docs.sections as section (section.title)}
       {@const Icon = section.icon}
       <ul class="mt-4">
-        <li class="title text-3xl! text-neutral-300! mb-2 flex items-center gap-2">
+        <li class="title mb-2 flex items-center gap-2 text-3xl! text-neutral-300!">
           <Icon className="h-8 w-8 cursor-default stroke-neutral-300!" fill={false} />
           {formatCasing(section.title)}
         </li>
@@ -62,7 +62,7 @@
       </ul>
     {/each}
   </ol>
-  <span class="max-2xl:hidden! mr-[1.5vw] w-0.5 self-stretch bg-neutral-700"></span>
+  <span class="mr-[1.5vw] w-0.5 self-stretch bg-neutral-700 max-2xl:hidden!"></span>
   <section id="content" class="flex flex-col gap-8 self-stretch xl:w-3/4 xl:max-2xl:mx-auto">
     <h1 class="basic-style text-4xl font-bold md:text-6xl">API Documentation</h1>
     {#each data.docs.content as content, i (content.title)}
@@ -88,7 +88,7 @@
         {#if content.routes}
           {#each content.routes as route (route.title)}
             {@const RouteDescription = route.description}
-            <div class="max-lg:max-w-screen -mt-5 flex gap-8 max-xl:flex-col md:p-4">
+            <div class="-mt-5 flex gap-8 max-xl:flex-col max-lg:max-w-screen md:p-4">
               <section class="2xl:w-1/2">
                 <h3 class="mb-6" id={route.title.replace(/\s/g, '-')}>
                   {formatCasing(route.title)}:
@@ -126,7 +126,7 @@
   }
 
   ol li:not(.title) {
-    @apply ml-10 w-fit cursor-pointer select-none px-4 py-1 transition-all duration-300 ease-in-out;
+    @apply ml-10 w-fit cursor-pointer px-4 py-1 transition-all duration-300 ease-in-out select-none;
     @apply rounded-full hover:bg-neutral-300/10;
   }
 

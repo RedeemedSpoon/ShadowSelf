@@ -51,7 +51,7 @@
   }
 
   .orbe::after {
-    @apply absolute left-0 top-0 rounded-full;
+    @apply absolute top-0 left-0 rounded-full;
     @apply bg-primary-600 shadow-primary-700 shadow-[0px_0px_20px_2px] content-[''];
     height: var(--size-orbe);
     width: var(--size-orbe);

@@ -67,7 +67,7 @@
   @reference "$style";
 
   #text {
-    @apply flex h-full min-w-[325px] snap-center flex-col justify-start gap-4 text-balance pt-16 max-xl:ml-32 max-md:mx-[10vw];
+    @apply flex h-full min-w-[325px] snap-center flex-col justify-start gap-4 pt-16 text-balance max-xl:ml-32 max-md:mx-[10vw];
   }
 
   #box {
@@ -75,6 +75,6 @@
   }
 
   #box > img {
-    @apply animate-shake image-shadow absolute bottom-0 left-0 right-0 top-6 m-auto w-2/3 transition-all duration-300 ease-in-out;
+    @apply animate-shake image-shadow absolute top-6 right-0 bottom-0 left-0 m-auto w-2/3 transition-all duration-300 ease-in-out;
   }
 </style>

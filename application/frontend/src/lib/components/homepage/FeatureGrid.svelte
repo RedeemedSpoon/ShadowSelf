@@ -51,7 +51,7 @@
     <div class:bottom-cells={index + 1 > 4} class:border-r={(index + 1) % 4 === 0}>
       <img src={feature.image} alt={feature.title} />
       <h3 class="text-2xl font-bold md:text-3xl">{feature.title}</h3>
-      <p class="leading-8! hidden text-lg text-neutral-400 lg:block">{feature.description}</p>
+      <p class="hidden text-lg leading-8! text-neutral-400 lg:block">{feature.description}</p>
     </div>
   {/each}
 </div>
@@ -66,7 +66,7 @@
 
   .bottom-cells {
     @apply hover-gradient-large-reverse bg-linear-to-b from-neutral-800/75 to-neutral-900;
-    @apply border-t border-neutral-700 lg:pb-[7vh] lg:pt-8;
+    @apply border-t border-neutral-700 lg:pt-8 lg:pb-[7vh];
   }
 
   img {

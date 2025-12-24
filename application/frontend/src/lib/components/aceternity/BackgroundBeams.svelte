@@ -105,7 +105,7 @@
   };
 </script>
 
-<div class={cn('absolute inset-0 flex w-full items-center justify-center [mask-repeat:no-repeat] [mask-size:40px]', $$props.class)}>
+<div class={cn('absolute inset-0 flex w-full items-center justify-center [mask-size:40px] [mask-repeat:no-repeat]', $$props.class)}>
   <svg
     class="pointer-events-none absolute z-0 w-auto xl:w-full"
     width="100%"

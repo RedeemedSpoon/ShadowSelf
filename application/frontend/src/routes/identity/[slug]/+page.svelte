@@ -93,7 +93,7 @@
 
     {#key $currentSection}
       {@const SvelteComponent = allSections[$currentSection]}
-      <div class="mb-12 mt-8 w-full md:px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
+      <div class="mt-8 mb-12 w-full md:px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
         <SvelteComponent />
       </div>
     {/key}

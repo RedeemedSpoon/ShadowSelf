@@ -71,6 +71,6 @@
   }
 
   code {
-    @apply text-base! no-scrollbar;
+    @apply no-scrollbar text-base!;
   }
 </style>

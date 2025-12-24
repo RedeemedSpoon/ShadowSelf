@@ -8,7 +8,7 @@
 </script>
 
 {#if fill}
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class={className + ' small-icon stroke-none! fill-current'}>
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class={className + ' small-icon fill-current stroke-none!'}>
     <path
       fill-rule="evenodd"
       d="M21,7H5A1,1,0,0,1,5,5H19a1,1,0,0,0,0-2H5A3,3,0,0,0,2,6H2V19a2,2,0,0,0,2,2H20a2,2,0,0,0,2-2V8A1,1,0,0,0,21,7ZM18 12.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0 -3Z"

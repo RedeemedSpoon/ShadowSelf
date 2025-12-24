@@ -100,7 +100,7 @@
   }
 
   p {
-    @apply flex items-center gap-1 text-nowrap font-semibold;
+    @apply flex items-center gap-1 font-semibold text-nowrap;
   }
 
   span {

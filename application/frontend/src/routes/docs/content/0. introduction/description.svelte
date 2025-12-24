@@ -35,8 +35,8 @@
     <b>Automation:</b> Automate tasks like sending emails, replies to SMS, or interacting with third-party APIs.
   </li>
   <li>
-    <b>Integration:</b> Facilitate the seamless integration of ShadowSelf's capabilities into third-party applications, custom scripts,
-    or specialized tools.
+    <b>Integration:</b> Facilitate the seamless integration of ShadowSelf's capabilities into third-party applications, custom scripts, or
+    specialized tools.
   </li>
   <li>
     <b>Programmatic Management:</b> Create, retrieve, update, and delete synthetic identities associated attributes (like phone numbers,
@@ -44,8 +44,8 @@
   </li>
   <li>
     <b>Flexibility and Openness:</b> Offer developers the flexibility to build custom solutions tailored to their specific needs, fostering
-    innovation and extending the utility of the ShadowSelf platform. We believe in openness and providing the tools necessary for users
-    to interact with our service in the way that best suits them.
+    innovation and extending the utility of the ShadowSelf platform. We believe in openness and providing the tools necessary for users to
+    interact with our service in the way that best suits them.
   </li>
 </ul>
 <p>
@@ -65,13 +65,13 @@
     phone numbers or email addresses.
   </li>
   <li>
-    <b>Custom Email/Messaging Client:</b> Develop your own specialized client application to manage communications associated with your
-    ShadowSelf email addresses. This could offer a tailored user interface, advanced filtering capabilities, or integration with other communication
+    <b>Custom Email/Messaging Client:</b> Develop your own specialized client application to manage communications associated with your ShadowSelf
+    email addresses. This could offer a tailored user interface, advanced filtering capabilities, or integration with other communication
     tools, providing a more powerful alternative to generic clients or the web dashboard.
   </li>
   <li>
-    <b>Extending Account Management:</b> The API enables you to build custom tools to manage these stored credentials programmatically.
-    You could, for example, create scripts for bulk importing/exporting credentials, integrating with other secret management systems, adding
+    <b>Extending Account Management:</b> The API enables you to build custom tools to manage these stored credentials programmatically. You
+    could, for example, create scripts for bulk importing/exporting credentials, integrating with other secret management systems, adding
     new fields or developing custom interfaces for accessing this stored login data beyond our standard dashboard.
   </li>
 </ul>

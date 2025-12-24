@@ -47,7 +47,7 @@
 
   header {
     @apply fixed top-0 z-50 flex w-full items-center justify-evenly py-4 backdrop-blur-md md:px-20;
-    @apply select-none bg-neutral-950/75 transition-all duration-1000 ease-in-out;
+    @apply bg-neutral-950/75 transition-all duration-1000 ease-in-out select-none;
   }
 
   #nav-container {
@@ -68,7 +68,7 @@
 
   #auth-buttons,
   #navigation-links {
-    @apply flex items-center gap-4 text-nowrap text-xl xl:gap-8;
+    @apply flex items-center gap-4 text-xl text-nowrap xl:gap-8;
   }
 
   #auth-buttons {

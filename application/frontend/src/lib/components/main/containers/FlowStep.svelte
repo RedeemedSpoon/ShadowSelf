@@ -36,7 +36,7 @@
   }
 
   button {
-    @apply flex items-center justify-center gap-3 self-end text-nowrap px-8 max-sm:mt-8 max-sm:w-3/4 max-sm:self-center sm:mr-[8.5vw];
+    @apply flex items-center justify-center gap-3 self-end px-8 text-nowrap max-sm:mt-8 max-sm:w-3/4 max-sm:self-center sm:mr-[8.5vw];
   }
 
   .w-full > section:not(:first-child) {

@@ -36,6 +36,6 @@
   }
 
   input:not(.alternative) {
-    @apply ring-primary-600 rounded-l-none! ml-px w-full group-focus-within/input:ring-2;
+    @apply ring-primary-600 ml-px w-full rounded-l-none! group-focus-within/input:ring-2;
   }
 </style>

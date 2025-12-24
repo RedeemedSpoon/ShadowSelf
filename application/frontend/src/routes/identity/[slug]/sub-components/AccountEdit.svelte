@@ -111,6 +111,6 @@
   @reference "$style";
 
   label {
-    @apply ml-2 mt-2 text-neutral-300;
+    @apply mt-2 ml-2 text-neutral-300;
   }
 </style>

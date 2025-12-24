@@ -37,7 +37,7 @@
 </script>
 
 <div bind:this={ref} id="main" class:!overflow-y-hidden={overflow > 300}>
-  <div class="max-sm:h-[40rem]! max-w-xl">
+  <div class="max-w-xl max-sm:h-[40rem]!">
     {#each content as item, index (index)}
       {@render text?.({item: {...item, activeCard, index}})}
     {/each}
@@ -64,7 +64,7 @@
   }
 
   #wrapper::before {
-    @apply animate-border absolute left-[-25%] top-[-25%] h-[150%] w-[150%] content-[''];
+    @apply animate-border absolute top-[-25%] left-[-25%] h-[150%] w-[150%] content-[''];
   }
 
   .purple::before {

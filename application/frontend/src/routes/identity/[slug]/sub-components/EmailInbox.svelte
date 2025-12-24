@@ -40,7 +40,7 @@
           <ReplyIcon className="stroke-neutral-600 absolute left-0 top-1/2 -translate-y-1/2" />
         {/if}
       </div>
-      <div class="[*&>p]:text-neutral-4! [*&>p]:truncate! [*&>p]:text-sm! md:[*&>p]:text-right! w-full md:w-1/2">
+      <div class="[*&>p]:text-neutral-4! w-full md:w-1/2 [*&>p]:truncate! [*&>p]:text-sm! md:[*&>p]:text-right!">
         {#if label === 'INBOX'}
           <p>From: {email.from}</p>
         {:else if label === 'Junk'}
@@ -92,7 +92,7 @@
   @reference "$style";
 
   .no-emails {
-    @apply mb-12 mt-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
+    @apply mt-12 mb-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
   }
 
   .container {

@@ -258,10 +258,10 @@
           <h1>Or enter the secret key</h1>
           <p class="mb-2">Alternatively, you can paste this secret key into your auth app:</p>
           <CopyButton text={settings.secret} className="md:max-lg:max-w-[30vw]" change={false} />
-          <p class="ml-1 mt-2 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
+          <p class="mt-2 ml-1 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
         </div>
       </div>
-      <button type="submit" class="w-fit! bottom-12 right-16 md:absolute">Next →</button>
+      <button type="submit" class="right-16 bottom-12 w-fit! md:absolute">Next →</button>
     </form>
   {:else if settings.step === 2}
     <form use:enhance={() => updateFetch(true, 5)} method="POST" action="?/checkOtp">

@@ -14,6 +14,6 @@
 </script>
 
 <div class="flex flex-initial max-md:flex-col max-md:gap-6">
-  <input class="md:rounded-r-none! w-full md:ring-inset" {placeholder} {name} {type} {value} required />
+  <input class="w-full md:rounded-r-none! md:ring-inset" {placeholder} {name} {type} {value} required />
   <LoadingButton {index} className="text-nowrap md:rounded-l-none md:-ml-1">{label}</LoadingButton>
 </div>

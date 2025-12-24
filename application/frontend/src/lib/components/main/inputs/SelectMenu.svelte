@@ -109,7 +109,7 @@
   }
 
   li {
-    @apply cursor-pointer select-none bg-[#131c2e] px-4 py-2 text-neutral-300 hover:bg-neutral-800;
+    @apply cursor-pointer bg-[#131c2e] px-4 py-2 text-neutral-300 select-none hover:bg-neutral-800;
     @apply text-lg first:rounded-t-xl last:rounded-b-xl;
   }
 
@@ -119,7 +119,7 @@
   }
 
   #select-input ul {
-    @apply absolute mt-4 rounded-xl shadow-2xl shadow-gray-950/50 ring-1 ring-gray-700/50;
+    @apply absolute mt-4 rounded-xl shadow-2xl ring-1 shadow-gray-950/50 ring-gray-700/50;
     @apply !mx-0 w-full transition-all duration-300 ease-in-out;
   }
 </style>

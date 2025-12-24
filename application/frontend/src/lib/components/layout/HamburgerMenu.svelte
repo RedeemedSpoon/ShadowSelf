@@ -39,7 +39,7 @@
   @reference "$style";
 
   #humberger-menu-container {
-    @apply z-1000! invisible absolute -right-12 top-24 translate-x-0 opacity-0 transition-all duration-300 ease-in-out sm:-right-24;
+    @apply invisible absolute top-24 -right-12 z-1000! translate-x-0 opacity-0 transition-all duration-300 ease-in-out sm:-right-24;
     @apply rounded-2xl border-2 border-neutral-700 bg-neutral-950/75 p-8 backdrop-blur-md;
     @apply flex flex-col-reverse items-center justify-center gap-6 md:flex-row;
   }

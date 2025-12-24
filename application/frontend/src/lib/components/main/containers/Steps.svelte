@@ -23,7 +23,7 @@
   @reference "$style";
 
   #steps {
-    @apply relative h-[1000px] bg-repeat pb-16 pt-16 md:pb-40 md:pt-56;
+    @apply relative h-[1000px] bg-repeat pt-16 pb-16 md:pt-56 md:pb-40;
   }
 
   section {

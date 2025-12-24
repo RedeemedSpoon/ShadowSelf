@@ -11,8 +11,8 @@
       <span>TLDR</span> We deeply value your privacy. We collect only the minimum personal data necessary to provide our services. We do
       not track you unnecessarily, nor do we sell your information. Payments are securely handled by third-party processors, and we don't
       store your full payment details. We may share very limited information with essential third-party services strictly to make our services
-      work. While we implement strong security measures, no online transmission is 100% secure. By using our site, you acknowledge this
-      policy. We may update it, so please check back periodically.
+      work. While we implement strong security measures, no online transmission is 100% secure. By using our site, you acknowledge this policy.
+      We may update it, so please check back periodically.
     </p>
   </section>
 
@@ -41,8 +41,13 @@
     </li>
     <li>
       <b>Contact Information:</b> If you choose to contact us via our <a href="/contact">contact page</a> or directly, you may provide your
-      email address and any other information you include in your message. We collect this solely for the purpose of responding to your
-      inquiries and providing support.
+      email address and any other information you include in your message. We collect this solely for the purpose of responding to your inquiries
+      and providing support.
+    </li>
+    <li>
+      <b>Communication & SMS Data:</b>
+      While we do not collect your personal mobile phone number, if you utilize our virtual number services, we process the necessary communication
+      data (such as message timestamps, sender/receiver information, and message content) strictly to transmit and relay your SMS messages.
     </li>
   </ul>
 
@@ -59,6 +64,10 @@
         <li>Authenticating you when you log in.</li>
         <li>Delivering the services you have requested.</li>
         <li>Processing your payments through our third-party payment processor.</li>
+        <li>
+          Facilitating the transmission of SMS messages, verification codes, and alerts through the virtual numbers you have
+          provisioned.
+        </li>
       </ul>
     </li>
     <li>
@@ -114,6 +123,11 @@
       is necessary to: (a) comply with a legal obligation; (b) protect and defend our rights or property; (c) prevent or investigate possible
       wrongdoing in connection with the Service; (d) protect the personal safety of users of the Service or the public; or (e) protect against
       legal liability.
+    </li>
+    <li>
+      <b>Mobile Information No-Sharing Clause</b> No text messaging originator opt-in data or consent will be shared with third parties or
+      affiliates for marketing or promotional purposes. All other categories exclude text messaging originator opt-in data and consent; this
+      information will not be shared with any third parties.
     </li>
   </ul>
 

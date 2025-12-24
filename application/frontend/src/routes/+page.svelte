@@ -29,7 +29,7 @@
 
 <section id={data.homepageIds[0]} class="h-screen! p-8!">
   <Slogan />
-  <p class="my-4 w-3/4 text-balance text-center max-sm:w-full lg:w-1/2">
+  <p class="my-4 w-3/4 text-center text-balance max-sm:w-full lg:w-1/2">
     Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your personal information
     remains hidden, far away from malicious threats. Experience the freedom of online interactions without the fear of compromise.
   </p>
@@ -48,7 +48,7 @@
   <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-20">
     <h6 class="-mb-4 ml-2 text-lg text-neutral-500 max-sm:text-sm">The Most Advanced Identity Masking Tool</h6>
     <h1 class="text-3xl text-neutral-300 sm:text-4xl md:text-5xl">
-      <span class="pretty-style text-nowrap text-5xl sm:text-6xl md:text-8xl">Reclaim Back</span>
+      <span class="pretty-style text-5xl text-nowrap sm:text-6xl md:text-8xl">Reclaim Back</span>
       <br />Control of Your Data.
     </h1>
     <p>
@@ -59,14 +59,14 @@
   </div>
 </section>
 
-<section id={data.homepageIds[2]} class="sm:h-screen! relative">
+<section id={data.homepageIds[2]} class="relative sm:h-screen!">
   <ServicesList />
 </section>
 
 <section id={data.homepageIds[3]}>
   <GridAndDotBackgrounds>
     <h1 class="text-center text-4xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
-    <div id="account" class="mt-6 flex items-center justify-center gap-16 text-balance text-center max-lg:flex-col xl:gap-32">
+    <div id="account" class="mt-6 flex items-center justify-center gap-16 text-center text-balance max-lg:flex-col xl:gap-32">
       <div class="flex flex-col items-center gap-8 sm:w-[30rem]">
         <img src={registration} width="200" alt="Account Registration" class="max-sm:w-[150px]" />
         <h2 style="background-image: linear-gradient(to bottom, #ef4444, #e11d48);" class="text-3xl font-bold sm:text-4xl">
@@ -111,8 +111,8 @@
   <FloatingAvatars />
 </section>
 
-<section id={data.homepageIds[7]} class="mt-0! h-screen! relative overflow-hidden">
-  <h1 class="text-wrap text-center text-4xl text-neutral-300 md:text-7xl">
+<section id={data.homepageIds[7]} class="relative mt-0! h-screen! overflow-hidden">
+  <h1 class="text-center text-4xl text-wrap text-neutral-300 md:text-7xl">
     <div class="relative">
       <Sparkle className="-top-4 right-[18rem]" size="w-9 h-9" delay={26} />
       <Sparkle className="-top-6 right-96" size="w-7 h-7" delay={45} />
@@ -144,15 +144,15 @@
     }
 
     &:nth-child(7) {
-      @apply bg-linear-to-b !mb-0 from-neutral-900 from-25% to-neutral-950/25;
+      @apply !mb-0 bg-linear-to-b from-neutral-900 from-25% to-neutral-950/25;
     }
 
     &:nth-child(6) {
-      @apply max-lg:!my-0 2xl:!flex-row min-[1536px]:max-[1720px]:!flex-col;
+      @apply max-lg:!my-0 min-[1536px]:max-[1720px]:!flex-col 2xl:!flex-row;
     }
 
     #action {
-      @apply bg-linear-to-r hover-gradient-small from-blue-500 via-indigo-600 to-purple-700 sm:px-12 sm:py-8 sm:text-3xl;
+      @apply hover-gradient-small bg-linear-to-r from-blue-500 via-indigo-600 to-purple-700 sm:px-12 sm:py-8 sm:text-3xl;
     }
   }
 </style>
