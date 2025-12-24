@@ -88,8 +88,8 @@
   <section id="no-accounts" style="background-image: url({lock});">
     <h2 class="mt-12 text-center text-5xl text-neutral-300">No Master Password</h2>
     <p class="text-center md:w-1/2">
-      Set/recover a master password that will be stored on this device. This ensures only you can access your accounts—no one else, not
-      even us. You can change it anytime.
+      Set a Master Password that lives only on this device. We have zero access to your keys. IF YOU FORGET THIS, YOUR ACCOUNTS ARE
+      LOST FOREVER.
     </p>
     <button onclick={() => ($modalIndex = 2)}>Add Password</button>
   </section>
@@ -97,10 +97,10 @@
 
 <Modal id={2}>
   <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
-    <h3 class="text-3xl! md:text-5xl! w-full text-neutral-300">Setup Master Password</h3>
+    <h3 class="w-full text-3xl! text-neutral-300 md:text-5xl!">Setup Master Password</h3>
     <p class="md:w-[40vw]">
-      Set/recover a master password to secure your accounts, ensuring only you can access them. You can update it anytime for added
-      security.
+      Secure your vault with a Master Password only you know. You can update it anytime. WE CANNOT RESET THIS. LOSE IT AND YOU LOSE
+      EVERYTHING.
     </p>
     <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="master" />
     <LoadingButton className="w-2/3" onclick={setMasterPassword}>Set Password</LoadingButton>
@@ -109,10 +109,10 @@
 
 <Modal id={3}>
   <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
-    <h3 class="text-3xl! md:text-5xl! w-full text-neutral-300">Change Master Password</h3>
+    <h3 class="w-full text-3xl! text-neutral-300 md:text-5xl!">Change Master Password</h3>
     <p class="md:w-[40vw]">
-      Change the master password of your accounts and automatically update all of your accounts. There is no going back once you set
-      it.
+      Update your Master Password to re-encrypt your entire vault. This action is immediate. MEMORIZE THIS. IF YOU FORGET IT, DATA
+      RECOVERY IS IMPOSSIBLE.
     </p>
     <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="master" />
     <LoadingButton className="w-2/3" onclick={setMasterPassword}>Change Password</LoadingButton>
@@ -125,6 +125,6 @@
   @reference "$style";
 
   #no-accounts {
-    @apply mb-12 mt-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
+    @apply mt-12 mb-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
   }
 </style>
