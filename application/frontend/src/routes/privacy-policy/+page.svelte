@@ -286,7 +286,7 @@
     By using our Website, you acknowledge that you have read and understood this Privacy Policy. Thank you for trusting Shadowself with
     your privacy.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: May 13, 2025</small>
+  <small class="text-lg text-neutral-500">Last updated: December 24, 2025</small>
 </div>
 
 <style lang="postcss">

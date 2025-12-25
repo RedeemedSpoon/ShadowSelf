@@ -39,6 +39,10 @@ export function getRecovery() {
   });
 }
 
+export function checksum(string: string): string {
+  return Bun.hash(string + process.env.SECRET_SAUCE).toString();
+}
+
 export async function createHash(string: string): Promise<string> {
   return await hash(string, await genSalt(10));
 }

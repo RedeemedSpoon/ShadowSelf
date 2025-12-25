@@ -1,6 +1,6 @@
-import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '@utils/crypto';
-import {sendOfficialEmail} from '@utils/email-smtp';
+import {createTOTP, getSecret, getAPIKey, createHash, getRecovery, checksum} from '@utils/crypto';
 import {attempt, error, request} from '@utils/utils';
+import {sendOfficialEmail} from '@utils/email-smtp';
 import {sql} from '@utils/connection';
 import middleware from '@middleware';
 import {check} from '@utils/checks';
@@ -95,9 +95,8 @@ export default new Elysia({prefix: '/settings'})
     const {err, email, access} = check(body, ['email', 'access']);
     if (err) return error(set, 400, err);
 
-    //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
-    if (access !== accessToken.split('.')[2]) return error(set, 400, 'Invalid access token. Please Try again');
+    const accessToken = checksum(email);
+    if (access !== accessToken) return error(set, 400, 'Invalid access token. Please Try again');
 
     await request('/billing/customer', 'PATCH', {oldEmail: user!.email, email});
     await attempt(sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`);
@@ -105,16 +104,15 @@ export default new Elysia({prefix: '/settings'})
     const cookievalue = await jwt.sign({email, id: user!.id});
     return {cookie: cookievalue};
   })
-  .put('/email', async ({set, body, jwt}) => {
+  .put('/email', async ({set, body}) => {
     const {err, email} = check(body, ['email']);
     if (err) return error(set, 400, err);
 
     const result = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
     if (result.length) return error(set, 400, 'Email address is already registered on our systems');
 
-    //@ts-expect-error JWT only accept objects
-    const accessToken = await jwt.sign(email + process.env.SECRET_SAUCE);
-    const response = await sendOfficialEmail(email, accessToken.split('.')[2], 'change');
+    const accessToken = checksum(email);
+    const response = await sendOfficialEmail(email, accessToken, 'change');
     if (response.err) return error(set, 500, 'Failed to send verification email. Try later');
 
     return {email};
@@ -138,9 +136,9 @@ export default new Elysia({prefix: '/settings'})
   })
   .delete('/full', async ({user}) => {
     const account = await attempt(sql`SELECT id FROM users WHERE email = ${user!.email}`);
-    const allPuchases = await attempt(sql`SELECT * FROM identities WHERE owner = ${account?.[0].id}`);
+    const allPurchases = await attempt(sql`SELECT * FROM identities WHERE owner = ${account?.[0].id}`);
 
-    for (const purchase of allPuchases) {
+    for (const purchase of allPurchases) {
       await request('/billing/cancel', 'DELETE', {id: purchase.id});
     }
 

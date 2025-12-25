@@ -33,12 +33,15 @@ export async function updateModal(index = 1, condition = true) {
 }
 
 export function createCookie(cookies: Cookies, name: string, value: string, short: boolean = false) {
+  const ninetyDays = 7_776_000_000;
+  const oneHour = 3_600_000;
+
   return cookies.set(name, value, {
     path: '/',
     secure: true,
     sameSite: 'strict',
-    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    maxAge: short ? 3_600_000 : 2_592_000_000,
+    expires: new Date(Date.now() + (short ? oneHour : ninetyDays)),
+    maxAge: short ? oneHour : ninetyDays,
   });
 }
 

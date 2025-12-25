@@ -197,7 +197,7 @@ export default new Elysia({prefix: '/billing'})
         if (payment) await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
         await attempt(sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`);
       })
-      .put('/', async ({set, body}: {body: {email: string; payment: string}; set: {status: number}}) => {
+      .put('/', async ({set, body}) => {
         const {email, payment, err} = check(body, ['email']);
         if (err) return error(set, 400, err);
 
@@ -205,11 +205,12 @@ export default new Elysia({prefix: '/billing'})
         await stripe.paymentMethods.attach(payment, {customer: customer[0]?.stripe_customer});
         await stripe.customers.update(customer[0]?.stripe_customer, {invoice_settings: {default_payment_method: payment}});
       })
-      .patch('/', async ({set, body}: {body: {oldEmail: string; email: string}; set: {status: number}}) => {
+      .patch('/', async ({set, body}) => {
         const {email, err} = check(body, ['email']);
         if (err) return error(set, 400, err);
 
-        const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${body?.oldEmail}`);
+        const oldEmail = (body as {oldEmail : string})?.oldEmail
+        const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${oldEmail}`);
         const id = customer[0]?.stripe_customer || '';
 
         if (id) await stripe.customers.update(id, {email});
