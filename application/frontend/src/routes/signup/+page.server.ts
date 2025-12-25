@@ -107,7 +107,7 @@ export const actions: Actions = {
     const [email, password, access, username] = object ?? [];
     let [secret, recovery, payment] = ['', [], ''] as [string, string[], string];
 
-    const hasOTP = object[4]?.length === 32 && object[5].split(',')?.length === 6;
+    const hasOTP = object[4]?.length === 32 && object[5]?.split(',')?.length === 6;
     const hasBilling = object[4]?.length === 27 || object[6]?.length === 27;
 
     if (hasOTP) {

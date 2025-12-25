@@ -42,7 +42,7 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         break;
 
       case 'access':
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/.test(body.access)) {
+        if (!/^\d+$/.test(body.access)) {
           return {err: 'Invalid access token. Please try again'} as BodyField;
         }
         break;

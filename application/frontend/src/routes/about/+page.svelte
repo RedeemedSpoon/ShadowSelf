@@ -49,7 +49,7 @@
     and experience the internet on your terms.
   </p>
   <p>
-    Make sure to star us on <a href="https://github.com/RedeemedSpoon/ShadowSelf" rel="external">GitHub</a>, follow us on
+    Make sure to star us on <a href="https://github.com/RedeemedSpoon/ShadowSelf" rel="external">GitHub</a> and follow us on
     <a href="https://mastodon.social/@shadow_self" rel="external">Mastodon</a>
   </p>
 </div>
