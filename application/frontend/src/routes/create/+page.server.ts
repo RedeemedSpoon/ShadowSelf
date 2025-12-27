@@ -10,5 +10,6 @@ export const load: PageServerLoad = async (event) => {
   await new Promise((resolve) => setTimeout(resolve, 1500));
   const response = await fetchBackend('/creation-process', 'POST', {id});
   createCookie(event.cookies, 'creation-process', response.cookie);
+
   return {cookie: response.cookie || ''};
 };

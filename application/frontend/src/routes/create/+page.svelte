@@ -9,6 +9,7 @@
   import {dev} from '$app/environment';
   import {goto} from '$app/navigation';
   import {page} from '$app/state';
+  import {onMount} from 'svelte';
   import {notify} from '$lib';
 
   let {data}: {data: PageData} = $props();
@@ -190,6 +191,18 @@
       }
     }
   }
+
+  onMount(() => {
+    const url = new URL(window.location.href);
+
+    if (url.searchParams.has('redirect_status')) {
+      url.searchParams.delete('payment_intent');
+      url.searchParams.delete('payment_intent_client_secret');
+      url.searchParams.delete('redirect_status');
+
+      window.history.replaceState({}, '', url.toString());
+    }
+  });
 </script>
 
 <svelte:head>
