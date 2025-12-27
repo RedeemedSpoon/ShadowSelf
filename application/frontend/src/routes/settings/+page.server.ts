@@ -1,4 +1,4 @@
-import { STRIPE_PUBLISHABLE_KEY } from '$env/static/private';
+import { PUBLIC_STRIPE_KEY } from '$env/static/public';
 import type {PageServerLoad, Actions} from './$types';
 import {redirect} from '@sveltejs/kit';
 import {fetchBackend} from '$fetch';
@@ -7,7 +7,7 @@ import QRCode from 'qrcode';
 
 export const load: PageServerLoad = async () => {
   const response = await fetchBackend('/settings/', 'GET');
-  const stripeKey = STRIPE_PUBLISHABLE_KEY;
+  const stripeKey = PUBLIC_STRIPE_KEY;
   return {settings: response, stripeKey};
 };
 

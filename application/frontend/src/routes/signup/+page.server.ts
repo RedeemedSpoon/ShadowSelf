@@ -1,4 +1,4 @@
-import { STRIPE_PUBLISHABLE_KEY } from '$env/static/private';
+import { PUBLIC_STRIPE_KEY } from '$env/static/public';
 import {redirect} from '@sveltejs/kit';
 import type {Actions} from './$types';
 import {fetchBackend} from '$fetch';
@@ -86,7 +86,7 @@ export const actions: Actions = {
     const wantBilling = form.has('add');
 
     if (wantBilling) {
-      const stripeKey = STRIPE_PUBLISHABLE_KEY;
+      const stripeKey = PUBLIC_STRIPE_KEY;
       return {step: 9, stripeKey: stripeKey};
     }
 

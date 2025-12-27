@@ -1,4 +1,4 @@
-import { NODE_ENV } from '$env/static/private';
+import { PUBLIC_NODE_ENV } from '$env/static/public';
 import type {APIResponse} from '$type';
 import {get} from 'svelte/store';
 import {identity} from '$store';
@@ -34,7 +34,7 @@ export async function fetchAPI(url: string, method = 'GET', body?: Record<string
 }
 
 export async function fetchBackend(url: string, method = 'GET', body?: Record<string, unknown>) {
-  const host = NODE_ENV === 'prod' ? 'backend:3000' : 'localhost:3000';
+  const host = PUBLIC_NODE_ENV === 'prod' ? 'backend:3000' : 'localhost:3000';
   return await fetch('http://' + host + url, {
     headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
     body: body ? JSON.stringify(body) : undefined,
