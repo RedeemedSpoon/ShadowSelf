@@ -1,4 +1,4 @@
-import { PUBLIC_STRIPE_KEY } from '$env/static/public';
+import {PUBLIC_STRIPE_KEY} from '$env/static/public';
 import type {PageServerLoad, Actions} from './$types';
 import {redirect} from '@sveltejs/kit';
 import {fetchBackend} from '$fetch';
@@ -49,7 +49,8 @@ export const actions: Actions = {
   },
   generateOtp: async () => {
     const response = await fetchBackend('/settings/otp', 'GET');
-    const qr = await QRCode.toDataURL(response.uri);
+    const svg = await QRCode.toString(response.uri, {type: 'svg', margin: 2});
+    const qr = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
     return {step: 1, secret: response.secret, qr};
   },
   nextOtp: async () => ({step: 2}),

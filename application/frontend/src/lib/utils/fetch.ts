@@ -1,4 +1,4 @@
-import { PUBLIC_NODE_ENV } from '$env/static/public';
+import {PUBLIC_NODE_ENV} from '$env/static/public';
 import type {APIResponse} from '$type';
 import {get} from 'svelte/store';
 import {identity} from '$store';

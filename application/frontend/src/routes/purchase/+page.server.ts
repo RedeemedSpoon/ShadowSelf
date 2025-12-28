@@ -1,4 +1,4 @@
-import { PUBLIC_STRIPE_KEY } from '$env/static/public';
+import {PUBLIC_STRIPE_KEY} from '$env/static/public';
 import type {PageServerLoad, Actions} from './$types';
 import {fetchBackend} from '$fetch';
 

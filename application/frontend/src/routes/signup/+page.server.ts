@@ -1,4 +1,4 @@
-import { PUBLIC_STRIPE_KEY } from '$env/static/public';
+import {PUBLIC_STRIPE_KEY} from '$env/static/public';
 import {redirect} from '@sveltejs/kit';
 import type {Actions} from './$types';
 import {fetchBackend} from '$fetch';
@@ -59,7 +59,8 @@ export const actions: Actions = {
       const concat = `${cookie}&&${response.secret}`;
       createCookie(cookies, 'signup', concat, true);
 
-      const qr = await QRCode.toDataURL(response.uri);
+      const svg = await QRCode.toString(response.uri, {type: 'svg', margin: 2});
+      const qr = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
       return {step: 5, secret: response.secret, qr};
     }
 

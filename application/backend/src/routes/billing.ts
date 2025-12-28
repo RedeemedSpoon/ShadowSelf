@@ -209,7 +209,7 @@ export default new Elysia({prefix: '/billing'})
         const {email, err} = check(body, ['email']);
         if (err) return error(set, 400, err);
 
-        const oldEmail = (body as {oldEmail : string})?.oldEmail
+        const oldEmail = (body as {oldEmail: string})?.oldEmail;
         const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${oldEmail}`);
         const id = customer[0]?.stripe_customer || '';
 

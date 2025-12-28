@@ -28,7 +28,7 @@ export async function sendOfficialEmail(email: string, token: string, reason: ke
   try {
     await verificationTransporter.sendMail(mailOptions);
     return {message: 'Your message has been sent!', err: ''};
-  } catch(e) {
+  } catch (e) {
     return {message: '', err: 'Something went wrong. Try again later.'};
   }
 }
