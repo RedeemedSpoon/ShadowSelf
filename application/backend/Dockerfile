@@ -15,12 +15,8 @@ RUN bun install
 
 COPY . .
 
-RUN bun run build ./src/index.ts --compile --minify --sourcemap --bytecode --outfile server
-
-RUN chmod +x ./server
-
 EXPOSE 3000
 
 VOLUME [ "/etc/passwd", "/etc/shadow", "/etc/group", "/home" ]
 
-CMD ["./server"]
+CMD ["bun", "run", "src/index.ts"]

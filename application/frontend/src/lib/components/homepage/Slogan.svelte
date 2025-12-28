@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {background} from '$image';
+  import {welcomeBackground} from '$image';
   import {onMount} from 'svelte';
 
   onMount(() => {
@@ -17,7 +17,7 @@
   });
 </script>
 
-<div id="background" style="background-image: url({background})"></div>
+<div id="background" style="background-image: url({welcomeBackground})"></div>
 <div class="mt-[5vh] -mb-2 flex max-sm:-mb-4 max-sm:scale-90">
   <h2 class="mr-5">Your</h2>
   <h2>Privacy<span id="underline-text"></span></h2>
