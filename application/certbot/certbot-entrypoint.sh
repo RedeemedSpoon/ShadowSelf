@@ -11,8 +11,8 @@ until certbot certonly --webroot -w /var/www/certbot --email contact@shadowself.
   -d ca.shadowself.io \
   -d gb.shadowself.io \
   -d se.shadowself.io; do
-  echo "Certbot failed, retrying in 5 seconds...";
-  sleep 5;
+  echo "Certbot failed, retrying in 5 minutes...";
+  sleep 300;
 done
 
 while :; do
