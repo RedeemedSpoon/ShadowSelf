@@ -25,12 +25,4 @@ export default [
     ip: '153.869.12.56',
     map: 'https://osm.org/go/euunRP',
   },
-  {
-    country: 'Sweden',
-    code: 'SE',
-    city: 'Stockholm',
-    ip: '38.0.101.76',
-    localization: 'sv',
-    map: 'https://osm.org/go/0bCz19',
-  },
 ] as Location[];
