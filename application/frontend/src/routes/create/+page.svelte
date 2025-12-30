@@ -240,6 +240,7 @@
             </div>
           {/each}
         </div>
+        <p class="lg:w-1/2 text-neutral-600">More locations coming soon.</p>
       {:else if $currentStep === 2}
         <h3>Customize your identity</h3>
         <p class="lg:w-1/2">Customize the physical appearance of your identity to your liking.</p>
