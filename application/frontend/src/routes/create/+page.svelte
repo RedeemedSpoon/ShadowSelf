@@ -84,7 +84,7 @@
     switch ($currentStep) {
       case 1: {
         const chosen = document.querySelector('.chosen') as HTMLDivElement;
-        reply('identities', {location: chosen.id});
+        reply('profile', {location: chosen.id});
         break;
       }
 
@@ -110,31 +110,23 @@
 
       case 4: {
         const phone = document.querySelector('input[name="phone"]') as HTMLInputElement;
-        reply('crypto', {phone: phone.value});
+        reply('wallet', {phone: phone.value});
         break;
       }
 
       case 5:
-        reply('extension');
-        break;
-
       case 6:
-        $currentStep = 7;
-        break;
-
       case 7:
-        $currentStep = 8;
-        break;
-
       case 8:
-        $currentStep = 9;
+      case 9:
+        $currentStep = $currentStep + 1;
         break;
 
-      case 9:
+      case 10:
         await new Promise((resolve) => setTimeout(resolve, 1350));
         clearInterval(loaderInterval as number);
         clearInterval(pingInterval as number);
-        reply('finish');
+        reply('provision');
         break;
     }
   }
@@ -217,7 +209,7 @@
       <h3 id="loader-process">.</h3>
     </div>
   {:then}
-    <FlowStep {disabled} finalStep={9} handleClick={respondServer}>
+    <FlowStep {disabled} finalStep={10} handleClick={respondServer}>
       {#if $currentStep === 1}
         <h3>Choose your location</h3>
         <p class="lg:w-1/2">
@@ -240,7 +232,7 @@
             </div>
           {/each}
         </div>
-        <p class="lg:w-1/2 text-neutral-600">More locations coming soon.</p>
+        <p class="text-sm text-neutral-600! lg:w-1/2">More locations will be added in the future.</p>
       {:else if $currentStep === 2}
         <h3>Customize your identity</h3>
         <p class="lg:w-1/2">Customize the physical appearance of your identity to your liking.</p>
@@ -319,10 +311,12 @@
           To avoid this, make sure to keep them in use.
         </small>
       {:else if $currentStep === 5}
+        <h3>Setup a master password</h3>
+      {:else if $currentStep === 6}
         <h3>Make your crypto wallet</h3>
         <p class="lg:w-1/2">Forge your own secure crypto wallet that you can use to make anonymous payments and buy gift cards.</p>
         <p>Currently unavailable</p>
-      {:else if $currentStep === 6}
+      {:else if $currentStep === 7}
         <h3>Install our browser extension</h3>
         <p class="lg:w-1/2">
           With our browser extension, you can access our VPN services, change user agents, and view your identity information.
@@ -334,7 +328,7 @@
           </div>
         </div>
         <ExtensionLinks extension="shadowself" />
-      {:else if $currentStep === 7}
+      {:else if $currentStep === 8}
         <div class="flex items-center justify-center gap-6 max-xl:flex-col sm:gap-16 sm:p-8">
           <h3 class="xl:hidden">Install ublock origin (optional)</h3>
           <div class="flex flex-col items-center gap-4">
@@ -355,7 +349,7 @@
             </p>
           </div>
         </div>
-      {:else if $currentStep === 8}
+      {:else if $currentStep === 9}
         <div class="flex items-center justify-center gap-6 max-xl:flex-col sm:gap-16 sm:p-8">
           <h3 class="xl:hidden">Install ublock origin (optional)</h3>
           <div class="flex flex-col items-center gap-4">
@@ -376,7 +370,7 @@
             </p>
           </div>
         </div>
-      {:else if $currentStep === 9}
+      {:else if $currentStep === 10}
         <HappyIcon className="w-40 h-40" />
         <h3>Your identity is now ready!</h3>
         <p class="lg:w-1/2">
