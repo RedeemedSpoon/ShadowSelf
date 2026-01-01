@@ -1,46 +1,58 @@
 import {masterPassword} from '$store';
 import {get} from 'svelte/store';
 
+const APP_SALT = new TextEncoder().encode('ShadowSelf-Secure-Salt');
+
 export async function getMasterKey() {
-  const keyBuffer = new Uint8Array(
-    atob(get(masterPassword))
-      .split('')
-      .map((char) => char.charCodeAt(0)),
+  const password = get(masterPassword);
+
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), {name: 'PBKDF2'}, false, ['deriveKey']);
+
+  return await crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: APP_SALT,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    keyMaterial,
+    {name: 'AES-GCM', length: 256},
+    true,
+    ['encrypt', 'decrypt'],
   );
-
-  return await crypto.subtle.importKey('raw', keyBuffer, {name: 'AES-GCM'}, true, ['encrypt', 'decrypt']);
 }
 
-export async function encrypt(unencryptedPassword: string, key?: CryptoKey) {
+export async function encrypt(data: string, key?: CryptoKey) {
   key = key || (await getMasterKey());
-
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const encodedPassword = new TextEncoder().encode(unencryptedPassword);
-  const encryptedBuffer = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, encodedPassword);
-  const encryptedData = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+  const encodedData = new TextEncoder().encode(data);
+  const encryptedBuffer = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, encodedData);
 
-  encryptedData.set(iv);
-  encryptedData.set(new Uint8Array(encryptedBuffer), iv.length);
+  const encryptedDataArray = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+  encryptedDataArray.set(iv);
+  encryptedDataArray.set(new Uint8Array(encryptedBuffer), iv.length);
 
-  //@ts-expect-error Type 'Uint8Array' is not assignable to type 'string'.
-  return btoa(String.fromCharCode.apply(null, encryptedData));
+  return btoa(String.fromCharCode(...encryptedDataArray));
 }
 
-export async function decrypt(encryptedPassword: string) {
+export async function decrypt(encryptedString: string) {
   const key = await getMasterKey();
 
   const encryptedData = new Uint8Array(
-    atob(encryptedPassword)
+    atob(encryptedString)
       .split('')
       .map((char) => char.charCodeAt(0)),
   );
 
   const iv = encryptedData.slice(0, 12);
-  const encryptedPasswordBuffer = encryptedData.slice(12);
+  const dataBuffer = encryptedData.slice(12);
+
   try {
-    const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, encryptedPasswordBuffer);
+    const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, dataBuffer);
     return new TextDecoder().decode(decryptedBuffer);
-  } catch {
-    return 'unable to decrypt';
+  } catch (e) {
+    console.error('Decryption failed', e);
+    return '';
   }
 }
