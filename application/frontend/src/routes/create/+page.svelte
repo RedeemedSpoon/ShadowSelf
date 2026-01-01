@@ -1,10 +1,11 @@
 <script lang="ts">
   import {FlowStep, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
   import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
-  import {PhoneIcon, EmailIcon, WalletIcon, UserIcon, PinIcon} from '$icon';
+  import {PhoneIcon, EmailIcon, KeyIcon, UserIcon, PinIcon} from '$icon';
   import {ublock, canvas, screenshot, countriesFlags} from '$image';
   import {currentStep, fetchIndex, modalIndex} from '$store';
   import type {CreationProcess} from '$type';
+  import {formatPhoneNumber} from '$format';
   import type {PageData} from './$types';
   import {dev} from '$app/environment';
   import {goto} from '$app/navigation';
@@ -42,7 +43,7 @@
 
     ws.onopen = () => {
       pingInterval = setInterval(() => ws?.send('ping'), 5000);
-      reply('locations');
+      reply('init/fetch-locations');
     };
 
     ws.onclose = (ws) => {
@@ -58,8 +59,11 @@
       const oldFetch = $fetchIndex;
       $fetchIndex = 0;
 
-      if (response?.error) return notify(response.error, 'alert');
-      if (response.finish) {
+      if (response?.error) {
+        return notify(response.error, 'alert');
+      }
+
+      if (response.done) {
         document.cookie = `creation-process=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${dev ? 'localhost' : 'shadowself.io'}`;
         return goto('/dashboard');
       }
@@ -71,12 +75,13 @@
       }
 
       $currentStep = response.locations ? 1 : oldFetch !== 1 ? $currentStep : $currentStep + 1;
+      disabled = $currentStep === 5 || 1 ? true : false;
       server = response;
     };
   }
 
-  async function respondServer() {
-    if (![6, 7, 8, 9].includes($currentStep)) {
+  async function proceed() {
+    if (![5, 7, 8, 9, 10].includes($currentStep)) {
       $fetchIndex = 1;
       await new Promise((resolve) => setTimeout(resolve, 650));
     }
@@ -84,7 +89,7 @@
     switch ($currentStep) {
       case 1: {
         const chosen = document.querySelector('.chosen') as HTMLDivElement;
-        reply('profile', {location: chosen.id});
+        reply('submit-location/generate-profile', {location: chosen.id});
         break;
       }
 
@@ -98,24 +103,32 @@
           sex: document.querySelector('.selected')?.id,
         };
 
-        reply('email', {identity});
+        reply('submit-profile/derive-email', {identity});
         break;
       }
 
       case 3: {
         const email = document.querySelector('input[name="email"]') as HTMLInputElement;
-        reply('phone', {email: email.value + '@shadowself.io'});
+        reply('submit-email/find-phones', {email: email.value + '@shadowself.io'});
         break;
       }
 
       case 4: {
         const phone = document.querySelector('input[name="phone"]') as HTMLInputElement;
-        reply('wallet', {phone: phone.value});
+        reply('submit-phone', {phone: phone.value});
         break;
       }
 
-      case 5:
-      case 6:
+      case 5: {
+        break;
+      }
+
+      case 6: {
+        const wallet = '...';
+        reply('submit-wallet', {wallet});
+        break;
+      }
+
       case 7:
       case 8:
       case 9:
@@ -157,13 +170,13 @@
       }
 
       case 'repeat-bio': {
-        reply('identities', {repeat: {bio: true}});
+        reply('submit-location/generate-profile', {repeat: {bio: true}});
         break;
       }
 
       case 'repeat-name': {
         const sex = document.querySelector('.selected')?.id;
-        reply('identities', {repeat: {name: true, sex}});
+        reply('submit-location/generate-profile', {repeat: {name: true, sex}});
         break;
       }
 
@@ -178,7 +191,7 @@
           sex: document.querySelector('.selected')?.id,
         };
 
-        reply('identities', {regenerate});
+        reply('submit-location/generate-profile', {regenerate});
         break;
       }
     }
@@ -209,7 +222,7 @@
       <h3 id="loader-process">.</h3>
     </div>
   {:then}
-    <FlowStep {disabled} finalStep={10} handleClick={respondServer}>
+    <FlowStep {disabled} finalStep={10} handleClick={proceed}>
       {#if $currentStep === 1}
         <h3>Choose your location</h3>
         <p class="lg:w-1/2">
@@ -295,7 +308,7 @@
           <InputWithIcon icon={EmailIcon} type="email" fill={true} value={server.email} placeholder="Username" name="email" />
           <label class="mt-0!" for="email">@shadowself.io</label>
         </div>
-        <small>
+        <small class="text-sm! text-neutral-500! lg:w-1/3!">
           Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as
           we take care of security and credentials for you.
         </small>
@@ -303,15 +316,22 @@
         <h3>Give yourself a phone number</h3>
         <p class="lg:w-1/2">Select from the available phone numbers we have for you to use with your identity.</p>
         <SelectMenu
-          options={server.phone.map((phone) => ({value: phone.phone, label: phone.formatted}))}
+          options={server.phone.map((phone) => ({value: phone, label: formatPhoneNumber(phone)}))}
           icon={PhoneIcon}
           name="phone" />
-        <small>
+        <small class="text-sm! text-neutral-500! lg:w-1/3!">
           Important: These phone numbers are either mobile or local. However, if left inactive, they may be reclaimed by the provider.
           To avoid this, make sure to keep them in use.
         </small>
       {:else if $currentStep === 5}
         <h3>Setup a master password</h3>
+        <p class="lg:w-1/2">Create a strong master password to encrypt your wallet keys and account vault locally on your device.</p>
+        <InputWithIcon icon={KeyIcon} type="password" placeholder="Password" name="master" />
+        <InputWithIcon icon={KeyIcon} type="password" placeholder="Confirm Password" name="confirm master" />
+        <small class="text-sm! text-neutral-500! lg:w-1/3!">
+          <b>Critical Warning:</b> ShadowSelf is a zero-knowledge platform. We do not know your password and cannot reset it. If you lose
+          this password, your wallet and account vault will be lost forever. You can still change this later.
+        </small>
       {:else if $currentStep === 6}
         <h3>Make your crypto wallet</h3>
         <p class="lg:w-1/2">Forge your own secure crypto wallet that you can use to make anonymous payments and buy gift cards.</p>
@@ -390,7 +410,7 @@
             </p>
             <div class="flex justify-end gap-4">
               <button class="alt text-primary-700 hover:text-primary-800" onclick={() => ($modalIndex = 0)}>Cancel</button>
-              <LoadingButton onclick={respondServer}>Confirm</LoadingButton>
+              <LoadingButton onclick={proceed}>Confirm</LoadingButton>
             </div>
           </div>
         </Modal>

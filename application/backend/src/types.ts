@@ -121,6 +121,7 @@ export interface CheckIdentity {
   bio?: string;
   age?: number;
   sex?: string;
+  wallet?: string;
   ethnicity?: string;
   picture?: string;
   location?: string;

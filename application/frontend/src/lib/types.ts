@@ -124,10 +124,10 @@ export interface CreationProcess {
     ethnicity: string;
   };
   repeat: {name: string; bio: string};
-  phone: {phone: string; formatted: string}[];
+  phone: string[];
   email: string;
   crypto: string;
-  finish: boolean;
+  done: boolean;
 }
 
 export interface Message {
