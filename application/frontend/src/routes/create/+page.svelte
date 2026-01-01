@@ -6,6 +6,7 @@
   import {currentStep, fetchIndex, modalIndex} from '$store';
   import type {CreationProcess} from '$type';
   import {formatPhoneNumber} from '$format';
+  import {deriveMasterKey} from '$crypto';
   import type {PageData} from './$types';
   import {dev} from '$app/environment';
   import {goto} from '$app/navigation';
@@ -15,6 +16,7 @@
 
   let {data}: {data: PageData} = $props();
   const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
+  const identityID = page.url.searchParams.get('id');
 
   let disabled = $state(true);
   let server = $state() as CreationProcess;
@@ -38,8 +40,7 @@
   }
 
   async function initWebsocket() {
-    const id = page.url.searchParams.get('id');
-    ws = new WebSocket(`wss://${page.url.hostname}/ws-creation-process?id=${id}`);
+    ws = new WebSocket(`wss://${page.url.hostname}/ws-creation-process?id=${identityID}`);
 
     ws.onopen = () => {
       pingInterval = setInterval(() => ws?.send('ping'), 5000);
@@ -75,7 +76,7 @@
       }
 
       $currentStep = response.locations ? 1 : oldFetch !== 1 ? $currentStep : $currentStep + 1;
-      disabled = $currentStep === 5 || 1 ? true : false;
+      disabled = $currentStep === 5 || $currentStep === 1 ? true : false;
       server = response;
     };
   }
@@ -108,7 +109,7 @@
       }
 
       case 3: {
-        const email = document.querySelector('input[name="email"]') as HTMLInputElement;
+        const email = document.querySelector('input#email') as HTMLInputElement;
         reply('submit-email/find-phones', {email: email.value + '@shadowself.io'});
         break;
       }
@@ -120,6 +121,24 @@
       }
 
       case 5: {
+        const inputElement = document.querySelector('input#master') as HTMLInputElement;
+        const password = inputElement.value || 'test';
+
+        const confirmInputElement = document.querySelector('input#confirm-master') as HTMLInputElement;
+        const confirmPassword = confirmInputElement.value || 'another-test';
+
+        if (password != confirmPassword) {
+          notify('Passwords do not match', 'alert');
+          $fetchIndex = 0;
+          break;
+        }
+
+        const newKey = await deriveMasterKey(password, identityID!);
+        const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
+        const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
+
+        localStorage.setItem('key-' + identityID, base64Key);
+        $currentStep++;
         break;
       }
 
@@ -132,7 +151,7 @@
       case 7:
       case 8:
       case 9:
-        $currentStep = $currentStep + 1;
+        $currentStep++;
         break;
 
       case 10:
@@ -326,8 +345,8 @@
       {:else if $currentStep === 5}
         <h3>Setup a master password</h3>
         <p class="lg:w-1/2">Create a strong master password to encrypt your wallet keys and account vault locally on your device.</p>
-        <InputWithIcon icon={KeyIcon} type="password" placeholder="Password" name="master" />
-        <InputWithIcon icon={KeyIcon} type="password" placeholder="Confirm Password" name="confirm master" />
+        <InputWithIcon icon={KeyIcon} type="password" placeholder="Password" name="master" handleInput={() => (disabled = false)} />
+        <InputWithIcon {disabled} icon={KeyIcon} type="password" placeholder="Confirm Password" name="confirm-master" />
         <small class="text-sm! text-neutral-500! lg:w-1/3!">
           <b>Critical Warning:</b> ShadowSelf is a zero-knowledge platform. We do not know your password and cannot reset it. If you lose
           this password, your wallet and account vault will be lost forever. You can still change this later.

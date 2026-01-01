@@ -3,13 +3,13 @@
   import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, WalletIcon} from '$icon';
   import {Modal, ConfirmModal, InputWithIcon, LoadingButton} from '$component';
   import type {APIResponse, Sections, WebSocketMessage} from '$type';
+  import {decrypt, deriveMasterKey, encrypt} from '$crypto';
   import IdentityInformation from './Information.svelte';
   import IdentityAccounts from './Accounts.svelte';
   import IdentityCrypto from './Crypto.svelte';
   import IdentityPhone from './Phone.svelte';
   import IdentityEmail from './Email.svelte';
   import {ChevronIcon, KeyIcon} from '$icon';
-  import {decrypt, deriveMasterKey, encrypt} from '$crypto';
   import {browser} from '$app/environment';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
