@@ -1,20 +1,17 @@
 <script lang="ts">
   import {LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon, UserIcon, WWWIcon} from '$icon';
   import {UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon, BackIcon} from '$icon';
-  import {fetchIndex, identity, modalIndex, masterPassword} from '$store';
-  import MasterPassword from './sub-components/MasterPassword.svelte';
+  import {fetchIndex, modalIndex, masterPassword} from '$store';
   import {ActionIcon, Tooltip, HoverCopyButton} from '$component';
   import AccountEdit from './sub-components/AccountEdit.svelte';
   import type {Account, APIResponse} from '$type';
   import {writable} from 'svelte/store';
   import * as OTPAuth from 'otpauth';
+  import {lock, group} from '$image';
   import {decrypt} from '$crypto';
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
-  import {group} from '$image';
   import {notify} from '$lib';
-
-  $masterPassword = localStorage.getItem('key-' + $identity.id) || '';
 
   const mode = writable<'view' | 'add' | 'edit'>('view');
   const target = writable<Account | null>(null);
@@ -150,9 +147,16 @@
     </p>
     <button onclick={() => ($mode = 'add')}>Add Account</button>
   </section>
+{:else if !$masterPassword}
+  <section id="no-accounts" style="background-image: url({lock});">
+    <h2 class="mt-12 text-center text-5xl text-neutral-300">Encryption Key Missing</h2>
+    <p class="text-center md:w-1/2">
+      Your local session is missing the decryption key. Re-enter your Master Password to restore access to this identity account vault.
+    </p>
+    <button onclick={() => ($modalIndex = 1)}>Enter Master Password</button>
+  </section>
 {/if}
 
-<MasterPassword {accounts} {mode} {target} />
 <AccountEdit {accounts} {target} {mode} />
 
 <style lang="postcss">

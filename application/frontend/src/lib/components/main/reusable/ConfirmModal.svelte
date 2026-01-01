@@ -15,7 +15,7 @@
 </script>
 
 <Modal {id}>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 p-4">
     <h1 class="ml-2 text-5xl font-semibold text-neutral-300">Are you sure?</h1>
     <p class="mb-2 text-left">
       {text} is irreversible and could lead to serious consequences.

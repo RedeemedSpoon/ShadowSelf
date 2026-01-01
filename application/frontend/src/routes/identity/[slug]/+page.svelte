@@ -1,17 +1,19 @@
 <script lang="ts">
+  import {currentSection, fetchIndex, handleResponse, identity, modalIndex, masterPassword} from '$store';
   import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, WalletIcon} from '$icon';
-  import {currentSection, handleResponse, identity, modalIndex} from '$store';
+  import {Modal, ConfirmModal, InputWithIcon, LoadingButton} from '$component';
+  import type {APIResponse, Sections, WebSocketMessage} from '$type';
   import IdentityInformation from './Information.svelte';
-  import type {Sections, WebSocketMessage} from '$type';
   import IdentityAccounts from './Accounts.svelte';
   import IdentityCrypto from './Crypto.svelte';
   import IdentityPhone from './Phone.svelte';
   import IdentityEmail from './Email.svelte';
+  import {ChevronIcon, KeyIcon} from '$icon';
+  import {decrypt, deriveMasterKey, encrypt} from '$crypto';
   import {browser} from '$app/environment';
-  import {ConfirmModal} from '$component';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
-  import {ChevronIcon} from '$icon';
+  import {fetchAPI} from '$fetch';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
   import {notify} from '$lib';
@@ -23,6 +25,13 @@
 
   $identity = data.identity!;
   $currentSection = (page.url.hash?.slice(1) || 'info') as Sections;
+
+  const className = {
+    label: 'bg-neutral-900/50! border-neutral-700!',
+    icon: 'fill-neutral-700 stroke-neutral-700',
+    input: 'placeholder-neutral-700 bg-neutral-900/50! border-neutral-700!',
+    wrapper: 'w-2/3',
+  };
 
   const sectionsNames = [
     {name: 'Information', icon: InfoIcon},
@@ -50,13 +59,75 @@
     });
   }
 
+  async function setMasterPassword() {
+    $fetchIndex = 1;
+    await new Promise((resolve) => setTimeout(resolve, 750));
+
+    const inputElement = document.querySelector('input[name="set-master"]') as HTMLInputElement;
+    const password = inputElement.value || 'test';
+
+    const newKey = await deriveMasterKey(password, $identity.id);
+    const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
+    const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
+
+    $masterPassword = base64Key;
+    localStorage.setItem('key-' + $identity.id, base64Key);
+    window.location.reload();
+  }
+
+  async function changeMasterPassword() {
+    $fetchIndex = 1;
+    await new Promise((resolve) => setTimeout(resolve, 750));
+
+    // Account vault
+    const inputElement = document.querySelector('input[name="change-master"]') as HTMLInputElement;
+    const password = inputElement.value || 'test';
+
+    const newKey = await deriveMasterKey(password, $identity.id);
+    const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
+    const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
+
+    const accounts: APIResponse = await fetchAPI('account', 'GET');
+    const updatedAccounts = await Promise.all(
+      accounts.accounts.map(async (account) => {
+        const oldPassword = await decrypt(account.password);
+        const oldTotp = account.totp ? await decrypt(account.totp) : 'unable to decrypt';
+
+        if (oldPassword === 'unable to decrypt' && oldTotp === 'unable to decrypt') return account;
+
+        return {
+          id: account.id,
+          password: await encrypt(oldPassword, newKey),
+          totp: account.totp ? await encrypt(oldTotp, newKey) : null,
+        };
+      }),
+    );
+
+    const response = await fetchAPI('account/update-encryption', 'PUT', {accounts: updatedAccounts});
+    if (response.err) return notify(response.err, 'alert');
+
+    // Crypto wallet
+    // ...
+
+    $masterPassword = base64Key;
+    localStorage.setItem('key-' + $identity.id, base64Key);
+    window.location.reload();
+  }
+
   onMount(() => {
+    $masterPassword = localStorage.getItem('key-' + $identity.id) || '';
     let pingInterval: unknown;
 
     ws = new WebSocket(`wss://${page.url.hostname}/ws-api/${data.identity?.id}`);
 
-    ws.onopen = () => (pingInterval = setInterval(() => ws?.send('ping'), 5000));
-    ws.onerror = () => notify('Something went horribly wrong. Try reloading the page.', 'alert');
+    ws.onopen = () => {
+      pingInterval = setInterval(() => ws?.send('ping'), 5000);
+    };
+
+    ws.onerror = () => {
+      notify('Something went horribly wrong. Try reloading the page.', 'alert');
+    };
+
     ws.onclose = (ws) => {
       clearInterval(pingInterval as number);
       if (ws.code === 1014) notify(ws.reason, 'alert');
@@ -104,9 +175,40 @@
         <button class="alt border-none">← Back</button>
       </a>
       <form class="flex items-center" method="POST">
-        <button type="button" onclick={() => ($modalIndex = 1)} class="alt w-fit">Delete Identity</button>
+        {#key $masterPassword}
+          {#if $masterPassword}
+            <button type="button" onclick={() => ($modalIndex = 2)} class="alt w-fit p-0">Change Local Master Password</button>
+          {:else}
+            <button type="button" onclick={() => ($modalIndex = 1)} class="alt w-fit p-0">Set Local Master Password</button>
+          {/if}
+        {/key}
+        <div class="px-2 font-bold text-neutral-500 select-none">|</div>
+        <button type="button" onclick={() => ($modalIndex = 3)} class="alt w-fit p-0">Delete Identity</button>
         <input type="hidden" name="id" value={data.identity.id} />
-        <ConfirmModal id={1} text="Deleting permanently this identity" name="delete" />
+        <ConfirmModal id={3} text="Deleting permanently this identity" name="delete" />
+        <Modal id={1}>
+          <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
+            <h3 class="w-full text-3xl! font-semibold text-neutral-300 md:text-5xl!">Restore Master Password</h3>
+            <p class="md:w-[40vw]">
+              Enter the Master Password previously set for this identity to decrypt your account vault and crypto wallet on this
+              device.
+              <br /><b>Without this specific password, your encrypted data cannot be retrieved.</b>
+            </p>
+            <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="set-master" />
+            <LoadingButton type="button" className="w-2/3" onclick={setMasterPassword}>Change Password</LoadingButton>
+          </div>
+        </Modal>
+        <Modal id={2}>
+          <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
+            <h3 class="w-full text-3xl! font-semibold text-neutral-300 md:text-5xl!">Change Master Password</h3>
+            <p class="md:w-[40vw]">
+              Immediately re-encrypt your accounts vault and crypto wallet with a new password. You will need it to access your data on
+              a new device or browser.<br /><b>Irreversible: Forgotten passwords mean total data loss.</b>
+            </p>
+            <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="change-master" />
+            <LoadingButton type="button" className="w-2/3" onclick={changeMasterPassword}>Change Password</LoadingButton>
+          </div>
+        </Modal>
       </form>
     </div>
   {:else}

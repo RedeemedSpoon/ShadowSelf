@@ -3,6 +3,20 @@ import {get} from 'svelte/store';
 
 const APP_SALT = new TextEncoder().encode('ShadowSelf-Secure-Salt');
 
+export async function deriveMasterKey(password: string, identityID: string): Promise<CryptoKey> {
+  const salt = new TextEncoder().encode(identityID);
+  const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), {name: 'PBKDF2'}, false, ['deriveKey']);
+
+  const algorithm = {
+    name: 'PBKDF2',
+    salt: salt,
+    iterations: 600000,
+    hash: 'SHA-256',
+  };
+
+  return await crypto.subtle.deriveKey(algorithm, keyMaterial, {name: 'AES-GCM', length: 256}, true, ['encrypt', 'decrypt']);
+}
+
 export async function getMasterKey() {
   const password = get(masterPassword);
 
