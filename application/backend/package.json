@@ -7,7 +7,7 @@
     "dev": "NODE_ENV=dev bun --env-file=../database/.env --env-file=.env --watch src/index.ts",
     "build": "bun build ./src/index.ts --compile --minify-whitespace --bytecode --outfile server"
   },
-  "devDependencies": {
+  "dependencies": {
     "@elysiajs/jwt": "^1.4.0",
     "@faker-js/faker": "^10.1.0",
     "@types/imap-simple": "^4.2.10",

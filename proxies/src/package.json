@@ -7,7 +7,7 @@
     "dev": "bun run --watch index.ts",
     "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile proxy ./index.ts"
   },
-  "devDependencies": {
+  "dependencies": {
     "bun-types": "^1.3.5",
     "elysia": "^1.4.19"
   },

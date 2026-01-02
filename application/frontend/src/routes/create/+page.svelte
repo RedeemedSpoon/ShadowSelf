@@ -1,12 +1,12 @@
 <script lang="ts">
   import {FlowStep, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
   import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
+  import {currentStep, fetchIndex, masterPassword, modalIndex} from '$store';
   import {PhoneIcon, EmailIcon, KeyIcon, UserIcon, PinIcon} from '$icon';
   import {ublock, canvas, screenshot, countriesFlags} from '$image';
-  import {currentStep, fetchIndex, modalIndex} from '$store';
+  import {deriveMasterKey, encrypt} from '$crypto';
   import type {CreationProcess} from '$type';
   import {formatPhoneNumber} from '$format';
-  import {deriveMasterKey} from '$crypto';
   import type {PageData} from './$types';
   import {dev} from '$app/environment';
   import {goto} from '$app/navigation';
@@ -14,9 +14,15 @@
   import {onMount} from 'svelte';
   import {notify} from '$lib';
 
+  import {generateMnemonic, mnemonicToSeed} from '@scure/bip39';
+  import {wordlist} from '@scure/bip39/wordlists/english.js';
+  import {mnemonicToAccount} from 'viem/accounts';
+  import {HDKey} from '@scure/bip32';
+
   let {data}: {data: PageData} = $props();
   const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
   const identityID = page.url.searchParams.get('id');
+  let walletPayload: string;
 
   let disabled = $state(true);
   let server = $state() as CreationProcess;
@@ -76,7 +82,7 @@
       }
 
       $currentStep = response.locations ? 1 : oldFetch !== 1 ? $currentStep : $currentStep + 1;
-      disabled = $currentStep === 5 || $currentStep === 1 ? true : false;
+      disabled = [1, 5, 6].includes($currentStep) ? true : false;
       server = response;
     };
   }
@@ -138,13 +144,13 @@
         const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
 
         localStorage.setItem('key-' + identityID, base64Key);
+        $masterPassword = base64Key;
         $currentStep++;
         break;
       }
 
       case 6: {
-        const wallet = '...';
-        reply('submit-wallet', {wallet});
+        reply('submit-wallet', {wallet: walletPayload});
         break;
       }
 
@@ -167,7 +173,7 @@
     ws?.send(JSON.stringify({kind, ...body}));
   }
 
-  function handleEvent(kind: string, body?: unknown) {
+  async function handleEvent(kind: string, body?: unknown) {
     switch (kind) {
       case 'locations': {
         const all = document.querySelectorAll('.locations-box');
@@ -211,6 +217,41 @@
         };
 
         reply('submit-location/generate-profile', {regenerate});
+        break;
+      }
+
+      case 'wallet': {
+        const mnemonic = generateMnemonic(wordlist);
+        const seed = await mnemonicToSeed(mnemonic);
+        const root = HDKey.fromMasterSeed(seed);
+
+        const btcXpub = root.derive("m/84'/0'/0'").publicExtendedKey;
+        const ltcXpub = root.derive("m/84'/2'/0'").publicExtendedKey;
+
+        const ethAccount = mnemonicToAccount(mnemonic);
+        const ethAddress = ethAccount.address;
+
+        // xmr support
+
+        const blob = await encrypt(mnemonic);
+
+        //@ts-ignore nonsense
+        walletPayload = {
+          blob: blob,
+          keys: {
+            btc: btcXpub,
+            ltc: ltcXpub,
+            evm: ethAddress,
+            xmr: {
+              address: '', //xmrAddress,
+              viewKey: '', //xmrViewKey,
+            },
+          },
+        };
+
+        const mnemonicDiv = document.querySelector('div#mnemonic') as HTMLDivElement;
+        mnemonicDiv.innerText = mnemonic;
+        disabled = false;
         break;
       }
     }
@@ -352,9 +393,16 @@
           this password, your wallet and account vault will be lost forever. You can still change this later.
         </small>
       {:else if $currentStep === 6}
-        <h3>Make your crypto wallet</h3>
-        <p class="lg:w-1/2">Forge your own secure crypto wallet that you can use to make anonymous payments and buy gift cards.</p>
-        <p>Currently unavailable</p>
+        <h3>Initialize your wallet</h3>
+        <p class="lg:w-1/2">
+          Secure yourself a crypto wallet to scrub coins, make untraceable payments, and buy gift cards instantly.
+        </p>
+        <LoadingButton type="button" onclick={() => handleEvent('wallet')}>Generate Keys</LoadingButton>
+        <div id="mnemonic" class="rounded-xl bg-neutral-800/50 p-6">12-word Mnemonic will appear here</div>
+        <small class="text-sm! text-neutral-500! lg:w-1/3!">
+          We use a 12-word Mnemonic to generate your BTC, XMR, LTC, and ETH keys. These are encrypted locally by your Master Password,
+          making them inaccessible to us. You will be asked to back up your recovery phrase later.
+        </small>
       {:else if $currentStep === 7}
         <h3>Install our browser extension</h3>
         <p class="lg:w-1/2">
