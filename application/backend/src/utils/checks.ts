@@ -163,8 +163,8 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Ethnicity must be a valid ethnicity'};
       }
 
-      if (body.bio!.trim().length > 0 && body.bio!.trim().length < 10) {
-        return {error: 'Biography must be at least 10 characters long if provided'};
+      if (body.bio!.trim().length > 0 && body.bio!.trim().length < 5) {
+        return {error: 'Biography must be at least 5 characters long if provided'};
       }
 
       if (body.bio!.length > 126) {
@@ -196,6 +196,34 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       break;
 
     case 'wallet':
+      if (!body.wallet || !body.wallet.keys) {
+        return {error: 'Missing wallet data'};
+      }
+
+      const { blob, keys } = body.wallet;
+
+      if (!blob || blob.length < 20) {
+        return {error: 'Invalid wallet encryption blob'};
+      }
+
+      if (!/^[a-zA-Z0-9]{100,130}$/.test(keys.btc)) {
+        return {error: 'Invalid Bitcoin Extended Public Key'};
+      }
+      if (!/^[a-zA-Z0-9]{100,130}$/.test(keys.ltc)) {
+        return {error: 'Invalid Litecoin Extended Public Key'};
+      }
+
+      if (!/^0x[a-fA-F0-9]{40}$/.test(keys.evm)) {
+        return {error: 'Invalid Ethereum Address'};
+      }
+
+      if (!/^[48][a-zA-Z0-9]{90,110}$/.test(keys.xmr?.address)) {
+        return {error: 'Invalid Monero Address'};
+      }
+
+      if (!/^[a-fA-F0-9]{64}$/.test(keys.xmr?.viewKey)) {
+        return {error: 'Invalid Monero View Key'};
+      }
       break;
 
     case 'provision': {

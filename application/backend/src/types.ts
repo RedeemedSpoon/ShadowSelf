@@ -1,15 +1,28 @@
-import {ImapSimple} from 'imap-simple';
-import {ElysiaWS} from 'elysia/ws';
+import { ImapSimple } from 'imap-simple';
+import { ElysiaWS } from 'elysia/ws';
 
-export type User = {email: string; id: string} | undefined;
+export type User = { email: string; id: string } | undefined;
 export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
-export type Attachment = {filename: string; data: string};
+export type Attachment = { filename: string; data: string };
 
 export interface WSConnection {
   imapConnection: ImapSimple;
   websocket: ElysiaWS;
   phoneNumber: string;
   emailAddress: string;
+}
+
+export interface CryptoWallet {
+  blob: string,
+  keys: {
+    btc: string,
+    ltc: string,
+    evm: string,
+    xmr: {
+      address: string,
+      viewKey: string,
+    },
+  },
 }
 
 export interface Location {
@@ -105,7 +118,7 @@ export interface CreationProcess {
   phone: string;
   crypto: string;
   regenerate: RegenerateIdentity;
-  identity: RegenerateIdentity & {picture: string};
+  identity: RegenerateIdentity & { picture: string };
   repeat: {
     sex?: 'male' | 'female';
     name?: boolean;
@@ -121,10 +134,10 @@ export interface CheckIdentity {
   bio?: string;
   age?: number;
   sex?: string;
-  wallet?: string;
   ethnicity?: string;
   picture?: string;
   location?: string;
+  wallet?: CryptoWallet;
 }
 
 export interface APIRequest {

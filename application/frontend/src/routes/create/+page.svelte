@@ -22,7 +22,7 @@
   let {data}: {data: PageData} = $props();
   const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
   const identityID = page.url.searchParams.get('id');
-  let walletPayload: string;
+  let walletPayload = {};
 
   let disabled = $state(true);
   let server = $state() as CreationProcess;
@@ -231,11 +231,8 @@
         const ethAccount = mnemonicToAccount(mnemonic);
         const ethAddress = ethAccount.address;
 
-        // xmr support
-
         const blob = await encrypt(mnemonic);
 
-        //@ts-ignore nonsense
         walletPayload = {
           blob: blob,
           keys: {
@@ -243,8 +240,8 @@
             ltc: ltcXpub,
             evm: ethAddress,
             xmr: {
-              address: '', //xmrAddress,
-              viewKey: '', //xmrViewKey,
+              address: '',
+              viewKey: '',
             },
           },
         };
@@ -397,8 +394,8 @@
         <p class="lg:w-1/2">
           Secure yourself a crypto wallet to scrub coins, make untraceable payments, and buy gift cards instantly.
         </p>
-        <LoadingButton type="button" onclick={() => handleEvent('wallet')}>Generate Keys</LoadingButton>
-        <div id="mnemonic" class="rounded-xl bg-neutral-800/50 p-6">12-word Mnemonic will appear here</div>
+        <LoadingButton index={2} type="button" onclick={() => handleEvent('wallet')}>Generate Keys</LoadingButton>
+        <div id="mnemonic" class="rounded-xl bg-neutral-800/50 p-6 text-neutral-400">12-word Mnemonic will appear here</div>
         <small class="text-sm! text-neutral-500! lg:w-1/3!">
           We use a 12-word Mnemonic to generate your BTC, XMR, LTC, and ETH keys. These are encrypted locally by your Master Password,
           making them inaccessible to us. You will be asked to back up your recovery phrase later.

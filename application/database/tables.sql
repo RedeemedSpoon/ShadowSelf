@@ -38,6 +38,8 @@ CREATE TABLE identities (
   "email" varchar(48),
   "email_password" varchar(33),
   "phone" varchar(15),
+  "wallet_blob" varchar(512),
+  "wallet_keys" jsonb, 
   "status" varchar(8) DEFAULT 'inactive'
 );
 
