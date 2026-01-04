@@ -84,7 +84,14 @@
     <SelectMenu options={ethnicities} name="ethnicity" value={$identity.ethnicity} />
 
     <label for="age">Age</label>
-    <input type="number" name="age" placeholder="18-60" value={$identity.age} />
+    <div class="relative mb-6 group">
+      <div id="age-feedback-popup" class="group-hover:opacity-100!" style="left: {(($identity.age - 18) / 42) * 100}%;">
+        {$identity.age}
+      </div>
+      <input type="range" name="age" step={1} min={18} max={60} bind:value={$identity.age} />
+      <span class="absolute start-0 -bottom-6">18</span>
+      <span class="absolute end-0 -bottom-6">60</span>
+    </div>
 
     <div class="flex items-end gap-4">
       <label for="bio">Bio</label>
@@ -108,5 +115,13 @@
 
   textarea {
     @apply h-32 resize-none;
+  }
+
+  input[type='range'] {
+    @apply bg-primary-600 my-2 h-2 w-full cursor-pointer appearance-none rounded-lg [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:bg-neutral-300 [&::-moz-range-thumb]:hover:bg-neutral-400 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-300 [&::-webkit-slider-thumb]:hover:bg-neutral-400;
+  }
+
+  #age-feedback-popup {
+    @apply bg-primary-700 absolute -top-6 -translate-x-1/2 rounded px-2 py-1 text-xs font-bold text-neutral-300 opacity-0 transition-opacity duration-300;
   }
 </style>
