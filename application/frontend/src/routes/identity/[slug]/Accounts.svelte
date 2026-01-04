@@ -75,7 +75,7 @@
 </script>
 
 <section class="mb-4 flex w-full items-center justify-between">
-  <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Online Accounts</h1>
+  <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Account Vault</h1>
   <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
     <div class:hidden={$mode === 'view'}>
       <ActionIcon icon={BackIcon} action={() => ($mode = 'view')} title="Ignore Changes" />
@@ -86,9 +86,9 @@
     <div class:hidden={!$masterPassword}>
       <ActionIcon icon={LockRemoveIcon} action={() => ($modalIndex = 4)} title="Remove Local Master Password" />
     </div>
-    <ActionIcon disabled={!$masterPassword} icon={UserAddIcon} action={() => ($mode = 'add')} title="Add Accounts" />
-    <ActionIcon disabled={!$target} icon={UserEditIcon} action={changeModeToEdit} title="Edit Accounts" />
-    <ActionIcon disabled={!$target} icon={UserDeleteIcon} action={deleteAccount} title="Delete Accounts" />
+    <ActionIcon disabled={!$masterPassword} icon={UserAddIcon} action={() => ($mode = 'add')} title="Add Account" />
+    <ActionIcon disabled={!$target} icon={UserEditIcon} action={changeModeToEdit} title="Edit Account" />
+    <ActionIcon disabled={!$target} icon={UserDeleteIcon} action={deleteAccount} title="Delete Account" />
   </div>
 </section>
 
@@ -142,8 +142,8 @@
   <section id="no-accounts" style="background-image: url({group});">
     <h2 class="mt-12 text-5xl text-neutral-300">No Accounts</h2>
     <p class="text-center md:w-1/2">
-      Keep track of your online accounts linked to this identity using entries. You can store/generate your passwords, usernames, and
-      set up TOTP all in one spot
+      Keep track of your accounts linked to this identity using entries. You can store/generate your passwords, usernames, and set up
+      TOTP all in one spot
     </p>
     <button onclick={() => ($mode = 'add')}>Add Account</button>
   </section>

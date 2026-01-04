@@ -200,7 +200,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Missing wallet data'};
       }
 
-      const { blob, keys } = body.wallet;
+      const {blob, keys} = body.wallet;
 
       if (!blob || blob.length < 20) {
         return {error: 'Invalid wallet encryption blob'};

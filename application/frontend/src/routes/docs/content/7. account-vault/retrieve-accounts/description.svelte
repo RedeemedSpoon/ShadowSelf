@@ -1,4 +1,4 @@
-<p>Retrieves all stored online account entries associated with the specified synthetic identity.</p>
+<p>Retrieves all stored entries in the account vault associated with the specified synthetic identity.</p>
 
 <h5>Request</h5>
 <p>Requires the identity <code>:id</code> as a path parameter. No request body or query parameters are needed.</p>
@@ -14,7 +14,7 @@
     includes:
     <ul>
       <li><code>id</code> (<span class="integer">integer</span>): The unique identifier for this specific account entry.</li>
-      <li><code>username</code> (<span class="string">string</span>): The stored username for the online account.</li>
+      <li><code>username</code> (<span class="string">string</span>): The stored username for the specific account entry.</li>
       <li>
         <code>password</code> (<span class="string">string</span>): The client-side encrypted password. Your client must decrypt this.
       </li>

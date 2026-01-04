@@ -1,5 +1,5 @@
 <p>
-  Adds a new online account entry associated with the specified identity. Remember to encrypt the <code>password</code> and
+  Adds a new entry to the account vault entry associated with the specified identity. Remember to encrypt the <code>password</code> and
   <code>totp</code> secret on the client-side before sending.
 </p>
 

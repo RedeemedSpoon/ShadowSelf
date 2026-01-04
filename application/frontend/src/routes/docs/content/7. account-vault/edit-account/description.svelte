@@ -1,6 +1,6 @@
 <p>
-  Updates an existing online account entry identified by its unique <code>id</code>. Provide the account entry's <code>id</code> in the
-  request body. Encrypt <code>password</code> and <code>totp</code> client-side if updating them.
+  Updates an existing entry to the account vault identified by its unique <code>id</code>. Provide the account entry's <code>id</code>
+  in the request body. Encrypt <code>password</code> and <code>totp</code> client-side if updating them.
 </p>
 
 <h5>Request</h5>

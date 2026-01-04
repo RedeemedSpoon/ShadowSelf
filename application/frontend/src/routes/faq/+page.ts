@@ -7,7 +7,7 @@ export const load: PageLoad = () => {
       {
         question: 'What is ShadowSelf?',
         answer:
-          "ShadowSelf is a tool that lets you create completely fake online identities. Want to sign up for a service without revealing your true self? ShadowSelf's got you covered. With it, you can generate fake phone numbers, email addresses, and even fully anonymous crypto wallets.",
+          "ShadowSelf is a tool that lets you create completely fake (yet functional) online identities. Want to sign up for a service without revealing your true self? ShadowSelf's got you covered. With it, you can create phone numbers, email addresses, and even fully anonymous crypto wallets.",
       },
       {
         question: 'How does ShadowSelf work?',

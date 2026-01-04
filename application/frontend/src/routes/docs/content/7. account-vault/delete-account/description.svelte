@@ -1,4 +1,4 @@
-<p>Permanently deletes a specific stored online account entry using its unique ID. This action is irreversible.</p>
+<p>Permanently deletes a specific stored account vault entry using its unique ID. This action is irreversible.</p>
 
 <h5>Request</h5>
 <p>

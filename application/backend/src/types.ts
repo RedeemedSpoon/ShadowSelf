@@ -1,9 +1,9 @@
-import { ImapSimple } from 'imap-simple';
-import { ElysiaWS } from 'elysia/ws';
+import {ImapSimple} from 'imap-simple';
+import {ElysiaWS} from 'elysia/ws';
 
-export type User = { email: string; id: string } | undefined;
+export type User = {email: string; id: string} | undefined;
 export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
-export type Attachment = { filename: string; data: string };
+export type Attachment = {filename: string; data: string};
 
 export interface WSConnection {
   imapConnection: ImapSimple;
@@ -13,16 +13,16 @@ export interface WSConnection {
 }
 
 export interface CryptoWallet {
-  blob: string,
+  blob: string;
   keys: {
-    btc: string,
-    ltc: string,
-    evm: string,
+    btc: string;
+    ltc: string;
+    evm: string;
     xmr: {
-      address: string,
-      viewKey: string,
-    },
-  },
+      address: string;
+      viewKey: string;
+    };
+  };
 }
 
 export interface Location {
@@ -118,7 +118,7 @@ export interface CreationProcess {
   phone: string;
   crypto: string;
   regenerate: RegenerateIdentity;
-  identity: RegenerateIdentity & { picture: string };
+  identity: RegenerateIdentity & {picture: string};
   repeat: {
     sex?: 'male' | 'female';
     name?: boolean;

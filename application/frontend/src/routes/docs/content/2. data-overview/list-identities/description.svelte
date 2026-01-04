@@ -37,6 +37,6 @@
     first then the country.
   </li>
   <li>
-    <code>accounts</code> (<span class="integer">integer</span>): The number of associated online accounts stored for this identity.
+    <code>accounts</code> (<span class="integer">integer</span>): The number of associated accounts entries stored for this identity.
   </li>
 </ul>
