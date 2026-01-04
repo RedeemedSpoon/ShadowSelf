@@ -27,7 +27,7 @@ export const load: PageLoad = () => {
       {
         question: 'How much does ShadowSelf cost?',
         answer:
-          'We keep it affordable. You can choose from a monthly plan for $5, an annual plan for $50, or a lifetime plan for $200. This helps cover the costs of running the infrastructure and keeping the service running smoothly.',
+          "We keep it affordable. You can choose from a monthly plan for $5, an annual plan for $50, or a lifetime plan for $200. If you pay with crypto (BTC, LTC, XMR, USDT), we give you a 20% discount across the board. That drops the price to €4/month, €40/year, or €160 for lifetime. It's cheaper, more private, and helps support the ecosystem we're all trying to build.",
       },
       {
         question: 'What are synthetic identities?',
@@ -60,14 +60,19 @@ export const load: PageLoad = () => {
           "While synthetic identities are powerful tools, they're not foolproof. Some websites may flag accounts that appear too automated or suspicious. It's important to use them responsibly and avoid behaviors that might raise red flags.",
       },
       {
-        question: 'What happens if a synthetic identity is compromised?',
+        question: 'What are the specific features of my synthetic identity?',
         answer:
-          "If you were to be compromised, don't panic! You can take several steps to mitigate the damage. Change your ShadowSelf account password and enable two-factor authentication. Whereas if the identity itself has been exposed, well... You can always create a new one :)",
+          'Think of it as a complete ghost kit. Each identity is a suite of tools: a Synthetic Persona (AI-generated picture, name, bio, etc.), a private Email Service (@shadowself.io), a real Phone Number for SMS, a non-custodial Crypto Wallet, an encrypted Account Vault for your passwords and online accounts, and VPN/Proxy access to mask your location.',
       },
       {
-        question: 'What happen to a synthetic identity if I stopped paying?',
+        question: 'What cryptocurrencies does the wallet support?',
         answer:
-          "If you stop paying for your subscription, your synthetic identity will get automatically deleted, and all traces will be wiped. But don't worry, we keep things affordable so you can easily stay on top of it!",
+          "We're not a casino, so we don't support every meme coin under the sun. Our wallet is a toolkit, and we've picked the best tools: Bitcoin (BTC) for savings, Monero (XMR) for privacy, Litecoin (LTC) for cheap payments, and Ethereum (ETH) & USDT on low-fee networks like Polygon/Arbitrum for stability and utility.",
+      },
+      {
+        question: 'How can I pay for an identity?',
+        answer:
+          'We give you two paths: the Normie Way and the Shadow Way. The Normie Way is paying with a credit card via Stripe, quick and easy, but they know who you are. The Shadow Way is paying with crypto. To thank you for using sovereign money, you get a 20% discount if you pay with BTC, LTC, XMR, or USDT.',
       },
       {
         question: 'Is there a mobile app for ShadowSelf?',
@@ -77,7 +82,7 @@ export const load: PageLoad = () => {
       {
         question: 'Does ShadowSelf work with specific browsers?',
         answer:
-          "Most browsers should work fine with our web extension. However, Safari is a no-go. Honestly, you should probably avoid Safari anyway—it's not the most secure browser out there. it's proprietary and very likely filled with backdoors and spywares",
+          "Most browsers should work fine with our web extension. However, Safari is a no-go. Honestly, you should probably avoid Safari anyway, it's not the most secure browser out there. it's proprietary and very likely filled with backdoors and spywares",
       },
       {
         question: 'Is Shadowself open source? Can I contribute?',
@@ -87,7 +92,7 @@ export const load: PageLoad = () => {
       {
         question: 'What are the third-party services used by ShadowSelf?',
         answer:
-          'We utilize a robust stack to keep you hidden. For identities, we use Gemini Nano on Banana for image generation and Twilio for phone lines. Infrastructure runs on Vultr with domains via Epik. For fiat payments, we use Stripe. Our sovereign crypto engine relies on Coinsbee for gift cards, Trocador for swaps, and data feeds/RPCs from CoinGecko, Blockchair, and Alchemy. Plus, tons of JS libraries, obviously.',
+          'We utilize a robust stack to keep you hidden. For identities, we use Gemini Nano on Banana for image generation and Twilio for phone lines. Infrastructure runs on Vultr with domains via Epik. For fiat payments, we use Stripe. Our sovereign crypto engine relies on Coinsbee for gift cards, Trocador for swaps, and data feeds/RPCs from CoinGecko, Blockchair. Plus, tons of JS libraries, obviously.',
       },
       {
         question: 'Can I integrate ShadowSelf with other infrastructures and apps?',

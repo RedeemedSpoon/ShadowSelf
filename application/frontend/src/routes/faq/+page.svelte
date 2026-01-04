@@ -61,8 +61,8 @@
   }
 
   .question:nth-child(5),
-  .question:nth-child(13),
-  .question:nth-child(18) {
+  .question:nth-child(14),
+  .question:nth-child(19) {
     @apply mb-[10vh];
   }
 
