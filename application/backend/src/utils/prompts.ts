@@ -88,6 +88,47 @@ function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, 
       details: 'the clear reflection in the mirror and a natural, everyday expression',
       negative: 'dirty bathroom, cluttered, dark, distorted reflection, provocative pose',
     },
+    {
+      shotType: 'Professional headshot',
+      action: 'facing the camera squarely with a polite, confident smile and upright posture',
+      environment:
+        'a clean, neutral background, such as a plain textured wall or a heavily blurred office setting, completely free of distractions',
+      lighting: 'soft, even, studio-quality lighting that highlights facial features without harsh shadows',
+      mood: 'trustworthy, competent, and professional',
+      cameraDetails: 'an 85mm portrait lens with a shallow depth of field',
+      details: 'smart-casual or professional attire and neatly groomed appearance',
+      negative: 'busy background, outdoor elements, messy hair, casual t-shirt',
+    },
+    {
+      shotType: 'Car interior selfie',
+      action: "sitting in the driver's seat of a parked car, looking slightly up at the camera with a casual expression",
+      environment: 'the interior of a modern car with a seatbelt visible and a glimpse of the outside through the window',
+      lighting: 'diffused natural daylight streaming in through the windshield (the "car selfie lighting" effect)',
+      mood: 'spontaneous and everyday',
+      cameraDetails: 'a high-quality front-facing smartphone camera',
+      details: 'natural skin texture and the subtle details of the car upholstery',
+      negative: 'driving, motion blur, dark night, traffic accident',
+    },
+    {
+      shotType: 'Across-the-table portrait',
+      action: 'leaning slightly forward with a drink (coffee or cocktail) on the table, smiling engagingly at the photographer',
+      environment: `a stylish, dimly lit restaurant or bistro in ${lang.city} with ambient background details`,
+      lighting: 'warm, intimate lighting from overhead fixtures or a candle',
+      mood: 'social, elegant, and relaxed',
+      cameraDetails: 'a 50mm lens with a wide aperture (f/1.8)',
+      details: 'stylish evening attire and the bokeh of lights in the background',
+      negative: 'bright daylight, office setting, messy table, food stains',
+    },
+    {
+      shotType: 'Fitness mirror shot',
+      action: 'standing in front of a large mirror, holding a phone, checking their form or outfit',
+      environment: 'a clean, modern gym with equipment visible in the background',
+      lighting: 'bright, cool-toned overhead fluorescent lighting',
+      mood: 'motivated and active',
+      cameraDetails: 'a smartphone camera reflection',
+      details: 'athletic wear/sportswear and a confident posture',
+      negative: 'dirty gym, crowded, dark, sweat stains, overly revealing',
+    },
   ];
 
   const chosenScene = scenes[Math.floor(Math.random() * scenes.length)];
@@ -106,7 +147,6 @@ export async function generateProfile(lang: Location, age: number, sex: string, 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image-preview',
     contents: prompt,
-    config: {temperature: 0.9},
   });
 
   for (const part of response.candidates![0]!.content!.parts!) {

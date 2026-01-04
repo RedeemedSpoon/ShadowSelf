@@ -84,7 +84,7 @@
     <SelectMenu options={ethnicities} name="ethnicity" value={$identity.ethnicity} />
 
     <label for="age">Age</label>
-    <div class="relative mb-6 group">
+    <div class="group relative mb-6">
       <div id="age-feedback-popup" class="group-hover:opacity-100!" style="left: {(($identity.age - 18) / 42) * 100}%;">
         {$identity.age}
       </div>
