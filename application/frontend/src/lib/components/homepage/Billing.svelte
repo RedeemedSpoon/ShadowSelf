@@ -45,7 +45,7 @@
 </div>
 
 <Card className="border-2! border-neutral-400!" upperClass="max-sm:scale-[0.65] max-lg:scale-75 hover:-translate-y-4">
-  <div class="flex flex-col items-center gap-8 px-8 py-6 text-center max-sm:px-16 md:items-start md:px-16">
+  <div class="relative flex flex-col items-center gap-8 px-8 py-6 text-center max-sm:px-16 md:items-start md:px-16">
     {#key $pricingModel.price}
       <div in:fly={{x: -30, duration: 1000, opacity: 0}}>
         <h2 class="mt-9 mb-4 text-4xl font-bold text-neutral-300 md:text-left">{$pricingModel.title}</h2>
@@ -57,6 +57,7 @@
         </div>
       </div>
     {/key}
+    <p class="absolute end-16 top-24 rotate-10 rounded-xl bg-neutral-600/30 px-4 font-bold shadow-md">20% OFF with Crypto</p>
     <div class="flex w-full gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
       {#each sections as section, index (index)}
         <ul>

@@ -131,7 +131,10 @@
 <div id="purchase">
   <section id="top-text">
     <h1 class="text-4xl font-bold text-neutral-300 sm:text-6xl">Choose your plan</h1>
-    <p class="text-center text-neutral-400">All plans include a 14-day refund, 24/7 support and the same level of security.</p>
+    <p class="text-center text-neutral-400">
+      All plans include a 14-day refund, 24/7 support and the same level of security.
+      <br />Buying with crypto gives a <b class="text-primary-600">20% discount</b> across the board
+    </p>
   </section>
   <div id="purchase-box">
     <section id="plans" class="flex-row! gap-0!">
