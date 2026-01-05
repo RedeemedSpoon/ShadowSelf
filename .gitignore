@@ -1,6 +1,7 @@
 server
 bun.lockb
 package-lock.json
+monero.worker.js
 pnpm-lock.yaml
 *.lock
 

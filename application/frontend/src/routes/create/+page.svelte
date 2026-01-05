@@ -3,7 +3,7 @@
   import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
   import {currentStep, fetchIndex, masterPassword, modalIndex} from '$store';
   import {PhoneIcon, EmailIcon, KeyIcon, UserIcon, PinIcon} from '$icon';
-  import {ublock, canvas, screenshot, countriesFlags, identity} from '$image';
+  import {ublock, canvas, screenshot, countriesFlags} from '$image';
   import {deriveMasterKey, encrypt} from '$crypto';
   import type {CreationProcess} from '$type';
   import {formatPhoneNumber} from '$format';
@@ -17,6 +17,7 @@
   import {generateMnemonic, mnemonicToSeed} from '@scure/bip39';
   import {wordlist} from '@scure/bip39/wordlists/english.js';
   import {mnemonicToAccount} from 'viem/accounts';
+  import moneroTs from 'monero-ts';
   import {HDKey} from '@scure/bip32';
 
   let {data}: {data: PageData} = $props();
@@ -221,6 +222,9 @@
       }
 
       case 'wallet': {
+        $fetchIndex = 2;
+        await new Promise((resolve) => setTimeout(resolve, 450));
+
         const mnemonic = generateMnemonic(wordlist);
         const seed = await mnemonicToSeed(mnemonic);
         const root = HDKey.fromMasterSeed(seed);
@@ -231,6 +235,21 @@
         const ethAccount = mnemonicToAccount(mnemonic);
         const ethAddress = ethAccount.address;
 
+        const spendKeyBuffer = await crypto.subtle.digest('SHA-256', seed as any);
+        const spendKeyHex = Array.from(new Uint8Array(spendKeyBuffer))
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
+
+        const xmrWallet = await moneroTs.createWalletFull({
+          networkType: moneroTs.MoneroNetworkType.MAINNET,
+          privateSpendKey: spendKeyHex,
+          password: 'temp',
+        });
+
+        const xmrAddress = await xmrWallet.getPrimaryAddress();
+        const xmrViewKey = await xmrWallet.getPrivateViewKey();
+        await xmrWallet.close();
+
         const blob = await encrypt(mnemonic);
 
         walletPayload = {
@@ -240,8 +259,8 @@
             ltc: ltcXpub,
             evm: ethAddress,
             xmr: {
-              address: '',
-              viewKey: '',
+              address: xmrAddress,
+              viewKey: xmrViewKey,
             },
           },
         };
@@ -249,6 +268,7 @@
         const mnemonicDiv = document.querySelector('div#mnemonic') as HTMLDivElement;
         mnemonicDiv.innerText = mnemonic;
         disabled = false;
+        $fetchIndex = 0;
         break;
       }
     }
