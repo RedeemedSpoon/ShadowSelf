@@ -4,11 +4,6 @@
   import {Modal, ConfirmModal, InputWithIcon, LoadingButton} from '$component';
   import type {APIResponse, Sections, WebSocketMessage} from '$type';
   import {decrypt, deriveMasterKey, encrypt} from '$crypto';
-  import IdentityInformation from './Information.svelte';
-  import IdentityAccounts from './Accounts.svelte';
-  import IdentityCrypto from './Crypto.svelte';
-  import IdentityPhone from './Phone.svelte';
-  import IdentityEmail from './Email.svelte';
   import {ChevronIcon, KeyIcon} from '$icon';
   import {browser} from '$app/environment';
   import type {PageProps} from './$types';
@@ -17,6 +12,12 @@
   import {page} from '$app/state';
   import {onMount} from 'svelte';
   import {notify} from '$lib';
+
+  import IdentityInformation from './Information.svelte';
+  import IdentityAccounts from './Accounts.svelte';
+  import IdentityCrypto from './Crypto.svelte';
+  import IdentityPhone from './Phone.svelte';
+  import IdentityEmail from './Email.svelte';
 
   let {data}: PageProps = $props();
 
@@ -63,7 +64,7 @@
     $fetchIndex = 1;
     await new Promise((resolve) => setTimeout(resolve, 750));
 
-    const inputElement = document.querySelector('input[name="set-master"]') as HTMLInputElement;
+    const inputElement = document.querySelector('input#set-master') as HTMLInputElement;
     const password = inputElement.value || 'test';
 
     const newKey = await deriveMasterKey(password, $identity.id);
@@ -80,7 +81,7 @@
     await new Promise((resolve) => setTimeout(resolve, 750));
 
     // Account vault
-    const inputElement = document.querySelector('input[name="change-master"]') as HTMLInputElement;
+    const inputElement = document.querySelector('input#change-master') as HTMLInputElement;
     const password = inputElement.value || 'test';
 
     const newKey = await deriveMasterKey(password, $identity.id);
@@ -103,11 +104,15 @@
       }),
     );
 
-    const response = await fetchAPI('account/update-encryption', 'PUT', {accounts: updatedAccounts});
-    if (response.err) return notify(response.err, 'alert');
+    const account_response = await fetchAPI('account/update-encryption', 'PUT', {accounts: updatedAccounts});
+    if (account_response.err) return notify(account_response.err, 'alert');
 
     // Crypto wallet
-    // ...
+    const mnemonic = await decrypt($identity.wallet_blob);
+    const blob = await encrypt(mnemonic, newKey);
+
+    const wallet_response = await fetchAPI('crypto/update-blob', 'PUT', {blob});
+    if (wallet_response.err) return notify(wallet_response.err, 'alert');
 
     $masterPassword = base64Key;
     localStorage.setItem('key-' + $identity.id, base64Key);

@@ -209,6 +209,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       if (!/^[a-zA-Z0-9]{100,130}$/.test(keys.btc)) {
         return {error: 'Invalid Bitcoin Extended Public Key'};
       }
+
       if (!/^[a-zA-Z0-9]{100,130}$/.test(keys.ltc)) {
         return {error: 'Invalid Litecoin Extended Public Key'};
       }
@@ -516,6 +517,62 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           if (attachment.data.length * 0.75 > 15728640) {
             return {err: 'One or more attachments exceed the 15MB size limit, please try again'} as APIRequest;
           }
+        }
+        break;
+
+      case 'blob':
+        if (typeof body.blob !== 'string' || body.blob.length < 20) {
+          return {err: 'Invalid wallet encryption blob. Must be a valid encrypted string.'} as APIRequest;
+        }
+        break;
+
+      case 'btc':
+        if (typeof body.btc !== 'string') {
+          return {err: 'Bitcoin XPUB must be a string'} as APIRequest;
+        }
+
+        if (!/^[xyzXtTuUvV]pub[a-zA-Z0-9]{100,130}$/.test(body.btc)) {
+          return {err: 'Invalid Bitcoin Extended Public Key (XPUB)'} as APIRequest;
+        }
+        break;
+
+      case 'ltc':
+        if (typeof body.ltc !== 'string') {
+          return {err: 'Litecoin XPUB must be a string'} as APIRequest;
+        }
+
+        if (!/^[LMxyzXtTuUvV]pub[a-zA-Z0-9]{100,130}$/.test(body.ltc)) {
+          return {err: 'Invalid Litecoin Extended Public Key (XPUB)'} as APIRequest;
+        }
+        break;
+
+      case 'evm':
+        if (typeof body.evm !== 'string') {
+          return {err: 'Ethereum address must be a string'} as APIRequest;
+        }
+
+        if (!/^0x[a-fA-F0-9]{40}$/.test(body.evm)) {
+          return {err: 'Invalid Ethereum/EVM Address format'} as APIRequest;
+        }
+        break;
+
+      case 'xmr_address':
+        if (typeof body.xmr_address !== 'string') {
+          return {err: 'Monero address must be a string'} as APIRequest;
+        }
+
+        if (!/^[48][a-zA-Z0-9]{90,110}$/.test(body.xmr_address)) {
+          return {err: 'Invalid Monero Address format'} as APIRequest;
+        }
+        break;
+
+      case 'xmr_viewkey':
+        if (typeof body.xmr_viewkey !== 'string') {
+          return {err: 'Monero view key must be a string'} as APIRequest;
+        }
+
+        if (!/^[a-fA-F0-9]{64}$/.test(body.xmr_viewkey)) {
+          return {err: 'Invalid Monero View Key format (must be 64 hex characters)'} as APIRequest;
         }
         break;
     }

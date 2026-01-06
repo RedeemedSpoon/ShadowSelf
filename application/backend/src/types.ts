@@ -178,6 +178,12 @@ export interface APIRequest {
   attachments: Attachment[];
   sid: string;
   addressee: string;
+  blob: string;
+  btc: string;
+  ltc: string;
+  emv: string;
+  xmr_address: string;
+  xmr_address: string;
 }
 
 export interface EmailContent {

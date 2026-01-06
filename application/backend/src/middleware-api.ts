@@ -2,6 +2,7 @@ import {attempt} from '@utils/utils';
 import {sql} from '@utils/connection';
 import {jwt} from '@elysiajs/jwt';
 import {Elysia} from 'elysia';
+import {QueryResultIdentify} from '@types';
 
 const error = (set: {[key: string]: unknown}, status: number, message: string) => {
   set.status = status;
@@ -37,8 +38,9 @@ export default (app: Elysia) =>
       const identityID = (params as {id: string}).id;
       const result = await attempt(sql`SELECT * FROM users WHERE email = ${user.email}`);
 
-      const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
-      if (!identity.length) return error(set, 400, 'Identity not found');
+      const second_result = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
+      if (!second_result.length) return error(set, 400, 'Identity not found');
+      const identity = second_result[0] as unknown as QueryResultIdentify;
 
-      return {identity: identity[0]};
+      return {identity};
     });
