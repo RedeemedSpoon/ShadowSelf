@@ -14,14 +14,16 @@ export interface WSConnection {
 
 export interface CryptoWallet {
   blob: string;
-  keys: {
-    btc: string;
-    ltc: string;
-    evm: string;
-    xmr: {
-      address: string;
-      viewKey: string;
-    };
+  keys: CryptoKeys;
+}
+
+export interface CryptoKeys {
+  btc: string;
+  ltc: string;
+  evm: string;
+  xmr: {
+    address: string;
+    viewKey: string;
   };
 }
 
@@ -91,6 +93,8 @@ export interface QueryResultIdentify {
   email: string;
   email_password: string;
   phone: string;
+  wallet_blob: string;
+  wallet_keys: CryptoKeys;
 }
 
 export interface QueryResultAccount {

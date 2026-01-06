@@ -51,6 +51,7 @@ export interface Identity {
   email: string;
   phone: string;
   accounts: number;
+  wallet: string;
 }
 
 export interface Registration {
@@ -103,6 +104,7 @@ export interface FullIdentity {
   ethnicity: string;
   email: string;
   phone: string;
+  wallet: string;
 }
 
 export interface CreationProcess {

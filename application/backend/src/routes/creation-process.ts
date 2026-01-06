@@ -144,6 +144,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
           const walletEncoded = btoa(JSON.stringify(wallet));
           cookie.set({value: cookie.value + `&&${walletEncoded}`});
+          console.log(wallet);
           ws.send({_: ''});
           break;
         }
@@ -202,9 +203,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           await attempt(sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET phone = ${phone}  WHERE id = ${identityID}`);
 
-          await attempt(
-            sql` UPDATE identities SET wallet_blob = ${wallet.blob}, wallet_keys = ${walletKeys} WHERE id = ${identityID} `,
-          );
+          await attempt(sql`UPDATE identities SET wallet_blob = ${wallet.blob}, wallet_keys = ${walletKeys} WHERE id = ${identityID}`);
           await attempt(sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`);
 
           cookie.remove();

@@ -7,11 +7,13 @@
     change?: boolean;
     alt?: boolean;
     text: string;
+    label?: string;
   }
 
-  let {text, className, alt = false, change = true}: Props = $props();
+  let {text, className, label, alt = false, change = true}: Props = $props();
 
   const callback = () => navigator.clipboard.writeText(text);
+  const showntext = label || text;
 
   const upperClassname = alt ? 'group flex-row-reverse! justify-between px-0 py-3 w-full!' : '';
   const otherClassname = alt ? 'text-left! group-hover:text-neutral-400 text-neutral-300 w-full' : '';
@@ -20,4 +22,4 @@
   const classes = {iconClassname, className: `${className || ''} ${otherClassname || ''}`, upperClassname, isBox: !alt};
 </script>
 
-<ReactiveButton {...classes} {text} icon={CopyIcon} {callback} newText={change ? 'Copied!' : text} />
+<ReactiveButton {...classes} text={showntext} icon={CopyIcon} {callback} newText={change ? 'Copied!' : showntext} />

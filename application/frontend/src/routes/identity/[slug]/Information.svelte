@@ -120,7 +120,7 @@
         </div>
         <div>
           <WalletIcon fill={true} className="text-primary-700 cursor-default" />
-          <CopyButton alt={true} change={false} text={'help'} />
+          <CopyButton alt={true} change={false} text={$identity.wallet} label={`${$identity.wallet.slice(0, 20)}...`} />
         </div>
       </div>
     </div>

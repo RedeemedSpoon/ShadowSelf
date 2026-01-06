@@ -17,16 +17,16 @@
   import {generateMnemonic, mnemonicToSeed} from '@scure/bip39';
   import {wordlist} from '@scure/bip39/wordlists/english.js';
   import {mnemonicToAccount} from 'viem/accounts';
-  import moneroTs from 'monero-ts';
   import {HDKey} from '@scure/bip32';
+  import moneroTs from 'monero-ts';
 
   let {data}: {data: PageData} = $props();
   const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
   const identityID = page.url.searchParams.get('id');
   let walletPayload = {};
 
-  let disabled = $state(true);
   let server = $state() as CreationProcess;
+  let disabled = $state(true);
   let loaderInterval: unknown;
   let pingInterval: unknown;
   let ws: WebSocket | null;
