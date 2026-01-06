@@ -42,18 +42,6 @@ export interface SettingsForm {
   qr: string;
 }
 
-export interface Identity {
-  id: string;
-  picture: string;
-  name: string;
-  country: string;
-  location: string;
-  email: string;
-  phone: string;
-  accounts: number;
-  wallet: string;
-}
-
 export interface Registration {
   step: string;
   email: string;
@@ -91,9 +79,33 @@ export interface EditorParams {
   }[];
 }
 
+export interface CryptoKeys {
+  btc: string;
+  ltc: string;
+  evm: string;
+  xmr: {
+    address: string;
+    viewKey: string;
+  };
+}
+
+export interface Identity {
+  id: string;
+  picture: string;
+  name: string;
+  country: string;
+  location: string;
+  email: string;
+  phone: string;
+  accounts: number;
+  wallet_keys: CryptoKeys;
+  wallet_blob: string;
+}
+
 export interface FullIdentity {
   id: string;
   creation_date: Date;
+  plan: 'monthly' | 'annually' | 'lifetime';
   proxy_server: string;
   location: string;
   picture: string;
@@ -104,7 +116,8 @@ export interface FullIdentity {
   ethnicity: string;
   email: string;
   phone: string;
-  wallet: string;
+  wallet_keys: CryptoKeys;
+  wallet_blob: string;
 }
 
 export interface CreationProcess {

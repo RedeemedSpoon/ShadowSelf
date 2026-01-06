@@ -144,7 +144,6 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
           const walletEncoded = btoa(JSON.stringify(wallet));
           cookie.set({value: cookie.value + `&&${walletEncoded}`});
-          console.log(wallet);
           ws.send({_: ''});
           break;
         }

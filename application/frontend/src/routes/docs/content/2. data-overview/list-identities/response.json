@@ -7,6 +7,16 @@
     "phone": "+157761348902",
     "country": "CA",
     "location": "Toronto, Canada",
+    "wallet_keys": {
+      "btc": "xpub9RkT2QwLmA7Z...",
+      "ltc": "Ltub8XyP4M...",
+      "evm": "0xA9F3cE7b2D...",
+      "xmr": {
+        "address": "48ZQpM9XrK...",
+        "viewKey": "9c1e7b4a..."
+      }
+    },
+    "wallet_blob": "U2FsdGVkX1+8QmZL9A...",
     "accounts": 21
   },
   {
@@ -17,6 +27,16 @@
     "phone": "+443639910827",
     "country": "GB",
     "location": "London, United Kingdom",
+    "wallet_keys": {
+      "btc": "xpub6CUGRUonZSQ4...",
+      "ltc": "Ltub2Z...",
+      "evm": "0x71C...",
+      "xmr": {
+        "address": "44AFFq...",
+        "viewKey": "f3aa..."
+      }
+    },
+    "wallet_blob": "U2FsdGVkX19nb...",
     "accounts": 6
   }
 ]

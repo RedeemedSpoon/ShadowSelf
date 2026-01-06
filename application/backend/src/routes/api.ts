@@ -20,16 +20,15 @@ export default new Elysia()
 
     const allIdentitiesPromises = result.map(async (identity) => {
       if (!identity.name) return {id: identity.id};
-      const {id, picture, name, location, email, phone, wallet_keys} = identity;
+      const {id, picture, name, location, email, phone, wallet_blob, wallet_keys} = identity;
 
       const lowResPic = await resizeImage(picture);
       const accounts = await attempt(sql`SELECT * FROM accounts WHERE owner = ${id}`);
       const formattedLocation = location.slice(4).trim();
       const country = location.split(',')[0];
-      const eth_address = wallet_keys.evm;
-      const promise_return = {picture: lowResPic, location: formattedLocation, accounts: accounts?.length, wallet: eth_address};
+      const promise_return = {picture: lowResPic, location: formattedLocation, accounts: accounts?.length};
 
-      return {id, name, email, phone, country, ...promise_return};
+      return {id, name, email, phone, country, wallet_blob, wallet_keys, ...promise_return};
     });
 
     return await Promise.all(allIdentitiesPromises);

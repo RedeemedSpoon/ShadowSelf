@@ -1,6 +1,7 @@
 {
   "id": "ide38349c0ab",
   "creation_date": "2023-10-27T10:30:00Z",
+  "plan": "monthly",
   "proxy_server": "125.73.217.156/32",
   "picture": "iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8x...",
   "name": "Jane Doe",
@@ -10,5 +11,15 @@
   "ethnicity": "white",
   "location": "Toronto, Canada",
   "email": "jane.doe@shadowself.io",
-  "phone": "+14165550123"
+  "phone": "+14165550123",
+  "wallet_keys": {
+    "btc": "xpub6CUGRUonZSQ4...",
+    "ltc": "Ltub2Z...",
+    "evm": "0x71C...",
+    "xmr": {
+      "address": "44AFFq...",
+      "viewKey": "f3aa..."
+    }
+  },
+  "wallet_blob": "U2FsdGVkX19nb..."
 }

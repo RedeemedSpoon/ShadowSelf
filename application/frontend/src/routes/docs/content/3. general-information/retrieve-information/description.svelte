@@ -19,6 +19,10 @@
     <code>creation_date</code> (<span class="string">string</span>): The timestamp (ISO 8601 format) indicating when the identity was
     created.
   </li>
+  <li>
+    <code>plan</code> (<span class="string">string</span>): The subscription tier associated with this identity. Values:
+    <code>'monthly'</code>, <code>'annually'</code>, or <code>'lifetime'</code>.
+  </li>
   <li><code>proxy_server</code> (<span class="string">string</span>): The proxy server address associated with this identity.</li>
   <li>
     <code>picture</code> (<span class="string">string</span>): A base64 encoded string representing the identity's profile picture.
@@ -33,5 +37,13 @@
   <li><code>email</code> (<span class="string">string</span>): The primary email associated with this identity.</li>
   <li>
     <code>phone</code> (<span class="string">string</span>): The phone number associated with this identity (E.164 format).
+  </li>
+  <li>
+    <code>wallet_keys</code> (<span class="object">object</span>): A JSON object containing the watch-only public keys (XPUBs,
+    Addresses, ViewKeys) for Bitcoin, Litecoin, Ethereum, Tether and Monero.
+  </li>
+  <li>
+    <code>wallet_blob</code> (<span class="string">string</span>): The AES-GCM encrypted base64 string containing the private mnemonic
+    seed.
   </li>
 </ul>
