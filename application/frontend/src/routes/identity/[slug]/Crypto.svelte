@@ -1,5 +1,6 @@
 <script lang="ts">
-  import {WalletIcon, BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
+  import {ReceiptIcon, FloppyIcon, ShuffleIcon, DownArcIcon, UpArcIcon, BroomIcon, CameraIcon, ShopIcon} from '$icon';
+  import {BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
   import {identity, masterPassword, modalIndex} from '$store';
   import {writable} from 'svelte/store';
   import {ActionIcon} from '$component';
@@ -36,7 +37,14 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Crypto Wallet</h1>
   <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
-    <ActionIcon disabled={!$masterPassword} icon={WalletIcon} action={() => {}} title="Nothing" />
+    <ActionIcon disabled={!$masterPassword} icon={FloppyIcon} action={() => {}} title="Backup Keys" />
+    <ActionIcon disabled={!$masterPassword} icon={BroomIcon} action={() => {}} title="Toggle Dust Transaction" />
+    <ActionIcon disabled={!$masterPassword} icon={ReceiptIcon} action={() => {}} title="Generate PDF Invoice" />
+    <ActionIcon disabled={!$masterPassword} icon={CameraIcon} action={() => {}} title="Sweep Wallet" />
+    <ActionIcon disabled={!$masterPassword} icon={DownArcIcon} action={() => {}} title="Receive Funds" />
+    <ActionIcon disabled={!$masterPassword} icon={UpArcIcon} action={() => {}} title="Send Payment" />
+    <ActionIcon disabled={!$masterPassword} icon={ShopIcon} action={() => {}} title="Buy Gift Cards" />
+    <ActionIcon disabled={!$masterPassword} icon={ShuffleIcon} action={() => {}} title="Swap Coins" />
   </div>
 </section>
 {#if $masterPassword}

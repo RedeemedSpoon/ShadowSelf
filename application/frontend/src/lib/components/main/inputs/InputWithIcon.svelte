@@ -26,7 +26,7 @@
           'cursor-not-allowed!'}" />
     {/if}
   </label>
-  <input id={name} {disabled} {value} {type} oninput={handleInput} {placeholder} class={className?.input} required />
+  <input id={name} {name} {disabled} {value} {type} oninput={handleInput} {placeholder} class={className?.input} required />
 </div>
 
 <style lang="postcss">
