@@ -1,5 +1,6 @@
 import type {Component} from 'svelte';
 
+export type Coins = 'xmr' | 'eth' | 'btc' | 'ltc' | 'usdt';
 export type Sections = 'info' | 'email' | 'phone' | 'crypto' | 'account';
 export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

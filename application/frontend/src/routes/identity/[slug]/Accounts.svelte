@@ -1,8 +1,7 @@
 <script lang="ts">
-  import {LockEditIcon, LockRemoveIcon, KeyIcon, KeylockIcon, UserIcon, WWWIcon} from '$icon';
-  import {UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon, BackIcon} from '$icon';
-  import {fetchIndex, modalIndex, masterPassword} from '$store';
+  import {KeyIcon, KeylockIcon, UserIcon, WWWIcon, UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon, BackIcon} from '$icon';
   import {ActionIcon, Tooltip, HoverCopyButton} from '$component';
+  import {fetchIndex, modalIndex, masterPassword} from '$store';
   import AccountEdit from './sub-components/AccountEdit.svelte';
   import type {Account, APIResponse} from '$type';
   import {writable} from 'svelte/store';
@@ -79,12 +78,6 @@
   <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
     <div class:hidden={$mode === 'view'}>
       <ActionIcon icon={BackIcon} action={() => ($mode = 'view')} title="Ignore Changes" />
-    </div>
-    <div class:hidden={!$masterPassword}>
-      <ActionIcon icon={LockEditIcon} action={() => ($modalIndex = 3)} title="Edit Master Password" />
-    </div>
-    <div class:hidden={!$masterPassword}>
-      <ActionIcon icon={LockRemoveIcon} action={() => ($modalIndex = 4)} title="Remove Local Master Password" />
     </div>
     <ActionIcon disabled={!$masterPassword} icon={UserAddIcon} action={() => ($mode = 'add')} title="Add Account" />
     <ActionIcon disabled={!$target} icon={UserEditIcon} action={changeModeToEdit} title="Edit Account" />

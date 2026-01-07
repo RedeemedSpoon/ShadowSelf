@@ -12,6 +12,12 @@ export {default as RustIcon} from './languages/Rust.svelte';
 export {default as PythonIcon} from './languages/Python.svelte';
 export {default as JavascriptIcon} from './languages/Javascript.svelte';
 
+export {default as BTCIcon} from './crypto-currencies/BTC.svelte';
+export {default as LTCIcon} from './crypto-currencies/LTC.svelte';
+export {default as ETHIcon} from './crypto-currencies/ETH.svelte';
+export {default as XMRIcon} from './crypto-currencies/XMR.svelte';
+export {default as USDTIcon} from './crypto-currencies/USDT.svelte';
+
 export {default as DownloadIcon} from './action/Download.svelte';
 export {default as SearchIcon} from './action/Search.svelte';
 export {default as FilterIcon} from './action/Filter.svelte';

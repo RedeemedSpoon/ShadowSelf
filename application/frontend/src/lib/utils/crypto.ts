@@ -1,7 +1,24 @@
+import {p2wpkh} from '@scure/btc-signer';
 import {masterPassword} from '$store';
+import {HDKey} from '@scure/bip32';
 import {get} from 'svelte/store';
+import type {Coins} from '$type';
 
-const APP_SALT = new TextEncoder().encode('ShadowSelf-Secure-Salt');
+export function deriveXPub(coin: Coins, key: string, index: number = 0): string {
+  const LTC_NETWORK = {
+    bech32: 'ltc',
+    pubKeyHash: 0x30,
+    scriptHash: 0x32,
+    wif: 0xb0,
+  };
+
+  const node = HDKey.fromExtendedKey(key);
+  const child = node.deriveChild(0).deriveChild(index);
+
+  if (coin === 'btc') return p2wpkh(child.publicKey!).address!;
+  else if (coin === 'ltc') return p2wpkh(child.publicKey!, LTC_NETWORK).address!;
+  else return key;
+}
 
 export async function deriveMasterKey(password: string, identityID: string): Promise<CryptoKey> {
   const salt = new TextEncoder().encode(identityID);
@@ -19,7 +36,6 @@ export async function deriveMasterKey(password: string, identityID: string): Pro
 
 export async function getMasterKey() {
   const storedKeyBase64 = get(masterPassword);
-
   if (!storedKeyBase64) {
     throw new Error('No Master Password loaded in memory.');
   }

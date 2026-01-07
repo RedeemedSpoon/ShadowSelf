@@ -9,9 +9,9 @@ export const countriesFlags = Object.fromEntries(
   ]),
 );
 
-export {default as icon} from './logo/icon.svg';
-export {default as logo} from './logo/logo-white-text.svg';
-export {default as logoBesideText} from './logo/logo-beside-text.svg';
+export {default as icon} from './brand/icon.svg';
+export {default as logo} from './brand/logo-white-text.svg';
+export {default as logoBesideText} from './brand/logo-beside-text.svg';
 
 export {default as cart} from './empty-states/cart.svg';
 export {default as lock} from './empty-states/lock.svg';
