@@ -92,10 +92,10 @@
         <InputWithIcon type="url" name="website" placeholder="Website URL" icon={WWWIcon} />
       </div>
       <div class="flex flex-col gap-2">
-        <label for="totp">Totp Secret</label>
-        <InputWithIcon type="text" name="totp" placeholder="Totp Secret" icon={KeylockIcon} />
+        <label for="totp">2FA TOTP Secret</label>
+        <InputWithIcon type="text" name="totp" placeholder="TOTP Secret" icon={KeylockIcon} />
 
-        <label for="algorithm">Algorithm</label>
+        <label for="algorithm">Algorithm (For TOTP)</label>
         <SelectMenu options={['SHA1', 'SHA256', 'SHA512']} name="algorithm" value={$target?.algorithm} />
         <p>* Required Fields</p>
       </div>

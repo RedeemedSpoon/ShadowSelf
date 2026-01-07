@@ -45,6 +45,7 @@ export {default as MaleIcon} from './auth/Male.svelte';
 export {default as EyeIcon} from './auth/Eye.svelte';
 export {default as KeyIcon} from './auth/Key.svelte';
 
+export {default as SpreadSheetIcon} from './wallet/SpreadSheet.svelte';
 export {default as ReceiptIcon} from './wallet/Receipt.svelte';
 export {default as ShuffleIcon} from './wallet/Shuffle.svelte';
 export {default as DownArcIcon} from './wallet/DownArc.svelte';

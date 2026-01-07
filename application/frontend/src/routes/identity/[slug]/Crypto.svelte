@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {ReceiptIcon, FloppyIcon, ShuffleIcon, DownArcIcon, UpArcIcon, BroomIcon, CameraIcon, ShopIcon} from '$icon';
+  import {ReceiptIcon, FloppyIcon, ShuffleIcon, DownArcIcon, UpArcIcon, BroomIcon, SpreadSheetIcon, CameraIcon, ShopIcon} from '$icon';
   import {BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
   import {identity, masterPassword, modalIndex} from '$store';
   import {writable} from 'svelte/store';
@@ -39,6 +39,7 @@
   <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
     <ActionIcon disabled={!$masterPassword} icon={FloppyIcon} action={() => {}} title="Backup Keys" />
     <ActionIcon disabled={!$masterPassword} icon={BroomIcon} action={() => {}} title="Toggle Dust Transaction" />
+    <ActionIcon disabled={!$masterPassword} icon={SpreadSheetIcon} action={() => {}} title="Export Transaction CSV" />
     <ActionIcon disabled={!$masterPassword} icon={ReceiptIcon} action={() => {}} title="Generate PDF Invoice" />
     <ActionIcon disabled={!$masterPassword} icon={CameraIcon} action={() => {}} title="Sweep Wallet" />
     <ActionIcon disabled={!$masterPassword} icon={DownArcIcon} action={() => {}} title="Receive Funds" />
