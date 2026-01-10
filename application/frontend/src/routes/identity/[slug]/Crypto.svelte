@@ -2,13 +2,16 @@
   import {ReceiptIcon, FloppyIcon, ShuffleIcon, DownArcIcon, UpArcIcon, BroomIcon, SpreadSheetIcon, CameraIcon, ShopIcon} from '$icon';
   import {BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon, BackIcon} from '$icon';
   import {identity, masterPassword, modalIndex} from '$store';
+  import {ActionIcon, Modal, CopyButton} from '$component';
   import {decrypt, deriveXPub} from '$crypto';
   import {writable} from 'svelte/store';
-  import {ActionIcon} from '$component';
   import {cart, lock} from '$image';
   import type {Coins} from '$type';
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
+
+  import CryptoTransaction from './sub-components/CryptoTransaction.svelte';
+  import CryptoServices from './sub-components/CryptoServices.svelte';
 
   onMount(async () => console.log(await fetchAPI('crypto', 'GET')));
 
@@ -83,7 +86,7 @@ If a hacker finds this file, your money is gone.
     <ActionIcon disabled={$mode != 'view'} icon={SpreadSheetIcon} action={exportCSV} title="Export Transaction CSV" />
     <ActionIcon icon={ReceiptIcon} action={() => ($mode = 'invoice')} title="Generate PDF Invoice" />
     <ActionIcon icon={CameraIcon} action={() => ($mode = 'sweep')} title="Sweep Wallet" />
-    <ActionIcon icon={DownArcIcon} action={() => ($mode = 'receive')} title="Receive Funds" />
+    <ActionIcon icon={DownArcIcon} action={() => ($mode = 'receive')} title="Receive Payments" />
     <ActionIcon icon={UpArcIcon} action={() => ($mode = 'send')} title="Send Payment" />
     <ActionIcon icon={ShopIcon} action={() => ($mode = 'gift')} title="Buy Gift Cards" />
     <ActionIcon icon={ShuffleIcon} action={() => ($mode = 'swap')} title="Swap Coins" />
@@ -93,15 +96,15 @@ If a hacker finds this file, your money is gone.
   {#if $mode === 'view'}
     <div class="mt-[5vh] mb-2 flex justify-between gap-4 max-md:flex-col md:items-center">
       <div class="[*&>p]:text-neutral-500!">
-        <h3 class="text-2xl! text-neutral-300 lg:text-3xl!">{title}</h3>
+        <h3 class="-mb-4 text-2xl! font-semibold text-neutral-300 lg:text-3xl!">{title} Address :</h3>
         {#if $currentCrypto === 'btc'}
-          <p>{deriveXPub('btc', $identity.wallet_keys.btc, 0)}</p>
+          <CopyButton alt={true} text={deriveXPub('btc', $identity.wallet_keys.btc, 0)} />
         {:else if $currentCrypto === 'ltc'}
-          <p>{deriveXPub('ltc', $identity.wallet_keys.ltc, 0)}</p>
+          <CopyButton alt={true} text={deriveXPub('ltc', $identity.wallet_keys.ltc, 0)} />
         {:else if $currentCrypto === 'xmr'}
-          <p>{$identity.wallet_keys.xmr.address.slice(0, 50)}...</p>
+          <CopyButton alt={true} label={$identity.wallet_keys.xmr.address.slice(0, 50)} text={$identity.wallet_keys.xmr.address} />
         {:else}
-          <p>{$identity.wallet_keys.evm}</p>
+          <CopyButton alt={true} text={$identity.wallet_keys.evm} />
         {/if}
       </div>
       <div id="cryptocoins" class="flex">
@@ -115,6 +118,9 @@ If a hacker finds this file, your money is gone.
         {/each}
       </div>
     </div>
+  {:else}
+    <CryptoServices {mode} />
+    <CryptoTransaction {mode} />
   {/if}
   <section id="no-purchases" style="background-image: url({cart});">
     <h2 class="mt-12 text-5xl text-neutral-300">No Purchases</h2>
@@ -122,8 +128,46 @@ If a hacker finds this file, your money is gone.
       No money has been transferred to this wallet and no spending has been made yet. Send some funds over and start using it right
       away!
     </p>
-    <button>Add Funds</button>
+    <button onclick={() => ($modalIndex = 4)}>Add Funds</button>
   </section>
+  <Modal id={4}>
+    <div class="flex flex-col gap-6 p-6">
+      <div class="space-y-1">
+        <h1 class="text-4xl font-semibold text-neutral-200">Fund Your Wallet</h1>
+        <p class="text-neutral-400">Your wallet is empty. Here is how to load it securely.</p>
+      </div>
+
+      <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+        <h3 class="text-lg font-medium text-neutral-300">1. Direct Transfer</h3>
+        <p class="text-sm text-neutral-400">
+          Already have crypto? Click the <span class="rounded bg-neutral-700 px-1 text-white">Receive</span> button in your dashboard to
+          generate a ghost address. Send funds from Coinbase, Binance, or your personal wallet.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+        <h3 class="text-lg font-medium text-neutral-300">2. Cash Deposit (Paper Wallet)</h3>
+        <p class="text-sm text-neutral-400">
+          Bought Bitcoin at an ATM? Use the <span class="rounded bg-neutral-700 px-1 text-white">Sweep</span> action to scan your paper receipt
+          receipt. We will instantly move the funds into your secure vault.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+        <h3 class="text-lg font-medium text-neutral-300">3. Buy with Fiat (No ID)</h3>
+        <p class="text-sm text-neutral-400">
+          We do not process credit cards to protect your privacy. To buy crypto anonymously using Bank Transfer or Revolut, we
+          recommend P2P markets.
+        </p>
+        <div class="mt-1 flex gap-4">
+          <a href="https://learn.robosats.org" target="_blank"> RoboSats (Tor) ↗ </a>
+          <a href="https://bisq.network" target="_blank"> Bisq ↗ </a>
+          <a href="https://hodlhodl.com" target="_blank"> HodlHodl ↗ </a>
+        </div>
+      </div>
+      <button onclick={() => ($modalIndex = 0)}> Got it </button>
+    </div>
+  </Modal>
 {:else}
   <section id="no-purchases" style="background-image: url({lock});">
     <h2 class="mt-12 text-center text-5xl text-neutral-300">Encryption Key Missing</h2>

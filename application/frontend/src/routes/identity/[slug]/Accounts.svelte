@@ -2,7 +2,6 @@
   import {KeyIcon, KeylockIcon, UserIcon, WWWIcon, UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon, BackIcon} from '$icon';
   import {ActionIcon, Tooltip, HoverCopyButton} from '$component';
   import {fetchIndex, modalIndex, masterPassword} from '$store';
-  import AccountEdit from './sub-components/AccountEdit.svelte';
   import type {Account, APIResponse} from '$type';
   import {writable} from 'svelte/store';
   import * as OTPAuth from 'otpauth';
@@ -11,6 +10,8 @@
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
   import {notify} from '$lib';
+
+  import AccountEdit from './sub-components/AccountEdit.svelte';
 
   const mode = writable<'view' | 'add' | 'edit'>('view');
   const target = writable<Account | null>(null);

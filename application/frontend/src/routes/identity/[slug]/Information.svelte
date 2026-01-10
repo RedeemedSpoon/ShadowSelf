@@ -1,12 +1,13 @@
 <script lang="ts">
   import {CopyIcon, WalletIcon, DownloadIcon, EmailIcon, PhoneIcon, EditIcon, BackIcon} from '$icon';
-  import InformationEdit from './sub-components/InformationEdit.svelte';
   import {ActionIcon, CopyButton, ReactiveButton} from '$component';
   import {toTitleCase, formatPhoneNumber} from '$format';
   import {currentSection, identity} from '$store';
   import {base64ToBlob, notify} from '$lib';
   import {countriesFlags} from '$image';
   import {fetchAPI} from '$fetch';
+
+  import InformationEdit from './sub-components/InformationEdit.svelte';
 
   let activeStatus = $state(false);
   let isEditingMode = $state(false);

@@ -1,9 +1,6 @@
 <script lang="ts">
   import {SendIcon, TrashIcon, ReplyIcon, InboxIcon, BackIcon} from '$icon';
-  import ConversationLists from './sub-components/ConversationLists.svelte';
-  import ComposeMessage from './sub-components/ComposeMessage.svelte';
   import type {WebSocketMessage, APIResponse, Message} from '$type';
-  import Conversation from './sub-components/Conversation.svelte';
   import {writable, type Writable} from 'svelte/store';
   import {identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
@@ -11,6 +8,10 @@
   import {conversation} from '$image';
   import {fetchAPI} from '$fetch';
   import {notify} from '$lib';
+
+  import ConversationLists from './sub-components/ConversationLists.svelte';
+  import ComposeMessage from './sub-components/ComposeMessage.svelte';
+  import Conversation from './sub-components/Conversation.svelte';
 
   let messages = $state() as APIResponse;
 

@@ -3,13 +3,14 @@
   import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
   import type {APIResponse, EditorParams, Email, WebSocketMessage} from '$type';
   import {identity, handleResponse, fetchIndex, modalIndex} from '$store';
-  import ComposeEmail from './sub-components/ComposeEmail.svelte';
-  import EmailInbox from './sub-components/EmailInbox.svelte';
-  import EmailBody from './sub-components/EmailBody.svelte';
   import {writable} from 'svelte/store';
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
   import {notify} from '$lib';
+
+  import ComposeEmail from './sub-components/ComposeEmail.svelte';
+  import EmailInbox from './sub-components/EmailInbox.svelte';
+  import EmailBody from './sub-components/EmailBody.svelte';
 
   const reply = writable<Email[]>([]);
   const target = writable<Email | null>();
