@@ -1,10 +1,10 @@
 <script lang="ts">
   import {ReceiptIcon, FloppyIcon, ShuffleIcon, DownArcIcon, UpArcIcon, BroomIcon, SpreadSheetIcon, CameraIcon, ShopIcon} from '$icon';
-  import {BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
+  import {BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon, BackIcon} from '$icon';
   import {identity, masterPassword, modalIndex} from '$store';
+  import {decrypt, deriveXPub} from '$crypto';
   import {writable} from 'svelte/store';
   import {ActionIcon} from '$component';
-  import {deriveXPub} from '$crypto';
   import {cart, lock} from '$image';
   import type {Coins} from '$type';
   import {fetchAPI} from '$fetch';
@@ -13,7 +13,7 @@
   onMount(async () => console.log(await fetchAPI('crypto', 'GET')));
 
   const currentCrypto = writable<Coins>('btc');
-  const mode = writable<'dashboard'>('dashboard');
+  let mode = writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'gift' | 'swap'>('view');
 
   const cryptoTitles = {
     btc: 'Bitcoin',
@@ -32,24 +32,65 @@
   };
 
   const title = $derived(cryptoTitles[$currentCrypto]);
+  let anchor = $state() as HTMLAnchorElement;
+
+  async function backupKeys() {
+    const mnemonicCode = await decrypt($identity.wallet_blob);
+    const text = `
+# ----------------------------------------------------------------------
+# SHADOWSELF - IDENTITY RECOVERY KIT
+# ----------------------------------------------------------------------
+
+[1] YOUR SECRET KEY (SEED PHRASE)
+${mnemonicCode}
+
+[2] HOW TO USE
+This is your Master Key. It derivates all your Bitcoin, Monero, Litecoin, 
+and Ethereum private keys. You do not need ShadowSelf to use this money.
+
+[3] HOW TO RESTORE
+Download "Electrum" (Bitcoin), "Feather Wallet" (Monero), or "Trust Wallet" (Mobile).
+Select "I have a seed phrase" and type the 12 words above.
+
+[4] SECURITY
+DO NOT SAVE THIS ON YOUR COMPUTER.
+Print this file. Delete this file.
+If a hacker finds this file, your money is gone.
+
+# ----------------------------------------------------------------------
+# END OF FILE
+# ----------------------------------------------------------------------
+`.trim();
+
+    const blob = new Blob([text], {type: 'text/plain'});
+    anchor.href = URL.createObjectURL(blob);
+    anchor.click();
+  }
+
+  function toggleDust() {}
+  function exportCSV() {}
 </script>
 
+<a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-Mnemonic-Backup-Code.txt" class="hidden"></a>
 <section class="mb-4 flex w-full items-center justify-between">
   <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Crypto Wallet</h1>
-  <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
-    <ActionIcon disabled={!$masterPassword} icon={FloppyIcon} action={() => {}} title="Backup Keys" />
-    <ActionIcon disabled={!$masterPassword} icon={BroomIcon} action={() => {}} title="Toggle Dust Transaction" />
-    <ActionIcon disabled={!$masterPassword} icon={SpreadSheetIcon} action={() => {}} title="Export Transaction CSV" />
-    <ActionIcon disabled={!$masterPassword} icon={ReceiptIcon} action={() => {}} title="Generate PDF Invoice" />
-    <ActionIcon disabled={!$masterPassword} icon={CameraIcon} action={() => {}} title="Sweep Wallet" />
-    <ActionIcon disabled={!$masterPassword} icon={DownArcIcon} action={() => {}} title="Receive Funds" />
-    <ActionIcon disabled={!$masterPassword} icon={UpArcIcon} action={() => {}} title="Send Payment" />
-    <ActionIcon disabled={!$masterPassword} icon={ShopIcon} action={() => {}} title="Buy Gift Cards" />
-    <ActionIcon disabled={!$masterPassword} icon={ShuffleIcon} action={() => {}} title="Swap Coins" />
+  <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col {!$masterPassword && 'hidden'}">
+    {#if $mode != 'view'}
+      <ActionIcon icon={BackIcon} action={() => ($mode = 'view')} title="Go Back" />
+    {/if}
+    <ActionIcon disabled={$mode != 'view'} icon={FloppyIcon} action={backupKeys} title="Backup Keys" />
+    <ActionIcon disabled={$mode != 'view'} icon={BroomIcon} action={toggleDust} title="Toggle Dust Transaction" />
+    <ActionIcon disabled={$mode != 'view'} icon={SpreadSheetIcon} action={exportCSV} title="Export Transaction CSV" />
+    <ActionIcon icon={ReceiptIcon} action={() => ($mode = 'invoice')} title="Generate PDF Invoice" />
+    <ActionIcon icon={CameraIcon} action={() => ($mode = 'sweep')} title="Sweep Wallet" />
+    <ActionIcon icon={DownArcIcon} action={() => ($mode = 'receive')} title="Receive Funds" />
+    <ActionIcon icon={UpArcIcon} action={() => ($mode = 'send')} title="Send Payment" />
+    <ActionIcon icon={ShopIcon} action={() => ($mode = 'gift')} title="Buy Gift Cards" />
+    <ActionIcon icon={ShuffleIcon} action={() => ($mode = 'swap')} title="Swap Coins" />
   </div>
 </section>
 {#if $masterPassword}
-  {#key $currentCrypto}
+  {#if $mode === 'view'}
     <div class="mt-[5vh] mb-2 flex justify-between gap-4 max-md:flex-col md:items-center">
       <div class="[*&>p]:text-neutral-500!">
         <h3 class="text-2xl! text-neutral-300 lg:text-3xl!">{title}</h3>
@@ -74,7 +115,7 @@
         {/each}
       </div>
     </div>
-  {/key}
+  {/if}
   <section id="no-purchases" style="background-image: url({cart});">
     <h2 class="mt-12 text-5xl text-neutral-300">No Purchases</h2>
     <p class="text-center md:w-1/2">
