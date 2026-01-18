@@ -147,7 +147,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Name is too long (<30 characters)'};
       }
 
-      if (!/^[\p{L}\p{N}\s]+$/u.test(body.name!)) {
+      if (!/^[\p{L}\s.'-]+$/u.test(body.name!)) {
         return {error: 'Name contains invalid characters'};
       }
 
@@ -266,8 +266,8 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Name must be at least 2 characters long'} as APIRequest;
         }
 
-        if (/[^a-zA-Z\s'-]/.test(body.name)) {
-          return {err: 'Name contains invalid characters (only letters, spaces, hyphens, apostrophes allowed)'} as APIRequest;
+        if (/[^\\p{L}\\s.'-]/u.test(body.name)) {
+          return {err: 'Name contains invalid characters'} as APIRequest;
         }
 
         if (body.name.length > 30) {

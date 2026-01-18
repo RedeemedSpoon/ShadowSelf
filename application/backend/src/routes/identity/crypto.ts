@@ -6,9 +6,7 @@ import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/crypto'})
   .use(middleware)
-  .get('/:id', async ({identity}) => {
-    console.log(identity);
-  })
+  .get('/:id', async ({identity}) => {})
   .put('/update-blob/:id', async ({identity, body, set}) => {
     const {blob, err} = await checkAPI(body, ['blob']);
     if (err) return error(set, 400, err);

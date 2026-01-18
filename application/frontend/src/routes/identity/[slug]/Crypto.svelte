@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {ReceiptIcon, FloppyIcon, ShuffleIcon, DownArcIcon, UpArcIcon, BroomIcon, SpreadSheetIcon, CameraIcon, ShopIcon} from '$icon';
+  import {ReceiptIcon, FloppyIcon, ShuffleIcon, CameraIcon, ShopIcon} from '$icon';
   import {BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon, BackIcon} from '$icon';
   import {identity, masterPassword, modalIndex} from '$store';
   import {ActionIcon, Modal, CopyButton} from '$component';
@@ -81,13 +81,9 @@ If a hacker finds this file, your money is gone.
     {#if $mode != 'view'}
       <ActionIcon icon={BackIcon} action={() => ($mode = 'view')} title="Go Back" />
     {/if}
-    <ActionIcon disabled={$mode != 'view'} icon={FloppyIcon} action={backupKeys} title="Backup Keys" />
-    <ActionIcon disabled={$mode != 'view'} icon={BroomIcon} action={toggleDust} title="Toggle Dust Transaction" />
-    <ActionIcon disabled={$mode != 'view'} icon={SpreadSheetIcon} action={exportCSV} title="Export Transaction CSV" />
+    <ActionIcon icon={FloppyIcon} action={backupKeys} title="Backup Keys" />
     <ActionIcon icon={ReceiptIcon} action={() => ($mode = 'invoice')} title="Generate PDF Invoice" />
     <ActionIcon icon={CameraIcon} action={() => ($mode = 'sweep')} title="Sweep Wallet" />
-    <ActionIcon icon={DownArcIcon} action={() => ($mode = 'receive')} title="Receive Payments" />
-    <ActionIcon icon={UpArcIcon} action={() => ($mode = 'send')} title="Send Payment" />
     <ActionIcon icon={ShopIcon} action={() => ($mode = 'gift')} title="Buy Gift Cards" />
     <ActionIcon icon={ShuffleIcon} action={() => ($mode = 'swap')} title="Swap Coins" />
   </div>
@@ -118,56 +114,57 @@ If a hacker finds this file, your money is gone.
         {/each}
       </div>
     </div>
+    <section id="no-purchases" style="background-image: url({cart});">
+      <h2 class="mt-12 text-5xl text-neutral-300">No Funds</h2>
+      <p class="text-center md:w-1/2">
+        No money has been transferred to this wallet and no spending has been made yet. Send some funds over and start using it right
+        away!
+      </p>
+      <button onclick={() => ($modalIndex = 4)}>Add Funds</button>
+    </section>
+    <Modal id={4}>
+      <div class="flex flex-col gap-6 p-6">
+        <div class="space-y-1">
+          <h1 class="text-4xl font-semibold text-neutral-200">Fund Your Wallet</h1>
+          <p class="text-neutral-400">Your wallet is empty. Here is how to load it securely.</p>
+        </div>
+
+        <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+          <h3 class="text-lg font-medium text-neutral-300">1. Direct Transfer</h3>
+          <p class="text-sm text-neutral-400">
+            Already have crypto? Click
+            <button class="alt px-0 py-0 text-sm" onclick={() => (($modalIndex = 0), ($mode = 'receive'))}>Here</button>
+            to generate a ghost address. Send funds from Coinbase, Binance, or your personal wallet.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+          <h3 class="text-lg font-medium text-neutral-300">2. Cash Deposit (Paper Wallet)</h3>
+          <p class="text-sm text-neutral-400">
+            Bought Bitcoin at an ATM? Use the <span class="rounded bg-neutral-700 px-1 text-white">Sweep</span> action to scan your paper
+            receipt receipt. We will instantly move the funds into your secure vault.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+          <h3 class="text-lg font-medium text-neutral-300">3. Buy with Fiat (No ID)</h3>
+          <p class="text-sm text-neutral-400">
+            We do not process credit cards to protect your privacy. To buy crypto anonymously using Bank Transfer or Neo-banks, we
+            recommend P2P markets.
+          </p>
+          <div class="mt-1 flex gap-4">
+            <a href="https://learn.robosats.org" target="_blank"> RoboSats (Tor) ↗ </a>
+            <a href="https://bisq.network" target="_blank"> Bisq ↗ </a>
+            <a href="https://hodlhodl.com" target="_blank"> HodlHodl ↗ </a>
+          </div>
+        </div>
+        <button onclick={() => ($modalIndex = 0)}> Got it </button>
+      </div>
+    </Modal>
   {:else}
     <CryptoServices {mode} />
     <CryptoTransaction {mode} />
   {/if}
-  <section id="no-purchases" style="background-image: url({cart});">
-    <h2 class="mt-12 text-5xl text-neutral-300">No Purchases</h2>
-    <p class="text-center md:w-1/2">
-      No money has been transferred to this wallet and no spending has been made yet. Send some funds over and start using it right
-      away!
-    </p>
-    <button onclick={() => ($modalIndex = 4)}>Add Funds</button>
-  </section>
-  <Modal id={4}>
-    <div class="flex flex-col gap-6 p-6">
-      <div class="space-y-1">
-        <h1 class="text-4xl font-semibold text-neutral-200">Fund Your Wallet</h1>
-        <p class="text-neutral-400">Your wallet is empty. Here is how to load it securely.</p>
-      </div>
-
-      <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
-        <h3 class="text-lg font-medium text-neutral-300">1. Direct Transfer</h3>
-        <p class="text-sm text-neutral-400">
-          Already have crypto? Click the <span class="rounded bg-neutral-700 px-1 text-white">Receive</span> button in your dashboard to
-          generate a ghost address. Send funds from Coinbase, Binance, or your personal wallet.
-        </p>
-      </div>
-
-      <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
-        <h3 class="text-lg font-medium text-neutral-300">2. Cash Deposit (Paper Wallet)</h3>
-        <p class="text-sm text-neutral-400">
-          Bought Bitcoin at an ATM? Use the <span class="rounded bg-neutral-700 px-1 text-white">Sweep</span> action to scan your paper receipt
-          receipt. We will instantly move the funds into your secure vault.
-        </p>
-      </div>
-
-      <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
-        <h3 class="text-lg font-medium text-neutral-300">3. Buy with Fiat (No ID)</h3>
-        <p class="text-sm text-neutral-400">
-          We do not process credit cards to protect your privacy. To buy crypto anonymously using Bank Transfer or Revolut, we
-          recommend P2P markets.
-        </p>
-        <div class="mt-1 flex gap-4">
-          <a href="https://learn.robosats.org" target="_blank"> RoboSats (Tor) ↗ </a>
-          <a href="https://bisq.network" target="_blank"> Bisq ↗ </a>
-          <a href="https://hodlhodl.com" target="_blank"> HodlHodl ↗ </a>
-        </div>
-      </div>
-      <button onclick={() => ($modalIndex = 0)}> Got it </button>
-    </div>
-  </Modal>
 {:else}
   <section id="no-purchases" style="background-image: url({lock});">
     <h2 class="mt-12 text-center text-5xl text-neutral-300">Encryption Key Missing</h2>
