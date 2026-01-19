@@ -1,9 +1,10 @@
-import {ImapSimple} from 'imap-simple';
-import {ElysiaWS} from 'elysia/ws';
+import { ImapSimple } from 'imap-simple';
+import { ElysiaWS } from 'elysia/ws';
 
-export type User = {email: string; id: string} | undefined;
+export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
+export type User = { email: string; id: string } | undefined;
 export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
-export type Attachment = {filename: string; data: string};
+export type Attachment = { filename: string; data: string };
 
 export interface WSConnection {
   imapConnection: ImapSimple;
@@ -122,7 +123,7 @@ export interface CreationProcess {
   phone: string;
   crypto: string;
   regenerate: RegenerateIdentity;
-  identity: RegenerateIdentity & {picture: string};
+  identity: RegenerateIdentity & { picture: string };
   repeat: {
     sex?: 'male' | 'female';
     name?: boolean;
@@ -183,7 +184,6 @@ export interface APIRequest {
   ltc: string;
   emv: string;
   xmr_address: string;
-  xmr_address: string;
 }
 
 export interface EmailContent {
@@ -206,6 +206,24 @@ export interface Message {
   from: string;
   to: string;
 }
+
+export type CryptoFees = { [key in CryptoCurrencies]: number[] };
+export type CryptoPrices = {
+  [key in CryptoCurrencies]: {
+    daily_change: number,
+    to_usd: number,
+    chart: number[]
+  }
+};
+
+export type CoinGeckoResponse = {
+  id: CryptoCurrencies,
+  current_price: number,
+  price_change_percentage_24h: number,
+  sparkline_in_7d: {
+    price: number[]
+  }
+}[]
 
 export const emailTemplate = {
   confirm: {

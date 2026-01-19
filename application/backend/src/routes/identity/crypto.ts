@@ -1,3 +1,4 @@
+// import {cryptoPrices, cryptoFees} from '@utils/polling';
 import {attempt, error} from '@utils/utils';
 import middleware from '@middleware-api';
 import {checkAPI} from '@utils/checks';
