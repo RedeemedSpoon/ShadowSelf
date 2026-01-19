@@ -4,9 +4,9 @@
   import {fetchIndex, modalIndex, masterPassword} from '$store';
   import type {Account, APIResponse} from '$type';
   import {writable} from 'svelte/store';
+  import {decrypt} from '$cryptography';
   import * as OTPAuth from 'otpauth';
   import {lock, group} from '$image';
-  import {decrypt} from '$crypto';
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
   import {notify} from '$lib';

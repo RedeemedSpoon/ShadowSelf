@@ -3,7 +3,7 @@
   import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, WalletIcon} from '$icon';
   import {Modal, ConfirmModal, InputWithIcon, LoadingButton} from '$component';
   import type {APIResponse, Sections, WebSocketMessage} from '$type';
-  import {decrypt, deriveMasterKey, encrypt} from '$crypto';
+  import {decrypt, deriveMasterKey, encrypt} from '$cryptography';
   import {ChevronIcon, KeyIcon} from '$icon';
   import {browser} from '$app/environment';
   import type {PageProps} from './$types';

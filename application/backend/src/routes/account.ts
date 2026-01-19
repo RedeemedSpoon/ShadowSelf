@@ -1,4 +1,4 @@
-import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, getRecovery, checksum} from '@utils/crypto';
+import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, getRecovery, checksum} from '@utils/cryptography';
 import {attempt, request, error} from '@utils/utils';
 import {sendOfficialEmail} from '@utils/email-smtp';
 import {sql} from '@utils/connection';

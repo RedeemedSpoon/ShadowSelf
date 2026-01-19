@@ -4,7 +4,7 @@
   import {currentStep, fetchIndex, masterPassword, modalIndex} from '$store';
   import {PhoneIcon, EmailIcon, KeyIcon, UserIcon, PinIcon} from '$icon';
   import {ublock, canvas, screenshot, countriesFlags} from '$image';
-  import {deriveMasterKey, encrypt} from '$crypto';
+  import {deriveMasterKey, encrypt} from '$cryptography';
   import type {CreationProcess} from '$type';
   import {formatPhoneNumber} from '$format';
   import type {PageData} from './$types';

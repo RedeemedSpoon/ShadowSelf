@@ -31,7 +31,7 @@ const config = {
       $format: 'src/lib/utils/format.ts',
       $csrf: 'src/lib/utils/csrf.ts',
       $dom: 'src/lib/utils/dom.ts',
-      $crypto: 'src/lib/utils/crypto.ts',
+      $cryptography: 'src/lib/utils/cryptography.ts',
       $cn: 'src/lib/utils/cn.ts',
     },
   },

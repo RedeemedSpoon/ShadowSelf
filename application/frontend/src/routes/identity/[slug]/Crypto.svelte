@@ -3,7 +3,7 @@
   import {BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon, BackIcon} from '$icon';
   import {identity, masterPassword, modalIndex} from '$store';
   import {ActionIcon, Modal, CopyButton} from '$component';
-  import {decrypt, deriveXPub} from '$crypto';
+  import {decrypt, deriveXPub} from '$cryptography';
   import {writable} from 'svelte/store';
   import {cart, lock} from '$image';
   import type {Coins} from '$type';

@@ -1,7 +1,7 @@
 import {attempt, toTitleCase, error, proxyRequest} from '@utils/utils';
 import {sql, stripe, origin, twilio} from '@utils/connection';
+import {generateIdentityID} from '@utils/cryptography';
 import {pricingModal, pricingTable} from '@types';
-import {generateIdentityID} from '@utils/crypto';
 import middleware from '@middleware';
 import {check} from '@utils/checks';
 import {Elysia} from 'elysia';

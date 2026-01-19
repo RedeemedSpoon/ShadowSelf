@@ -1,4 +1,4 @@
-import {generateProxyPassword, checksum} from '@utils/crypto';
+import {generateProxyPassword, checksum} from '@utils/cryptography';
 import {sql, twilio, origin} from '@utils/connection';
 import {attempt, proxyRequest} from '@utils/utils';
 import {generateProfile} from '@utils/prompts';
