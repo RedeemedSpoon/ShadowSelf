@@ -28,7 +28,7 @@ export default new Elysia({prefix: '/crypto'})
     cryptoWallet.eth = await getEvmData('eth', evm);
     cryptoWallet.btc = await getUtxoData('btc', btcAddress);
 
-    await new Promise((resolve) => setTimeout(resolve, 750));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     cryptoWallet.ltc = await getUtxoData('ltc', ltcAddress);
     cryptoWallet.usdt = await getEvmData('usdt', evm);
 
@@ -38,6 +38,7 @@ export default new Elysia({prefix: '/crypto'})
     debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: cryptoWallet});
 
     setTimeout(() => {
+      if (!debounceCache[identity!.id]) return;
       debounceCache[identity!.id] = debounceCache[identity!.id].filter((item) => item.requestType !== REQUEST_TYPE);
       if (debounceCache[identity!.id].length === 0) delete debounceCache[identity!.id];
     }, DEBOUNCE_DURATION);

@@ -190,6 +190,58 @@ export interface Inbox {
   drafts: Email[];
 }
 
+export type CryptoFees = {[key in Coins]: number};
+
+export type CryptoPrices = {
+  [key in Coins]: {
+    daily_change: number;
+    to_usd: number;
+    chart: number[];
+  };
+};
+
+export type UTXOData = {txid: string; vout: number; value: number}[];
+export type TransactionsHistory = {
+  txid: string;
+  type: 'sent' | 'received';
+  counterparty: string;
+  amount: number;
+  date: Date;
+}[];
+
+export type CryptoWallet = {
+  btc: {
+    status: string;
+    balance: number;
+    utxos: UTXOData;
+    history: TransactionsHistory;
+  };
+  ltc: {
+    status: string;
+    balance: number;
+    utxos: UTXOData;
+    history: TransactionsHistory;
+  };
+  eth: {
+    status: string;
+    balance: number;
+    nonce: number;
+    history: TransactionsHistory;
+  };
+  usdt: {
+    status: string;
+    balance: number;
+    nonce: number;
+    history: TransactionsHistory;
+  };
+  xmr: {
+    status: string;
+    starting_date: Date;
+    node_url: string;
+  };
+};
+
+// Will fix this mess one day
 export interface APIResponse {
   err: string;
   accounts: Account[];
@@ -230,6 +282,9 @@ export interface APIResponse {
   messageSent: Message;
   conversation: Message[];
   sid: string;
+  prices: CryptoPrices;
+  fees: CryptoFees;
+  wallet: CryptoWallet;
 }
 
 export interface WebSocketMessage {

@@ -1,10 +1,10 @@
 import {ImapSimple} from 'imap-simple';
 import {ElysiaWS} from 'elysia/ws';
 
-export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
 export type User = {email: string; id: string} | undefined;
 export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
 export type Attachment = {filename: string; data: string};
+export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
 
 export interface DebounceCacheRequests {
   [identityID: string]: {

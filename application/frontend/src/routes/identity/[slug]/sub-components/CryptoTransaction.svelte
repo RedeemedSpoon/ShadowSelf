@@ -1,11 +1,13 @@
 <script lang="ts">
   import type {Writable} from 'svelte/store';
+  import type {APIResponse} from '$type';
 
   interface Props {
     mode: Writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'gift' | 'swap'>;
+    crypto: APIResponse;
   }
 
-  let {mode}: Props = $props();
+  let {mode, crypto}: Props = $props();
 </script>
 
 {#if $mode === 'invoice'}
