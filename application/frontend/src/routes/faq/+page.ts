@@ -27,7 +27,7 @@ export const load: PageLoad = () => {
       {
         question: 'How much does ShadowSelf cost?',
         answer:
-          "We keep it affordable. You can choose from a monthly plan for $5, an annual plan for $50, or a lifetime plan for $200. If you pay with crypto (BTC, LTC, XMR, USDT), we give you a 20% discount across the board. That drops the price to €4/month, €40/year, or €160 for lifetime. It's cheaper, more private, and helps support the ecosystem we're all trying to build.",
+          "We keep it affordable. You can choose from a monthly plan for $5, an annual plan for $50, or a lifetime plan for $200. If you pay with crypto (BTC, LTC, XMR, ETH, USDT), we give you a 20% discount across the board. That drops the price to €4/month, €40/year, or €160 for lifetime. It's cheaper, more private, and helps support the ecosystem we're all trying to build.",
       },
       {
         question: 'What are synthetic identities?',
@@ -72,7 +72,7 @@ export const load: PageLoad = () => {
       {
         question: 'How can I pay for an identity?',
         answer:
-          'We give you two paths: the Normie Way and the Shadow Way. The Normie Way is paying with a credit card via Stripe, quick and easy, but they know who you are. The Shadow Way is paying with crypto. To thank you for using sovereign money, you get a 20% discount if you pay with BTC, LTC, XMR, or USDT.',
+          'We give you two paths: the Normie Way and the Shadow Way. The Normie Way is paying with a credit card via Stripe, quick and easy, but they know who you are. The Shadow Way is paying with crypto. To thank you for using sovereign money, you get a 20% discount if you pay with BTC, LTC, XMR, ETH, or USDT.',
       },
       {
         question: 'Is there a mobile app for ShadowSelf?',
@@ -92,7 +92,7 @@ export const load: PageLoad = () => {
       {
         question: 'What are the third-party services used by ShadowSelf?',
         answer:
-          'We utilize a robust stack to keep you hidden. For identities, we use Gemini Nano on Banana for image generation and Twilio for phone lines. Infrastructure runs on Vultr with domains via Epik. For fiat payments, we use Stripe. Our sovereign crypto engine relies on Coinsbee for gift cards, Trocador for swaps, and data feeds/RPCs from CoinGecko, Blockchair. Plus, tons of JS libraries, obviously.',
+          'We utilize a robust stack to keep you hidden. For identities, we use Gemini Nano on Banana for image generation and Twilio for phone lines. Infrastructure runs on Vultr with domains via Epik. For fiat payments, we use Stripe. Our sovereign crypto engine relies on Coinsbee for gift cards, Trocador for swaps, market data from CoinGecko, and public RPCs nodes (such as mempool.space, litecoinspace.org and eth.blockscout.com).',
       },
       {
         question: 'Can I integrate ShadowSelf with other infrastructures and apps?',
