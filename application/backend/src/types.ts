@@ -6,6 +6,13 @@ export type User = {email: string; id: string} | undefined;
 export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
 export type Attachment = {filename: string; data: string};
 
+export interface DebounceCacheRequests {
+  [identityID: string]: {
+    requestType: string;
+    data: unknown;
+  }[];
+}
+
 export interface WSConnection {
   imapConnection: ImapSimple;
   websocket: ElysiaWS;

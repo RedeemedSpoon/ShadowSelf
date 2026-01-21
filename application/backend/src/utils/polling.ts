@@ -130,39 +130,61 @@ export async function getXmrNode() {
 }
 
 // --- BACKGROUND WORKERS (FEES & PRICES) ---
-async function pollPrices() {
-  const response = await fetch(COINGECKO_BASE + COINGECKO_PARAMS);
-  if (!response.ok) return;
-
-  const data = (await response.json()) as CoinGeckoResponse;
-
-  data.forEach((element) => {
-    cryptoPrices[element.id] = {
-      daily_change: element.price_change_percentage_24h,
-      to_usd: element.current_price,
-      chart: element.sparkline_in_7d.price,
-    };
-  });
+async function safeFetch(url: string, fallback: any, options?: RequestInit) {
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      console.warn(`[API Fail] ${url} returned ${res.status}`);
+      return fallback;
+    }
+    return await res.json();
+  } catch (e) {
+    console.error(`[API Error] ${url} -`, e);
+    return fallback;
+  }
 }
 
 async function pollFees() {
+  const btcFallback = {halfHourFee: 0};
+  const ethFallback = {gas_prices: {average: 0}};
+  const xmrFallback = {result: {fee: 0}};
+
   const [btcRes, ltcRes, ethRes] = await Promise.all([
-    fetch(`${BTC_API}/v1/fees/recommended`).then((r) => r.json()),
-    fetch(`${LTC_API}/v1/fees/recommended`).then((r) => r.json()),
-    fetch(`${ETH_API}/v2/stats`).then((r) => r.json()),
+    safeFetch(`${BTC_API}/v1/fees/recommended`, btcFallback),
+    safeFetch(`${LTC_API}/v1/fees/recommended`, btcFallback),
+    safeFetch(`${ETH_API}/v2/stats`, ethFallback),
   ]);
 
-  const xmrRes = await fetch(XMR_NODE, {
+  const xmrRes = await safeFetch(XMR_NODE, xmrFallback, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({jsonrpc: '2.0', id: '0', method: 'get_fee_estimate'}),
-  }).then((r) => r.json());
+  });
 
   cryptoFees.btc = btcRes.halfHourFee;
   cryptoFees.ltc = ltcRes.halfHourFee;
-  cryptoFees.eth = ethRes.gas_prices.average;
-  cryptoFees.usdt = ethRes.gas_prices.average;
+  cryptoFees.eth = ethRes.gas_prices?.average;
+  cryptoFees.usdt = ethRes.gas_prices?.average;
   cryptoFees.xmr = xmrRes.result?.fee || 0;
+}
+
+async function pollPrices() {
+  try {
+    const response = await fetch(COINGECKO_BASE + COINGECKO_PARAMS);
+    if (!response.ok) return;
+
+    const data = (await response.json()) as CoinGeckoResponse;
+
+    data.forEach((element) => {
+      cryptoPrices[element.id] = {
+        daily_change: element.price_change_percentage_24h,
+        to_usd: element.current_price,
+        chart: element.sparkline_in_7d.price,
+      };
+    });
+  } catch (e) {
+    console.error('[Prices] Failed to update:', e);
+  }
 }
 
 pollFees();

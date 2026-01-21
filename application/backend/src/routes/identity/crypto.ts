@@ -1,10 +1,10 @@
 import {cryptoPrices, cryptoFees, getUtxoData, getEvmData, getXmrNode} from '@utils/polling';
+import {sql, debounceCache} from '@utils/connection';
 import {xpubToAddress} from '@utils/cryptography';
 import {attempt, error} from '@utils/utils';
 import {CryptoWalletResponse} from '@types';
 import middleware from '@middleware-api';
 import {checkAPI} from '@utils/checks';
-import {sql} from '@utils/connection';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/crypto'})
@@ -12,7 +12,13 @@ export default new Elysia({prefix: '/crypto'})
   .get('/:id', async ({identity}) => {
     const {btc, ltc, evm} = identity?.wallet_keys!;
 
-    // Debounce Here
+    const REQUEST_TYPE = 'Wallet Overview';
+    const DEBOUNCE_DURATION = 15_000;
+
+    if (debounceCache[identity!.id]) {
+      const cachedItem = debounceCache[identity!.id].find((item) => item.requestType === REQUEST_TYPE);
+      if (cachedItem) return {prices: cryptoPrices, fees: cryptoFees, wallet: cachedItem.data};
+    }
 
     const cryptoWallet = {} as CryptoWalletResponse;
 
@@ -27,6 +33,15 @@ export default new Elysia({prefix: '/crypto'})
     cryptoWallet.usdt = await getEvmData('usdt', evm);
 
     cryptoWallet.xmr = {starting_date: identity?.creation_date!, ...(await getXmrNode())};
+
+    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
+    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: cryptoWallet});
+
+    setTimeout(() => {
+      debounceCache[identity!.id] = debounceCache[identity!.id].filter((item) => item.requestType !== REQUEST_TYPE);
+      if (debounceCache[identity!.id].length === 0) delete debounceCache[identity!.id];
+    }, DEBOUNCE_DURATION);
+
     return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};
   })
   .put('/update-blob/:id', async ({identity, body, set}) => {
