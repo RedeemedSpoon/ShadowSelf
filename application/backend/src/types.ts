@@ -225,6 +225,47 @@ export type CoinGeckoResponse = {
   };
 }[];
 
+export type UTXOData = {txid: string; vout: number; value: number}[];
+export type TransactionsHistory = {
+  txid: string;
+  type: 'sent' | 'received';
+  counterparty: string;
+  amount: number;
+  date: Date;
+}[];
+
+export type CryptoWalletResponse = {
+  btc: {
+    status: string;
+    balance: number;
+    utxos: UTXOData;
+    history: TransactionsHistory;
+  };
+  ltc: {
+    status: string;
+    balance: number;
+    utxos: UTXOData;
+    history: TransactionsHistory;
+  };
+  eth: {
+    status: string;
+    balance: number;
+    nonce: number;
+    history: TransactionsHistory;
+  };
+  usdt: {
+    status: string;
+    balance: number;
+    nonce: number;
+    history: TransactionsHistory;
+  };
+  xmr: {
+    status: string;
+    starting_date: Date;
+    node_url: string;
+  };
+};
+
 export const emailTemplate = {
   confirm: {
     title: 'Confirm Your Email Address',

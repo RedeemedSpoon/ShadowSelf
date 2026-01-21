@@ -1,6 +1,20 @@
 import {genSalt, hash, compare} from 'bcryptjs';
+import {p2wpkh} from '@scure/btc-signer';
 import {randomBytes} from 'crypto';
 import * as OTPAuth from 'otpauth';
+import {HDKey} from '@scure/bip32';
+
+const LTC_NETWORK = {bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0};
+
+export function xpubToAddress(coin: 'btc' | 'ltc', xpub: string): string {
+  const node = HDKey.fromExtendedKey(xpub);
+
+  const child = node.deriveChild(0).deriveChild(0);
+
+  if (coin === 'btc') return p2wpkh(child.publicKey!).address!;
+  if (coin === 'ltc') return p2wpkh(child.publicKey!, LTC_NETWORK).address!;
+  else return '';
+}
 
 export function createTOTP(secret: string, username: string): OTPAuth.TOTP {
   return new OTPAuth.TOTP({
