@@ -176,7 +176,7 @@ async function pollPrices() {
     const data = (await response.json()) as CoinGeckoResponse;
 
     data.forEach((element) => {
-      cryptoPrices[element.id] = {
+      cryptoPrices[element.symbol] = {
         daily_change: element.price_change_percentage_24h,
         to_usd: element.current_price,
         chart: element.sparkline_in_7d.price,

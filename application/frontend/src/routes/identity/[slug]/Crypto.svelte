@@ -1,10 +1,10 @@
 <script lang="ts">
   import {ReceiptIcon, FloppyIcon, ShuffleIcon, CameraIcon, ShopIcon} from '$icon';
   import {BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon, BackIcon} from '$icon';
-  import {ActionIcon, Modal, CopyButton, Loader} from '$component';
   import {identity, masterPassword, modalIndex} from '$store';
-  import {decrypt, deriveXPub} from '$cryptography';
+  import {ActionIcon, Modal, Loader} from '$component';
   import type {Coins, APIResponse} from '$type';
+  import {decrypt} from '$cryptography';
   import {writable} from 'svelte/store';
   import {cart, lock} from '$image';
   import {fetchAPI} from '$fetch';
@@ -33,7 +33,7 @@
     xmr: XMRIcon,
   };
 
-  const title = $derived(cryptoTitles[$currentCrypto]);
+  const title = $derived(`${cryptoTitles[$currentCrypto]} (${$currentCrypto.toUpperCase()})`);
   let anchor = $state() as HTMLAnchorElement;
 
   async function fetchWalletData() {
@@ -74,9 +74,6 @@ If a hacker finds this file, your money is gone.
     anchor.href = URL.createObjectURL(blob);
     anchor.click();
   }
-
-  function toggleDust() {}
-  function exportCSV() {}
 </script>
 
 <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-Mnemonic-Backup-Code.txt" class="hidden"></a>
@@ -98,35 +95,19 @@ If a hacker finds this file, your money is gone.
   <div id="hold-load" class="h-[40vh]"></div>
   {#await fetchWalletData()}
     <div class="flex h-[40vh] items-center justify-center">
-      <h3 class="flex items-center gap-6">
+      <h4 class="flex items-center gap-6">
         <Loader size="big" skip={true} />Fetching
-      </h3>
+      </h4>
     </div>
   {:then}
     {#if $mode === 'view'}
       <div class="mt-[5vh] mb-2 flex justify-between gap-4 max-md:flex-col md:items-center">
-        <div class="[*&>p]:text-neutral-500!">
-          <h3 class="-mb-4 text-2xl! font-semibold text-neutral-300 lg:text-3xl!">{title} Address :</h3>
-          {#if $currentCrypto === 'btc'}
-            <CopyButton alt={true} text={deriveXPub('btc', $identity.wallet_keys.btc, 0)} />
-          {:else if $currentCrypto === 'ltc'}
-            <CopyButton alt={true} text={deriveXPub('ltc', $identity.wallet_keys.ltc, 0)} />
-          {:else if $currentCrypto === 'xmr'}
-            <CopyButton
-              alt={true}
-              label={`${$identity.wallet_keys.xmr.address.slice(0, 50)}...`}
-              text={$identity.wallet_keys.xmr.address} />
-          {:else}
-            <CopyButton alt={true} text={$identity.wallet_keys.evm} />
-          {/if}
-        </div>
+        <h3 class="text-3xl! font-semibold text-neutral-300 lg:text-4xl!">{title}</h3>
         <div id="cryptocoins" class="flex">
           {#each Object.keys(cryptoIcons) as coin}
+            {@const SvelteComponent = cryptoIcons[coin as Coins]}
             <button class:selected={$currentCrypto === coin} onclick={() => ($currentCrypto = coin as Coins)}>
-              {#if currentCrypto}
-                {@const SvelteComponent = cryptoIcons[coin as Coins]}
-                <SvelteComponent />
-              {/if}
+              <SvelteComponent />
             </button>
           {/each}
         </div>
@@ -205,7 +186,7 @@ If a hacker finds this file, your money is gone.
     @apply mt-12 mb-12 flex flex-col items-center gap-8 bg-center bg-no-repeat;
   }
 
-  h3 {
+  h4 {
     @apply text-5xl text-neutral-300;
   }
 

@@ -5,6 +5,7 @@
   interface Props {
     callback: () => void;
     upperClassname?: string;
+    iconSvgClassname?: string;
     iconClassname?: string;
     className?: string;
     newText?: string;
@@ -13,10 +14,8 @@
     text: string;
   }
 
-  const {callback, icon, className, upperClassname, iconClassname, text, newText, isBox}: Props = $props();
+  const {callback, icon, className, upperClassname, iconClassname, iconSvgClassname, text, newText, isBox}: Props = $props();
 
-  let button = $state() as HTMLButtonElement;
-  let buttonText = $state() as HTMLParagraphElement;
   let isActivated = $state();
 
   function handleClick() {
@@ -26,14 +25,14 @@
   }
 </script>
 
-<button bind:this={button} type="button" onclick={handleClick} class="{upperClassname} {isBox ? 'box' : 'alt'}">
+<button type="button" onclick={handleClick} class="{upperClassname} {isBox ? 'box' : 'alt'}">
   <div class={iconClassname}>
     {#if icon}
       {@const SvelteComponent = isActivated ? CheckmarkIcon : icon}
-      <SvelteComponent />
+      <SvelteComponent {...iconSvgClassname ? {className: iconSvgClassname} : {}} />
     {/if}
   </div>
-  <p class="{className} {isBox ? 'mono' : ''}" bind:this={buttonText}>{isActivated ? newText || text : text}</p>
+  <p class="{className} {isBox ? 'mono' : ''}">{isActivated ? newText || text : text}</p>
 </button>
 
 <style lang="postcss">
