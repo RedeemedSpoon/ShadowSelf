@@ -1,6 +1,5 @@
 <script lang="ts">
-  import {ReceiptIcon, FloppyIcon, ShuffleIcon, CameraIcon, ShopIcon} from '$icon';
-  import {BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon, BackIcon} from '$icon';
+  import {ReceiptIcon, FloppyIcon, ShuffleIcon, ShopIcon, BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon, BackIcon} from '$icon';
   import {identity, masterPassword, modalIndex} from '$store';
   import {ActionIcon, Modal, Loader} from '$component';
   import type {Coins, APIResponse} from '$type';
@@ -85,7 +84,6 @@ If a hacker finds this file, your money is gone.
     {/if}
     <ActionIcon icon={FloppyIcon} action={backupKeys} title="Backup Keys" />
     <ActionIcon icon={ReceiptIcon} action={() => ($mode = 'invoice')} title="Generate PDF Invoice" />
-    <ActionIcon icon={CameraIcon} action={() => ($mode = 'sweep')} title="Sweep Wallet" />
     <ActionIcon icon={ShopIcon} action={() => ($mode = 'gift')} title="Buy Gift Cards" />
     <ActionIcon icon={ShuffleIcon} action={() => ($mode = 'swap')} title="Swap Coins" />
   </div>
@@ -141,8 +139,9 @@ If a hacker finds this file, your money is gone.
             <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
               <h3 class="text-lg font-medium text-neutral-300">2. Cash Deposit (Paper Wallet)</h3>
               <p class="text-sm text-neutral-400">
-                Bought Bitcoin at an ATM? Use the <span class="rounded bg-neutral-700 px-1 text-white">Sweep</span> action to scan your paper
-                receipt receipt. We will instantly move the funds into your secure vault.
+                Bought Bitcoin at an ATM? Click
+                <button class="alt px-0 py-0 text-sm" onclick={() => (($modalIndex = 0), ($mode = 'sweep'))}>Here</button> action to scan
+                your paper receipt receipt. We will instantly move the funds into your secure vault.
               </p>
             </div>
 
@@ -162,7 +161,7 @@ If a hacker finds this file, your money is gone.
           </div>
         </Modal>
       {:else}
-        <CryptoDashboard {currentCrypto} {crypto} {cryptoTitles} />
+        <CryptoDashboard {mode} {currentCrypto} {crypto} {cryptoTitles} />
       {/if}
     {:else}
       <CryptoServices {mode} {crypto} />

@@ -1,19 +1,20 @@
 <script lang="ts">
+  import {UpArcIcon, DownArcIcon, ExternalLinkIcon, CameraIcon} from '$icon';
   import type {APIResponse, Coins} from '$type';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
-  import {ExternalLinkIcon} from '$icon';
   import {CopyButton} from '$component';
   import {formatUSD} from '$format';
   import {identity} from '$store';
 
   interface Props {
+    mode: Writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'gift' | 'swap'>;
     cryptoTitles: {[key: string]: string};
     currentCrypto: Writable<Coins>;
     crypto: APIResponse;
   }
 
-  let {cryptoTitles, currentCrypto, crypto}: Props = $props();
+  let {cryptoTitles, currentCrypto, crypto, mode}: Props = $props();
 
   const balance: number = $derived(crypto.wallet[$currentCrypto as 'btc'].balance);
   const usdBalance: number = $derived(balance * crypto.prices[$currentCrypto].to_usd);
@@ -125,12 +126,45 @@
             <span class={weeklyGrowth > 0 ? 'up' : 'down'}>{weeklyGrowth > 0 ? '↗' : '↘'} {weeklyGrowth.toFixed(2)}%</span>
           </h3>
         </div>
-        <div id="chart" class="relative h-76 w-full">
+        <div id="chart" class="text-primary-600 relative h-76 w-full">
           <div class="top-0 border-neutral-400/75"></div>
           <div class="top-[20%] border-neutral-400/25"></div>
           <div class="top-[40%] border-neutral-400/25"></div>
           <div class="top-[60%] border-neutral-400/25"></div>
           <div class="top-[80%] border-neutral-400/75"></div>
+
+          {#if crypto.prices[$currentCrypto].chart}
+            {@const data = crypto.prices[$currentCrypto].chart}
+            {@const min = Math.min(...data)}
+            {@const max = Math.max(...data)}
+            {@const range = max - min || 1}
+
+            {@const points = data
+              .map((price, i) => {
+                const x = (i / (data.length - 1)) * 100;
+                const y = 80 - ((price - min) / range) * 75;
+                return `${x},${y}`;
+              })
+              .join(' ')}
+
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="absolute inset-0 z-10 h-full w-full overflow-visible">
+              <defs>
+                <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="currentColor" stop-opacity="0.5" />
+                  <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path d={`M 0,80 L ${points} L 100,80 Z`} fill="url(#chartGradient)" stroke="none" />
+              <polyline
+                {points}
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                vector-effect="non-scaling-stroke"
+                stroke-linejoin="round"
+                stroke-linecap="round" />
+            </svg>
+          {/if}
         </div>
       </div>
     </div>
@@ -144,6 +178,12 @@
         <b>{intelDisplay!.label}:</b>{intelDisplay!.value}
         <span class={intelDisplay!.percentile.toLowerCase()}>({intelDisplay!.percentile.trim()})</span>
       </p>
+      <h3 class="text-primary-600 my-4 text-2xl font-semibold">Quick Actions</h3>
+      <div id="action-buttons" class="flex w-4/5 flex-col gap-y-4">
+        <button onclick={() => ($mode = 'send')}><UpArcIcon />Send {cryptoTitles[$currentCrypto]}</button>
+        <button onclick={() => ($mode = 'receive')}><DownArcIcon />Receive {cryptoTitles[$currentCrypto]}</button>
+        <button onclick={() => ($mode = 'sweep')}><CameraIcon />Sweep {$currentCrypto.toUpperCase()} Paper Wallet</button>
+      </div>
     </div>
   </div>
   <div id="bottom-section"></div>
@@ -155,6 +195,10 @@
   #left-section p,
   #right-section p {
     @apply flex gap-2 text-neutral-300;
+  }
+
+  #action-buttons button {
+    @apply flex gap-2 from-neutral-800/50 to-neutral-700/50 font-semibold shadow-neutral-900 hover:shadow-neutral-950;
   }
 
   b {
