@@ -2,15 +2,18 @@
   import type {APIResponse, Coins} from '$type';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
+  import {ExternalLinkIcon} from '$icon';
   import {CopyButton} from '$component';
+  import {formatUSD} from '$format';
   import {identity} from '$store';
 
   interface Props {
+    cryptoTitles: {[key: string]: string};
     currentCrypto: Writable<Coins>;
     crypto: APIResponse;
   }
 
-  let {currentCrypto, crypto}: Props = $props();
+  let {cryptoTitles, currentCrypto, crypto}: Props = $props();
 
   const balance: number = $derived(crypto.wallet[$currentCrypto as 'btc'].balance);
   const usdBalance: number = $derived(balance * crypto.prices[$currentCrypto].to_usd);
@@ -72,12 +75,20 @@
       }
     })(),
   );
+
+  const weeklyGrowth: number = $derived(
+    (() => {
+      const currentPrice = crypto.prices[$currentCrypto].to_usd;
+      const price7dAgo = crypto.prices[$currentCrypto].chart[0];
+      return ((currentPrice - price7dAgo) / price7dAgo) * 100;
+    })(),
+  );
 </script>
 
 <section class="my-8">
   <div id="top-section" class="flex justify-between">
     <div id="left-section" class="w-2/3">
-      <p><b>Balance:</b>{balance} {$currentCrypto.toUpperCase()} <span class="text-neutral-500">({usdBalance.toFixed(2)}$)</span></p>
+      <p><b>Balance:</b>{balance} {$currentCrypto.toUpperCase()} <span class="text-neutral-500">({formatUSD(usdBalance)})</span></p>
       <p class="w-1/3">
         <b>Address:</b>
         {#if $currentCrypto === 'btc'}
@@ -96,8 +107,32 @@
       </p>
       <p>
         <b>Growth (24h):</b>
-        <span class={growthClass}>{growthClass === 'up' ? '↗' : '↘'} {crypto.prices[$currentCrypto].daily_change.toFixed(3)}%</span>
+        <span class={growthClass}>{growthClass === 'up' ? '↗' : '↘'} {crypto.prices[$currentCrypto].daily_change.toFixed(2)}%</span>
       </p>
+      <div class="w-3/4">
+        <div class="mt-4 flex items-end justify-between">
+          <h3 class="text-primary-600 text-2xl font-semibold">
+            Price Chart <span class="text-lg text-neutral-500">(last 7 days)</span>
+          </h3>
+          <a class="group flex gap-1" href="https://www.coingecko.com/en/coins/{cryptoTitles[$currentCrypto].toLowerCase()}">
+            More Metrics <ExternalLinkIcon
+              className={'w-4! h-4! transition-colors duration-300 stroke-primary-600 group-hover:stroke-primary-700'} />
+          </a>
+        </div>
+        <div class="mb-6">
+          <h3>
+            <span class="text-xl text-neutral-200">{formatUSD(crypto.prices[$currentCrypto].to_usd)}</span>
+            <span class={weeklyGrowth > 0 ? 'up' : 'down'}>{weeklyGrowth > 0 ? '↗' : '↘'} {weeklyGrowth.toFixed(2)}%</span>
+          </h3>
+        </div>
+        <div id="chart" class="relative h-76 w-full">
+          <div class="top-0 border-neutral-400/75"></div>
+          <div class="top-[20%] border-neutral-400/25"></div>
+          <div class="top-[40%] border-neutral-400/25"></div>
+          <div class="top-[60%] border-neutral-400/25"></div>
+          <div class="top-[80%] border-neutral-400/75"></div>
+        </div>
+      </div>
     </div>
     <div id="right-section" class="w-1/3">
       <p>
@@ -117,13 +152,17 @@
 <style lang="postcss">
   @reference "$style";
 
+  #left-section p,
+  #right-section p {
+    @apply flex gap-2 text-neutral-300;
+  }
+
   b {
     @apply text-primary-600;
   }
 
-  #left-section p,
-  #right-section p {
-    @apply flex gap-2 text-neutral-300;
+  #chart > div {
+    @apply absolute right-0 left-0 border-t-2;
   }
 
   .up,
@@ -136,13 +175,13 @@
     @apply text-green-600;
   }
 
-  .down,
   .fragmented,
   .active,
   .avg {
     @apply text-amber-600;
   }
 
+  .down,
   .network-error,
   .bloated,
   .high {

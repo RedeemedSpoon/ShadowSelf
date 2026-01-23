@@ -11,6 +11,15 @@ export function formatCasing(sentence: string): string {
     .join(' ');
 }
 
+export function formatUSD(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
 export function formatDate(stringDate: string): string {
   const date = new Date(stringDate).toLocaleString().split(', ');
   if (date[0] !== new Date().toLocaleString().split(', ')[0]) return date[0];

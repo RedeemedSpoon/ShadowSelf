@@ -162,7 +162,7 @@ If a hacker finds this file, your money is gone.
           </div>
         </Modal>
       {:else}
-        <CryptoDashboard {currentCrypto} {crypto} />
+        <CryptoDashboard {currentCrypto} {crypto} {cryptoTitles} />
       {/if}
     {:else}
       <CryptoServices {mode} {crypto} />
