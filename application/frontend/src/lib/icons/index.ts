@@ -57,6 +57,7 @@ export {default as ShopIcon} from './wallet/Shop.svelte';
 
 export {default as BoltIcon} from './crypto/Bolt.svelte';
 export {default as HashIcon} from './crypto/Hash.svelte';
+export {default as ClockIcon} from './crypto/Clock.svelte';
 export {default as ChartIcon} from './crypto/Chart.svelte';
 export {default as StackIcon} from './crypto/Stack.svelte';
 export {default as ActivityIcon} from './crypto/Activity.svelte';

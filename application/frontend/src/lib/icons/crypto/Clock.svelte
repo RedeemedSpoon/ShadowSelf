@@ -1,5 +1,5 @@
 <script lang="ts">
-  let {className = 'w-6! h-6! mt-2 cursor-default'}: {className?: string | undefined} = $props();
+  let {className = 'cursor-default'}: {className?: string | undefined} = $props();
 </script>
 
 <svg
@@ -9,5 +9,5 @@
   stroke-linecap="round"
   stroke-linejoin="round"
   class={className + ' small-icon fill-none stroke-current'}>
-  <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 6l-8 4l8 4l8 -4l-8 -4" /><path d="M4 14l8 4l8 -4" />
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" />
 </svg>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  let {className}: {className?: string | undefined} = $props();
+  let {className = 'cursor-default'}: {className?: string | undefined} = $props();
 </script>
 
 <svg

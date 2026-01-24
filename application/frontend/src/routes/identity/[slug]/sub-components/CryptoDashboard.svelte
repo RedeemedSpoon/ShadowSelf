@@ -1,11 +1,11 @@
 <script lang="ts">
-  import {BoltIcon, HashIcon, ChartIcon, StackIcon, ActivityIcon, BroadcastIcon, GasStationIcon} from '$icon';
-  import {UpArcIcon, DownArcIcon, ExternalLinkIcon, CameraIcon, WalletIcon} from '$icon';
+  import {BoltIcon, HashIcon, ChartIcon, StackIcon, ActivityIcon, BroadcastIcon, GasStationIcon, ClockIcon} from '$icon';
+  import {UpArcIcon, DownArcIcon, ExternalLinkIcon, CameraIcon, WalletIcon, BroomIcon, SpreadSheetIcon} from '$icon';
   import type {APIResponse, Coins} from '$type';
+  import {formatUSD, formatDate} from '$format';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
   import {CopyButton} from '$component';
-  import {formatUSD} from '$format';
   import {identity} from '$store';
 
   interface Props {
@@ -16,6 +16,25 @@
   }
 
   let {cryptoTitles, currentCrypto, crypto, mode}: Props = $props();
+
+  const externalUrl = $derived(
+    (() => {
+      switch ($currentCrypto) {
+        case 'btc':
+          return 'https://mempool.space/tx/';
+        case 'ltc':
+          return 'https://litecoinspace.org/tx/';
+        case 'eth':
+          return 'https://eth.blockscout.com/tx/';
+        case 'usdt':
+          return 'https://eth.blockscout.com/tx/';
+        case 'xmr':
+          return 'https://xmrchain.net/tx/';
+        default:
+          return '#';
+      }
+    })(),
+  );
 
   const balance: number = $derived(crypto.wallet[$currentCrypto as 'btc'].balance);
   const usdBalance: number = $derived(balance * crypto.prices[$currentCrypto].to_usd);
@@ -85,13 +104,20 @@
       return ((currentPrice - price7dAgo) / price7dAgo) * 100;
     })(),
   );
+
+  function copyCounterparty(counterparty: string) {
+    navigator.clipboard.writeText(counterparty);
+    const element = document.querySelector(`#counterparty-${counterparty}`) as HTMLTableCellElement;
+    element.innerText = 'Copied to clipboard!            '; // Intentional Space
+    setTimeout(() => (element.innerText = counterparty), 1000);
+  }
 </script>
 
-<section class="my-8">
-  <div id="top-section" class="flex justify-between">
+<section class="my-6">
+  <div id="top-section" class="-mb-10 flex justify-between">
     <div id="left-section" class="w-2/3">
       <p>
-        <b><WalletIcon className="w-6! h-6! mt-2" />Balance:</b>{balance}
+        <b><WalletIcon className="w-6! h-6! mt-2 cursor-default" />Balance:</b>{balance}
         {$currentCrypto.toUpperCase()} <span class="text-neutral-500">({formatUSD(usdBalance)})</span>
       </p>
       <p class="w-1/3">
@@ -196,7 +222,47 @@
       </div>
     </div>
   </div>
-  <div id="bottom-section"></div>
+  <div id="bottom-section">
+    <div class="flex justify-between">
+      <h3 class="text-primary-600 my-4 flex gap-x-1.5 text-2xl font-semibold"><ClockIcon />Transaction History</h3>
+      <div id="table-actions" class="flex items-center gap-x-2">
+        <button onclick={() => null}><BroomIcon />Toggle Dust Transactions</button>
+        <div class="font-bold text-neutral-500 select-none">|</div>
+        <button onclick={() => null}><SpreadSheetIcon />Export to CSV</button>
+      </div>
+    </div>
+    <table class="w-full border-collapse border border-neutral-800 bg-neutral-900/20 text-left text-sm">
+      <thead class="bg-neutral-900/80 text-xs font-medium tracking-wider text-neutral-500 uppercase">
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>To/From</th>
+          <th>TXID</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-neutral-800">
+        {#each crypto.wallet[$currentCrypto as 'btc'].history as transaction}
+          <tr class="transition-colors hover:bg-neutral-800/40">
+            <td class="text-xs font-bold tracking-wide uppercase {transaction.type}">{transaction.type}</td>
+            <td class="font-medium text-neutral-300">{transaction.amount}</td>
+            <td class="whitespace-nowrap text-neutral-400">{formatDate(transaction.date.toString())}</td>
+            <td
+              id="counterparty-{transaction.counterparty}"
+              class="max-w-[200px] cursor-pointer font-mono font-medium text-neutral-300"
+              onclick={() => copyCounterparty(transaction.counterparty)}
+              title={transaction.counterparty}>
+              {transaction.counterparty}</td>
+            <td class="max-w-[120px] font-mono text-neutral-500" title={transaction.txid}>
+              <a target="_blank" href={externalUrl + transaction.txid} class="group flex"
+                >{transaction.txid.slice(0, 15)}...<ExternalLinkIcon
+                  className="h-3.5! w-3.5! stroke-primary-600 group-hover:stroke-primary-700 transition-colors duration-300" /></a
+              ></td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <style lang="postcss">
@@ -211,8 +277,20 @@
     @apply flex gap-2 from-neutral-800/50 to-neutral-700/50 font-semibold shadow-neutral-900 hover:shadow-neutral-950;
   }
 
+  #table-actions button {
+    @apply alt flex gap-1 px-0 py-0 text-lg font-semibold;
+  }
+
   b {
     @apply text-primary-600 flex gap-x-1.5;
+  }
+
+  thead th {
+    @apply border-b border-neutral-800 px-6 py-3;
+  }
+
+  td {
+    @apply truncate px-6 py-4;
   }
 
   #chart > div {
@@ -229,6 +307,7 @@
   .synced,
   .optimized,
   .network-operational,
+  .received,
   .low {
     @apply text-green-600;
   }
@@ -242,6 +321,7 @@
   .down,
   .network-error,
   .bloated,
+  .sent,
   .high {
     @apply text-red-600;
   }

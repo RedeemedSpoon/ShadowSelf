@@ -1,5 +1,5 @@
 <script lang="ts">
-  let {className = 'w-6! h-6! mt-2'}: {className?: string | undefined} = $props();
+  let {className = 'w-6! h-6! mt-2 cursor-default'}: {className?: string | undefined} = $props();
 </script>
 
 <svg
