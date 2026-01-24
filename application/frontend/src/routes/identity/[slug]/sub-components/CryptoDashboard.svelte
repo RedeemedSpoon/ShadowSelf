@@ -1,5 +1,6 @@
 <script lang="ts">
-  import {UpArcIcon, DownArcIcon, ExternalLinkIcon, CameraIcon} from '$icon';
+  import {BoltIcon, HashIcon, ChartIcon, StackIcon, ActivityIcon, BroadcastIcon, GasStationIcon} from '$icon';
+  import {UpArcIcon, DownArcIcon, ExternalLinkIcon, CameraIcon, WalletIcon} from '$icon';
   import type {APIResponse, Coins} from '$type';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
@@ -89,9 +90,12 @@
 <section class="my-8">
   <div id="top-section" class="flex justify-between">
     <div id="left-section" class="w-2/3">
-      <p><b>Balance:</b>{balance} {$currentCrypto.toUpperCase()} <span class="text-neutral-500">({formatUSD(usdBalance)})</span></p>
+      <p>
+        <b><WalletIcon className="w-6! h-6! mt-2" />Balance:</b>{balance}
+        {$currentCrypto.toUpperCase()} <span class="text-neutral-500">({formatUSD(usdBalance)})</span>
+      </p>
       <p class="w-1/3">
-        <b>Address:</b>
+        <b><HashIcon />Address:</b>
         {#if $currentCrypto === 'btc'}
           {@const btc = deriveXPub('btc', $identity.wallet_keys.btc, 0)}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${btc.slice(0, 20)}...`} text={btc} />
@@ -107,13 +111,13 @@
         {/if}
       </p>
       <p>
-        <b>Growth (24h):</b>
+        <b><ActivityIcon />Growth (24h):</b>
         <span class={growthClass}>{growthClass === 'up' ? '↗' : '↘'} {crypto.prices[$currentCrypto].daily_change.toFixed(2)}%</span>
       </p>
       <div class="w-3/4">
         <div class="mt-4 flex items-end justify-between">
-          <h3 class="text-primary-600 text-2xl font-semibold">
-            Price Chart <span class="text-lg text-neutral-500">(last 7 days)</span>
+          <h3 class="text-primary-600 flex gap-x-1.5 text-2xl font-semibold">
+            <ChartIcon />Price Chart <span class="text-lg text-neutral-500">(last 7 days)</span>
           </h3>
           <a class="group flex gap-1" href="https://www.coingecko.com/en/coins/{cryptoTitles[$currentCrypto].toLowerCase()}">
             More Metrics <ExternalLinkIcon
@@ -122,21 +126,17 @@
         </div>
         <div class="mb-6">
           <h3>
+            {$currentCrypto.toUpperCase()}/USD
             <span class="text-xl text-neutral-200">{formatUSD(crypto.prices[$currentCrypto].to_usd)}</span>
             <span class={weeklyGrowth > 0 ? 'up' : 'down'}>{weeklyGrowth > 0 ? '↗' : '↘'} {weeklyGrowth.toFixed(2)}%</span>
           </h3>
         </div>
         <div id="chart" class="text-primary-600 relative h-76 w-full">
-          <div class="top-0 border-neutral-400/75"></div>
-          <div class="top-[20%] border-neutral-400/25"></div>
-          <div class="top-[40%] border-neutral-400/25"></div>
-          <div class="top-[60%] border-neutral-400/25"></div>
-          <div class="top-[80%] border-neutral-400/75"></div>
-
           {#if crypto.prices[$currentCrypto].chart}
             {@const data = crypto.prices[$currentCrypto].chart}
             {@const min = Math.min(...data)}
             {@const max = Math.max(...data)}
+            {@const mid = (max + min) / 2}
             {@const range = max - min || 1}
 
             {@const points = data
@@ -146,6 +146,16 @@
                 return `${x},${y}`;
               })
               .join(' ')}
+
+            <div class="top-0 border-neutral-400/75"></div>
+            <div class="top-[20%] border-neutral-400/25"></div>
+            <div class="top-[40%] border-neutral-400/25"></div>
+            <div class="top-[60%] border-neutral-400/25"></div>
+            <div class="top-[80%] border-neutral-400/75"></div>
+
+            <p class="-top-3">{formatUSD(max)}</p>
+            <p class="top-[37%]">{formatUSD(mid)}</p>
+            <p class="top-[77%]">{formatUSD(min)}</p>
 
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="absolute inset-0 z-10 h-full w-full overflow-visible">
               <defs>
@@ -170,15 +180,15 @@
     </div>
     <div id="right-section" class="w-1/3">
       <p>
-        <b>Fees:</b><span class={feesPercentile.toLowerCase()}>{feesPercentile}</span>
+        <b><GasStationIcon />Fees:</b><span class={feesPercentile.toLowerCase()}>{feesPercentile}</span>
         <span class="text-neutral-500">({crypto.fees[$currentCrypto]} {feesLabel} or {feesUsd})</span>
       </p>
-      <p><b>Status:</b><span class={statusClass}>{crypto.wallet[$currentCrypto].status}</span></p>
+      <p><b><BroadcastIcon />Status:</b><span class={statusClass}>{crypto.wallet[$currentCrypto].status}</span></p>
       <p>
-        <b>{intelDisplay!.label}:</b>{intelDisplay!.value}
+        <b><StackIcon />{intelDisplay!.label}:</b>{intelDisplay!.value}
         <span class={intelDisplay!.percentile.toLowerCase()}>({intelDisplay!.percentile.trim()})</span>
       </p>
-      <h3 class="text-primary-600 my-4 text-2xl font-semibold">Quick Actions</h3>
+      <h3 class="text-primary-600 my-4 flex gap-x-1.5 text-2xl font-semibold"><BoltIcon />Quick Actions</h3>
       <div id="action-buttons" class="flex w-4/5 flex-col gap-y-4">
         <button onclick={() => ($mode = 'send')}><UpArcIcon />Send {cryptoTitles[$currentCrypto]}</button>
         <button onclick={() => ($mode = 'receive')}><DownArcIcon />Receive {cryptoTitles[$currentCrypto]}</button>
@@ -202,11 +212,15 @@
   }
 
   b {
-    @apply text-primary-600;
+    @apply text-primary-600 flex gap-x-1.5;
   }
 
   #chart > div {
     @apply absolute right-0 left-0 border-t-2;
+  }
+
+  #chart > p {
+    @apply absolute right-0 bg-neutral-900 px-1 font-mono text-xs text-neutral-500;
   }
 
   .up,

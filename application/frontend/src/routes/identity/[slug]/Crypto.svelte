@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {ReceiptIcon, FloppyIcon, ShuffleIcon, ShopIcon, BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon, BackIcon} from '$icon';
+  import {ReceiptIcon, FloppyIcon, ShuffleIcon, ShopIcon, BackIcon, BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
   import {identity, masterPassword, modalIndex} from '$store';
   import {ActionIcon, Modal, Loader} from '$component';
   import type {Coins, APIResponse} from '$type';
@@ -139,7 +139,7 @@ If a hacker finds this file, your money is gone.
             <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
               <h3 class="text-lg font-medium text-neutral-300">2. Cash Deposit (Paper Wallet)</h3>
               <p class="text-sm text-neutral-400">
-                Bought Bitcoin at an ATM? Click
+                Bought Crypto at an ATM? Click
                 <button class="alt px-0 py-0 text-sm" onclick={() => (($modalIndex = 0), ($mode = 'sweep'))}>Here</button> action to scan
                 your paper receipt receipt. We will instantly move the funds into your secure vault.
               </p>

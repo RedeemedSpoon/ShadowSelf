@@ -55,6 +55,14 @@ export {default as BroomIcon} from './wallet/Broom.svelte';
 export {default as UpArcIcon} from './wallet/UpArc.svelte';
 export {default as ShopIcon} from './wallet/Shop.svelte';
 
+export {default as BoltIcon} from './crypto/Bolt.svelte';
+export {default as HashIcon} from './crypto/Hash.svelte';
+export {default as ChartIcon} from './crypto/Chart.svelte';
+export {default as StackIcon} from './crypto/Stack.svelte';
+export {default as ActivityIcon} from './crypto/Activity.svelte';
+export {default as BroadcastIcon} from './crypto/Broadcast.svelte';
+export {default as GasStationIcon} from './crypto/Gas-Station.svelte';
+
 export {default as WWWIcon} from './communication/WWW.svelte';
 export {default as SendIcon} from './communication/Send.svelte';
 export {default as TrashIcon} from './communication/Trash.svelte';
