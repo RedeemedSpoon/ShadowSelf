@@ -17,6 +17,14 @@
 
   let {cryptoTitles, currentCrypto, crypto, mode}: Props = $props();
 
+  let anchor = $state() as HTMLAnchorElement;
+  const filename = $derived(`ShadowSelf-${$currentCrypto.toUpperCase()}-Transaction-History.csv`);
+
+  const balance: number = $derived(crypto.wallet[$currentCrypto as 'btc'].balance);
+  const usdBalance: number = $derived(balance * crypto.prices[$currentCrypto].to_usd);
+  const statusClass: string = $derived(crypto.wallet[$currentCrypto].status.toLowerCase().replaceAll(' ', '-'));
+  const growthClass: string = $derived(crypto.prices[$currentCrypto].daily_change > 0 ? 'up' : 'down');
+
   const externalUrl = $derived(
     (() => {
       switch ($currentCrypto) {
@@ -30,16 +38,9 @@
           return 'https://eth.blockscout.com/tx/';
         case 'xmr':
           return 'https://xmrchain.net/tx/';
-        default:
-          return '#';
       }
     })(),
   );
-
-  const balance: number = $derived(crypto.wallet[$currentCrypto as 'btc'].balance);
-  const usdBalance: number = $derived(balance * crypto.prices[$currentCrypto].to_usd);
-  const statusClass: string = $derived(crypto.wallet[$currentCrypto].status.toLowerCase().replaceAll(' ', '-'));
-  const growthClass: string = $derived(crypto.prices[$currentCrypto].daily_change > 0 ? 'up' : 'down');
 
   const rate = $derived(crypto.fees[$currentCrypto]);
   const feesLabel = $derived(
@@ -110,6 +111,42 @@
     const element = document.querySelector(`#counterparty-${counterparty}`) as HTMLTableCellElement;
     element.innerText = 'Copied to clipboard!            '; // Intentional Space
     setTimeout(() => (element.innerText = counterparty), 1000);
+  }
+
+  function toggleDustTransactions() {
+    const excludeTransactionIndexes = [] as number[];
+    const tableElements = document.querySelectorAll('tbody tr') as NodeListOf<HTMLTableRowElement>;
+
+    const transactionHistory = crypto.wallet[$currentCrypto as 'btc'].history;
+    const usdDustThreshold = 1.0;
+
+    for (const i in transactionHistory) {
+      const transactionAmount = transactionHistory[i].amount;
+      const currentCryptoPrice = crypto.prices[$currentCrypto].to_usd;
+      const usdtransactionAmount = transactionAmount * currentCryptoPrice;
+
+      if (usdtransactionAmount < usdDustThreshold) {
+        excludeTransactionIndexes.push(Number(i));
+      }
+    }
+
+    for (const i of excludeTransactionIndexes) {
+      tableElements[i].classList.toggle('hidden');
+    }
+  }
+
+  function exportCSV() {
+    const transactionHistory = crypto.wallet[$currentCrypto as 'btc'].history;
+    let csv = 'Date,Type,Amount,Counterparty,TXID';
+
+    for (const t of transactionHistory) {
+      const row = [new Date(t.date).toISOString(), t.type, t.amount, t.counterparty, t.txid];
+      csv += '\n' + row.join(',');
+    }
+
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    anchor.href = URL.createObjectURL(blob);
+    anchor.click();
   }
 </script>
 
@@ -224,11 +261,12 @@
   </div>
   <div id="bottom-section">
     <div class="flex justify-between">
+      <a bind:this={anchor} aria-label="Download" href="/" download={filename} class="hidden"></a>
       <h3 class="text-primary-600 my-4 flex gap-x-1.5 text-2xl font-semibold"><ClockIcon />Transaction History</h3>
       <div id="table-actions" class="flex items-center gap-x-2">
-        <button onclick={() => null}><BroomIcon />Toggle Dust Transactions</button>
+        <button onclick={toggleDustTransactions}><BroomIcon />Toggle Dust Transactions</button>
         <div class="font-bold text-neutral-500 select-none">|</div>
-        <button onclick={() => null}><SpreadSheetIcon />Export to CSV</button>
+        <button onclick={exportCSV}><SpreadSheetIcon />Export to CSV</button>
       </div>
     </div>
     <table class="w-full border-collapse border border-neutral-800 bg-neutral-900/20 text-left text-sm">
@@ -246,7 +284,7 @@
           <tr class="transition-colors hover:bg-neutral-800/40">
             <td class="text-xs font-bold tracking-wide uppercase {transaction.type}">{transaction.type}</td>
             <td class="font-medium text-neutral-300">{transaction.amount}</td>
-            <td class="whitespace-nowrap text-neutral-400">{formatDate(transaction.date.toString())}</td>
+            <td class="whitespace-nowrap text-neutral-400">{formatDate(new Date(transaction.date).toString())}</td>
             <td
               id="counterparty-{transaction.counterparty}"
               class="max-w-[200px] cursor-pointer font-mono font-medium text-neutral-300"
@@ -254,14 +292,15 @@
               title={transaction.counterparty}>
               {transaction.counterparty}</td>
             <td class="max-w-[120px] font-mono text-neutral-500" title={transaction.txid}>
-              <a target="_blank" href={externalUrl + transaction.txid} class="group flex"
-                >{transaction.txid.slice(0, 15)}...<ExternalLinkIcon
-                  className="h-3.5! w-3.5! stroke-primary-600 group-hover:stroke-primary-700 transition-colors duration-300" /></a
-              ></td>
+              <a target="_blank" href={externalUrl + transaction.txid} class="group flex">
+                {transaction.txid.slice(0, 15)}...<ExternalLinkIcon
+                  className="h-3.5! w-3.5! stroke-primary-600 group-hover:stroke-primary-700 transition-colors duration-300" /></a>
+            </td>
           </tr>
         {/each}
       </tbody>
     </table>
+    <small class="mt-2 flex w-full justify-center text-neutral-500">Showing the latest 50 Transactions</small>
   </div>
 </section>
 
@@ -278,7 +317,7 @@
   }
 
   #table-actions button {
-    @apply alt flex gap-1 px-0 py-0 text-lg font-semibold;
+    @apply alt flex items-center gap-1 px-0 py-0 text-lg font-semibold;
   }
 
   b {

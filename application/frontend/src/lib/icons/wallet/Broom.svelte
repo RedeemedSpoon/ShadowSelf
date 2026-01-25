@@ -1,5 +1,5 @@
 <script lang="ts">
-  let {className = 'w-7! h-7! -mr-1'}: {className?: string | undefined} = $props();
+  let {className = 'w-5! h-5! -mr-[2px]'}: {className?: string | undefined} = $props();
 </script>
 
 <svg
@@ -7,7 +7,7 @@
   viewBox="0 0 24 24"
   fill="none"
   stroke="currentColor"
-  stroke-width="3"
+  stroke-width="2"
   stroke-linecap="round"
   stroke-linejoin="round"
   class={className + ' small-icon fill-none stroke-current'}>
