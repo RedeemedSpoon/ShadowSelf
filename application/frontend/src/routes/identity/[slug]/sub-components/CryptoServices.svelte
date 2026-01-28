@@ -14,4 +14,6 @@
   <h3>Buy Gift Cards</h3>
 {:else if $mode === 'swap'}
   <h3>Swap Coins</h3>
+{:else if $mode === 'invoice'}
+  <h3>Generate PDF Invoice</h3>
 {/if}

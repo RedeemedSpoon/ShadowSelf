@@ -111,7 +111,7 @@ If a hacker finds this file, your money is gone.
         </div>
       </div>
 
-      {#if crypto.wallet[$currentCrypto as 'btc'].history.length === 0 || crypto.wallet[$currentCrypto as 'btc'].balance === 0}
+      {#if crypto.wallet[$currentCrypto as 'btc'].history.length === 0}
         <section id="no-funds" style="background-image: url({cart});">
           <h2 class="mt-12 text-5xl text-neutral-300">No Funds</h2>
           <p class="text-center md:w-1/2">
@@ -164,8 +164,8 @@ If a hacker finds this file, your money is gone.
         <CryptoDashboard {mode} {currentCrypto} {crypto} {cryptoTitles} />
       {/if}
     {:else}
+      <CryptoTransaction {mode} {crypto} {currentCrypto} {cryptoTitles} />
       <CryptoServices {mode} {crypto} />
-      <CryptoTransaction {mode} {crypto} />
     {/if}
   {/await}
 {:else}
