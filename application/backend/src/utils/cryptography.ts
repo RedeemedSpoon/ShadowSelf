@@ -6,10 +6,9 @@ import {HDKey} from '@scure/bip32';
 
 const LTC_NETWORK = {bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0};
 
-export function xpubToAddress(coin: 'btc' | 'ltc', xpub: string): string {
+export function xpubToAddress(coin: 'btc' | 'ltc', xpub: string, index: number = 0): string {
   const node = HDKey.fromExtendedKey(xpub);
-
-  const child = node.deriveChild(0).deriveChild(0);
+  const child = node.deriveChild(0).deriveChild(index);
 
   if (coin === 'btc') return p2wpkh(child.publicKey!).address!;
   if (coin === 'ltc') return p2wpkh(child.publicKey!, LTC_NETWORK).address!;

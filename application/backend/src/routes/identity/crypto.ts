@@ -1,6 +1,5 @@
 import {cryptoPrices, cryptoFees, getUtxoData, getEvmData, getXmrNode} from '@utils/polling';
 import {sql, debounceCache} from '@utils/connection';
-import {xpubToAddress} from '@utils/cryptography';
 import {attempt, error} from '@utils/utils';
 import {CryptoWalletResponse} from '@types';
 import middleware from '@middleware-api';
@@ -13,7 +12,7 @@ export default new Elysia({prefix: '/crypto'})
     const {btc, ltc, evm} = identity?.wallet_keys!;
 
     const REQUEST_TYPE = 'Wallet Overview';
-    const DEBOUNCE_DURATION = 15_000;
+    const DEBOUNCE_DURATION = 60_000;
 
     if (debounceCache[identity!.id]) {
       const cachedItem = debounceCache[identity!.id].find((item) => item.requestType === REQUEST_TYPE);
@@ -22,14 +21,11 @@ export default new Elysia({prefix: '/crypto'})
 
     const cryptoWallet = {} as CryptoWalletResponse;
 
-    const btcAddress = xpubToAddress('btc', btc);
-    const ltcAddress = xpubToAddress('ltc', ltc);
-
     cryptoWallet.eth = await getEvmData('eth', evm);
-    cryptoWallet.btc = await getUtxoData('btc', btcAddress);
+    cryptoWallet.btc = await getUtxoData('btc', btc);
 
     await new Promise((resolve) => setTimeout(resolve, 500));
-    cryptoWallet.ltc = await getUtxoData('ltc', ltcAddress);
+    cryptoWallet.ltc = await getUtxoData('ltc', ltc);
     cryptoWallet.usdt = await getEvmData('usdt', evm);
 
     cryptoWallet.xmr = {starting_date: identity?.creation_date!, ...(await getXmrNode())};

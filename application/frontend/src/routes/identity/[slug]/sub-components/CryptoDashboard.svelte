@@ -25,6 +25,13 @@
   const statusClass: string = $derived(crypto.wallet[$currentCrypto].status.toLowerCase().replaceAll(' ', '-'));
   const growthClass: string = $derived(crypto.prices[$currentCrypto].daily_change > 0 ? 'up' : 'down');
 
+  const activePaths = $derived(
+    (() => {
+      const isDerivable = ['btc', 'ltc'].includes($currentCrypto);
+      return isDerivable ? crypto.wallet[$currentCrypto as 'btc'].active_count : 0;
+    })(),
+  );
+
   const externalUrl = $derived(
     (() => {
       switch ($currentCrypto) {
@@ -157,14 +164,18 @@
         <b><WalletIcon className="w-6! h-6! mt-2 cursor-default" />Balance:</b>{balance}
         {$currentCrypto.toUpperCase()} <span class="text-neutral-500">({formatUSD(usdBalance)})</span>
       </p>
-      <p class="w-1/3">
-        <b><HashIcon />Address:</b>
+      <p class="w-1/2">
+        <b><HashIcon />{activePaths != 0 && 'Main'} Address:</b>
         {#if $currentCrypto === 'btc'}
           {@const btc = deriveXPub('btc', $identity.wallet_keys.btc, 0)}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${btc.slice(0, 20)}...`} text={btc} />
+          <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used"
+            >({activePaths} active)</span>
         {:else if $currentCrypto === 'ltc'}
           {@const ltc = deriveXPub('ltc', $identity.wallet_keys.ltc, 0)}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${ltc.slice(0, 20)}...`} text={ltc} />
+          <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used"
+            >({activePaths} active)</span>
         {:else if $currentCrypto === 'xmr'}
           {@const xmr = $identity.wallet_keys.xmr.address}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${xmr.slice(0, 20)}...`} text={xmr} />
@@ -321,7 +332,7 @@
   }
 
   b {
-    @apply text-primary-600 flex gap-x-1.5;
+    @apply text-primary-600 flex gap-x-1.5 whitespace-nowrap;
   }
 
   thead th {

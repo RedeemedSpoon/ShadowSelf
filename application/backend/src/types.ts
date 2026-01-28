@@ -247,12 +247,16 @@ export type CryptoWalletResponse = {
     balance: number;
     utxos: UTXOData;
     history: TransactionsHistory;
+    active_count: number;
+    next_index: number;
   };
   ltc: {
     status: string;
     balance: number;
     utxos: UTXOData;
     history: TransactionsHistory;
+    active_count: number;
+    next_index: number;
   };
   eth: {
     status: string;

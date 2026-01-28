@@ -1,4 +1,5 @@
-import type {CoinGeckoResponse, CryptoFees, CryptoPrices, CryptoWalletResponse} from '@types';
+import type {CoinGeckoResponse, CryptoFees, CryptoPrices, CryptoWalletResponse, UTXOData, TransactionsHistory} from '@types';
+import {xpubToAddress} from './cryptography';
 
 export const cryptoFees = {} as CryptoFees;
 export const cryptoPrices = {} as CryptoPrices;
@@ -13,56 +14,105 @@ const XMR_NODE = 'http://xmr-node.cakewallet.com:18081/json_rpc';
 const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 
 // --- DATA FETCHERS ---
-export async function getUtxoData(coin: 'btc' | 'ltc', address: string): Promise<CryptoWalletResponse['btc']> {
+export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<CryptoWalletResponse['btc']> {
   const baseUrl = coin === 'btc' ? BTC_API : LTC_API;
 
+  let totalBalance = 0;
+  let allUtxos: UTXOData = [];
+  let allHistory: TransactionsHistory = [];
+  let activeCount = 0;
+
+  let gap = 0;
+  const GAP_LIMIT = 5;
+  const HARD_LIMIT = 100;
+
   try {
-    const [infoRes, utxoRes, txsRes] = await Promise.all([
-      fetch(`${baseUrl}/address/${address}`),
-      fetch(`${baseUrl}/address/${address}/utxo`),
-      fetch(`${baseUrl}/address/${address}/txs`),
-    ]);
+    for (let i = 0; i < HARD_LIMIT; i++) {
+      const address = xpubToAddress(coin, xpub, i);
+      const infoRes = await fetch(`${baseUrl}/address/${address}`);
+      const info = await infoRes.json();
 
-    if (!infoRes.ok) return {status: 'Network Error', balance: 0, utxos: [], history: []};
+      const txCount = info.chain_stats.tx_count + info.mempool_stats.tx_count;
+      if (txCount === 0) {
+        gap++;
+        if (gap >= GAP_LIMIT) break;
+        continue;
+      }
 
-    const info = await infoRes.json();
-    const utxos = utxoRes.ok ? await utxoRes.json() : [];
-    const rawTxs = txsRes.ok ? await txsRes.json() : [];
+      const [utxoRes, txsRes] = await Promise.all([
+        fetch(`${baseUrl}/address/${address}/utxo`),
+        fetch(`${baseUrl}/address/${address}/txs`),
+      ]);
 
-    const history = rawTxs.map((tx: any) => {
-      let sent = 0;
-      let received = 0;
-      let counterparty = 'Unknown';
+      const utxos = utxoRes.ok ? await utxoRes.json() : [];
+      const rawTxs = txsRes.ok ? await txsRes.json() : [];
 
-      tx.vin.forEach((vin: any) => {
-        if (vin.prevout.scriptpubkey_address === address) sent += vin.prevout.value;
-        else counterparty = vin.prevout.scriptpubkey_address;
+      gap = 0;
+      activeCount = i + 1;
+
+      const cs = info.chain_stats;
+      const ms = info.mempool_stats;
+      const addrBalance = (cs.funded_txo_sum - cs.spent_txo_sum + ms.funded_txo_sum - ms.spent_txo_sum) / 100_000_000;
+      totalBalance += addrBalance;
+
+      if (utxos.length > 0) {
+        allUtxos = allUtxos.concat(
+          utxos.map((u: any) => ({
+            txid: u.txid,
+            vout: u.vout,
+            value: u.value,
+          })),
+        );
+      }
+
+      const addrHistory = rawTxs.map((tx: any) => {
+        let sent = 0;
+        let received = 0;
+        let counterparty = 'Unknown';
+
+        tx.vin.forEach((vin: any) => {
+          if (vin.prevout.scriptpubkey_address === address) sent += vin.prevout.value;
+          else counterparty = vin.prevout.scriptpubkey_address;
+        });
+
+        tx.vout.forEach((vout: any) => {
+          if (vout.scriptpubkey_address === address) received += vout.value;
+          else if (sent > 0) counterparty = vout.scriptpubkey_address;
+        });
+
+        const net = received - sent;
+
+        return {
+          txid: tx.txid,
+          type: net > 0 ? 'received' : 'sent',
+          amount: Math.abs(net) / 100_000_000,
+          date: new Date(tx.status.block_time * 1000),
+          counterparty: counterparty || 'Multiple',
+        };
       });
 
-      tx.vout.forEach((vout: any) => {
-        if (vout.scriptpubkey_address === address) received += vout.value;
-        else if (sent > 0) counterparty = vout.scriptpubkey_address;
-      });
+      allHistory = allHistory.concat(addrHistory);
+    }
 
-      const net = received - sent;
+    allHistory.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-      return {
-        txid: tx.txid,
-        type: net > 0 ? 'received' : 'sent',
-        amount: Math.abs(net) / 100_000_000,
-        date: new Date(tx.status.block_time * 1000),
-        counterparty: counterparty || 'Multiple',
-      };
-    });
-
-    const cs = info.chain_stats;
-    const ms = info.mempool_stats;
-    const balance = (cs.funded_txo_sum - cs.spent_txo_sum + ms.funded_txo_sum - ms.spent_txo_sum) / 100_000_000;
-    const status = info.mempool_stats.tx_count > 0 ? 'Incoming...' : 'Synced';
-
-    return {status, balance, utxos, history};
-  } catch (e) {
-    return {status: 'Network Error', balance: 0, utxos: [], history: []};
+    return {
+      status: 'Synced',
+      balance: totalBalance,
+      utxos: allUtxos,
+      history: allHistory,
+      active_count: activeCount,
+      next_index: activeCount,
+    };
+  } catch (_) {
+    return {
+      status: 'Network Error',
+      balance: totalBalance,
+      utxos: allUtxos,
+      history: allHistory,
+      active_count: activeCount,
+      next_index: activeCount,
+    };
   }
 }
 
@@ -133,13 +183,9 @@ export async function getXmrNode() {
 async function safeFetch(url: string, fallback: any, options?: RequestInit) {
   try {
     const res = await fetch(url, options);
-    if (!res.ok) {
-      console.warn(`[API Fail] ${url} returned ${res.status}`);
-      return fallback;
-    }
+    if (!res.ok) return fallback;
     return await res.json();
   } catch (e) {
-    console.error(`[API Error] ${url} -`, e);
     return fallback;
   }
 }
@@ -182,9 +228,7 @@ async function pollPrices() {
         chart: element.sparkline_in_7d.price,
       };
     });
-  } catch (e) {
-    console.error('[Prices] Failed to update:', e);
-  }
+  } catch (_) {}
 }
 
 pollFees();
