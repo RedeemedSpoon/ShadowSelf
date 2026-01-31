@@ -39,13 +39,8 @@ export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<Cr
         continue;
       }
 
-      const [utxoRes, txsRes] = await Promise.all([
-        fetch(`${baseUrl}/address/${address}/utxo`),
-        fetch(`${baseUrl}/address/${address}/txs`),
-      ]);
-
+      const utxoRes = await fetch(`${baseUrl}/address/${address}/utxo`);
       const utxos = utxoRes.ok ? await utxoRes.json() : [];
-      const rawTxs = txsRes.ok ? await txsRes.json() : [];
 
       gap = 0;
       activeCount = i + 1;
@@ -61,9 +56,14 @@ export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<Cr
             txid: u.txid,
             vout: u.vout,
             value: u.value,
+            address: address,
+            path_index: i,
           })),
         );
       }
+
+      const txsRes = await fetch(`${baseUrl}/address/${address}/txs`);
+      const rawTxs = txsRes.ok ? await txsRes.json() : [];
 
       const addrHistory = rawTxs.map((tx: any) => {
         let sent = 0;
@@ -191,27 +191,32 @@ async function safeFetch(url: string, fallback: any, options?: RequestInit) {
 }
 
 async function pollFees() {
-  const btcFallback = {halfHourFee: 0};
-  const ethFallback = {gas_prices: {average: 0}};
-  const xmrFallback = {result: {fee: 0}};
+  const btcFB = {hourFee: 0, halfHourFee: 0, fastestFee: 0};
+  const ethFB = {gas_prices: {slow: 0, average: 0, fast: 0}};
+  const xmrFB = {result: {fee: 0}};
 
-  const [btcRes, ltcRes, ethRes] = await Promise.all([
-    safeFetch(`${BTC_API}/v1/fees/recommended`, btcFallback),
-    safeFetch(`${LTC_API}/v1/fees/recommended`, btcFallback),
-    safeFetch(`${ETH_API}/v2/stats`, ethFallback),
+  const [btc, ltc, eth] = await Promise.all([
+    safeFetch(`${BTC_API}/v1/fees/recommended`, btcFB),
+    safeFetch(`${LTC_API}/v1/fees/recommended`, btcFB),
+    safeFetch(`${ETH_API}/v2/stats`, ethFB),
   ]);
 
-  const xmrRes = await safeFetch(XMR_NODE, xmrFallback, {
+  const xmr = await safeFetch(XMR_NODE, xmrFB, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({jsonrpc: '2.0', id: '0', method: 'get_fee_estimate'}),
   });
 
-  cryptoFees.btc = btcRes.halfHourFee;
-  cryptoFees.ltc = ltcRes.halfHourFee;
-  cryptoFees.eth = ethRes.gas_prices?.average;
-  cryptoFees.usdt = ethRes.gas_prices?.average;
-  cryptoFees.xmr = xmrRes.result?.fee || 0;
+  cryptoFees.btc = {low: btc.hourFee, medium: btc.halfHourFee, high: btc.fastestFee};
+  cryptoFees.ltc = {low: ltc.hourFee, medium: ltc.halfHourFee, high: ltc.fastestFee};
+
+  const eGas = eth.gas_prices || {};
+  const eBase = eGas.average || 0;
+  cryptoFees.eth = {low: eGas.slow || eBase, medium: eBase, high: eGas.fast || eBase};
+  cryptoFees.usdt = cryptoFees.eth;
+
+  const xFee = xmr.result?.fee || 0;
+  cryptoFees.xmr = {low: xFee, medium: xFee, high: xFee};
 }
 
 async function pollPrices() {

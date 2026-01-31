@@ -190,7 +190,13 @@ export interface Inbox {
   drafts: Email[];
 }
 
-export type CryptoFees = {[key in Coins]: number};
+export type CryptoFees = {
+  [key in Coins]: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+};
 
 export type CryptoPrices = {
   [key in Coins]: {
@@ -200,7 +206,14 @@ export type CryptoPrices = {
   };
 };
 
-export type UTXOData = {txid: string; vout: number; value: number}[];
+export type UTXOData = {
+  txid: string;
+  vout: number;
+  address: string;
+  path_index: number;
+  value: number;
+}[];
+
 export type TransactionsHistory = {
   txid: string;
   type: 'sent' | 'received';

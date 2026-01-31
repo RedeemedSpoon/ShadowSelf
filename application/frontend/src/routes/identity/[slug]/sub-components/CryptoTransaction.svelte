@@ -102,8 +102,14 @@
       <footer class="text-xs font-medium tracking-widest text-neutral-500 uppercase">Scan with Camera</footer>
     </div>
   </section>
-{:else if $mode === 'sweep'}
-  <h3>Sweep Wallet</h3>
 {:else if $mode === 'send'}
   <h3>Send Payment</h3>
+  <!-- <p>ETH/USDT REGULAR</p> -->
+  <!-- <p>UTXO BTC/LTC</p> -->
+  <!-- <p>LAST USED ADDRESS BTC/LTC</p> -->
+  <!-- <p>FEE CALCULATION</p> -->
+  <!-- <p>PRIORITY MODES</p> -->
+  <!-- <p>JOB/SIGN LOCAL BROWSER</p> -->
+{:else if $mode === 'sweep'}
+  <h3>Sweep Wallet</h3>
 {/if}

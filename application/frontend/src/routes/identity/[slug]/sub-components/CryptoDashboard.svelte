@@ -49,7 +49,7 @@
     })(),
   );
 
-  const rate = $derived(crypto.fees[$currentCrypto]);
+  const rate = $derived(crypto.fees[$currentCrypto].medium);
   const feesLabel = $derived(
     (() => {
       if (['eth', 'usdt'].includes($currentCrypto)) return 'Gwei';
@@ -255,7 +255,7 @@
     <div id="right-section" class="w-1/3">
       <p>
         <b><GasStationIcon />Fees:</b><span class={feesPercentile.toLowerCase()}>{feesPercentile}</span>
-        <span class="text-neutral-500">({crypto.fees[$currentCrypto]} {feesLabel} or {feesUsd})</span>
+        <span class="text-neutral-500">({crypto.fees[$currentCrypto].medium} {feesLabel} or {feesUsd})</span>
       </p>
       <p><b><BroadcastIcon />Status:</b><span class={statusClass}>{crypto.wallet[$currentCrypto].status}</span></p>
       <p>

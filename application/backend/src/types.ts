@@ -214,7 +214,14 @@ export interface Message {
   to: string;
 }
 
-export type CryptoFees = {[key in CryptoCurrencies]: number};
+export type CryptoFees = {
+  [key in CryptoCurrencies]: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+};
+
 export type CryptoPrices = {
   [key in CryptoCurrencies]: {
     daily_change: number;
@@ -232,7 +239,14 @@ export type CoinGeckoResponse = {
   };
 }[];
 
-export type UTXOData = {txid: string; vout: number; value: number}[];
+export type UTXOData = {
+  txid: string;
+  vout: number;
+  address: string;
+  path_index: number;
+  value: number;
+}[];
+
 export type TransactionsHistory = {
   txid: string;
   type: 'sent' | 'received';
