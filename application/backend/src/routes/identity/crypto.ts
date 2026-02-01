@@ -41,6 +41,9 @@ export default new Elysia({prefix: '/crypto'})
 
     return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};
   })
+  .post('/broadcast/:id', async ({identity}) => {
+    return identity;
+  })
   .put('/update-blob/:id', async ({identity, body, set}) => {
     const {blob, err} = await checkAPI(body, ['blob']);
     if (err) return error(set, 400, err);

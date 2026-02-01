@@ -1,9 +1,10 @@
 <script lang="ts">
-  import {deriveXPub} from '$lib/utils/cryptography';
-  import type {APIResponse, Coins} from '$type';
+  import type {APIResponse, Coins, UTXOData} from '$type';
+  import {CameraIcon, CopyIcon, StackIcon} from '$icon';
   import type {Writable} from 'svelte/store';
+  import {deriveXPub} from '$cryptography';
+  import {formatUSD} from '$format';
   import {identity} from '$store';
-  import {CopyIcon} from '$icon';
   import QRCode from 'qrcode';
 
   interface Props {
@@ -17,6 +18,9 @@
 
   let index = $state(0);
   let qrImage = $state('');
+  let selectedPriority: 'low' | 'medium' | 'high' = $state('low');
+  let selectedUtxos: UTXOData = $state([]);
+
   let newUtxoWallet = $derived(!(crypto.wallet[$currentCrypto as 'btc'].next_index !== 0 && ['btc', 'ltc'].includes($currentCrypto)));
   const addressTitle = $derived(index === 0 ? 'Main Address' : `Derived Address (Index ${index})`);
 
@@ -31,7 +35,13 @@
   });
 
   $effect(() => {
-    QRCode.toDataURL(address, {width: 300, margin: 2}).then((url) => (qrImage = url));
+    let uri = address;
+    if ($currentCrypto === 'btc') uri = `bitcoin:${address}`;
+    else if ($currentCrypto === 'ltc') uri = `litecoin:${address}`;
+    else if (['eth', 'usdt'].includes($currentCrypto)) uri = `ethereum:${address}`;
+    else if ($currentCrypto === 'xmr') uri = `monero:${address}`;
+
+    QRCode.toDataURL(uri, {width: 300, margin: 2}).then((url) => (qrImage = url));
   });
 
   function copyAddress() {
@@ -44,13 +54,21 @@
       document.querySelector('#copied')?.classList.toggle('hidden');
     }, 1000);
   }
+
+  function toggleUtxo(given_utxo: UTXOData[number]) {
+    const is_selected = selectedUtxos.some((utxo) => utxo.txid === given_utxo.txid);
+    if (is_selected) selectedUtxos = selectedUtxos.filter((utxo) => utxo.txid !== given_utxo.txid);
+    else selectedUtxos.push(given_utxo);
+  }
+  function sendFunds() {}
+  function scanQRCode() {}
 </script>
 
 {#if $mode === 'receive'}
   <section class="flex gap-8 max-md:flex-col-reverse md:h-[400px]">
     <div class="flex flex-col justify-center gap-6 md:w-1/2">
       <div class="space-y-2">
-        <h3 class="text-3xl font-bold text-neutral-300">Receive {cryptoTitles[$currentCrypto]}</h3>
+        <h3>Receive {cryptoTitles[$currentCrypto]}</h3>
         <p class="text-sm leading-relaxed text-neutral-400">
           Scan the QR code or share the following address to receive funds.
           {#if !newUtxoWallet}
@@ -103,13 +121,122 @@
     </div>
   </section>
 {:else if $mode === 'send'}
-  <h3>Send Payment</h3>
-  <!-- <p>ETH/USDT REGULAR</p> -->
-  <!-- <p>UTXO BTC/LTC</p> -->
-  <!-- <p>LAST USED ADDRESS BTC/LTC</p> -->
-  <!-- <p>FEE CALCULATION</p> -->
-  <!-- <p>PRIORITY MODES</p> -->
-  <!-- <p>JOB/SIGN LOCAL BROWSER</p> -->
+  <section class="mt-8 flex flex-col gap-6">
+    <div class="flex flex-col gap-4">
+      <h3 class="text-2xl font-bold text-neutral-200">Send {cryptoTitles[$currentCrypto]}</h3>
+
+      <div class="flex flex-col gap-1">
+        <label for="amount">
+          Amount in {$currentCrypto.toUpperCase()}
+          <span class="text-neutral-500">(1 {$currentCrypto.toUpperCase()} = ${formatUSD(crypto.prices[$currentCrypto].to_usd)})</span>
+        </label>
+        <input type="number" name="amount" class="w-full" placeholder="0.00" />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="address">Receiver Address</label>
+        <div class="flex gap-2">
+          <input type="text" name="address" placeholder="Paste address here..." class="w-full" />
+          <button onclick={scanQRCode}><CameraIcon className="w-5 h-5" /></button>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="fees">Network Priority (Miner Fee)</label>
+        <div class="grid grid-cols-3 gap-2">
+          {#each ['low', 'medium', 'high'] as p}
+            <div
+              aria-hidden="true"
+              class="fee-box {selectedPriority === p && 'selected'}"
+              onclick={() => (selectedPriority = p as 'low')}>
+              <span class="text-sm font-bold text-neutral-300 capitalize">{p}</span>
+              <span class="text-xs {selectedPriority === p ? 'text-neutral-300' : 'text-neutral-500'}">
+                {crypto.fees[$currentCrypto][p as 'low']}
+                {['eth', 'usdt'].includes($currentCrypto) ? 'Gwei' : 'sat/vB'}
+              </span>
+            </div>
+          {/each}
+        </div>
+        <small class="text-right text-xs text-neutral-500">
+          Estimated Fee: <span class="text-neutral-300">~ $0.00</span>
+        </small>
+      </div>
+    </div>
+
+    {#if !newUtxoWallet}
+      <div class="rounded-lg border border-neutral-800 bg-neutral-900/30 p-4">
+        <div class="mb-4">
+          <h4 class="flex items-center gap-2 text-lg font-semibold text-neutral-300">
+            <StackIcon className="w-7 h-7" />Coin Control<span class="text-neutral-500">(Advanced)</span>
+          </h4>
+          <p class="mt-1 text-xs leading-relaxed text-neutral-500">
+            Manually select which UTXOs (coins) to spend.
+            <br />
+            <span class="text-amber-600">Why?</span> Mixing coins from different sources (e.g. KYC Exchange + Private Trade) links them permanently
+            on the blockchain. Keep them separate to preserve your synthetic identities.
+          </p>
+        </div>
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-neutral-800 text-xs text-neutral-500 uppercase">
+            <tr>
+              <th class="w-10 p-2">Select</th>
+              <th class="p-2">Amount</th>
+              <th class="p-2">Address Location</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-800 select-none">
+            {#each crypto.wallet[$currentCrypto as 'btc'].utxos as utxo}
+              <tr class="cursor-pointer hover:bg-neutral-800/40" onclick={() => toggleUtxo(utxo)}>
+                <td class="p-2">
+                  <input type="checkbox" checked={selectedUtxos.includes(utxo)} />
+                </td>
+                <td class="p-2 font-mono text-neutral-300">
+                  {utxo.value / 100_000_000}
+                  {$currentCrypto.toUpperCase()}
+                </td>
+                <td class="max-w-[250px] truncate p-2 font-mono text-xs text-neutral-500" title={utxo.address}>
+                  {utxo.address}
+                  <span class="ml-2 rounded bg-neutral-800 px-1 text-neutral-400">#{utxo.path_index}</span>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
+
+    <button class="font-semibold" onclick={sendFunds}>Sign & Broadcast Transaction</button>
+  </section>
 {:else if $mode === 'sweep'}
   <h3>Sweep Wallet</h3>
 {/if}
+
+<style lang="postcss">
+  @reference "$style";
+
+  h3 {
+    @apply text-3xl font-bold text-neutral-300;
+  }
+
+  label {
+    @apply text-sm font-medium text-neutral-400;
+  }
+
+  .fee-box {
+    @apply flex flex-col items-center justify-center transition-all duration-300 ease-in-out;
+    @apply cursor-pointer rounded-lg border border-neutral-800 bg-neutral-800/30 p-3 hover:text-neutral-400;
+  }
+
+  .fee-box.selected {
+    @apply bg-primary-600 hover:text-neutral-300;
+  }
+
+  .fee-box span {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  input[type='checkbox'] {
+    @apply border-neutral-800 bg-neutral-900 focus:ring-0 focus:ring-offset-0 focus:outline-none;
+    @apply checked:border-primary-600 checked:bg-primary-600 h-4 w-4 cursor-pointer rounded;
+  }
+</style>
