@@ -261,6 +261,7 @@ export type CryptoWallet = {
 // Will fix this mess one day
 export interface APIResponse {
   err: string;
+  type: 'success' | 'alert' | 'info';
   accounts: Account[];
   emails: Inbox;
   messages: Message[];

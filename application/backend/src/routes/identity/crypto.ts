@@ -1,4 +1,4 @@
-import {cryptoPrices, cryptoFees, getUtxoData, getEvmData, getXmrNode} from '@utils/polling';
+import {cryptoPrices, cryptoFees, getUtxoData, getEvmData, getXmrNode, ETH_API, BTC_API, LTC_API} from '@utils/polling';
 import {sql, debounceCache} from '@utils/connection';
 import {attempt, error} from '@utils/utils';
 import {CryptoWalletResponse} from '@types';
@@ -41,8 +41,25 @@ export default new Elysia({prefix: '/crypto'})
 
     return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};
   })
-  .post('/broadcast/:id', async ({identity}) => {
-    return identity;
+  .post('/broadcast/:id', async ({body}) => {
+    const {hex, coin} = body as {hex: string; coin: string};
+    const target = coin.toLowerCase();
+
+    if (['btc', 'ltc'].includes(target)) {
+      const url = target === 'btc' ? BTC_API : LTC_API;
+      const response = await fetch(`${url}/tx`, {method: 'POST', body: hex});
+      return {txid: await response.text()};
+    }
+
+    if (['eth', 'usdt'].includes(target)) {
+      const response = await fetch('https://eth.blockscout.com/api/eth-rpc', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id: 1, jsonrpc: '2.0', method: 'eth_sendRawTransaction', params: [hex]}),
+      });
+
+      return {txid: (await response.json()).result};
+    }
   })
   .put('/update-blob/:id', async ({identity, body, set}) => {
     const {blob, err} = await checkAPI(body, ['blob']);

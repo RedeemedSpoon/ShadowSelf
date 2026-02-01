@@ -7,11 +7,11 @@ export const cryptoPrices = {} as CryptoPrices;
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3/coins/markets';
 const COINGECKO_PARAMS = '?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
 
-const BTC_API = 'https://mempool.space/api';
-const LTC_API = 'https://litecoinspace.org/api';
-const ETH_API = 'https://eth.blockscout.com/api';
-const XMR_NODE = 'http://xmr-node.cakewallet.com:18081/json_rpc';
-const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+export const BTC_API = 'https://mempool.space/api';
+export const LTC_API = 'https://litecoinspace.org/api';
+export const ETH_API = 'https://eth.blockscout.com/api';
+export const XMR_NODE = 'http://xmr-node.cakewallet.com:18081/json_rpc';
+export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 
 // --- DATA FETCHERS ---
 export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<CryptoWalletResponse['btc']> {
