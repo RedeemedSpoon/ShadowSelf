@@ -1,10 +1,13 @@
 <script lang="ts">
+  import {estimateTransactionFee, selectBestUtxos} from '$fees';
   import type {APIResponse, Coins, UTXOData} from '$type';
   import {CameraIcon, CopyIcon, StackIcon} from '$icon';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
+  import {QrScanner} from '$component';
   import {formatUSD} from '$format';
   import {identity} from '$store';
+  import {onMount} from 'svelte';
   import QRCode from 'qrcode';
 
   interface Props {
@@ -20,9 +23,16 @@
   let qrImage = $state('');
   let selectedPriority: 'low' | 'medium' | 'high' = $state('low');
   let selectedUtxos: UTXOData = $state([]);
+  let amount = $state() as number;
+  let scanning = $state(false);
+  let senderAddress = $state('');
 
   let newUtxoWallet = $derived(!(crypto.wallet[$currentCrypto as 'btc'].next_index !== 0 && ['btc', 'ltc'].includes($currentCrypto)));
   const addressTitle = $derived(index === 0 ? 'Main Address' : `Derived Address (Index ${index})`);
+
+  const estimatedFee = $derived(
+    estimateTransactionFee($currentCrypto, selectedUtxos, crypto.fees[$currentCrypto][selectedPriority], amount),
+  );
 
   const address = $derived.by(() => {
     if ($currentCrypto === 'btc' || $currentCrypto === 'ltc') {
@@ -55,13 +65,32 @@
     }, 1000);
   }
 
+  function automaticUtxoSelection() {
+    if (['btc', 'ltc'].includes($currentCrypto)) {
+      const currentSum = selectedUtxos.reduce((acc, u) => acc + u.value, 0);
+      const targetSats = amount * 100_000_000;
+      if (selectedUtxos.length > 0 && currentSum >= targetSats) return;
+
+      const allUtxos = crypto.wallet[$currentCrypto as 'btc'].utxos;
+      selectedUtxos = selectBestUtxos(allUtxos, amount, crypto.fees[$currentCrypto][selectedPriority]);
+    }
+  }
+
   function toggleUtxo(given_utxo: UTXOData[number]) {
     const is_selected = selectedUtxos.some((utxo) => utxo.txid === given_utxo.txid);
     if (is_selected) selectedUtxos = selectedUtxos.filter((utxo) => utxo.txid !== given_utxo.txid);
     else selectedUtxos.push(given_utxo);
   }
+
+  function scanQRCode(result: string) {
+    const clean = result.replace('bitcoin:', '').replace('litecoin:', '').split('?')[0];
+    senderAddress = clean;
+    scanning = false;
+  }
+
   function sendFunds() {}
-  function scanQRCode() {}
+
+  onMount(() => automaticUtxoSelection());
 </script>
 
 {#if $mode === 'receive'}
@@ -123,22 +152,25 @@
 {:else if $mode === 'send'}
   <section class="mt-8 flex flex-col gap-6">
     <div class="flex flex-col gap-4">
-      <h3 class="text-2xl font-bold text-neutral-200">Send {cryptoTitles[$currentCrypto]}</h3>
-
+      <h3>Send {cryptoTitles[$currentCrypto]}</h3>
       <div class="flex flex-col gap-1">
         <label for="amount">
           Amount in {$currentCrypto.toUpperCase()}
-          <span class="text-neutral-500">(1 {$currentCrypto.toUpperCase()} = ${formatUSD(crypto.prices[$currentCrypto].to_usd)})</span>
+          <span class="text-neutral-500">(1 {$currentCrypto.toUpperCase()} = {formatUSD(crypto.prices[$currentCrypto].to_usd)})</span>
         </label>
-        <input type="number" name="amount" class="w-full" placeholder="0.00" />
+        <input bind:value={amount} onchange={() => automaticUtxoSelection()} type="number" name="amount" placeholder="0.00" />
       </div>
 
       <div class="flex flex-col gap-1">
         <label for="address">Receiver Address</label>
         <div class="flex gap-2">
-          <input type="text" name="address" placeholder="Paste address here..." class="w-full" />
-          <button onclick={scanQRCode}><CameraIcon className="w-5 h-5" /></button>
+          <input type="text" name="address" bind:value={senderAddress} placeholder="Paste address here..." class="w-full" />
+          <button onclick={() => (scanning = true)}><CameraIcon className="w-5 h-5" /></button>
         </div>
+
+        {#if scanning}
+          <QrScanner onScan={scanQRCode} close={() => (scanning = false)} />
+        {/if}
       </div>
 
       <div class="flex flex-col gap-2">
@@ -158,7 +190,9 @@
           {/each}
         </div>
         <small class="text-right text-xs text-neutral-500">
-          Estimated Fee: <span class="text-neutral-300">~ $0.00</span>
+          Estimated Fee:
+          <span class="text-neutral-300"> {estimatedFee.fee} {estimatedFee.unit} </span>
+          <span>(~{formatUSD(Number(estimatedFee.fee) * crypto.prices[$currentCrypto].to_usd)})</span>
         </small>
       </div>
     </div>
@@ -170,7 +204,7 @@
             <StackIcon className="w-7 h-7" />Coin Control<span class="text-neutral-500">(Advanced)</span>
           </h4>
           <p class="mt-1 text-xs leading-relaxed text-neutral-500">
-            Manually select which UTXOs (coins) to spend.
+            Manually select which UTXOs (coins) to spend. We automatically select them for you but you can update it here.
             <br />
             <span class="text-amber-600">Why?</span> Mixing coins from different sources (e.g. KYC Exchange + Private Trade) links them permanently
             on the blockchain. Keep them separate to preserve your synthetic identities.

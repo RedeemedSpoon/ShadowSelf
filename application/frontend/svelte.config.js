@@ -32,6 +32,7 @@ const config = {
       $csrf: 'src/lib/utils/csrf.ts',
       $dom: 'src/lib/utils/dom.ts',
       $cryptography: 'src/lib/utils/cryptography.ts',
+      $fees: 'src/lib/utils/fees.ts',
       $cn: 'src/lib/utils/cn.ts',
     },
   },

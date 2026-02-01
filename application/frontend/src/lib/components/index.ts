@@ -26,6 +26,7 @@ export {default as APICode} from './main/containers/APICode.svelte';
 export {default as FlowStep} from './main/containers/FlowStep.svelte';
 export {default as StepsItem} from './main/containers/StepsItem.svelte';
 
+export {default as QrScanner} from './main/reusable/QrScanner.svelte';
 export {default as ConfirmModal} from './main/reusable/ConfirmModal.svelte';
 export {default as ExtensionLinks} from './main/reusable/ExtensionLinks.svelte';
 
