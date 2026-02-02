@@ -4,11 +4,11 @@
 
   interface Props {
     onScan: (decodedText: string) => void;
-    onError?: (errorMessage: string) => void;
+    sweepWallet?: boolean;
     close: () => void;
   }
 
-  let {onScan, close}: Props = $props();
+  let {onScan, close, sweepWallet = false}: Props = $props();
   let qrCode: Html5Qrcode | null = $state(null);
   let scannerId = 'reader';
 
@@ -50,19 +50,23 @@
     }
   }
 
+  const title = $derived(sweepWallet ? 'Scan Private Key' : 'Scan Address QR Code');
+  const explainer = $derived(
+    sweepWallet
+      ? 'Point your camera at the Private Key (WIF) QR code to import funds.'
+      : 'Point your camera at a QR code to fill the address automatically.',
+  );
   onDestroy(() => stopCamera());
 </script>
 
 <div id="backdrop" onclick={() => stopCamera()} aria-hidden="true" class={qrCode?.isScanning ? 'hidden' : 'no-scroll'}></div>
 <div id="scanner">
   <div class="relative w-full overflow-hidden">
-    <h3 class="w-full p-4 pt-1 text-center text-2xl font-bold text-neutral-300">Scan Address QR Code</h3>
+    <h3 class="w-full p-4 pt-1 text-center text-2xl font-bold text-neutral-300">{title}</h3>
     <div id={scannerId} class="mt-4 bg-neutral-800"></div>
     <div id="file-reader-hidden" class="hidden"></div>
     <div class="flex flex-col gap-3 p-4">
-      <p class="mb-2 text-center text-xs whitespace-nowrap text-neutral-500">
-        Point your camera at a QR code to fill the address automatically.
-      </p>
+      <p class="mb-2 text-center text-xs text-neutral-500">{explainer}</p>
       <div class="relative">
         <button class="w-full py-3 text-lg font-medium">Or Upload Image File</button>
         <input type="file" accept="image/*" class="absolute inset-0 cursor-pointer opacity-0" onchange={handleFileUpload} />

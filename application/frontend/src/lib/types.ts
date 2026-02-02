@@ -303,6 +303,7 @@ export interface APIResponse {
   prices: CryptoPrices;
   fees: CryptoFees;
   wallet: CryptoWallet;
+  txid: string;
 }
 
 export interface WebSocketMessage {

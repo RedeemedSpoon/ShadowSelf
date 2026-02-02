@@ -2,11 +2,11 @@
   import {estimateTransactionFee, selectBestUtxos} from '$fees';
   import type {APIResponse, Coins, UTXOData} from '$type';
   import {CameraIcon, CopyIcon, StackIcon} from '$icon';
+  import {QrScanner, LoadingButton} from '$component';
   import {decrypt, deriveXPub} from '$cryptography';
+  import {fetchIndex, identity} from '$store';
   import type {Writable} from 'svelte/store';
-  import {QrScanner} from '$component';
   import {formatUSD} from '$format';
-  import {identity} from '$store';
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
   import QRCode from 'qrcode';
@@ -36,6 +36,7 @@
   let destinationAddress = $state('');
   let selectedUtxos: UTXOData = $state([]);
   let selectedPriority: 'low' | 'medium' | 'high' = $state('low');
+  let sweepStepMessage: string = $state('');
 
   let newUtxoWallet = $derived(!(crypto.wallet[$currentCrypto as 'btc'].next_index !== 0 && ['btc', 'ltc'].includes($currentCrypto)));
   const addressTitle = $derived(index === 0 ? 'Main Address' : `Derived Address (Index ${index})`);
@@ -98,6 +99,8 @@
     scanning = false;
   }
 
+  async function sweepWallet() {}
+
   async function sendFunds() {
     const [addr, amt] = [String(destinationAddress).trim(), Math.max(Number(amount), 0)];
 
@@ -107,6 +110,9 @@
     let broadcastPayload = {coin: $currentCrypto, hex: ''};
     const successMessage = `Successfully sent ${amt.toFixed(5)} ${$currentCrypto.toUpperCase()}`;
     const mnemonicCode = await decrypt($identity.wallet_blob);
+
+    $fetchIndex = 1;
+    await new Promise((resolve) => setTimeout(resolve, 650));
 
     try {
       if (['btc', 'ltc'].includes($currentCrypto)) {
@@ -233,6 +239,7 @@
     const response = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload);
     const announceMessage = response.err ? response.err : successMessage;
     notify(announceMessage, response.type);
+    $fetchIndex = 0;
   }
 
   onMount(() => automaticUtxoSelection());
@@ -345,10 +352,10 @@
     {#if !newUtxoWallet}
       <div class="rounded-lg border border-neutral-800 bg-neutral-900/30 p-4">
         <div class="mb-4">
-          <h4 class="flex items-center gap-2 text-lg font-semibold text-neutral-300">
-            <StackIcon className="w-7 h-7" />Coin Control<span class="text-neutral-500">(Advanced)</span>
+          <h4 class="flex items-center gap-2 text-xl font-semibold text-neutral-300">
+            <StackIcon className="w-8 h-8" />Coin Control<span class="text-neutral-500">(Advanced)</span>
           </h4>
-          <p class="mt-1 text-xs leading-relaxed text-neutral-500">
+          <p class="mt-1 text-sm leading-relaxed text-neutral-500">
             Manually select which UTXOs (coins) to spend. We automatically select them for you but you can update it here.
             <br />
             <span class="text-amber-600">Why?</span> Mixing coins from different sources (e.g. KYC Exchange + Private Trade) links them permanently
@@ -384,10 +391,26 @@
       </div>
     {/if}
 
-    <button class="font-semibold" onclick={sendFunds}>Sign & Broadcast Transaction</button>
+    <LoadingButton type="button" onclick={sendFunds} className="font-semibold">Sign & Broadcast Transaction</LoadingButton>
   </section>
 {:else if $mode === 'sweep'}
-  <h3>Sweep Wallet</h3>
+  <div class="flex h-[40vh] items-center justify-center">
+    <div class="flex w-2/3 flex-col items-center gap-3 md:w-1/2">
+      <h3>Sweep {$currentCrypto.toUpperCase()} Wallet</h3>
+      <p class="mb-4 text-center text-base leading-relaxed text-neutral-400">
+        Sweeping imports funds from a paper wallet or private key directly into your ShadowSelf vault. We calculate the maximum
+        transferable amount (minus network miner fees) and broadcast a transaction to move 100% of the assets to your main address.
+        Your private key is processed locally and never leaves your browser.
+      </p>
+      <div>
+        <LoadingButton type="button" onclick={() => (scanning = true)}>Scan Paper Wallet</LoadingButton>
+        <h5 class="text-center font-mono text-sm text-neutral-500">{sweepStepMessage}</h5>
+      </div>
+    </div>
+    {#if scanning}
+      <QrScanner sweepWallet={true} onScan={sweepWallet} close={() => (scanning = false)} />
+    {/if}
+  </div>
 {/if}
 
 <style lang="postcss">
