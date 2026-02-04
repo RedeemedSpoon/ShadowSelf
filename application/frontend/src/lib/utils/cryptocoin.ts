@@ -1,15 +1,12 @@
-import type {APIResponse, Coins, Priority, UTXOData} from '$type';
-import {decrypt, deriveXPub} from './cryptography';
-import {get} from 'svelte/store';
-import {identity} from '$store';
-import {notify} from '$lib';
-
 import {createWalletClient, http, parseEther, parseUnits, encodeFunctionData, isAddress} from 'viem';
-import {mnemonicToAccount} from 'viem/accounts';
+import {privateKeyToAccount, mnemonicToAccount, type LocalAccount} from 'viem/accounts';
+import type {BtcSigner, Coins, PrivKeyType, transactionData, UTXOData} from '$type';
+import {deriveXPub} from './cryptography';
 import * as btc from '@scure/btc-signer';
 import * as bip39 from '@scure/bip39';
-import {mainnet} from 'viem/chains';
 import {HDKey} from '@scure/bip32';
+import {mainnet} from 'viem/chains';
+import {notify} from '$lib';
 
 // --- MAGIC NUMBERS (WEIGHTS) ---
 const VBYTE_INPUT = 68;
@@ -91,40 +88,53 @@ export function estimateTransactionFee(coin: Coins, inputs: UTXOData, feeRate: n
   return {fee: 0, unit: '', size: 0, sizeUnit: ''};
 }
 
-export async function signTransaction(
-  coin: Coins,
-  addr: string,
-  amt: number,
-  priority: Priority,
-  utxos: UTXOData,
-  estimatedFee: any,
-  crypto: APIResponse,
-) {
+export async function parsePrivKey(key: string, type: PrivKeyType, coin: Coins) {
+  if (['eth', 'usdt'].includes(coin)) {
+    if (type === 'mnemonic') return mnemonicToAccount(key);
+    else return privateKeyToAccount(key.startsWith('0x') ? (key as `0x${string}`) : `0x${key}`);
+  }
+
+  if (type === 'mnemonic') {
+    const seed = await bip39.mnemonicToSeed(key);
+    return {type: 'hd', root: HDKey.fromMasterSeed(seed)};
+  } else {
+    const network = coin === 'btc' ? undefined : {bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0};
+    const privKeyBytes = btc.WIF(network).decode(key);
+    return {type: 'key', privKey: privKeyBytes};
+  }
+}
+
+export async function signTransaction(coin: Coins, addr: string, amt: number, data: transactionData) {
   if (!addr || addr.length < 10) return notify('Invalid Receiver Address', 'alert');
   if (amt <= 0) return notify('Amount must be greater than 0', 'alert');
 
   let broadcastPayload = {coin: coin, hex: ''};
-  const mnemonicCode = await decrypt(get(identity).wallet_blob);
 
   try {
     if (['btc', 'ltc'].includes(coin)) {
       const isBtc = coin === 'btc';
       const netParam = isBtc ? undefined : ({bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0} as any);
 
-      const seed = await bip39.mnemonicToSeed(mnemonicCode);
-      const root = HDKey.fromMasterSeed(seed);
+      const signer = (await parsePrivKey(data.wifKey, data.privKeyType, coin)) as BtcSigner;
 
       const pathBase = isBtc ? "m/84'/0'/0'/0" : "m/84'/2'/0'/0";
       const tx = new btc.Transaction(netParam);
 
-      for (const utxo of utxos) {
-        const child = root.derive(`${pathBase}/${utxo.path_index}`);
+      for (const utxo of data.utxos!) {
+        let publicKey: Uint8Array;
+
+        if (signer.type === 'hd') {
+          const child = signer.root.derive(`${pathBase}/${utxo.path_index}`);
+          publicKey = child.publicKey!;
+        } else {
+          publicKey = new HDKey({privateKey: signer.privKey, chainCode: new Uint8Array(32)}).publicKey!;
+        }
 
         tx.addInput({
           txid: utxo.txid,
           index: utxo.vout,
           witnessUtxo: {
-            script: btc.p2wpkh(child.publicKey!, netParam).script,
+            script: btc.p2wpkh(publicKey, netParam).script,
             amount: BigInt(utxo.value),
           },
         });
@@ -133,24 +143,41 @@ export async function signTransaction(
       const amountSats = BigInt(Math.floor(amt * 100_000_000));
       tx.addOutputAddress(addr, amountSats, netParam);
 
-      const inputTotal = utxos.reduce((acc, u) => acc + BigInt(u.value), 0n);
-      const feeSats = BigInt(Math.ceil(estimatedFee.fee * 100_000_000));
+      const inputTotal = data.utxos!.reduce((acc, u) => acc + BigInt(u.value), BigInt(0n));
+      const feeSats = BigInt(Math.ceil(data.estimatedFee.fee * 100_000_000));
       const change = inputTotal - amountSats - feeSats;
 
       if (inputTotal < amountSats + feeSats) {
         return notify(`Insufficient selected funds. Need ${(Number(amountSats + feeSats) / 1e8).toFixed(6)}`, 'alert');
       }
 
-      if (change > 546n) {
-        const lastUsedIndex = Math.max(0, crypto.wallet[coin as 'btc'].next_index - 1);
-        const returnAddress = deriveXPub(coin, get(identity).wallet_keys[coin as 'btc'], lastUsedIndex);
-        tx.addOutputAddress(returnAddress, change, netParam);
+      if (change > BigInt(546n)) {
+        let returnAddress;
+        if (data.privKeyType === 'mnemonic') {
+          returnAddress = deriveXPub(coin, data.xpubKey!, data.index!);
+        } else {
+          const pubKey = new HDKey({
+            privateKey: (signer as any).privKey,
+            chainCode: new Uint8Array(32),
+          }).publicKey!;
+
+          returnAddress = btc.p2wpkh(pubKey, netParam).address;
+        }
+
+        tx.addOutputAddress(returnAddress!, change, netParam);
       }
 
-      for (let i = 0; i < utxos.length; i++) {
-        const utxo = utxos[i];
-        const child = root.derive(`${pathBase}/${utxo.path_index}`);
-        tx.signIdx(child.privateKey!, i);
+      for (let i = 0; i < data.utxos!.length; i++) {
+        const utxo = data.utxos![i];
+        let privateKey: Uint8Array;
+
+        if (signer.type === 'hd') {
+          privateKey = signer.root.derive(`${pathBase}/${utxo.path_index}`).privateKey!;
+        } else {
+          privateKey = signer.privKey;
+        }
+
+        tx.signIdx(privateKey, i);
       }
 
       tx.finalize();
@@ -160,19 +187,17 @@ export async function signTransaction(
     if (['eth', 'usdt'].includes(coin)) {
       if (!isAddress(addr)) return notify('Invalid Ethereum Address', 'alert');
 
-      const wallet = crypto.wallet[coin as 'eth'];
-
-      const account = mnemonicToAccount(mnemonicCode);
+      const account = (await parsePrivKey(data.wifKey, data.privKeyType, coin)) as LocalAccount;
       const client = createWalletClient({account, chain: mainnet, transport: http()});
-      const gasPrice = parseUnits(crypto.fees[coin][priority].toString(), 9);
+      const gasPrice = parseUnits(data.estimatedFee.toString(), 9);
 
-      const ethBalanceWei = parseEther(String(crypto.wallet['eth'].balance));
+      const ethBalanceWei = parseEther(String(data.balance));
       const feeWei = gasPrice * (coin === 'usdt' ? BigInt(65000) : BigInt(21000));
 
       let serializedRequest;
 
       if (coin === 'usdt') {
-        const tokenBalance = parseUnits(String(crypto.wallet['usdt'].balance), 6);
+        const tokenBalance = parseUnits(String(data.balance), 6);
         const amountToken = parseUnits(String(amt), 6);
 
         if (tokenBalance < amountToken) return notify('Insufficient USDT Balance', 'alert');
@@ -192,7 +217,7 @@ export async function signTransaction(
           },
         ];
 
-        const data = encodeFunctionData({
+        const fdata = encodeFunctionData({
           abi: ERC20_ABI,
           functionName: 'transfer',
           args: [addr, parseUnits(String(amt), 6)],
@@ -200,12 +225,12 @@ export async function signTransaction(
 
         serializedRequest = await client.signTransaction({
           to: USDT_CONTRACT,
-          data,
-          value: 0n,
-          nonce: wallet.nonce,
+          data: fdata,
+          value: BigInt(0n),
+          nonce: data.nonce,
           maxFeePerGas: gasPrice,
           maxPriorityFeePerGas: gasPrice,
-          gas: 65000n,
+          gas: BigInt(65000n),
         });
       } else {
         const amountWei = parseEther(String(amt));
@@ -214,10 +239,10 @@ export async function signTransaction(
         serializedRequest = await client.signTransaction({
           to: addr,
           value: parseEther(String(amt)),
-          nonce: wallet.nonce,
+          nonce: data.nonce,
           maxFeePerGas: gasPrice,
           maxPriorityFeePerGas: gasPrice,
-          gas: 21000n,
+          gas: BigInt(21000n),
         });
       }
 

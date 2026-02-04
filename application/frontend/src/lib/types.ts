@@ -1,12 +1,15 @@
+import type {HDKey} from '@scure/bip32';
 import type {Component} from 'svelte';
 
 export type Priority = 'low' | 'medium' | 'high';
+export type PrivKeyType = 'mnemonic' | 'wif' | 'hex';
 export type Coins = 'xmr' | 'eth' | 'btc' | 'ltc' | 'usdt';
 export type Sections = 'info' | 'email' | 'phone' | 'crypto' | 'account';
 export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export type BillingSteps = 'create' | 'confirm' | 'auth' | 'finish';
 
+export type BtcSigner = {type: 'hd'; root: HDKey} | {type: 'key'; privKey: Uint8Array};
 export type FullEmail = Email & {messageID: string; date: Date};
 export type Attachment = {filename: string; data: string};
 
@@ -89,6 +92,17 @@ export interface CryptoKeys {
     address: string;
     viewKey: string;
   };
+}
+
+export interface transactionData {
+  estimatedFee: any;
+  privKeyType: PrivKeyType;
+  wifKey: string;
+  index?: number;
+  xpubKey?: string;
+  utxos?: UTXOData;
+  nonce?: number;
+  balance?: number;
 }
 
 export interface Identity {

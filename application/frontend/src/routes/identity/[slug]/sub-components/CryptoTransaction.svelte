@@ -1,11 +1,11 @@
 <script lang="ts">
   import {estimateTransactionFee, selectBestUtxos, signTransaction} from '$cryptocoin';
-  import type {APIResponse, Coins, Priority, UTXOData} from '$type';
+  import type {APIResponse, Coins, Priority, transactionData, UTXOData} from '$type';
   import {CameraIcon, CopyIcon, StackIcon} from '$icon';
   import {QrScanner, LoadingButton} from '$component';
   import {fetchIndex, identity} from '$store';
   import type {Writable} from 'svelte/store';
-  import {deriveXPub} from '$cryptography';
+  import {decrypt, deriveXPub} from '$cryptography';
   import {formatUSD} from '$format';
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
@@ -100,7 +100,19 @@
 
     $fetchIndex = 1;
     await new Promise((resolve) => setTimeout(resolve, 650));
-    const broadcastPayload = await signTransaction($currentCrypto, addr, amt, selectedPriority, selectedUtxos, estimatedFee, crypto);
+
+    const data: transactionData = {
+      estimatedFee: ['btc', 'ltc'].includes($currentCrypto) ? estimatedFee.fee : crypto.fees[$currentCrypto][selectedPriority],
+      privKeyType: 'mnemonic',
+      wifKey: await decrypt($identity.wallet_blob),
+      index: Math.max(0, crypto.wallet[$currentCrypto as 'btc'].next_index - 1),
+      xpubKey: $identity.wallet_keys[$currentCrypto as 'btc'],
+      utxos: crypto.wallet[$currentCrypto as 'btc'].utxos,
+      nonce: crypto.wallet[$currentCrypto as 'eth'].nonce,
+      balance: crypto.wallet[$currentCrypto as 'eth'].balance,
+    };
+
+    const broadcastPayload = await signTransaction($currentCrypto, addr, amt, data);
     if (!broadcastPayload) return;
 
     const response = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload!);
