@@ -90,6 +90,7 @@ export interface CryptoKeys {
   evm: string;
   xmr: {
     address: string;
+    spendKey: string;
     viewKey: string;
   };
 }

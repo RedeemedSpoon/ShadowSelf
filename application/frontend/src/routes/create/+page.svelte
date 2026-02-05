@@ -247,6 +247,7 @@
         });
 
         const xmrAddress = await xmrWallet.getPrimaryAddress();
+        const xmrSpendKey = await xmrWallet.getPrivateSpendKey();
         const xmrViewKey = await xmrWallet.getPrivateViewKey();
         await xmrWallet.close();
 
@@ -260,6 +261,7 @@
             evm: ethAddress,
             xmr: {
               address: xmrAddress,
+              spendKey: xmrSpendKey,
               viewKey: xmrViewKey,
             },
           },
