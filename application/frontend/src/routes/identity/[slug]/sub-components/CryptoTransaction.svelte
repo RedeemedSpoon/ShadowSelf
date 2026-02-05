@@ -3,14 +3,18 @@
   import type {APIResponse, Coins, Priority, transactionData, UTXOData} from '$type';
   import {CameraIcon, CopyIcon, StackIcon} from '$icon';
   import {QrScanner, LoadingButton} from '$component';
+  import {decrypt, deriveXPub} from '$cryptography';
   import {fetchIndex, identity} from '$store';
   import type {Writable} from 'svelte/store';
-  import {decrypt, deriveXPub} from '$cryptography';
   import {formatUSD} from '$format';
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
   import QRCode from 'qrcode';
   import {notify} from '$lib';
+
+  import {privateKeyToAccount} from 'viem/accounts';
+  import * as btc from '@scure/btc-signer';
+  import {HDKey} from '@scure/bip32';
 
   interface Props {
     mode: Writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'gift' | 'swap'>;
@@ -92,7 +96,81 @@
     scanning = false;
   }
 
-  async function sweepWallet() {}
+  async function sweepWallet(result: string) {
+    scanning = false;
+    const coin = $currentCrypto;
+    let addresses: string[] = [];
+
+    sweepStepMessage = 'Decrypting Private Key...';
+    await new Promise((r) => setTimeout(r, Math.random() * 400 + 400));
+
+    sweepStepMessage = 'Deriving Address Formats...';
+    await new Promise((r) => setTimeout(r, Math.random() * 300 + 200));
+
+    if (['btc', 'ltc'].includes(coin)) {
+      const net = coin === 'btc' ? undefined : ({bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0} as any);
+      const privKeyBytes = btc.WIF(net).decode(result);
+      const pub = new HDKey({privateKey: privKeyBytes, chainCode: new Uint8Array(32)}).publicKey!;
+      addresses = [btc.p2wpkh(pub, net).address!, btc.p2sh(btc.p2wpkh(pub, net), net).address!, btc.p2pkh(pub, net).address!];
+    } else {
+      addresses = [privateKeyToAccount((result.startsWith('0x') ? result : `0x${result}`) as `0x${string}`).address];
+    }
+
+    sweepStepMessage = 'Scanning Blockchain Nodes...';
+    await new Promise((r) => setTimeout(r, Math.random() * 600 + 300));
+
+    const info = await fetchAPI('crypto/sweep-info', 'POST', {coin, addresses});
+    if (info.err || Number(info.balance) === 0) return notify('Wallet Empty or Invalid', 'alert');
+
+    sweepStepMessage = 'Calculating Network Fees...';
+    await new Promise((r) => setTimeout(r, Math.random() * 200 + 400));
+
+    let amt = 0;
+    let feeParam: any = 0;
+
+    if (['btc', 'ltc'].includes(coin)) {
+      const vBytes = info.utxos.length * 68 + 31 + 10;
+      const feeBtc = (vBytes * crypto.fees[coin].medium) / 100_000_000;
+      amt = info.balance / 100_000_000 - feeBtc;
+      feeParam = {fee: feeBtc};
+    } else {
+      const gasPriceGwei = crypto.fees[coin].medium;
+      feeParam = gasPriceGwei;
+
+      if (coin === 'usdt') {
+        amt = Number(info.balance) / 1_000_000;
+      } else {
+        const gasLimit = 21000;
+        const feeEth = (gasLimit * gasPriceGwei) / 1_000_000_000;
+        amt = Number(info.balance) / 1e18 - feeEth;
+      }
+    }
+
+    sweepStepMessage = 'Cryptographically Signing...';
+    await new Promise((r) => setTimeout(r, Math.random() * 600 + 500));
+
+    const destAddr = ['btc', 'ltc'].includes(coin)
+      ? deriveXPub(coin, $identity.wallet_keys[coin as 'btc'], Math.max(0, crypto.wallet[coin as 'btc'].next_index - 1))
+      : $identity.wallet_keys.evm;
+
+    const data: transactionData = {
+      estimatedFee: feeParam,
+      privKeyType: ['btc', 'ltc'].includes(coin) ? 'wif' : 'hex',
+      wifKey: result,
+      utxos: info.utxos?.map((u: any) => ({...u, path_index: 0})),
+      nonce: info.nonce,
+      balance: info.balance,
+    };
+
+    const payload = await signTransaction(coin, destAddr, amt, data);
+
+    sweepStepMessage = 'Broadcasting to Network...';
+    await new Promise((r) => setTimeout(r, Math.random() * 600 + 800));
+
+    const response = await fetchAPI('crypto/broadcast', 'POST', payload!);
+    notify(response.err || `Swept ${amt.toFixed(6)} ${coin.toUpperCase()}`, response.type);
+    sweepStepMessage = '';
+  }
 
   async function sendFunds() {
     const [addr, amt] = [String(destinationAddress).trim(), Math.max(Number(amount), 0)];

@@ -319,6 +319,9 @@ export interface APIResponse {
   fees: CryptoFees;
   wallet: CryptoWallet;
   txid: string;
+  utxos: UTXOData;
+  balance: number;
+  nonce: number;
 }
 
 export interface WebSocketMessage {

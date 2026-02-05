@@ -4,8 +4,8 @@ import type {BtcSigner, Coins, PrivKeyType, transactionData, UTXOData} from '$ty
 import {deriveXPub} from './cryptography';
 import * as btc from '@scure/btc-signer';
 import * as bip39 from '@scure/bip39';
-import {HDKey} from '@scure/bip32';
 import {mainnet} from 'viem/chains';
+import {HDKey} from '@scure/bip32';
 import {notify} from '$lib';
 
 // --- MAGIC NUMBERS (WEIGHTS) ---
@@ -130,11 +130,19 @@ export async function signTransaction(coin: Coins, addr: string, amt: number, da
           publicKey = new HDKey({privateKey: signer.privKey, chainCode: new Uint8Array(32)}).publicKey!;
         }
 
+        const p2wpkh = btc.p2wpkh(publicKey, netParam);
+        const p2sh = btc.p2sh(p2wpkh, netParam);
+        const p2pkh = btc.p2pkh(publicKey, netParam);
+
+        let script = p2wpkh.script;
+        if (utxo.address === p2sh.address) script = p2sh.script;
+        else if (utxo.address === p2pkh.address) script = p2pkh.script;
+
         tx.addInput({
           txid: utxo.txid,
           index: utxo.vout,
           witnessUtxo: {
-            script: btc.p2wpkh(publicKey, netParam).script,
+            script: script,
             amount: BigInt(utxo.value),
           },
         });
@@ -201,7 +209,7 @@ export async function signTransaction(coin: Coins, addr: string, amt: number, da
         const amountToken = parseUnits(String(amt), 6);
 
         if (tokenBalance < amountToken) return notify('Insufficient USDT Balance', 'alert');
-        if (ethBalanceWei < feeWei) return notify('Insufficient ETH for Gas', 'alert');
+        // if (ethBalanceWei < feeWei) return notify('Insufficient ETH for Gas', 'alert');
 
         const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
         const ERC20_ABI = [
