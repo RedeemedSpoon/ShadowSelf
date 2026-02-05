@@ -180,7 +180,7 @@
     await new Promise((resolve) => setTimeout(resolve, 650));
 
     const data: transactionData = {
-      estimatedFee: ['btc', 'ltc'].includes($currentCrypto) ? estimatedFee.fee : crypto.fees[$currentCrypto][selectedPriority],
+      estimatedFee: ['btc', 'ltc'].includes($currentCrypto) ? estimatedFee : crypto.fees[$currentCrypto][selectedPriority],
       privKeyType: 'mnemonic',
       wifKey: await decrypt($identity.wallet_blob),
       index: Math.max(0, crypto.wallet[$currentCrypto as 'btc'].next_index - 1),

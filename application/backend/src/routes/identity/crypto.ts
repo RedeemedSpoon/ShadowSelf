@@ -34,18 +34,33 @@ export default new Elysia({prefix: '/crypto'})
     debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: cryptoWallet});
 
     setTimeout(() => {
-      if (!debounceCache[identity!.id]) return;
-      debounceCache[identity!.id] = debounceCache[identity!.id].filter((item) => item.requestType !== REQUEST_TYPE);
+      if (debounceCache[identity!.id])
+        debounceCache[identity!.id] = debounceCache[identity!.id].filter((item) => item.requestType !== REQUEST_TYPE);
       if (debounceCache[identity!.id].length === 0) delete debounceCache[identity!.id];
     }, DEBOUNCE_DURATION);
 
     return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};
   })
-  .post('/broadcast/:id', async ({body, set}) => {
+  .post('/broadcast/:id', async ({identity, body, set}) => {
     const {hex, coin} = body as {hex: string; coin: string};
     const target = coin.toLowerCase();
 
     if (!['btc', 'ltc', 'eth', 'usdt'].includes(target)) return error(set, 400, 'Unsupported coin');
+
+    const REQUEST_TYPE = 'Broadcast';
+    const DEBOUNCE_DURATION = 5_000;
+
+    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
+      return error(set, 429, 'Rate limit: Please wait 5s between broadcasts');
+    }
+
+    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
+    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
+
+    setTimeout(() => {
+      if (debounceCache[identity!.id])
+        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
+    }, DEBOUNCE_DURATION);
 
     if (['btc', 'ltc'].includes(target)) {
       const url = target === 'btc' ? BTC_API : LTC_API;
@@ -63,11 +78,26 @@ export default new Elysia({prefix: '/crypto'})
       return {txid: (await response.json()).result};
     }
   })
-  .post('/sweep-info', async ({body, set}) => {
+  .post('/sweep-info', async ({identity, body, set}) => {
     const {coin, addresses} = body as {coin: string; addresses: string[]};
     const target = coin.toLowerCase();
 
     if (!['btc', 'ltc', 'eth', 'usdt'].includes(target)) return error(set, 400, 'Unsupported coin');
+
+    const REQUEST_TYPE = 'Sweep Scan';
+    const DEBOUNCE_DURATION = 10_000;
+
+    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
+      return error(set, 429, 'Rate limit: Please wait 10s between scans');
+    }
+
+    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
+    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
+
+    setTimeout(() => {
+      if (debounceCache[identity!.id])
+        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
+    }, DEBOUNCE_DURATION);
 
     if (['btc', 'ltc'].includes(target)) {
       const baseUrl = target === 'btc' ? BTC_API : LTC_API;
@@ -89,34 +119,22 @@ export default new Elysia({prefix: '/crypto'})
       );
 
       const balance = utxos.reduce((acc, u) => acc + u.value, 0);
-
-      return {
-        utxos,
-        balance,
-        nonce: 0,
-      };
+      return {utxos, balance, nonce: 0};
     }
 
     if (['eth', 'usdt'].includes(target)) {
       const address = addresses[0];
       const nonceReq = fetch(`${ETH_API}?module=proxy&action=eth_getTransactionCount&address=${address}&tag=latest`);
 
-      let balReq;
-      if (target === 'usdt') {
-        balReq = fetch(`${ETH_API}?module=account&action=tokenbalance&contractaddress=${USDT_CONTRACT}&address=${address}`);
-      } else {
-        balReq = fetch(`${ETH_API}?module=account&action=balance&address=${address}`);
-      }
+      let balUrl = `${ETH_API}?module=account&address=${address}`;
+      balUrl += target === 'usdt' ? `&action=tokenbalance&contractaddress=${USDT_CONTRACT}` : `&action=balance`;
+      const balReq = fetch(balUrl);
 
       const [nonceRes, balRes] = await Promise.all([nonceReq, balReq]);
       const nonceData = await nonceRes.json();
       const balData = await balRes.json();
 
-      return {
-        utxos: [],
-        balance: Number(balData.result || 0),
-        nonce: parseInt(nonceData.result, 16) || 0,
-      };
+      return {utxos: [], balance: Number(balData.result), nonce: parseInt(nonceData.result, 16)};
     }
   })
   .put('/update-blob/:id', async ({identity, body, set}) => {
