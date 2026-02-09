@@ -19,6 +19,7 @@ export {default as file} from './empty-states/file.svg';
 export {default as group} from './empty-states/group.svg';
 export {default as pencil} from './empty-states/pencil.svg';
 export {default as mailbox} from './empty-states/mailbox.svg';
+export {default as receipt} from './empty-states/receipt.svg';
 export {default as shredder} from './empty-states/shredder.svg';
 export {default as conversation} from './empty-states/conversation.svg';
 
