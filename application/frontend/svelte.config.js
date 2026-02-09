@@ -33,6 +33,7 @@ const config = {
       $dom: 'src/lib/utils/dom.ts',
       $cryptography: 'src/lib/utils/cryptography.ts',
       $cryptocoin: 'src/lib/utils/cryptocoin.ts',
+      $pdf: 'src/lib/utils/pdf.ts',
       $cn: 'src/lib/utils/cn.ts',
     },
   },

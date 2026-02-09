@@ -165,7 +165,7 @@ If a hacker finds this file, your money is gone.
       {/if}
     {:else}
       <CryptoTransaction {mode} {crypto} {currentCrypto} {cryptoTitles} />
-      <CryptoServices {mode} {crypto} {cryptoTitles} />
+      <CryptoServices {mode} {crypto} {cryptoIcons} />
     {/if}
   {/await}
 {:else}
