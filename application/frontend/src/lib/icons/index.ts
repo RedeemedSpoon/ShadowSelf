@@ -51,9 +51,9 @@ export {default as ShuffleIcon} from './wallet/Shuffle.svelte';
 export {default as DownArcIcon} from './wallet/DownArc.svelte';
 export {default as FloppyIcon} from './wallet/Floppy.svelte';
 export {default as CameraIcon} from './wallet/Camera.svelte';
+export {default as MarketIcon} from './wallet/Market.svelte';
 export {default as BroomIcon} from './wallet/Broom.svelte';
 export {default as UpArcIcon} from './wallet/UpArc.svelte';
-export {default as ShopIcon} from './wallet/Shop.svelte';
 
 export {default as BoltIcon} from './crypto/Bolt.svelte';
 export {default as HashIcon} from './crypto/Hash.svelte';

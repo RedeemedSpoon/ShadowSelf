@@ -92,7 +92,7 @@ export const load: PageLoad = () => {
       {
         question: 'What are the third-party services used by ShadowSelf?',
         answer:
-          'We utilize a robust stack to keep you hidden. For identities, we use Gemini Nano on Banana for image generation and Twilio for phone lines. Infrastructure runs on Vultr with domains via Epik. For fiat payments, we use Stripe. Our sovereign crypto engine relies on Coinsbee for gift cards, Trocador for swaps, market data from CoinGecko, and public RPCs nodes (such as mempool.space, litecoinspace.org and eth.blockscout.com).',
+          'We utilize a robust stack to keep you hidden. For identities, we use Gemini Nano on Banana for image generation and Twilio for phone lines. Infrastructure runs on Vultr with domains via Epik. For fiat payments, we use Stripe. Our sovereign crypto engine relies on Trocador for swaps, market data from CoinGecko, and public RPCs nodes (such as mempool.space, litecoinspace.org and eth.blockscout.com).',
       },
       {
         question: 'Can I integrate ShadowSelf with other infrastructures and apps?',

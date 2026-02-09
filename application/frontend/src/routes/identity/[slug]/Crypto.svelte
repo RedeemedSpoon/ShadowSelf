@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {ReceiptIcon, FloppyIcon, ShuffleIcon, ShopIcon, BackIcon, BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
+  import {ReceiptIcon, FloppyIcon, ShuffleIcon, MarketIcon, BackIcon, BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
   import {identity, masterPassword, modalIndex} from '$store';
   import {ActionIcon, Modal, Loader} from '$component';
   import type {Coins, APIResponse} from '$type';
@@ -14,7 +14,7 @@
 
   let crypto = $state() as APIResponse;
   const currentCrypto = writable<Coins>('btc');
-  let mode = writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'gift' | 'swap'>('view');
+  let mode = writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'market' | 'swap'>('view');
 
   const cryptoTitles = {
     btc: 'Bitcoin',
@@ -84,7 +84,7 @@ If a hacker finds this file, your money is gone.
     {/if}
     <ActionIcon icon={FloppyIcon} action={backupKeys} title="Backup Keys" />
     <ActionIcon icon={ReceiptIcon} action={() => ($mode = 'invoice')} title="Generate PDF Invoice" />
-    <ActionIcon icon={ShopIcon} action={() => ($mode = 'gift')} title="Buy Gift Cards" />
+    <ActionIcon icon={MarketIcon} action={() => ($mode = 'market')} title="Spend & Discover" />
     <ActionIcon icon={ShuffleIcon} action={() => ($mode = 'swap')} title="Swap Coins" />
   </div>
 </section>
@@ -152,12 +152,12 @@ If a hacker finds this file, your money is gone.
                 recommend P2P markets.
               </p>
               <div class="mt-1 flex gap-4">
-                <a href="https://learn.robosats.org" target="_blank"> RoboSats (Tor) ↗ </a>
-                <a href="https://bisq.network" target="_blank"> Bisq ↗ </a>
-                <a href="https://hodlhodl.com" target="_blank"> HodlHodl ↗ </a>
+                <a href="https://learn.robosats.org" target="_blank">RoboSats (Tor) ↗</a>
+                <a href="https://bisq.network" target="_blank">Bisq ↗</a>
+                <a href="https://hodlhodl.com" target="_blank">HodlHodl ↗</a>
               </div>
             </div>
-            <button onclick={() => ($modalIndex = 0)}> Got it </button>
+            <button onclick={() => ($modalIndex = 0)}>Got it</button>
           </div>
         </Modal>
       {:else}
@@ -165,7 +165,7 @@ If a hacker finds this file, your money is gone.
       {/if}
     {:else}
       <CryptoTransaction {mode} {crypto} {currentCrypto} {cryptoTitles} />
-      <CryptoServices {mode} {crypto} />
+      <CryptoServices {mode} {crypto} {cryptoTitles} />
     {/if}
   {/await}
 {:else}

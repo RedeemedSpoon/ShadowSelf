@@ -9,7 +9,7 @@
   import {identity} from '$store';
 
   interface Props {
-    mode: Writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'gift' | 'swap'>;
+    mode: Writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'market' | 'swap'>;
     cryptoTitles: {[key: string]: string};
     currentCrypto: Writable<Coins>;
     crypto: APIResponse;
