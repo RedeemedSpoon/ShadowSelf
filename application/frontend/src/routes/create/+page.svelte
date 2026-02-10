@@ -260,9 +260,9 @@
             ltc: ltcXpub,
             evm: ethAddress,
             xmr: {
-              address: xmrAddress,
-              spendKey: xmrSpendKey,
-              viewKey: xmrViewKey,
+              address: await encrypt(xmrAddress),
+              spendKey: await encrypt(xmrSpendKey),
+              viewKey: await encrypt(xmrViewKey),
             },
           },
         };

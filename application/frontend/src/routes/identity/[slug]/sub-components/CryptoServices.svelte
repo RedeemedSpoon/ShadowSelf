@@ -89,14 +89,14 @@
     });
 
     const totalTransactionPrice = tableRows.reduce((sum, row) => sum + row.total, 0);
-    const exchangeRate = crypto.prices[cryptoChoice].to_usd;
+    const exchangeRate = crypto.prices[cryptoChoice].usdPrice;
 
     const cryptoDue = totalTransactionPrice / exchangeRate;
 
-    let destAddr = $identity.wallet_keys.evm;
+    let destAddr = $identity.walletKeys.evm;
     if (['btc', 'ltc'].includes(cryptoChoice)) {
-      const xpub = $identity.wallet_keys[cryptoChoice as 'btc'];
-      const nextIndex = crypto.wallet[cryptoChoice as 'btc'].next_index;
+      const xpub = $identity.walletKeys[cryptoChoice as 'btc'];
+      const nextIndex = crypto.wallet[cryptoChoice as 'btc'].nextIndex;
       const index = useMainAddr ? 0 : Math.max(0, useNewAddr ? nextIndex : nextIndex - 1);
       destAddr = deriveXPub(cryptoChoice, xpub, index);
     }

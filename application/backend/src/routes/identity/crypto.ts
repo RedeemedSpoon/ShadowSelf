@@ -28,7 +28,7 @@ export default new Elysia({prefix: '/crypto'})
     cryptoWallet.ltc = await getUtxoData('ltc', ltc);
     cryptoWallet.usdt = await getEvmData('usdt', evm);
 
-    cryptoWallet.xmr = {starting_date: identity?.creation_date!, ...(await getXmrNode())};
+    cryptoWallet.xmr = {startingDate: identity?.creation_date!, ...(await getXmrNode())};
 
     if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
     debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: cryptoWallet});

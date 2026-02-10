@@ -35,7 +35,7 @@
   let selectedPriority: Priority = $state('low');
   let sweepStepMessage: string = $state('');
 
-  let newUtxoWallet = $derived(!(crypto.wallet[$currentCrypto as 'btc'].next_index !== 0 && ['btc', 'ltc'].includes($currentCrypto)));
+  let newUtxoWallet = $derived(!(crypto.wallet[$currentCrypto as 'btc'].nextIndex !== 0 && ['btc', 'ltc'].includes($currentCrypto)));
   const addressTitle = $derived(index === 0 ? 'Main Address' : `Derived Address (Index ${index})`);
 
   const estimatedFee = $derived(
@@ -44,11 +44,11 @@
 
   const address = $derived.by(() => {
     if ($currentCrypto === 'btc' || $currentCrypto === 'ltc') {
-      return deriveXPub($currentCrypto, $identity.wallet_keys[$currentCrypto], index);
+      return deriveXPub($currentCrypto, $identity.walletKeys[$currentCrypto], index);
     } else if ($currentCrypto === 'eth' || $currentCrypto === 'usdt') {
-      return $identity.wallet_keys.evm;
+      return $identity.walletKeys.evm;
     } else {
-      return $identity.wallet_keys.xmr.address;
+      return $identity.walletKeys.xmr.address;
     }
   });
 
@@ -84,10 +84,10 @@
     }
   }
 
-  function toggleUtxo(given_utxo: UTXOData[number]) {
-    const is_selected = selectedUtxos.some((utxo) => utxo.txid === given_utxo.txid);
-    if (is_selected) selectedUtxos = selectedUtxos.filter((utxo) => utxo.txid !== given_utxo.txid);
-    else selectedUtxos.push(given_utxo);
+  function toggleUtxo(givenUtxo: UTXOData[number]) {
+    const isSelected = selectedUtxos.some((utxo) => utxo.txid === givenUtxo.txid);
+    if (isSelected) selectedUtxos = selectedUtxos.filter((utxo) => utxo.txid !== givenUtxo.txid);
+    else selectedUtxos.push(givenUtxo);
   }
 
   function scanQRCode(result: string) {
@@ -150,14 +150,14 @@
     await new Promise((r) => setTimeout(r, Math.random() * 600 + 500));
 
     const destAddr = ['btc', 'ltc'].includes(coin)
-      ? deriveXPub(coin, $identity.wallet_keys[coin as 'btc'], Math.max(0, crypto.wallet[coin as 'btc'].next_index - 1))
-      : $identity.wallet_keys.evm;
+      ? deriveXPub(coin, $identity.walletKeys[coin as 'btc'], Math.max(0, crypto.wallet[coin as 'btc'].nextIndex - 1))
+      : $identity.walletKeys.evm;
 
     const data: transactionData = {
       estimatedFee: feeParam,
       privKeyType: ['btc', 'ltc'].includes(coin) ? 'wif' : 'hex',
       wifKey: result,
-      utxos: info.utxos?.map((u: any) => ({...u, path_index: 0})),
+      utxos: info.utxos?.map((u: any) => ({...u, pathIndex: 0})),
       nonce: info.nonce,
       balance: info.balance,
     };
@@ -182,9 +182,9 @@
     const data: transactionData = {
       estimatedFee: ['btc', 'ltc'].includes($currentCrypto) ? estimatedFee : crypto.fees[$currentCrypto][selectedPriority],
       privKeyType: 'mnemonic',
-      wifKey: await decrypt($identity.wallet_blob),
-      index: Math.max(0, crypto.wallet[$currentCrypto as 'btc'].next_index - 1),
-      xpubKey: $identity.wallet_keys[$currentCrypto as 'btc'],
+      wifKey: await decrypt($identity.walletBlob),
+      index: Math.max(0, crypto.wallet[$currentCrypto as 'btc'].nextIndex - 1),
+      xpubKey: $identity.walletKeys[$currentCrypto as 'btc'],
       utxos: crypto.wallet[$currentCrypto as 'btc'].utxos,
       nonce: crypto.wallet[$currentCrypto as 'eth'].nonce,
       balance: crypto.wallet[$currentCrypto as 'eth'].balance,
@@ -241,7 +241,7 @@
       {#if !newUtxoWallet}
         <div class="flex gap-4">
           {#if index === 0}
-            <button class="w-full justify-center py-3" onclick={() => (index = crypto.wallet[$currentCrypto as 'btc'].next_index)}>
+            <button class="w-full justify-center py-3" onclick={() => (index = crypto.wallet[$currentCrypto as 'btc'].nextIndex)}>
               Generate Fresh Address
             </button>
           {:else}
@@ -265,7 +265,8 @@
       <div class="flex flex-col gap-1">
         <label for="amount">
           Amount in {$currentCrypto.toUpperCase()}
-          <span class="text-neutral-500">(1 {$currentCrypto.toUpperCase()} = {formatUSD(crypto.prices[$currentCrypto].to_usd)})</span>
+          <span class="text-neutral-500"
+            >(1 {$currentCrypto.toUpperCase()} = {formatUSD(crypto.prices[$currentCrypto].usdPrice)})</span>
         </label>
         <input bind:value={amount} onchange={automaticUtxoSelection} type="number" name="amount" placeholder="0.00" />
       </div>
@@ -301,7 +302,7 @@
         <small class="text-right text-xs text-neutral-500">
           Estimated Fee:
           <span class="text-neutral-300"> {estimatedFee.fee} {estimatedFee.unit} </span>
-          <span>(~{formatUSD(Number(estimatedFee.fee) * crypto.prices[$currentCrypto].to_usd)})</span>
+          <span>(~{formatUSD(Number(estimatedFee.fee) * crypto.prices[$currentCrypto].usdPrice)})</span>
         </small>
       </div>
     </div>
@@ -339,7 +340,7 @@
                 </td>
                 <td class="max-w-[250px] truncate p-2 font-mono text-xs text-neutral-500" title={utxo.address}>
                   {utxo.address}
-                  <span class="ml-2 rounded bg-neutral-800 px-1 text-neutral-400">#{utxo.path_index}</span>
+                  <span class="ml-2 rounded bg-neutral-800 px-1 text-neutral-400">#{utxo.pathIndex}</span>
                 </td>
               </tr>
             {/each}

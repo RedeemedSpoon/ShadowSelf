@@ -13,7 +13,7 @@
   let {data, children}: Props = $props();
 
   user.set(data.user);
-  token.set(data.token);
+  token.set(data.token!);
 
   onMount(() => {
     document.querySelector('#app')?.classList.remove('hidden');

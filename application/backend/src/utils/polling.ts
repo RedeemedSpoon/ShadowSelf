@@ -57,7 +57,7 @@ export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<Cr
             vout: u.vout,
             value: u.value,
             address: address,
-            path_index: i,
+            pathIndex: i,
           })),
         );
       }
@@ -101,8 +101,8 @@ export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<Cr
       balance: totalBalance,
       utxos: allUtxos,
       history: allHistory,
-      active_count: activeCount,
-      next_index: activeCount,
+      activeCount: activeCount,
+      nextIndex: activeCount,
     };
   } catch (_) {
     return {
@@ -110,8 +110,8 @@ export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<Cr
       balance: totalBalance,
       utxos: allUtxos,
       history: allHistory,
-      active_count: activeCount,
-      next_index: activeCount,
+      activeCount: activeCount,
+      nextIndex: activeCount,
     };
   }
 }
@@ -173,9 +173,9 @@ export async function getXmrNode() {
       status = `Syncing (${info.height}/${info.target_height})`;
     }
 
-    return {status, node_url: XMR_NODE};
+    return {status, nodeUrl: XMR_NODE};
   } catch (e) {
-    return {status: 'Network Error', node_url: XMR_NODE};
+    return {status: 'Network Error', nodeUrl: XMR_NODE};
   }
 }
 
@@ -228,8 +228,8 @@ async function pollPrices() {
 
     data.forEach((element) => {
       cryptoPrices[element.symbol] = {
-        daily_change: element.price_change_percentage_24h,
-        to_usd: element.current_price,
+        dailyChange: element.price_change_percentage_24h,
+        usdPrice: element.current_price,
         chart: element.sparkline_in_7d.price,
       };
     });

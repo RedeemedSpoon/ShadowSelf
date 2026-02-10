@@ -104,15 +104,15 @@
       }),
     );
 
-    const account_response = await fetchAPI('account/update-encryption', 'PUT', {accounts: updatedAccounts});
-    if (account_response.err) return notify(account_response.err, 'alert');
+    const accountResponse = await fetchAPI('account/update-encryption', 'PUT', {accounts: updatedAccounts});
+    if (accountResponse.err) return notify(accountResponse.err, 'alert');
 
     // Crypto wallet
-    const mnemonic = await decrypt($identity.wallet_blob);
+    const mnemonic = await decrypt($identity.walletBlob);
     const blob = await encrypt(mnemonic, newKey);
 
-    const wallet_response = await fetchAPI('crypto/update-blob', 'PUT', {blob});
-    if (wallet_response.err) return notify(wallet_response.err, 'alert');
+    const walletResponse = await fetchAPI('crypto/update-blob', 'PUT', {blob});
+    if (walletResponse.err) return notify(walletResponse.err, 'alert');
 
     $masterPassword = base64Key;
     localStorage.setItem('key-' + $identity.id, base64Key);

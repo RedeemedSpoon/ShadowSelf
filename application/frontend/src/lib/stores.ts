@@ -1,4 +1,4 @@
-import type {Notification, PricingModel, Sections, FullIdentity, WebSocketMessage} from '$type';
+import type {Notification, PricingModel, Sections, FullIdentity, WebSocketMessage, MoneroData} from '$type';
 import {writable, type Writable} from 'svelte/store';
 import {allPricingModels} from '$type';
 
@@ -17,6 +17,7 @@ export const modalIndex: Writable<number> = writable(0);
 export const fetchIndex: Writable<number> = writable(0);
 
 export const identity: Writable<FullIdentity> = writable();
+export const moneroData: Writable<MoneroData> = writable();
 export const masterPassword: Writable<string> = writable();
 export const handleResponse: Writable<(response: WebSocketMessage) => void> = writable(() => {});
 

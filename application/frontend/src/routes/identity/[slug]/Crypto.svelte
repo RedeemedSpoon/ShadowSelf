@@ -1,6 +1,6 @@
 <script lang="ts">
   import {ReceiptIcon, FloppyIcon, ShuffleIcon, MarketIcon, BackIcon, BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
-  import {identity, masterPassword, modalIndex} from '$store';
+  import {identity, moneroData, masterPassword, modalIndex} from '$store';
   import {ActionIcon, Modal, Loader} from '$component';
   import type {Coins, APIResponse} from '$type';
   import {decrypt} from '$cryptography';
@@ -39,13 +39,19 @@
     await new Promise((resolve) => setTimeout(resolve, 10));
     document.getElementById('hold-load')?.remove();
     crypto = await fetchAPI('crypto', 'GET');
+
+    $moneroData = {
+      viewKey: await decrypt($identity.walletKeys.xmr.viewKey),
+      spendKey: await decrypt($identity.walletKeys.xmr.spendKey),
+      address: await decrypt($identity.walletKeys.xmr.address),
+    };
   }
 
   async function backupKeys() {
-    const mnemonicCode = await decrypt($identity.wallet_blob);
+    const mnemonicCode = await decrypt($identity.walletBlob);
     const text = `
 # ----------------------------------------------------------------------
-# SHADOWSELF - IDENTITY RECOVERY KIT
+# SHADOWSELF - Crypto RECOVERY KIT
 # ----------------------------------------------------------------------
 
 [1] YOUR SECRET KEY (SEED PHRASE)

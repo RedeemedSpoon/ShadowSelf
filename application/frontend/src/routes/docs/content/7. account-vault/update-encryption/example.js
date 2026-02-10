@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const apiKey = process.env.API_KEY;
-const identityId = process.env.IDENTITY_ID;
-const apiUrl = `https://shadowself.io/api/account/update-encryption/${identityId}`;
+const identityID = process.env.IDENTITY_ID;
+const apiUrl = `https://shadowself.io/api/account/update-encryption/${identityID}`;
 
 const reEncryptedPass1 = 'U2FsdGVkX1+NewKeyEncPassDataOne==';
 const reEncryptedTotp1 = 'U2FsdGVkX1+NewKeyEncTotpDataOne==';

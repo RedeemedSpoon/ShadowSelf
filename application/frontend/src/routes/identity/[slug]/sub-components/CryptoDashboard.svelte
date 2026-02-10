@@ -3,10 +3,10 @@
   import {UpArcIcon, DownArcIcon, ExternalLinkIcon, CameraIcon, WalletIcon, BroomIcon, SpreadSheetIcon} from '$icon';
   import type {APIResponse, Coins} from '$type';
   import {formatUSD, formatDate} from '$format';
+  import {identity, moneroData} from '$store';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
   import {CopyButton} from '$component';
-  import {identity} from '$store';
 
   interface Props {
     mode: Writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'market' | 'swap'>;
@@ -21,14 +21,14 @@
   const filename = $derived(`ShadowSelf-${$currentCrypto.toUpperCase()}-Transaction-History.csv`);
 
   const balance: number = $derived(crypto.wallet[$currentCrypto as 'btc'].balance);
-  const usdBalance: number = $derived(balance * crypto.prices[$currentCrypto].to_usd);
+  const usdBalance: number = $derived(balance * crypto.prices[$currentCrypto].usdPrice);
   const statusClass: string = $derived(crypto.wallet[$currentCrypto].status.toLowerCase().replaceAll(' ', '-'));
-  const growthClass: string = $derived(crypto.prices[$currentCrypto].daily_change > 0 ? 'up' : 'down');
+  const growthClass: string = $derived(crypto.prices[$currentCrypto].dailyChange > 0 ? 'up' : 'down');
 
   const activePaths = $derived(
     (() => {
       const isDerivable = ['btc', 'ltc'].includes($currentCrypto);
-      return isDerivable ? crypto.wallet[$currentCrypto as 'btc'].active_count : 0;
+      return isDerivable ? crypto.wallet[$currentCrypto as 'btc'].activeCount : 0;
     })(),
   );
 
@@ -68,7 +68,7 @@
 
   const feesUsd = $derived(
     (() => {
-      const price = crypto.prices[$currentCrypto === 'usdt' ? 'eth' : $currentCrypto]?.to_usd || 0;
+      const price = crypto.prices[$currentCrypto === 'usdt' ? 'eth' : $currentCrypto]?.usdPrice || 0;
       if (['eth', 'usdt'].includes($currentCrypto)) return '$' + (((rate * 21000) / 1e9) * price).toFixed(2);
       if (['btc', 'ltc'].includes($currentCrypto)) return '$' + (((rate * 140) / 1e8) * price).toFixed(2);
       if ($currentCrypto === 'xmr') {
@@ -107,7 +107,7 @@
 
   const weeklyGrowth: number = $derived(
     (() => {
-      const currentPrice = crypto.prices[$currentCrypto].to_usd;
+      const currentPrice = crypto.prices[$currentCrypto].usdPrice;
       const price7dAgo = crypto.prices[$currentCrypto].chart[0];
       return ((currentPrice - price7dAgo) / price7dAgo) * 100;
     })(),
@@ -129,7 +129,7 @@
 
     for (const i in transactionHistory) {
       const transactionAmount = transactionHistory[i].amount;
-      const currentCryptoPrice = crypto.prices[$currentCrypto].to_usd;
+      const currentCryptoPrice = crypto.prices[$currentCrypto].usdPrice;
       const usdtransactionAmount = transactionAmount * currentCryptoPrice;
 
       if (usdtransactionAmount < usdDustThreshold) {
@@ -167,26 +167,26 @@
       <p class="w-1/2">
         <b><HashIcon />{activePaths != 0 && 'Main'} Address:</b>
         {#if $currentCrypto === 'btc'}
-          {@const btc = deriveXPub('btc', $identity.wallet_keys.btc, 0)}
+          {@const btc = deriveXPub('btc', $identity.walletKeys.btc, 0)}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${btc.slice(0, 20)}...`} text={btc} />
           <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used"
             >({activePaths} active)</span>
         {:else if $currentCrypto === 'ltc'}
-          {@const ltc = deriveXPub('ltc', $identity.wallet_keys.ltc, 0)}
+          {@const ltc = deriveXPub('ltc', $identity.walletKeys.ltc, 0)}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${ltc.slice(0, 20)}...`} text={ltc} />
           <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used"
             >({activePaths} active)</span>
         {:else if $currentCrypto === 'xmr'}
-          {@const xmr = $identity.wallet_keys.xmr.address}
+          {@const xmr = $moneroData.address}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${xmr.slice(0, 20)}...`} text={xmr} />
         {:else}
-          {@const eth = $identity.wallet_keys.evm}
+          {@const eth = $identity.walletKeys.evm}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} text={eth} label={`${eth.slice(0, 20)}...`} />
         {/if}
       </p>
       <p>
         <b><ActivityIcon />Growth (24h):</b>
-        <span class={growthClass}>{growthClass === 'up' ? '↗' : '↘'} {crypto.prices[$currentCrypto].daily_change.toFixed(2)}%</span>
+        <span class={growthClass}>{growthClass === 'up' ? '↗' : '↘'} {crypto.prices[$currentCrypto].dailyChange.toFixed(2)}%</span>
       </p>
       <div class="w-3/4">
         <div class="mt-4 flex items-end justify-between">
@@ -201,7 +201,7 @@
         <div class="mb-6">
           <h3>
             {$currentCrypto.toUpperCase()}/USD
-            <span class="text-xl text-neutral-200">{formatUSD(crypto.prices[$currentCrypto].to_usd)}</span>
+            <span class="text-xl text-neutral-200">{formatUSD(crypto.prices[$currentCrypto].usdPrice)}</span>
             <span class={weeklyGrowth > 0 ? 'up' : 'down'}>{weeklyGrowth > 0 ? '↗' : '↘'} {weeklyGrowth.toFixed(2)}%</span>
           </h3>
         </div>

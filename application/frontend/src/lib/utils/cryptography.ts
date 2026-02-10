@@ -63,8 +63,8 @@ export async function encrypt(data: string, key?: CryptoKey) {
   return btoa(String.fromCharCode(...encryptedDataArray));
 }
 
-export async function decrypt(encryptedString: string, new_key?: CryptoKey) {
-  const key = new_key || (await getMasterKey());
+export async function decrypt(encryptedString: string, newKey?: CryptoKey) {
+  const key = newKey || (await getMasterKey());
 
   const encryptedData = new Uint8Array(
     atob(encryptedString)

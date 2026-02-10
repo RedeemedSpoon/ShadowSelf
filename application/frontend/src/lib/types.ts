@@ -9,6 +9,7 @@ export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export type BillingSteps = 'create' | 'confirm' | 'auth' | 'finish';
 
+export type MoneroData = {viewKey: string; spendKey: string; address: string};
 export type BtcSigner = {type: 'hd'; root: HDKey} | {type: 'key'; privKey: Uint8Array};
 export type FullEmail = Email & {messageID: string; date: Date};
 export type Attachment = {filename: string; data: string};
@@ -115,15 +116,15 @@ export interface Identity {
   email: string;
   phone: string;
   accounts: number;
-  wallet_keys: CryptoKeys;
-  wallet_blob: string;
+  walletKeys: CryptoKeys;
+  walletBlob: string;
 }
 
 export interface FullIdentity {
   id: string;
-  creation_date: Date;
+  creationDate: Date;
   plan: 'monthly' | 'annually' | 'lifetime';
-  proxy_server: string;
+  proxyServer: string;
   location: string;
   picture: string;
   name: string;
@@ -133,8 +134,8 @@ export interface FullIdentity {
   ethnicity: string;
   email: string;
   phone: string;
-  wallet_keys: CryptoKeys;
-  wallet_blob: string;
+  walletKeys: CryptoKeys;
+  walletBlob: string;
 }
 
 export interface CreationProcess {
@@ -216,8 +217,8 @@ export type CryptoFees = {
 
 export type CryptoPrices = {
   [key in Coins]: {
-    daily_change: number;
-    to_usd: number;
+    dailyChange: number;
+    usdPrice: number;
     chart: number[];
   };
 };
@@ -226,7 +227,7 @@ export type UTXOData = {
   txid: string;
   vout: number;
   address: string;
-  path_index: number;
+  pathIndex: number;
   value: number;
 }[];
 
@@ -244,16 +245,16 @@ export type CryptoWallet = {
     balance: number;
     utxos: UTXOData;
     history: TransactionsHistory;
-    active_count: number;
-    next_index: number;
+    activeCount: number;
+    nextIndex: number;
   };
   ltc: {
     status: string;
     balance: number;
     utxos: UTXOData;
     history: TransactionsHistory;
-    active_count: number;
-    next_index: number;
+    activeCount: number;
+    nextIndex: number;
   };
   eth: {
     status: string;
@@ -269,8 +270,8 @@ export type CryptoWallet = {
   };
   xmr: {
     status: string;
-    starting_date: Date;
-    node_url: string;
+    startingDate: Date;
+    nodeUrl: string;
   };
 };
 

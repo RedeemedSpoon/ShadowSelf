@@ -16,10 +16,10 @@ type UpdateEncryptionPayload struct {
 
 func main() {
   apiKey := os.Getenv("API_KEY")
-  identityId := os.Getenv("IDENTITY_ID")
+  identityID := os.Getenv("IDENTITY_ID")
   apiURL := fmt.Sprintf(
     "https://shadowself.io/api/account/update-encryption/%s",
-    identityId,
+    identityID,
   )
 
   reEncryptedPass1 := "U2FsdGVkX1+NewKeyEncPassDataOne=="

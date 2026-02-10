@@ -26,9 +26,10 @@ export default new Elysia()
       const accounts = await attempt(sql`SELECT * FROM accounts WHERE owner = ${id}`);
       const formattedLocation = location.slice(4).trim();
       const country = location.split(',')[0];
-      const promise_return = {picture: lowResPic, location: formattedLocation, accounts: accounts?.length};
+      const restReturn = {picture: lowResPic, location: formattedLocation, accounts: accounts?.length};
+      const cryptoData = {walletBlob: wallet_blob, walletKeys: wallet_keys};
 
-      return {id, name, email, phone, country, wallet_blob, wallet_keys, ...promise_return};
+      return {id, name, email, phone, country, ...cryptoData, ...restReturn};
     });
 
     return await Promise.all(allIdentitiesPromises);

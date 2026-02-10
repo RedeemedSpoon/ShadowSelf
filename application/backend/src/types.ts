@@ -191,7 +191,7 @@ export interface APIRequest {
   btc: string;
   ltc: string;
   emv: string;
-  xmr_address: string;
+  xmrAddress: string;
 }
 
 export interface EmailContent {
@@ -225,8 +225,8 @@ export type CryptoFees = {
 
 export type CryptoPrices = {
   [key in CryptoCurrencies]: {
-    daily_change: number;
-    to_usd: number;
+    dailyChange: number;
+    usdPrice: number;
     chart: number[];
   };
 };
@@ -244,7 +244,7 @@ export type UTXOData = {
   txid: string;
   vout: number;
   address: string;
-  path_index: number;
+  pathIndex: number;
   value: number;
 }[];
 
@@ -262,16 +262,16 @@ export type CryptoWalletResponse = {
     balance: number;
     utxos: UTXOData;
     history: TransactionsHistory;
-    active_count: number;
-    next_index: number;
+    activeCount: number;
+    nextIndex: number;
   };
   ltc: {
     status: string;
     balance: number;
     utxos: UTXOData;
     history: TransactionsHistory;
-    active_count: number;
-    next_index: number;
+    activeCount: number;
+    nextIndex: number;
   };
   eth: {
     status: string;
@@ -287,8 +287,8 @@ export type CryptoWalletResponse = {
   };
   xmr: {
     status: string;
-    starting_date: Date;
-    node_url: string;
+    startingDate: Date;
+    nodeUrl: string;
   };
 };
 
