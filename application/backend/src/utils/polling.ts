@@ -239,4 +239,4 @@ async function pollPrices() {
 pollFees();
 pollPrices();
 setInterval(pollPrices, 300_000); // 5 min
-setInterval(pollFees, 60_000); // 1 min
+setInterval(pollFees, 180_000); // 3 min

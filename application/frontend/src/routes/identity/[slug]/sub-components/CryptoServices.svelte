@@ -114,11 +114,6 @@
     const tableData = {tableRows, totalTransactionPrice};
     const clientData = {clientName, clientEmail};
 
-    console.log(identityData);
-    console.log(clientData);
-    console.log(tableData);
-    console.log(cryptoData);
-
     generatePDF(identityData, clientData, tableData, cryptoData);
   }
 </script>
