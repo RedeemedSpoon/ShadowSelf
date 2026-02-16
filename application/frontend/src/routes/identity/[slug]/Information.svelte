@@ -12,7 +12,7 @@
   let activeStatus = $state(false);
   let isEditingMode = $state(false);
 
-  const relativeDate = new Date($identity.creation_date).getTime() - new Date().getTime();
+  const relativeDate = new Date($identity.creationDate).getTime() - new Date().getTime();
   const dateInDays = Math.round(relativeDate / (1000 * 60 * 60 * 24));
   const dateInMonths = Math.round(dateInDays / 30);
 
@@ -106,7 +106,7 @@
       <p class="flex items-center gap-2 md:text-nowrap">
         Located in
         <img class="h-4 max-md:hidden" src={countriesFlags[$identity.location.split(',')[0].toLowerCase()]} alt={$identity.location} />
-        {$identity.location.split(',')[1]}, {$identity.location.split(',')[2]} ({$identity.proxy_server})
+        {$identity.location.split(',')[1]}, {$identity.location.split(',')[2]} ({$identity.proxyServer})
       </p>
       <p class="-mt-2">Created {date}</p>
       <hr class="my-2 w-1/6" />
@@ -124,8 +124,8 @@
           <CopyButton
             alt={true}
             change={false}
-            text={$identity.wallet_keys.evm}
-            label={`${$identity.wallet_keys.evm.slice(0, 20)}...`} />
+            text={$identity.walletKeys.evm}
+            label={`${$identity.walletKeys.evm.slice(0, 20)}...`} />
         </div>
       </div>
     </div>

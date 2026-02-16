@@ -124,7 +124,7 @@ export async function signTransaction(coin: Coins, addr: string, amt: number, da
         let publicKey: Uint8Array;
 
         if (signer.type === 'hd') {
-          const child = signer.root.derive(`${pathBase}/${utxo.path_index}`);
+          const child = signer.root.derive(`${pathBase}/${utxo.pathIndex}`);
           publicKey = child.publicKey!;
         } else {
           publicKey = new HDKey({privateKey: signer.privKey, chainCode: new Uint8Array(32)}).publicKey!;
@@ -180,7 +180,7 @@ export async function signTransaction(coin: Coins, addr: string, amt: number, da
         let privateKey: Uint8Array;
 
         if (signer.type === 'hd') {
-          privateKey = signer.root.derive(`${pathBase}/${utxo.path_index}`).privateKey!;
+          privateKey = signer.root.derive(`${pathBase}/${utxo.pathIndex}`).privateKey!;
         } else {
           privateKey = signer.privKey;
         }

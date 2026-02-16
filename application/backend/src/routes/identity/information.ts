@@ -10,8 +10,16 @@ import {Elysia} from 'elysia';
 export default new Elysia({prefix: '/identity'})
   .use(middleware)
   .get('/:id', async ({identity}) => {
-    const {email_password, proxy_password, payment_intent, subscription_id, owner, status, ...public_information} = identity!;
-    return public_information;
+    const {email_password, proxy_password, payment_intent, subscription_id, owner, status, ...pubInfo} = identity!;
+    const {creation_date, proxy_server, wallet_keys, wallet_blob, ...rest} = pubInfo;
+    const reformattedData = {
+      creationDate: creation_date,
+      proxyServer: proxy_server,
+      walletKeys: wallet_keys,
+      walletBlob: wallet_blob,
+    };
+
+    return {...rest, ...reformattedData};
   })
   .patch('/regenerate-picture/:id', async ({set, identity, body}) => {
     const fields = ['?sex', '?age', '?ethnicity', '?bio'];

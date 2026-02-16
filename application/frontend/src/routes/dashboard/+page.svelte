@@ -123,7 +123,7 @@
               <br />
               <p class="md:max-lg:flex! lg:max-xl:flex!"><EmailIcon className="h-6! w-6! stroke-primary-600!" />{identity.email}</p>
               <p class="lg:max-xl:flex!"><PhoneIcon />{formatPhoneNumber(identity.phone)}</p>
-              <p><WalletIcon className="h-6! w-6! stroke-primary-600!" />{identity.wallet_keys.evm.slice(0, 13)}...</p>
+              <p><WalletIcon className="h-6! w-6! stroke-primary-600!" />{identity.walletKeys.evm.slice(0, 13)}...</p>
               <p><MultiUsersIcon />{identity.accounts}</p>
             </a>
           {/if}
