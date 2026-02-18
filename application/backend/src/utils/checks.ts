@@ -217,14 +217,6 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       if (!/^0x[a-fA-F0-9]{40}$/.test(keys.evm)) {
         return {error: 'Invalid Ethereum Address'};
       }
-
-      if (!/^[48][a-zA-Z0-9]{90,110}$/.test(keys.xmr?.address)) {
-        return {error: 'Invalid Monero Address'};
-      }
-
-      if (!/^[a-fA-F0-9]{64}$/.test(keys.xmr?.viewKey)) {
-        return {error: 'Invalid Monero View Key'};
-      }
       break;
 
     case 'provision': {
@@ -556,23 +548,74 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         }
         break;
 
-      case 'xmr_address':
-        if (typeof body.xmr_address !== 'string') {
+      case 'xmr':
+        if (typeof body.xmr !== 'string') {
           return {err: 'Monero address must be a string'} as APIRequest;
         }
 
-        if (!/^[48][a-zA-Z0-9]{90,110}$/.test(body.xmr_address)) {
+        if (!/^[48][a-zA-Z0-9]{90,110}$/.test(body.xmr)) {
           return {err: 'Invalid Monero Address format'} as APIRequest;
         }
         break;
 
-      case 'xmr_viewkey':
-        if (typeof body.xmr_viewkey !== 'string') {
-          return {err: 'Monero view key must be a string'} as APIRequest;
+      case 'coin':
+      case 'coinTo':
+      case 'coinFrom':
+        if (typeof body[fieldType] !== 'string') {
+          return {err: `${toTitleCase(fieldType)} must be a string`} as APIRequest;
         }
 
-        if (!/^[a-fA-F0-9]{64}$/.test(body.xmr_viewkey)) {
-          return {err: 'Invalid Monero View Key format (must be 64 hex characters)'} as APIRequest;
+        if (!['btc', 'ltc', 'eth', 'usdt', 'xmr'].includes(body[fieldType].toLowerCase())) {
+          return {err: `Invalid ${fieldType}. Must be BTC, LTC, ETH, USDT, or XMR.`} as APIRequest;
+        }
+        break;
+
+      case 'addresses':
+        if (!Array.isArray(body.addresses)) {
+          return {err: 'Addresses must be an array'} as APIRequest;
+        }
+
+        if (body.addresses.length === 0) {
+          return {err: 'Addresses array cannot be empty'} as APIRequest;
+        }
+
+        if (body.addresses.some((addr) => typeof addr !== 'string' || addr.length < 10)) {
+          return {err: 'Addresses array contains invalid data'} as APIRequest;
+        }
+        break;
+
+      case 'destinationAddress':
+      case 'refundAddress':
+        if (typeof body[fieldType] !== 'string') {
+          return {err: `${toTitleCase(fieldType)} must be a string`} as APIRequest;
+        }
+
+        if (body[fieldType].length < 10) {
+          return {err: `Invalid ${fieldType} format`} as APIRequest;
+        }
+        break;
+
+      case 'provider':
+      case 'tradeid':
+        if (typeof body[fieldType] !== 'string' || body[fieldType].length < 3 || body[fieldType].length > 20) {
+          return {err: `Invalid ${fieldType}`} as APIRequest;
+        }
+        break;
+
+      case 'amount':
+        const amt = Number(body.amount);
+        if (isNaN(amt) || amt <= 0) {
+          return {err: 'Amount must be a positive number'} as APIRequest;
+        }
+        break;
+
+      case 'hex':
+        if (typeof body.hex !== 'string') {
+          return {err: 'Hex must be a string'} as APIRequest;
+        }
+
+        if (!/^(0x)?[0-9a-fA-F]+$/.test(body.hex)) {
+          return {err: 'Invalid hexadecimal string'} as APIRequest;
         }
         break;
     }

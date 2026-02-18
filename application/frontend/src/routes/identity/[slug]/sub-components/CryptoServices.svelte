@@ -1,14 +1,16 @@
 <script lang="ts">
   import {LoadingButton, SelectMenu} from '$component';
   import type {APIResponse, Coins} from '$type';
+  import {fetchIndex, identity} from '$store';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
   import type {Component} from 'svelte';
   import {generatePDF} from '$pdf';
+  import {fetchAPI} from '$fetch';
   import {markets} from '$market';
-  import {fetchIndex, identity} from '$store';
   import {receipt} from '$image';
   import QRCode from 'qrcode';
+  import {notify} from '$lib';
 
   interface Props {
     mode: Writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'market' | 'swap'>;
@@ -36,7 +38,7 @@
     {label: 'Monero', value: 'xmr'},
   ];
 
-  let swapAmount = $state('');
+  let swapAmount = $state(0);
   let payCoin = $state('btc');
   let receiveCoin = $state('xmr');
   let chooseProvider = $state(false);
@@ -136,7 +138,8 @@
     $fetchIndex = 1;
     await new Promise((resolve) => setTimeout(resolve, 850));
 
-    // Logic
+    const response = await fetchAPI('/crypto/swap-rates', 'GET', {coinFrom: payCoin, coinTo: receiveCoin, amount: swapAmount});
+    if (response.err) notify(response.err, 'alert');
 
     $fetchIndex = 0;
     chooseProvider = true;

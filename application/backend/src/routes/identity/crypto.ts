@@ -41,11 +41,34 @@ export default new Elysia({prefix: '/crypto'})
 
     return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};
   })
-  .post('/broadcast/:id', async ({identity, body, set}) => {
-    const {hex, coin} = body as {hex: string; coin: string};
-    const target = coin.toLowerCase();
+  .get('/swap-rates/:id', async ({query, set}) => {
+    const {err, coinFrom, coinTo, amount} = await checkAPI(query, ['coinTo', 'coinFrom', 'amount']);
+    if (err) return error(set, 400, err);
 
-    if (!['btc', 'ltc', 'eth', 'usdt'].includes(target)) return error(set, 400, 'Unsupported coin');
+    const net = (t: string) => (t.toLowerCase().includes('usdt') ? 'ERC20' : 'Mainnet');
+    const params = `?ticker_from=${coinFrom}&ticker_to=${coinTo}&network_from=${net(coinFrom)}&network_to=${net(coinTo)}&amount_from=${amount}`;
+    const apiKey = process.env.TROCADOR_API_KEY!;
+
+    const response = await fetch('https://api.trocador.app/new_rate' + params, {headers: {'API-Key': apiKey}});
+    if (!response.ok) return error(set, 400, 'Something Went Wrong');
+
+    const data = await response.json();
+    return {
+      tradeID: data.trade_id,
+      bestProvider: data.provider,
+      otherProviders: data.quotes,
+      coinFrom,
+      coinTo,
+    };
+  })
+  .post('/swap-trades/:id', async ({body, set}) => {
+    const fields = ['tradeid', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider'];
+    const {err, tradeid, coinTo, coinFrom, amount, destinationAddress, refundAddress, provider} = await checkAPI(body, fields);
+    if (err) return error(set, 400, err);
+  })
+  .post('/broadcast/:id', async ({identity, body, set}) => {
+    const {err, hex, coin} = await checkAPI(body, ['hex', 'coin']);
+    if (err) return error(set, 400, err);
 
     const REQUEST_TYPE = 'Broadcast';
     const DEBOUNCE_DURATION = 5_000;
@@ -62,6 +85,7 @@ export default new Elysia({prefix: '/crypto'})
         debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
     }, DEBOUNCE_DURATION);
 
+    const target = coin.toLowerCase();
     if (['btc', 'ltc'].includes(target)) {
       const url = target === 'btc' ? BTC_API : LTC_API;
       const response = await fetch(`${url}/tx`, {method: 'POST', body: hex});
@@ -79,10 +103,8 @@ export default new Elysia({prefix: '/crypto'})
     }
   })
   .post('/sweep-info', async ({identity, body, set}) => {
-    const {coin, addresses} = body as {coin: string; addresses: string[]};
-    const target = coin.toLowerCase();
-
-    if (!['btc', 'ltc', 'eth', 'usdt'].includes(target)) return error(set, 400, 'Unsupported coin');
+    const {err, coin, addresses} = await checkAPI(body, ['coin', 'addresses']);
+    if (err) return error(set, 400, err);
 
     const REQUEST_TYPE = 'Sweep Scan';
     const DEBOUNCE_DURATION = 10_000;
@@ -99,6 +121,7 @@ export default new Elysia({prefix: '/crypto'})
         debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
     }, DEBOUNCE_DURATION);
 
+    const target = coin.toLowerCase();
     if (['btc', 'ltc'].includes(target)) {
       const baseUrl = target === 'btc' ? BTC_API : LTC_API;
 

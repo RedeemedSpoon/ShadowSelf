@@ -190,8 +190,18 @@ export interface APIRequest {
   blob: string;
   btc: string;
   ltc: string;
-  emv: string;
-  xmrAddress: string;
+  evm: string;
+  xmr: string;
+  coin: CryptoCurrencies;
+  addresses: string[];
+  coinTo: CryptoCurrencies;
+  coinFrom: CryptoCurrencies;
+  destinationAddress: string;
+  refundAddress: string;
+  provider: string;
+  tradeid: string;
+  amount: number;
+  hex: string;
 }
 
 export interface EmailContent {
