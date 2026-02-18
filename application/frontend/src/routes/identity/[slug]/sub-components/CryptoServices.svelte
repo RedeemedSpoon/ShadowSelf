@@ -1,11 +1,12 @@
 <script lang="ts">
+  import {LoadingButton, SelectMenu} from '$component';
   import type {APIResponse, Coins} from '$type';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
   import type {Component} from 'svelte';
   import {generatePDF} from '$pdf';
   import {markets} from '$market';
-  import {identity} from '$store';
+  import {fetchIndex, identity} from '$store';
   import {receipt} from '$image';
   import QRCode from 'qrcode';
 
@@ -26,6 +27,19 @@
   let useNewAddr = $state(false);
   let cryptoChoice = $state('btc') as Coins;
   let pdfTableRows = $state() as HTMLTableSectionElement;
+
+  const coinOptions = [
+    {label: 'Bitcoin', value: 'btc'},
+    {label: 'Etherium', value: 'eth'},
+    {label: 'Litecoin', value: 'ltc'},
+    {label: 'Tether', value: 'usdt'},
+    {label: 'Monero', value: 'xmr'},
+  ];
+
+  let swapAmount = $state('');
+  let payCoin = $state('btc');
+  let receiveCoin = $state('xmr');
+  let chooseProvider = $state(false);
 
   let items = $state([{id: 1}]);
   const addItem = () => (items = [...items, {id: Date.now()}]);
@@ -117,10 +131,86 @@
 
     generatePDF(identityData, clientData, tableData, cryptoData);
   }
+
+  async function newRates() {
+    $fetchIndex = 1;
+    await new Promise((resolve) => setTimeout(resolve, 850));
+
+    // Logic
+
+    $fetchIndex = 0;
+    chooseProvider = true;
+  }
 </script>
 
 {#if $mode === 'swap'}
-  <h3>Swap Coins</h3>
+  <section class="mx-auto my-8 max-w-lg p-6">
+    {#if !chooseProvider}
+      <div class="mb-6">
+        <h3 class="text-2xl font-bold text-neutral-300">Swap Coins</h3>
+        <p class="mt-2 text-sm leading-relaxed text-neutral-400">
+          Exchange assets anonymously without KYC. All traffic is proxied through our servers to hide your identity.
+        </p>
+      </div>
+
+      <div class="rounded-xl border-2 border-neutral-800 bg-neutral-950/50 p-4">
+        <div class="mb-2 flex justify-between">
+          <label for="from" class="text-xs font-medium text-neutral-400">You Pay</label>
+        </div>
+        <div class="crypto-input flex items-center gap-4">
+          <input type="number" bind:value={swapAmount} placeholder="0.00" />
+          <SelectMenu
+            name="pay"
+            biggerPadding={true}
+            options={coinOptions}
+            fullIcons={cryptoIcons}
+            value={payCoin}
+            callback={(v) => (payCoin = v)}
+            size="small" />
+        </div>
+      </div>
+
+      <div class="relative z-10 -my-2 flex justify-center">
+        <div class="rounded-lg border-2 border-neutral-800 bg-neutral-900 p-2 text-neutral-400">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="rounded-xl border-2 border-neutral-800 bg-neutral-950/50 p-4">
+        <div class="mb-2 flex justify-between">
+          <label for="to" class="text-xs font-medium text-slate-400">You Receive</label>
+        </div>
+        <div class="crypto-input flex items-center gap-4">
+          <input type="number" placeholder="0.00" readonly disabled class="cursor-not-allowed" />
+          <SelectMenu
+            name="receive_coin"
+            biggerPadding={true}
+            options={coinOptions}
+            fullIcons={cryptoIcons}
+            value={receiveCoin}
+            callback={(v) => (receiveCoin = v)}
+            size="small" />
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-col gap-2 text-xs text-neutral-500">
+        <div class="flex justify-between">
+          <span>Refund Address:</span>
+          <span class="font-mono text-neutral-400">Auto-filled</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Receiving Address:</span>
+          <span class="font-mono text-neutral-400">Auto-filled</span>
+        </div>
+      </div>
+
+      <LoadingButton index={1} onclick={newRates} className="mt-6 w-full font-semibold">Proceed to Swap</LoadingButton>
+    {:else}
+      <h3 class="text-2xl font-bold text-neutral-300">Choose Provider</h3>
+    {/if}
+  </section>
 {:else if $mode === 'market'}
   <section>
     <h3 class="mt-8 text-3xl font-bold text-neutral-300">Spend and Discover</h3>
@@ -285,6 +375,10 @@
 
   input[type='file'] {
     @apply hidden;
+  }
+
+  .crypto-input > input {
+    @apply w-full bg-transparent py-3 text-2xl;
   }
 
   #cryptocoins button {

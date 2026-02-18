@@ -8,12 +8,13 @@
     fullIcons?: {[key: string]: Component};
     callback?: (value: string) => void;
     size?: 'small' | 'big';
+    biggerPadding?: boolean;
     icon?: Component;
     value?: string;
     name: string;
   }
 
-  let {name, options, value, icon, fullIcons, callback, size = 'big'}: Props = $props();
+  let {name, options, value, icon, fullIcons, biggerPadding, callback, size = 'big'}: Props = $props();
 
   let selectionInputOpen = $state(false);
   let givenOptions: Option[] = $state([]);
@@ -69,8 +70,8 @@
   onclick={() => (btn.querySelector('span')!.innerText = input.value)}
   value={value || givenOptions[0].value} />
 
-<div bind:this={select} id="select-input" class="relative z-20 min-w-[9.5rem] {size === 'big' && 'min-w-[15vw]!'}">
-  <button type="button" bind:this={btn} onclick={handleBtnSelect} class:little={size === 'small'}>
+<div bind:this={select} id="select-input" class="relative min-w-[9.5rem] {size === 'big' && 'min-w-[15vw]!'}">
+  <button type="button" bind:this={btn} onclick={handleBtnSelect} class="{biggerPadding && 'p-3!'} {size === 'small' && 'little'}">
     <div class="flex items-center gap-2">
       {#key key}
         {#if icon || fullIcons}
@@ -80,7 +81,7 @@
       {/key}
       <span>{givenOptions.find((option) => option.value === value)?.label || givenOptions[0].label}</span>
     </div>
-    <ChevronIcon className="{size === 'small' && 'w-5 h-5 mt-1'} rotate-90!" />
+    <ChevronIcon className="{size === 'small' && 'w-5 h-5 mt-1'} rotate-90" />
   </button>
   <ul onclick={handleSltClick} class:hidden={!selectionInputOpen} aria-hidden={!selectionInputOpen}>
     {#each givenOptions as option (option.value)}
@@ -120,6 +121,6 @@
 
   #select-input ul {
     @apply absolute mt-4 rounded-xl shadow-2xl ring-1 shadow-gray-950/50 ring-gray-700/50;
-    @apply !mx-0 w-full transition-all duration-300 ease-in-out;
+    @apply z-30 !mx-0 w-full transition-all duration-300 ease-in-out;
   }
 </style>
