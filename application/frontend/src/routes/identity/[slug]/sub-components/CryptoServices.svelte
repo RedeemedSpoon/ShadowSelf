@@ -1,10 +1,11 @@
 <script lang="ts">
+  import type {APIResponse, Coins, Provider} from '$type';
   import {LoadingButton, SelectMenu} from '$component';
-  import type {APIResponse, Coins} from '$type';
+  import {onMount, type Component} from 'svelte';
   import {fetchIndex, identity} from '$store';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
-  import type {Component} from 'svelte';
+  import {formatUSD} from '$format';
   import {generatePDF} from '$pdf';
   import {fetchAPI} from '$fetch';
   import {markets} from '$market';
@@ -38,10 +39,23 @@
     {label: 'Monero', value: 'xmr'},
   ];
 
-  let swapAmount = $state(0);
   let payCoin = $state('btc');
   let receiveCoin = $state('xmr');
   let chooseProvider = $state(false);
+
+  let swapAmount = $state(1);
+  let receiveAmount = $state();
+
+  function updateReceivedPrice() {
+    const payUsdPrice = crypto.prices[payCoin as 'btc'].usdPrice * swapAmount;
+    const receiveUsdPrice = crypto.prices[receiveCoin as 'btc'].usdPrice;
+    receiveAmount = (payUsdPrice / receiveUsdPrice).toFixed(4);
+  }
+
+  let bestProviderIndex = $state(0);
+  let selectedProviderIndex = $state(0);
+  let providers: Provider[] = $state([]);
+  let tradeID = $state('');
 
   let items = $state([{id: 1}]);
   const addItem = () => (items = [...items, {id: Date.now()}]);
@@ -136,18 +150,36 @@
 
   async function newRates() {
     $fetchIndex = 1;
-    await new Promise((resolve) => setTimeout(resolve, 850));
 
-    const response = await fetchAPI('/crypto/swap-rates', 'GET', {coinFrom: payCoin, coinTo: receiveCoin, amount: swapAmount});
-    if (response.err) notify(response.err, 'alert');
+    const response = await fetchAPI('crypto/swap-rates', 'GET', {coinFrom: payCoin, coinTo: receiveCoin, amount: swapAmount});
+    if (response.err) {
+      $fetchIndex = 0;
+      return notify(response.err, 'alert');
+    }
+
+    tradeID = response.tradeID;
+    providers = response.providers;
+    selectedProviderIndex = providers.findIndex((prov) => prov.name === response.bestProvider);
+    bestProviderIndex = selectedProviderIndex;
 
     $fetchIndex = 0;
     chooseProvider = true;
   }
+
+  async function swap() {
+    $fetchIndex = 2;
+
+    // Working...
+
+    $fetchIndex = 0;
+    chooseProvider = false;
+  }
+
+  onMount(updateReceivedPrice);
 </script>
 
 {#if $mode === 'swap'}
-  <section class="mx-auto my-8 max-w-lg p-6">
+  <section class="mx-auto my-8 {!chooseProvider && 'max-w-lg'} p-6">
     {#if !chooseProvider}
       <div class="mb-6">
         <h3 class="text-2xl font-bold text-neutral-300">Swap Coins</h3>
@@ -158,17 +190,19 @@
 
       <div class="rounded-xl border-2 border-neutral-800 bg-neutral-950/50 p-4">
         <div class="mb-2 flex justify-between">
-          <label for="from" class="text-xs font-medium text-neutral-400">You Pay</label>
+          <label for="from" class="text-xs font-medium text-neutral-400">
+            You Pay <span class="text-neutral-600">({formatUSD(swapAmount * crypto.prices[payCoin as 'btc'].usdPrice)})</span>
+          </label>
         </div>
         <div class="crypto-input flex items-center gap-4">
-          <input type="number" bind:value={swapAmount} placeholder="0.00" />
+          <input type="number" bind:value={swapAmount} onchange={updateReceivedPrice} placeholder="0.00" />
           <SelectMenu
             name="pay"
             biggerPadding={true}
             options={coinOptions}
             fullIcons={cryptoIcons}
             value={payCoin}
-            callback={(v) => (payCoin = v)}
+            callback={(v) => ((payCoin = v), updateReceivedPrice())}
             size="small" />
         </div>
       </div>
@@ -183,17 +217,19 @@
 
       <div class="rounded-xl border-2 border-neutral-800 bg-neutral-950/50 p-4">
         <div class="mb-2 flex justify-between">
-          <label for="to" class="text-xs font-medium text-slate-400">You Receive</label>
+          <label for="to" class="text-xs font-medium text-neutral-400">
+            You Receive <span class="text-neutral-600">(Excluding Fees)</span>
+          </label>
         </div>
         <div class="crypto-input flex items-center gap-4">
-          <input type="number" placeholder="0.00" readonly disabled class="cursor-not-allowed" />
+          <input type="number" placeholder="0.00" bind:value={receiveAmount} readonly disabled class="cursor-not-allowed" />
           <SelectMenu
             name="receive_coin"
             biggerPadding={true}
             options={coinOptions}
             fullIcons={cryptoIcons}
             value={receiveCoin}
-            callback={(v) => (receiveCoin = v)}
+            callback={(v) => ((receiveCoin = v), updateReceivedPrice())}
             size="small" />
         </div>
       </div>
@@ -211,7 +247,78 @@
 
       <LoadingButton index={1} onclick={newRates} className="mt-6 w-full font-semibold">Proceed to Swap</LoadingButton>
     {:else}
-      <h3 class="text-2xl font-bold text-neutral-300">Choose Provider</h3>
+      <div class="mb-6">
+        <h3 class="text-2xl font-bold text-neutral-300">Choose Provider</h3>
+        <p class="mt-2 text-sm leading-relaxed text-neutral-400">
+          Select a provider based on rate and privacy.
+          <span class="rounded-full bg-neutral-800 px-2 py-1 font-mono">Grade A</span>
+          indicates the highest privacy (No KYC/No Logs).
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 py-6 md:grid-cols-2 lg:grid-cols-3">
+        {#each providers as provider, i}
+          {@const costGrade = provider.costPercentage < -8 ? 'bad' : provider.costPercentage < -4 ? 'mid' : 'good'}
+          <div
+            aria-hidden="true"
+            onclick={() => (selectedProviderIndex = i)}
+            class="provider {i === selectedProviderIndex && 'selected'}">
+            {#if bestProviderIndex === i}
+              <div id="best-rate">
+                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                Best Rate
+              </div>
+            {/if}
+
+            <div class="flex w-full items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-neutral-700 bg-neutral-400/20 p-1">
+                  <img src={provider.logo} alt={provider.name} class="h-full w-full object-contain" />
+                </div>
+                <div>
+                  <h4 class="font-bold text-neutral-200">{provider.name}</h4>
+                  <div class="flex items-center gap-2 text-xs font-medium text-neutral-500">
+                    <span class="capitalize">{provider.isFixed ? 'Fixed Rate' : 'Floating Rate'}</span>
+                    <span class="h-1 w-1 rounded-full bg-neutral-600"></span>
+                    <span>~{provider.eta} mins</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-right">
+                <div class="text-xl font-bold tracking-tight text-neutral-300">
+                  {provider.returnCoin} <span class="text-sm font-medium text-neutral-500">{receiveCoin.toUpperCase()}</span>
+                </div>
+                <div class="text-xs font-medium text-neutral-500">
+                  ≈ {formatUSD(provider.returnUsd)} USD
+                </div>
+              </div>
+            </div>
+
+            <div class="flex w-full items-center justify-between border-t border-neutral-700/50 pt-3">
+              <div class="flex gap-3 text-xs font-bold">
+                <div class="flex items-center gap-1.5 rounded-md bg-neutral-950 px-2 py-1">
+                  <span class="text-neutral-500">KYC:</span>
+                  <span class={provider.kycRating}>{provider.kycRating}</span>
+                </div>
+                <div class="flex items-center gap-1.5 rounded-md bg-neutral-950 px-2 py-1">
+                  <span class="text-neutral-500">Logs:</span>
+                  <span class={provider.logPolicy}>{provider.logPolicy}</span>
+                </div>
+              </div>
+              <div class="text-xs text-neutral-500">
+                Total Cost: <span class={costGrade}>{provider.costPercentage}%</span>
+              </div>
+            </div>
+          </div>
+        {/each}
+      </div>
+
+      <div class="mt-8 flex justify-evenly gap-4">
+        <button onclick={() => (chooseProvider = false)} class="alt">← Back</button>
+        <LoadingButton index={2} onclick={swap} className="w-1/3">Confirm Swap</LoadingButton>
+      </div>
     {/if}
   </section>
 {:else if $mode === 'market'}
@@ -244,7 +351,7 @@
             </div>
             <h3 class="font-bold text-neutral-300">{market.name}</h3>
           </div>
-          <p class="mb-6 line-clamp-2 text-sm leading-relaxed text-slate-400">{market.description}</p>
+          <p class="mb-6 line-clamp-2 text-sm leading-relaxed text-neutral-400">{market.description}</p>
           <div class="flex items-center justify-between text-xs font-medium">
             <span class="tag rounded px-2 py-1 tracking-wider uppercase">{market.tag}</span>
             <span class="text-neutral-600">{market.category}</span>
@@ -441,5 +548,34 @@
     .tag {
       @apply bg-cyan-500/20 text-cyan-300;
     }
+  }
+
+  .provider {
+    @apply relative flex min-w-[200px] cursor-pointer flex-col gap-4 rounded-xl border-2 p-4 text-left transition-all duration-200;
+    @apply border-neutral-800 bg-neutral-950/10 hover:border-neutral-700 hover:bg-neutral-950/20;
+  }
+
+  .provider.selected {
+    @apply border-primary-600 shadow-primary-600/10 bg-neutral-800/80 shadow-lg;
+  }
+
+  #best-rate {
+    @apply bg-primary-600 absolute -top-3 left-4 flex items-center gap-1 rounded-full px-3 py-0.5 text-[10px] font-bold tracking-wide text-neutral-300 uppercase shadow-md;
+  }
+
+  .good,
+  .A {
+    @apply text-green-500;
+  }
+
+  .mid,
+  .B {
+    @apply text-orange-500;
+  }
+
+  .bad,
+  .C,
+  .D {
+    @apply text-red-500;
   }
 </style>

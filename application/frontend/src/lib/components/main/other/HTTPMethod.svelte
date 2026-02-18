@@ -16,7 +16,7 @@
   @reference "$style";
 
   span {
-    @apply rounded-full bg-neutral-950 px-2 py-1 text-sm;
+    @apply rounded-full bg-neutral-950 px-2 py-1 font-mono text-sm;
   }
 
   span.alt {

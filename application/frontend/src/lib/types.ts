@@ -107,6 +107,18 @@ export interface transactionData {
   balance?: number;
 }
 
+export interface Provider {
+  name: string;
+  logo: string;
+  eta: number;
+  kycRating: 'A' | 'B' | 'C' | 'D';
+  logPolicy: 'A' | 'B' | 'C' | 'D';
+  costPercentage: number;
+  returnUsd: number;
+  returnCoin: number;
+  isFixed: boolean;
+}
+
 export interface Identity {
   id: string;
   picture: string;
@@ -324,6 +336,12 @@ export interface APIResponse {
   utxos: UTXOData;
   balance: number;
   nonce: number;
+  tradeID: string;
+  bestProvider: string;
+  providers: Provider[];
+  coinFrom: Coins;
+  amount: number;
+  coinTo: Coins;
 }
 
 export interface WebSocketMessage {

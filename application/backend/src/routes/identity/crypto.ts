@@ -53,11 +53,24 @@ export default new Elysia({prefix: '/crypto'})
     if (!response.ok) return error(set, 400, 'Something Went Wrong');
 
     const data = await response.json();
+    const providers = data.quotes.quotes.map((val: any) => ({
+      isFixed: val.fixed === 'True',
+      costPercentage: parseFloat(val.USD_total_cost_percentage),
+      returnUsd: val.amount_to_USD,
+      returnCoin: val.amount_to,
+      kycRating: val.kycrating,
+      logPolicy: val.logpolicy,
+      logo: val.provider_logo,
+      name: val.provider,
+      eta: val.eta,
+    }));
+
     return {
       tradeID: data.trade_id,
       bestProvider: data.provider,
-      otherProviders: data.quotes,
+      providers,
       coinFrom,
+      amount,
       coinTo,
     };
   })
