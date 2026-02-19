@@ -1,10 +1,11 @@
 <script lang="ts">
-  import type {APIResponse, Coins, Provider} from '$type';
+  import type {APIResponse, Coins, Provider, transactionData} from '$type';
+  import {estimateTransactionFee, signTransaction} from '$cryptocoin';
   import {LoadingButton, SelectMenu} from '$component';
+  import {decrypt, deriveXPub} from '$cryptography';
   import {onMount, type Component} from 'svelte';
   import {fetchIndex, identity} from '$store';
   import type {Writable} from 'svelte/store';
-  import {deriveXPub} from '$cryptography';
   import {formatUSD} from '$format';
   import {generatePDF} from '$pdf';
   import {fetchAPI} from '$fetch';
@@ -45,6 +46,8 @@
 
   let swapAmount = $state(1);
   let receiveAmount = $state();
+  let swapSuccess = $state(false);
+  let trackingLink = $state('');
 
   function updateReceivedPrice() {
     const payUsdPrice = crypto.prices[payCoin as 'btc'].usdPrice * swapAmount;
@@ -169,10 +172,92 @@
   async function swap() {
     $fetchIndex = 2;
 
-    // Working...
+    const provider = providers[selectedProviderIndex || 0].name;
+    const isFixed = providers[selectedProviderIndex || 0].isFixed;
+    let destinationAddress = '';
+    let refundAddress = '';
+
+    [payCoin, receiveCoin].forEach((coin: string, i: number) => {
+      let tempAddr = $identity.walletKeys.evm;
+
+      if (coin === 'btc' || coin === 'ltc') {
+        const xpub = $identity.walletKeys[coin as 'btc'];
+        const nextIndex = crypto.wallet[coin as 'btc'].nextIndex;
+        tempAddr = deriveXPub(coin as 'btc', xpub, nextIndex - 1);
+      }
+
+      if (i === 0) refundAddress = tempAddr;
+      if (i === 1) destinationAddress = tempAddr;
+    });
+
+    const payload = {
+      tradeID,
+      isFixed,
+      provider,
+      refundAddress,
+      destinationAddress,
+      coinTo: receiveCoin,
+      coinFrom: payCoin,
+      amount: swap,
+    };
+
+    const response = await fetchAPI('crypto/swap-trades', 'POST', payload);
+    if (response.err) {
+      $fetchIndex = 0;
+      return notify(response.err, 'alert');
+    }
+
+    try {
+      const amountToSend = Number(response.depositAmount);
+      const wifKey = await decrypt($identity.walletBlob);
+      const feeRate = ['btc', 'ltc'].includes(payCoin) ? crypto.fees[payCoin as 'btc'].high : crypto.fees[payCoin as 'btc'].high;
+
+      let txData: transactionData;
+
+      if (['btc', 'ltc'].includes(payCoin)) {
+        const utxos = crypto.wallet[payCoin as 'btc'].utxos;
+        const feeObject = estimateTransactionFee(payCoin as Coins, utxos, feeRate, amountToSend);
+
+        txData = {
+          estimatedFee: feeObject,
+          privKeyType: 'mnemonic',
+          wifKey: wifKey,
+          index: Math.max(0, crypto.wallet[payCoin as 'btc'].nextIndex - 1),
+          xpubKey: $identity.walletKeys[payCoin as 'btc'],
+          utxos: utxos,
+        };
+      } else {
+        txData = {
+          estimatedFee: feeRate,
+          privKeyType: 'mnemonic',
+          wifKey: wifKey,
+          nonce: crypto.wallet[payCoin as 'eth'].nonce,
+          balance: crypto.wallet[payCoin as 'eth'].balance,
+        };
+      }
+
+      const broadcastPayload = await signTransaction(payCoin as Coins, response.depositAddress, amountToSend, txData);
+
+      if (!broadcastPayload) {
+        $fetchIndex = 0;
+        return notify('Transaction signing cancelled', 'alert');
+      }
+
+      const broadcastRes = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload);
+      if (broadcastRes.err) throw new Error(broadcastRes.err);
+
+      trackingLink = response.externalLink;
+      swapSuccess = true;
+      chooseProvider = false;
+      notify(`Sent ${amountToSend} ${payCoin.toUpperCase()}`, 'success');
+    } catch (e: any) {
+      notify(e.message || 'Swap code execution failed, try again', 'alert');
+    }
 
     $fetchIndex = 0;
+    trackingLink = response.externalLink;
     chooseProvider = false;
+    swapSuccess = true;
   }
 
   onMount(updateReceivedPrice);

@@ -342,6 +342,12 @@ export interface APIResponse {
   coinFrom: Coins;
   amount: number;
   coinTo: Coins;
+  status: string;
+  depositAddress: string;
+  depositAmount: number;
+  depositMemo: string;
+  providerTradeId: string;
+  externalLink: string;
 }
 
 export interface WebSocketMessage {

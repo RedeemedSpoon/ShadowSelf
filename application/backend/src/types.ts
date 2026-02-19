@@ -198,8 +198,9 @@ export interface APIRequest {
   coinFrom: CryptoCurrencies;
   destinationAddress: string;
   refundAddress: string;
+  isFixed: boolean;
   provider: string;
-  tradeid: string;
+  tradeID: string;
   amount: number;
   hex: string;
 }

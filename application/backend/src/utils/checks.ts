@@ -596,8 +596,14 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'provider':
-      case 'tradeid':
+      case 'tradeID':
         if (typeof body[fieldType] !== 'string' || body[fieldType].length < 3 || body[fieldType].length > 20) {
+          return {err: `Invalid ${fieldType}`} as APIRequest;
+        }
+        break;
+
+      case 'isFixed':
+        if (typeof body[fieldType] !== 'boolean') {
           return {err: `Invalid ${fieldType}`} as APIRequest;
         }
         break;

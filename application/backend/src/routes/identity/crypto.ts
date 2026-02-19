@@ -75,9 +75,53 @@ export default new Elysia({prefix: '/crypto'})
     };
   })
   .post('/swap-trades/:id', async ({body, set}) => {
-    const fields = ['tradeid', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider'];
-    const {err, tradeid, coinTo, coinFrom, amount, destinationAddress, refundAddress, provider} = await checkAPI(body, fields);
+    const fields = ['tradeID', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider', 'isFixed'];
+    const {err, tradeID, coinTo, coinFrom, amount, destinationAddress, refundAddress, provider, isFixed} = await checkAPI(
+      body,
+      fields,
+    );
     if (err) return error(set, 400, err);
+
+    const net = (t: string) => (t.toLowerCase().includes('usdt') ? 'ERC20' : 'Mainnet');
+
+    const apiKey = process.env.TROCADOR_API_KEY!;
+    const params = new URLSearchParams({
+      id: tradeID,
+      ticker_from: coinFrom,
+      ticker_to: coinTo,
+      network_from: net(coinFrom),
+      network_to: net(coinTo),
+      amount_from: String(amount),
+      address: destinationAddress,
+      address_memo: '0',
+      refund: refundAddress,
+      refund_memo: '0',
+      provider: provider,
+      fixed: isFixed ? 'True' : 'False',
+    });
+
+    try {
+      const response = await fetch(`https://api.trocador.app/new_trade?${params.toString()}`, {
+        headers: {'API-Key': apiKey},
+        method: 'GET',
+      });
+
+      const data = await response.json();
+      if (!response.ok || (data as any).error) {
+        return error(set, 400, (data as any).error || 'Failed to create trade at provider');
+      }
+
+      return {
+        status: data.status,
+        depositAddress: data.address_provider,
+        depositAmount: data.amount_from,
+        depositMemo: data.address_provider_memo,
+        providerTradeId: data.id_provider,
+        externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
+      };
+    } catch (e) {
+      return error(set, 502, 'Upstream Service Error');
+    }
   })
   .post('/broadcast/:id', async ({identity, body, set}) => {
     const {err, hex, coin} = await checkAPI(body, ['hex', 'coin']);
