@@ -6,6 +6,7 @@
   import {onMount, type Component} from 'svelte';
   import {fetchIndex, identity} from '$store';
   import type {Writable} from 'svelte/store';
+  import {ExternalLinkIcon} from '$icon';
   import {formatUSD} from '$format';
   import {generatePDF} from '$pdf';
   import {fetchAPI} from '$fetch';
@@ -246,12 +247,9 @@
       const broadcastRes = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload);
       if (broadcastRes.err) throw new Error(broadcastRes.err);
 
-      trackingLink = response.externalLink;
-      swapSuccess = true;
-      chooseProvider = false;
       notify(`Sent ${amountToSend} ${payCoin.toUpperCase()}`, 'success');
     } catch (e: any) {
-      notify(e.message || 'Swap code execution failed, try again', 'alert');
+      return notify(e.message || 'Swap code execution failed, try again', 'alert');
     }
 
     $fetchIndex = 0;
@@ -265,7 +263,36 @@
 
 {#if $mode === 'swap'}
   <section class="mx-auto my-8 {!chooseProvider && 'max-w-lg'} p-6">
-    {#if !chooseProvider}
+    {#if swapSuccess}
+      <div class="p-8 text-center">
+        <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/50">
+          <svg class="h-10 w-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 class="text-2xl font-bold text-neutral-300">Swap Initiated</h3>
+        <div class="mt-4 space-y-4">
+          <p class="text-sm leading-relaxed text-neutral-400">
+            Successfully broadcasted <span class="font-mono font-bold text-neutral-300">{swapAmount} {payCoin.toUpperCase()}</span>
+            to the provider.
+          </p>
+          <p class="text-sm leading-relaxed text-neutral-400">
+            Your transaction is now propagating through the mempool. The swap will execute automatically once the deposit confirms.
+          </p>
+        </div>
+
+        <div class="mt-12 flex flex-col gap-3">
+          <button type="button">
+            <a href={trackingLink} target="_blank" class="inline-flex items-center gap-1 text-neutral-300" rel="noopener noreferrer">
+              Track Status on Trocador <ExternalLinkIcon className="w-6 h-6" />
+            </a>
+          </button>
+          <button onclick={() => window.location.reload()} class="alt w-full">Go Back</button>
+        </div>
+
+        <p class="mt-6 text-xs text-neutral-600">Note: This swap allows 15 minutes for the deposit to arrive.</p>
+      </div>
+    {:else if !chooseProvider}
       <div class="mb-6">
         <h3 class="text-2xl font-bold text-neutral-300">Swap Coins</h3>
         <p class="mt-2 text-sm leading-relaxed text-neutral-400">
