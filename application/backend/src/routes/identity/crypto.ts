@@ -8,6 +8,10 @@ import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/crypto'})
   .use(middleware)
+  .get('/xmr-node/:id', async ({identity}) => ({
+    startingDate: identity?.creation_date!,
+    ...(await getXmrNode()),
+  }))
   .get('/:id', async ({identity}) => {
     const {btc, ltc, evm} = identity?.wallet_keys!;
 
@@ -28,15 +32,16 @@ export default new Elysia({prefix: '/crypto'})
     cryptoWallet.ltc = await getUtxoData('ltc', ltc);
     cryptoWallet.usdt = await getEvmData('usdt', evm);
 
-    cryptoWallet.xmr = {startingDate: identity?.creation_date!, ...(await getXmrNode())};
-
     if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
     debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: cryptoWallet});
 
     setTimeout(() => {
-      if (debounceCache[identity!.id])
+      if (debounceCache[identity!.id]) {
         debounceCache[identity!.id] = debounceCache[identity!.id].filter((item) => item.requestType !== REQUEST_TYPE);
-      if (debounceCache[identity!.id].length === 0) delete debounceCache[identity!.id];
+        if (debounceCache[identity!.id] && debounceCache[identity!.id].length === 0) {
+          delete debounceCache[identity!.id];
+        }
+      }
     }, DEBOUNCE_DURATION);
 
     return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};

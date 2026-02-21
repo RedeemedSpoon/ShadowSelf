@@ -8,6 +8,7 @@
   import {cart, lock} from '$image';
   import {fetchAPI} from '$fetch';
 
+  import * as monerots from 'monero-ts';
   import CryptoTransaction from './sub-components/CryptoTransaction.svelte';
   import CryptoDashboard from './sub-components/CryptoDashboard.svelte';
   import CryptoServices from './sub-components/CryptoServices.svelte';
@@ -38,13 +39,103 @@
   async function fetchWalletData() {
     await new Promise((resolve) => setTimeout(resolve, 10));
     document.getElementById('hold-load')?.remove();
-    crypto = await fetchAPI('crypto', 'GET');
 
     $moneroData = {
       viewKey: await decrypt($identity.walletKeys.xmr.viewKey),
       spendKey: await decrypt($identity.walletKeys.xmr.spendKey),
       address: await decrypt($identity.walletKeys.xmr.address),
     };
+
+    const cryptoPromise = fetchAPI('crypto', 'GET');
+    const xmrNodePromise = fetchAPI('crypto/xmr-node', 'GET');
+    const scanPromise = xmrNodePromise.then((res) => initMoneroScan(res));
+
+    const [cryptoRes, scanRes] = await Promise.all([cryptoPromise, scanPromise]);
+    crypto = cryptoRes;
+    crypto.wallet.xmr = scanRes;
+  }
+
+  class SyncListener extends monerots.MoneroWalletListener {
+    private updateProgress: (percent: number) => void;
+
+    constructor(updateProgress: (percent: number) => void) {
+      super();
+      this.updateProgress = updateProgress;
+    }
+
+    async onSyncProgress(_: number, __: number, ___: number, percentDone: number, ____: string): Promise<void> {
+      this.updateProgress(percentDone);
+    }
+  }
+
+  async function initMoneroScan(nodeData: any) {
+    const genesisMs = 1397818133000;
+    const startMs = new Date(nodeData.startingDate).getTime();
+    const restoreHeight = Math.max(0, Math.floor((startMs - genesisMs) / 120000) - 10000);
+
+    const initialState = {
+      status: 'Connecting...',
+      startingDate: nodeData.startingDate,
+      nodeUrl: nodeData.nodeUrl,
+      balance: 0,
+      unlockedBalance: 0,
+      history: [],
+    };
+
+    const processBlockchain = async () => {
+      try {
+        const wallet = await monerots.createWalletFull({
+          networkType: monerots.MoneroNetworkType.MAINNET,
+          primaryAddress: $moneroData.address,
+          privateViewKey: $moneroData.viewKey,
+          privateSpendKey: $moneroData.spendKey,
+          server: {uri: nodeData.nodeUrl},
+          restoreHeight,
+        });
+
+        const listener = new SyncListener((percentDone) => {
+          if (crypto?.wallet?.xmr) {
+            crypto.wallet.xmr.status = `Scanning... ${Math.floor(percentDone * 100)}%`;
+          }
+        });
+
+        await wallet.addListener(listener);
+        await wallet.sync();
+
+        const [balance, unlocked, txs] = await Promise.all([wallet.getBalance(), wallet.getUnlockedBalance(), wallet.getTxs()]);
+
+        const history = txs
+          .map((tx: any) => {
+            const incoming = Number(tx.getIncomingAmount() || 0);
+            const outgoing = Number(tx.getOutgoingAmount() || 0);
+
+            return {
+              txid: String(tx.getHash()),
+              type: (incoming > outgoing ? 'received' : 'sent') as 'sent',
+              counterparty: 'RingCT Hidden',
+              amount: Math.abs(incoming - outgoing) / 1e12,
+              date: new Date((tx.getTimestamp() || Math.floor(Date.now() / 1000)) * 1000),
+            };
+          })
+          .sort((a: any, b: any) => b.date.getTime() - a.date.getTime());
+
+        if (crypto?.wallet?.xmr) {
+          crypto.wallet.xmr.balance = Number(balance) / 1e12;
+          crypto.wallet.xmr.unlockedBalance = Number(unlocked) / 1e12;
+          crypto.wallet.xmr.history = history;
+          crypto.wallet.xmr.status = 'Synced';
+        }
+
+        await wallet.close();
+      } catch (e) {
+        if (crypto?.wallet?.xmr) {
+          crypto.wallet.xmr.status = 'Network Error';
+        }
+      }
+    };
+
+    processBlockchain();
+    return initialState;
   }
 
   async function backupKeys() {
@@ -117,7 +208,7 @@ If a hacker finds this file, your money is gone.
         </div>
       </div>
 
-      {#if crypto.wallet[$currentCrypto as 'btc'].history.length === 0}
+      {#if crypto.wallet[$currentCrypto].history.length === 0}
         <section id="no-funds" style="background-image: url({cart});">
           <h2 class="mt-12 text-5xl text-neutral-300">No Funds</h2>
           <p class="text-center md:w-1/2">

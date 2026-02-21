@@ -284,6 +284,9 @@ export type CryptoWallet = {
     status: string;
     startingDate: Date;
     nodeUrl: string;
+    history: TransactionsHistory;
+    unlockedBalance: number;
+    balance: number;
   };
 };
 
