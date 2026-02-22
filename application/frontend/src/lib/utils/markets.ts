@@ -1,4 +1,4 @@
-export const markets = [
+const markets = [
   {
     name: 'KYCNOT.me',
     description: 'A curated list of non-KYC exchanges, services, and tools to preserve your identity.',
@@ -152,3 +152,5 @@ export const markets = [
     category: 'Social Identity',
   },
 ];
+
+export default markets;

@@ -34,6 +34,7 @@ const config = {
       $cryptography: 'src/lib/utils/cryptography.ts',
       $cryptocoin: 'src/lib/utils/cryptocoin.ts',
       $market: 'src/lib/utils/markets.ts',
+      $monero: 'src/lib/utils/monero.ts',
       $pdf: 'src/lib/utils/pdf.ts',
       $cn: 'src/lib/utils/cn.ts',
     },

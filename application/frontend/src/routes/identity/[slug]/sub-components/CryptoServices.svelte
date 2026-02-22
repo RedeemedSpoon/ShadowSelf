@@ -10,8 +10,8 @@
   import {formatUSD} from '$format';
   import {generatePDF} from '$pdf';
   import {fetchAPI} from '$fetch';
-  import {markets} from '$market';
   import {receipt} from '$image';
+  import markets from '$market';
   import QRCode from 'qrcode';
   import {notify} from '$lib';
 
