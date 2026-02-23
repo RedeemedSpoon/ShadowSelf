@@ -20,7 +20,7 @@
   let anchor = $state() as HTMLAnchorElement;
   const filename = $derived(`ShadowSelf-${$currentCrypto.toUpperCase()}-Transaction-History.csv`);
 
-  const balance: number = $derived(crypto.wallet[$currentCrypto as 'btc'].balance);
+  const balance: number = $derived(crypto.wallet[$currentCrypto].balance);
   const usdBalance: number = $derived(balance * crypto.prices[$currentCrypto].usdPrice);
   const statusClass: string = $derived(crypto.wallet[$currentCrypto].status.toLowerCase().replaceAll(' ', '-'));
   const growthClass: string = $derived(crypto.prices[$currentCrypto].dailyChange > 0 ? 'up' : 'down');
@@ -82,21 +82,29 @@
 
   const intelRaw = $derived(
     (() => {
-      const w = crypto.wallet[$currentCrypto] as unknown as {utxos: any[]; nonce: number};
-      if ($currentCrypto === 'btc' || $currentCrypto === 'ltc') return w.utxos.length;
-      else if ($currentCrypto === 'eth' || $currentCrypto === 'usdt') return w.nonce;
-      else return null;
+      const w = crypto.wallet[$currentCrypto] as any;
+      if (['btc', 'ltc'].includes($currentCrypto)) return w.utxos.length;
+      if (['eth', 'usdt'].includes($currentCrypto)) return w.nonce;
+      return null;
     })(),
   );
 
   const intelDisplay = $derived(
     (() => {
-      if (intelRaw === null) return {label: 'Encryption', value: 'RingCT', percentile: 'max'};
+      if ($currentCrypto === 'xmr') {
+        const w = crypto.wallet.xmr;
+        const locked = w.balance - w.unlockedBalance;
+
+        if (locked > 0) {
+          return {label: 'Locked Coins', value: `${locked.toFixed(4)} XMR`, percentile: 'Active'};
+        }
+        return {label: 'Spendable Coins', value: '100%', percentile: 'Max'};
+      }
 
       if (['btc', 'ltc'].includes($currentCrypto)) {
         if (intelRaw === 0) return {label: 'UTXOs', value: intelRaw, percentile: 'Empty'};
-        if (intelRaw <= 5) return {label: 'UTXOs', value: intelRaw, percentile: 'Optimized'};
-        if (intelRaw <= 15) return {label: 'UTXOs', value: intelRaw, percentile: 'Fragmented'};
+        if ((intelRaw as number) <= 5) return {label: 'UTXOs', value: intelRaw, percentile: 'Optimized'};
+        if ((intelRaw as number) <= 15) return {label: 'UTXOs', value: intelRaw, percentile: 'Fragmented'};
         return {label: 'UTXOs', value: intelRaw, percentile: 'Bloated'};
       } else if (['eth', 'usdt'].includes($currentCrypto)) {
         if (intelRaw === 0) return {label: 'Nonce', value: intelRaw, percentile: 'Fresh'};
@@ -124,7 +132,7 @@
     const excludeTransactionIndexes = [] as number[];
     const tableElements = document.querySelectorAll('tbody tr') as NodeListOf<HTMLTableRowElement>;
 
-    const transactionHistory = crypto.wallet[$currentCrypto as 'btc'].history;
+    const transactionHistory = crypto.wallet[$currentCrypto].history;
     const usdDustThreshold = 1.0;
 
     for (const i in transactionHistory) {
@@ -143,7 +151,7 @@
   }
 
   function exportCSV() {
-    const transactionHistory = crypto.wallet[$currentCrypto as 'btc'].history;
+    const transactionHistory = crypto.wallet[$currentCrypto].history;
     let csv = 'Date,Type,Amount,Counterparty,TXID';
 
     for (const t of transactionHistory) {
@@ -165,7 +173,7 @@
         {$currentCrypto.toUpperCase()} <span class="text-neutral-500">({formatUSD(usdBalance)})</span>
       </p>
       <p class="w-1/2">
-        <b><HashIcon />{activePaths != 0 && 'Main'} Address:</b>
+        <b><HashIcon />{activePaths !== 0 ? 'Main ' : ''}Address:</b>
         {#if $currentCrypto === 'btc'}
           {@const btc = deriveXPub('btc', $identity.walletKeys.btc, 0)}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${btc.slice(0, 20)}...`} text={btc} />
@@ -255,7 +263,11 @@
     <div id="right-section" class="w-1/3">
       <p>
         <b><GasStationIcon />Fees:</b><span class={feesPercentile.toLowerCase()}>{feesPercentile}</span>
-        <span class="text-neutral-500">({crypto.fees[$currentCrypto].medium} {feesLabel} or {feesUsd})</span>
+        {#if $currentCrypto !== 'xmr'}
+          <span class="text-neutral-500">({crypto.fees[$currentCrypto].medium} {feesLabel} or {feesUsd})</span>
+        {:else}
+          <span class="text-neutral-500">({feesUsd})</span>
+        {/if}
       </p>
       <p><b><BroadcastIcon />Status:</b><span class={statusClass}>{crypto.wallet[$currentCrypto].status}</span></p>
       <p>
@@ -291,7 +303,7 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-neutral-800">
-        {#each crypto.wallet[$currentCrypto as 'btc'].history as transaction}
+        {#each crypto.wallet[$currentCrypto].history as transaction}
           <tr class="transition-colors hover:bg-neutral-800/40">
             <td class="text-xs font-bold tracking-wide uppercase {transaction.type}">{transaction.type}</td>
             <td class="font-medium text-neutral-300">{transaction.amount}</td>

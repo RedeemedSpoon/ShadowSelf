@@ -10,7 +10,7 @@ const COINGECKO_PARAMS = '?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,
 export const BTC_API = 'https://mempool.space/api';
 export const LTC_API = 'https://litecoinspace.org/api';
 export const ETH_API = 'https://eth.blockscout.com/api';
-export const XMR_NODE = 'http://xmr-node.cakewallet.com:18081/json_rpc';
+export const XMR_NODE = 'https://xmr-node.cakewallet.com:18081/json_rpc';
 export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 
 // --- DATA FETCHERS ---

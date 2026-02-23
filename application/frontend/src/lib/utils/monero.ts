@@ -19,37 +19,22 @@ function idbOperation(mode: 'readonly' | 'readwrite', id: string, data?: any): P
   });
 }
 
-class SyncListener extends monerots.MoneroWalletListener {
-  private updateProgress: (percent: number) => void;
-
-  constructor(updateProgress: (percent: number) => void) {
-    super();
-    this.updateProgress = updateProgress;
-  }
-
-  async onSyncProgress(height: number, startHeight: number, endHeight: number, percentDone: number): Promise<void> {
-    let calculated = 0;
-    if (endHeight > startHeight) {
-      calculated = ((height - startHeight) / (endHeight - startHeight)) * 100;
-    }
-
-    const finalPercent = Math.floor(calculated || percentDone * 100);
-
-    console.log(`[XMR Sync] Block ${height} / ${endHeight} - ${finalPercent}%`);
-    this.updateProgress(finalPercent);
-  }
-}
-
 export default async function initMoneroScan(
   nodeData: any,
   onCache: (hasCache: boolean) => void,
-  onProgress: (progress: number) => void,
+  onProgress: (progress: number, scanned: number, total: number) => void,
   onSuccess: (data: any) => void,
   onError: () => void,
 ) {
-  const genesisMs = 1397818133000;
-  const startMs = new Date(nodeData.startingDate).getTime();
-  const restoreHeight = Math.max(0, Math.floor((startMs - genesisMs) / 120000) - 10000);
+  const res = await fetch(nodeData.nodeUrl, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({jsonrpc: '2.0', id: '0', method: 'get_info'}),
+  });
+
+  const currentHeight = (await res.json()).result.height;
+  const msAgo = Date.now() - new Date(nodeData.startingDate).getTime();
+  const restoreHeight = Math.max(0, currentHeight - Math.floor(msAgo / 120000) - 1000);
 
   const initialState = {
     status: 'Connecting...',
@@ -68,6 +53,7 @@ export default async function initMoneroScan(
       if (localData) {
         onCache(true);
         wallet = await monerots.openWalletFull({
+          fs: {promises: {stat: () => Promise.reject(new Error('Memory'))}} as any,
           networkType: monerots.MoneroNetworkType.MAINNET,
           server: {uri: nodeData.nodeUrl},
           password: 'shadowself_xmr',
@@ -87,11 +73,27 @@ export default async function initMoneroScan(
         });
       }
 
-      const listener = new SyncListener((percentDone) => {
-        onProgress(percentDone);
-      });
+      const daemonHeight = await wallet.getDaemonHeight();
+      const totalBlocks = daemonHeight - restoreHeight;
 
-      await wallet.sync(listener);
+      const progressTracker = setInterval(async () => {
+        try {
+          const currentHeight = await wallet.getHeight();
+
+          let percent = 0;
+          let scanned = 0;
+          if (currentHeight >= restoreHeight && totalBlocks > 0) {
+            scanned = currentHeight - restoreHeight;
+            percent = (scanned / totalBlocks) * 100;
+          }
+
+          const displayPercent = Number(Math.max(0, Math.min(100, percent)).toFixed(2));
+          onProgress(displayPercent, Math.max(0, scanned), Math.max(0, totalBlocks));
+        } catch (e) {}
+      }, 2000);
+
+      await wallet.sync(undefined, undefined, true);
+      clearInterval(progressTracker);
 
       const memoryBuffers = await wallet.getData();
       const keysData = memoryBuffers[0];
@@ -105,16 +107,20 @@ export default async function initMoneroScan(
           const incoming = Number(tx.getIncomingAmount() || 0);
           const outgoing = Number(tx.getOutgoingAmount() || 0);
 
+          const block = tx.getBlock();
+          const timestamp = block ? block.getTimestamp() : Math.floor(Date.now() / 1000);
+
           return {
             txid: String(tx.getHash()),
             type: (incoming > outgoing ? 'received' : 'sent') as 'sent',
             counterparty: 'RingCT Hidden',
             amount: Math.abs(incoming - outgoing) / 1e12,
-            date: new Date((tx.getTimestamp() || Math.floor(Date.now() / 1000)) * 1000),
+            date: new Date(timestamp * 1000),
           };
         })
         .sort((a: any, b: any) => b.date.getTime() - a.date.getTime());
 
+      onProgress(100, totalBlocks, totalBlocks);
       onSuccess({
         balance: Number(balance) / 1e12,
         unlockedBalance: Number(unlocked) / 1e12,

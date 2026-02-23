@@ -13,9 +13,11 @@
   import CryptoDashboard from './sub-components/CryptoDashboard.svelte';
   import CryptoServices from './sub-components/CryptoServices.svelte';
 
+  let crypto = $state({}) as APIResponse;
   let xmrScanProgress = $state(0);
+  let xmrScannedBlocks = $state(0);
+  let xmrTotalBlocks = $state(0);
   let xmrHasLocalCache = $state(false);
-  let crypto = $state() as APIResponse;
 
   const currentCrypto = writable<Coins>('btc');
   let mode = writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'market' | 'swap'>('view');
@@ -43,6 +45,11 @@
     await new Promise((resolve) => setTimeout(resolve, 10));
     document.getElementById('hold-load')?.remove();
 
+    //@ts-ignore
+    crypto.wallet = {};
+    //@ts-ignore
+    crypto.wallet.xmr = {};
+
     $moneroData = {
       viewKey: await decrypt($identity.walletKeys.xmr.viewKey),
       spendKey: await decrypt($identity.walletKeys.xmr.spendKey),
@@ -56,20 +63,18 @@
       initMoneroScan(
         res,
         (hasCache) => (xmrHasLocalCache = hasCache),
-        (progress) => {
+        (progress, scanned, total) => {
           xmrScanProgress = progress;
-          if (crypto?.wallet?.xmr && crypto.wallet.xmr.status === 'Connecting...') {
-            crypto.wallet.xmr.status = 'Scanning...';
-          }
+          xmrScannedBlocks = scanned;
+          xmrTotalBlocks = total;
+          crypto.wallet.xmr.status = 'Scanning...';
         },
-        (xmrData) => crypto?.wallet?.xmr && Object.assign(crypto.wallet.xmr, xmrData),
-        () => crypto?.wallet?.xmr && (crypto.wallet.xmr.status = 'Network Error'),
+        (xmrData) => Object.assign(crypto.wallet.xmr, xmrData),
+        () => (crypto.wallet.xmr.status = 'Network Error'),
       ),
     );
 
-    const [cryptoRes, scanRes] = await Promise.all([cryptoPromise, scanPromise]);
-    crypto = cryptoRes;
-    crypto.wallet.xmr = scanRes;
+    [crypto, crypto.wallet.xmr] = await Promise.all([cryptoPromise, scanPromise]);
   }
 
   async function backupKeys() {
@@ -142,26 +147,34 @@ If a hacker finds this file, your money is gone.
         </div>
       </div>
 
-      {#if $currentCrypto === 'xmr' && !['Synced', 'Network Error'].includes(crypto.wallet.xmr.status)}
+      {#if $currentCrypto === 'xmr' && xmrScanProgress !== 100}
         <section class="my-12 flex flex-col items-center gap-6">
           <h3 class="text-4xl font-bold text-neutral-300 md:text-5xl">Syncing Monero Wallet</h3>
           <div class="text-center text-sm leading-relaxed text-neutral-400 md:w-2/3">
             To maintain a strict zero-knowledge architecture, your Private View/Spend Key never leaves this device. Instead of trusting
             our servers, your browser is scanning the Monero blockchain locally to cryptographically derive your balance.
-            <p class="mt-4 font-semibold text-orange-600">
-              {xmrHasLocalCache
-                ? 'Local cache found. Fast-syncing recent network blocks.'
-                : 'Building local cache. This initial chain scan will take several minutes.'}
-            </p>
           </div>
-          <div class="mt-8 flex w-full max-w-md flex-col gap-2">
+
+          <p class="font-semibold text-amber-600">
+            {xmrHasLocalCache
+              ? 'Local cache found. Fast-syncing recent network blocks.'
+              : 'Building local cache. This initial chain scan will take several minutes.'}
+          </p>
+
+          <div class="mt-6 flex w-full max-w-md flex-col gap-2">
             <div class="flex justify-between font-mono text-sm font-bold text-neutral-300">
-              <span class="animate-pulse">{crypto.wallet.xmr.status}</span>
-              <span>{xmrScanProgress}%</span>
+              <span class="animate-pulse">
+                {crypto.wallet.xmr.status} ({xmrScannedBlocks.toLocaleString()} / {xmrTotalBlocks.toLocaleString()} blocks)
+              </span>
+              <span class="animate-pulse">{xmrScanProgress}%</span>
             </div>
             <div class="h-3 w-full overflow-hidden rounded-full bg-neutral-900 shadow-inner ring-2 ring-neutral-800">
               <div class="bg-primary-600 h-full transition-all duration-300 ease-out" style="width: {xmrScanProgress}%"></div>
             </div>
+          </div>
+          <div class="text-center text-xs text-neutral-500 md:w-1/3">
+            Do not navigate away from this page or switch tabs. Interrupting the background worker will discard current progress and
+            force a full rescan.
           </div>
         </section>
       {:else if crypto.wallet[$currentCrypto].history.length === 0}
