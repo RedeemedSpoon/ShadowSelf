@@ -135,17 +135,17 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setFontSize(14);
   doc.setTextColor(colorText);
   doc.setFont('helvetica', 'bold');
-  const cryptoDisplay = cryptoData.cryptoChoice === 'usdt' ? cryptoData.cryptoDue.toFixed(2) : cryptoData.cryptoDue.toFixed(6);
 
+  const cryptoDisplay = cryptoData.cryptoChoice === 'usdt' ? cryptoData.cryptoDue.toFixed(2) : cryptoData.cryptoDue.toFixed(6);
   doc.text(`${cryptoDisplay} ${cryptoData.cryptoChoice.toUpperCase()}`, 20, payY + 28);
 
   // Address (Monospace)
   doc.setFont('courier', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(colorText);
-  // Split long addresses (like XMR) so they don't run off
-  const addrLines = doc.splitTextToSize(cryptoData.destAddr, 110);
-  doc.text(addrLines, 20, payY + 36);
+
+  const formattedAddress = cryptoData.destAddr.match(/.{1,45}/g)?.join('\n') || cryptoData.destAddr;
+  doc.text(formattedAddress, 20, payY + 36);
 
   // -- Right Side: QR Code --
   if (cryptoData.qrImage) {

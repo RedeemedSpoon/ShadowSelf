@@ -1,10 +1,10 @@
 <script lang="ts">
   import type {APIResponse, Coins, Provider, transactionData} from '$type';
   import {estimateTransactionFee, signTransaction} from '$cryptocoin';
+  import {fetchIndex, identity, moneroData} from '$store';
   import {LoadingButton, SelectMenu} from '$component';
   import {decrypt, deriveXPub} from '$cryptography';
   import {onMount, type Component} from 'svelte';
-  import {fetchIndex, identity} from '$store';
   import type {Writable} from 'svelte/store';
   import {ExternalLinkIcon} from '$icon';
   import {formatUSD} from '$format';
@@ -134,6 +134,8 @@
       const nextIndex = crypto.wallet[cryptoChoice as 'btc'].nextIndex;
       const index = useMainAddr ? 0 : Math.max(0, useNewAddr ? nextIndex : nextIndex - 1);
       destAddr = deriveXPub(cryptoChoice, xpub, index);
+    } else if (cryptoChoice === 'xmr') {
+      destAddr = $moneroData.address;
     }
 
     let uri = destAddr;
