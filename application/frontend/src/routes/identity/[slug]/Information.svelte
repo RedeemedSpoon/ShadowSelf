@@ -1,7 +1,7 @@
 <script lang="ts">
   import {CopyIcon, WalletIcon, DownloadIcon, EmailIcon, PhoneIcon, EditIcon, BackIcon} from '$icon';
   import {ActionIcon, CopyButton, ReactiveButton} from '$component';
-  import {toTitleCase, formatPhoneNumber} from '$format';
+  import {toTitleCase, formatPhoneNumber, formatUSD} from '$format';
   import {currentSection, identity} from '$store';
   import {base64ToBlob, notify} from '$lib';
   import {countriesFlags} from '$image';
@@ -124,8 +124,8 @@
           <CopyButton
             alt={true}
             change={false}
-            text={$identity.walletKeys.evm}
-            label={`${$identity.walletKeys.evm.slice(0, 20)}...`} />
+            text={Number($identity.walletFunds).toFixed(2)}
+            label={formatUSD(Number($identity.walletFunds))} />
         </div>
       </div>
     </div>

@@ -128,8 +128,7 @@ export interface Identity {
   email: string;
   phone: string;
   accounts: number;
-  walletKeys: CryptoKeys;
-  walletBlob: string;
+  walletFunds: number;
 }
 
 export interface FullIdentity {
@@ -147,6 +146,7 @@ export interface FullIdentity {
   email: string;
   phone: string;
   walletKeys: CryptoKeys;
+  walletFunds: number;
   walletBlob: string;
 }
 

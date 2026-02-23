@@ -104,6 +104,7 @@ export interface QueryResultIdentify {
   phone: string;
   wallet_blob: string;
   wallet_keys: CryptoKeys;
+  wallet_funds: number;
 }
 
 export interface QueryResultAccount {

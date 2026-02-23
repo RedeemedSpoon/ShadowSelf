@@ -32,6 +32,14 @@ export default new Elysia({prefix: '/crypto'})
     cryptoWallet.ltc = await getUtxoData('ltc', ltc);
     cryptoWallet.usdt = await getEvmData('usdt', evm);
 
+    const totalFunds =
+      cryptoWallet.btc.balance * (cryptoPrices.btc?.usdPrice || 0) +
+      cryptoWallet.ltc.balance * (cryptoPrices.ltc?.usdPrice || 0) +
+      cryptoWallet.eth.balance * (cryptoPrices.eth?.usdPrice || 0) +
+      cryptoWallet.usdt.balance * (cryptoPrices.usdt?.usdPrice || 0);
+
+    attempt(sql`UPDATE identities SET wallet_funds = ${totalFunds} WHERE id = ${identity!.id}`);
+
     if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
     debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: cryptoWallet});
 
@@ -46,9 +54,24 @@ export default new Elysia({prefix: '/crypto'})
 
     return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};
   })
-  .get('/swap-rates/:id', async ({query, set}) => {
+  .get('/swap-rates/:id', async ({query, identity, set}) => {
     const {err, coinFrom, coinTo, amount} = await checkAPI(query, ['coinTo', 'coinFrom', 'amount']);
     if (err) return error(set, 400, err);
+
+    const REQUEST_TYPE = 'Swap Rates';
+    const DEBOUNCE_DURATION = 5_000;
+
+    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
+      return error(set, 429, 'Rate limit: Please wait 5s');
+    }
+
+    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
+    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
+
+    setTimeout(() => {
+      if (debounceCache[identity!.id])
+        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
+    }, DEBOUNCE_DURATION);
 
     const net = (t: string) => (t.toLowerCase().includes('usdt') ? 'ERC20' : 'Mainnet');
     const params = `?ticker_from=${coinFrom}&ticker_to=${coinTo}&network_from=${net(coinFrom)}&network_to=${net(coinTo)}&amount_from=${amount}`;
@@ -79,13 +102,26 @@ export default new Elysia({prefix: '/crypto'})
       coinTo,
     };
   })
-  .post('/swap-trades/:id', async ({body, set}) => {
+  .post('/swap-trades/:id', async ({body, identity, set}) => {
     const fields = ['tradeID', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider', 'isFixed'];
-    const {err, tradeID, coinTo, coinFrom, amount, destinationAddress, refundAddress, provider, isFixed} = await checkAPI(
-      body,
-      fields,
-    );
+    const {err, tradeID, coinTo, coinFrom, amount} = await checkAPI(body, fields);
+    const {destinationAddress, refundAddress, provider, isFixed} = await checkAPI(body, fields);
     if (err) return error(set, 400, err);
+
+    const REQUEST_TYPE = 'Swap Trade';
+    const DEBOUNCE_DURATION = 10_000;
+
+    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
+      return error(set, 429, 'Rate limit: Please wait 10s');
+    }
+
+    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
+    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
+
+    setTimeout(() => {
+      if (debounceCache[identity!.id])
+        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
+    }, DEBOUNCE_DURATION);
 
     const net = (t: string) => (t.toLowerCase().includes('usdt') ? 'ERC20' : 'Mainnet');
 

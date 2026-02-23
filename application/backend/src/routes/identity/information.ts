@@ -1,20 +1,21 @@
+import {debounceCache, sql} from '@utils/connection';
 import {generateProfile} from '@utils/prompts';
 import {attempt, error} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
 import middleware from '@middleware-api';
 import locations from '@utils/locations';
 import {checkAPI} from '@utils/checks';
-import {sql} from '@utils/connection';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/identity'})
   .use(middleware)
   .get('/:id', async ({identity}) => {
     const {email_password, proxy_password, payment_intent, subscription_id, owner, status, ...pubInfo} = identity!;
-    const {creation_date, proxy_server, wallet_keys, wallet_blob, ...rest} = pubInfo;
+    const {creation_date, proxy_server, wallet_keys, wallet_blob, wallet_funds, ...rest} = pubInfo;
     const reformattedData = {
       creationDate: creation_date,
       proxyServer: proxy_server,
+      walletFunds: wallet_funds,
       walletKeys: wallet_keys,
       walletBlob: wallet_blob,
     };
@@ -26,6 +27,21 @@ export default new Elysia({prefix: '/identity'})
     const data = {sex: identity!.sex, age: identity!.age, ethnicity: identity!.ethnicity, bio: identity!.bio};
     const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!}, fields);
     if (err) return error(set, 400, err);
+
+    const REQUEST_TYPE = 'Profile Gen';
+    const DEBOUNCE_DURATION = 60_000;
+
+    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
+      return error(set, 429, 'Rate limit: Please wait a bit more');
+    }
+
+    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
+    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
+
+    setTimeout(() => {
+      if (debounceCache[identity!.id])
+        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
+    }, DEBOUNCE_DURATION);
 
     const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
     const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);

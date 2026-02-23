@@ -2,9 +2,9 @@
   import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon, ChevronIcon} from '$icon';
   import {EmailIcon, PhoneIcon, WalletIcon, MultiUsersIcon, AddUserIcon} from '$icon';
   import {user, filterOverflow, sortAsc, token} from '$store';
+  import {formatPhoneNumber, formatUSD} from '$format';
   import {worldMap, countriesFlags} from '$image';
   import {onMount, type Component} from 'svelte';
-  import {formatPhoneNumber} from '$format';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
   import {notify} from '$lib';
@@ -107,12 +107,15 @@
           {#if !identity.name}
             <a class="flex! gap-6! max-md:mb-24" href="/create?id={identity.id}">
               <AddUserIcon />
-              <p class="text-2xl text-neutral-300! max-xl:block!">Continue Creation Process... (ID : {identity.id})</p>
+              <p class="text-2xl text-neutral-300! max-xl:block!">
+                Continue Creation Process...
+                <span class="mt-1 text-sm text-neutral-500">(ID: {identity.id})</span>
+              </p>
             </a>
           {:else}
             <a href="/identity/{identity.id}" id="identity-{identity.id}">
               <img loading="lazy" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s picture" />
-              <div class="text-nowrap">
+              <div class="text-nowrap lg:-ml-6">
                 <p class="text-nowrap text-neutral-300!">{identity.name}</p>
                 <br />
                 <span class="inline-flex gap-2 text-sm text-neutral-500">
@@ -123,7 +126,7 @@
               <br />
               <p class="md:max-lg:flex! lg:max-xl:flex!"><EmailIcon className="h-6! w-6! stroke-primary-600!" />{identity.email}</p>
               <p class="lg:max-xl:flex!"><PhoneIcon />{formatPhoneNumber(identity.phone)}</p>
-              <p><WalletIcon className="h-6! w-6! stroke-primary-600!" />{identity.walletKeys.evm.slice(0, 13)}...</p>
+              <p><WalletIcon className="h-6! w-6! stroke-primary-600!" />{formatUSD(Number(identity.walletFunds))}</p>
               <p><MultiUsersIcon />{identity.accounts}</p>
             </a>
           {/if}
@@ -180,10 +183,10 @@
   }
 
   section > a {
-    @apply flex items-center gap-2 border-t border-neutral-500 first:border-none max-md:gap-6 md:grid;
-    @apply md:grid-cols-[5rem_14rem_auto_16.5rem] lg:grid-cols-[5rem_14rem_auto_16.5rem_12rem];
-    @apply xl:grid-cols-[5rem_14rem_auto_16.5rem_12rem_17rem_auto] 2xl:grid-cols-[5rem_12.5rem_auto_17rem_12.5rem_18rem_6rem];
-    @apply cursor-pointer px-8 py-6 transition-colors duration-300 ease-in-out hover:bg-neutral-300/10;
+    @apply flex items-center border-t border-neutral-800 first:border-none max-md:gap-6 md:grid md:gap-x-6 lg:gap-x-8;
+    @apply cursor-pointer px-6 py-4 transition-colors duration-300 ease-in-out hover:bg-neutral-800/40;
+    @apply md:grid-cols-[4.5rem_14rem_1fr_16rem] lg:grid-cols-[4.5rem_14rem_1fr_16rem_12rem];
+    @apply xl:grid-cols-[4.5rem_14rem_1fr_16rem_11rem_9rem_4rem] 2xl:grid-cols-[5rem_16rem_1fr_17rem_12rem_10rem_5rem];
   }
 
   a > img {

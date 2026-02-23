@@ -40,6 +40,7 @@ CREATE TABLE identities (
   "phone" varchar(15),
   "wallet_blob" varchar(512),
   "wallet_keys" jsonb, 
+  "wallet_funds" numeric(15, 2) DEFAULT 0.00,
   "status" varchar(8) DEFAULT 'inactive'
 );
 
