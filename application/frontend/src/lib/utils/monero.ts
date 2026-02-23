@@ -2,7 +2,7 @@ import {identity, moneroData} from '$store';
 import * as monerots from 'monero-ts';
 import {get} from 'svelte/store';
 
-function idbOperation(mode: 'readonly' | 'readwrite', id: string, data?: any): Promise<any> {
+export function idbOperation(mode: 'readonly' | 'readwrite', id: string, data?: any): Promise<any> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open('ShadowSelf_XMR', 1);
     req.onupgradeneeded = (e: any) => e.target.result.createObjectStore('wallets');

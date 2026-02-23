@@ -276,7 +276,9 @@
       <div id="action-buttons" class="flex w-4/5 flex-col gap-y-4">
         <button onclick={() => ($mode = 'send')}><UpArcIcon />Send {cryptoTitles[$currentCrypto]}</button>
         <button onclick={() => ($mode = 'receive')}><DownArcIcon />Receive {cryptoTitles[$currentCrypto]}</button>
-        <button onclick={() => ($mode = 'sweep')}><CameraIcon />Sweep {$currentCrypto.toUpperCase()} Paper Wallet</button>
+        {#if $currentCrypto !== 'xmr'}
+          <button onclick={() => ($mode = 'sweep')}><CameraIcon />Sweep {$currentCrypto.toUpperCase()} Paper Wallet</button>
+        {/if}
       </div>
     </div>
   </div>

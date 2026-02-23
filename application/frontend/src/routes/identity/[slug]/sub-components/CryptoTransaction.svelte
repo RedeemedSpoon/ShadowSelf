@@ -1,11 +1,12 @@
 <script lang="ts">
   import {estimateTransactionFee, selectBestUtxos, signTransaction} from '$cryptocoin';
   import type {APIResponse, Coins, Priority, transactionData, UTXOData} from '$type';
+  import {fetchIndex, identity, moneroData} from '$store';
   import {CameraIcon, CopyIcon, StackIcon} from '$icon';
   import {QrScanner, LoadingButton} from '$component';
   import {decrypt, deriveXPub} from '$cryptography';
-  import {fetchIndex, identity} from '$store';
   import type {Writable} from 'svelte/store';
+  import {idbOperation} from '$monero';
   import {formatUSD} from '$format';
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
@@ -14,6 +15,7 @@
 
   import {privateKeyToAccount} from 'viem/accounts';
   import * as btc from '@scure/btc-signer';
+  import * as monerots from 'monero-ts';
   import {HDKey} from '@scure/bip32';
 
   interface Props {
@@ -48,7 +50,7 @@
     } else if ($currentCrypto === 'eth' || $currentCrypto === 'usdt') {
       return $identity.walletKeys.evm;
     } else {
-      return $identity.walletKeys.xmr.address;
+      return $moneroData.address;
     }
   });
 
@@ -91,7 +93,13 @@
   }
 
   function scanQRCode(result: string) {
-    const clean = result.replace('bitcoin:', '').replace('litecoin:', '').split('?')[0];
+    const clean = result
+      .replace('bitcoin:', '')
+      .replace('litecoin:', '')
+      .replace('monero:', '')
+      .replace('ethereum:', '')
+      .split('?')[0];
+
     destinationAddress = clean;
     scanning = false;
   }
@@ -179,6 +187,42 @@
     $fetchIndex = 1;
     await new Promise((resolve) => setTimeout(resolve, 650));
 
+    if ($currentCrypto === 'xmr') {
+      try {
+        const localData = await idbOperation('readonly', $identity.id);
+        const wallet = await monerots.openWalletFull({
+          networkType: monerots.MoneroNetworkType.MAINNET,
+          server: {uri: crypto.wallet.xmr.nodeUrl},
+          password: 'shadowself_xmr',
+          keysData: localData.keys,
+          cacheData: localData.cache,
+          fs: {promises: {stat: () => Promise.reject(new Error('Memory'))}} as any,
+        });
+
+        await wallet.sync();
+        const priorityMap = {low: 1, medium: 2, high: 3};
+
+        const tx = await wallet.createTx({
+          accountIndex: 0,
+          address: addr,
+          amount: amt * 1e12,
+          relay: true,
+          priority: priorityMap[selectedPriority],
+        });
+
+        const memoryBuffers = await wallet.getData();
+        await idbOperation('readwrite', $identity.id, {keys: memoryBuffers[0], cache: memoryBuffers[1]});
+        await wallet.close();
+
+        notify(successMessage, 'success');
+      } catch (e: any) {
+        notify(e.message || 'Failed to send Monero transaction', 'alert');
+      }
+
+      $fetchIndex = 0;
+      return;
+    }
+
     const data: transactionData = {
       estimatedFee: ['btc', 'ltc'].includes($currentCrypto) ? estimatedFee : crypto.fees[$currentCrypto][selectedPriority],
       privKeyType: 'mnemonic',
@@ -191,11 +235,13 @@
     };
 
     const broadcastPayload = await signTransaction($currentCrypto, addr, amt, data);
-    if (!broadcastPayload) return;
+    if (!broadcastPayload) {
+      $fetchIndex = 0;
+      return;
+    }
 
     const response = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload!);
-    const announceMessage = response.err ? response.err : successMessage;
-    notify(announceMessage, response.type);
+    notify(response.err ? response.err : successMessage, response.type);
     $fetchIndex = 0;
   }
 
@@ -294,7 +340,7 @@
               <span class="text-sm font-bold text-neutral-300 capitalize">{p}</span>
               <span class="text-xs {selectedPriority === p ? 'text-neutral-300' : 'text-neutral-500'}">
                 {crypto.fees[$currentCrypto][p as 'low']}
-                {['eth', 'usdt'].includes($currentCrypto) ? 'Gwei' : 'sat/vB'}
+                {['eth', 'usdt'].includes($currentCrypto) ? 'Gwei' : $currentCrypto === 'xmr' ? 'XMR' : 'sat/vB'}
               </span>
             </div>
           {/each}

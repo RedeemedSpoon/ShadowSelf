@@ -7,6 +7,8 @@
   import {onMount, type Component} from 'svelte';
   import type {Writable} from 'svelte/store';
   import {ExternalLinkIcon} from '$icon';
+  import * as monerots from 'monero-ts';
+  import {idbOperation} from '$monero';
   import {formatUSD} from '$format';
   import {generatePDF} from '$pdf';
   import {fetchAPI} from '$fetch';
@@ -181,12 +183,12 @@
     let refundAddress = '';
 
     [payCoin, receiveCoin].forEach((coin: string, i: number) => {
-      let tempAddr = $identity.walletKeys.evm;
+      let tempAddr = coin === 'xmr' ? $moneroData.address : $identity.walletKeys.evm;
 
       if (coin === 'btc' || coin === 'ltc') {
         const xpub = $identity.walletKeys[coin];
-        const nextIndex = crypto.wallet[coin].nextIndex;
-        tempAddr = deriveXPub(coin, xpub, nextIndex - 1);
+        const nextIndex = crypto.wallet[coin as 'btc'].nextIndex;
+        tempAddr = deriveXPub(coin, xpub, Math.max(0, nextIndex - 1));
       }
 
       if (i === 0) refundAddress = tempAddr;
@@ -201,7 +203,7 @@
       destinationAddress,
       coinTo: receiveCoin,
       coinFrom: payCoin,
-      amount: swap,
+      amount: swapAmount,
     };
 
     const response = await fetchAPI('crypto/swap-trades', 'POST', payload);
@@ -212,46 +214,78 @@
 
     try {
       const amountToSend = Number(response.depositAmount);
-      const wifKey = await decrypt($identity.walletBlob);
-      const feeRate = ['btc', 'ltc'].includes(payCoin) ? crypto.fees[payCoin].high : crypto.fees[payCoin].high;
 
-      let txData: transactionData;
+      if (payCoin === 'xmr') {
+        const localData = await idbOperation('readonly', $identity.id);
+        if (!localData) throw new Error('Wallet cache not found. Please wait for sync to complete.');
 
-      if (payCoin === 'btc' || payCoin === 'ltc') {
-        const utxos = crypto.wallet[payCoin].utxos;
-        const feeObject = estimateTransactionFee(payCoin as Coins, utxos, feeRate, amountToSend);
+        const wallet = await monerots.openWalletFull({
+          networkType: monerots.MoneroNetworkType.MAINNET,
+          server: {uri: crypto.wallet.xmr.nodeUrl},
+          password: 'shadowself_xmr',
+          keysData: localData.keys,
+          cacheData: localData.cache,
+          fs: {promises: {stat: () => Promise.reject(new Error('Memory'))}} as any,
+        });
 
-        txData = {
-          estimatedFee: feeObject,
-          privKeyType: 'mnemonic',
-          wifKey: wifKey,
-          index: Math.max(0, crypto.wallet[payCoin].nextIndex - 1),
-          xpubKey: $identity.walletKeys[payCoin],
-          utxos: utxos,
-        };
+        await wallet.sync();
+
+        await wallet.createTx({
+          accountIndex: 0,
+          address: response.depositAddress,
+          amount: BigInt(amountToSend * 1e12),
+          relay: true,
+          priority: 2,
+        });
+
+        const memoryBuffers = await wallet.getData();
+        await idbOperation('readwrite', $identity.id, {keys: memoryBuffers[0], cache: memoryBuffers[1]});
+        await wallet.close();
+
+        notify(`Sent ${amountToSend} XMR`, 'success');
       } else {
-        txData = {
-          estimatedFee: feeRate,
-          privKeyType: 'mnemonic',
-          wifKey: wifKey,
-          nonce: crypto.wallet[payCoin as 'eth'].nonce,
-          balance: crypto.wallet[payCoin as 'eth'].balance,
-        };
+        const wifKey = await decrypt($identity.walletBlob);
+        const feeRate = ['btc', 'ltc'].includes(payCoin) ? crypto.fees[payCoin as Coins].high : crypto.fees[payCoin as Coins].high;
+
+        let txData: transactionData;
+
+        if (payCoin === 'btc' || payCoin === 'ltc') {
+          const utxos = crypto.wallet[payCoin as 'btc'].utxos;
+          const feeObject = estimateTransactionFee(payCoin as Coins, utxos, feeRate, amountToSend);
+
+          txData = {
+            estimatedFee: feeObject,
+            privKeyType: 'mnemonic',
+            wifKey: wifKey,
+            index: Math.max(0, crypto.wallet[payCoin as 'btc'].nextIndex - 1),
+            xpubKey: $identity.walletKeys[payCoin as 'btc'],
+            utxos: utxos,
+          };
+        } else {
+          txData = {
+            estimatedFee: feeRate,
+            privKeyType: 'mnemonic',
+            wifKey: wifKey,
+            nonce: crypto.wallet[payCoin as 'eth'].nonce,
+            balance: crypto.wallet[payCoin as 'eth'].balance,
+          };
+        }
+
+        const broadcastPayload = await signTransaction(payCoin as Coins, response.depositAddress, amountToSend, txData);
+
+        if (!broadcastPayload) {
+          $fetchIndex = 0;
+          return notify('Transaction signing cancelled', 'alert');
+        }
+
+        const broadcastRes = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload);
+        if (broadcastRes.err) throw new Error(broadcastRes.err);
+
+        notify(`Sent ${amountToSend} ${payCoin.toUpperCase()}`, 'success');
       }
-
-      const broadcastPayload = await signTransaction(payCoin as Coins, response.depositAddress, amountToSend, txData);
-
-      if (!broadcastPayload) {
-        $fetchIndex = 0;
-        return notify('Transaction signing cancelled', 'alert');
-      }
-
-      const broadcastRes = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload);
-      if (broadcastRes.err) throw new Error(broadcastRes.err);
-
-      notify(`Sent ${amountToSend} ${payCoin.toUpperCase()}`, 'success');
     } catch (e: any) {
-      return notify(e.message || 'Swap code execution failed, try again', 'alert');
+      $fetchIndex = 0;
+      return notify(e.message || 'Swap execution failed, please try again.', 'alert');
     }
 
     $fetchIndex = 0;
@@ -259,7 +293,6 @@
     chooseProvider = false;
     swapSuccess = true;
   }
-
   onMount(updateReceivedPrice);
 </script>
 
