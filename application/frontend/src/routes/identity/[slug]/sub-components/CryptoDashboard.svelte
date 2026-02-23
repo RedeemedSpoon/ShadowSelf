@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {BoltIcon, HashIcon, ChartIcon, StackIcon, ActivityIcon, BroadcastIcon, GasStationIcon, ClockIcon} from '$icon';
+  import {BoltIcon, HashIcon, ChartIcon, StackIcon, ActivityIcon, BroadcastIcon, GasStationIcon, ClockIcon, QuestionIcon} from '$icon';
   import {UpArcIcon, DownArcIcon, ExternalLinkIcon, CameraIcon, WalletIcon, BroomIcon, SpreadSheetIcon} from '$icon';
   import type {APIResponse, Coins} from '$type';
   import {formatUSD, formatDate} from '$format';
@@ -168,20 +168,30 @@
     <div id="left-section" class="w-2/3">
       <p>
         <b><WalletIcon className="w-6! h-6! mt-2 cursor-default" />Balance:</b>{balance}
-        {$currentCrypto.toUpperCase()} <span class="text-neutral-500">({formatUSD(usdBalance)})</span>
+        {$currentCrypto.toUpperCase()}
+        <span class="flex flex-row gap-3 text-neutral-500">
+          ({formatUSD(usdBalance)})
+          {#if $currentCrypto === 'xmr'}
+            <span title="Excluded from total wealth estimates for privacy">
+              <QuestionIcon className="cursor-help -ml-2 mt-2 w-3 h-3 fill-neutral-700" />
+            </span>
+          {/if}
+        </span>
       </p>
       <p class="w-1/2">
         <b><HashIcon />{activePaths !== 0 ? 'Main ' : ''}Address:</b>
         {#if $currentCrypto === 'btc'}
           {@const btc = deriveXPub('btc', $identity.walletKeys.btc, 0)}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${btc.slice(0, 20)}...`} text={btc} />
-          <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used"
-            >({activePaths} active)</span>
+          <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used">
+            ({activePaths} active)
+          </span>
         {:else if $currentCrypto === 'ltc'}
           {@const ltc = deriveXPub('ltc', $identity.walletKeys.ltc, 0)}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${ltc.slice(0, 20)}...`} text={ltc} />
-          <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used"
-            >({activePaths} active)</span>
+          <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used">
+            ({activePaths} active)
+          </span>
         {:else if $currentCrypto === 'xmr'}
           {@const xmr = $moneroData.address}
           <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${xmr.slice(0, 20)}...`} text={xmr} />

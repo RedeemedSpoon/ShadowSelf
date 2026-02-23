@@ -67,7 +67,8 @@
               {item}
               {#if index === 2}
                 <span title={title[section.indexOf(item)]}>
-                  <QuestionIcon className="cursor-help -ml-2 w-4! h-4! fill-neutral-700!" /></span>
+                  <QuestionIcon className="cursor-help -ml-2 w-4! h-4! fill-neutral-700!" />
+                </span>
               {/if}
             </li>
           {/each}
