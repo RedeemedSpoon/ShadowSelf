@@ -35,7 +35,7 @@
   let selectedPriority: Priority = $state('low');
   let sweepStepMessage: string = $state('');
 
-  let newUtxoWallet = $derived(!(crypto.wallet[$currentCrypto as 'btc'].nextIndex !== 0 && ['btc', 'ltc'].includes($currentCrypto)));
+  let newUtxoWallet = $derived(!(['btc', 'ltc'].includes($currentCrypto) && crypto.wallet[$currentCrypto as 'btc'].nextIndex !== 0));
   const addressTitle = $derived(index === 0 ? 'Main Address' : `Derived Address (Index ${index})`);
 
   const estimatedFee = $derived(

@@ -1,10 +1,11 @@
 <script lang="ts">
   import {Modal, InputWithButton, InputWithIcon, LoadingButton, ConfirmModal, CopyButton, ReactiveButton} from '$component';
   import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon, ExternalLinkIcon} from '$icon';
-  import {loadStripe, type Stripe, type StripeCardElement} from '@stripe/stripe-js';
+  import {type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Settings, SettingsForm} from '$type';
   import {notify, updateFetch, updateModal} from '$lib';
   import {modalIndex, fetchIndex, user} from '$store';
+  import {loadStripe} from '@stripe/stripe-js/pure';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
   import {onMount} from 'svelte';
@@ -79,7 +80,9 @@
   };
 
   async function initStripe(stripeKey: string) {
-    stripe = (await loadStripe(stripeKey!)) as Stripe;
+    loadStripe.setLoadParameters({advancedFraudSignals: false});
+    stripe = (await loadStripe(stripeKey)) as Stripe;
+
     card = stripe!.elements().create('card', {
       classes: {
         base: 'rounded-xl border p-4 transition-all duration-300 border-neutral-800 bg-neutral-800/30',

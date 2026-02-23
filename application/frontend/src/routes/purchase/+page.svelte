@@ -1,8 +1,9 @@
 <script lang="ts">
-  import {loadStripe, type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
+  import {type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
   import {type Notification, type Billing, allPricingModels} from '$type';
   import {CheckmarkIcon, CreditCardIcon, WalletIcon} from '$icon';
   import {pricingModel, modalIndex, fetchIndex} from '$store';
+  import {loadStripe} from '@stripe/stripe-js/pure';
   import {LoadingButton, Modal} from '$component';
   import {notify, updateFetch} from '$lib';
   import type {PageData} from './$types';
@@ -52,7 +53,8 @@
   });
 
   onMount(async () => {
-    stripe = (await loadStripe(data.stripeKey!)) as Stripe;
+    loadStripe.setLoadParameters({advancedFraudSignals: false});
+    stripe = (await loadStripe(data.stripeKey)) as Stripe;
   });
 
   function changeModel(model: string) {

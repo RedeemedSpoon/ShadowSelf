@@ -41,8 +41,8 @@
     {label: 'Monero', value: 'xmr'},
   ];
 
-  let payCoin = $state('btc');
-  let receiveCoin = $state('xmr');
+  let payCoin = $state('btc') as Coins;
+  let receiveCoin = $state('xmr') as Coins;
   let chooseProvider = $state(false);
 
   let swapAmount = $state(1);
@@ -51,8 +51,8 @@
   let trackingLink = $state('');
 
   function updateReceivedPrice() {
-    const payUsdPrice = crypto.prices[payCoin as 'btc'].usdPrice * swapAmount;
-    const receiveUsdPrice = crypto.prices[receiveCoin as 'btc'].usdPrice;
+    const payUsdPrice = crypto.prices[payCoin].usdPrice * swapAmount;
+    const receiveUsdPrice = crypto.prices[receiveCoin].usdPrice;
     receiveAmount = (payUsdPrice / receiveUsdPrice).toFixed(4);
   }
 
@@ -182,9 +182,9 @@
       let tempAddr = $identity.walletKeys.evm;
 
       if (coin === 'btc' || coin === 'ltc') {
-        const xpub = $identity.walletKeys[coin as 'btc'];
-        const nextIndex = crypto.wallet[coin as 'btc'].nextIndex;
-        tempAddr = deriveXPub(coin as 'btc', xpub, nextIndex - 1);
+        const xpub = $identity.walletKeys[coin];
+        const nextIndex = crypto.wallet[coin].nextIndex;
+        tempAddr = deriveXPub(coin, xpub, nextIndex - 1);
       }
 
       if (i === 0) refundAddress = tempAddr;
@@ -211,20 +211,20 @@
     try {
       const amountToSend = Number(response.depositAmount);
       const wifKey = await decrypt($identity.walletBlob);
-      const feeRate = ['btc', 'ltc'].includes(payCoin) ? crypto.fees[payCoin as 'btc'].high : crypto.fees[payCoin as 'btc'].high;
+      const feeRate = ['btc', 'ltc'].includes(payCoin) ? crypto.fees[payCoin].high : crypto.fees[payCoin].high;
 
       let txData: transactionData;
 
-      if (['btc', 'ltc'].includes(payCoin)) {
-        const utxos = crypto.wallet[payCoin as 'btc'].utxos;
+      if (payCoin === 'btc' || payCoin === 'ltc') {
+        const utxos = crypto.wallet[payCoin].utxos;
         const feeObject = estimateTransactionFee(payCoin as Coins, utxos, feeRate, amountToSend);
 
         txData = {
           estimatedFee: feeObject,
           privKeyType: 'mnemonic',
           wifKey: wifKey,
-          index: Math.max(0, crypto.wallet[payCoin as 'btc'].nextIndex - 1),
-          xpubKey: $identity.walletKeys[payCoin as 'btc'],
+          index: Math.max(0, crypto.wallet[payCoin].nextIndex - 1),
+          xpubKey: $identity.walletKeys[payCoin],
           utxos: utxos,
         };
       } else {
@@ -314,7 +314,7 @@
             options={coinOptions}
             fullIcons={cryptoIcons}
             value={payCoin}
-            callback={(v) => ((payCoin = v), updateReceivedPrice())}
+            callback={(v) => ((payCoin = v as 'btc'), updateReceivedPrice())}
             size="small" />
         </div>
       </div>
@@ -341,7 +341,7 @@
             options={coinOptions}
             fullIcons={cryptoIcons}
             value={receiveCoin}
-            callback={(v) => ((receiveCoin = v), updateReceivedPrice())}
+            callback={(v) => ((receiveCoin = v as 'btc'), updateReceivedPrice())}
             size="small" />
         </div>
       </div>

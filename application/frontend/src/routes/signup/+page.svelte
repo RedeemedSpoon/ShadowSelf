@@ -1,8 +1,9 @@
 <script lang="ts">
   import {UserIcon, KeyIcon, KeylockIcon, DownloadIcon, CopyIcon, HappyIcon, EmailIcon, QuestionIcon} from '$icon';
   import {Steps, StepsItem, InputWithIcon, LoadingButton, CopyButton, ReactiveButton, Tooltip} from '$component';
-  import {loadStripe, type Stripe, type StripeCardElement} from '@stripe/stripe-js';
+  import {type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Registration} from '$type';
+  import {loadStripe} from '@stripe/stripe-js/pure';
   import {currentStep, fetchIndex} from '$store';
   import {get} from 'svelte/store';
   import {notify} from '$lib';
@@ -44,7 +45,9 @@
   }
 
   async function initStripe(stripeKey: string) {
-    stripe = (await loadStripe(stripeKey!)) as Stripe;
+    loadStripe.setLoadParameters({advancedFraudSignals: false});
+    stripe = (await loadStripe(stripeKey)) as Stripe;
+
     card = stripe!.elements().create('card', {
       classes: {
         base: 'rounded-xl border p-4 transition-all duration-300 border-neutral-800 bg-neutral-800/30',

@@ -44,7 +44,7 @@
         case 'usdt':
           return 'https://eth.blockscout.com/tx/';
         case 'xmr':
-          return 'https://xmrchain.net/tx/';
+          return 'https://moneroblocks.info/tx/';
       }
     })(),
   );
@@ -95,10 +95,8 @@
         const w = crypto.wallet.xmr;
         const locked = w.balance - w.unlockedBalance;
 
-        if (locked > 0) {
-          return {label: 'Locked Coins', value: `${locked.toFixed(4)} XMR`, percentile: 'Active'};
-        }
-        return {label: 'Spendable Coins', value: '100%', percentile: 'Max'};
+        if (locked > 0) return {label: 'Locked Coins', value: `${locked.toFixed(4)} XMR`, percentile: 'Active'};
+        else return {label: 'Spendable Coins', value: '100%', percentile: 'Max'};
       }
 
       if (['btc', 'ltc'].includes($currentCrypto)) {
