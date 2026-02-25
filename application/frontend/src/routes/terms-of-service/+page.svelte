@@ -116,6 +116,38 @@
     components; or d) the results of using the Service will meet your requirements.
   </p>
 
+  <h3>SMS Messaging Terms</h3>
+  <p>By opting in to receive SMS text messages from Shadowself, you agree to the following terms regarding our messaging services:</p>
+  <ul>
+    <li>
+      <b>Program Description:</b> Shadowself offers automated text message alerts including 2FA codes, account security alerts, and subscription
+      notifications.
+    </li>
+    <li>
+      <b>Message Frequency:</b> Message frequency varies based on your account activity and requests.
+    </li>
+    <li>
+      <b>Pricing:</b> Message and data rates may apply.
+    </li>
+    <li>
+      <b>Opt-out:</b> You can cancel the SMS service at any time. Just text <b>STOP</b> to the short code/number. After you send the
+      SMS message <b>STOP</b> to us, we will send you an SMS message to confirm that you have been unsubscribed. After this, you will no
+      longer receive SMS messages from us. If you want to join again, just sign up as you did the first time.
+    </li>
+    <li>
+      <b>Help:</b> If you are experiencing issues with the messaging program you can reply with the keyword <b>HELP</b> for more
+      assistance, or you can get help directly at <a href="/contact">our contact page</a>.
+    </li>
+    <li>
+      <b>Carrier Liability:</b> Carriers are not liable for delayed or undelivered messages.
+    </li>
+    <li>
+      <b>Privacy:</b> Data obtained from you in connection with this SMS service may include your cell phone number, your provider's
+      name, and the date, time, and content of your messages. We will not share your opt-in data with third parties for marketing
+      purposes. Please review our complete <a href="/privacy-policy">Privacy Policy</a> for more information.
+    </li>
+  </ul>
+
   <h3>Governing Law</h3>
   <p>
     These Terms shall be governed by and construed in accordance with the laws of Germany, without regard to its conflict of law
@@ -154,7 +186,7 @@
     For any questions or concerns regarding these Terms of Service or the Service, please contact us via our
     <a href="/contact">contact page</a> or by emailing us at <a href="mailto:contact@shadowself.io">contact@shadowself.io</a>.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: May 13, 2025</small>
+  <small class="text-lg text-neutral-500">Last updated: Feb 25, 2026</small>
 </div>
 
 <style lang="postcss">
