@@ -10,18 +10,13 @@ DB_PASSWORD=$(grep POSTGRES_PASSWORD "${SHADOWSELF_PATH}/application/database/.e
 DB_NAME=$(grep POSTGRES_DB "${SHADOWSELF_PATH}/application/database/.env" | cut -d '=' -f2)
 
 window=1
-tmux new-session -d -s "$session" -n 'Server'
+tmux new-session -d -s "$session" -n 'Servers'
 tmux send-keys -t "$session:$window" "cd $SHADOWSELF_PATH/application/frontend" C-m
 tmux send-keys -t "$session:$window" "clear" C-m
 tmux send-keys -t "$session:$window" "bun dev" C-m
 
-tmux split-window -t "$session:1" -h
+tmux split-window -t "$session" -h
 tmux send-keys -t "$session:$window" "cd $SHADOWSELF_PATH/application/backend" C-m
-tmux send-keys -t "$session:$window" "clear" C-m
-tmux send-keys -t "$session:$window" "bun dev" C-m
-
-tmux split-window -t "$session:1" -v
-tmux send-keys -t "$session:$window" "cd $SHADOWSELF_PATH/proxies/src" C-m
 tmux send-keys -t "$session:$window" "clear" C-m
 tmux send-keys -t "$session:$window" "bun dev" C-m
 
@@ -41,7 +36,13 @@ tmux send-keys -t "$session:$window" "clear" C-m
 tmux send-keys -t "$session:$window" "psql postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}" C-m
 
 window=4
-tmux new-window -t "$session:$window" -n 'Code'
+tmux new-window -t "$session:$window" -n 'OpenCode'
+tmux send-keys -t "$session:$window" "cd $SHADOWSELF_PATH" C-m
+tmux send-keys -t "$session:$window" "clear" C-m
+tmux send-keys -t "$session:$window" "opencode" C-m
+
+window=5
+tmux new-window -t "$session:$window" -n 'Workplace'
 tmux send-keys -t "$session:$window" "cd $SHADOWSELF_PATH" C-m
 tmux send-keys -t "$session:$window" "clear" C-m
 tmux send-keys -t "$session:$window" "onefetch" C-m
