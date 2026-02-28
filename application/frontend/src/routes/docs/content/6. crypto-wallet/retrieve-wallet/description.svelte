@@ -2,6 +2,7 @@
   This endpoint retrieves the full wallet overview for the identity, including balances, UTXOs, transaction history, current crypto
   prices, and network fees. It covers Bitcoin (BTC), Litecoin (LTC), Ethereum (ETH), and Tether (USDT).
 </p>
+<br />
 <p>
   <strong>Note:</strong> Monero (XMR) wallet data is not included in the <code>wallet</code> object as it is managed client-side.
   However, current XMR prices and network fees are provided in the <code>prices</code> and <code>fees</code> objects.
