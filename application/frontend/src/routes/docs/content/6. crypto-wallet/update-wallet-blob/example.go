@@ -1,10 +1,16 @@
 package main
 
-import ("bytes"; "fmt"; "io"; "net/http"; "os")
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+)
 
 func main() {
-	url := fmt.Sprintf("https://shadowself.io/api/identity/update-information/%s", os.Getenv("IDENTITY_ID"))
-	payload := []byte(`{"name": "Jane Doe", "age": 33}`)
+	url := fmt.Sprintf("https://shadowself.io/api/crypto/update-blob/%s", os.Getenv("IDENTITY_ID"))
+	payload := []byte(`{"blob": "U2FsdGVkX19nb..."}`)
 	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(payload))
 	req.Header.Add("Authorization", "Bearer "+os.Getenv("API_KEY"))
 	req.Header.Add("Content-Type", "application/json")

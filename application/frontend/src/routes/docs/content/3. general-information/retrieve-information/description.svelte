@@ -16,14 +16,14 @@
 <ul>
   <li><code>id</code> (<span class="string">string</span>): The unique identifier for the synthetic identity.</li>
   <li>
-    <code>creation_date</code> (<span class="string">string</span>): The timestamp (ISO 8601 format) indicating when the identity was
+    <code>creationDate</code> (<span class="string">string</span>): The timestamp (ISO 8601 format) indicating when the identity was
     created.
   </li>
   <li>
     <code>plan</code> (<span class="string">string</span>): The subscription tier associated with this identity. Values:
     <code>'monthly'</code>, <code>'annually'</code>, or <code>'lifetime'</code>.
   </li>
-  <li><code>proxy_server</code> (<span class="string">string</span>): The proxy server address associated with this identity.</li>
+  <li><code>proxyServer</code> (<span class="string">string</span>): The proxy server address associated with this identity.</li>
   <li>
     <code>picture</code> (<span class="string">string</span>): A base64 encoded string representing the identity's profile picture.
     Prepend <code>data:image/png;base64,</code> to display.
@@ -39,11 +39,15 @@
     <code>phone</code> (<span class="string">string</span>): The phone number associated with this identity (E.164 format).
   </li>
   <li>
-    <code>wallet_keys</code> (<span class="object">object</span>): A JSON object containing the watch-only public keys (XPUBs,
+    <code>walletFunds</code> (<span class="integer">integer</span>): The total estimated value of all crypto assets held in the
+    identity's wallet, denominated in USD.
+  </li>
+  <li>
+    <code>walletKeys</code> (<span class="object">object</span>): A JSON object containing the watch-only public keys (XPUBs,
     Addresses, ViewKeys) for Bitcoin, Litecoin, Ethereum, Tether and Monero.
   </li>
   <li>
-    <code>wallet_blob</code> (<span class="string">string</span>): The AES-GCM encrypted base64 string containing the private mnemonic
+    <code>walletBlob</code> (<span class="string">string</span>): The AES-GCM encrypted base64 string containing the private mnemonic
     seed.
   </li>
 </ul>

@@ -61,7 +61,15 @@ export const load: PageLoad = () => {
     {
       title: 'crypto wallet',
       icon: WalletIcon,
-      more: [{title: 'under development'}],
+      more: [
+        {title: 'retrieve wallet', method: 'GET'},
+        {title: 'retrieve xmr node', method: 'GET'},
+        {title: 'retrieve swap rates', method: 'GET'},
+        {title: 'create swap trade', method: 'POST'},
+        {title: 'broadcast transaction', method: 'POST'},
+        {title: 'sweep information', method: 'POST'},
+        {title: 'update wallet blob', method: 'PUT'},
+      ],
     },
     {
       title: 'account vault',
@@ -127,8 +135,10 @@ export const load: PageLoad = () => {
     },
     {
       title: 'crypto wallet',
-      description: rawContent.cryptoWallet,
+      description:
+        'This section covers API endpoints for managing the crypto wallet associated with your synthetic identities. You can retrieve wallet balances, transaction history, and swap rates, as well as create swap trades and broadcast transactions. Note that Monero (XMR) operations are handled entirely on the client-side for security reasons; the API only provides node connection details.',
       icon: WalletIcon,
+      routes: rawContent.cryptoWallet as unknown as Route[],
     },
     {
       title: 'account vault',

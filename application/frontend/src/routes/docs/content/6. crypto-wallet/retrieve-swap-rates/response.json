@@ -1,0 +1,31 @@
+{
+  "tradeID": "trade_12345",
+  "bestProvider": "ProviderA",
+  "providers": [
+    {
+      "isFixed": false,
+      "costPercentage": 0.5,
+      "returnUsd": 100.5,
+      "returnCoin": 0.0015,
+      "kycRating": "C",
+      "logPolicy": "L1",
+      "logo": "https://example.com/logo.png",
+      "name": "ProviderA",
+      "eta": "10-30 mins"
+    },
+    {
+      "isFixed": true,
+      "costPercentage": 0.8,
+      "returnUsd": 99.8,
+      "returnCoin": 0.00148,
+      "kycRating": "B",
+      "logPolicy": "L2",
+      "logo": "https://example.com/logoB.png",
+      "name": "ProviderB",
+      "eta": "5-15 mins"
+    }
+  ],
+  "coinFrom": "btc",
+  "amount": 0.01,
+  "coinTo": "xmr"
+}

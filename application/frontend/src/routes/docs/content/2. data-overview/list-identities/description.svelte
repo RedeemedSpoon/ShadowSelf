@@ -37,12 +37,8 @@
     first then the country.
   </li>
   <li>
-    <code>wallet_keys</code> (<span class="object">object</span>): A JSON object containing the watch-only public keys (XPUBs,
-    Addresses, ViewKeys) for Bitcoin, Litecoin, Ethereum, Tether and Monero. Used for monitoring balances.
-  </li>
-  <li>
-    <code>wallet_blob</code> (<span class="string">string</span>): The AES-GCM encrypted base64 string containing the private mnemonic
-    seed. This can only be decrypted by the user's master password client-side.
+    <code>walletFunds</code> (<span class="integer">integer</span>): The total estimated value of all crypto assets held in the
+    identity's wallet, denominated in USD.
   </li>
   <li>
     <code>accounts</code> (<span class="integer">integer</span>): The number of associated accounts entries stored for this identity.

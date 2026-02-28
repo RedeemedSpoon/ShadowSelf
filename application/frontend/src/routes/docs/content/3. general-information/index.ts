@@ -41,7 +41,7 @@ const routes: Route[] = [
   {
     title: 'update information',
     description: updateInformation.description,
-    url: '/identity/update/:id',
+    url: '/identity/update-information/:id',
     method: 'PUT',
     code: updateInformation.code,
     response: updateInformation.response,

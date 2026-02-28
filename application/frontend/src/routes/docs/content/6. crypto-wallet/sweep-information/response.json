@@ -1,0 +1,13 @@
+{
+  "utxos": [
+    {
+      "txid": "0x123...",
+      "vout": 0,
+      "value": 100000,
+      "address": "bc1q...",
+      "path_index": 0
+    }
+  ],
+  "balance": 100000,
+  "nonce": 5
+}

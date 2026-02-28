@@ -14,7 +14,7 @@ const routes: Route[] = [
   {
     title: 'list proxies',
     description: listProxies.description,
-    url: '/',
+    url: '/proxy',
     method: 'GET',
     code: listProxies.code,
     response: listProxies.response,

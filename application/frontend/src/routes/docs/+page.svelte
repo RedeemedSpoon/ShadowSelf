@@ -166,6 +166,10 @@
     @apply text-red-600;
   }
 
+  :global(#content .boolean) {
+    @apply text-pink-600;
+  }
+
   :global(#content .optional) {
     @apply font-semibold italic;
   }

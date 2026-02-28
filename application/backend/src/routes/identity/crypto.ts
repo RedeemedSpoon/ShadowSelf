@@ -200,7 +200,7 @@ export default new Elysia({prefix: '/crypto'})
       return {txid: (await response.json()).result};
     }
   })
-  .post('/sweep-info', async ({identity, body, set}) => {
+  .post('/sweep-info/:id', async ({identity, body, set}) => {
     const {err, coin, addresses} = await checkAPI(body, ['coin', 'addresses']);
     if (err) return error(set, 400, err);
 

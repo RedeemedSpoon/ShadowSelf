@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const url = `https://shadowself.io/api/identity/update-information/${process.env.IDENTITY_ID}`;
+const url = `https://shadowself.io/api/crypto/update-blob/${process.env.IDENTITY_ID}`;
 axios
   .put(
     url,
-    {name: 'Jane Doe', age: 33},
+    {blob: 'U2FsdGVkX19nb...'},
     {
       headers: {
         Authorization: `Bearer ${process.env.API_KEY}`,

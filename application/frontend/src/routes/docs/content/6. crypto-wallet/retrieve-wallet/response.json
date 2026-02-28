@@ -1,0 +1,15 @@
+{
+  "prices": {
+    "btc": {"dailyChange": 2.5, "usdPrice": 65000, "chart": []},
+    "eth": {"dailyChange": 1.8, "usdPrice": 3500, "chart": []},
+    "xmr": {"dailyChange": 0.5, "usdPrice": 150, "chart": []}
+  },
+  "fees": {
+    "btc": {"low": 10, "medium": 15, "high": 20},
+    "eth": {"low": 20, "medium": 25, "high": 30}
+  },
+  "wallet": {
+    "eth": {"status": "Synced", "balance": 1.5, "nonce": 5, "history": []},
+    "usdt": {"status": "Synced", "balance": 500.0, "nonce": 5, "history": []}
+  }
+}
