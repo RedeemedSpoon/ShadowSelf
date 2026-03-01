@@ -1,8 +1,9 @@
 <script lang="ts">
+  import {formatCasing, formatToMarkdown} from '$format';
   import 'highlight.js/styles/tokyo-night-dark.css';
   import {APICode, HTTPMethod} from '$component';
+  import {CopyIcon, CheckmarkIcon} from '$icon';
   import type {PageData} from './$types';
-  import {formatCasing} from '$format';
   import {page} from '$app/state';
   import hljs from 'highlight.js';
   import {onMount} from 'svelte';
@@ -26,10 +27,28 @@
   let {data}: {data: PageData} = $props();
 
   let anchor = $state(page.url.hash?.slice(1));
+  let copiedGlobal = $state(false);
+  let copiedSections = $state<Record<string, boolean>>({});
+
+  let mainContentRef: HTMLElement;
+  let sectionRefs: Record<string, HTMLElement> = {};
 
   const scrollTo = (hash: string) => {
     if (hash) window.location.hash = hash;
     anchor = hash;
+  };
+
+  const copyToMarkdown = async (element: HTMLElement, sectionId?: string) => {
+    const markdown = formatToMarkdown(element);
+    await navigator.clipboard.writeText(markdown);
+
+    if (sectionId) {
+      copiedSections[sectionId] = true;
+      setTimeout(() => (copiedSections[sectionId] = false), 2000);
+    } else {
+      copiedGlobal = true;
+      setTimeout(() => (copiedGlobal = false), 2000);
+    }
   };
 
   onMount(() => {
@@ -65,15 +84,42 @@
     </ol>
   </aside>
 
-  <main id="content">
-    <h1 class="mb-12 text-3xl! font-bold! text-neutral-100 md:text-4xl!">API Documentation</h1>
+  <main id="content" bind:this={mainContentRef}>
+    <div class="mb-12 flex items-center justify-between">
+      <h1 class="text-3xl! font-bold! text-neutral-100 md:text-4xl!">API Documentation</h1>
+      <button class="flex items-center gap-2 text-base" onclick={() => copyToMarkdown(mainContentRef)}>
+        {#if copiedGlobal}
+          <CheckmarkIcon className="h-4 w-4" />
+          <span>Copied Markdown</span>
+        {:else}
+          <CopyIcon className="h-4 w-4 fill-none" />
+          <span>Copy Full Docs for LLMs</span>
+        {/if}
+      </button>
+    </div>
+
     {#each data.docs.content as content, i (content.title)}
       {@const Icon = content.icon}
-      <div>
-        <h2 class="mb-6 flex items-center gap-3 text-2xl font-semibold text-neutral-200 md:text-3xl!">
-          <Icon className="h-8 w-8 stroke-neutral-200" fill={false} />
-          {formatCasing(content.title)}
-        </h2>
+      <div bind:this={sectionRefs[content.title]}>
+        <div class="mb-6 flex items-center justify-between">
+          <h2 class="flex items-center gap-3 text-2xl font-semibold text-neutral-200 md:text-3xl!">
+            <Icon className="h-8 w-8 stroke-neutral-200" fill={false} />
+            {formatCasing(content.title)}
+          </h2>
+          <button
+            class="alt flex items-center gap-2 px-2 py-1 text-sm"
+            onclick={() => copyToMarkdown(sectionRefs[content.title], content.title)}
+            title="Copy this section as Markdown for LLM">
+            {#if copiedSections[content.title]}
+              <CheckmarkIcon className="h-3.5 w-3.5" />
+              <span>Copied</span>
+            {:else}
+              <CopyIcon className="h-3.5 w-3.5 fill-none" />
+              <span>Copy Markdown for LLMs</span>
+            {/if}
+          </button>
+        </div>
+
         <div class="mb-12">
           {#if typeof content.description === 'function'}
             {@const Description = content.description}
