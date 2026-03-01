@@ -68,9 +68,6 @@
 
   pre {
     @apply no-scrollbar w-full max-w-[calc(100vw-4rem)] overflow-x-scroll !rounded-t-none xl:max-w-[calc(50vw-10rem)];
-  }
-
-  code {
-    @apply no-scrollbar text-base!;
+    @apply no-scrollbar rounded-md bg-neutral-800 px-6! py-4! text-base!;
   }
 </style>

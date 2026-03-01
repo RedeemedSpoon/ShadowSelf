@@ -65,7 +65,7 @@
   You can use a tool like <code>cURL</code> in your terminal. Replace <code>$API_KEY</code> with your actual key:
 </p>
 
-<pre class="language-curl"><code
+<pre class="language-curl"><code class="my-2 px-8! py-4!"
     >curl -X GET "https://shadowself.io/api/test" \
      -H "Accept: application/json" \
      -H "Authorization: Bearer $API_KEY"</code></pre>
