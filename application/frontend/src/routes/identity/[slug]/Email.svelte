@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, InboxIcon} from '$icon';
+  import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, BackIcon} from '$icon';
   import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
   import type {APIResponse, EditorParams, Email, WebSocketMessage} from '$type';
   import {identity, handleResponse, fetchIndex, modalIndex} from '$store';
@@ -179,7 +179,9 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Email Address</h1>
   <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
-    <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go to Inbox" />
+    {#if $mode !== 'browse'}
+      <ActionIcon icon={BackIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go Back to Inbox" />
+    {/if}
     <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($target = null))} title="Send New Email" />
     <ActionIcon
       disabled={label === 'Drafts' || showActionButtons}
@@ -189,7 +191,7 @@
     <ActionIcon
       disabled={label === 'Drafts' || showActionButtons}
       icon={ForwardIcon}
-      action={() => ($modalIndex = 1)}
+      action={() => ($modalIndex = 4)}
       title="Forward Email" />
     <ActionIcon disabled={showActionButtons} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>
@@ -251,7 +253,7 @@
   {/if}
 {/await}
 
-<Modal>
+<Modal id={4}>
   <div class="flex flex-col items-center gap-8 p-4 md:p-8">
     <h3 class="w-full text-3xl! text-neutral-300 md:text-5xl!">Forward Email to Another Address</h3>
     <p class="md:w-[40vw]">

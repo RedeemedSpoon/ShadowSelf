@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {SendIcon, TrashIcon, ReplyIcon, InboxIcon, BackIcon} from '$icon';
   import type {WebSocketMessage, APIResponse, Message} from '$type';
+  import {SendIcon, TrashIcon, ReplyIcon, BackIcon} from '$icon';
   import {writable, type Writable} from 'svelte/store';
   import {identity, handleResponse} from '$store';
   import {ActionIcon, Loader} from '$component';
@@ -58,10 +58,9 @@
 <section class="mb-4 flex w-full items-center justify-between">
   <h1 class="text-2xl font-bold text-neutral-300 sm:text-4xl md:text-5xl">Phone Number</h1>
   <div class="grid gap-1 max-md:grid-cols-3 md:grid-flow-col">
-    {#if $mode === 'reply'}
-      <ActionIcon icon={BackIcon} action={() => ($mode = 'read')} title="Cancel" />
+    {#if $mode !== 'browse'}
+      <ActionIcon icon={BackIcon} action={() => (($mode = 'browse'), ($discussion = undefined))} title="Go Back to Messages" />
     {/if}
-    <ActionIcon icon={InboxIcon} action={() => (($mode = 'browse'), ($discussion = undefined))} title="Go to Messages" />
     <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($discussion = undefined))} title="Start New Conversation" />
     <ActionIcon disabled={!$discussion} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Message" />
     <ActionIcon disabled={!$discussion} icon={TrashIcon} action={deleteMessage} title="Delete Whole Conversation" />
@@ -92,7 +91,7 @@
           No messages have been sent to this number yet. Sending a quick text or starting a conversation to get things rolling could be
           a good first step!
         </p>
-        <button>Start Conversation</button>
+        <button onclick={() => ($mode = 'write')}>Start Conversation</button>
       </section>
     {/if}
   {/key}
