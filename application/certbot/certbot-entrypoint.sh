@@ -15,6 +15,6 @@ until certbot certonly --webroot -w /var/www/certbot --email contact@shadowself.
 done
 
 while :; do
-  certbot renew --quiet;
+  certbot renew --quiet --deploy-hook "docker exec shadowself-nginx-1 nginx -s reload";
   sleep 12h & wait ${!};
 done
