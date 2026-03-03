@@ -31,7 +31,6 @@
   let clientEmail = $state('');
   let clientName = $state('');
   let useMainAddr = $state(true);
-  let useNewAddr = $state(false);
   let cryptoChoice = $state('btc') as Coins;
   let pdfTableRows = $state() as HTMLTableSectionElement;
 
@@ -134,7 +133,7 @@
     if (['btc', 'ltc'].includes(cryptoChoice)) {
       const xpub = $identity.walletKeys[cryptoChoice as 'btc'];
       const nextIndex = crypto.wallet[cryptoChoice as 'btc'].nextIndex;
-      const index = useMainAddr ? 0 : Math.max(0, useNewAddr ? nextIndex : nextIndex - 1);
+      const index = useMainAddr ? 0 : Math.max(0, nextIndex);
       destAddr = deriveXPub(cryptoChoice, xpub, index);
     } else if (cryptoChoice === 'xmr') {
       destAddr = $moneroData.address;
@@ -188,7 +187,7 @@
       if (coin === 'btc' || coin === 'ltc') {
         const xpub = $identity.walletKeys[coin];
         const nextIndex = crypto.wallet[coin as 'btc'].nextIndex;
-        tempAddr = deriveXPub(coin, xpub, Math.max(0, nextIndex - 1));
+        tempAddr = deriveXPub(coin, xpub, Math.max(0, nextIndex));
       }
 
       if (i === 0) refundAddress = tempAddr;
@@ -257,7 +256,7 @@
             estimatedFee: feeObject,
             privKeyType: 'mnemonic',
             wifKey: wifKey,
-            index: Math.max(0, crypto.wallet[payCoin as 'btc'].nextIndex - 1),
+            index: Math.max(0, crypto.wallet[payCoin as 'btc'].nextIndex),
             xpubKey: $identity.walletKeys[payCoin as 'btc'],
             utxos: utxos,
           };
@@ -599,10 +598,6 @@
               <div class="flex items-center justify-between">
                 <label for="main-addr">Use Main Address (Index 0)</label>
                 <input id="main-addr" type="checkbox" bind:checked={useMainAddr} />
-              </div>
-              <div class="flex items-center justify-between {useMainAddr && 'opacity-0 select-none'}">
-                <label for="new-addr">Force Fresh Address (Next Index)</label>
-                <input id="new-addr" type="checkbox" disabled={useMainAddr} bind:checked={useNewAddr} />
               </div>
             </div>
           {/if}

@@ -5,7 +5,6 @@
   import type {APIResponse, Sections, WebSocketMessage} from '$type';
   import {decrypt, deriveMasterKey, encrypt} from '$cryptography';
   import {ChevronIcon, KeyIcon} from '$icon';
-
   import {browser} from '$app/environment';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';

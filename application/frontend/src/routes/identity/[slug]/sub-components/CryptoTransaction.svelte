@@ -158,7 +158,7 @@
     await new Promise((r) => setTimeout(r, Math.random() * 600 + 500));
 
     const destAddr = ['btc', 'ltc'].includes(coin)
-      ? deriveXPub(coin, $identity.walletKeys[coin as 'btc'], Math.max(0, crypto.wallet[coin as 'btc'].nextIndex - 1))
+      ? deriveXPub(coin, $identity.walletKeys[coin as 'btc'], Math.max(0, crypto.wallet[coin as 'btc'].nextIndex))
       : $identity.walletKeys.evm;
 
     const data: transactionData = {
@@ -202,10 +202,10 @@
         await wallet.sync();
         const priorityMap = {low: 1, medium: 2, high: 3};
 
-        const tx = await wallet.createTx({
+        await wallet.createTx({
           accountIndex: 0,
           address: addr,
-          amount: amt * 1e12,
+          amount: BigInt(amt * 1e12),
           relay: true,
           priority: priorityMap[selectedPriority],
         });
@@ -227,7 +227,7 @@
       estimatedFee: ['btc', 'ltc'].includes($currentCrypto) ? estimatedFee : crypto.fees[$currentCrypto][selectedPriority],
       privKeyType: 'mnemonic',
       wifKey: await decrypt($identity.walletBlob),
-      index: Math.max(0, crypto.wallet[$currentCrypto as 'btc'].nextIndex - 1),
+      index: Math.max(0, crypto.wallet[$currentCrypto as 'btc'].nextIndex),
       xpubKey: $identity.walletKeys[$currentCrypto as 'btc'],
       utxos: crypto.wallet[$currentCrypto as 'btc'].utxos,
       nonce: crypto.wallet[$currentCrypto as 'eth'].nonce,
