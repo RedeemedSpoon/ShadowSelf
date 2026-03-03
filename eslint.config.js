@@ -1,10 +1,11 @@
 import prettier from 'eslint-config-prettier';
+import {defineConfig} from 'eslint/config';
 import svelte from 'eslint-plugin-svelte';
 import tseslint from 'typescript-eslint';
 import eslint from '@eslint/js';
 import globals from 'globals';
 
-export default tseslint.config(
+export default defineConfig([
   prettier,
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -41,6 +42,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['frontend/build/', 'frontend/.svelte-kit/'],
+    ignores: ['**/node_modules/**', '**/build/**', '**/.svelte-kit/**', '**/monero.worker.js'],
   },
-);
+]);

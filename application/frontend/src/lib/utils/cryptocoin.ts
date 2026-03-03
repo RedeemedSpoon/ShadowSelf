@@ -108,7 +108,7 @@ export async function signTransaction(coin: Coins, addr: string, amt: number, da
   if (!addr || addr.length < 10) return notify('Invalid Receiver Address', 'alert');
   if (amt <= 0) return notify('Amount must be greater than 0', 'alert');
 
-  let broadcastPayload = {coin: coin, hex: ''};
+  const broadcastPayload = {coin: coin, hex: ''};
 
   try {
     if (['btc', 'ltc'].includes(coin)) {

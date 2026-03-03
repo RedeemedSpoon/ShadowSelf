@@ -11,7 +11,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setTextColor(colorText);
 
   // --- 1. HEADER (Logo + Invoice Meta) ---
-  let startY = 20;
+  const startY = 20;
 
   // Logo (Top Left)
   if (identityData.logo) {

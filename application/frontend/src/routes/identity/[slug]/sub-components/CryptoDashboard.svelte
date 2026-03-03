@@ -182,22 +182,22 @@
         <b><HashIcon />{activePaths !== 0 ? 'Main ' : ''}Address:</b>
         {#if $currentCrypto === 'btc'}
           {@const btc = deriveXPub('btc', $identity.walletKeys.btc, 0)}
-          <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${btc.slice(0, 20)}...`} text={btc} />
+          <CopyButton otherAlt={true} className="-my-3!" alt={true} label={`${btc.slice(0, 20)}...`} text={btc} />
           <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used">
             ({activePaths} active)
           </span>
         {:else if $currentCrypto === 'ltc'}
           {@const ltc = deriveXPub('ltc', $identity.walletKeys.ltc, 0)}
-          <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${ltc.slice(0, 20)}...`} text={ltc} />
+          <CopyButton otherAlt={true} className="-my-3!" alt={true} label={`${ltc.slice(0, 20)}...`} text={ltc} />
           <span class="self-center text-xs whitespace-nowrap text-neutral-500" title="{activePaths} Derived Addresses Used">
             ({activePaths} active)
           </span>
         {:else if $currentCrypto === 'xmr'}
           {@const xmr = $moneroData.address}
-          <CopyButton otherAlt={true} className={'-my-3!'} alt={true} label={`${xmr.slice(0, 20)}...`} text={xmr} />
+          <CopyButton otherAlt={true} className="-my-3!" alt={true} label={`${xmr.slice(0, 20)}...`} text={xmr} />
         {:else}
           {@const eth = $identity.walletKeys.evm}
-          <CopyButton otherAlt={true} className={'-my-3!'} alt={true} text={eth} label={`${eth.slice(0, 20)}...`} />
+          <CopyButton otherAlt={true} className="-my-3!" alt={true} text={eth} label={`${eth.slice(0, 20)}...`} />
         {/if}
       </p>
       <p>
@@ -211,7 +211,7 @@
           </h3>
           <a class="group flex gap-1" href="https://www.coingecko.com/en/coins/{cryptoTitles[$currentCrypto].toLowerCase()}">
             More Metrics <ExternalLinkIcon
-              className={'w-4! h-4! transition-colors duration-300 stroke-primary-600 group-hover:stroke-primary-700'} />
+              className="w-4! h-4! transition-colors duration-300 stroke-primary-600 group-hover:stroke-primary-700" />
           </a>
         </div>
         <div class="mb-6">

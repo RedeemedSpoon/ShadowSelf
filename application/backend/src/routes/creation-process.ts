@@ -27,7 +27,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
     if (identity[0].owner !== account[0].id) return;
     if (identity[0].status !== 'inactive') return;
 
-    let cookie = checksum(id);
+    const cookie = checksum(id);
     return {cookie};
   })
   .ws('/ws-creation-process', {
