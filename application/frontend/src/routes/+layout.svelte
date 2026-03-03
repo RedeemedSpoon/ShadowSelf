@@ -1,6 +1,6 @@
 <script lang="ts">
   import {Header, Footer, Notification} from '$component';
-  import {selectionMenuOpen, token, user} from '$store';
+  import {mobileHamburgerMenu, token, user} from '$store';
   import {onMount, type Snippet} from 'svelte';
   import type {LayoutData} from './$types';
   import '../app.css';
@@ -31,8 +31,8 @@
   <div
     id="overlay"
     aria-hidden="true"
-    class={$selectionMenuOpen ? 'visible! opacity-35!' : ''}
-    onclick={() => ($selectionMenuOpen = false)}>
+    class={$mobileHamburgerMenu ? 'visible! opacity-35!' : ''}
+    onclick={() => ($mobileHamburgerMenu = false)}>
   </div>
 </div>
 

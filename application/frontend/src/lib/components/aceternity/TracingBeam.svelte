@@ -1,7 +1,7 @@
 <script lang="ts">
   import {browser} from '$app/environment';
   import {cubicOut} from 'svelte/easing';
-  import {scrollYProgress} from '$store';
+  import {stickyYScroll} from '$store';
   import {Tween} from 'svelte/motion';
   import type {Snippet} from 'svelte';
   import {onMount} from 'svelte';
@@ -14,8 +14,8 @@
 
   $effect(() => {
     if (browser) {
-      y1.set($scrollYProgress * window?.innerHeight * 0.85);
-      y2.set($scrollYProgress * window?.innerHeight * 0.5);
+      y1.set($stickyYScroll * window?.innerHeight * 0.85);
+      y2.set($stickyYScroll * window?.innerHeight * 0.5);
     }
   });
 
@@ -26,7 +26,7 @@
   <div class="absolute top-32 left-[6vw] hidden max-h-[40rem] md:block">
     <div
       class="ml-[27px] flex h-4 w-4 items-center justify-center rounded-full border border-neutral-200 shadow-xs"
-      style="box-shadow: {$scrollYProgress > 0 ? 'none' : 'rgba(0, 0, 0, 0.24) 0px 3px 8px'}">
+      style="box-shadow: {$stickyYScroll > 0 ? 'none' : 'rgba(0, 0, 0, 0.24) 0px 3px 8px'}">
       <div class="h-2 w-2 rounded-full border border-neutral-300 bg-neutral-300"></div>
     </div>
     <svg viewBox={`0 0 20 ${svgHeight}`} width="20" height={svgHeight} class="ml-4" aria-hidden="true">

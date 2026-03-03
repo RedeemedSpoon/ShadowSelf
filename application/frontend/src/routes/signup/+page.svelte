@@ -4,7 +4,7 @@
   import {type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Registration} from '$type';
   import {loadStripe} from '@stripe/stripe-js/pure';
-  import {currentStep, fetchIndex} from '$store';
+  import {currentStep, pendingID} from '$store';
   import {get} from 'svelte/store';
   import {notify} from '$lib';
 
@@ -67,7 +67,7 @@
   }
 
   async function pay() {
-    fetchIndex.set(1);
+    pendingID.set(1);
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     const {paymentMethod, error} = await stripe!.createPaymentMethod({type: 'card', card});
@@ -79,7 +79,7 @@
       submit.click();
     } else {
       notify(error!.message!, 'alert');
-      fetchIndex.set(0);
+      pendingID.set(0);
     }
   }
 

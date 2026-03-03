@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {APIResponse, Coins, Provider, transactionData} from '$type';
   import {estimateTransactionFee, signTransaction} from '$cryptocoin';
-  import {fetchIndex, identity, moneroData} from '$store';
+  import {pendingID, identity, moneroData} from '$store';
   import {LoadingButton, SelectMenu} from '$component';
   import {decrypt, deriveXPub} from '$cryptography';
   import {onMount, type Component} from 'svelte';
@@ -157,11 +157,11 @@
   }
 
   async function newRates() {
-    $fetchIndex = 1;
+    $pendingID = 1;
 
     const response = await fetchAPI('crypto/swap-rates', 'GET', {coinFrom: payCoin, coinTo: receiveCoin, amount: swapAmount});
     if (response.err) {
-      $fetchIndex = 0;
+      $pendingID = 0;
       return notify(response.err, 'alert');
     }
 
@@ -170,12 +170,12 @@
     selectedProviderIndex = providers.findIndex((prov) => prov.name === response.bestProvider);
     bestProviderIndex = selectedProviderIndex;
 
-    $fetchIndex = 0;
+    $pendingID = 0;
     chooseProvider = true;
   }
 
   async function swap() {
-    $fetchIndex = 2;
+    $pendingID = 2;
 
     const provider = providers[selectedProviderIndex || 0].name;
     const isFixed = providers[selectedProviderIndex || 0].isFixed;
@@ -208,7 +208,7 @@
 
     const response = await fetchAPI('crypto/swap-trades', 'POST', payload);
     if (response.err) {
-      $fetchIndex = 0;
+      $pendingID = 0;
       return notify(response.err, 'alert');
     }
 
@@ -274,7 +274,7 @@
         const broadcastPayload = await signTransaction(payCoin as Coins, response.depositAddress, amountToSend, txData);
 
         if (!broadcastPayload) {
-          $fetchIndex = 0;
+          $pendingID = 0;
           return notify('Transaction signing cancelled', 'alert');
         }
 
@@ -284,11 +284,11 @@
         notify(`Sent ${amountToSend} ${payCoin.toUpperCase()}`, 'success');
       }
     } catch (e: any) {
-      $fetchIndex = 0;
+      $pendingID = 0;
       return notify(e.message || 'Swap execution failed, please try again.', 'alert');
     }
 
-    $fetchIndex = 0;
+    $pendingID = 0;
     trackingLink = response.externalLink;
     chooseProvider = false;
     swapSuccess = true;

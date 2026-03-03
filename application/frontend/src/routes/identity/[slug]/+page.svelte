@@ -1,10 +1,11 @@
 <script lang="ts">
-  import {currentSection, fetchIndex, handleResponse, identity, modalIndex, masterPassword} from '$store';
+  import {pendingID, handleResponse, identity, activeModal, masterPassword} from '$store';
   import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, WalletIcon} from '$icon';
   import {Modal, ConfirmModal, InputWithIcon, LoadingButton} from '$component';
   import type {APIResponse, Sections, WebSocketMessage} from '$type';
   import {decrypt, deriveMasterKey, encrypt} from '$cryptography';
   import {ChevronIcon, KeyIcon} from '$icon';
+
   import {browser} from '$app/environment';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
@@ -21,11 +22,12 @@
 
   let {data}: PageProps = $props();
 
+  let currentSection = $state('info') as Sections;
   let buttonWrapper = $state() as HTMLDivElement;
   let ws = $state() as WebSocket;
 
   $identity = data.identity!;
-  $currentSection = (page.url.hash?.slice(1) || 'info') as Sections;
+  currentSection = (page.url.hash?.slice(1) || 'info') as Sections;
 
   const className = {
     label: 'bg-neutral-900/50! border-neutral-700!',
@@ -52,7 +54,7 @@
 
   function handleClick(section: Sections) {
     if (section) window.location.hash = section;
-    $currentSection = section;
+    currentSection = section;
 
     buttonWrapper.childNodes.forEach((node) => {
       (node as HTMLButtonElement).disabled = true;
@@ -61,7 +63,7 @@
   }
 
   async function setMasterPassword() {
-    $fetchIndex = 1;
+    $pendingID = 1;
     await new Promise((resolve) => setTimeout(resolve, 750));
 
     const inputElement = document.querySelector('input#set-master') as HTMLInputElement;
@@ -77,7 +79,7 @@
   }
 
   async function changeMasterPassword() {
-    $fetchIndex = 1;
+    $pendingID = 1;
     await new Promise((resolve) => setTimeout(resolve, 750));
 
     // Account vault
@@ -160,15 +162,15 @@
     <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
       {#each Object.keys(allSections) as section, i (i)}
         {@const Icon = sectionsNames[i].icon}
-        <button class:main={section === $currentSection} onclick={() => handleClick(section as Sections)}>
+        <button class:main={section === currentSection} onclick={() => handleClick(section as Sections)}>
           <Icon className="h-6 w-6" />
           <span class="max-sm:hidden">{sectionsNames[i].name}</span>
         </button>
       {/each}
     </div>
 
-    {#key $currentSection}
-      {@const SvelteComponent = allSections[$currentSection]}
+    {#key currentSection}
+      {@const SvelteComponent = allSections[currentSection]}
       <div class="mt-8 mb-12 w-full md:px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
         <SvelteComponent />
       </div>
@@ -182,13 +184,13 @@
       <form class="flex items-center" method="POST">
         {#key $masterPassword}
           {#if $masterPassword}
-            <button type="button" onclick={() => ($modalIndex = 2)} class="alt w-fit p-0">Change Local Master Password</button>
+            <button type="button" onclick={() => ($activeModal = 2)} class="alt w-fit p-0">Change Local Master Password</button>
           {:else}
-            <button type="button" onclick={() => ($modalIndex = 1)} class="alt w-fit p-0">Set Local Master Password</button>
+            <button type="button" onclick={() => ($activeModal = 1)} class="alt w-fit p-0">Set Local Master Password</button>
           {/if}
         {/key}
         <div class="px-2 font-bold text-neutral-500 select-none">|</div>
-        <button type="button" onclick={() => ($modalIndex = 3)} class="alt w-fit p-0">Delete Identity</button>
+        <button type="button" onclick={() => ($activeModal = 3)} class="alt w-fit p-0">Delete Identity</button>
         <input type="hidden" name="id" value={data.identity.id} />
         <ConfirmModal id={3} text="Deleting permanently this identity" name="delete" />
         <Modal id={1}>

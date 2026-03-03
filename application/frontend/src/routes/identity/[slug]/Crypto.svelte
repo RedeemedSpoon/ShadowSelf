@@ -1,6 +1,6 @@
 <script lang="ts">
   import {ReceiptIcon, FloppyIcon, ShuffleIcon, MarketIcon, BackIcon, BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
-  import {identity, moneroData, masterPassword, modalIndex} from '$store';
+  import {identity, moneroData, masterPassword, activeModal} from '$store';
   import {ActionIcon, Modal, Loader} from '$component';
   import type {Coins, APIResponse} from '$type';
   import {decrypt} from '$cryptography';
@@ -184,7 +184,7 @@ If a hacker finds this file, your money is gone.
             No money has been transferred to this wallet and no spending has been made yet. Send some funds over and start using it
             right away!
           </p>
-          <button onclick={() => ($modalIndex = 4)}>Add Funds</button>
+          <button onclick={() => ($activeModal = 4)}>Add Funds</button>
         </section>
         <Modal id={4}>
           <div class="flex flex-col gap-6 p-6">
@@ -197,7 +197,7 @@ If a hacker finds this file, your money is gone.
               <h3 class="text-lg font-medium text-neutral-300">1. Direct Transfer</h3>
               <p class="text-sm text-neutral-400">
                 Already have crypto? Click
-                <button class="alt px-0 py-0 text-sm" onclick={() => (($modalIndex = 0), ($mode = 'receive'))}>Here</button>
+                <button class="alt px-0 py-0 text-sm" onclick={() => (($activeModal = 0), ($mode = 'receive'))}>Here</button>
                 to generate a ghost address. Send funds from Coinbase, Binance, or your personal wallet.
               </p>
             </div>
@@ -206,7 +206,7 @@ If a hacker finds this file, your money is gone.
               <h3 class="text-lg font-medium text-neutral-300">2. Cash Deposit (Paper Wallet)</h3>
               <p class="text-sm text-neutral-400">
                 Bought Crypto at an ATM? Click
-                <button class="alt px-0 py-0 text-sm" onclick={() => (($modalIndex = 0), ($mode = 'sweep'))}>Here</button> action to scan
+                <button class="alt px-0 py-0 text-sm" onclick={() => (($activeModal = 0), ($mode = 'sweep'))}>Here</button> action to scan
                 your paper receipt receipt. We will instantly move the funds into your secure vault.
               </p>
             </div>
@@ -223,7 +223,7 @@ If a hacker finds this file, your money is gone.
                 <a href="https://hodlhodl.com" target="_blank">HodlHodl ↗</a>
               </div>
             </div>
-            <button onclick={() => ($modalIndex = 0)}>Got it</button>
+            <button onclick={() => ($activeModal = 0)}>Got it</button>
           </div>
         </Modal>
       {:else}
@@ -240,7 +240,7 @@ If a hacker finds this file, your money is gone.
     <p class="text-center md:w-1/2">
       Your local session is missing the decryption key. Re-enter your Master Password to restore access to this identity crypto wallet.
     </p>
-    <button onclick={() => ($modalIndex = 1)}>Enter Master Password</button>
+    <button onclick={() => ($activeModal = 1)}>Enter Master Password</button>
   </section>
 {/if}
 

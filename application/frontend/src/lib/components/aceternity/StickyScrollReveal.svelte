@@ -1,7 +1,7 @@
 <script lang="ts">
   import {onMount, type Snippet} from 'svelte';
   import type {ServicesContent} from '$type';
-  import {scrollYProgress} from '$store';
+  import {stickyYScroll} from '$store';
   import {Card} from '$component';
 
   interface Props {
@@ -22,10 +22,10 @@
   onMount(() => {
     const handleScroll = (e: Event) => {
       const target = e.target as HTMLDivElement;
-      $scrollYProgress = target.scrollTop / target.scrollHeight;
+      $stickyYScroll = target.scrollTop / target.scrollHeight;
 
       cardsBreakpoints.forEach((breakpoint, index) => {
-        if ($scrollYProgress + 0.1 > breakpoint && $scrollYProgress <= breakpoint) {
+        if ($stickyYScroll + 0.1 > breakpoint && $stickyYScroll <= breakpoint) {
           activeCard = index;
         }
       });

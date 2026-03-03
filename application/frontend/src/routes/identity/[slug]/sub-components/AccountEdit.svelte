@@ -4,7 +4,7 @@
   import type {Account, APIResponse} from '$type';
   import type {Writable} from 'svelte/store';
   import {encrypt} from '$cryptography';
-  import {fetchIndex} from '$store';
+  import {pendingID} from '$store';
   import {fetchAPI} from '$fetch';
   import {notify} from '$lib';
 
@@ -27,7 +27,7 @@
   }
 
   async function addOrUpdateAccount() {
-    $fetchIndex = 1;
+    $pendingID = 1;
     await new Promise((resolve) => setTimeout(resolve, 650));
 
     const username = (document.querySelector('input[name="username"]') as HTMLInputElement)?.value;
@@ -38,7 +38,7 @@
 
     if (!username || !rawPassword) {
       notify('Username and Password are required', 'alert');
-      $fetchIndex = 0;
+      $pendingID = 0;
     }
 
     const password = await encrypt(rawPassword);
@@ -52,7 +52,7 @@
 
       $accounts.accounts.push(response as unknown as Account);
       $mode = 'view';
-      $fetchIndex = 0;
+      $pendingID = 0;
       $target = null;
     } else {
       const response = await fetchAPI('account/edit-account', 'PUT', body);
@@ -61,7 +61,7 @@
       const otherAccounts = $accounts.accounts.filter((account) => account.id !== (response.id as unknown));
       $accounts.accounts = [...otherAccounts, response] as unknown as APIResponse['accounts'];
       $mode = 'view';
-      $fetchIndex = 0;
+      $pendingID = 0;
       $target = null;
     }
   }

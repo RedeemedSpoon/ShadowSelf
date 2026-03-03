@@ -1,15 +1,18 @@
 <script lang="ts">
   import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon, ChevronIcon} from '$icon';
   import {EmailIcon, PhoneIcon, WalletIcon, MultiUsersIcon, AddUserIcon} from '$icon';
-  import {user, filterOverflow, sortAsc, token} from '$store';
   import {formatPhoneNumber, formatUSD} from '$format';
   import {worldMap, countriesFlags} from '$image';
   import {onMount, type Component} from 'svelte';
   import {SearchInput} from '$component';
   import type {PageData} from './$types';
+  import {user, token} from '$store';
   import {notify} from '$lib';
 
   const {data}: {data: PageData} = $props();
+
+  let sortAsc = $state(true);
+  let filterOverflow = $state(false);
 
   let table = $state() as HTMLElement;
   let errorText = $state() as HTMLParagraphElement;
@@ -47,7 +50,7 @@
   function filterTable() {
     if (!data.identities.length) return;
 
-    if ($filterOverflow) {
+    if (filterOverflow) {
       table.style.maxHeight = '40vh';
       table.style.overflowY = 'scroll';
     } else {
@@ -74,8 +77,8 @@
 
   onMount(() => {
     if (data.recoveryRemaining === 0) notify('You have no recovery codes left. Please generate new ones', 'info');
-    if ($filterOverflow) filterTable();
-    if (!$sortAsc) sortTable();
+    if (filterOverflow) filterTable();
+    if (!sortAsc) sortTable();
   });
 </script>
 
@@ -92,11 +95,11 @@
           Welcome back, <span class="pretty-style">{$user}</span>
         </h1>
         <div class="flex items-center max-md:scale-75">
-          <button onclick={() => (($filterOverflow = !$filterOverflow), filterTable())} class="px-0">
-            <FilterIcon />
+          <button onclick={() => ((filterOverflow = !filterOverflow), filterTable())} class="px-0">
+            <FilterIcon {filterOverflow} />
           </button>
-          <button onclick={() => (($sortAsc = !$sortAsc), sortTable())}>
-            <SortIcon />
+          <button onclick={() => ((sortAsc = !sortAsc), sortTable())}>
+            <SortIcon {sortAsc} />
           </button>
           <SearchInput keywords={data.searchKeywords} {handleSearch} />
         </div>

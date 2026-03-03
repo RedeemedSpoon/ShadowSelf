@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
   import {Loader} from '$component';
-  import {fetchIndex} from '$store';
+  import {pendingID} from '$store';
 
   interface Props {
     name?: string;
@@ -17,7 +17,7 @@
   let {type = 'submit', index = 1, disabled, name, className, formaction, onclick, children}: Props = $props();
 </script>
 
-<button {name} {onclick} {formaction} {type} class={className} disabled={$fetchIndex === index || disabled}>
+<button {name} {onclick} {formaction} {type} class={className} disabled={$pendingID === index || disabled}>
   {@render children?.()}
   <Loader {index} primaryColor={className === 'alt'} />
 </button>

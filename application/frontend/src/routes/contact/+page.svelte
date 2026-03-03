@@ -3,7 +3,7 @@
   import type {Notification} from '$type';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
-  import {fetchIndex} from '$store';
+  import {pendingID} from '$store';
   import {notify} from '$lib';
 
   interface Props {
@@ -18,12 +18,12 @@
   });
 
   async function handleForm() {
-    fetchIndex.set(1);
+    pendingID.set(1);
     await new Promise((resolve) => setTimeout(resolve, 750));
 
     // @ts-expect-error TS2322
     return async ({update, result}) => {
-      fetchIndex.set(0);
+      pendingID.set(0);
       if (result.data.type && result.data.type === 'success') update({reset: true});
       update({reset: false});
     };

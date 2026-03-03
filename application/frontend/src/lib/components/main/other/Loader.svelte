@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {fetchIndex} from '$store';
+  import {pendingID} from '$store';
 
   interface Props {
     index?: number;
@@ -12,7 +12,7 @@
   const {primaryColor, type = 'button', index = 1, skip = false, size = 'small'}: Props = $props();
 </script>
 
-{#if skip || $fetchIndex === index}
+{#if skip || $pendingID === index}
   {#if type === 'card'}
     <div class="wrapper">
       <div class="loader" style="--size: 50px">

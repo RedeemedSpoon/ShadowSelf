@@ -2,9 +2,10 @@
   import {CopyIcon, WalletIcon, DownloadIcon, EmailIcon, PhoneIcon, EditIcon, BackIcon} from '$icon';
   import {ActionIcon, CopyButton, ReactiveButton} from '$component';
   import {toTitleCase, formatPhoneNumber, formatUSD} from '$format';
-  import {currentSection, identity} from '$store';
   import {base64ToBlob, notify} from '$lib';
   import {countriesFlags} from '$image';
+  import {page} from '$app/state';
+  import {identity} from '$store';
   import {fetchAPI} from '$fetch';
 
   import InformationEdit from './sub-components/InformationEdit.svelte';
@@ -89,7 +90,7 @@
         upperClassname="group/copy absolute left-12 px-0 py-0 group-hover:opacity-100 max-xl:bottom-20 xl:bottom-8 opacity-0"
         className="group-hover/copy:text-neutral-400! text-neutral-100"
         iconClassname="text-neutral-100 group-hover/copy:text-neutral-400" />
-      {#key currentSection}
+      {#key page.url.hash}
         <img
           id="pic"
           loading="lazy"

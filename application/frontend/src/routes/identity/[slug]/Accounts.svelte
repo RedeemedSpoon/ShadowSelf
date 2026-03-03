@@ -1,7 +1,7 @@
 <script lang="ts">
   import {KeyIcon, KeylockIcon, UserIcon, WWWIcon, UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon, BackIcon} from '$icon';
   import {ActionIcon, Tooltip, HoverCopyButton} from '$component';
-  import {fetchIndex, modalIndex, masterPassword} from '$store';
+  import {pendingID, activeModal, masterPassword} from '$store';
   import type {Account, APIResponse} from '$type';
   import {writable} from 'svelte/store';
   import {decrypt} from '$cryptography';
@@ -69,7 +69,7 @@
 
     $accounts.accounts = $accounts.accounts.filter((account) => account.id !== (response.id as unknown));
     $mode = 'view';
-    $fetchIndex = 0;
+    $pendingID = 0;
     $target = null;
   }
 </script>
@@ -147,7 +147,7 @@
     <p class="text-center md:w-1/2">
       Your local session is missing the decryption key. Re-enter your Master Password to restore access to this identity account vault.
     </p>
-    <button onclick={() => ($modalIndex = 1)}>Enter Master Password</button>
+    <button onclick={() => ($activeModal = 1)}>Enter Master Password</button>
   </section>
 {/if}
 

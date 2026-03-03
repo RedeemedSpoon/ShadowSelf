@@ -1,7 +1,7 @@
 <script lang="ts">
   import {ActionIcon, SelectMenu, Tooltip, LoadingButton} from '$component';
   import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon} from '$icon';
-  import {identity, fetchIndex} from '$store';
+  import {identity, pendingID} from '$store';
   import {fetchAPI} from '$fetch';
   import {notify} from '$lib';
 
@@ -13,14 +13,14 @@
     const ethnicity = (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value;
     const sex = document.querySelector('.selected')?.id;
 
-    $fetchIndex = 1;
+    $pendingID = 1;
     await new Promise((resolve) => setTimeout(resolve, 300));
     const response = await fetchAPI('identity/regenerate-picture', 'PATCH', {sex, age, ethnicity, bio});
     if (response.err) return notify(response.err, 'alert');
 
     const element = document.querySelector(`#profile`) as HTMLImageElement;
     element.src = `data:image/png;base64,${response.picture}`;
-    $fetchIndex = 0;
+    $pendingID = 0;
   }
 
   async function regenerateName() {

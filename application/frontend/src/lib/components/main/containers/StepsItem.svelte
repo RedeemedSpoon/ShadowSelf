@@ -2,7 +2,7 @@
   import type {Snippet} from 'svelte';
   import {enhance} from '$app/forms';
   import {currentStep} from '$store';
-  import {updateFetch} from '$lib';
+  import {awaitPending} from '$lib';
   import {Card} from '$component';
 
   interface Props {
@@ -22,7 +22,7 @@
     {#if index !== 1}
       <button class="alt group" type="button" onclick={backStep}>← Back<span></span></button>
     {/if}
-    <form method="POST" action="?/{action}" {name} use:enhance={() => updateFetch(shouldWait)}>
+    <form method="POST" action="?/{action}" {name} use:enhance={() => awaitPending(shouldWait)}>
       {@render children?.()}
     </form>
   </Card>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import {FlowStep, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
   import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
-  import {currentStep, fetchIndex, masterPassword, modalIndex} from '$store';
+  import {currentStep, pendingID, masterPassword, activeModal} from '$store';
   import {PhoneIcon, EmailIcon, KeyIcon, UserIcon, PinIcon} from '$icon';
   import {ublock, canvas, screenshot, countriesFlags} from '$image';
   import {deriveMasterKey, encrypt} from '$cryptography';
@@ -64,8 +64,8 @@
       if (event.data === 'pong') return;
 
       const response = JSON.parse(event.data) as CreationProcess;
-      const oldFetch = $fetchIndex;
-      $fetchIndex = 0;
+      const oldFetch = $pendingID;
+      $pendingID = 0;
 
       if (response?.error) {
         return notify(response.error, 'alert');
@@ -90,7 +90,7 @@
 
   async function proceed() {
     if (![5, 7, 8, 9, 10].includes($currentStep)) {
-      $fetchIndex = 1;
+      $pendingID = 1;
       await new Promise((resolve) => setTimeout(resolve, 650));
     }
 
@@ -136,7 +136,7 @@
 
         if (password != confirmPassword) {
           notify('Passwords do not match', 'alert');
-          $fetchIndex = 0;
+          $pendingID = 0;
           break;
         }
 
@@ -207,7 +207,7 @@
       }
 
       case 'identities': {
-        $fetchIndex = 2;
+        $pendingID = 2;
 
         const regenerate = {
           ethnicity: (document.querySelector('input[name="ethnicity"]') as HTMLSelectElement).value,
@@ -222,7 +222,7 @@
       }
 
       case 'wallet': {
-        $fetchIndex = 2;
+        $pendingID = 2;
         await new Promise((resolve) => setTimeout(resolve, 450));
 
         const mnemonic = generateMnemonic(wordlist);
@@ -270,7 +270,7 @@
         const mnemonicDiv = document.querySelector('div#mnemonic') as HTMLDivElement;
         mnemonicDiv.innerText = mnemonic;
         disabled = false;
-        $fetchIndex = 0;
+        $pendingID = 0;
         break;
       }
     }
@@ -492,7 +492,7 @@
         </p>
         <div class="flex w-full items-center justify-center gap-16">
           <button class="alt px-4 sm:px-8" onclick={() => window.location.reload()}>Redo</button>
-          <button class="px-8 sm:px-16" onclick={() => ($modalIndex = 1)}>Finish →</button>
+          <button class="px-8 sm:px-16" onclick={() => ($activeModal = 1)}>Finish →</button>
         </div>
         <Modal>
           <div class="flex flex-col gap-4">
@@ -502,7 +502,7 @@
               <br class="max-md:hidden" /> Are you sure you want to proceed?
             </p>
             <div class="flex justify-end gap-4">
-              <button class="alt text-primary-700 hover:text-primary-800" onclick={() => ($modalIndex = 0)}>Cancel</button>
+              <button class="alt text-primary-700 hover:text-primary-800" onclick={() => ($activeModal = 0)}>Cancel</button>
               <LoadingButton onclick={proceed}>Confirm</LoadingButton>
             </div>
           </div>

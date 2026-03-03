@@ -2,7 +2,7 @@
   import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, BackIcon} from '$icon';
   import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
   import type {APIResponse, EditorParams, Email, WebSocketMessage} from '$type';
-  import {identity, handleResponse, fetchIndex, modalIndex} from '$store';
+  import {identity, handleResponse, pendingID, activeModal} from '$store';
   import {writable} from 'svelte/store';
   import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
@@ -42,7 +42,7 @@
   async function loadMore() {
     const messageCountString = label.toLowerCase() === 'inbox' ? 'messagesCount' : `${label.toLowerCase()}MessagesCount`;
     const total = inbox.emails[messageCountString as keyof typeof inbox.emails] as number;
-    $fetchIndex = 1;
+    $pendingID = 1;
 
     const response = await fetchAPI('email/load-more', 'GET', {mailbox: label, since: total - from});
     if (response.err) return notify(response.err, 'alert');
@@ -50,7 +50,7 @@
     const mailbox = response.mailbox.toLowerCase() as 'inbox';
     inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.nextEmails!];
 
-    $fetchIndex = 0;
+    $pendingID = 0;
     from += 7;
   }
 
@@ -81,14 +81,14 @@
   }
 
   async function forwardEmail() {
-    $fetchIndex = 3;
+    $pendingID = 3;
     const forward = (document.querySelector('input[name="forward"]') as HTMLInputElement)?.value;
     const response = await fetchAPI('email/forward-email', 'POST', {forward, uid: Number($target!.uid)});
     if (response.err) return notify(response.err, 'alert');
 
     inbox.emails.sent.unshift(response.forwardEmail);
-    $fetchIndex = 0;
-    $modalIndex = 0;
+    $pendingID = 0;
+    $activeModal = 0;
 
     $mode = 'browse';
     $target = null;
@@ -99,7 +99,7 @@
       return notify('One attachment is too large (>15MB)', 'alert');
     }
 
-    $fetchIndex = save ? 2 : 1;
+    $pendingID = save ? 2 : 1;
     const draft = isdraft ? $target!.uid : null;
 
     const inReplyTo = save ? $target?.inReplyTo || $target?.messageID : isdraft ? $target?.inReplyTo : $target?.messageID;
@@ -109,7 +109,7 @@
     if (save) {
       const response = await fetchAPI('email/save-draft', 'PUT', {draft, inReplyTo, references, to, ...content});
       if (response.err) {
-        $fetchIndex = 0;
+        $pendingID = 0;
         return notify(response.err, 'alert');
       }
 
@@ -122,7 +122,7 @@
     } else {
       const response = await fetchAPI('email/send-email', 'POST', {draft, inReplyTo, references, to, ...content});
       if (response.err) {
-        $fetchIndex = 0;
+        $pendingID = 0;
         return notify(response.err, 'alert');
       }
 
@@ -134,7 +134,7 @@
       inbox.emails.sentMessagesCount++;
     }
 
-    $fetchIndex = 0;
+    $pendingID = 0;
     $mode = 'browse';
     $target = null;
   }
@@ -191,7 +191,7 @@
     <ActionIcon
       disabled={label === 'Drafts' || showActionButtons}
       icon={ForwardIcon}
-      action={() => ($modalIndex = 4)}
+      action={() => ($activeModal = 4)}
       title="Forward Email" />
     <ActionIcon disabled={showActionButtons} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>

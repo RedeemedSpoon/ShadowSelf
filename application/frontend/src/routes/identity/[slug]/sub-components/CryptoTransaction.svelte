@@ -1,7 +1,7 @@
 <script lang="ts">
   import {estimateTransactionFee, selectBestUtxos, signTransaction} from '$cryptocoin';
   import type {APIResponse, Coins, Priority, transactionData, UTXOData} from '$type';
-  import {fetchIndex, identity, moneroData} from '$store';
+  import {pendingID, identity, moneroData} from '$store';
   import {CameraIcon, CopyIcon, StackIcon} from '$icon';
   import {QrScanner, LoadingButton} from '$component';
   import {decrypt, deriveXPub} from '$cryptography';
@@ -184,7 +184,7 @@
     const [addr, amt] = [String(destinationAddress).trim(), Math.max(Number(amount), 0)];
     const successMessage = `Successfully sent ${amt.toFixed(5)} ${$currentCrypto.toUpperCase()}`;
 
-    $fetchIndex = 1;
+    $pendingID = 1;
     await new Promise((resolve) => setTimeout(resolve, 650));
 
     if ($currentCrypto === 'xmr') {
@@ -219,7 +219,7 @@
         notify(e.message || 'Failed to send Monero transaction', 'alert');
       }
 
-      $fetchIndex = 0;
+      $pendingID = 0;
       return;
     }
 
@@ -236,13 +236,13 @@
 
     const broadcastPayload = await signTransaction($currentCrypto, addr, amt, data);
     if (!broadcastPayload) {
-      $fetchIndex = 0;
+      $pendingID = 0;
       return;
     }
 
     const response = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload!);
     notify(response.err ? response.err : successMessage, response.type);
-    $fetchIndex = 0;
+    $pendingID = 0;
   }
 
   onMount(automaticUtxoSelection);

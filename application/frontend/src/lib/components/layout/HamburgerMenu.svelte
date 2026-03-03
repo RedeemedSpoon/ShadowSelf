@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {selectionMenuOpen} from '$store';
+  import {mobileHamburgerMenu} from '$store';
   import type {Snippet} from 'svelte';
 
   interface Props {
@@ -12,7 +12,7 @@
 
 <div class="hidden max-lg:block">
   <svg
-    onclick={() => ($selectionMenuOpen = !$selectionMenuOpen)}
+    onclick={() => ($mobileHamburgerMenu = !$mobileHamburgerMenu)}
     class={'small-icon small-aura ' + className}
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
@@ -27,7 +27,7 @@
     <path d="M4 12l16 0" />
     <path d="M4 18l16 0" />
   </svg>
-  <div class={$selectionMenuOpen ? 'visible! -translate-x-12! opacity-100!' : ''} id="humberger-menu-container">
+  <div class={$mobileHamburgerMenu ? 'visible! -translate-x-12! opacity-100!' : ''} id="humberger-menu-container">
     {@render children?.()}
   </div>
 </div>

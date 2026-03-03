@@ -3,8 +3,8 @@
   import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon, ExternalLinkIcon} from '$icon';
   import {type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Settings, SettingsForm} from '$type';
-  import {notify, updateFetch, updateModal} from '$lib';
-  import {modalIndex, fetchIndex, user} from '$store';
+  import {notify, awaitPending, triggerModal} from '$lib';
+  import {activeModal, pendingID, user} from '$store';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
@@ -44,13 +44,13 @@
     if (settings?.message) notify(settings.message, settings.type);
 
     if (form && Object.hasOwn(form, 'toggleModel')) {
-      if (form.toggleModel) $modalIndex = 1;
-      else $modalIndex = 0;
+      if (form.toggleModel) $activeModal = 1;
+      else $activeModal = 0;
     }
 
     if (form?.sessionUrl) {
       settings.sessionUrl = form.sessionUrl;
-      $modalIndex = 0;
+      $activeModal = 0;
     }
 
     if (form && Object.hasOwn(form, 'OTP')) settings.OTP = form.OTP;
@@ -98,7 +98,7 @@
   }
 
   async function submitPayment() {
-    fetchIndex.set(5);
+    pendingID.set(5);
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     const {paymentMethod, error} = await stripe!.createPaymentMethod({type: 'card', card});
@@ -110,13 +110,13 @@
       submit.click();
     } else {
       notify(error!.message!, 'alert');
-      fetchIndex.set(0);
+      pendingID.set(0);
     }
   }
 
   onMount(() => {
     handleClick(0);
-    $modalIndex = 0;
+    $activeModal = 0;
     settings.step = 1;
     if (data.stripeKey && !settings.sessionUrl) initStripe(data.stripeKey);
   });
@@ -145,22 +145,22 @@
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
     <h2 id="credentials"><UserIcon className="h-10! w-10! cursor-default" />Basic Credentials:</h2>
-    <form use:enhance={() => updateFetch(true, 1, true)} method="POST" action="?/email">
+    <form use:enhance={() => awaitPending(true, 1, true)} method="POST" action="?/email">
       <label class="md:w-fit!" for="email">Email:</label>
       <InputWithButton value={settings.email} placeholder="New address" type="email" index={1} label="Change Email" name="email" />
     </form>
-    <form use:enhance={() => updateFetch(true, 3)} method="POST" action="?/username">
+    <form use:enhance={() => awaitPending(true, 3)} method="POST" action="?/username">
       <label class="md:w-fit!" for="username">Username:</label>
       <InputWithButton placeholder="New username" value={data.user} index={3} label="Change Username" name="username" />
     </form>
-    <form use:enhance={() => updateFetch(true, 4)} method="POST" action="?/password">
+    <form use:enhance={() => awaitPending(true, 4)} method="POST" action="?/password">
       <label class="md:w-fit!" for="password">Password:</label>
       <InputWithButton placeholder="New password" type="password" index={4} label="Change Password" name="password" />
     </form>
     <hr />
 
     <h2 id="2fa"><KeylockIcon className="h-10! w-10! cursor-default" fill={true} />Two Factor Authentication:</h2>
-    <form class="gap-4!" use:enhance={({formData}) => updateModal(2, !formData.has('remove'))} method="POST" action="?/checkOtp">
+    <form class="gap-4!" use:enhance={({formData}) => triggerModal(2, !formData.has('remove'))} method="POST" action="?/checkOtp">
       <label for="totp">Time-based one-time password:</label>
       {#if settings.OTP}
         <button formaction="?/generateOtp" type="submit" class="w-fit">Change 2FA</button>
@@ -219,28 +219,28 @@
       {#if settings.sessionUrl}
         <a href={settings.sessionUrl} target="_blank" rel="noopener noreferrer" id="stripe-link">Manage<ExternalLinkIcon /></a>
       {:else}
-        <button class="md:w-fit" type="button" onclick={() => ($modalIndex = 3)}>Add Payment Method</button>
+        <button class="md:w-fit" type="button" onclick={() => ($activeModal = 3)}>Add Payment Method</button>
       {/if}
     </form>
     <hr />
 
     <h2 id="danger"><InfoIcon fill={true} className="mr-1 h-9! w-9! cursor-default" />Danger Zone:</h2>
-    <form use:enhance={() => updateModal(0)} method="POST" action="?/session">
+    <form use:enhance={() => triggerModal(0)} method="POST" action="?/session">
       <label for="logout">Session Management:</label>
       <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>
-      <button type="button" onclick={() => ($modalIndex = 4)} class="md:w-fit" name="revoke">Revoke All Session</button>
+      <button type="button" onclick={() => ($activeModal = 4)} class="md:w-fit" name="revoke">Revoke All Session</button>
       <ConfirmModal id={4} name="revoke" text="Revoking all sessions" />
     </form>
-    <form use:enhance={() => updateModal(0)} method="POST" action="?/delete">
+    <form use:enhance={() => triggerModal(0)} method="POST" action="?/delete">
       <label for="delete">Account Deletion:</label>
-      <button onclick={() => ($modalIndex = 5)} type="button" class="disable md:w-fit">Delete Account</button>
+      <button onclick={() => ($activeModal = 5)} type="button" class="disable md:w-fit">Delete Account</button>
       <ConfirmModal id={5} name="delete" text="Deleting your account" />
     </form>
   </section>
 </div>
 
 <Modal id={1}>
-  <form class="flex-col! p-8" use:enhance={() => updateFetch(true, 2, true)} method="POST" action="?/access">
+  <form class="flex-col! p-8" use:enhance={() => awaitPending(true, 2, true)} method="POST" action="?/access">
     <h1 class="-mb-2!">Enter the access token</h1>
     <p>We sent an email with the access token to the new address. Enter it below to continue</p>
     <InputWithIcon {className} type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
@@ -267,7 +267,7 @@
       <button type="submit" class="right-16 bottom-12 w-fit! md:absolute">Next →</button>
     </form>
   {:else if settings.step === 2}
-    <form use:enhance={() => updateFetch(true, 5)} method="POST" action="?/checkOtp">
+    <form use:enhance={() => awaitPending(true, 5)} method="POST" action="?/checkOtp">
       <input hidden name="secret" value={settings.secret} />
       <div class="flex flex-col gap-8 xl:m-8">
         <h1 class="-mb-2!">Enter the verification token</h1>
@@ -277,7 +277,7 @@
       </div>
     </form>
   {:else}
-    <form use:enhance={() => updateModal(0)} method="POST" action="?/otp">
+    <form use:enhance={() => triggerModal(0)} method="POST" action="?/otp">
       <input hidden name="secret" value={settings.secret} />
       <div class="flex flex-col gap-4 xl:m-8">
         <h1>2FA Setup Complete!</h1>
@@ -294,7 +294,7 @@
 </Modal>
 
 <Modal id={3}>
-  <form class="flex-col! p-8" use:enhance={() => updateFetch(true, 5)} method="POST" action="?/payment">
+  <form class="flex-col! p-8" use:enhance={() => awaitPending(true, 5)} method="POST" action="?/payment">
     <h1 class="-mb-2!">Enter your credit card details</h1>
     <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
     <div id="payment"></div>

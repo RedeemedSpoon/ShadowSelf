@@ -2,10 +2,10 @@
   import {type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
   import {type Notification, type Billing, allPricingModels} from '$type';
   import {CheckmarkIcon, CreditCardIcon, WalletIcon} from '$icon';
-  import {pricingModel, modalIndex, fetchIndex} from '$store';
+  import {pricingModel, activeModal, pendingID} from '$store';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import {LoadingButton, Modal} from '$component';
-  import {notify, updateFetch} from '$lib';
+  import {notify, awaitPending} from '$lib';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';
@@ -91,7 +91,7 @@
         paymentElement.mount(mountPoint!);
 
         clientSecret = '';
-        $modalIndex = 1;
+        $activeModal = 1;
         break;
       }
 
@@ -104,7 +104,7 @@
       }
 
       case 'confirm':
-        $modalIndex = 2;
+        $activeModal = 2;
         break;
 
       case 'finish':
@@ -114,13 +114,13 @@
   }
 
   async function completePayment() {
-    $fetchIndex = 2;
+    $pendingID = 2;
     const returnUrl = page.url.origin + '/create?id=' + identityID;
     const result = await stripe.confirmPayment({elements, confirmParams: {return_url: returnUrl}});
 
     if (result.error) {
       notify(result.error.message!, 'alert');
-      $fetchIndex = 0;
+      $pendingID = 0;
     }
   }
 </script>
@@ -163,7 +163,7 @@
     </section>
 
     <section id="payment-methods" class="my-10">
-      <form class="flex gap-6 px-8 max-sm:flex-col" action="?/init" method="POST" use:enhance={() => updateFetch(true, 1)}>
+      <form class="flex gap-6 px-8 max-sm:flex-col" action="?/init" method="POST" use:enhance={() => awaitPending(true, 1)}>
         <input hidden value={$pricingModel.name} name="type" type="hidden" />
         <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="w-8! h-8!" />Pay With Card</LoadingButton>
         <LoadingButton className="px-10 py-6 font-semibold"><WalletIcon className="w-8! h-8!" />Pay With Crypto</LoadingButton>
@@ -181,7 +181,7 @@
 </Modal>
 
 <Modal id={2}>
-  <form method="POST" action="?/confirm" use:enhance={() => updateFetch(true, 2)} class="m-6 mb-2 flex flex-col gap-8">
+  <form method="POST" action="?/confirm" use:enhance={() => awaitPending(true, 2)} class="m-6 mb-2 flex flex-col gap-8">
     <h3 class="text-4xl font-bold text-neutral-300">Confirm Payment</h3>
     <p class="w-[35rem] max-w-[80vw]">
       Are you sure you want to pay ${$pricingModel.price} for an identity with your {cardName} credits card ending with ****{last4}?
