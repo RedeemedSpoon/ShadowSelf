@@ -2,7 +2,7 @@
   import {pendingID, handleResponse, identity, activeModal, masterPassword} from '$store';
   import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, WalletIcon} from '$icon';
   import {Modal, ConfirmModal, InputWithIcon, LoadingButton} from '$component';
-  import type {APIResponse, Sections, WebSocketMessage} from '$type';
+  import type {AccountAPI, CryptoAPI, Sections, WebSocketMessage} from '$type';
   import {decrypt, deriveMasterKey, encrypt} from '$cryptography';
   import {ChevronIcon, KeyIcon} from '$icon';
   import {browser} from '$app/environment';
@@ -89,9 +89,9 @@
     const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
     const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
 
-    const accounts: APIResponse = await fetchAPI('account', 'GET');
+    const accounts = await fetchAPI<AccountAPI>('account', 'GET');
     const updatedAccounts = await Promise.all(
-      accounts.accounts.map(async (account) => {
+      accounts.accounts!.map(async (account) => {
         const oldPassword = await decrypt(account.password);
         const oldTotp = account.totp ? await decrypt(account.totp) : 'unable to decrypt';
 
@@ -105,14 +105,14 @@
       }),
     );
 
-    const accountResponse = await fetchAPI('account/update-encryption', 'PUT', {accounts: updatedAccounts});
+    const accountResponse = await fetchAPI<AccountAPI>('account/update-encryption', 'PUT', {accounts: updatedAccounts});
     if (accountResponse.err) return notify(accountResponse.err, 'alert');
 
     // Crypto wallet
     const mnemonic = await decrypt($identity.walletBlob);
     const blob = await encrypt(mnemonic, newKey);
 
-    const walletResponse = await fetchAPI('crypto/update-blob', 'PUT', {blob});
+    const walletResponse = await fetchAPI<CryptoAPI>('crypto/update-blob', 'PUT', {blob});
     if (walletResponse.err) return notify(walletResponse.err, 'alert');
 
     $masterPassword = base64Key;

@@ -1,15 +1,15 @@
 <script lang="ts">
-  import type {APIResponse, Coins} from '$type';
+  import type {CryptoAPI, Coins} from '$type';
   import {identity, moneroData} from '$store';
-  import {CopyIcon} from '$icon';
   import {deriveXPub} from '$cryptography';
   import type {Writable} from 'svelte/store';
+  import {CopyIcon} from '$icon';
   import QRCode from 'qrcode';
 
   interface Props {
     cryptoTitles: {[key: string]: string};
     currentCrypto: Writable<Coins>;
-    crypto: APIResponse;
+    crypto: CryptoAPI;
   }
 
   let {currentCrypto, cryptoTitles, crypto}: Props = $props();

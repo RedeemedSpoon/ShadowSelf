@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type {APIResponse, Coins, Provider, transactionData} from '$type';
+  import type {CryptoAPI, Coins, Provider, transactionData} from '$type';
   import {estimateTransactionFee, signTransaction} from '$cryptocoin';
   import {pendingID, identity, moneroData} from '$store';
   import {LoadingButton, SelectMenu} from '$component';
@@ -14,7 +14,7 @@
 
   interface Props {
     cryptoIcons: {[key: string]: Component};
-    crypto: APIResponse;
+    crypto: CryptoAPI;
   }
 
   let {cryptoIcons, crypto}: Props = $props();
@@ -50,14 +50,18 @@
   async function newRates() {
     $pendingID = 1;
 
-    const response = await fetchAPI('crypto/swap-rates', 'GET', {coinFrom: payCoin, coinTo: receiveCoin, amount: swapAmount});
+    const response = await fetchAPI<CryptoAPI>('crypto/swap-rates', 'GET', {
+      coinFrom: payCoin,
+      coinTo: receiveCoin,
+      amount: swapAmount,
+    });
     if (response.err) {
       $pendingID = 0;
       return notify(response.err, 'alert');
     }
 
-    tradeID = response.tradeID;
-    providers = response.providers;
+    tradeID = response.tradeID!;
+    providers = response.providers!;
     selectedProviderIndex = providers.findIndex((prov) => prov.name === response.bestProvider);
     bestProviderIndex = selectedProviderIndex;
 
@@ -97,7 +101,7 @@
       amount: swapAmount,
     };
 
-    const response = await fetchAPI('crypto/swap-trades', 'POST', payload);
+    const response = await fetchAPI<CryptoAPI>('crypto/swap-trades', 'POST', payload);
     if (response.err) {
       $pendingID = 0;
       return notify(response.err, 'alert');
@@ -162,14 +166,14 @@
           };
         }
 
-        const broadcastPayload = await signTransaction(payCoin as Coins, response.depositAddress, amountToSend, txData);
+        const broadcastPayload = await signTransaction(payCoin as Coins, response.depositAddress!, amountToSend, txData);
 
         if (!broadcastPayload) {
           $pendingID = 0;
           return notify('Transaction signing cancelled', 'alert');
         }
 
-        const broadcastRes = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload);
+        const broadcastRes = await fetchAPI<CryptoAPI>('crypto/broadcast', 'POST', broadcastPayload);
         if (broadcastRes.err) throw new Error(broadcastRes.err);
 
         notify(`Sent ${amountToSend} ${payCoin.toUpperCase()}`, 'success');
@@ -180,10 +184,11 @@
     }
 
     $pendingID = 0;
-    trackingLink = response.externalLink;
+    trackingLink = response.externalLink!;
     chooseProvider = false;
     swapSuccess = true;
   }
+
   onMount(updateReceivedPrice);
 </script>
 

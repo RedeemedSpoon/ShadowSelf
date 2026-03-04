@@ -1,12 +1,12 @@
 <script lang="ts">
   import {ClockIcon, ExternalLinkIcon, BroomIcon, SpreadSheetIcon} from '$icon';
-  import type {APIResponse, Coins} from '$type';
-  import {formatDate} from '$format';
+  import type {CryptoAPI, Coins} from '$type';
   import type {Writable} from 'svelte/store';
+  import {formatDate} from '$format';
 
   interface Props {
     currentCrypto: Writable<Coins>;
-    crypto: APIResponse;
+    crypto: CryptoAPI;
   }
 
   let {currentCrypto, crypto}: Props = $props();

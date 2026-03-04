@@ -1,7 +1,7 @@
 <script lang="ts">
   import {formatPhoneNumber, formatDate, toTitleCase} from '$format';
+  import type {Message, PhoneAPI} from '$type';
   import type {Writable} from 'svelte/store';
-  import type {Message} from '$type';
   import {identity} from '$store';
   import {fetchAPI} from '$fetch';
   import {notify} from '$lib';
@@ -20,9 +20,9 @@
     $discussion = message;
     $mode = 'read';
 
-    const response = await fetchAPI('phone/fetch-conversation', 'GET', {addressee});
+    const response = await fetchAPI<PhoneAPI>('phone/fetch-conversation', 'GET', {addressee});
     if (response.err) return notify(response.err, 'alert');
-    $fullDiscussion = response.conversation;
+    $fullDiscussion = response.conversation!;
   }
 </script>
 

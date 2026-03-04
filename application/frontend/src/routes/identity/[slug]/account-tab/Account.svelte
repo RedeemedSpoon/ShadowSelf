@@ -2,7 +2,7 @@
   import {KeyIcon, KeylockIcon, UserIcon, WWWIcon, UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon, BackIcon} from '$icon';
   import {ActionIcon, Tooltip, HoverCopyButton} from '$component';
   import {pendingID, activeModal, masterPassword} from '$store';
-  import type {Account, APIResponse} from '$type';
+  import type {Account, AccountAPI} from '$type';
   import {writable} from 'svelte/store';
   import {decrypt} from '$cryptography';
   import * as OTPAuth from 'otpauth';
@@ -15,10 +15,10 @@
 
   const mode = writable<'view' | 'add' | 'edit'>('view');
   const target = writable<Account | null>(null);
-  const accounts = writable<APIResponse>();
+  const accounts = writable<AccountAPI>();
 
   onMount(async () => {
-    $accounts = await fetchAPI('account', 'GET');
+    $accounts = await fetchAPI<AccountAPI>('account', 'GET');
     $target = null;
   });
 
@@ -41,7 +41,7 @@
     setInterval(() => (element.innerText = generator.generate()), 30000);
   }
 
-  async function decryptAll(encryptedAccounts: APIResponse) {
+  async function decryptAll(encryptedAccounts: AccountAPI) {
     return await Promise.all(
       encryptedAccounts.accounts.map(async (account) => ({
         ...account,
@@ -64,7 +64,7 @@
   }
 
   async function deleteAccount() {
-    const response = await fetchAPI('account/delete-account', 'DELETE', {id: $target!.id});
+    const response = await fetchAPI<AccountAPI>('account/delete-account', 'DELETE', {id: $target!.id});
     if (response.err) return notify(response.err, 'alert');
 
     $accounts.accounts = $accounts.accounts.filter((account) => account.id !== (response.id as unknown));

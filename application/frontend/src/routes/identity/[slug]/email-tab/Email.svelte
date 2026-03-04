@@ -1,7 +1,7 @@
 <script lang="ts">
   import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, BackIcon} from '$icon';
   import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
-  import type {APIResponse, EditorParams, Email, WebSocketMessage} from '$type';
+  import type {EmailAPI, EditorParams, Email, WebSocketMessage} from '$type';
   import {identity, handleResponse, pendingID, activeModal} from '$store';
   import {writable} from 'svelte/store';
   import {fetchAPI} from '$fetch';
@@ -17,7 +17,7 @@
   const mode = writable<'browse' | 'read' | 'write' | 'write-draft' | 'reply'>('browse');
 
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
-  let inbox = $state() as APIResponse;
+  let inbox = $state() as EmailAPI;
   let from = $state(7) as number;
 
   const showActionButtons = $derived(!$target || label === 'Junk');
@@ -35,7 +35,7 @@
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
 
-    inbox = await fetchAPI('email', 'GET');
+    inbox = await fetchAPI<EmailAPI>('email', 'GET');
     $target = null;
     from = 7;
   }
@@ -45,10 +45,10 @@
     const total = inbox.emails[messageCountString as keyof typeof inbox.emails] as number;
     $pendingID = 1;
 
-    const response = await fetchAPI('email/load-more', 'GET', {mailbox: label, since: total - from});
+    const response = await fetchAPI<EmailAPI>('email/load-more', 'GET', {mailbox: label, since: total - from});
     if (response.err) return notify(response.err, 'alert');
 
-    const mailbox = response.mailbox.toLowerCase() as 'inbox';
+    const mailbox = response.mailbox!.toLowerCase() as 'inbox';
     inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.nextEmails!];
 
     $pendingID = 0;
@@ -72,22 +72,22 @@
     }
 
     if (!alreadyFetched) {
-      const response = await fetchAPI('email/fetch-reply', 'GET', {uuid: uuid?.trim()});
+      const response = await fetchAPI<EmailAPI>('email/fetch-reply', 'GET', {uuid: uuid?.trim()});
       if (response.err) return notify(response.err, 'alert');
       if (response.fetchEmail === null) return;
 
-      $reply = [...$reply, response.fetchEmail];
-      if (response.fetchEmail.inReplyTo) fetchReply(response.fetchEmail.inReplyTo);
+      $reply = [...$reply, response.fetchEmail!];
+      if (response.fetchEmail!.inReplyTo) fetchReply(response.fetchEmail!.inReplyTo);
     }
   }
 
   async function forwardEmail() {
     $pendingID = 3;
     const forward = (document.querySelector('input[name="forward"]') as HTMLInputElement)?.value;
-    const response = await fetchAPI('email/forward-email', 'POST', {forward, uid: Number($target!.uid)});
+    const response = await fetchAPI<EmailAPI>('email/forward-email', 'POST', {forward, uid: Number($target!.uid)});
     if (response.err) return notify(response.err, 'alert');
 
-    inbox.emails.sent.unshift(response.forwardEmail);
+    inbox.emails.sent.unshift(response.forwardEmail!);
     $pendingID = 0;
     $activeModal = 0;
 
@@ -108,7 +108,7 @@
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
 
     if (save) {
-      const response = await fetchAPI('email/save-draft', 'PUT', {draft, inReplyTo, references, to, ...content});
+      const response = await fetchAPI<EmailAPI>('email/save-draft', 'PUT', {draft, inReplyTo, references, to, ...content});
       if (response.err) {
         $pendingID = 0;
         return notify(response.err, 'alert');
@@ -118,10 +118,10 @@
         inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
       }
 
-      inbox.emails.drafts.unshift(response.savedDraft);
+      inbox.emails.drafts.unshift(response.savedDraft!);
       inbox.emails.draftsMessagesCount++;
     } else {
-      const response = await fetchAPI('email/send-email', 'POST', {draft, inReplyTo, references, to, ...content});
+      const response = await fetchAPI<EmailAPI>('email/send-email', 'POST', {draft, inReplyTo, references, to, ...content});
       if (response.err) {
         $pendingID = 0;
         return notify(response.err, 'alert');
@@ -131,7 +131,7 @@
         inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
       }
 
-      inbox.emails.sent.unshift(response.sentEmail);
+      inbox.emails.sent.unshift(response.sentEmail!);
       inbox.emails.sentMessagesCount++;
     }
 
@@ -142,10 +142,10 @@
 
   async function deleteEmail() {
     if (label === 'Junk') return;
-    const response = await fetchAPI('email/delete-email', 'DELETE', {mailbox: label, uid: Number($target!.uid)});
+    const response = await fetchAPI<EmailAPI>('email/delete-email', 'DELETE', {mailbox: label, uid: Number($target!.uid)});
     if (response.err) return notify(response.err, 'alert');
 
-    const mailbox = response.mailbox.toLowerCase() as 'inbox';
+    const mailbox = response.mailbox!.toLowerCase() as 'inbox';
     const messageCount = mailbox === 'inbox' ? 'messagesCount' : `${mailbox}MessagesCount`;
 
     const removedEmail = inbox.emails[mailbox].find((email) => email.uid === response.uid);

@@ -1,7 +1,7 @@
 <script lang="ts">
   import {KeyIcon, UserIcon, KeylockIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
   import {ActionIcon, LoadingButton, InputWithIcon, SelectMenu} from '$component';
-  import type {Account, APIResponse} from '$type';
+  import type {Account, AccountAPI} from '$type';
   import type {Writable} from 'svelte/store';
   import {encrypt} from '$cryptography';
   import {pendingID} from '$store';
@@ -11,7 +11,7 @@
   interface Props {
     mode: Writable<'view' | 'add' | 'edit'>;
     target: Writable<Account | null>;
-    accounts: Writable<APIResponse>;
+    accounts: Writable<AccountAPI>;
   }
 
   let {accounts, target, mode}: Props = $props();
@@ -47,7 +47,7 @@
     const body = {id, username, password, website, totp, algorithm};
 
     if ($mode === 'add') {
-      const response = await fetchAPI('account/add-account', 'POST', body);
+      const response = await fetchAPI<AccountAPI>('account/add-account', 'POST', body);
       if (response.err) return notify(response.err, 'alert');
 
       $accounts.accounts.push(response as unknown as Account);
@@ -55,11 +55,11 @@
       $pendingID = 0;
       $target = null;
     } else {
-      const response = await fetchAPI('account/edit-account', 'PUT', body);
+      const response = await fetchAPI<AccountAPI>('account/edit-account', 'PUT', body);
       if (response.err) return notify(response.err, 'alert');
 
       const otherAccounts = $accounts.accounts.filter((account) => account.id !== (response.id as unknown));
-      $accounts.accounts = [...otherAccounts, response] as unknown as APIResponse['accounts'];
+      $accounts.accounts = [...otherAccounts, response] as unknown as AccountAPI['accounts'];
       $mode = 'view';
       $pendingID = 0;
       $target = null;

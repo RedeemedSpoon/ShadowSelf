@@ -2,6 +2,7 @@
   import {ActionIcon, SelectMenu, Tooltip, LoadingButton} from '$component';
   import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon} from '$icon';
   import {identity, pendingID} from '$store';
+  import type {InformationAPI} from '$type';
   import {fetchAPI} from '$fetch';
   import {notify} from '$lib';
 
@@ -15,7 +16,7 @@
 
     $pendingID = 1;
     await new Promise((resolve) => setTimeout(resolve, 300));
-    const response = await fetchAPI('identity/regenerate-picture', 'PATCH', {sex, age, ethnicity, bio});
+    const response = await fetchAPI<InformationAPI>('identity/regenerate-picture', 'PATCH', {sex, age, ethnicity, bio});
     if (response.err) return notify(response.err, 'alert');
 
     const element = document.querySelector(`#profile`) as HTMLImageElement;
@@ -25,7 +26,7 @@
 
   async function regenerateName() {
     const sex = document.querySelector('.selected')!.id;
-    const response = await fetchAPI('identity/regenerate-name', 'PATCH', {sex});
+    const response = await fetchAPI<InformationAPI>('identity/regenerate-name', 'PATCH', {sex});
     if (response.err) return notify(response.err, 'alert');
 
     const element = document.querySelector(`input[name="name"]`) as HTMLInputElement;
@@ -33,7 +34,7 @@
   }
 
   async function regenerateBio() {
-    const response = await fetchAPI('identity/regenerate-bio', 'PATCH');
+    const response = await fetchAPI<InformationAPI>('identity/regenerate-bio', 'PATCH');
     const element = document.querySelector(`textarea`) as HTMLTextAreaElement;
     element.value = response.bio!;
   }

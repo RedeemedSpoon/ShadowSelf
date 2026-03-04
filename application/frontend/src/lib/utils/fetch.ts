@@ -4,7 +4,7 @@ import {get} from 'svelte/store';
 import {identity} from '$store';
 import {token} from '$store';
 
-export async function fetchAPI(url: string, method = 'GET', body?: Record<string, unknown>): Promise<APIResponse> {
+export async function fetchAPI<Type = APIResponse>(url: string, method = 'GET', body?: Record<string, unknown>): Promise<Type> {
   let fullUrl = `/api/${url}/${get(identity).id}`;
   if (method === 'GET' && body) {
     let index = 0;

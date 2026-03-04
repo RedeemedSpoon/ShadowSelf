@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type {APIResponse, Coins} from '$type';
+  import type {CryptoAPI, Coins} from '$type';
   import {identity, moneroData} from '$store';
   import {deriveXPub} from '$cryptography';
   import type {Component} from 'svelte';
@@ -9,7 +9,7 @@
 
   interface Props {
     cryptoIcons: {[key: string]: Component};
-    crypto: APIResponse;
+    crypto: CryptoAPI;
   }
 
   let {cryptoIcons, crypto}: Props = $props();

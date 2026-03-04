@@ -1,11 +1,11 @@
 <script lang="ts">
   import {estimateTransactionFee, selectBestUtxos, signTransaction} from '$cryptocoin';
-  import type {APIResponse, Coins, Priority, transactionData, UTXOData} from '$type';
-  import {pendingID, identity} from '$store';
-  import {CameraIcon, StackIcon} from '$icon';
+  import type {CryptoAPI, Coins, Priority, transactionData, UTXOData} from '$type';
   import {QrScanner, LoadingButton} from '$component';
-  import {decrypt} from '$cryptography';
+  import {CameraIcon, StackIcon} from '$icon';
   import type {Writable} from 'svelte/store';
+  import {pendingID, identity} from '$store';
+  import {decrypt} from '$cryptography';
   import {idbOperation} from '$monero';
   import {formatUSD} from '$format';
   import {fetchAPI} from '$fetch';
@@ -17,7 +17,7 @@
   interface Props {
     cryptoTitles: {[key: string]: string};
     currentCrypto: Writable<Coins>;
-    crypto: APIResponse;
+    crypto: CryptoAPI;
   }
 
   let {currentCrypto, cryptoTitles, crypto}: Props = $props();
@@ -123,7 +123,7 @@
       return;
     }
 
-    const response = await fetchAPI('crypto/broadcast', 'POST', broadcastPayload!);
+    const response = await fetchAPI<CryptoAPI>('crypto/broadcast', 'POST', broadcastPayload!);
     notify(response.err ? response.err : successMessage, response.type);
     $pendingID = 0;
   }

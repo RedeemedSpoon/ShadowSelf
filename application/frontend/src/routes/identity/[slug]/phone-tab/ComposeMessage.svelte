@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type {APIResponse, Message} from '$type';
+  import type {PhoneAPI, Message} from '$type';
   import type {Writable} from 'svelte/store';
   import {fetchAPI} from '$fetch';
   import {identity} from '$store';
@@ -9,7 +9,7 @@
     mode: Writable<'browse' | 'read' | 'write' | 'reply'>;
     discussion: Writable<Message | undefined>;
     fullDiscussion: Writable<Message[]>;
-    messages: APIResponse;
+    messages: PhoneAPI;
   }
 
   let {messages, mode, discussion, fullDiscussion}: Props = $props();
@@ -47,7 +47,7 @@
   }
 
   async function sendMessage(isReply: boolean, body: {[key: string]: unknown}) {
-    const response = await fetchAPI('phone/send-message', 'POST', body);
+    const response = await fetchAPI<PhoneAPI>('phone/send-message', 'POST', body);
     if (response.err) return notify(response.err, 'alert');
 
     $mode = 'read';
@@ -59,19 +59,19 @@
       if (index !== -1) messages?.messages.splice(index!, 1);
 
       if ($fullDiscussion.find((msg) => msg.from === addressee || msg.to === addressee)) {
-        $fullDiscussion = [response.messageSent, ...$fullDiscussion];
+        $fullDiscussion = [response.messageSent!, ...$fullDiscussion];
       } else {
-        $fullDiscussion = [response.messageSent];
+        $fullDiscussion = [response.messageSent!];
 
         setTimeout(async () => {
-          const response = await fetchAPI('phone/fetch-conversation', 'POST', {addressee});
+          const response = await fetchAPI<PhoneAPI>('phone/fetch-conversation', 'POST', {addressee});
           if (response.err) return notify(response.err, 'alert');
-          $fullDiscussion = response.conversation;
+          $fullDiscussion = response.conversation!;
         }, 300);
       }
     } else $fullDiscussion = [];
 
-    messages?.messages.unshift(response.messageSent);
+    messages?.messages.unshift(response.messageSent!);
   }
 
   function next() {

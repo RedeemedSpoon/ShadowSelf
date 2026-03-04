@@ -2,6 +2,7 @@
   import {CopyIcon, WalletIcon, DownloadIcon, EmailIcon, PhoneIcon, EditIcon, BackIcon} from '$icon';
   import {ActionIcon, CopyButton, ReactiveButton} from '$component';
   import {toTitleCase, formatPhoneNumber, formatUSD} from '$format';
+  import type {InformationAPI} from '$type';
   import {base64ToBlob, notify} from '$lib';
   import {countriesFlags} from '$image';
   import {page} from '$app/state';
@@ -45,7 +46,7 @@
       const sex = document.querySelector('.selected')?.id;
 
       const body = {picture, name, bio, age, ethnicity, sex};
-      const response = await fetchAPI('identity/update-information', 'PUT', body);
+      const response = await fetchAPI<InformationAPI>('identity/update-information', 'PUT', body);
       if (response.err) return notify(response.err, 'alert');
 
       $identity = {...$identity, ...response};

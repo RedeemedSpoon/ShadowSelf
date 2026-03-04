@@ -1,10 +1,10 @@
 <script lang="ts">
-  import {signTransaction} from '$cryptocoin';
-  import type {APIResponse, Coins, transactionData} from '$type';
-  import {identity} from '$store';
+  import type {CryptoAPI, Coins, transactionData} from '$type';
   import {QrScanner, LoadingButton} from '$component';
-  import {deriveXPub} from '$cryptography';
+  import {signTransaction} from '$cryptocoin';
   import type {Writable} from 'svelte/store';
+  import {deriveXPub} from '$cryptography';
+  import {identity} from '$store';
   import {fetchAPI} from '$fetch';
   import {notify} from '$lib';
 
@@ -14,7 +14,7 @@
 
   interface Props {
     currentCrypto: Writable<Coins>;
-    crypto: APIResponse;
+    crypto: CryptoAPI;
   }
 
   let {currentCrypto, crypto}: Props = $props();
@@ -45,7 +45,7 @@
     sweepStepMessage = 'Scanning Blockchain Nodes...';
     await new Promise((r) => setTimeout(r, Math.random() * 600 + 300));
 
-    const info = await fetchAPI('crypto/sweep-info', 'POST', {coin, addresses});
+    const info = await fetchAPI<CryptoAPI>('crypto/sweep-info', 'POST', {coin, addresses});
     if (info.err || Number(info.balance) === 0) return notify('Wallet Empty or Invalid', 'alert');
 
     sweepStepMessage = 'Calculating Network Fees...';
@@ -55,9 +55,9 @@
     let feeParam: any = 0;
 
     if (['btc', 'ltc'].includes(coin)) {
-      const vBytes = info.utxos.length * 68 + 31 + 10;
+      const vBytes = info.utxos!.length * 68 + 31 + 10;
       const feeBtc = (vBytes * crypto.fees[coin].medium) / 100_000_000;
-      amt = info.balance / 100_000_000 - feeBtc;
+      amt = info.balance! / 100_000_000 - feeBtc;
       feeParam = {fee: feeBtc};
     } else {
       const gasPriceGwei = crypto.fees[coin].medium;
@@ -93,7 +93,7 @@
     sweepStepMessage = 'Broadcasting to Network...';
     await new Promise((r) => setTimeout(r, Math.random() * 600 + 800));
 
-    const response = await fetchAPI('crypto/broadcast', 'POST', payload!);
+    const response = await fetchAPI<CryptoAPI>('crypto/broadcast', 'POST', payload!);
     notify(response.err || `Swept ${amt.toFixed(6)} ${coin.toUpperCase()}`, response.type);
     sweepStepMessage = '';
   }

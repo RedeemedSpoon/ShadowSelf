@@ -1,7 +1,7 @@
 <script lang="ts">
   import ComposeMessage from './ComposeMessage.svelte';
   import MessageComponent from './Message.svelte';
-  import type {APIResponse, Message} from '$type';
+  import type {PhoneAPI, Message} from '$type';
   import type {Writable} from 'svelte/store';
   import {formatPhoneNumber} from '$format';
   import {identity} from '$store';
@@ -10,7 +10,7 @@
     fullDiscussion: Writable<Message[]>;
     discussion: Writable<Message | undefined>;
     mode: Writable<'browse' | 'read' | 'write' | 'reply'>;
-    messages: APIResponse;
+    messages: PhoneAPI;
   }
 
   let {discussion, fullDiscussion, mode, messages}: Props = $props();

@@ -1,18 +1,18 @@
 <script lang="ts">
   import {BoltIcon, HashIcon, ChartIcon, StackIcon, ActivityIcon, BroadcastIcon, GasStationIcon, QuestionIcon} from '$icon';
   import {UpArcIcon, DownArcIcon, ExternalLinkIcon, CameraIcon, WalletIcon} from '$icon';
-  import type {APIResponse, Coins} from '$type';
-  import {formatUSD} from '$format';
+  import type {CryptoAPI, Coins} from '$type';
   import {identity, moneroData} from '$store';
   import type {Writable} from 'svelte/store';
   import {deriveXPub} from '$cryptography';
   import {CopyButton} from '$component';
+  import {formatUSD} from '$format';
 
   interface Props {
     mode: Writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'market' | 'swap'>;
     cryptoTitles: {[key: string]: string};
     currentCrypto: Writable<Coins>;
-    crypto: APIResponse;
+    crypto: CryptoAPI;
   }
 
   let {cryptoTitles, currentCrypto, crypto, mode}: Props = $props();

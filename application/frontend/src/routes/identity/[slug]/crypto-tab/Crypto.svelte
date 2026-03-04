@@ -2,7 +2,7 @@
   import {ReceiptIcon, FloppyIcon, ShuffleIcon, MarketIcon, BackIcon, BTCIcon, LTCIcon, ETHIcon, USDTIcon, XMRIcon} from '$icon';
   import {identity, moneroData, masterPassword, activeModal} from '$store';
   import {ActionIcon, Modal, Loader} from '$component';
-  import type {Coins, APIResponse} from '$type';
+  import type {Coins, CryptoAPI} from '$type';
   import {decrypt} from '$cryptography';
   import {writable} from 'svelte/store';
   import initMoneroScan from '$monero';
@@ -18,7 +18,7 @@
   import CryptoSend from './CryptoSend.svelte';
   import CryptoSwap from './CryptoSwap.svelte';
 
-  let crypto = $state({}) as APIResponse;
+  let crypto = $state({}) as CryptoAPI;
   let xmrScanProgress = $state(0);
   let xmrScannedBlocks = $state(0);
   let xmrTotalBlocks = $state(0);
@@ -61,8 +61,8 @@
       address: await decrypt($identity.walletKeys.xmr.address),
     };
 
-    const cryptoPromise = fetchAPI('crypto', 'GET');
-    const xmrNodePromise = fetchAPI('crypto/xmr-node', 'GET');
+    const cryptoPromise = fetchAPI<CryptoAPI>('crypto', 'GET');
+    const xmrNodePromise = fetchAPI<CryptoAPI>('crypto/xmr-node', 'GET');
 
     const scanPromise = xmrNodePromise.then((res) =>
       initMoneroScan(

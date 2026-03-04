@@ -290,68 +290,85 @@ export type CryptoWallet = {
   };
 };
 
-// Will fix this mess one day
-export interface APIResponse {
-  err: string;
+export interface BaseAPI {
+  err?: string;
   type: 'success' | 'alert' | 'info';
+}
+
+export interface InformationAPI extends BaseAPI {
+  picture?: string;
+  ethnicity?: string;
+  name?: string;
+  age?: number;
+  sex?: string;
+  bio?: string;
+}
+
+export interface AccountAPI extends BaseAPI {
   accounts: Account[];
+  id?: string;
+  username?: string;
+  password?: string;
+  website?: string;
+  totp?: string;
+  algorithm?: string;
+}
+
+export interface EmailAPI extends BaseAPI {
   emails: Inbox;
+  nextEmails?: Email[];
+  fetchEmail?: Email;
+  sentEmail?: FullEmail;
+  savedDraft?: FullEmail;
+  forwardEmail?: FullEmail;
+  draft?: number;
+  uid?: number;
+  uuid?: string;
+  mailbox?: string;
+  from?: number;
+  since?: number;
+  subject?: string;
+  body?: string;
+  to?: string;
+  forward?: string;
+  inReplyTo?: string;
+  messageID?: string;
+  date?: Date;
+  attachments?: Attachment[];
+}
+
+export interface PhoneAPI extends BaseAPI {
   messages: Message[];
-  picture: string;
-  ethnicity: string;
-  name: string;
-  age: number;
-  sex: string;
-  bio: string;
-  id: string;
-  username: string;
-  password: string;
-  website: string;
-  totp: string;
-  algorithm: string;
-  nextEmails: Email[];
-  fetchEmail: Email;
-  sentEmail: FullEmail;
-  savedDraft: FullEmail;
-  forwardEmail: FullEmail;
-  draft: number;
-  uid: number;
-  uuid: string;
-  mailbox: string;
-  from: number;
-  since: number;
-  subject: string;
-  body: string;
-  to: string;
-  forward: string;
-  inReplyTo: string;
-  messageID: string;
-  date: Date;
-  attachments: Attachment[];
-  addressee: string;
-  messageSent: Message;
-  conversation: Message[];
-  sid: string;
+  addressee?: string;
+  messageSent?: Message;
+  conversation?: Message[];
+  sid?: string;
+}
+
+export interface CryptoAPI extends BaseAPI {
   prices: CryptoPrices;
   fees: CryptoFees;
   wallet: CryptoWallet;
-  txid: string;
-  utxos: UTXOData;
-  balance: number;
-  nonce: number;
-  tradeID: string;
-  bestProvider: string;
-  providers: Provider[];
-  coinFrom: Coins;
-  amount: number;
-  coinTo: Coins;
-  status: string;
-  depositAddress: string;
-  depositAmount: number;
-  depositMemo: string;
-  providerTradeId: string;
-  externalLink: string;
+  txid?: string;
+  utxos?: UTXOData;
+  balance?: number;
+  nonce?: number;
+  tradeID?: string;
+  bestProvider?: string;
+  providers?: Provider[];
+  coinFrom?: Coins;
+  amount?: number;
+  coinTo?: Coins;
+  status?: string;
+  depositAddress?: string;
+  depositAmount?: number;
+  depositMemo?: string;
+  providerTradeId?: string;
+  externalLink?: string;
+  blob?: string;
 }
+
+export type APIResponse = InformationAPI | AccountAPI | EmailAPI | PhoneAPI | CryptoAPI;
 
 export interface WebSocketMessage {
   type: 'email' | 'message';
