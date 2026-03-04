@@ -9,9 +9,14 @@
   import {cart, lock} from '$image';
   import {fetchAPI} from '$fetch';
 
-  import CryptoTransaction from './sub-components/CryptoTransaction.svelte';
-  import CryptoDashboard from './sub-components/CryptoDashboard.svelte';
-  import CryptoServices from './sub-components/CryptoServices.svelte';
+  import CryptoDashboardHistory from './CryptoDashboardHistory.svelte';
+  import CryptoDashboardStats from './CryptoDashboardStats.svelte';
+  import CryptoInvoice from './CryptoInvoice.svelte';
+  import CryptoReceive from './CryptoReceive.svelte';
+  import CryptoMarket from './CryptoMarket.svelte';
+  import CryptoSweep from './CryptoSweep.svelte';
+  import CryptoSend from './CryptoSend.svelte';
+  import CryptoSwap from './CryptoSwap.svelte';
 
   let crypto = $state({}) as APIResponse;
   let xmrScanProgress = $state(0);
@@ -227,11 +232,21 @@ If a hacker finds this file, your money is gone.
           </div>
         </Modal>
       {:else}
-        <CryptoDashboard {mode} {currentCrypto} {crypto} {cryptoTitles} />
+        <CryptoDashboardStats {mode} {cryptoTitles} {currentCrypto} {crypto} />
+        <CryptoDashboardHistory {currentCrypto} {crypto} />
       {/if}
-    {:else}
-      <CryptoTransaction {mode} {crypto} {currentCrypto} {cryptoTitles} />
-      <CryptoServices {mode} {crypto} {cryptoIcons} />
+    {:else if $mode === 'receive'}
+      <CryptoReceive {cryptoTitles} {currentCrypto} {crypto} />
+    {:else if $mode === 'send'}
+      <CryptoSend {cryptoTitles} {currentCrypto} {crypto} />
+    {:else if $mode === 'sweep'}
+      <CryptoSweep {currentCrypto} {crypto} />
+    {:else if $mode === 'swap'}
+      <CryptoSwap {cryptoIcons} {crypto} />
+    {:else if $mode === 'market'}
+      <CryptoMarket />
+    {:else if $mode === 'invoice'}
+      <CryptoInvoice {cryptoIcons} {crypto} />
     {/if}
   {/await}
 {:else}

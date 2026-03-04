@@ -8,7 +8,7 @@
   import {identity} from '$store';
   import {fetchAPI} from '$fetch';
 
-  import InformationEdit from './sub-components/InformationEdit.svelte';
+  import InformationEdit from './InformationEdit.svelte';
 
   let activeStatus = $state(false);
   let isEditingMode = $state(false);

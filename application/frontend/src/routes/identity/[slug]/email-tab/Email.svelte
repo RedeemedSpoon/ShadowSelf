@@ -8,9 +8,9 @@
   import {onMount} from 'svelte';
   import {notify} from '$lib';
 
-  import ComposeEmail from './sub-components/ComposeEmail.svelte';
-  import EmailInbox from './sub-components/EmailInbox.svelte';
-  import EmailBody from './sub-components/EmailBody.svelte';
+  import ComposeEmail from './ComposeEmail.svelte';
+  import EmailInbox from './EmailInbox.svelte';
+  import EmailBody from './EmailBody.svelte';
 
   const reply = writable<Email[]>([]);
   const target = writable<Email | null>();
@@ -21,6 +21,7 @@
   let from = $state(7) as number;
 
   const showActionButtons = $derived(!$target || label === 'Junk');
+  const showSpesficAction = $derived(label === 'Drafts' || showActionButtons);
   const className = {
     label: 'bg-neutral-900/50! border-neutral-700!',
     icon: 'fill-neutral-700 stroke-neutral-700',
@@ -183,16 +184,8 @@
       <ActionIcon icon={BackIcon} action={() => (($mode = 'browse'), ($target = null))} title="Go Back to Inbox" />
     {/if}
     <ActionIcon icon={SendIcon} action={() => (($mode = 'write'), ($target = null))} title="Send New Email" />
-    <ActionIcon
-      disabled={label === 'Drafts' || showActionButtons}
-      icon={ReplyIcon}
-      action={() => ($mode = 'reply')}
-      title="Reply to Email" />
-    <ActionIcon
-      disabled={label === 'Drafts' || showActionButtons}
-      icon={ForwardIcon}
-      action={() => ($activeModal = 4)}
-      title="Forward Email" />
+    <ActionIcon disabled={showSpesficAction} icon={ReplyIcon} action={() => ($mode = 'reply')} title="Reply to Email" />
+    <ActionIcon disabled={showSpesficAction} icon={ForwardIcon} action={() => ($activeModal = 4)} title="Forward Email" />
     <ActionIcon disabled={showActionButtons} icon={TrashIcon} action={deleteEmail} title="Delete Email" />
   </div>
 </section>

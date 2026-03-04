@@ -9,9 +9,9 @@
   import {fetchAPI} from '$fetch';
   import {notify} from '$lib';
 
-  import ConversationLists from './sub-components/ConversationLists.svelte';
-  import ComposeMessage from './sub-components/ComposeMessage.svelte';
-  import Conversation from './sub-components/Conversation.svelte';
+  import ConversationLists from './ConversationLists.svelte';
+  import ComposeMessage from './ComposeMessage.svelte';
+  import Conversation from './Conversation.svelte';
 
   let messages = $state() as APIResponse;
 

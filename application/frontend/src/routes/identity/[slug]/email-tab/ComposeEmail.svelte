@@ -13,7 +13,8 @@
 
   let {submit, isDraft, target, mode}: Props = $props();
 
-  let quill = $state() as {getSemanticHTML: () => string; getText: () => string; root: HTMLElement};
+  let quill = $state() as any;
+  let canInputReceiver = $derived($target && $mode !== 'write-draft');
   let attachments = $state([]) as {filename: string; data: string}[];
   let isTypeHTML = $state(true) as boolean;
   let singleRun = $state(false) as boolean;
@@ -108,14 +109,8 @@
         <label class="max-md:mt-6" for="recipient">Recipient</label>
       </div>
       <div class="flex flex-col gap-6 max-md:absolute max-md:top-10">
-        <input type="text" placeholder="Mail Subject" name="subject" />
-        <input
-          type="email"
-          name="recipient"
-          placeholder="example@domain.tld"
-          value={getRecipient()}
-          class="max-md:mt-4"
-          disabled={$target && $mode !== 'write-draft'} />
+        <input type="text" placeholder="Mail Subject" name="subject" class="max-md:mb-4" />
+        <input type="email" name="recipient" placeholder="example@domain.tld" value={getRecipient()} disabled={canInputReceiver} />
       </div>
       <div class="flex w-full flex-col max-md:mt-12 md:items-end">
         <h3 class="mr-10 mb-2 text-xl font-semibold text-neutral-300">Body Type</h3>

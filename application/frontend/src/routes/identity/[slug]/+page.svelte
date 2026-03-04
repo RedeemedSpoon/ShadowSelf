@@ -13,11 +13,11 @@
   import {onMount} from 'svelte';
   import {notify} from '$lib';
 
-  import IdentityInformation from './Information.svelte';
-  import IdentityAccounts from './Accounts.svelte';
-  import IdentityCrypto from './Crypto.svelte';
-  import IdentityPhone from './Phone.svelte';
-  import IdentityEmail from './Email.svelte';
+  import IdentityInformation from './information-tab/Information.svelte';
+  import IdentityAccount from './account-tab/Account.svelte';
+  import IdentityCrypto from './crypto-tab/Crypto.svelte';
+  import IdentityPhone from './phone-tab/Phone.svelte';
+  import IdentityEmail from './email-tab/Email.svelte';
 
   let {data}: PageProps = $props();
 
@@ -26,9 +26,7 @@
   let ws = $state() as WebSocket;
 
   currentSection = (page.url.hash?.slice(1) || 'info') as Sections;
-  $effect(() => {
-    $identity = data.identity!;
-  });
+  $identity = (() => data.identity)()!;
 
   const className = {
     label: 'bg-neutral-900/50! border-neutral-700!',
@@ -50,7 +48,7 @@
     email: IdentityEmail,
     phone: IdentityPhone,
     crypto: IdentityCrypto,
-    account: IdentityAccounts,
+    account: IdentityAccount,
   };
 
   function handleClick(section: Sections) {

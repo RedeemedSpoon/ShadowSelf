@@ -11,7 +11,7 @@
   import {onMount} from 'svelte';
   import {notify} from '$lib';
 
-  import AccountEdit from './sub-components/AccountEdit.svelte';
+  import AccountEdit from './AccountEdit.svelte';
 
   const mode = writable<'view' | 'add' | 'edit'>('view');
   const target = writable<Account | null>(null);
