@@ -1,10 +1,10 @@
 import DescriptionComponent from './description.svelte';
 
-const modules = import.meta.glob('./*', {eager: true, as: 'raw'});
+const modules = import.meta.glob('./*', {eager: true, query: '?raw', import: 'default'});
 
 const filesData = {
   description: DescriptionComponent,
-  response: JSON.parse(modules['./response.json']),
+  response: JSON.parse(modules['./response.json'] as string),
   code: {
     go: modules['./example.go'],
     javascript: modules['./example.js'],

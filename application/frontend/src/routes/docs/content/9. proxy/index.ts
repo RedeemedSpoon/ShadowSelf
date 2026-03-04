@@ -1,4 +1,4 @@
-const modules = import.meta.glob('./*', {eager: true, as: 'raw'});
+const modules = import.meta.glob('./*', {eager: true, query: '?raw', import: 'default'});
 
 const code = {
   go: modules['./example.go'],
