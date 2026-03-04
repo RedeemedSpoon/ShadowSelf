@@ -24,7 +24,7 @@
   @reference "$style";
 
   h1 {
-    @apply pretty-style absolute ml-[125px] text-6xl max-sm:mt-1 max-sm:ml-[70px] max-sm:text-4xl md:mt-2 md:ml-[190px] md:text-8xl;
+    @apply pretty-style absolute ml-31.25 text-6xl max-sm:mt-1 max-sm:ml-17.5 max-sm:text-4xl md:mt-2 md:ml-47.5 md:text-8xl;
   }
 
   h2 {

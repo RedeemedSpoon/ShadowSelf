@@ -27,7 +27,7 @@
   @reference "$style";
 
   #extension {
-    @apply mx-auto my-[15rem] flex min-h-[40vh] items-center justify-between gap-8 text-neutral-400 sm:w-5/6 xl:w-3/4 2xl:w-2/3;
+    @apply mx-auto my-60 flex min-h-[40vh] items-center justify-between gap-8 text-neutral-400 sm:w-5/6 xl:w-3/4 2xl:w-2/3;
   }
 
   h1 {

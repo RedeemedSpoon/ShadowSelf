@@ -183,7 +183,7 @@
 <Modal id={2}>
   <form method="POST" action="?/confirm" use:enhance={() => awaitPending(true, 2)} class="m-6 mb-2 flex flex-col gap-8">
     <h3 class="text-4xl font-bold text-neutral-300">Confirm Payment</h3>
-    <p class="w-[35rem] max-w-[80vw]">
+    <p class="w-140 max-w-[80vw]">
       Are you sure you want to pay ${$pricingModel.price} for an identity with your {cardName} credits card ending with ****{last4}?
     </p>
     <input hidden value={$pricingModel.name} name="type" type="hidden" />
@@ -204,7 +204,7 @@
   @reference "$style";
 
   #purchase {
-    @apply mx-auto my-[9rem] flex h-fit w-fit flex-col gap-16;
+    @apply mx-auto my-36 flex h-fit w-fit flex-col gap-16;
   }
 
   #purchase-box {
@@ -222,7 +222,7 @@
   }
 
   .active {
-    @apply !bg-neutral-400 !text-neutral-950 hover:!text-neutral-950;
+    @apply bg-neutral-400! text-neutral-950! hover:text-neutral-950!;
   }
 
   li {

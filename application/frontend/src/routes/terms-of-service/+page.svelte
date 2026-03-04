@@ -14,12 +14,10 @@
   </section>
 
   <p>
-    Welcome to Shadowself! By accessing or using the Shadowself service, website (<a
-      href="https://shadowself.io"
-      target="_blank"
-      rel="noopener noreferrer">shadowself.io</a
-    >), and any related applications or features (collectively, the "Service"), you agree to be bound by these Terms of Service
-    ("Terms"). If you do not agree to these Terms, please do not use the Service.
+    Welcome to Shadowself! By accessing or using the Shadowself service, website
+    <a href="https://shadowself.io" target="_blank" rel="noopener noreferrer">shadowself.io</a>, and any related applications or
+    features (collectively, the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these
+    Terms, please do not use the Service.
   </p>
 
   <h3>Acceptance of Terms</h3>
@@ -193,7 +191,7 @@
   @reference "$style";
 
   div {
-    @apply mx-auto my-[10rem] flex h-fit w-11/12 flex-col gap-6 text-neutral-400 md:w-3/4 xl:w-1/2;
+    @apply mx-auto my-40 flex h-fit w-11/12 flex-col gap-6 text-neutral-400 md:w-3/4 xl:w-1/2;
   }
 
   h1 {

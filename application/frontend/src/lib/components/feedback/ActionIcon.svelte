@@ -16,7 +16,7 @@
 
   let {action, disabled, icon, activeStatus, commit, showPassword, title, size = 'big'}: Props = $props();
 
-  const width = size === 'big' ? 'w-8 h-8' : 'w-4 h-4';
+  const width = $derived(size === 'big' ? 'w-8 h-8' : 'w-4 h-4');
 </script>
 
 <Tooltip tip={title} nowrap={true}>
@@ -35,7 +35,7 @@
 
   button {
     @apply w-fit cursor-pointer rounded-lg border-2 border-neutral-300/75 p-1 max-sm:scale-90;
-    @apply !bg-none !shadow-transparent transition-none hover:bg-neutral-300/10;
+    @apply bg-none! shadow-transparent! transition-none hover:bg-neutral-300/10;
   }
 
   .primary-color {

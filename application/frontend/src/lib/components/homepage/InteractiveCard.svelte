@@ -6,15 +6,12 @@
 </script>
 
 <CardContainer bind:isMouseEntered className="inter-var">
-  <CardBody className="max-md:hidden animate-shake relative flex w-[60vw] h-[35vh] md:w-[600px] md:h-[550px] group/card">
+  <CardBody className="max-md:hidden animate-shake relative flex w-[60vw] h-[35vh] md:w-150 md:h-137.5 group/card">
     <Card {isMouseEntered} animate={true} className="p-8 md:p-12">
       <CardItem {isMouseEntered} translateZ="70" className="text-xl font-bold text-primary-200">
         Make Yourself Invulnerable to the Internet
       </CardItem>
-      <CardItem
-        {isMouseEntered}
-        translateZ="80"
-        className="text-neutral-400 text-sm my-3 leading-relaxed max-h-[150px] overflow-hidden">
+      <CardItem {isMouseEntered} translateZ="80" className="text-neutral-400 text-sm my-3 leading-relaxed max-h-37.5 overflow-hidden">
         Via our intitive dashboard, you can create and manage your identities. You can also customize your them to your likings (name,
         location, etc.) and rest easy knowing that you no longer fear mass-surveillance, fraud and other potential threats to you.
       </CardItem>

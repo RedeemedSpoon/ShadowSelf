@@ -41,7 +41,7 @@
       <div class="question">
         <div onclick={() => handleClick(index)} aria-hidden="true">
           <h3>{question.question}</h3>
-          <h4 class="rotate-180"><ChevronIcon className="rotate-[-90deg]" /></h4>
+          <h4 class="rotate-180"><ChevronIcon className="-rotate-90" /></h4>
         </div>
         <p>{question.answer}</p>
       </div>
@@ -53,7 +53,7 @@
   @reference "$style";
 
   #faq {
-    @apply mx-auto my-[10rem] flex h-fit w-11/12 flex-col gap-6 text-neutral-400 md:w-3/4 xl:w-1/2;
+    @apply mx-auto my-40 flex h-fit w-11/12 flex-col gap-6 text-neutral-400 md:w-3/4 xl:w-1/2;
   }
 
   .question div {

@@ -16,7 +16,7 @@
   let activeCard = $state(0);
   let ref = $state() as HTMLDivElement;
 
-  const cardsBreakpoints = content.map((_, index) => index / content.length);
+  const cardsBreakpoints = (() => content.map((_, index) => index / content.length))();
   const gradient = ['purple', 'red', 'blue', 'green', 'orange'];
 
   onMount(() => {
@@ -37,7 +37,7 @@
 </script>
 
 <div bind:this={ref} id="main" class:!overflow-y-hidden={overflow > 300}>
-  <div class="max-w-xl max-sm:h-[40rem]!">
+  <div class="max-w-xl max-sm:h-160!">
     {#each content as item, index (index)}
       {@render text?.({item: {...item, activeCard, index}})}
     {/each}
@@ -60,7 +60,7 @@
   }
 
   #wrapper {
-    @apply relative h-full w-full overflow-hidden rounded-2xl p-[5px];
+    @apply relative h-full w-full overflow-hidden rounded-2xl p-1.25;
   }
 
   #wrapper::before {

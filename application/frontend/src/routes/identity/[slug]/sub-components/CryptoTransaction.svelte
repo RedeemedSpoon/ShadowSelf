@@ -249,7 +249,7 @@
 </script>
 
 {#if $mode === 'receive'}
-  <section class="flex gap-8 max-md:flex-col-reverse md:h-[400px]">
+  <section class="flex gap-8 max-md:flex-col-reverse md:h-100">
     <div class="flex flex-col justify-center gap-6 md:w-1/2">
       <div class="space-y-2">
         <h3>Receive {cryptoTitles[$currentCrypto]}</h3>
@@ -277,7 +277,7 @@
         <div class="flex items-center justify-between gap-2">
           <code class="text-primary-600 truncate font-mono text-sm">{address}</code>
           <button id="not-copied" class="alt mr-4 flex gap-1 px-0 py-0 text-sm" onclick={copyAddress}>
-            <CopyIcon className="fill-none! w-4! h-4! mt-[2px]" />
+            <CopyIcon className="fill-none! w-4! h-4! mt-0.5" />
             <span>Copy</span>
           </button>
           <button id="copied" class="alt mr-4 hidden px-0 py-0 text-sm">Copied!</button>
@@ -384,7 +384,7 @@
                   {utxo.value / 100_000_000}
                   {$currentCrypto.toUpperCase()}
                 </td>
-                <td class="max-w-[250px] truncate p-2 font-mono text-xs text-neutral-500" title={utxo.address}>
+                <td class="max-w-62.5 truncate p-2 font-mono text-xs text-neutral-500" title={utxo.address}>
                   {utxo.address}
                   <span class="ml-2 rounded bg-neutral-800 px-1 text-neutral-400">#{utxo.pathIndex}</span>
                 </td>

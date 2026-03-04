@@ -203,7 +203,7 @@
   @reference "$style";
 
   #editor {
-    @apply !h-[50vh] !min-h-96 rounded-b-xl border-neutral-800 bg-neutral-800/30 text-neutral-300;
+    @apply h-[50vh]! min-h-96! rounded-b-xl border-neutral-800 bg-neutral-800/30 text-neutral-300;
   }
 
   #toolbar-container {
@@ -236,6 +236,6 @@
   }
 
   .selected {
-    @apply !bg-primary-600;
+    @apply bg-primary-600!;
   }
 </style>

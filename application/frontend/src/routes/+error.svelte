@@ -23,7 +23,7 @@
   @reference "$style";
 
   section {
-    @apply my-[10rem] flex h-fit w-screen flex-col items-center justify-center gap-8 text-center;
+    @apply my-40 flex h-fit w-screen flex-col items-center justify-center gap-8 text-center;
   }
 
   img {

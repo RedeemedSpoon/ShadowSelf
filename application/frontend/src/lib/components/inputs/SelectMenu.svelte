@@ -17,20 +17,24 @@
   let {name, options, value, icon, fullIcons, biggerPadding, callback, size = 'big'}: Props = $props();
 
   let selectionInputOpen = $state(false);
-  let givenOptions: Option[] = $state([]);
   let input = $state() as HTMLInputElement;
   let key = $state(false);
 
   let btn: HTMLButtonElement;
   let select: HTMLDivElement;
 
-  if (typeof options[0] === 'string') {
-    givenOptions = options.map((option) => {
-      return {label: option, value: option.toString().toLowerCase()};
-    }) as Option[];
-  } else {
-    givenOptions = options as Option[];
-  }
+  let givenOptions: Option[] = $derived(
+    (() => {
+      if (typeof options[0] === 'string') {
+        return options.map((option) => ({
+          label: option,
+          value: option.toString().toLowerCase(),
+        })) as Option[];
+      } else {
+        return options as Option[];
+      }
+    })(),
+  );
 
   function handleBtnSelect(e: MouseEvent) {
     e.stopPropagation();
@@ -70,7 +74,7 @@
   onclick={() => (btn.querySelector('span')!.innerText = input.value)}
   value={value || givenOptions[0].value} />
 
-<div bind:this={select} id="select-input" class="relative min-w-[9.5rem] {size === 'big' && 'min-w-[15vw]!'}">
+<div bind:this={select} id="select-input" class="relative min-w-38 {size === 'big' && 'min-w-[15vw]!'}">
   <button type="button" bind:this={btn} onclick={handleBtnSelect} class="{biggerPadding && 'p-3!'} {size === 'small' && 'little'}">
     <div class="flex items-center gap-2">
       {#key key}
@@ -102,11 +106,11 @@
   @reference "$style";
 
   ul {
-    @apply no-scrollbar max-h-[275px] overflow-y-scroll;
+    @apply no-scrollbar max-h-68.75 overflow-y-scroll;
   }
 
   button.little {
-    @apply !px-2 !py-1 !text-lg;
+    @apply px-2! py-1! text-lg!;
   }
 
   li {
@@ -121,6 +125,6 @@
 
   #select-input ul {
     @apply absolute mt-4 rounded-xl shadow-2xl ring-1 shadow-gray-950/50 ring-gray-700/50;
-    @apply z-30 !mx-0 w-full transition-all duration-300 ease-in-out;
+    @apply z-30 mx-0! w-full transition-all duration-300 ease-in-out;
   }
 </style>

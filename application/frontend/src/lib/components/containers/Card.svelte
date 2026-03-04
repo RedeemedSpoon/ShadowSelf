@@ -40,22 +40,22 @@
   }
 
   .purple {
-    @apply !via-primary-600 !from-blue-500 !to-purple-700;
+    @apply via-primary-600! from-blue-500! to-purple-700!;
   }
 
   .orange {
-    @apply !from-orange-500 !via-amber-600 !to-orange-700;
+    @apply from-orange-500! via-amber-600! to-orange-700!;
   }
 
   .blue {
-    @apply !from-teal-500 !via-sky-600 !to-blue-700;
+    @apply from-teal-500! via-sky-600! to-blue-700!;
   }
 
   .red {
-    @apply !from-pink-500 !via-rose-600 !to-red-700;
+    @apply from-pink-500! via-rose-600! to-red-700!;
   }
 
   .green {
-    @apply !from-lime-500 !via-green-600 !to-emerald-700;
+    @apply from-lime-500! via-green-600! to-emerald-700!;
   }
 </style>

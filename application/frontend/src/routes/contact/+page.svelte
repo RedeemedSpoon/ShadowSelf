@@ -63,7 +63,7 @@
   @reference "$style";
 
   #contact {
-    @apply mx-auto my-[10rem] flex h-fit w-11/12 flex-col gap-12 md:w-3/4 xl:w-2/3;
+    @apply mx-auto my-40 flex h-fit w-11/12 flex-col gap-12 md:w-3/4 xl:w-2/3;
   }
 
   section {
@@ -71,7 +71,7 @@
   }
 
   textarea {
-    @apply mb-6 h-[25rem] resize-none;
+    @apply mb-6 h-100 resize-none;
   }
 
   form {

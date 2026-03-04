@@ -59,7 +59,7 @@
   }
 
   span {
-    @apply basic-style block h-[2px] max-w-0 transition-all duration-300 ease-in-out group-hover:!max-w-full;
+    @apply basic-style block h-0.5 max-w-0 transition-all duration-300 ease-in-out group-hover:max-w-full!;
   }
 
   #logo {

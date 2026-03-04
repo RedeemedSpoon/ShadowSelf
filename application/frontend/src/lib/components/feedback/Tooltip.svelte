@@ -11,13 +11,11 @@
 
   let {onTop = true, alt = false, nowrap, tip, children}: Props = $props();
 
-  let addedClaseses = $state(alt ? 'alt ' : '');
-  addedClaseses += onTop ? 'top-full ' : 'bottom-full ';
-  addedClaseses += nowrap ? 'text-nowrap!' : '';
+  const addedClasses = $derived(`${alt ? 'alt ' : ''}${onTop ? 'top-full ' : 'bottom-full '}${nowrap ? 'text-nowrap!' : ''}`);
 </script>
 
 <div class="group/tooltip relative w-fit">
-  <span class="{addedClaseses} group-hover/tooltip:!visible group-hover/tooltip:!opacity-100">{tip}</span>
+  <span class="{addedClasses} group-hover/tooltip:visible! group-hover/tooltip:opacity-100!">{tip}</span>
   {@render children?.()}
 </div>
 

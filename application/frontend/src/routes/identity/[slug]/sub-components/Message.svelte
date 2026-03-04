@@ -4,7 +4,7 @@
   import {identity} from '$store';
 
   let {message}: {message: Message} = $props();
-  const ownMessage = message.from === $identity.phone;
+  const ownMessage = $derived(message.from === $identity.phone);
 </script>
 
 <article class:own={ownMessage}>
@@ -36,6 +36,6 @@
   }
 
   .own > span {
-    @apply !rotate-[20deg] bg-[#141d2f];
+    @apply rotate-20! bg-[#141d2f];
   }
 </style>

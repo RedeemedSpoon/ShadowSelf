@@ -110,7 +110,7 @@
     <div class="mt-4 -mb-2 flex justify-between px-3 text-nowrap max-md:flex-col md:items-center">
       <a class="text-md max-md:text-sm md:mr-8" href="/login">Already have an account?</a>
       <Tooltip tip="Password must be at least 8 characters long. It must contain 1 lowercase letter, 1 uppercase letter and 1 number">
-        <div class="group/tooltip-password flex cursor-context-menu items-center gap-[2px] select-none">
+        <div class="group/tooltip-password flex cursor-context-menu items-center gap-0.5 select-none">
           <h6 class="text-md group-hover/tooltip-password:text-neutral-400 max-md:text-sm">Password requirements</h6>
           <QuestionIcon className="h-5 fill-neutral-300 group-hover/tooltip-password:fill-neutral-400" />
         </div>

@@ -553,7 +553,7 @@
           </thead>
           <tbody class="divide-y divide-neutral-800" bind:this={pdfTableRows}>
             {#each items as _, i}
-              <tr class="[&>*]:py-4 [&>*]:pr-2">
+              <tr class="*:py-4 *:pr-2">
                 <td><input class="bg-transparent focus:ring-1!" name="description" type="text" placeholder="Service" /></td>
                 <td><input class="bg-transparent focus:ring-1!" name="quantity" type="number" value="1" /></td>
                 <td><input class="bg-transparent focus:ring-1!" name="price" type="number" placeholder="0.00" /></td>
@@ -693,7 +693,7 @@
   }
 
   .provider {
-    @apply relative flex min-w-[200px] cursor-pointer flex-col gap-4 rounded-xl border-2 p-4 text-left transition-all duration-200;
+    @apply relative flex min-w-50 cursor-pointer flex-col gap-4 rounded-xl border-2 p-4 text-left transition-all duration-200;
     @apply border-neutral-800 bg-neutral-950/10 hover:border-neutral-700 hover:bg-neutral-950/20;
   }
 

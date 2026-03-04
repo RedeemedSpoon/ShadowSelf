@@ -3,7 +3,7 @@
 
 @layer base {
   html {
-    @apply no-scrollbar !overflow-x-hidden scroll-smooth bg-neutral-900 font-sans text-neutral-300 antialiased has-[.no-scroll]:overflow-hidden;
+    @apply no-scrollbar overflow-x-hidden! scroll-smooth bg-neutral-900 font-sans text-neutral-300 antialiased has-[.no-scroll]:overflow-hidden;
   }
 
   button {
@@ -30,7 +30,7 @@
 
   h1,
   h2 {
-    @apply pretty-style z-10 text-7xl !leading-tight font-medium;
+    @apply pretty-style z-10 text-7xl leading-tight! font-medium;
   }
 
   hr {

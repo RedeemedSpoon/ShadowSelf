@@ -1,9 +1,10 @@
 <script lang="ts">
-  import {Motion} from 'svelte-motion';
-  import {cn} from '$cn';
+  import type {Action} from 'svelte/action';
   import {onMount, onDestroy} from 'svelte';
   import {browser} from '$app/environment';
   import {writable} from 'svelte/store';
+  import {Motion} from 'svelte-motion';
+  import {cn} from '$cn';
 
   const reduceMotion = writable(false);
 
@@ -105,7 +106,7 @@
   };
 </script>
 
-<div class={cn('absolute inset-0 flex w-full items-center justify-center [mask-size:40px] [mask-repeat:no-repeat]', $$props.class)}>
+<div class={cn('absolute inset-0 flex w-full items-center justify-center mask-size-[40px] mask-no-repeat', $$props.class)}>
   <svg
     class="pointer-events-none absolute z-0 w-auto xl:w-full"
     width="100%"
@@ -123,7 +124,7 @@
 
     {#each paths as path, index (index)}
       <Motion isSVG={true}>
-        {#snippet children({motion}: {motion: unknown})}
+        {#snippet children({motion}: {motion: Action<SVGPathElement>})}
           <path use:motion d={path} stroke={`url(#linearGradient-${index})`} stroke-opacity="0.4" stroke-width="0.5"></path>
         {/snippet}
       </Motion>
@@ -132,7 +133,7 @@
     <defs>
       {#each paths as _, index (`gradient-${index}`)}
         <Motion isSVG={true} animate={getGradientAnimateProps($reduceMotion)} transition={getGradientTransitionProps($reduceMotion)}>
-          {#snippet children({motion}: {motion: unknown})}
+          {#snippet children({motion}: {motion: Action<SVGLinearGradientElement>})}
             <linearGradient use:motion id={`linearGradient-${index}`} x1="100%" x2="100%" y1="100%" y2="100%">
               <stop stop-color="#18CCFC" stop-opacity="0"></stop>
               <stop stop-color="#18CCFC"></stop>

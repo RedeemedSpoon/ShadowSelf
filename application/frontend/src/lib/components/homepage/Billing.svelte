@@ -57,7 +57,7 @@
         </div>
       </div>
     {/key}
-    <p class="absolute end-16 top-24 rotate-10 rounded-xl bg-neutral-600/30 px-4 font-bold shadow-md">20% OFF with Crypto</p>
+    <p class="absolute inset-e-16 top-24 rotate-10 rounded-xl bg-neutral-600/30 px-4 font-bold shadow-md">20% OFF with Crypto</p>
     <div class="flex w-full gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
       {#each sections as section, index (index)}
         <ul>

@@ -320,11 +320,11 @@
             <td class="whitespace-nowrap text-neutral-400">{formatDate(new Date(transaction.date).toString())}</td>
             <td
               id="counterparty-{transaction.counterparty}"
-              class="max-w-[200px] cursor-pointer font-mono font-medium text-neutral-300"
+              class="max-w-50 cursor-pointer font-mono font-medium text-neutral-300"
               onclick={() => copyCounterparty(transaction.counterparty)}
               title={transaction.counterparty}>
               {transaction.counterparty}</td>
-            <td class="max-w-[120px] font-mono text-neutral-500" title={transaction.txid}>
+            <td class="max-w-30 font-mono text-neutral-500" title={transaction.txid}>
               <a target="_blank" href={externalUrl + transaction.txid} class="group flex">
                 {transaction.txid.slice(0, 15)}...<ExternalLinkIcon
                   className="h-3.5! w-3.5! stroke-primary-600 group-hover:stroke-primary-700 transition-colors duration-300" /></a>

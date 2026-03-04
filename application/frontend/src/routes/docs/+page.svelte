@@ -168,7 +168,7 @@
   @reference "$style";
 
   #docs {
-    @apply mx-auto my-[8.5rem] flex max-w-[90rem] gap-12 px-4 sm:px-6 lg:px-8;
+    @apply mx-auto my-34 flex max-w-360 gap-12 px-4 sm:px-6 lg:px-8;
   }
 
   .sidebar {
@@ -214,7 +214,7 @@
 
   :global(#content p),
   :global(#content li) {
-    @apply py-[2px] text-base! leading-relaxed! text-neutral-400 md:text-base! md:leading-relaxed!;
+    @apply py-0.5 text-base! leading-relaxed! text-neutral-400 md:text-base! md:leading-relaxed!;
   }
 
   :global(#content p) {

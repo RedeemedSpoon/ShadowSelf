@@ -376,8 +376,8 @@
                 {server.identity.age}
               </div>
               <input type="range" name="age" step={1} min={18} max={60} bind:value={server.identity.age} />
-              <span class="absolute start-0 -bottom-6">18</span>
-              <span class="absolute end-0 -bottom-6">60</span>
+              <span class="absolute inset-s-0 -bottom-6">18</span>
+              <span class="absolute inset-e-0 -bottom-6">60</span>
             </div>
 
             <div class="flex items-end gap-4">
@@ -437,7 +437,7 @@
         <div class="relative -mb-24 inline-block">
           <img loading="lazy" id="screenshot" src={screenshot} class="block h-auto w-80" alt="shadowself extension" />
           <div
-            class="pointer-events-none absolute inset-0 h-full w-full bg-gradient-to-b from-transparent via-transparent via-[15%] to-slate-900 to-[70%]">
+            class="pointer-events-none absolute inset-0 h-full w-full bg-linear-to-b from-transparent via-transparent via-15% to-slate-900 to-70%">
           </div>
         </div>
         <ExtensionLinks extension="shadowself" />
@@ -449,7 +449,7 @@
             <h3 class="mb-8 font-semibold">uBlock Origin</h3>
             <ExtensionLinks extension="ublock" />
           </div>
-          <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
+          <div class="flex w-180 max-w-[80vw] flex-col gap-4">
             <h3 class="mb-8 pl-4 text-left! max-xl:hidden">Install ublock origin (optional)</h3>
             <p class="short text-neutral-300!">
               uBlock Origin is a powerful, open-source ad blocker that boosts online privacy by blocking ads, trackers, and malicious
@@ -470,7 +470,7 @@
             <h3 class="mb-8 font-semibold">Canvas Blocker</h3>
             <ExtensionLinks extension="canvas" />
           </div>
-          <div class="flex w-[45rem] max-w-[80vw] flex-col gap-4">
+          <div class="flex w-180 max-w-[80vw] flex-col gap-4">
             <h3 class="mb-8 pl-4 text-left! max-xl:hidden">Install canvas blocker (optional)</h3>
             <p class="text-left! text-pretty text-neutral-300!">
               Canvas Blocker protects against browser fingerprinting by blocking tracking techniques based on unique device
@@ -526,7 +526,7 @@
   @reference "$style";
 
   #create-identity {
-    @apply mx-auto mt-[10rem] mb-[4rem] flex min-h-[60vh] w-5/6 items-center justify-center;
+    @apply mx-auto mt-40 mb-16 flex min-h-[60vh] w-5/6 items-center justify-center;
   }
 
   h3 {
@@ -542,11 +542,11 @@
   }
 
   small {
-    @apply text-center text-[1rem] !text-pretty text-neutral-400 lg:w-1/2;
+    @apply text-center text-[1rem] text-pretty! text-neutral-400 lg:w-1/2;
   }
 
   .short {
-    @apply !text-left text-lg leading-[1.65] text-pretty md:!text-xl md:!leading-[1.85];
+    @apply text-left! text-lg leading-[1.65] text-pretty md:text-xl! md:leading-[1.85]!;
   }
 
   textarea {

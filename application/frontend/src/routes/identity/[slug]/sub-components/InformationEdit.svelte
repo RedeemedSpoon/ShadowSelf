@@ -89,8 +89,8 @@
         {$identity.age}
       </div>
       <input type="range" name="age" step={1} min={18} max={60} bind:value={$identity.age} />
-      <span class="absolute start-0 -bottom-6">18</span>
-      <span class="absolute end-0 -bottom-6">60</span>
+      <span class="absolute inset-s-0 -bottom-6">18</span>
+      <span class="absolute inset-e-0 -bottom-6">60</span>
     </div>
 
     <div class="flex items-end gap-4">

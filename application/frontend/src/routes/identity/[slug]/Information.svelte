@@ -94,7 +94,7 @@
         <img
           id="pic"
           loading="lazy"
-          class="min-w-[350px] rounded-xl max-md:w-3/4 xl:min-w-[400px] 2xl:min-w-[500px]"
+          class="min-w-87.5 rounded-xl max-md:w-3/4 xl:min-w-100 2xl:min-w-125"
           src={`data:image/png;base64,${$identity.picture}`}
           alt="{$identity.name}'s profile picture" />
       {/key}
@@ -137,8 +137,8 @@
   @reference "$style";
 
   #overlay-profile {
-    @apply absolute inset-0 h-full w-full min-w-[350px] rounded-xl transition-all duration-300 max-md:w-3/4;
-    @apply group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080] xl:min-w-[400px] 2xl:min-w-[500px];
+    @apply absolute inset-0 h-full w-full min-w-87.5 rounded-xl transition-all duration-300 max-md:w-3/4;
+    @apply group-hover:bg-black/40 group-hover:shadow-[inset_0_0_50px_10px_#00000080] xl:min-w-100 2xl:min-w-125;
   }
 
   #information > div {

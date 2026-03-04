@@ -138,6 +138,6 @@
   }
 
   textarea {
-    @apply no-scrollbar h-[80px] w-full resize-none rounded-3xl px-8 py-6 !transition-colors;
+    @apply no-scrollbar h-20 w-full resize-none rounded-3xl px-8 py-6 transition-colors!;
   }
 </style>

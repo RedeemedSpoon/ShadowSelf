@@ -23,7 +23,7 @@
   let newEmailValue = $state() as string;
   let stripe = $state() as Stripe;
 
-  const settings = $state(data.settings) as Settings & SettingsForm & Notification;
+  const settings = $state((() => data.settings)());
 
   const className = {
     label: 'bg-neutral-900/50! border-neutral-700!',
@@ -308,13 +308,13 @@
   @reference "$style";
 
   #settings {
-    @apply grid h-full min-h-screen w-full pt-[5rem] text-neutral-400 xl:grid-cols-[1fr_3fr];
+    @apply grid h-full min-h-screen w-full pt-20 text-neutral-400 xl:grid-cols-[1fr_3fr];
   }
 
   #stripe-link {
     @apply shadow-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
     @apply flex justify-center gap-1 rounded-md px-6 py-4 text-xl text-neutral-300 transition-all md:w-fit;
-    @apply hover-gradient-large from-primary-800 to-primary-600 bg-gradient-to-t;
+    @apply hover-gradient-large from-primary-800 to-primary-600 bg-linear-to-t;
   }
 
   h1:not(.basic-style) {
@@ -322,7 +322,7 @@
   }
 
   h2 {
-    @apply flex scroll-m-[12rem] items-center gap-2 text-4xl text-neutral-300;
+    @apply flex scroll-m-48 items-center gap-2 text-4xl text-neutral-300;
   }
 
   #title {

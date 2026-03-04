@@ -41,7 +41,7 @@
 
 <!-- eslint-disable -->
 <div class="z-10 max-sm:scale-90">
-  <div class="group flex w-[350px] items-center justify-center gap-0">
+  <div class="group flex w-87.5 items-center justify-center gap-0">
     <a href={extensionInfo[extension]['firefox']} target="_blank" rel="noreferrer">
       <button
         class="group-hover:from-primary-800! group-hover:to-primary-800! h-16! {extension !== 'canvas' &&
@@ -50,7 +50,7 @@
       </button>
     </a>
     {#if extension !== 'canvas'}
-      <div class="z-10 h-8 w-[2px] bg-neutral-300/90"></div>
+      <div class="z-10 h-8 w-0.5 bg-neutral-300/90"></div>
       <button
         onclick={() => (expand = !expand)}
         class="group-hover:from-primary-800! group-hover:to-primary-800! expand -ml-1! {expand && 'rounded-b-none!'}">
@@ -92,11 +92,11 @@
   }
 
   button.other-link {
-    @apply ml-[2px] !h-16 w-[346px] border-t-[2px] border-neutral-300/85 text-neutral-300;
+    @apply ml-0.5 h-16! w-86.5 border-t-2 border-neutral-300/85 text-neutral-300;
   }
 
   .expand {
-    @apply !h-16 !rounded-l-none !px-4;
+    @apply h-16! rounded-l-none! px-4!;
   }
 
   p {

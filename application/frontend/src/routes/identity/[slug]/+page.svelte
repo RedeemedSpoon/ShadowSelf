@@ -25,8 +25,10 @@
   let buttonWrapper = $state() as HTMLDivElement;
   let ws = $state() as WebSocket;
 
-  $identity = data.identity!;
   currentSection = (page.url.hash?.slice(1) || 'info') as Sections;
+  $effect(() => {
+    $identity = data.identity!;
+  });
 
   const className = {
     label: 'bg-neutral-900/50! border-neutral-700!',
@@ -237,7 +239,7 @@
   @reference "$style";
 
   #identity {
-    @apply mx-auto my-[10rem] flex w-3/4 flex-col items-center text-neutral-400 sm:w-5/6 xl:w-2/3;
+    @apply mx-auto my-40 flex w-3/4 flex-col items-center text-neutral-400 sm:w-5/6 xl:w-2/3;
   }
 
   h1 {
@@ -251,6 +253,6 @@
   }
 
   .main {
-    @apply !border-b-[3px] !border-neutral-300 !text-neutral-300;
+    @apply border-b-[3px]! border-neutral-300! text-neutral-300!;
   }
 </style>

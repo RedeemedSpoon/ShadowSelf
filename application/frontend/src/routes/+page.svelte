@@ -73,8 +73,8 @@
     <GridAndDotBackgrounds>
       <h1 class="text-center text-4xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
       <div id="account" class="mt-6 flex items-center justify-center gap-16 text-center text-balance max-lg:flex-col xl:gap-32">
-        <div class="flex flex-col items-center gap-8 sm:w-[30rem]">
-          <img src={registration} width="200" alt="Account Registration" class="max-sm:w-[150px]" />
+        <div class="flex flex-col items-center gap-8 sm:w-120">
+          <img src={registration} width="200" alt="Account Registration" class="max-sm:w-37.5" />
           <h2 style="background-image: linear-gradient(to bottom, #ef4444, #e11d48);" class="text-3xl font-bold sm:text-4xl">
             Account Registration
           </h2>
@@ -83,8 +83,8 @@
             being at risk.
           </p>
         </div>
-        <div class="flex flex-col items-center gap-8 sm:w-[30rem]">
-          <img src={management} width="200" alt="Account Managenent" class="max-sm:w-[150px]" />
+        <div class="flex flex-col items-center gap-8 sm:w-120">
+          <img src={management} width="200" alt="Account Managenent" class="max-sm:w-37.5" />
           <h2 style="background-image: linear-gradient(to bottom, #22c55e, #059669);" class="text-3xl font-bold sm:text-4xl">
             Account Managenent
           </h2>
@@ -120,9 +120,9 @@
   <section id={data.homepageIds[7]} class="relative mt-0! h-screen! overflow-hidden">
     <h1 class="text-center text-4xl text-wrap text-neutral-300 md:text-7xl">
       <div class="relative">
-        <Sparkle className="-top-4 right-[18rem]" size="w-9 h-9" delay={26} />
+        <Sparkle className="-top-4 right-72" size="w-9 h-9" delay={26} />
         <Sparkle className="-top-6 right-96" size="w-7 h-7" delay={45} />
-        <Sparkle className="-bottom-24 right-[24rem]" delay={12} />
+        <Sparkle className="-bottom-24 right-96" delay={12} />
       </div>
       Unlock<span class="pretty-style mx-3 italic">True</span>Privacy
     </h1>
@@ -141,7 +141,7 @@
   @reference "$style";
 
   section {
-    @apply h-fit min-h-[50rem] w-full transition-all duration-[1500ms] ease-in-out last:mb-0;
+    @apply h-fit min-h-200 w-full transition-all duration-1500 ease-in-out last:mb-0;
     @apply flex flex-col items-center justify-center gap-6 sm:py-16 2xl:py-32;
 
     &:nth-child(2),
@@ -151,11 +151,11 @@
     }
 
     &:nth-child(7) {
-      @apply !mb-0 bg-linear-to-b from-neutral-900 from-25% to-neutral-950/25;
+      @apply mb-0! bg-linear-to-b from-neutral-900 from-25% to-neutral-950/25;
     }
 
     &:nth-child(6) {
-      @apply max-lg:!my-0 min-[1536px]:max-[1720px]:!flex-col 2xl:!flex-row;
+      @apply max-lg:my-0! min-[1536px]:max-[1720px]:flex-col! 2xl:flex-row!;
     }
 
     #action {

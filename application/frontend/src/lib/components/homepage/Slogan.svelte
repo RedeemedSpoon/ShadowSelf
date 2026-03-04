@@ -37,7 +37,7 @@
   @reference "$style";
 
   #background {
-    @apply animate-scroll absolute inset-0 -z-10 h-full min-h-[50rem] w-full bg-cover bg-center bg-repeat-x;
+    @apply animate-scroll absolute inset-0 -z-10 h-full min-h-200 w-full bg-cover bg-center bg-repeat-x;
   }
 
   #underline-text {

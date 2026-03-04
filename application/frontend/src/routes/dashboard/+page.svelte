@@ -17,10 +17,12 @@
   let table = $state() as HTMLElement;
   let errorText = $state() as HTMLParagraphElement;
 
-  if (!$user) {
-    $user = data.user;
-    $token = data.token!;
-  }
+  $effect(() => {
+    if (!$user) {
+      $user = data.user;
+      $token = data.token!;
+    }
+  });
 
   const bottomLinks = {
     Issues: ['https://github.com/RedeemedSpoon/ShadowSelf/issues', IssuesIcon],
@@ -160,7 +162,7 @@
         You can craft as many identities as you want. They are completely isolated from each other and can be used for a variety of
         purposes.
       </p>
-      <img src={worldMap} alt="world map" class="absolute -z-20 w-full max-xl:top-[3rem]" />
+      <img src={worldMap} alt="world map" class="absolute -z-20 w-full max-xl:top-12" />
       <a href="/purchase">
         <button id="create-identity" class="flex items-center gap-1">
           Create an identity <ChevronIcon />
@@ -174,11 +176,11 @@
   @reference "$style";
 
   #dashboard {
-    @apply mx-auto mt-[10rem] mb-[4rem] flex h-fit w-5/6 flex-col gap-12;
+    @apply mx-auto mt-40 mb-16 flex h-fit w-5/6 flex-col gap-12;
   }
 
   #empty {
-    @apply relative mx-auto mt-8 flex min-h-[30rem] max-w-[60rem] flex-col items-center gap-6 text-center md:min-h-[40rem] lg:w-2/3;
+    @apply relative mx-auto mt-8 flex min-h-120 max-w-240 flex-col items-center gap-6 text-center md:min-h-160 lg:w-2/3;
   }
 
   button:not(#create-identity) {
@@ -205,6 +207,6 @@
   }
 
   #error {
-    @apply absolute inset-y-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl !text-neutral-500;
+    @apply absolute inset-y-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl text-neutral-500!;
   }
 </style>
