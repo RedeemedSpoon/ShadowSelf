@@ -1,8 +1,7 @@
-import {attempt} from '@utils/utils';
+import {QueryIdentity, QueryUser} from '@types';
 import {sql} from '@utils/connection';
 import {jwt} from '@elysiajs/jwt';
 import {Elysia} from 'elysia';
-import {QueryResultIdentify} from '@types';
 
 const error = (set: {[key: string]: unknown}, status: number, message: string) => {
   set.status = status;
@@ -23,7 +22,7 @@ export default (app: Elysia) =>
       let user;
 
       if (token.length === 32) {
-        const apiKey = await attempt(sql`SELECT email, api_key, api_access FROM users WHERE api_key = ${token}`);
+        const apiKey = (await sql`SELECT email, api_key, api_access FROM users WHERE api_key = ${token}`) as QueryUser[];
         if (!apiKey.length) return error(set, 401, 'You are not authenticated correctly');
         if (!apiKey[0].api_access) return error(set, 401, 'You disabled API access');
         user = {email: apiKey[0].email};
@@ -35,12 +34,11 @@ export default (app: Elysia) =>
       const excludedPaths = /(?:\/api\/proxy|\/api)\/?$|\/api\/test$/;
       if (excludedPaths.test(path)) return {user};
 
-      const identityID = (params as {id: string}).id;
-      const result = await attempt(sql`SELECT * FROM users WHERE email = ${user.email}`);
+      const givenID = (await sql`SELECT * FROM users WHERE email = ${user.email}`)[0]?.id;
+      const result = (await sql`SELECT * FROM identities WHERE id = ${params.id} AND owner = ${givenID}`) as QueryIdentity[];
 
-      const second_result = await attempt(sql`SELECT * FROM identities WHERE id = ${identityID} AND owner = ${result[0].id}`);
-      if (!second_result.length) return error(set, 400, 'Identity not found');
-      const identity = second_result[0] as unknown as QueryResultIdentify;
+      if (!result.length) return error(set, 400, 'Identity not found');
+      const identity = result[0];
 
       return {identity};
     });

@@ -1,14 +1,14 @@
-import {attempt, error} from '@utils/utils';
+import {APIRequest, QueryAccount} from '@types';
 import middleware from '@middleware-api';
 import {checkAPI} from '@utils/checks';
 import {sql} from '@utils/connection';
-import {APIRequest} from '@types';
+import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/account'})
   .use(middleware)
   .get('/:id', async ({identity}) => {
-    const accounts = await attempt(sql`SELECT * FROM accounts WHERE owner = ${identity!.id}`);
+    const accounts = (await sql`SELECT * FROM accounts WHERE owner = ${identity!.id}`) as QueryAccount[];
     const formattedAccounts = accounts.map((account) => ({
       id: account.id,
       username: account.username,
@@ -25,12 +25,10 @@ export default new Elysia({prefix: '/account'})
     const {err, username, password, website, totp, algorithm} = await checkAPI(body, fields);
     if (err) return error(set, 400, err);
 
-    const res = await attempt(
-      sql`INSERT INTO accounts (owner, username, password) VALUES (${identity!.id}, ${username!}, ${password!}) RETURNING id`,
-    );
-
-    if (website) await attempt(sql`UPDATE accounts SET website = ${website!} WHERE id = ${res[0].id}`);
-    if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${res[0].id!}`);
+    const res =
+      await sql`INSERT INTO accounts (owner, username, password) VALUES (${identity!.id}, ${username!}, ${password!}) RETURNING id`;
+    if (website) await sql`UPDATE accounts SET website = ${website!} WHERE id = ${res[0].id}`;
+    if (totp) await sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${res[0].id!}`;
 
     return {username, password, website, totp, algorithm, id: res[0].id};
   })
@@ -40,10 +38,10 @@ export default new Elysia({prefix: '/account'})
     if (err) return error(set, 400, err);
 
     const uid = identity!.id;
-    await attempt(sql`UPDATE accounts SET username = ${username!}, password = ${password!} WHERE id= ${id} AND owner = ${uid}`);
+    await sql`UPDATE accounts SET username = ${username!}, password = ${password!} WHERE id= ${id} AND owner = ${uid}`;
 
-    if (website) await attempt(sql`UPDATE accounts SET website = ${website!} WHERE id = ${id!}  AND owner = ${uid}`);
-    if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${id!} AND owner = ${uid}`);
+    if (website) await sql`UPDATE accounts SET website = ${website!} WHERE id = ${id!}  AND owner = ${uid}`;
+    if (totp) await sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${id!} AND owner = ${uid}`;
 
     return {username, password, website, totp, algorithm, id};
   })
@@ -56,8 +54,8 @@ export default new Elysia({prefix: '/account'})
       const {err, id, password, totp} = await checkAPI(account, fields);
       if (err) return error(set, 400, err);
 
-      await attempt(sql`UPDATE accounts SET password = ${password!} WHERE id = ${id!} AND owner = ${identity!.id}`);
-      if (totp) await attempt(sql`UPDATE accounts SET totp = ${totp!} WHERE id = ${id!} AND owner = ${identity!.id}`);
+      await sql`UPDATE accounts SET password = ${password!} WHERE id = ${id!} AND owner = ${identity!.id}`;
+      if (totp) await sql`UPDATE accounts SET totp = ${totp!} WHERE id = ${id!} AND owner = ${identity!.id}`;
     }
 
     return {accounts};
@@ -66,6 +64,6 @@ export default new Elysia({prefix: '/account'})
     const {err, id} = await checkAPI(body, ['id']);
     if (err) return error(set, 400, err);
 
-    await attempt(sql`DELETE FROM accounts WHERE id = ${id!} AND owner = ${identity!.id}`);
+    await sql`DELETE FROM accounts WHERE id = ${id!} AND owner = ${identity!.id}`;
     return {id};
   });

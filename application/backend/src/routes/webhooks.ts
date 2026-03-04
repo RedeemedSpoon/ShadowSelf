@@ -1,7 +1,8 @@
-import {attempt, error, parseMessage, request as req} from '@utils/utils';
 import {sql, stripe, twilio, WSConnections} from '@utils/connection';
+import {error, parseMessage, request as req} from '@utils/utils';
 import middleware from '@middleware';
 import twilioClient from 'twilio';
+import {QueryUser} from '@types';
 import {Elysia} from 'elysia';
 
 export default new Elysia()
@@ -29,15 +30,13 @@ export default new Elysia()
         const identityID = paymentIntent.metadata.id;
         const plan = paymentIntent.metadata.type;
 
-        const userQuery = await attempt(sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`);
+        const userQuery = (await sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`) as QueryUser[];
         const owner = userQuery[0].id;
 
-        const alreadyExists = await attempt(sql`SELECT id FROM identities WHERE id = ${identityID}`);
+        const alreadyExists = await sql`SELECT id FROM identities WHERE id = ${identityID}`;
         if (alreadyExists.length) return;
 
-        await attempt(
-          sql`INSERT INTO identities (id, owner, creation_date, plan, payment_intent) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${intentID})`,
-        );
+        await sql`INSERT INTO identities (id, owner, creation_date, plan, payment_intent) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${intentID})`;
       }
     }
 
@@ -53,21 +52,19 @@ export default new Elysia()
         const identityID = subscription.metadata!.id;
         const plan = subscription.metadata!.type;
 
-        const userQuery = await attempt(sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`);
+        const userQuery = (await sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`) as QueryUser[];
         const owner = userQuery[0].id;
 
-        const alreadyExists = await attempt(sql`SELECT id FROM identities WHERE id = ${identityID}`);
+        const alreadyExists = await sql`SELECT id FROM identities WHERE id = ${identityID}`;
         if (alreadyExists.length) return;
 
-        await attempt(
-          sql`INSERT INTO identities (id, owner, creation_date, plan, subscription_id) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${subscriptionID})`,
-        );
+        await sql`INSERT INTO identities (id, owner, creation_date, plan, subscription_id) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${subscriptionID})`;
       }
     }
 
     if (event.type === 'customer.subscription.deleted') {
       const subscriptionID = event.data.object.id;
-      const exist = await attempt(sql`SELECT id FROM identities WHERE subscription_id = ${subscriptionID}`);
+      const exist = await sql`SELECT id FROM identities WHERE subscription_id = ${subscriptionID}`;
       if (exist.length) await req('/billing/cancel', 'DELETE', {id: exist[0].id});
     }
 

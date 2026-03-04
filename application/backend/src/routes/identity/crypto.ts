@@ -1,9 +1,9 @@
 import {cryptoPrices, cryptoFees, getUtxoData, getEvmData, getXmrNode, ETH_API, BTC_API, LTC_API, USDT_CONTRACT} from '@utils/polling';
 import {sql, debounceCache} from '@utils/connection';
-import {attempt, error} from '@utils/utils';
 import {CryptoWalletResponse} from '@types';
 import middleware from '@middleware-api';
 import {checkAPI} from '@utils/checks';
+import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/crypto'})
@@ -38,7 +38,7 @@ export default new Elysia({prefix: '/crypto'})
       cryptoWallet.eth.balance * (cryptoPrices.eth?.usdPrice || 0) +
       cryptoWallet.usdt.balance * (cryptoPrices.usdt?.usdPrice || 0);
 
-    attempt(sql`UPDATE identities SET wallet_funds = ${totalFunds} WHERE id = ${identity!.id}`);
+    await sql`UPDATE identities SET wallet_funds = ${totalFunds} WHERE id = ${identity!.id}`;
 
     if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
     debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: cryptoWallet});
@@ -262,6 +262,6 @@ export default new Elysia({prefix: '/crypto'})
     const {blob, err} = await checkAPI(body, ['blob']);
     if (err) return error(set, 400, err);
 
-    await attempt(sql`UPDATE identities SET wallet_blob = ${blob} WHERE id = ${identity!.id}`);
+    await sql`UPDATE identities SET wallet_blob = ${blob} WHERE id = ${identity!.id}`;
     return {blob};
   });

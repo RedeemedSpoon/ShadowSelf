@@ -1,10 +1,10 @@
 import {debounceCache, sql} from '@utils/connection';
 import {generateProfile} from '@utils/prompts';
-import {attempt, error} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
 import middleware from '@middleware-api';
 import locations from '@utils/locations';
 import {checkAPI} from '@utils/checks';
+import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/identity'})
@@ -72,8 +72,8 @@ export default new Elysia({prefix: '/identity'})
     const {err, sex, ethnicity, age, name, bio, picture} = await checkAPI({...data1, ...data2, ...body!}, fields);
     if (err) return error(set, 400, err);
 
-    await attempt(sql`UPDATE identities SET sex = ${sex!}, ethnicity = ${ethnicity!}, age = ${age!} WHERE id = ${identity!.id}`);
-    await attempt(sql`UPDATE identities SET name = ${name!}, bio = ${bio!}, picture = ${picture!} WHERE id = ${identity!.id}`);
+    await sql`UPDATE identities SET sex = ${sex!}, ethnicity = ${ethnicity!}, age = ${age!} WHERE id = ${identity!.id}`;
+    await sql`UPDATE identities SET name = ${name!}, bio = ${bio!}, picture = ${picture!} WHERE id = ${identity!.id}`;
 
     return {sex, ethnicity, age, name, bio, picture};
   });

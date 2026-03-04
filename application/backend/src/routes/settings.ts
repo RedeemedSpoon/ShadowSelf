@@ -1,6 +1,7 @@
 import {createTOTP, getSecret, getAPIKey, createHash, getRecovery, checksum} from '@utils/cryptography';
-import {attempt, error, request} from '@utils/utils';
 import {sendOfficialEmail} from '@utils/email-smtp';
+import {QueryUser, QueryIdentity} from '@types';
+import {error, request} from '@utils/utils';
 import {sql} from '@utils/connection';
 import middleware from '@middleware';
 import {check} from '@utils/checks';
@@ -18,7 +19,7 @@ export default new Elysia({prefix: '/settings'})
     }
   })
   .get('/', async ({user}) => {
-    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
+    const result = (await sql`SELECT * FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const {email, recovery, totp, api_access, api_key} = result[0];
 
     const res = await request('/billing/portal', 'POST', {email});
@@ -27,7 +28,7 @@ export default new Elysia({prefix: '/settings'})
     return {sessionUrl, email, recovery: recovery || [], key: api_key, API: api_access, OTP: totp && true};
   })
   .get('/otp', async ({user}) => {
-    const result = await attempt(sql`SELECT username FROM users WHERE email = ${user!.email}`);
+    const result = (await sql`SELECT username FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const username = result[0].username;
 
     const secret = getSecret();
@@ -37,31 +38,31 @@ export default new Elysia({prefix: '/settings'})
     return {uri, secret};
   })
   .get('/recovery', async ({set, user}) => {
-    const otp = await attempt(sql`SELECT totp FROM users WHERE email = ${user!.email}`);
+    const otp = (await sql`SELECT totp FROM users WHERE email = ${user!.email}`) as QueryUser[];
     if (!otp[0].totp) return error(set, 400, '2FA is disabled. Enable it to proceed');
 
     const recoveryCodes = getRecovery();
-    await attempt(sql`UPDATE users SET recovery = ${recoveryCodes} WHERE email = ${user!.email}`);
+    await sql`UPDATE users SET recovery = ${recoveryCodes} WHERE email = ${user!.email}`;
 
     return {recovery: recoveryCodes};
   })
   .get('/api-access', async ({user}) => {
-    const access = await attempt(sql`SELECT api_access FROM users WHERE email = ${user!.email}`);
+    const access = (await sql`SELECT api_access FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const toggle = !access[0].api_access;
 
-    await attempt(sql`UPDATE users SET api_access = ${toggle} WHERE email = ${user!.email}`);
+    await sql`UPDATE users SET api_access = ${toggle} WHERE email = ${user!.email}`;
     return {API: toggle};
   })
   .get('/api-key', async ({set, user}) => {
-    const access = await attempt(sql`SELECT api_access FROM users WHERE email = ${user!.email}`);
+    const access = (await sql`SELECT api_access FROM users WHERE email = ${user!.email}`) as QueryUser[];
     if (!access[0].api_access) return error(set, 400, 'API access is disabled. Enable it to proceed');
 
     const key = getAPIKey();
-    await attempt(sql`UPDATE users SET api_key = ${key} WHERE email = ${user!.email}`);
+    await sql`UPDATE users SET api_key = ${key} WHERE email = ${user!.email}`;
     return {key};
   })
   .get('/revoke', async ({user}) => {
-    await attempt(sql`UPDATE users SET revoke_session = ARRAY[]::varchar(8)[] WHERE email = ${user!.email}`);
+    await sql`UPDATE users SET revoke_session = ARRAY[]::varchar(8)[] WHERE email = ${user!.email}`;
   })
   .post('/otp-check', async ({set, body}) => {
     const {err, secret, token} = check(body, ['token', 'secret']);
@@ -77,7 +78,7 @@ export default new Elysia({prefix: '/settings'})
     if (err) return error(set, 400, err);
 
     const recoveryCodes = getRecovery();
-    await attempt(sql`UPDATE users SET totp = ${secret}, recovery = ${recoveryCodes} WHERE email = ${user!.email}`);
+    await sql`UPDATE users SET totp = ${secret}, recovery = ${recoveryCodes} WHERE email = ${user!.email}`;
 
     return {recovery: recoveryCodes};
   })
@@ -99,7 +100,7 @@ export default new Elysia({prefix: '/settings'})
     if (access !== accessToken) return error(set, 400, 'Invalid access token. Please Try again');
 
     await request('/billing/customer', 'PATCH', {oldEmail: user!.email, email});
-    await attempt(sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`);
+    await sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`;
 
     const cookievalue = await jwt.sign({email, id: user!.id});
     return {cookie: cookievalue};
@@ -108,7 +109,7 @@ export default new Elysia({prefix: '/settings'})
     const {err, email} = check(body, ['email']);
     if (err) return error(set, 400, err);
 
-    const result = await attempt(sql`SELECT * FROM users WHERE email = ${email}`);
+    const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
     if (result.length) return error(set, 400, 'Email address is already registered on our systems');
 
     const accessToken = checksum(email);
@@ -121,27 +122,27 @@ export default new Elysia({prefix: '/settings'})
     const {err, username} = check(body, ['username']);
     if (err) return error(set, 400, err);
 
-    await attempt(sql`UPDATE users SET username = ${username} WHERE email = ${user!.email}`);
+    await sql`UPDATE users SET username = ${username} WHERE email = ${user!.email}`;
   })
   .put('/password', async ({set, user, body}) => {
     const {err, password} = check(body, ['password']);
     if (err) return error(set, 400, err);
 
     const hashedPassword = await createHash(password);
-    await attempt(sql`UPDATE users SET password = ${hashedPassword} WHERE email = ${user!.email}`);
+    await sql`UPDATE users SET password = ${hashedPassword} WHERE email = ${user!.email}`;
   })
   .delete('/otp', async ({user}) => {
-    await attempt(sql`UPDATE users SET totp = NULL WHERE email = ${user!.email}`);
-    await attempt(sql`UPDATE users SET recovery = ARRAY[]::varchar(9)[] WHERE email = ${user!.email}`);
+    await sql`UPDATE users SET totp = NULL WHERE email = ${user!.email}`;
+    await sql`UPDATE users SET recovery = ARRAY[]::varchar(9)[] WHERE email = ${user!.email}`;
   })
   .delete('/full', async ({user}) => {
-    const account = await attempt(sql`SELECT id FROM users WHERE email = ${user!.email}`);
-    const allPurchases = await attempt(sql`SELECT * FROM identities WHERE owner = ${account?.[0].id}`);
+    const account = (await sql`SELECT id FROM users WHERE email = ${user!.email}`) as QueryUser[];
+    const allPurchases = (await sql`SELECT * FROM identities WHERE owner = ${account?.[0].id}`) as QueryIdentity[];
 
     for (const purchase of allPurchases) {
       await request('/billing/cancel', 'DELETE', {id: purchase.id});
     }
 
     await request('/billing/customer', 'DELETE', {email: user!.email});
-    await attempt(sql`DELETE FROM users WHERE email = ${user!.email}`);
+    await sql`DELETE FROM users WHERE email = ${user!.email}`;
   });

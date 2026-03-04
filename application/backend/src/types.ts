@@ -2,7 +2,6 @@ import {ImapSimple} from 'imap-simple';
 import {ElysiaWS} from 'elysia/ws';
 
 export type User = {email: string; id: string} | undefined;
-export type QueryResult = QueryResultUser & QueryResultIdentify & QueryResultAccount;
 export type Attachment = {filename: string; data: string};
 export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
 
@@ -69,7 +68,7 @@ export interface BodyField {
   err: string;
 }
 
-export interface QueryResultUser {
+export interface QueryUser {
   id: number;
   username: string;
   password: string;
@@ -82,7 +81,7 @@ export interface QueryResultUser {
   api_key: string;
 }
 
-export interface QueryResultIdentify {
+export interface QueryIdentity {
   id: string;
   owner: number;
   creation_date: Date;
@@ -107,7 +106,7 @@ export interface QueryResultIdentify {
   wallet_funds: number;
 }
 
-export interface QueryResultAccount {
+export interface QueryAccount {
   id: string;
   owner: string;
   username: string;

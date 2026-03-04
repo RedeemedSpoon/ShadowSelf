@@ -1,6 +1,7 @@
-import {attempt, toTitleCase, error, proxyRequest} from '@utils/utils';
+import {toTitleCase, error, proxyRequest} from '@utils/utils';
 import {sql, stripe, origin, twilio} from '@utils/connection';
 import {generateIdentityID} from '@utils/cryptography';
+import type {QueryIdentity, QueryUser} from '@types';
 import {pricingModal, pricingTable} from '@types';
 import middleware from '@middleware';
 import {check} from '@utils/checks';
@@ -22,7 +23,7 @@ export default new Elysia({prefix: '/billing'})
     const {email, err} = check(body, ['email']);
     if (err) return error(set, 400, err);
 
-    const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${email}`);
+    const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
     if (!customer[0].stripe_customer) return {sessionUrl: ''};
 
     const hasPaymentMethod = await stripe.paymentMethods.list({customer: customer[0].stripe_customer, type: 'card'});
@@ -42,7 +43,7 @@ export default new Elysia({prefix: '/billing'})
     if (!type) return error(set, 400, 'Missing or invalid query type. Try again');
     if (!pricingModal[type]) return error(set, 400, 'Invalid query type. Try again');
 
-    const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`);
+    const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const customerID = customer[0]?.stripe_customer;
 
     const request = await stripe.customers.retrieve(customerID);
@@ -96,7 +97,7 @@ export default new Elysia({prefix: '/billing'})
     if (!type) return error(set, 400, 'Missing or invalid query type. Try again');
     if (!pricingModal[type]) return error(set, 400, 'Invalid query type. Try again');
 
-    const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`);
+    const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const customerID = customer[0]?.stripe_customer;
 
     const request = await stripe.customers.retrieve(customerID);
@@ -149,7 +150,7 @@ export default new Elysia({prefix: '/billing'})
     const {err, id} = check(body, ['id']);
     if (err) return error(set, 400, err);
 
-    const identity = (await attempt(sql`SELECT * FROM identities WHERE id = ${id}`))?.[0] || null;
+    const identity = (await sql`SELECT * FROM identities WHERE id = ${id}`)?.[0] as QueryIdentity;
     if (!identity) return error(set, 404, 'Identity not found');
 
     const intent = identity.payment_intent;
@@ -180,8 +181,8 @@ export default new Elysia({prefix: '/billing'})
     const country = identity.location.split(', ')[0].toLowerCase();
     await proxyRequest(country, 'DELETE', {username: identity.id});
 
-    await attempt(sql`DELETE FROM accounts WHERE owner = ${identity.id}`);
-    await attempt(sql`DELETE FROM identities WHERE id = ${identity.id}`);
+    await sql`DELETE FROM accounts WHERE owner = ${identity.id}`;
+    await sql`DELETE FROM identities WHERE id = ${identity.id}`;
 
     return {success: true};
   })
@@ -195,13 +196,13 @@ export default new Elysia({prefix: '/billing'})
         const customer = await stripe.customers.create(object);
 
         if (payment) await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
-        await attempt(sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`);
+        await sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`;
       })
       .put('/', async ({set, body}) => {
         const {email, payment, err} = check(body, ['email']);
         if (err) return error(set, 400, err);
 
-        const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${email}`);
+        const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
         await stripe.paymentMethods.attach(payment, {customer: customer[0]?.stripe_customer});
         await stripe.customers.update(customer[0]?.stripe_customer, {invoice_settings: {default_payment_method: payment}});
       })
@@ -210,7 +211,7 @@ export default new Elysia({prefix: '/billing'})
         if (err) return error(set, 400, err);
 
         const oldEmail = (body as {oldEmail: string})?.oldEmail;
-        const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${oldEmail}`);
+        const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${oldEmail}`) as QueryUser[];
         const id = customer[0]?.stripe_customer || '';
 
         if (id) await stripe.customers.update(id, {email});
@@ -219,7 +220,7 @@ export default new Elysia({prefix: '/billing'})
         const {email, err} = check(body, ['email']);
         if (err) return error(set, 400, err);
 
-        const customer = await attempt(sql`SELECT stripe_customer FROM users WHERE email = ${email}`);
+        const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
         const id = customer[0]?.stripe_customer || '';
 
         if (id) await stripe.customers.del(customer[0].stripe_customer);

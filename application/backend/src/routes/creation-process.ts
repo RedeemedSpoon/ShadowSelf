@@ -1,9 +1,9 @@
+import {User, CreationProcess, QueryIdentity, QueryUser} from '@types';
 import {generateProxyPassword, checksum} from '@utils/cryptography';
 import {sql, twilio, origin} from '@utils/connection';
-import {attempt, proxyRequest} from '@utils/utils';
 import {generateProfile} from '@utils/prompts';
-import {User, CreationProcess} from '@types';
 import {checkIdentity} from '@utils/checks';
+import {proxyRequest} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
 import locations from '@utils/locations';
 import middleware from '@middleware';
@@ -20,8 +20,8 @@ export default new Elysia({websocket: {idleTimeout: 300}})
     if (!user) return;
 
     const {id} = body as {id: string};
-    const account = await attempt(sql`SELECT * FROM users WHERE email = ${user?.email}`);
-    const identity = await attempt(sql`SELECT * FROM identities WHERE id = ${id}`);
+    const account = (await sql`SELECT * FROM users WHERE email = ${user?.email}`) as QueryUser[];
+    const identity = (await sql`SELECT * FROM identities WHERE id = ${id}`) as QueryIdentity[];
 
     if (!identity.length) return;
     if (identity[0].owner !== account[0].id) return;
@@ -194,16 +194,17 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const messagingService = twilio.messaging.v1.services(process.env.TWILIO_MESSAGING_SERVICE!);
           messagingService.phoneNumbers.create({phoneNumberSid: result.sid});
 
-          await attempt(sql`UPDATE identities SET location = ${fullLocation}, proxy_server = ${proxyServer} WHERE id = ${identityID}`);
-          await attempt(sql`UPDATE identities SET proxy_password = ${proxyPassword} WHERE id = ${identityID}`);
-          await attempt(sql`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`);
-          await attempt(sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`);
+          await sql`UPDATE identities SET location = ${fullLocation}, proxy_server = ${proxyServer} WHERE id = ${identityID}`;
+          await sql`UPDATE identities SET proxy_password = ${proxyPassword} WHERE id = ${identityID}`;
 
-          await attempt(sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`);
-          await attempt(sql`UPDATE identities SET phone = ${phone}  WHERE id = ${identityID}`);
+          await sql`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`;
+          await sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`;
 
-          await attempt(sql`UPDATE identities SET wallet_blob = ${wallet.blob}, wallet_keys = ${walletKeys} WHERE id = ${identityID}`);
-          await attempt(sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`);
+          await sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`;
+          await sql`UPDATE identities SET phone = ${phone}  WHERE id = ${identityID}`;
+
+          await sql`UPDATE identities SET wallet_blob = ${wallet.blob}, wallet_keys = ${walletKeys} WHERE id = ${identityID}`;
+          await sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`;
 
           cookie.remove();
           ws.send({done: true});

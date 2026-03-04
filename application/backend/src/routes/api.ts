@@ -1,6 +1,7 @@
-import {attempt, error, resizeImage} from '@utils/utils';
 import {sql, WSConnections} from '@utils/connection';
 import {listenForEmail} from '@utils/email-imap';
+import {error, resizeImage} from '@utils/utils';
+import {QueryIdentity, QueryUser} from '@types';
 import middleware from '@middleware-api';
 import {Elysia} from 'elysia';
 
@@ -15,7 +16,8 @@ export default new Elysia()
   .group('/api', (app) => app.use(crypto).use(phone).use(email).use(account).use(information))
   .get('/api/test', () => 'Authentication is working ;)')
   .get('/api', async ({set, user}) => {
-    const result = await attempt(sql` SELECT * FROM users u JOIN identities i ON u.id = i.owner WHERE u.email = ${user!.email}`);
+    const result =
+      (await sql` SELECT * FROM users u JOIN identities i ON u.id = i.owner WHERE u.email = ${user!.email}`) as QueryIdentity[];
     if (!result.length) return error(set, 400, 'No identities were found');
 
     const allIdentitiesPromises = result.map(async (identity) => {
@@ -24,7 +26,7 @@ export default new Elysia()
 
       const country = identity.location.split(',')[0];
       const location = identity.location.slice(4).trim();
-      const accounts = (await attempt(sql`SELECT * FROM accounts WHERE owner = ${id}`))?.length;
+      const accounts = (await sql`SELECT * FROM accounts WHERE owner = ${id}`)?.length;
       const picture = await resizeImage(identity.picture);
 
       return {id, name, email, phone, country, picture, location, accounts, walletFunds: wallet_funds};
@@ -33,11 +35,11 @@ export default new Elysia()
     return await Promise.all(allIdentitiesPromises);
   })
   .get('/api/proxy', async ({set, user}) => {
-    const result = await attempt(sql`SELECT * FROM users WHERE email = ${user!.email}`);
+    const result = (await sql`SELECT * FROM users WHERE email = ${user!.email}`) as QueryUser[];
     if (!result.length) return error(set, 400, 'User not found');
 
     const {username, id} = result[0];
-    const allIdentities = await attempt(sql`SELECT * FROM identities WHERE owner = ${id}`);
+    const allIdentities = (await sql`SELECT * FROM identities WHERE owner = ${id}`) as QueryIdentity[];
     if (!allIdentities.length) return {username, identities: []};
 
     const identitiesPromises = allIdentities.map(async (identity) => {
