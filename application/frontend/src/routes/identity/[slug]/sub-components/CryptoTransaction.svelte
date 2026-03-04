@@ -332,7 +332,7 @@
       <div class="flex flex-col gap-2">
         <label for="fees">Network Priority (Miner Fee)</label>
         <div class="grid grid-cols-3 gap-2">
-          {#each ['low', 'medium', 'high'] as p}
+          {#each ['low', 'medium', 'high'] as p (p)}
             <div
               aria-hidden="true"
               class="fee-box {selectedPriority === p && 'selected'}"
@@ -375,7 +375,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-neutral-800 select-none">
-            {#each crypto.wallet[$currentCrypto as 'btc'].utxos as utxo}
+            {#each crypto.wallet[$currentCrypto as 'btc'].utxos as utxo (utxo.txid)}
               <tr class="cursor-pointer hover:bg-neutral-800/40" onclick={() => toggleUtxo(utxo)}>
                 <td class="p-2">
                   <input type="checkbox" checked={selectedUtxos.includes(utxo)} />

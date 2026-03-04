@@ -89,7 +89,7 @@ export default async function initMoneroScan(
 
           const displayPercent = Number(Math.max(0, Math.min(100, percent)).toFixed(2));
           onProgress(displayPercent, Math.max(0, scanned), Math.max(0, totalBlocks));
-        } catch (e) {}
+        } catch (_) {}
       }, 2000);
 
       await wallet.sync(undefined, undefined, true);
@@ -129,7 +129,7 @@ export default async function initMoneroScan(
       });
 
       await wallet.close();
-    } catch (e) {
+    } catch (_) {
       onError();
     }
   };

@@ -23,6 +23,9 @@ export default defineConfig([
   {
     rules: {
       'no-unused-vars': 'off',
+      'no-empty': ['error', {allowEmptyCatch: true}],
+      'svelte/no-navigation-without-resolve': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {

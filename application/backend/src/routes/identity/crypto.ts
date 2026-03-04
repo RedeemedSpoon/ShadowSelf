@@ -9,11 +9,11 @@ import {Elysia} from 'elysia';
 export default new Elysia({prefix: '/crypto'})
   .use(middleware)
   .get('/xmr-node/:id', async ({identity}) => ({
-    startingDate: identity?.creation_date!,
+    startingDate: identity?.creation_date ?? new Date(),
     ...(await getXmrNode()),
   }))
   .get('/:id', async ({identity}) => {
-    const {btc, ltc, evm} = identity?.wallet_keys!;
+    const {btc, ltc, evm} = identity!.wallet_keys;
 
     const REQUEST_TYPE = 'Wallet Overview';
     const DEBOUNCE_DURATION = 60_000;
@@ -160,7 +160,7 @@ export default new Elysia({prefix: '/crypto'})
         providerTradeId: data.id_provider,
         externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
       };
-    } catch (e) {
+    } catch (_) {
       return error(set, 502, 'Upstream Service Error');
     }
   })

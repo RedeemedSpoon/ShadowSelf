@@ -202,9 +202,7 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
         })),
       ),
     );
-  } catch {
-    // ignore this please
-  }
+  } catch {}
 
   if (!message.attributes.flags.includes('\\Seen')) {
     await connection.addFlags(message.attributes.uid, ['\\Seen']);

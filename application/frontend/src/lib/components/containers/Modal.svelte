@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {writable} from 'svelte/store';
   import type {Snippet} from 'svelte';
   import {activeModal} from '$store';
 
@@ -8,15 +9,15 @@
   }
 
   let {children, id = 1}: Props = $props();
-  let hide = $state(true);
+  let hide = writable(true);
 
   $effect(() => {
-    hide = $activeModal !== id;
+    $hide = $activeModal !== id;
   });
 </script>
 
-<div id="backdrop" onclick={() => ($activeModal = 0)} aria-hidden="true" class={hide ? 'hidden' : 'no-scroll'}></div>
-<div id="modal" class:!hidden={hide}>
+<div id="backdrop" onclick={() => ($activeModal = 0)} aria-hidden="true" class={$hide ? 'hidden' : 'no-scroll'}></div>
+<div id="modal" class:!hidden={$hide}>
   {@render children?.()}
 </div>
 

@@ -106,7 +106,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   });
 
   // --- 5. CRYPTO PAYMENT SECTION ---
-  // @ts-ignore
+  // @ts-expect-error Shenanigans
   let finalY = doc.lastAutoTable.finalY + 15;
   if (finalY > 230) {
     doc.addPage();

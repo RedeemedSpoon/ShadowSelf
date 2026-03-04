@@ -45,7 +45,7 @@
       const decodedText = await fileScanner.scanFileV2(imageFile, true);
       onScan(decodedText as unknown as string);
       close();
-    } catch (err) {
+    } catch (_) {
       close();
     }
   }

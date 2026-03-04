@@ -313,7 +313,7 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-neutral-800">
-        {#each crypto.wallet[$currentCrypto].history as transaction}
+        {#each crypto.wallet[$currentCrypto].history as transaction (transaction.txid)}
           <tr class="transition-colors hover:bg-neutral-800/40">
             <td class="text-xs font-bold tracking-wide uppercase {transaction.type}">{transaction.type}</td>
             <td class="font-medium text-neutral-300">{transaction.amount}</td>

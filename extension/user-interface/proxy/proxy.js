@@ -104,7 +104,6 @@ async function getBandwidthSpeed() {
   const responses = await Promise.all([downloadPromise, uploadPromise]);
 
   for (let i = 0; i < responses.length; i++) {
-    let speed = 0;
     const element = i === 0 ? download : upload;
     const start = i === 0 ? downloadStart : uploadStart;
     const sizeBytes = i === 0 ? 10 * 1024 * 1024 : 1024 * 1024;
@@ -115,7 +114,7 @@ async function getBandwidthSpeed() {
       const isVPNStillEnabled = await read('isVPNEnabled');
 
       if (duration > 0 && isVPNStillEnabled === 'on') {
-        speed = (sizeBytes * 8) / duration / 1000000;
+        const speed = (sizeBytes * 8) / duration / 1000000;
         element.textContent = speed.toFixed(2);
       }
     }

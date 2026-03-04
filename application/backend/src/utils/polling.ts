@@ -151,7 +151,7 @@ export async function getEvmData(coin: 'eth' | 'usdt', address: string) {
     }
 
     return {status: 'Synced', balance: balance || 0, nonce, history};
-  } catch (e) {
+  } catch (_) {
     return {status: 'Network Error', balance: 0, nonce: 0, history: []};
   }
 }
@@ -174,7 +174,7 @@ export async function getXmrNode() {
     }
 
     return {status, nodeUrl: XMR_NODE};
-  } catch (e) {
+  } catch (_) {
     return {status: 'Network Error', nodeUrl: XMR_NODE};
   }
 }
@@ -185,7 +185,7 @@ async function safeFetch(url: string, fallback: any, options?: RequestInit) {
     const res = await fetch(url, options);
     if (!res.ok) return fallback;
     return await res.json();
-  } catch (e) {
+  } catch (_) {
     return fallback;
   }
 }
