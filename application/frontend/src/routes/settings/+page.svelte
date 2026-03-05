@@ -21,6 +21,8 @@
   let anchor = $state() as HTMLAnchorElement;
   let card = $state() as StripeCardElement;
   let newEmailValue = $state() as string;
+  let stripeLoaded = $state(false);
+  let isStripeLoading = false;
   let stripe = $state() as Stripe;
 
   const settings = $state((() => data.settings)());
@@ -40,6 +42,11 @@
   ];
 
   $effect(() => {
+    if ($activeModal === 3 && !stripeLoaded && !isStripeLoading && data.stripeKey) {
+      isStripeLoading = true;
+      initStripe(data.stripeKey);
+    }
+
     if (form?.message) notify(form.message, form.type);
     if (settings?.message) notify(settings.message, settings.type);
 
@@ -80,6 +87,7 @@
   };
 
   async function initStripe(stripeKey: string) {
+    pendingID.set(5);
     loadStripe.setLoadParameters({advancedFraudSignals: false});
     stripe = (await loadStripe(stripeKey)) as Stripe;
 
@@ -93,7 +101,11 @@
       },
     });
 
-    setTimeout(() => card.mount('#payment'), 300);
+    setTimeout(() => {
+      card.mount('#payment');
+      stripeLoaded = true;
+      pendingID.set(0);
+    }, 300);
     return 9;
   }
 
@@ -118,13 +130,13 @@
     handleClick(0);
     $activeModal = 0;
     settings.step = 1;
-    if (data.stripeKey && !settings.sessionUrl) initStripe(data.stripeKey);
   });
 </script>
 
 <svelte:head>
   <title>ShadowSelf - Settings</title>
   <meta name="description" content="Change your account settings here and keep yourself secure" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
 </svelte:head>
 
 <div id="settings">
@@ -297,9 +309,11 @@
   <form class="flex-col! p-8" use:enhance={() => awaitPending(true, 5)} method="POST" action="?/payment">
     <h1 class="-mb-2!">Enter your credit card details</h1>
     <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
-    <div id="payment"></div>
+    <div id="payment" class={!stripeLoaded ? 'hidden' : ''}></div>
     <input hidden name="paymentID" />
-    <LoadingButton type="button" onclick={submitPayment} index={5}>Add Payment Method</LoadingButton>
+    {#if stripeLoaded}
+      <LoadingButton type="button" onclick={submitPayment} index={5}>Add Payment Method</LoadingButton>
+    {/if}
     <button hidden type="submit" id="submit-payment">Submit</button>
   </form>
 </Modal>

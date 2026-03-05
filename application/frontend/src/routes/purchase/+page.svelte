@@ -10,7 +10,6 @@
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';
   import {page} from '$app/state';
-  import {onMount} from 'svelte';
 
   interface Props {
     data: PageData;
@@ -28,6 +27,8 @@
   let cardName = $state() as Billing['cardName'];
   let last4 = $state() as Billing['last4'];
   let step = $state() as Billing['step'];
+  let stripeLoaded = $state(false);
+  let isStripeLoading = false;
 
   const features = [
     'Personal Attributes',
@@ -40,6 +41,11 @@
   ];
 
   $effect(() => {
+    if ($activeModal === 1 && !stripeLoaded && !isStripeLoading) {
+      isStripeLoading = true;
+      initStripe();
+    }
+
     if (form?.message) notify(form.message, form.type);
     if (form?.clientSecret) clientSecret = form.clientSecret;
     if (form?.identityID) identityID = form.identityID;
@@ -52,11 +58,6 @@
     }
   });
 
-  onMount(async () => {
-    loadStripe.setLoadParameters({advancedFraudSignals: false});
-    stripe = (await loadStripe(data.stripeKey)) as Stripe;
-  });
-
   function changeModel(model: string) {
     const chosenModel = model.toLowerCase() as keyof typeof allPricingModels;
     pricingModel.set({name: model, ...allPricingModels[chosenModel]});
@@ -66,31 +67,14 @@
     switch (step) {
       case 'create': {
         if (!clientSecret) return setTimeout(() => handleCheckout(), 100);
-        if (paymentElement) paymentElement.unmount();
+        if (paymentElement) {
+          paymentElement.unmount();
+          paymentElement.destroy();
+        }
 
-        const appearance = {
-          theme: 'flat',
-          variables: {
-            colorPrimary: '#4338ca',
-            colorBackground: '#1e293b',
-            colorText: '#cbd5e1',
-            colorDanger: '#ef4444',
-            fontFamily: 'Inter, sans-serif',
-            borderRadius: '8px',
-          },
-          rules: {
-            '.Input': {border: '2px solid #374151', backgroundColor: '#131c2e', color: '#cbd5e1'},
-            '.Input:focus': {borderColor: '#4f46e5', boxShadow: '0 0 0 1px #4f46e5'},
-          },
-        } as Appearance;
+        stripeLoaded = false;
+        isStripeLoading = false;
 
-        elements = stripe.elements({clientSecret, appearance});
-        paymentElement = elements.create('payment', {layout: 'tabs'});
-
-        const mountPoint = document.getElementById('payment-element');
-        paymentElement.mount(mountPoint!);
-
-        clientSecret = '';
         $activeModal = 1;
         break;
       }
@@ -113,6 +97,38 @@
     }
   }
 
+  async function initStripe() {
+    $pendingID = 2;
+    loadStripe.setLoadParameters({advancedFraudSignals: false});
+    stripe = (await loadStripe(data.stripeKey)) as Stripe;
+
+    const appearance = {
+      theme: 'flat',
+      variables: {
+        colorPrimary: '#4338ca',
+        colorBackground: '#1e293b',
+        colorText: '#cbd5e1',
+        colorDanger: '#ef4444',
+        fontFamily: 'Inter, sans-serif',
+        borderRadius: '8px',
+      },
+      rules: {
+        '.Input': {border: '2px solid #374151', backgroundColor: '#131c2e', color: '#cbd5e1'},
+        '.Input:focus': {borderColor: '#4f46e5', boxShadow: '0 0 0 1px #4f46e5'},
+      },
+    } as Appearance;
+
+    elements = stripe.elements({clientSecret, appearance});
+    paymentElement = elements.create('payment', {layout: 'tabs'});
+
+    setTimeout(() => {
+      const mountPoint = document.getElementById('payment-element');
+      paymentElement.mount(mountPoint!);
+      stripeLoaded = true;
+      $pendingID = 0;
+    }, 300);
+  }
+
   async function completePayment() {
     $pendingID = 2;
     const returnUrl = page.url.origin + '/create?id=' + identityID;
@@ -128,6 +144,7 @@
 <svelte:head>
   <title>ShadowSelf - Purchase</title>
   <meta name="description" content="Purchase an affordable identity to protect your privacy and safeguard your data." />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
 </svelte:head>
 
 <div id="purchase">
@@ -175,8 +192,10 @@
 <Modal id={1}>
   <div class="m-4 flex flex-col gap-8">
     <h3 class="text-center text-4xl font-bold text-neutral-300">Checkout</h3>
-    <div id="payment-element" class="min-h-80 min-w-96"></div>
-    <LoadingButton name="pay" index={2} onclick={completePayment}>Pay ${$pricingModel.price}</LoadingButton>
+    <div id="payment-element" class="min-h-80 min-w-96 {!stripeLoaded ? 'hidden' : ''}"></div>
+    {#if stripeLoaded}
+      <LoadingButton name="pay" index={2} onclick={completePayment}>Pay ${$pricingModel.price}</LoadingButton>
+    {/if}
   </div>
 </Modal>
 

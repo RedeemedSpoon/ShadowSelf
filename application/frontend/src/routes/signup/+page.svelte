@@ -17,12 +17,22 @@
 
   let anchor = $state() as HTMLAnchorElement;
   let card = $state() as StripeCardElement;
-  let stripe = $state() as Stripe;
   let key = $state() as string | undefined;
+  let stripeLoaded = $state(false);
+  let stripe = $state() as Stripe;
+  let isStripeLoading = false;
 
   $effect(() => {
+    if ($currentStep === 9 && !stripeLoaded && !isStripeLoading && key) {
+      isStripeLoading = true;
+      initStripe(key);
+    } else if ($currentStep !== 9 && stripeLoaded) {
+      stripeLoaded = false;
+      isStripeLoading = false;
+      if (card) card.destroy();
+    }
+
     if (form && Object.hasOwn(form, 'stripeKey')) key = form.stripeKey;
-    if (key) initStripe(key);
 
     if (form?.message) notify(form.message, form.type);
     if (form?.step) currentStep.set(Number(form?.step));
@@ -45,6 +55,7 @@
   }
 
   async function initStripe(stripeKey: string) {
+    pendingID.set(1);
     loadStripe.setLoadParameters({advancedFraudSignals: false});
     stripe = (await loadStripe(stripeKey)) as Stripe;
 
@@ -62,11 +73,15 @@
       },
     });
 
-    setTimeout(() => card.mount('#payment'), 300);
+    setTimeout(() => {
+      card.mount('#payment');
+      stripeLoaded = true;
+      pendingID.set(0);
+    }, 300);
     return 9;
   }
 
-  async function pay() {
+  async function createCard() {
     pendingID.set(1);
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -86,7 +101,7 @@
   async function backStep() {
     let step = get(currentStep) - 1;
     step = step === 7 && !secret ? 4 : step;
-    step = step === 9 ? (!key ? 8 : await initStripe(key!)) : step;
+    step = step === 9 ? (!key ? 8 : 9) : step;
     currentStep.set(step);
   }
 </script>
@@ -94,6 +109,7 @@
 <svelte:head>
   <title>ShadowSelf - Sign Up</title>
   <meta name="description" content="Sign up and create your account to start using ShadowSelf today" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
 </svelte:head>
 
 <Steps>
@@ -198,9 +214,11 @@
   <StepsItem {backStep} index={9} action="addBilling">
     <h1 class="-mb-2!">Enter your credit card details</h1>
     <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
-    <div id="payment"></div>
+    <div id="payment" class={!stripeLoaded ? 'hidden' : ''}></div>
     <input hidden name="paymentID" />
-    <LoadingButton type="button" onclick={pay}>Add Payment Method</LoadingButton>
+    {#if stripeLoaded}
+      <LoadingButton type="button" onclick={createCard}>Add Payment Method</LoadingButton>
+    {/if}
     <button hidden type="submit" id="submit-payment">Submit</button>
   </StepsItem>
 
