@@ -1,20 +1,15 @@
 import {imapConnection, WSConnections} from './connection';
 import MailComposer from 'nodemailer/lib/mail-composer';
-import PostalMime from 'postal-mime';
+import {simpleParser} from 'mailparser';
 import {EmailContent} from '@types';
 import imap from 'imap-simple';
-// @ts-expect-error No declaration file
-import mimelib from 'mimelib';
 
 export async function listenForEmail(user: string, password: string) {
   async function onmail(mail: number) {
     if (mail > 1) return;
 
     await connection.openBox('INBOX');
-    const messages = await connection.search([`UNSEEN`], {
-      bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
-      struct: true,
-    });
+    const messages = await connection.search([`UNSEEN`], {bodies: ['']});
 
     for (const message of messages) {
       const email = await parseMassage(connection, message);
@@ -71,10 +66,7 @@ export async function fetchEmail(user: string, password: string, isReply: boolea
     await connection.openBox(mailbox);
     const query = isReply ? [['HEADER', 'MESSAGE-ID', uuid]] : [['UID', uuid]];
 
-    const message = await connection.search(query, {
-      bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
-      struct: true,
-    });
+    const message = await connection.search(query, {bodies: ['']});
 
     if (message.length === 0) continue;
     reply = await parseMassage(connection, message[0]);
@@ -115,10 +107,7 @@ export async function appendToMailbox(asDraft: boolean, content: EmailContent & 
   const RFC822Message = await mail.compile().build();
   await connection.append(RFC822Message, {flags: ['\\Seen']});
 
-  const message = await connection.search([['SINCE', shownDate]], {
-    bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
-    struct: true,
-  });
+  const message = await connection.search([['SINCE', shownDate]], {bodies: ['']});
 
   const type = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(content.body) ? 'html' : 'text';
   const messageID = message[0].parts[0].body['message-id'][0];
@@ -153,10 +142,7 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
   const lastMessages = messagesCount - 7 < 0 ? 1 : messagesCount - 6;
   const searchQuery = query ? query : `${lastMessages}:${messagesCount || 1}`;
 
-  const messages = await connection.search([searchQuery], {
-    bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE MESSAGE-ID IN-REPLY-TO REFERENCES)', 'TEXT'],
-    struct: true,
-  });
+  const messages = await connection.search([searchQuery], {bodies: ['']});
 
   for (const message of messages) {
     if (inbox === 'Junk') {
@@ -181,58 +167,34 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
 }
 
 async function parseMassage(connection: imap.ImapSimple, message: imap.Message) {
-  const parts = imap.getParts(message.attributes.struct!);
-
-  let attachments =
-    parts.filter(({disposition}) => {
-      if (!disposition) return false;
-
-      const isAttachment = disposition.type.toUpperCase() === 'ATTACHMENT';
-      const isNotAscFile = disposition.params.filename && !disposition.params.filename.includes('.asc');
-
-      return isAttachment && isNotAscFile;
-    }) || [];
-
-  try {
-    attachments = await Promise.all(
-      attachments.map((part) =>
-        connection.getPartData(message, part).then((partData) => ({
-          filename: part.disposition.params.filename,
-          data: partData.toString('base64'),
-        })),
-      ),
-    );
-  } catch {}
-
   if (!message.attributes.flags.includes('\\Seen')) {
     await connection.addFlags(message.attributes.uid, ['\\Seen']);
   }
 
+  const rawEmail = message.parts.find((part) => part.which === '')?.body;
+  const email = await simpleParser(rawEmail);
+
+  const attachments = email.attachments
+    .filter((att) => att.filename && !att.filename.includes('.asc'))
+    .map((att) => ({
+      filename: att.filename!,
+      data: att.content.toString('base64'),
+    }));
+
   const uid = message.attributes.uid;
-  const details = message.parts[0].body;
-  const rawBody = message.parts[1].body;
-
-  const email = await PostalMime.parse(rawBody);
-  const cleanedBody = (email.html || email.text || rawBody)!.match(/<html[^>]*>(.*?)<\/html>/is);
-  let body = mimelib.decodeQuotedPrintable(cleanedBody?.[1] || email.html || email.text! || rawBody);
-  const type = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(body) ? 'html' : 'text';
-
-  if (details.from[0].includes('@gmail.com')) {
-    body = body.match(/<div[^>]*>(.*?)<\/div>/is)[0] || body;
-  }
-
-  if (/Content-Type:/i.test(body) && /----/i.test(body)) {
-    body = body.replace(/----.*/s, '').trim();
-  }
+  const cleanedBody = (email.html || email.textAsHtml || email.text || '')!.match(/<html[^>]*>(.*?)<\/html>/is);
+  const body = cleanedBody?.[1] || email.html || email.textAsHtml || email.text || '';
+  const type = email.html ? 'html' : 'text';
 
   return {
-    messageID: details['message-id'][0],
-    subject: details.subject[0],
-    from: details?.from[0],
-    date: details.date[0],
-    to: details.to?.[0],
-    references: details.references,
-    inReplyTo: details['in-reply-to']?.[0],
+    messageID: email.messageId,
+    subject: email.subject,
+    from: email.from?.text,
+    date: email.date,
+    to: email.to && Array.isArray(email.to) ? email.to.map((t) => t.text).join(', ') : email.to?.text,
+    references:
+      email.references && Array.isArray(email.references) ? email.references : email.references ? [email.references] : undefined,
+    inReplyTo: email.inReplyTo,
     attachments,
     uid,
     body,
