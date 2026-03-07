@@ -3,6 +3,7 @@ import MailComposer from 'nodemailer/lib/mail-composer';
 import {simpleParser} from 'mailparser';
 import {EmailContent} from '@types';
 import imap from 'imap-simple';
+import {console} from 'inspector/promises';
 
 export async function listenForEmail(user: string, password: string) {
   async function onmail(mail: number) {
@@ -182,19 +183,37 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
     }));
 
   const uid = message.attributes.uid;
-  const cleanedBody = (email.html || email.textAsHtml || email.text || '')!.match(/<html[^>]*>(.*?)<\/html>/is);
-  const body = cleanedBody?.[1] || email.html || email.textAsHtml || email.text || '';
-  const type = email.html ? 'html' : 'text';
+  const contentType = (email.headers.get('content-type') as any).value;
+
+  const isHtmlContentType =
+    typeof contentType === 'string' &&
+    (contentType.includes('text/html') ||
+      contentType.includes('multipart/alternative') ||
+      contentType.includes('multipart/signed') ||
+      contentType.includes('multipart/mixed') ||
+      contentType.includes('multipart/related'));
+
+  const hasHtmlTags = !!email.html && /<\/?(html|body|head|title|div|p|span|table|a|img)[^>]*>/i.test(email.html);
+  const isHtml = isHtmlContentType && hasHtmlTags;
+  const type = isHtml ? 'html' : 'text';
+
+  let body = email.text;
+  if (type === 'html' && typeof email.html === 'string') {
+    const htmlMatch = email.html.match(/<body[^>]*>(.*?)<\/body>/is) || email.html.match(/<html[^>]*>(.*?)<\/html>/is);
+    body = htmlMatch ? htmlMatch[1] : email.html;
+  }
+
+  const to = email.to && Array.isArray(email.to) ? email.to.map((t) => t.text).join(', ') : email.to?.text;
+  const references = email.references && Array.isArray(email.references) ? email.references : email.references;
 
   return {
     messageID: email.messageId,
     subject: email.subject,
     from: email.from?.text,
     date: email.date,
-    to: email.to && Array.isArray(email.to) ? email.to.map((t) => t.text).join(', ') : email.to?.text,
-    references:
-      email.references && Array.isArray(email.references) ? email.references : email.references ? [email.references] : undefined,
+    to: to?.toString(),
     inReplyTo: email.inReplyTo,
+    references,
     attachments,
     uid,
     body,
