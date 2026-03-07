@@ -235,6 +235,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 }
 
 export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIRequest> {
+  console.log(rawBody);
   if (!rawBody || typeof rawBody !== 'object') return {err: 'Invalid request body'} as APIRequest;
   const body = rawBody as APIRequest;
 
@@ -473,7 +474,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'inReplyTo must be a string'} as APIRequest;
         }
 
-        if (body.inReplyTo && !/<[^<>]+@([^<>.]+\.)+[^<>.]+>/.test(body.inReplyTo)) {
+        if (body.inReplyTo && !/^<[^<>]+@[^<>]+>$/.test(body.inReplyTo.trim())) {
           return {err: 'Invalid inReplyTo value (should be Message-ID format like <id@domain>), please try again'} as APIRequest;
         }
         break;
@@ -484,7 +485,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         }
 
         for (const ref of body.references) {
-          if (typeof ref !== 'string' || !/<[^<>]+@([^<>.]+\.)+[^<>.]+>/.test(ref)) {
+          if (typeof ref !== 'string' || !/^<[^<>]+@[^<>]+>$/.test(ref.trim())) {
             return {
               err: 'Invalid reference value found (should be Message-ID format like <id@domain>), please try again',
             } as APIRequest;

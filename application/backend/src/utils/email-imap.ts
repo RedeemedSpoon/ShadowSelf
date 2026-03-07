@@ -204,7 +204,15 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
   }
 
   const to = email.to && Array.isArray(email.to) ? email.to.map((t) => t.text).join(', ') : email.to?.text;
-  const references = email.references && Array.isArray(email.references) ? email.references : email.references;
+
+  let references: string[] | undefined = undefined;
+  if (email.references) {
+    if (Array.isArray(email.references)) {
+      references = email.references;
+    } else if (typeof email.references === 'string') {
+      references = email.references.split(/\s+/).filter(Boolean);
+    }
+  }
 
   return {
     messageID: email.messageId,

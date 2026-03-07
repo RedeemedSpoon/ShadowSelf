@@ -1,9 +1,9 @@
 import {fetchRecentEmails, appendToMailbox, deleteEmail, fetchEmail, fetchMoreEmails} from '@utils/email-imap';
 import {sendIdentityEmail} from '@utils/email-smtp';
+import {APIRequest, EmailContent} from '@types';
 import middleware from '@middleware-api';
 import {checkAPI} from '@utils/checks';
 import {error} from '@utils/utils';
-import {APIRequest} from '@types';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/email'})
@@ -33,7 +33,8 @@ export default new Elysia({prefix: '/email'})
 
     const email = identity!.email;
     const password = identity!.email_password;
-    const content = {email, password, to, subject, body: emailBody, attachments, references, inReplyTo};
+    const flatReferences = Array.isArray(references) ? references.flat(Infinity) : references;
+    const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
 
     const response = await sendIdentityEmail(content);
     if (!response.messageID) return error(set, 400, 'Failed to send email');
@@ -77,14 +78,14 @@ export default new Elysia({prefix: '/email'})
     `;
     }
 
-    email.subject = email.subject.toUpperCase().includes('FWD: ') ? email.subject : `FWD: ${email?.subject}`;
+    email.subject = email.subject!.toUpperCase().includes('FWD: ') ? email.subject : `FWD: ${email?.subject}`;
     let forwardEmail = {...email, to: forward, email: identity!.email, password: identity!.email_password};
 
-    const response = await sendIdentityEmail(forwardEmail);
+    const response = await sendIdentityEmail(forwardEmail as EmailContent);
     if (!response.messageID) return error(set, 400, 'Failed to forward email');
 
     const fullEmail = {...forwardEmail, messageID: response.messageID, date: response.date};
-    const newUID = await appendToMailbox(false, fullEmail);
+    const newUID = await appendToMailbox(false, fullEmail as EmailContent);
 
     delete (fullEmail as {password?: string}).password;
     delete (fullEmail as {email?: string}).email;
@@ -99,7 +100,8 @@ export default new Elysia({prefix: '/email'})
 
     const email = identity!.email;
     const password = identity!.email_password;
-    const content = {email, password, to, subject, body: emailBody, attachments, references, inReplyTo};
+    const flatReferences = Array.isArray(references) ? references.flat(Infinity) : references;
+    const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
 
     if (draft) await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
     const fullEmail = await appendToMailbox(true, content);

@@ -236,12 +236,21 @@
     <EmailBody email={$target!} />
     {#if $target?.inReplyTo}
       {@const _ = fetchReply($target.inReplyTo)}
-      {#each $reply as email (email.messageID)}
-        <h3 class="mt-8 flex items-center gap-2 text-2xl! text-neutral-300">
-          <ReplyIcon />In Reply To:
-        </h3>
-        <EmailBody {email} />
-      {/each}
+      {#if $reply.length > 0}
+        <div class="mt-10 flex items-center gap-2 border-b border-neutral-800 pb-4">
+          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-800">
+            <ReplyIcon className="h-6 w-6 text-neutral-400" />
+          </div>
+          <h3 class="text-xl! font-medium text-neutral-400">Previous Messages</h3>
+        </div>
+        <div class="mt-6 flex flex-col gap-8 opacity-80 transition-opacity hover:opacity-100">
+          {#each $reply as email (email.messageID)}
+            <div class="reply-padding">
+              <EmailBody {email} />
+            </div>
+          {/each}
+        </div>
+      {/if}
     {/if}
   {/if}
 {/await}
@@ -274,5 +283,9 @@
 
   #mailbox-labels button.selected {
     @apply bg-primary-600 text-neutral-300;
+  }
+
+  .reply-padding {
+    @apply relative pl-6 before:absolute before:top-0 before:bottom-0 before:left-0 before:w-1 before:rounded-full before:bg-neutral-800;
   }
 </style>
