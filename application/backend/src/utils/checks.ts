@@ -235,7 +235,6 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 }
 
 export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIRequest> {
-  console.log(rawBody);
   if (!rawBody || typeof rawBody !== 'object') return {err: 'Invalid request body'} as APIRequest;
   const body = rawBody as APIRequest;
 

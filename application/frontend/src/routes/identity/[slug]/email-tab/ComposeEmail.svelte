@@ -43,7 +43,8 @@
       const subject = document.querySelector('input[name="subject"]') as HTMLInputElement;
 
       if (!$target) recipient.value = '';
-      subject.value = '';
+      const alreadyThreaded = $target?.subject.toLowerCase().startsWith('re:');
+      subject.value = $mode === 'reply' && $target ? (alreadyThreaded ? $target.subject : `Re: ${$target.subject}`) : '';
       subject.focus();
     }
 

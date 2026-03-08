@@ -48,20 +48,15 @@ export async function sendIdentityEmail(emailContent: EmailContent) {
     };
   });
 
-  const headers: Record<string, string> = {};
-  if (inReplyTo) headers['In-Reply-To'] = inReplyTo;
-  if (references && references.length > 0) {
-    headers['References'] = references.join(' ');
-  }
-
   const mailOptions = {
     from: email,
     to,
     subject,
-    headers,
     text: isHtml ? '' : body,
     html: isHtml ? body : '',
     attachments: attachmentsList,
+    inReplyTo,
+    references,
     date,
   };
 

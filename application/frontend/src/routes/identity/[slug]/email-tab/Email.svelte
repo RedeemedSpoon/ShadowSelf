@@ -103,7 +103,7 @@
     $pendingID = save ? 2 : 1;
     const draft = isdraft ? $target!.uid : null;
 
-    const inReplyTo = save ? $target?.inReplyTo || $target?.messageID : isdraft ? $target?.inReplyTo : $target?.messageID;
+    const inReplyTo = isdraft ? $target?.inReplyTo : $target?.messageID;
     const references = $target && inReplyTo ? ($target.references || []).concat([inReplyTo!]) : [];
     const to = (document.querySelector('input[name="recipient"]') as HTMLInputElement)?.value;
 
