@@ -165,7 +165,7 @@
             <span class="text-sm font-bold text-neutral-300 capitalize">{p}</span>
             <span class="text-xs {selectedPriority === p ? 'text-neutral-300' : 'text-neutral-500'}">
               {crypto.fees[$currentCrypto][p as 'low']}
-              {['eth', 'usdt'].includes($currentCrypto) ? 'Gwei' : $currentCrypto === 'xmr' ? 'XMR' : 'sat/vB'}
+              {['eth', 'usdt'].includes($currentCrypto) ? 'Gwei' : $currentCrypto === 'xmr' ? 'Atomic Units' : 'sat/vB'}
             </span>
           </div>
         {/each}

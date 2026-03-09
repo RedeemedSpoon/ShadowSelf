@@ -112,7 +112,13 @@
     const mnemonic = await decrypt($identity.walletBlob);
     const blob = await encrypt(mnemonic, newKey);
 
-    const walletResponse = await fetchAPI<CryptoAPI>('crypto/update-blob', 'PUT', {blob});
+    const keys = {
+      viewKey: await encrypt(await decrypt($identity.walletKeys.xmr.viewKey), newKey),
+      spendKey: await encrypt(await decrypt($identity.walletKeys.xmr.spendKey), newKey),
+      address: await encrypt(await decrypt($identity.walletKeys.xmr.address), newKey),
+    };
+
+    const walletResponse = await fetchAPI<CryptoAPI>('crypto/update-encryption', 'PUT', {blob, keys});
     if (walletResponse.err) return notify(walletResponse.err, 'alert');
 
     $masterPassword = base64Key;

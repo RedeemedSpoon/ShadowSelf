@@ -258,10 +258,12 @@ export default new Elysia({prefix: '/crypto'})
       return {utxos: [], balance: Number(balData.result), nonce: parseInt(nonceData.result, 16)};
     }
   })
-  .put('/update-blob/:id', async ({identity, body, set}) => {
-    const {blob, err} = await checkAPI(body, ['blob']);
+  .put('/update-encryption/:id', async ({identity, body, set}) => {
+    const {blob, keys, err} = await checkAPI(body, ['blob', 'keys']);
     if (err) return error(set, 400, err);
 
     await sql`UPDATE identities SET wallet_blob = ${blob} WHERE id = ${identity!.id}`;
-    return {blob};
+    await sql`UPDATE identities SET wallet_keys = jsonb_set(wallet_keys, '{xmr}', ${sql.json(keys)}::jsonb, true) WHERE id = ${identity!.id}`;
+
+    return {blob, keys};
   });

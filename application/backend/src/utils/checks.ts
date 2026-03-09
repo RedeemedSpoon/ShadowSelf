@@ -518,6 +518,24 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         }
         break;
 
+      case 'keys':
+        if (!body.keys || typeof body.keys !== 'object') {
+          return {err: 'Keys must be an object'} as APIRequest;
+        }
+
+        if (typeof body.keys.address !== 'string' || body.keys.address.length < 20) {
+          return {err: 'Invalid encrypted address in keys'} as APIRequest;
+        }
+
+        if (typeof body.keys.spendKey !== 'string' || body.keys.spendKey.length < 20) {
+          return {err: 'Invalid encrypted spendKey in keys'} as APIRequest;
+        }
+
+        if (typeof body.keys.viewKey !== 'string' || body.keys.viewKey.length < 20) {
+          return {err: 'Invalid encrypted viewKey in keys'} as APIRequest;
+        }
+        break;
+
       case 'btc':
         if (typeof body.btc !== 'string') {
           return {err: 'Bitcoin XPUB must be a string'} as APIRequest;

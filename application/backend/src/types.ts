@@ -188,6 +188,11 @@ export interface APIRequest {
   sid: string;
   addressee: string;
   blob: string;
+  keys: {
+    address: string;
+    viewKey: string;
+    spendKey: string;
+  };
   btc: string;
   ltc: string;
   evm: string;

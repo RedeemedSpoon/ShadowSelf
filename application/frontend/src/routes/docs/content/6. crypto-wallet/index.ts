@@ -4,7 +4,7 @@ import retrieveSwapRates from './retrieve-swap-rates';
 import createSwapTrade from './create-swap-trade';
 import broadcastTransaction from './broadcast-transaction';
 import sweepInformation from './sweep-information';
-import updateWalletBlob from './update-wallet-blob';
+import updateWalletBlob from './update-wallet-encryption';
 import type {Route} from '$type';
 
 const routes: Route[] = [
@@ -57,9 +57,9 @@ const routes: Route[] = [
     response: sweepInformation.response,
   },
   {
-    title: 'update wallet blob',
+    title: 'update wallet encryption',
     description: updateWalletBlob.description,
-    url: '/crypto/update-blob/:id',
+    url: '/crypto/update-encryption/:id',
     method: 'PUT',
     code: updateWalletBlob.code,
     response: updateWalletBlob.response,

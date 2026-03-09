@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	url := fmt.Sprintf("https://shadowself.io/api/crypto/update-blob/%s", os.Getenv("IDENTITY_ID"))
-	payload := []byte(`{"blob": "U2FsdGVkX19nb..."}`)
+	url := fmt.Sprintf("https://shadowself.io/api/crypto/update-encryption/%s", os.Getenv("IDENTITY_ID"))
+	payload := []byte(`{"blob": "U2FsdGVkX19nb...","keys": {"address": "YH5eD5e2T..."}}`)
 	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(payload))
 	req.Header.Add("Authorization", "Bearer "+os.Getenv("API_KEY"))
 	req.Header.Add("Content-Type", "application/json")

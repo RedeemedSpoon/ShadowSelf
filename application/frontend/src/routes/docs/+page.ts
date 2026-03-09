@@ -68,7 +68,7 @@ export const load: PageLoad = () => {
         {title: 'create swap trade', method: 'POST'},
         {title: 'broadcast transaction', method: 'POST'},
         {title: 'sweep information', method: 'POST'},
-        {title: 'update wallet blob', method: 'PUT'},
+        {title: 'update wallet encryption', method: 'PUT'},
       ],
     },
     {
