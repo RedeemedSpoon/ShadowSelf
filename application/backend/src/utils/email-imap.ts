@@ -3,7 +3,6 @@ import MailComposer from 'nodemailer/lib/mail-composer';
 import {simpleParser} from 'mailparser';
 import {EmailContent} from '@types';
 import imap from 'imap-simple';
-import {console} from 'inspector/promises';
 
 export async function listenForEmail(user: string, password: string) {
   async function onmail(mail: number) {
@@ -30,22 +29,30 @@ export async function listenForEmail(user: string, password: string) {
 export async function fetchMoreEmails(user: string, password: string, mailbox: string, since: number) {
   if (since < 0) return [];
   const connection = await imapConnection(user, password);
-  const query = Number(since) - 7 < 0 ? `${1}:${since}` : `${Number(since) - 6}:${since}`;
-  const inbox = await getInbox(mailbox, connection, query);
+  let inbox;
 
-  connection.end();
+  try {
+    const query = Number(since) - 7 < 0 ? `${1}:${since}` : `${Number(since) - 6}:${since}`;
+    inbox = await getInbox(mailbox, connection, query);
+  } finally {
+    connection.end();
+  }
+
   return inbox.emails;
 }
 
 export async function fetchRecentEmails(user: string, password: string) {
   const connection = await imapConnection(user, password);
+  let inboxMailbox, sentMailbox, draftsMailbox, junkMailbox;
 
-  const inboxMailbox = await getInbox('INBOX', connection);
-  const sentMailbox = await getInbox('Sent', connection);
-  const draftsMailbox = await getInbox('Drafts', connection);
-  const junkMailbox = await getInbox('Junk', connection);
-
-  connection.end();
+  try {
+    inboxMailbox = await getInbox('INBOX', connection);
+    sentMailbox = await getInbox('Sent', connection);
+    draftsMailbox = await getInbox('Drafts', connection);
+    junkMailbox = await getInbox('Junk', connection);
+  } finally {
+    connection.end();
+  }
 
   return {
     messagesCount: inboxMailbox.messagesCount,
@@ -63,17 +70,19 @@ export async function fetchEmail(user: string, password: string, isReply: boolea
   const connection = await imapConnection(user, password);
   let reply = null;
 
-  for (const mailbox of ['INBOX', 'Sent']) {
-    await connection.openBox(mailbox);
-    const query = isReply ? [['HEADER', 'MESSAGE-ID', uuid]] : [['UID', uuid]];
+  try {
+    for (const mailbox of ['INBOX', 'Sent']) {
+      await connection.openBox(mailbox);
+      const query = isReply ? [['HEADER', 'MESSAGE-ID', uuid]] : [['UID', uuid]];
+      const message = await connection.search(query, {bodies: ['']});
 
-    const message = await connection.search(query, {bodies: ['']});
-
-    if (message.length === 0) continue;
-    reply = await parseMassage(connection, message[0]);
+      if (message.length === 0) continue;
+      reply = await parseMassage(connection, message[0]);
+    }
+  } finally {
+    connection.end();
   }
 
-  connection.end();
   return reply;
 }
 
@@ -109,13 +118,11 @@ export async function appendToMailbox(asDraft: boolean, content: EmailContent & 
   await connection.append(RFC822Message, {flags: ['\\Seen']});
 
   const message = await connection.search([['SINCE', shownDate]], {bodies: ['']});
-
   const type = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(content.body) ? 'html' : 'text';
   const messageID = message[0].parts[0].body['message-id'][0];
   const {uid, date} = message[0].attributes;
 
   connection.end();
-
   return {uid, date, messageID, type};
 }
 
@@ -136,8 +143,8 @@ async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
 }
 
 async function getInbox(inbox: string, connection: imap.ImapSimple, query?: string) {
-  const emails = [];
   const messagesCount = await getMessageCount(inbox, connection);
+  if (messagesCount === 0) return {messagesCount: 0, emails: []};
 
   await connection.openBox(inbox);
   const lastMessages = messagesCount - 7 < 0 ? 1 : messagesCount - 6;
@@ -145,6 +152,7 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
 
   const messages = await connection.search([searchQuery], {bodies: ['']});
 
+  const emails: any[] = [];
   for (const message of messages) {
     if (inbox === 'Junk') {
       const sevenDaysAgo = new Date();
@@ -157,11 +165,9 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
       }
     }
 
-    try {
-      emails.unshift(await parseMassage(connection, message));
-    } catch {
-      continue;
-    }
+    parseMassage(connection, message)
+      .catch(() => {})
+      .then((result) => emails.unshift(result));
   }
 
   return {messagesCount, emails};
@@ -169,7 +175,7 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
 
 async function parseMassage(connection: imap.ImapSimple, message: imap.Message) {
   if (!message.attributes.flags.includes('\\Seen')) {
-    await connection.addFlags(message.attributes.uid, ['\\Seen']);
+    connection.addFlags(message.attributes.uid, ['\\Seen']);
   }
 
   const rawEmail = message.parts.find((part) => part.which === '')?.body;
@@ -183,7 +189,7 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
     }));
 
   const uid = message.attributes.uid;
-  const contentType = (email.headers.get('content-type') as any).value;
+  const contentType = (email.headers.get('content-type') as any)?.value;
 
   const isHtmlContentType =
     typeof contentType === 'string' &&
