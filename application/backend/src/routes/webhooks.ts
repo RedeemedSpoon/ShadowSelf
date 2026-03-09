@@ -23,7 +23,7 @@ export default new Elysia()
       const paymentIntent = event.data.object;
 
       if (paymentIntent.invoice === null && paymentIntent.metadata?.id && paymentIntent.metadata?.type) {
-        const customerID = paymentIntent.customer! as string;
+        const customerID = paymentIntent.customer as string;
         const intentID = paymentIntent.id;
 
         const date = new Date(paymentIntent.created * 1000);
@@ -44,8 +44,8 @@ export default new Elysia()
       const invoice = event.data.object;
 
       if (invoice.billing_reason === 'subscription_create' && invoice.subscription && invoice.customer) {
-        const customerID = invoice.customer! as string;
-        const subscriptionID = invoice.subscription! as string;
+        const customerID = invoice.customer as string;
+        const subscriptionID = invoice.subscription as string;
         const date = new Date(invoice.created * 1000);
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionID);

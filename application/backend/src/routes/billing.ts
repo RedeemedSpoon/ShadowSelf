@@ -47,7 +47,7 @@ export default new Elysia({prefix: '/billing'})
     const customerID = customer[0]?.stripe_customer;
 
     const request = await stripe.customers.retrieve(customerID);
-    const paymentMethodsID = (request as Stripe.Customer).invoice_settings.default_payment_method as string;
+    const paymentMethodsID = request.invoice_settings.default_payment_method as string;
 
     if (paymentMethodsID) {
       const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodsID);
@@ -84,8 +84,8 @@ export default new Elysia({prefix: '/billing'})
       };
 
       const subscription = await stripe.subscriptions.create(subscriptionParams);
-      const paymentIntent = (subscription.latest_invoice as Stripe.Invoice as unknown as Stripe.Charge).payment_intent;
-      clientSecret = (paymentIntent as Stripe.PaymentIntent).client_secret!;
+      const paymentIntent = subscription.latest_invoice.payment_intent;
+      clientSecret = paymentIntent.client_secret!;
     }
 
     return {step: 'create', clientSecret, identityID};
@@ -101,7 +101,7 @@ export default new Elysia({prefix: '/billing'})
     const customerID = customer[0]?.stripe_customer;
 
     const request = await stripe.customers.retrieve(customerID);
-    const paymentMethodsID = (request as Stripe.Customer).invoice_settings.default_payment_method as string;
+    const paymentMethodsID = request.invoice_settings.default_payment_method as string;
 
     const metadata = {id: identityID, type};
     let paymentIntent = '';
@@ -130,8 +130,8 @@ export default new Elysia({prefix: '/billing'})
         expand: ['latest_invoice.payment_intent'],
       });
 
-      const invoices = subscription.latest_invoice as unknown as Stripe.Charge;
-      paymentIntent = (invoices.payment_intent as Stripe.PaymentIntent).id;
+      const invoices = subscription.latest_invoice;
+      paymentIntent = invoices.payment_intent.id;
     }
 
     await stripe.paymentIntents.confirm(paymentIntent, {
@@ -164,7 +164,7 @@ export default new Elysia({prefix: '/billing'})
       if (intent) await stripe.refunds.create({payment_intent: intent});
       else {
         const invoices = await stripe.invoices.list({subscription: subscription, limit: 1});
-        const PaymentIntent = (invoices.data[0] as unknown as Stripe.Charge)?.payment_intent?.toString();
+        const PaymentIntent = invoices.data[0]?.payment_intent?.toString();
         await stripe.refunds.create({payment_intent: PaymentIntent});
       }
     }
@@ -210,7 +210,7 @@ export default new Elysia({prefix: '/billing'})
         const {email, err} = check(body, ['email']);
         if (err) return error(set, 400, err);
 
-        const oldEmail = (body as {oldEmail: string})?.oldEmail;
+        const oldEmail = (body as any)?.oldEmail;
         const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${oldEmail}`) as QueryUser[];
         const id = customer[0]?.stripe_customer || '';
 
