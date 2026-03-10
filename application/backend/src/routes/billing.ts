@@ -30,6 +30,7 @@ export default new Elysia({prefix: '/billing'})
     if (!hasPaymentMethod.data.length) return {sessionUrl: ''};
 
     const session = await stripe.billingPortal.sessions.create({
+      configuration: 'bpc_1QjGV8ByRGrIIrNdbBoPD90b',
       customer: customer[0].stripe_customer,
       return_url: `${origin}/settings`,
     });
@@ -46,8 +47,11 @@ export default new Elysia({prefix: '/billing'})
     const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const customerID = customer[0]?.stripe_customer;
 
-    const request = await stripe.customers.retrieve(customerID);
-    const paymentMethodsID = request.invoice_settings.default_payment_method as string;
+    const request = (await stripe.customers.retrieve(customerID)) as Stripe.Customer;
+    const paymentMethodsID =
+      typeof request.invoice_settings?.default_payment_method === 'string'
+        ? request.invoice_settings.default_payment_method
+        : request.invoice_settings?.default_payment_method?.id;
 
     if (paymentMethodsID) {
       const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodsID);
@@ -80,12 +84,22 @@ export default new Elysia({prefix: '/billing'})
           save_default_payment_method: 'on_subscription',
           payment_method_types: ['card'],
         },
-        expand: ['latest_invoice.payment_intent'],
       };
 
       const subscription = await stripe.subscriptions.create(subscriptionParams);
-      const paymentIntent = subscription.latest_invoice.payment_intent;
-      clientSecret = paymentIntent.client_secret!;
+      const latestInvoiceID =
+        typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
+
+      if (latestInvoiceID) {
+        const payments = await stripe.invoicePayments.list({
+          invoice: latestInvoiceID,
+          limit: 1,
+          expand: ['data.payment.payment_intent'],
+        });
+
+        const piObj = payments.data[0]?.payment?.payment_intent as Stripe.PaymentIntent;
+        clientSecret = piObj?.client_secret || '';
+      }
     }
 
     return {step: 'create', clientSecret, identityID};
@@ -100,14 +114,17 @@ export default new Elysia({prefix: '/billing'})
     const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const customerID = customer[0]?.stripe_customer;
 
-    const request = await stripe.customers.retrieve(customerID);
-    const paymentMethodsID = request.invoice_settings.default_payment_method as string;
+    const request = (await stripe.customers.retrieve(customerID)) as Stripe.Customer;
+    const paymentMethodsID =
+      typeof request.invoice_settings?.default_payment_method === 'string'
+        ? request.invoice_settings.default_payment_method
+        : request.invoice_settings?.default_payment_method?.id;
 
     const metadata = {id: identityID, type};
-    let paymentIntent = '';
+    let paymentIntentID = '';
 
     if (type === 'lifetime') {
-      paymentIntent = (
+      paymentIntentID = (
         await stripe.paymentIntents.create({
           metadata,
           customer: customerID,
@@ -127,18 +144,23 @@ export default new Elysia({prefix: '/billing'})
         payment_settings: {
           save_default_payment_method: 'on_subscription',
         },
-        expand: ['latest_invoice.payment_intent'],
       });
 
-      const invoices = subscription.latest_invoice;
-      paymentIntent = invoices.payment_intent.id;
+      const latestInvoiceID =
+        typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
+
+      if (latestInvoiceID) {
+        const payments = await stripe.invoicePayments.list({invoice: latestInvoiceID, limit: 1});
+        const piObj = payments.data[0]?.payment?.payment_intent;
+        paymentIntentID = typeof piObj === 'string' ? piObj : piObj!.id;
+      }
     }
 
-    await stripe.paymentIntents.confirm(paymentIntent, {
+    await stripe.paymentIntents.confirm(paymentIntentID, {
       payment_method_options: {card: {request_three_d_secure: 'automatic'}},
     });
 
-    const result = await stripe.paymentIntents.retrieve(paymentIntent);
+    const result = await stripe.paymentIntents.retrieve(paymentIntentID);
     const clientSecret = result.client_secret;
     const status = result.status;
 
@@ -160,26 +182,41 @@ export default new Elysia({prefix: '/billing'})
     const difference = new Date().getTime() - new Date(date).getTime();
     const differenceInDays = difference / (1000 * 3600 * 24);
 
-    if (differenceInDays <= 14) {
-      if (intent) await stripe.refunds.create({payment_intent: intent});
-      else {
-        const invoices = await stripe.invoices.list({subscription: subscription, limit: 1});
-        const PaymentIntent = invoices.data[0]?.payment_intent?.toString();
-        await stripe.refunds.create({payment_intent: PaymentIntent});
-      }
-    }
+    try {
+      if (differenceInDays <= 14) {
+        if (intent) {
+          await stripe.refunds.create({payment_intent: intent});
+        } else if (subscription) {
+          const invoices = await stripe.invoices.list({subscription: subscription, limit: 1});
+          const invoiceObj = invoices.data[0];
 
-    if (subscription) {
-      const result = await stripe.subscriptions.retrieve(subscription);
-      if (result.status !== 'canceled') await stripe.subscriptions.cancel(subscription);
-    }
+          if (invoiceObj) {
+            const payments = await stripe.invoicePayments.list({invoice: invoiceObj.id, limit: 1});
+            const piObj = payments.data[0]?.payment?.payment_intent;
+            const finalPiID = typeof piObj === 'string' ? piObj : piObj?.id;
+
+            if (finalPiID) {
+              await stripe.refunds.create({payment_intent: finalPiID});
+            }
+          }
+        }
+      }
+
+      if (subscription) {
+        const result = await stripe.subscriptions.retrieve(subscription);
+        if (result.status !== 'canceled') await stripe.subscriptions.cancel(subscription);
+      }
+    } catch (_) {}
 
     const username = identity.email.split('@')[0];
     await $`userdel -r ${username}`.nothrow().quiet();
-    await twilio.incomingPhoneNumbers(identity.phone).remove();
+    await twilio
+      .incomingPhoneNumbers(identity.phone)
+      .remove()
+      .catch(() => {});
 
     const country = identity.location.split(', ')[0].toLowerCase();
-    await proxyRequest(country, 'DELETE', {username: identity.id});
+    await proxyRequest(country, 'DELETE', {username: identity.id}).catch(() => {});
 
     await sql`DELETE FROM accounts WHERE owner = ${identity.id}`;
     await sql`DELETE FROM identities WHERE id = ${identity.id}`;
