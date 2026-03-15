@@ -14,7 +14,7 @@ CREATE TABLE users (
   "totp" varchar(32),
   "recovery" varchar(9)[],
   "stripe_customer" varchar(18),
-  "revoke_session" varchar(8)[],
+  "sessions" varchar(8)[],
   "api_access" boolean DEFAULT false,
   "api_key" varchar(32)
 );

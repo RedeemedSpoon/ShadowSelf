@@ -86,7 +86,7 @@
     const mnemonicCode = await decrypt($identity.walletBlob);
     const text = `
 # ----------------------------------------------------------------------
-# SHADOWSELF - Crypto RECOVERY KIT
+# SHADOWSELF - CRYPTO RECOVERY KIT
 # ----------------------------------------------------------------------
 
 [1] YOUR SECRET KEY (SEED PHRASE)

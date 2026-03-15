@@ -76,7 +76,7 @@ export interface QueryUser {
   totp: string;
   recovery: string[];
   stripe_customer: string;
-  revoke_session: string[];
+  sessions: string[];
   api_access: boolean;
   api_key: string;
 }

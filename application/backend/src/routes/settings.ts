@@ -62,7 +62,7 @@ export default new Elysia({prefix: '/settings'})
     return {key};
   })
   .get('/revoke', async ({user}) => {
-    await sql`UPDATE users SET revoke_session = ARRAY[]::varchar(8)[] WHERE email = ${user!.email}`;
+    await sql`UPDATE users SET sessions = ARRAY[]::varchar(8)[] WHERE email = ${user!.email}`;
   })
   .post('/otp-check', async ({set, body}) => {
     const {err, secret, token} = check(body, ['token', 'secret']);

@@ -22,8 +22,8 @@ export default new Elysia({prefix: '/account'})
   .get('/', async ({set, user}) => {
     if (!user) return error(set, 401, 'You are not logged in');
 
-    const result = (await sql`SELECT revoke_session, username FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    if (!result[0].revoke_session.includes(user!.id)) return error(set, 401, 'Not authorized');
+    const result = (await sql`SELECT sessions, username FROM users WHERE email = ${user!.email}`) as QueryUser[];
+    if (!result[0].sessions.includes(user!.id)) return error(set, 401, 'Not authorized');
     return result[0].username;
   })
   .get('/recovery-remaining', async ({user}) => {
@@ -45,7 +45,7 @@ export default new Elysia({prefix: '/account'})
     if (has2fa) return {email};
 
     const id = generateID();
-    await sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`;
+    await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
 
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};
@@ -77,7 +77,7 @@ export default new Elysia({prefix: '/account'})
     if (has2fa) return {email};
 
     const id = generateID();
-    await sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`;
+    await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
 
     const cookievalue = await jwt.sign({email, id});
     return {cookie: cookievalue};
@@ -94,7 +94,7 @@ export default new Elysia({prefix: '/account'})
     if (!isValid) return error(set, 400, 'Incorrect validation token. Please try again');
 
     const id = generateID();
-    await sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`;
+    await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
 
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};
@@ -116,7 +116,7 @@ export default new Elysia({prefix: '/account'})
     await sql`UPDATE users SET recovery = ${newCodes} WHERE email = ${email}`;
 
     const id = generateID();
-    await sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`;
+    await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
 
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};
@@ -192,7 +192,7 @@ export default new Elysia({prefix: '/account'})
     }
 
     const id = generateID();
-    await sql`UPDATE users SET revoke_session = ARRAY_APPEND(revoke_session, ${id}) WHERE email = ${email}`;
+    await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
     await request('/billing/customer', 'POST', {email, payment});
 
     const cookieValue = await jwt.sign({email, id});
