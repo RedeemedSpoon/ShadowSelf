@@ -88,7 +88,7 @@ export interface QueryIdentity {
   payment_intent: string;
   subscription_id: string;
   plan: 'monthly' | 'annually' | 'lifetime';
-  status: 'active' | 'inactive';
+  status: 'active' | 'inactive' | 'frozen';
   proxy_server: string;
   proxy_password: string;
   location: string;

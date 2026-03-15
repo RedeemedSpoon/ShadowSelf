@@ -5,8 +5,9 @@ import {fetchBackend} from '$fetch';
 
 export const load: PageServerLoad = async ({params}) => {
   const response = (await fetchBackend('/api/identity/' + params.slug)) as FullIdentity;
-  if (!response.id) return {slug: params.slug, identity: null};
-  return {slug: params.slug, identity: response};
+  if ((response as any).message === 'Identity is frozen') return {slug: params.slug, identity: null, isFrozen: true};
+  if (!response.id) return {slug: params.slug, isFrozen: false, identity: null};
+  return {slug: params.slug, identity: response, isFrozen: false};
 };
 
 export const actions: Actions = {

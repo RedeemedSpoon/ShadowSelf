@@ -50,21 +50,25 @@ export default new Elysia()
       const subObj = isSubscription ? invoice.parent?.subscription_details?.subscription : null;
       const subscriptionID = typeof subObj === 'string' ? subObj : subObj?.id;
 
-      if (invoice.billing_reason === 'subscription_create' && subscriptionID && invoice.customer) {
-        const customerID = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer.id;
-        const date = new Date(invoice.created * 1000);
+      if (subscriptionID) {
+        if (invoice.billing_reason === 'subscription_create' && invoice.customer) {
+          const customerID = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer.id;
+          const date = new Date(invoice.created * 1000);
 
-        const subscription = await stripe.subscriptions.retrieve(subscriptionID);
-        const identityID = subscription.metadata!.id;
-        const plan = subscription.metadata!.type;
+          const subscription = await stripe.subscriptions.retrieve(subscriptionID);
+          const identityID = subscription.metadata!.id;
+          const plan = subscription.metadata!.type;
 
-        const userQuery = (await sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`) as QueryUser[];
-        const owner = userQuery[0].id;
+          const userQuery = (await sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`) as QueryUser[];
+          const owner = userQuery[0].id;
 
-        const alreadyExists = await sql`SELECT id FROM identities WHERE id = ${identityID}`;
-        if (alreadyExists.length) return {received: true};
+          const alreadyExists = await sql`SELECT id FROM identities WHERE id = ${identityID}`;
+          if (alreadyExists.length) return {received: true};
 
-        await sql`INSERT INTO identities (id, owner, creation_date, plan, subscription_id) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${subscriptionID})`;
+          await sql`INSERT INTO identities (id, owner, creation_date, plan, subscription_id) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${subscriptionID})`;
+        } else {
+          await sql`UPDATE identities SET status = 'active' WHERE subscription_id = ${subscriptionID}`;
+        }
       }
     }
 
@@ -76,8 +80,7 @@ export default new Elysia()
       const subscriptionID = typeof subObj === 'string' ? subObj : subObj?.id;
 
       if (subscriptionID) {
-        const exist = await sql`SELECT id FROM identities WHERE subscription_id = ${subscriptionID}`;
-        if (exist.length) await req('/billing/cancel', 'DELETE', {id: exist[0].id});
+        await sql`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${subscriptionID}`;
       }
     }
 

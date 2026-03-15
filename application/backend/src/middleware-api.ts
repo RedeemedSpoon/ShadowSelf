@@ -40,5 +40,6 @@ export default (app: Elysia) =>
       if (!result.length) return error(set, 400, 'Identity not found');
       const identity = result[0];
 
+      if (identity.status === 'frozen') return error(set, 402, 'Identity is frozen');
       return {identity};
     });

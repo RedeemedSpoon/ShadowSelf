@@ -163,7 +163,20 @@
 </svelte:head>
 
 <div id="identity">
-  {#if data.identity && browser}
+  {#if data.isFrozen}
+    <div class="flex min-h-[50vh] flex-col items-center justify-center gap-8">
+      <h1>Identity Frozen</h1>
+      <p class="text-center">
+        This identity has been temporarily frozen due to a failed subscription payment.
+        <br class="max-lg:hidden" /> Please update your payment method in the billing portal to restore access.
+        <br class="max-lg:hidden" /> If the payment issue is not resolved within 7 days, this identity will be
+        <b>permanently deleted</b>.
+      </p>
+      <a href="/dashboard">
+        <button class="flex items-center gap-1"> ← Back to Dashboard </button>
+      </a>
+    </div>
+  {:else if data.identity && browser}
     <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
       {#each Object.keys(allSections) as section, i (i)}
         {@const Icon = sectionsNames[i].icon}
