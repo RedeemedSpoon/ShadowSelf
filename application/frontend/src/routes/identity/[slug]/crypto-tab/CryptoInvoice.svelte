@@ -1,6 +1,7 @@
 <script lang="ts">
+  import {identity, moneroData, pendingID} from '$store';
   import type {CryptoAPI, Coins} from '$type';
-  import {identity, moneroData} from '$store';
+  import {LoadingButton} from '$component';
   import {deriveXPub} from '$cryptography';
   import type {Component} from 'svelte';
   import {generatePDF} from '$pdf';
@@ -52,12 +53,15 @@
         reader.onload = (e) => (img.src = e.target?.result as string);
         reader.readAsDataURL(source);
       } else {
-        img.src = source;
+        img.src = `https://wsrv.nl/?url=${encodeURIComponent(source)}&output=png`;
       }
     });
   }
 
   async function gatherPDFData() {
+    $pendingID = 1;
+    await new Promise((resolve) => setTimeout(resolve, 650));
+
     const {name, email} = $identity;
 
     const now = new Date();
@@ -114,6 +118,7 @@
     const clientData = {clientName, clientEmail};
 
     generatePDF(identityData, clientData, tableData, cryptoData);
+    $pendingID = 0;
   }
 </script>
 
@@ -210,7 +215,7 @@
     </div>
   </div>
 
-  <button onclick={gatherPDFData}>Download Invoice PDF</button>
+  <LoadingButton onclick={gatherPDFData}>Download Invoice PDF</LoadingButton>
 </section>
 
 <style lang="postcss">
