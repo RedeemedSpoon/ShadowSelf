@@ -43,7 +43,7 @@
     const fileScanner = new Html5Qrcode('file-reader-hidden');
     try {
       const decodedText = await fileScanner.scanFileV2(imageFile, true);
-      onScan(decodedText as unknown as string);
+      onScan(decodedText.decodedText);
       close();
     } catch (_) {
       close();
