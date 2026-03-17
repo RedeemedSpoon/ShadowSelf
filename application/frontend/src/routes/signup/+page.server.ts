@@ -11,7 +11,7 @@ export const actions: Actions = {
     const email = form.get('email') as string;
     const password = form.get('password') as string;
 
-    const response = await fetchBackend('/account/signup', 'POST', {email, password});
+    const response = await fetchBackend('/account/signup', 'POST', {email, password}, cookies.get('token'));
     if (!response.email) return response;
 
     const concat = `${email}&&${password}`;
@@ -24,7 +24,7 @@ export const actions: Actions = {
     const form = await request.formData();
     const access = form.get('access');
 
-    const response = await fetchBackend('/account/signup-email', 'POST', {access, email});
+    const response = await fetchBackend('/account/signup-email', 'POST', {access, email}, cookies.get('token'));
     if (!response.email) return response;
 
     const cookie = cookies.get('signup')?.split('&&').join('&&');
@@ -37,7 +37,7 @@ export const actions: Actions = {
     const form = await request.formData();
     const username = form.get('username');
 
-    const response = await fetchBackend('/account/signup-username', 'POST', {username});
+    const response = await fetchBackend('/account/signup-username', 'POST', {username}, cookies.get('token'));
     if (!response.username) return response;
 
     const cookie = cookies.get('signup')?.split('&&').join('&&');
@@ -52,7 +52,7 @@ export const actions: Actions = {
 
     if (wantOTP) {
       const username = cookies.get('signup')?.split('&&')[3];
-      const response = await fetchBackend('/account/signup-otp', 'POST', {username});
+      const response = await fetchBackend('/account/signup-otp', 'POST', {username}, cookies.get('token'));
       if (!response.secret) return response;
 
       const cookie = cookies.get('signup')?.split('&&').join('&&');
@@ -72,7 +72,7 @@ export const actions: Actions = {
     const token = form.get('token');
 
     const secret = cookies.get('signup')?.split('&&')[4];
-    const response = await fetchBackend('/account/signup-recovery', 'POST', {token, secret});
+    const response = await fetchBackend('/account/signup-recovery', 'POST', {token, secret}, cookies.get('token'));
     if (!response.recovery) return response;
 
     const cookie = cookies.get('signup')?.split('&&').join('&&');
@@ -122,7 +122,7 @@ export const actions: Actions = {
     }
 
     const body = {email, access, username, password, secret, recovery, payment};
-    const response = await fetchBackend('/account/signup-create', 'POST', body);
+    const response = await fetchBackend('/account/signup-create', 'POST', body, cookies.get('token'));
     if (!response.cookie) return response;
 
     createCookie(cookies, 'token', response.cookie);

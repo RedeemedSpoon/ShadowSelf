@@ -7,14 +7,14 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions = {
-  init: async ({request}) => {
+  init: async ({request, cookies}) => {
     const formData = await request.formData();
     const type = formData.get('type')?.toString().toLowerCase();
-    return await fetchBackend(`/billing/checkout?type=${type}`, 'GET');
+    return await fetchBackend(`/billing/checkout?type=${type}`, 'GET', undefined, cookies.get('token'));
   },
-  confirm: async ({request}) => {
+  confirm: async ({request, cookies}) => {
     const formData = await request.formData();
     const type = formData.get('type')?.toString().toLowerCase();
-    return await fetchBackend(`/billing/checkout-after-confirm?type=${type}`, 'GET');
+    return await fetchBackend(`/billing/checkout-after-confirm?type=${type}`, 'GET', undefined, cookies.get('token'));
   },
 } satisfies Actions;

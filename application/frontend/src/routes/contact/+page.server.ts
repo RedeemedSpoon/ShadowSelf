@@ -34,13 +34,13 @@ export const load: PageServerLoad = () => {
 };
 
 export const actions: Actions = {
-  default: async ({request}) => {
+  default: async ({request, cookies}) => {
     const data = await request.formData();
     const email = data.get('email') as string;
     const subject = data.get('subject') as string;
     const message = data.get('message') as string;
     const category = data.get('category') as string;
 
-    return await fetchBackend('/contact', 'POST', {category, email, subject, message});
+    return await fetchBackend('/contact', 'POST', {category, email, subject, message}, cookies.get('token'));
   },
 };

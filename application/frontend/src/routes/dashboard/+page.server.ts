@@ -2,11 +2,11 @@ import type {PageServerLoad} from './$types';
 import type {Identity, Option} from '$type';
 import {fetchBackend} from '$fetch';
 
-export const load: PageServerLoad = async ({parent}) => {
+export const load: PageServerLoad = async ({parent, cookies}) => {
   const otherObjects = await parent();
 
-  const remains = await fetchBackend('/account/recovery-remaining', 'GET');
-  const response = await fetchBackend('/api', 'GET');
+  const remains = await fetchBackend('/account/recovery-remaining', 'GET', undefined, cookies.get('token'));
+  const response = await fetchBackend('/api', 'GET', undefined, cookies.get('token'));
 
   if (response.type === 'alert')
     return {

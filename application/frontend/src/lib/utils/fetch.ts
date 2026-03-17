@@ -33,10 +33,10 @@ export async function fetchAPI<Type = APIResponse>(url: string, method = 'GET', 
     .catch(() => ({message: 'An error occurred. Please try again later', type: 'alert'}));
 }
 
-export async function fetchBackend(url: string, method = 'GET', body?: Record<string, unknown>) {
+export async function fetchBackend(url: string, method = 'GET', body?: Record<string, unknown>, authToken?: string) {
   const host = PUBLIC_NODE_ENV === 'prod' ? 'backend:3000' : 'localhost:3000';
   return await fetch('http://' + host + url, {
-    headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
+    headers: {'Content-Type': 'application/json', authorization: `Bearer ${authToken || ''}`},
     body: body ? JSON.stringify(body) : undefined,
     method,
   })

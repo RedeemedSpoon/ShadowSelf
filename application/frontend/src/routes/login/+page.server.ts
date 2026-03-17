@@ -9,7 +9,7 @@ export const actions: Actions = {
     const password = form.get('password');
     const email = form.get('email');
 
-    const response = await fetchBackend('/account/login', 'POST', {email, password});
+    const response = await fetchBackend('/account/login', 'POST', {email, password}, cookies.get('token'));
     if (!response.email && !response.cookie) return response;
 
     if (response.cookie) {
@@ -25,7 +25,7 @@ export const actions: Actions = {
     const form = await request.formData();
     const email = form.get('email');
 
-    const response = await fetchBackend('/account/login-email', 'POST', {email});
+    const response = await fetchBackend('/account/login-email', 'POST', {email}, cookies.get('token'));
     if (!response.email) return response;
 
     createCookie(cookies, 'login', `${email}`);
@@ -36,7 +36,7 @@ export const actions: Actions = {
     const access = form.get('access');
     const email = cookies.get('login');
 
-    const response = await fetchBackend('/account/login-access', 'POST', {email, access});
+    const response = await fetchBackend('/account/login-access', 'POST', {email, access}, cookies.get('token'));
     if (!response.email && !response.cookie) return response;
 
     if (response.cookie) {
@@ -52,7 +52,7 @@ export const actions: Actions = {
     const token = form.get('token');
     const email = cookies.get('login');
 
-    const response = await fetchBackend('/account/login-otp', 'POST', {token, email});
+    const response = await fetchBackend('/account/login-otp', 'POST', {token, email}, cookies.get('token'));
     if (!response.cookie) return response;
 
     cookies.delete('login', {path: '/'});
@@ -64,7 +64,7 @@ export const actions: Actions = {
     const code = form.get('code');
     const email = cookies.get('login');
 
-    const response = await fetchBackend('/account/login-recovery', 'POST', {code, email});
+    const response = await fetchBackend('/account/login-recovery', 'POST', {code, email}, cookies.get('token'));
     if (!response.cookie) return response;
 
     cookies.delete('login', {path: '/'});
