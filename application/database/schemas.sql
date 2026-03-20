@@ -3,6 +3,7 @@
 -- Delete Existing Tables
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS identities;
+DROP TABLE IF EXISTS crypto_invoices;
 DROP TABLE IF EXISTS accounts;
 
 -- Create Tables
@@ -19,12 +20,24 @@ CREATE TABLE users (
   "api_key" varchar(32)
 );
 
+CREATE TABLE crypto_invoices (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "owner" integer NOT NULL REFERENCES users(id),
+  "plan" varchar(8) NOT NULL,
+  "xmr_subaddress" varchar(95) UNIQUE NOT NULL,
+  "xmr_amount" numeric(20, 12) NOT NULL,
+  "status" varchar(15) DEFAULT 'pending',
+  "renewal_id" varchar(12), 
+  "creation_date" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE identities (
   "id" varchar(12) PRIMARY KEY,
   "owner" integer NOT NULL REFERENCES users(id),
   "creation_date" timestamp NOT NULL,
   "payment_intent" varchar(27),
   "subscription_id" varchar(28),
+  "crypto_invoice" uuid REFERENCES crypto_invoices(id),
   "plan" varchar(8),
   "proxy_server" cidr,
   "proxy_password" varchar(32),
@@ -53,3 +66,8 @@ CREATE TABLE accounts (
   "algorithm" varchar(6),
   "totp" varchar(126)
 );
+
+-- Close the loop
+ALTER TABLE crypto_invoices
+  ADD CONSTRAINT fk_crypto_renewal 
+  FOREIGN KEY ("renewal_id") REFERENCES identities("id");

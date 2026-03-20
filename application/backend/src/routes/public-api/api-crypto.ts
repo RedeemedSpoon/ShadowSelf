@@ -1,8 +1,11 @@
-import {cryptoPrices, cryptoFees, getUtxoData, getEvmData, getXmrNode, ETH_API, BTC_API, LTC_API, USDT_CONTRACT} from '@utils/polling';
-import {sql, debounceCache} from '@utils/connection';
+import {ETH_API, BTC_API, LTC_API, USDT_CONTRACT} from '@utils/crypto-nodes';
+import {getUtxoData, getEvmData, getXmrNode} from '@utils/crypto-nodes';
+import {cryptoFees, cryptoPrices} from '@background-workers';
 import {CryptoWalletResponse} from '@types';
+import {debounceCache} from '@constants';
 import middleware from '@middleware-api';
 import {checkAPI} from '@utils/checks';
+import {sql} from '@utils/connection';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 

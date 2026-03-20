@@ -16,8 +16,10 @@
     "paths": {
       "@utils/*": ["./src/utils/*"],
       "@types": ["./src/types.ts"],
-      "@middleware": ["./src/middleware.ts"],
-      "@middleware-api": ["./src/middleware-api.ts"]
+      "@constants": ["./src/constants.ts"],
+      "@background-workers": ["./src/background-workers.ts"],
+      "@middleware": ["./src/middlewares/middleware.ts"],
+      "@middleware-api": ["./src/middlewares/middleware-api.ts"]
     }
   }
 }

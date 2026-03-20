@@ -1,5 +1,6 @@
 import type {BodyField, ContactDetail, CheckIdentity, APIRequest} from '@types';
 import {toTitleCase} from '@utils/utils';
+import {locations} from '@constants';
 import {$} from 'bun';
 
 const ethnicities = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
@@ -100,8 +101,8 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
   return body;
 }
 
-export function checkContact(Rawbody: unknown): ContactDetail {
-  const body = Rawbody as ContactDetail;
+export function checkContact(rawBody: unknown): ContactDetail {
+  const body = rawBody as ContactDetail;
 
   for (const field of ['category', 'message', 'subject']) {
     if (!Object.prototype.hasOwnProperty.call(body, field)) {
@@ -133,7 +134,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 
   switch (kind) {
     case 'location':
-      if (!['US', 'CA', 'GB', 'SE'].includes(body.location!)) {
+      if (!locations.some((loc) => loc.code === body.location)) {
         return {error: 'Invalid location code'};
       }
       break;

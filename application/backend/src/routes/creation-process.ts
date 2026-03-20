@@ -1,11 +1,11 @@
 import {User, CreationProcess, QueryIdentity, QueryUser} from '@types';
 import {generateProxyPassword, checksum} from '@utils/cryptography';
-import {sql, twilio, origin} from '@utils/connection';
 import {generateProfile} from '@utils/prompts';
+import {sql, twilio} from '@utils/connection';
+import {locations, origin} from '@constants';
 import {checkIdentity} from '@utils/checks';
 import {proxyRequest} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
-import locations from '@utils/locations';
 import middleware from '@middleware';
 import {Elysia, t} from 'elysia';
 import {$} from 'bun';

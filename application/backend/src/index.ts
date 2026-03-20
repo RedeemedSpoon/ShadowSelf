@@ -1,15 +1,16 @@
+import {initBackgroundWorkers} from '@background-workers';
 import {checkContact} from '@utils/checks';
 import {contact} from '@utils/email-smtp';
 import {ContactDetail} from '@types';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
-import creationProcess from './routes/creation-process';
 import webhooks from './routes/webhooks';
-import settings from './routes/settings';
-import account from './routes/account';
+import settings from './routes/user-settings';
+import creationProcess from './routes/creation-process';
+import api from './routes/public-api/main-api';
+import account from './routes/user-account';
 import billing from './routes/billing';
-import api from './routes/api';
 
 const app = new Elysia()
   .onError(async ({error}) => {
@@ -26,12 +27,13 @@ const app = new Elysia()
     if (result.err) return error(set, 500, result.err);
     return result.message;
   })
-  .use(creationProcess)
+  .use(api)
   .use(webhooks)
+  .use(creationProcess)
   .use(settings)
   .use(account)
   .use(billing)
-  .use(api)
   .listen(3000);
 
+initBackgroundWorkers();
 console.log(`Elysia is running at ${app.server?.hostname}:${app.server?.port}`);

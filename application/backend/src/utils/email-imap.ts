@@ -1,5 +1,6 @@
-import {imapConnection, WSConnections} from './connection';
 import MailComposer from 'nodemailer/lib/mail-composer';
+import {imapConnection} from './connection';
+import {WSConnections} from '@constants';
 import {simpleParser} from 'mailparser';
 import {EmailContent} from '@types';
 import imap from 'imap-simple';

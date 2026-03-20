@@ -1,9 +1,9 @@
-import {debounceCache, sql} from '@utils/connection';
+import {locations, debounceCache} from '@constants';
 import {generateProfile} from '@utils/prompts';
 import {allFakers} from '@faker-js/faker';
 import middleware from '@middleware-api';
-import locations from '@utils/locations';
 import {checkAPI} from '@utils/checks';
+import {sql} from '@utils/connection';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 

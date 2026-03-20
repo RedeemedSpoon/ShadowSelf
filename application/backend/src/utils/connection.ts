@@ -1,15 +1,9 @@
-import {DebounceCacheRequests, WSConnection} from '@types';
+import {production} from '@constants';
 import nodemailer from 'nodemailer';
 import twilioClient from 'twilio';
 import postgres from 'postgres';
 import imap from 'imap-simple';
 import Stripe from 'stripe';
-
-export const WSConnections: WSConnection[] = [];
-export const debounceCache: DebounceCacheRequests = {};
-
-export const origin = process.env.NODE_ENV === 'dev' ? 'https://localhost' : 'https://shadowself.io';
-export const production = process.env.NODE_ENV === 'prod';
 
 export const sql = postgres({
   host: production ? 'postgres' : 'localhost',

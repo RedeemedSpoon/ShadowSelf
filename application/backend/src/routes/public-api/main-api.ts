@@ -1,15 +1,16 @@
-import {sql, WSConnections} from '@utils/connection';
 import {listenForEmail} from '@utils/email-imap';
 import {error, resizeImage} from '@utils/utils';
 import {QueryIdentity, QueryUser} from '@types';
 import middleware from '@middleware-api';
+import {WSConnections} from '@constants';
+import {sql} from '@utils/connection';
 import {Elysia} from 'elysia';
 
-import information from './identity/information';
-import account from './identity/account';
-import crypto from './identity/crypto';
-import phone from './identity/phone';
-import email from './identity/email';
+import information from './api-information';
+import account from './api-account';
+import crypto from './api-crypto';
+import phone from './api-phone';
+import email from './api-email';
 
 export default new Elysia()
   .use(middleware)

@@ -1,5 +1,26 @@
 import {contactTransporter, verificationTransporter, smtpTransporter} from '@utils/connection';
-import {type ContactDetail, type EmailContent, emailTemplate} from '@types';
+import type {ContactDetail, EmailContent} from '@types';
+
+const emailTemplate = {
+  confirm: {
+    title: 'Confirm Your Email Address',
+    description: 'Thank you for signing up for Shadowself. To create your account, you need to first verify your email address.',
+    type: 'access',
+    action: 'create your account & start using Shadowself',
+  },
+  change: {
+    title: 'Change Your Email Address',
+    description: 'To change the email address associated with your account, you need to first verify this new email address.',
+    type: 'access',
+    action: 'login to your account with the new email address',
+  },
+  recover: {
+    title: 'Recover Your Account',
+    description: 'Since you forgot your password, we will resort to using recovery token to get back your account.',
+    type: 'recovery',
+    action: 'login to your account & start using Shadowself',
+  },
+};
 
 export async function contact(body: ContactDetail) {
   const mailOptions = {
