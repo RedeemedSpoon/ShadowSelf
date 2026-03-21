@@ -9,7 +9,7 @@ export const origin = getEnv('NODE_ENV') === 'dev' ? 'https://localhost' : 'http
 
 export const jwtSecret = getEnv('JWT_SECRET');
 export const secretSauce = getEnv('SECRET_SAUCE');
-export const proxySecretKey = getEnv('SECRET_KEY');
+export const secretProxyKey = getEnv('SECRET_PROXY_KEY');
 
 export const geminiApiKey = getEnv('GEMINI_API_KEY');
 export const trocadorApiKey = getEnv('TROCADOR_API_KEY');

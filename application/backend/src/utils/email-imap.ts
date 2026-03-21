@@ -14,16 +14,16 @@ export async function listenForEmail(user: string, password: string) {
 
     for (const message of messages) {
       const email = await parseMassage(connection, message);
-      const ws = wsConnections.find((ws) => ws.emailAddress === user);
-      if (!ws) return;
 
-      ws.websocket.send(JSON.stringify({type: 'email', email}));
+      const sockets = wsConnections.values().filter((ws) => ws.emailAddress === user);
+      for (const ws of sockets) {
+        ws.websocket.send(JSON.stringify({type: 'email', email}));
+      }
     }
   }
 
   const connection = await imapConnection(user, password, onmail);
   connection.openBox('INBOX');
-
   return connection;
 }
 

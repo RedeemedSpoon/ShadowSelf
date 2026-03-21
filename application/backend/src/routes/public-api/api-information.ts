@@ -3,6 +3,7 @@ import {generateProfile} from '@utils/prompts';
 import {allFakers} from '@faker-js/faker';
 import {LOCATIONS} from '@core/constants';
 import {checkAPI} from '@utils/checks';
+import {throttle} from '@core/states';
 import {error} from '@utils/utils';
 import {sql} from '@core/services';
 import {Elysia} from 'elysia';
@@ -11,7 +12,7 @@ export default new Elysia({prefix: '/identity'})
   .use(middlewareApi)
   .get('/:id', async ({identity}) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {email_password, proxy_password, payment_intent, subscription_id, owner, status, ...pubInfo} = identity!;
+    const {email_password, proxy_password, payment_intent, crypto_invoice, subscription_id, owner, status, ...pubInfo} = identity!;
     const {creation_date, proxy_server, wallet_keys, wallet_blob, wallet_funds, ...rest} = pubInfo;
     const reformattedData = {
       creationDate: creation_date,
@@ -23,16 +24,20 @@ export default new Elysia({prefix: '/identity'})
 
     return {...rest, ...reformattedData};
   })
-  .patch('/regenerate-picture/:id', async ({set, identity, body}) => {
-    const fields = ['?sex', '?age', '?ethnicity', '?bio'];
-    const data = {sex: identity!.sex, age: identity!.age, ethnicity: identity!.ethnicity, bio: identity!.bio};
-    const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!}, fields);
-    if (err) return error(set, 400, err);
+  .patch(
+    '/regenerate-picture/:id',
+    async ({set, identity, body}) => {
+      const fields = ['?sex', '?age', '?ethnicity', '?bio'];
+      const data = {sex: identity!.sex, age: identity!.age, ethnicity: identity!.ethnicity, bio: identity!.bio};
+      const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!}, fields);
+      if (err) return error(set, 400, err);
 
-    const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
-    const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
-    return {picture};
-  })
+      const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
+      const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
+      return {picture};
+    },
+    throttle('Regenerate Picture', 30_000),
+  )
   .patch('/regenerate-name/:id', async ({set, identity, body}) => {
     const {err, sex} = await checkAPI({sex: identity!.sex, ...body!}, ['?sex']);
     if (err) return error(set, 400, err);

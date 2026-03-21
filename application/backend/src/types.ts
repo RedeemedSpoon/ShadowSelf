@@ -5,13 +5,6 @@ export type User = {email: string; id: string} | undefined;
 export type Attachment = {filename: string; data: string};
 export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
 
-export interface DebounceCacheRequests {
-  [identityID: string]: {
-    requestType: string;
-    data: unknown;
-  }[];
-}
-
 export interface WSConnection {
   imapConnection: ImapSimple;
   websocket: ElysiaWS;
@@ -90,6 +83,7 @@ export interface QueryIdentity {
   plan: 'monthly' | 'annually' | 'lifetime';
   status: 'active' | 'inactive' | 'frozen';
   proxy_server: string;
+  crypto_invoice: string;
   proxy_password: string;
   location: string;
   picture: string;

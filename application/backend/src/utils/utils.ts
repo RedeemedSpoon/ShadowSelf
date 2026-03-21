@@ -1,5 +1,5 @@
 import {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
-import {proxySecretKey} from '@core/config';
+import {secretProxyKey} from '@core/config';
 import sharp from 'sharp';
 
 export function error(set: {[key: string]: unknown}, status: number, message: string) {
@@ -7,10 +7,15 @@ export function error(set: {[key: string]: unknown}, status: number, message: st
   return message;
 }
 
-export function toTitleCase(str: string): string {
+export function toTitleCase(str: string) {
   return str.replace(/\w\S*/g, (txt) => {
     return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
   });
+}
+
+export function net(coin: string) {
+  const isUsdt = coin.toLowerCase().includes('usdt');
+  return isUsdt ? 'ERC20' : 'Mainnet';
 }
 
 export async function blobToBase64(blob: Blob) {
@@ -51,7 +56,7 @@ export async function proxyRequest(code: string, method = 'GET', body?: object) 
   return fetch(`https://${code}.shadowself.io/`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${proxySecretKey}`,
+      Authorization: `Bearer ${secretProxyKey}`,
     },
     body: body ? JSON.stringify(body) : undefined,
     method,

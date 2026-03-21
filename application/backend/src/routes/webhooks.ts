@@ -147,8 +147,8 @@ export default new Elysia()
     const rawMessage = await twilio.messages.get(rawBody.MessageSid).fetch();
     const message = parseMessage(rawMessage);
 
-    const ws = wsConnections.find((ws) => ws.phoneNumber === message.to);
-    if (!ws) return;
-
-    ws?.websocket.send(JSON.stringify({type: 'message', message}));
+    const sockets = wsConnections.values().filter((ws) => ws.phoneNumber === message.to);
+    for (const ws of sockets) {
+      ws.websocket.send(JSON.stringify({type: 'message', message}));
+    }
   });

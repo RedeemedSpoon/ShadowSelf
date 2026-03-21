@@ -1,12 +1,12 @@
+import {cryptoFees, cryptoPrices, throttle, useCache} from '@core/states';
 import {ETH_API, BTC_API, LTC_API, USDT_CONTRACT} from '@core/constants';
 import {getUtxoData, getEvmData, getXmrNode} from '@utils/crypto-nodes';
-import {cryptoFees, cryptoPrices, debounceCache} from '@core/states';
 import middlewareApi from '@middlewares/middleware-api';
 import {trocadorApiKey} from '@core/config';
 import {CryptoWalletResponse} from '@type';
+import {error, net} from '@utils/utils';
 import {checkAPI} from '@utils/checks';
 import {sql} from '@core/services';
-import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/crypto'})
@@ -15,250 +15,183 @@ export default new Elysia({prefix: '/crypto'})
     startingDate: identity?.creation_date ?? new Date(),
     ...(await getXmrNode()),
   }))
-  .get('/:id', async ({identity}) => {
-    const {btc, ltc, evm} = identity!.wallet_keys;
+  .get(
+    '/:id',
+    async ({identity}) => {
+      const {btc, ltc, evm} = identity!.wallet_keys;
+      const cryptoWallet = {} as CryptoWalletResponse;
 
-    const REQUEST_TYPE = 'Wallet Overview';
-    const DEBOUNCE_DURATION = 60_000;
+      cryptoWallet.eth = await getEvmData('eth', evm);
+      cryptoWallet.btc = await getUtxoData('btc', btc);
 
-    if (debounceCache[identity!.id]) {
-      const cachedItem = debounceCache[identity!.id].find((item) => item.requestType === REQUEST_TYPE);
-      if (cachedItem) return {prices: cryptoPrices, fees: cryptoFees, wallet: cachedItem.data};
-    }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      cryptoWallet.ltc = await getUtxoData('ltc', ltc);
+      cryptoWallet.usdt = await getEvmData('usdt', evm);
 
-    const cryptoWallet = {} as CryptoWalletResponse;
+      const totalFunds = (['btc', 'ltc', 'eth', 'usdt'] as const).reduce((acc, coin) => {
+        return acc + cryptoWallet[coin].balance * (cryptoPrices[coin]?.usdPrice ?? 0);
+      }, 0);
 
-    cryptoWallet.eth = await getEvmData('eth', evm);
-    cryptoWallet.btc = await getUtxoData('btc', btc);
+      await sql`UPDATE identities SET wallet_funds = ${totalFunds} WHERE id = ${identity!.id}`;
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    cryptoWallet.ltc = await getUtxoData('ltc', ltc);
-    cryptoWallet.usdt = await getEvmData('usdt', evm);
+      return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};
+    },
+    useCache('Wallet Overview', 60_000),
+  )
+  .get(
+    '/swap-rates/:id',
+    async ({query, set}) => {
+      const {err, coinFrom, coinTo, amount} = await checkAPI(query, ['coinTo', 'coinFrom', 'amount']);
+      if (err) return error(set, 400, err);
 
-    const totalFunds =
-      cryptoWallet.btc.balance * (cryptoPrices.btc?.usdPrice || 0) +
-      cryptoWallet.ltc.balance * (cryptoPrices.ltc?.usdPrice || 0) +
-      cryptoWallet.eth.balance * (cryptoPrices.eth?.usdPrice || 0) +
-      cryptoWallet.usdt.balance * (cryptoPrices.usdt?.usdPrice || 0);
-
-    await sql`UPDATE identities SET wallet_funds = ${totalFunds} WHERE id = ${identity!.id}`;
-
-    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
-    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: cryptoWallet});
-
-    setTimeout(() => {
-      if (debounceCache[identity!.id]) {
-        debounceCache[identity!.id] = debounceCache[identity!.id].filter((item) => item.requestType !== REQUEST_TYPE);
-        if (debounceCache[identity!.id] && debounceCache[identity!.id].length === 0) {
-          delete debounceCache[identity!.id];
-        }
-      }
-    }, DEBOUNCE_DURATION);
-
-    return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};
-  })
-  .get('/swap-rates/:id', async ({query, identity, set}) => {
-    const {err, coinFrom, coinTo, amount} = await checkAPI(query, ['coinTo', 'coinFrom', 'amount']);
-    if (err) return error(set, 400, err);
-
-    const REQUEST_TYPE = 'Swap Rates';
-    const DEBOUNCE_DURATION = 5_000;
-
-    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
-      return error(set, 429, 'Rate limit: Please wait 5s');
-    }
-
-    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
-    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
-
-    setTimeout(() => {
-      if (debounceCache[identity!.id])
-        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
-    }, DEBOUNCE_DURATION);
-
-    const net = (t: string) => (t.toLowerCase().includes('usdt') ? 'ERC20' : 'Mainnet');
-    const params = `?ticker_from=${coinFrom}&ticker_to=${coinTo}&network_from=${net(coinFrom)}&network_to=${net(coinTo)}&amount_from=${amount}`;
-
-    const response = await fetch('https://api.trocador.app/new_rate' + params, {headers: {'API-Key': trocadorApiKey}});
-    if (!response.ok) return error(set, 400, 'Something Went Wrong');
-
-    const data = await response.json();
-    const providers = data.quotes.quotes.map((val: any) => ({
-      isFixed: val.fixed === 'True',
-      costPercentage: parseFloat(val.USD_total_cost_percentage),
-      returnUsd: val.amount_to_USD,
-      returnCoin: val.amount_to,
-      kycRating: val.kycrating,
-      logPolicy: val.logpolicy,
-      logo: val.provider_logo,
-      name: val.provider,
-      eta: val.eta,
-    }));
-
-    return {
-      tradeID: data.trade_id,
-      bestProvider: data.provider,
-      providers,
-      coinFrom,
-      amount,
-      coinTo,
-    };
-  })
-  .post('/swap-trades/:id', async ({body, identity, set}) => {
-    const fields = ['tradeID', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider', 'isFixed'];
-    const {err, tradeID, coinTo, coinFrom, amount} = await checkAPI(body, fields);
-    const {destinationAddress, refundAddress, provider, isFixed} = await checkAPI(body, fields);
-    if (err) return error(set, 400, err);
-
-    const REQUEST_TYPE = 'Swap Trade';
-    const DEBOUNCE_DURATION = 10_000;
-
-    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
-      return error(set, 429, 'Rate limit: Please wait 10s');
-    }
-
-    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
-    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
-
-    setTimeout(() => {
-      if (debounceCache[identity!.id])
-        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
-    }, DEBOUNCE_DURATION);
-
-    const net = (t: string) => (t.toLowerCase().includes('usdt') ? 'ERC20' : 'Mainnet');
-
-    const params = new URLSearchParams({
-      id: tradeID,
-      ticker_from: coinFrom,
-      ticker_to: coinTo,
-      network_from: net(coinFrom),
-      network_to: net(coinTo),
-      amount_from: String(amount),
-      address: destinationAddress,
-      address_memo: '0',
-      refund: refundAddress,
-      refund_memo: '0',
-      provider: provider,
-      fixed: isFixed ? 'True' : 'False',
-    });
-
-    try {
-      const response = await fetch(`https://api.trocador.app/new_trade?${params.toString()}`, {
-        headers: {'API-Key': trocadorApiKey},
-        method: 'GET',
-      });
+      const params = `?ticker_from=${coinFrom}&ticker_to=${coinTo}&network_from=${net(coinFrom)}&network_to=${net(coinTo)}&amount_from=${amount}`;
+      const response = await fetch('https://api.trocador.app/new_rate' + params, {headers: {'API-Key': trocadorApiKey}});
+      if (!response.ok) return error(set, 400, 'Something Went Wrong');
 
       const data = await response.json();
-      if (!response.ok || (data as any).error) {
-        return error(set, 400, (data as any).error || 'Failed to create trade at provider');
-      }
+      const providers = data.quotes.quotes.map((val: any) => ({
+        isFixed: val.fixed === 'True',
+        costPercentage: parseFloat(val.USD_total_cost_percentage),
+        returnUsd: val.amount_to_USD,
+        returnCoin: val.amount_to,
+        kycRating: val.kycrating,
+        logPolicy: val.logpolicy,
+        logo: val.provider_logo,
+        name: val.provider,
+        eta: val.eta,
+      }));
 
       return {
-        status: data.status,
-        depositAddress: data.address_provider,
-        depositAmount: data.amount_from,
-        depositMemo: data.address_provider_memo,
-        providerTradeId: data.id_provider,
-        externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
+        tradeID: data.trade_id,
+        bestProvider: data.provider,
+        providers,
+        coinFrom,
+        amount,
+        coinTo,
       };
-    } catch (_) {
-      return error(set, 502, 'Upstream Service Error');
-    }
-  })
-  .post('/broadcast/:id', async ({identity, body, set}) => {
-    const {err, hex, coin} = await checkAPI(body, ['hex', 'coin']);
-    if (err) return error(set, 400, err);
+    },
+    throttle('Swap Rates', 5_000),
+  )
+  .post(
+    '/swap-trades/:id',
+    async ({body, set}) => {
+      const fields = ['tradeID', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider', 'isFixed'];
+      const {err, tradeID, coinTo, coinFrom, amount} = await checkAPI(body, fields);
+      const {destinationAddress, refundAddress, provider, isFixed} = await checkAPI(body, fields);
+      if (err) return error(set, 400, err);
 
-    const REQUEST_TYPE = 'Broadcast';
-    const DEBOUNCE_DURATION = 5_000;
-
-    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
-      return error(set, 429, 'Rate limit: Please wait 5s between broadcasts');
-    }
-
-    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
-    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
-
-    setTimeout(() => {
-      if (debounceCache[identity!.id])
-        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
-    }, DEBOUNCE_DURATION);
-
-    const target = coin.toLowerCase();
-    if (['btc', 'ltc'].includes(target)) {
-      const url = target === 'btc' ? BTC_API : LTC_API;
-      const response = await fetch(`${url}/tx`, {method: 'POST', body: hex});
-      return {txid: await response.text()};
-    }
-
-    if (['eth', 'usdt'].includes(target)) {
-      const response = await fetch(ETH_API + '/eth-rpc', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id: 1, jsonrpc: '2.0', method: 'eth_sendRawTransaction', params: [hex]}),
+      const params = new URLSearchParams({
+        id: tradeID,
+        ticker_from: coinFrom,
+        ticker_to: coinTo,
+        network_from: net(coinFrom),
+        network_to: net(coinTo),
+        amount_from: String(amount),
+        address: destinationAddress,
+        address_memo: '0',
+        refund: refundAddress,
+        refund_memo: '0',
+        provider: provider,
+        fixed: isFixed ? 'True' : 'False',
       });
 
-      return {txid: (await response.json()).result};
-    }
-  })
-  .post('/sweep-info/:id', async ({identity, body, set}) => {
-    const {err, coin, addresses} = await checkAPI(body, ['coin', 'addresses']);
-    if (err) return error(set, 400, err);
+      try {
+        const response = await fetch(`https://api.trocador.app/new_trade?${params.toString()}`, {
+          headers: {'API-Key': trocadorApiKey},
+          method: 'GET',
+        });
 
-    const REQUEST_TYPE = 'Sweep Scan';
-    const DEBOUNCE_DURATION = 10_000;
+        const data = await response.json();
+        if (!response.ok || (data as any).error) {
+          return error(set, 400, (data as any).error || 'Failed to create trade at provider');
+        }
 
-    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
-      return error(set, 429, 'Rate limit: Please wait 10s between scans');
-    }
+        return {
+          status: data.status,
+          depositAddress: data.address_provider,
+          depositAmount: data.amount_from,
+          depositMemo: data.address_provider_memo,
+          providerTradeId: data.id_provider,
+          externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
+        };
+      } catch (_) {
+        return error(set, 502, 'Upstream Service Error');
+      }
+    },
+    throttle('Swap Trade', 10_000),
+  )
+  .post(
+    '/broadcast/:id',
+    async ({body, set}) => {
+      const {err, hex, coin} = await checkAPI(body, ['hex', 'coin']);
+      if (err) return error(set, 400, err);
 
-    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
-    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
+      const target = coin.toLowerCase();
+      if (['btc', 'ltc'].includes(target)) {
+        const url = target === 'btc' ? BTC_API : LTC_API;
+        const response = await fetch(`${url}/tx`, {method: 'POST', body: hex});
+        return {txid: await response.text()};
+      }
 
-    setTimeout(() => {
-      if (debounceCache[identity!.id])
-        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
-    }, DEBOUNCE_DURATION);
+      if (['eth', 'usdt'].includes(target)) {
+        const response = await fetch(ETH_API + '/eth-rpc', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({id: 1, jsonrpc: '2.0', method: 'eth_sendRawTransaction', params: [hex]}),
+        });
 
-    const target = coin.toLowerCase();
-    if (['btc', 'ltc'].includes(target)) {
-      const baseUrl = target === 'btc' ? BTC_API : LTC_API;
+        return {txid: (await response.json()).result};
+      }
+    },
+    throttle('Broadcast', 10_000),
+  )
+  .post(
+    '/sweep-info/:id',
+    async ({body, set}) => {
+      const {err, coin, addresses} = await checkAPI(body, ['coin', 'addresses']);
+      if (err) return error(set, 400, err);
 
-      const requests = addresses.map((addr) => fetch(`${baseUrl}/address/${addr}/utxo`));
-      const responses = await Promise.all(requests);
-      const jsonResults = await Promise.all(responses.map((r) => (r.ok ? r.json() : [])));
+      const target = coin.toLowerCase();
+      if (['btc', 'ltc'].includes(target)) {
+        const baseUrl = target === 'btc' ? BTC_API : LTC_API;
 
-      const utxos = jsonResults.flatMap((list, i) =>
-        Array.isArray(list)
-          ? list.map((u: any) => ({
-              txid: u.txid,
-              vout: u.vout,
-              value: u.value,
-              address: addresses[i],
-              path_index: 0,
-            }))
-          : [],
-      );
+        const requests = addresses.map((addr) => fetch(`${baseUrl}/address/${addr}/utxo`));
+        const responses = await Promise.all(requests);
+        const jsonResults = await Promise.all(responses.map((r) => (r.ok ? r.json() : [])));
 
-      const balance = utxos.reduce((acc, u) => acc + u.value, 0);
-      return {utxos, balance, nonce: 0};
-    }
+        const utxos = jsonResults.flatMap((list, i) =>
+          Array.isArray(list)
+            ? list.map((u: any) => ({
+                txid: u.txid,
+                vout: u.vout,
+                value: u.value,
+                address: addresses[i],
+                path_index: 0,
+              }))
+            : [],
+        );
 
-    if (['eth', 'usdt'].includes(target)) {
-      const address = addresses[0];
-      const nonceReq = fetch(`${ETH_API}?module=proxy&action=eth_getTransactionCount&address=${address}&tag=latest`);
+        const balance = utxos.reduce((acc, u) => acc + u.value, 0);
+        return {utxos, balance, nonce: 0};
+      }
 
-      let balUrl = `${ETH_API}?module=account&address=${address}`;
-      balUrl += target === 'usdt' ? `&action=tokenbalance&contractaddress=${USDT_CONTRACT}` : `&action=balance`;
-      const balReq = fetch(balUrl);
+      if (['eth', 'usdt'].includes(target)) {
+        const address = addresses[0];
+        const nonceReq = fetch(`${ETH_API}?module=proxy&action=eth_getTransactionCount&address=${address}&tag=latest`);
 
-      const [nonceRes, balRes] = await Promise.all([nonceReq, balReq]);
-      const nonceData = await nonceRes.json();
-      const balData = await balRes.json();
+        let balUrl = `${ETH_API}?module=account&address=${address}`;
+        balUrl += target === 'usdt' ? `&action=tokenbalance&contractaddress=${USDT_CONTRACT}` : `&action=balance`;
+        const balReq = fetch(balUrl);
 
-      return {utxos: [], balance: Number(balData.result), nonce: parseInt(nonceData.result, 16)};
-    }
-  })
+        const [nonceRes, balRes] = await Promise.all([nonceReq, balReq]);
+        const nonceData = await nonceRes.json();
+        const balData = await balRes.json();
+
+        return {utxos: [], balance: Number(balData.result), nonce: parseInt(nonceData.result, 16)};
+      }
+    },
+    throttle('Sweep Info', 15_000),
+  )
   .put('/update-encryption/:id', async ({identity, body, set}) => {
     const {blob, keys, err} = await checkAPI(body, ['blob', 'keys']);
     if (err) return error(set, 400, err);
