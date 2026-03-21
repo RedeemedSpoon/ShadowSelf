@@ -1,17 +1,18 @@
 import {error, parseMessage, request as req} from '@utils/utils';
-import {sql, stripe, twilio} from '@utils/connection';
-import {QueryIdentity, QueryUser} from '@types';
-import {WSConnections} from '@constants';
-import middleware from '@middleware';
+import middlewareBase from '@middlewares/middleware-base';
+import {stripeConfig, twilioConfig} from '@core/config';
+import {sql, stripe, twilio} from '@core/services';
+import {QueryIdentity, QueryUser} from '@type';
+import {wsConnections} from '@core/states';
 import twilioClient from 'twilio';
 import {Elysia} from 'elysia';
 import Stripe from 'stripe';
 
 export default new Elysia()
-  .use(middleware)
+  .use(middlewareBase)
   .post('/webhook-stripe', async ({set, request}) => {
     const signature = request.headers.get('stripe-signature')!;
-    const secret = process.env.STRIPE_WEBHOOK_SECRET!;
+    const secret = stripeConfig.webhookSecret;
     const body = await request.text();
     let event: Stripe.Event;
 
@@ -136,7 +137,7 @@ export default new Elysia()
 
     const signature = request.headers.get('X-Twilio-Signature') || '';
     const rawBody = body as {[key: string]: string};
-    const auth = process.env.TWILIO_TOKEN!;
+    const auth = twilioConfig.token;
 
     if (!twilioClient.validateRequest(auth, signature, url, rawBody)) {
       return error(set, 400, 'Invalid signature');
@@ -146,7 +147,7 @@ export default new Elysia()
     const rawMessage = await twilio.messages.get(rawBody.MessageSid).fetch();
     const message = parseMessage(rawMessage);
 
-    const ws = WSConnections.find((ws) => ws.phoneNumber === message.to);
+    const ws = wsConnections.find((ws) => ws.phoneNumber === message.to);
     if (!ws) return;
 
     ws?.websocket.send(JSON.stringify({type: 'message', message}));

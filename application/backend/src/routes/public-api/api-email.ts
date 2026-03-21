@@ -1,13 +1,13 @@
 import {fetchRecentEmails, appendToMailbox, deleteEmail, fetchEmail, fetchMoreEmails} from '@utils/email-imap';
+import middlewareApi from '@middlewares/middleware-api';
 import {sendIdentityEmail} from '@utils/email-smtp';
-import {APIRequest, EmailContent} from '@types';
-import middleware from '@middleware-api';
+import {APIRequest, EmailContent} from '@type';
 import {checkAPI} from '@utils/checks';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/email'})
-  .use(middleware)
+  .use(middlewareApi)
   .get('/:id', async ({identity}) => {
     const emails = await fetchRecentEmails(identity!.email, identity!.email_password);
     return {emails};

@@ -1,15 +1,15 @@
-import {origin, pricingModal, pricingTable} from '@constants';
+import middlewareBase from '@middlewares/middleware-base';
 import {generateIdentityID} from '@utils/cryptography';
 import {toTitleCase, error} from '@utils/utils';
-import {sql, stripe} from '@utils/connection';
-import type {QueryUser} from '@types';
-import middleware from '@middleware';
+import {sql, stripe} from '@core/services';
+import {stripeConfig} from '@core/config';
+import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
 import {Elysia} from 'elysia';
 import Stripe from 'stripe';
 
 export default new Elysia({prefix: '/fiat'})
-  .use(middleware)
+  .use(middlewareBase)
   .onBeforeHandle(({set, user, path}) => {
     const relativePath = path.slice(13);
     const mustLogIn = ['/checkout', '/checkout-after-confirm'];
@@ -37,11 +37,11 @@ export default new Elysia({prefix: '/fiat'})
     return {sessionUrl: session.url};
   })
   .get('/checkout', async ({set, user, query}) => {
-    const type = query?.type as keyof typeof pricingModal;
+    const type = query?.type as keyof typeof stripeConfig.prices;
     const identityID = generateIdentityID();
 
     if (!type) return error(set, 400, 'Missing or invalid query type. Try again');
-    if (!pricingModal[type]) return error(set, 400, 'Invalid query type. Try again');
+    if (!stripeConfig.prices[type]) return error(set, 400, 'Invalid query type. Try again');
 
     const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const customerID = customer[0]?.stripe_customer;
@@ -67,7 +67,7 @@ export default new Elysia({prefix: '/fiat'})
       const paymentIntent = await stripe.paymentIntents.create({
         metadata,
         customer: customerID,
-        amount: pricingTable.lifetime,
+        amount: Number(stripeConfig.prices.lifetime),
         payment_method_types: ['card'],
         currency: 'eur',
       });
@@ -77,7 +77,7 @@ export default new Elysia({prefix: '/fiat'})
       const subscriptionParams: Stripe.SubscriptionCreateParams = {
         metadata,
         customer: customerID,
-        items: [{price: pricingModal[type]}],
+        items: [{price: stripeConfig.prices[type]}],
         payment_behavior: 'default_incomplete',
         payment_settings: {
           save_default_payment_method: 'on_subscription',
@@ -104,11 +104,11 @@ export default new Elysia({prefix: '/fiat'})
     return {step: 'create', clientSecret, identityID};
   })
   .get('/checkout-after-confirm', async ({set, user, query}) => {
-    const type = query?.type as keyof typeof pricingModal;
+    const type = query?.type as keyof typeof stripeConfig.prices;
     const identityID = generateIdentityID();
 
     if (!type) return error(set, 400, 'Missing or invalid query type. Try again');
-    if (!pricingModal[type]) return error(set, 400, 'Invalid query type. Try again');
+    if (!stripeConfig.prices[type]) return error(set, 400, 'Invalid query type. Try again');
 
     const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const customerID = customer[0]?.stripe_customer;
@@ -127,7 +127,7 @@ export default new Elysia({prefix: '/fiat'})
         await stripe.paymentIntents.create({
           metadata,
           customer: customerID,
-          amount: pricingTable.lifetime,
+          amount: Number(stripeConfig.prices.lifetime),
           payment_method_types: ['card'],
           payment_method: paymentMethodsID,
           currency: 'eur',
@@ -138,7 +138,7 @@ export default new Elysia({prefix: '/fiat'})
       const subscription = await stripe.subscriptions.create({
         metadata,
         customer: customerID,
-        items: [{price: pricingModal[type]}],
+        items: [{price: stripeConfig.prices[type]}],
         payment_behavior: 'default_incomplete',
         payment_settings: {
           save_default_payment_method: 'on_subscription',

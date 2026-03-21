@@ -1,9 +1,10 @@
+import {jwtSecret} from '@core/config';
 import {jwt} from '@elysiajs/jwt';
 import {Elysia} from 'elysia';
-import {User} from '@types';
+import {User} from '@type';
 
 export default (app: Elysia) =>
-  app.use(jwt({name: 'jwt', secret: process.env.JWT_SECRET as string, exp: '90d'})).derive(async ({headers, jwt}) => {
+  app.use(jwt({name: 'jwt', secret: jwtSecret, exp: '90d'})).derive(async ({headers, jwt}) => {
     const auth = headers['authorization'];
     const token = auth && auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : undefined;
     const user = (await jwt.verify(token)) as User;

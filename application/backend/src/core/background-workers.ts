@@ -1,15 +1,6 @@
-import type {CoinGeckoResponse, CryptoFees, CryptoPrices} from '@types';
-
-export const cryptoFees = {} as CryptoFees;
-export const cryptoPrices = {} as CryptoPrices;
-
-const COINGECKO_BASE = 'https://api.coingecko.com/api/v3/coins/markets';
-const COINGECKO_PARAMS = '?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
-
-const BTC_API = 'https://mempool.space/api';
-const LTC_API = 'https://litecoinspace.org/api';
-const ETH_API = 'https://eth.blockscout.com/api';
-const XMR_NODE = 'https://xmr-node.cakewallet.com:18081/json_rpc';
+import {BTC_API, COINGECKO_URL, ETH_API, LTC_API, XMR_NODE} from '@core/constants';
+import {cryptoFees, cryptoPrices} from '@core/states';
+import type {CoinGeckoResponse} from '@type';
 
 async function safeFetch(url: string, fallback: any, options?: RequestInit) {
   try {
@@ -52,7 +43,7 @@ async function pollFees() {
 
 async function pollPrices() {
   try {
-    const response = await fetch(COINGECKO_BASE + COINGECKO_PARAMS);
+    const response = await fetch(COINGECKO_URL);
     if (!response.ok) return;
 
     const data = (await response.json()) as CoinGeckoResponse;

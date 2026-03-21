@@ -1,23 +1,15 @@
-import type {CryptoWalletResponse, UTXOData, TransactionsHistory} from '@types';
-import {xpubToAddress} from './cryptography';
-
-export const BTC_API = 'https://mempool.space/api';
-export const LTC_API = 'https://litecoinspace.org/api';
-export const ETH_API = 'https://eth.blockscout.com/api';
-export const XMR_NODE = 'https://xmr-node.cakewallet.com:18081/json_rpc';
-export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+import {BTC_API, ETH_API, GAP_LIMIT, HARD_LIMIT, LTC_API, USDT_CONTRACT, XMR_NODE} from '@core/constants';
+import type {CryptoWalletResponse, UTXOData, TransactionsHistory} from '@type';
+import {xpubToAddress} from '@utils/cryptography';
 
 export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<CryptoWalletResponse['btc']> {
   const baseUrl = coin === 'btc' ? BTC_API : LTC_API;
-
   let totalBalance = 0;
+  let activeCount = 0;
+  let gap = 0;
+
   let allUtxos: UTXOData = [];
   let allHistory: TransactionsHistory = [];
-  let activeCount = 0;
-
-  let gap = 0;
-  const GAP_LIMIT = 5;
-  const HARD_LIMIT = 100;
 
   try {
     for (let i = 0; i < HARD_LIMIT; i++) {

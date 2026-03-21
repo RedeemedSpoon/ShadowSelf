@@ -1,17 +1,18 @@
-import {User, CreationProcess, QueryIdentity, QueryUser} from '@types';
+import {User, CreationProcess, QueryIdentity, QueryUser} from '@type';
 import {generateProxyPassword, checksum} from '@utils/cryptography';
+import middlewareBase from '@middlewares/middleware-base';
 import {generateProfile} from '@utils/prompts';
-import {sql, twilio} from '@utils/connection';
-import {locations, origin} from '@constants';
 import {checkIdentity} from '@utils/checks';
+import {sql, twilio} from '@core/services';
+import {twilioConfig} from '@core/config';
+import {LOCATIONS} from '@core/constants';
 import {proxyRequest} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
-import middleware from '@middleware';
 import {Elysia, t} from 'elysia';
 import {$} from 'bun';
 
 export default new Elysia({websocket: {idleTimeout: 300}})
-  .use(middleware)
+  .use(middlewareBase)
   .post('/creation-process', async ({headers, jwt, body}) => {
     const auth = headers['authorization'];
     const token = auth && auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : undefined;
@@ -47,7 +48,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
       switch (message.kind) {
         case 'init/fetch-locations': {
-          ws.send({locations});
+          ws.send({locations: LOCATIONS});
           break;
         }
 
@@ -60,7 +61,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           }
 
           const ethnicities = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
-          const lang = locations.find((location) => location.code === (cookieStore[0] || message.location));
+          const lang = LOCATIONS.find((location) => location.code === (cookieStore[0] || message.location));
 
           let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};
           if (error) return ws.send({error});
@@ -156,7 +157,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const {error} = await checkIdentity('provision', params);
           if (error) return ws.send({error});
 
-          const loc = locations.find((loc) => loc.code === location);
+          const loc = LOCATIONS.find((loc) => loc.code === location);
           const fullLocation = `${loc!.code}, ${loc!.city}, ${loc!.country}`;
           const proxyServer = loc!.ip;
 
@@ -191,7 +192,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             phoneNumber: phone,
           });
 
-          const messagingService = twilio.messaging.v1.services(process.env.TWILIO_MESSAGING_SERVICE!);
+          const messagingService = twilio.messaging.v1.services(twilioConfig.messagingService!);
           messagingService.phoneNumbers.create({phoneNumberSid: result.sid});
 
           await sql`UPDATE identities SET location = ${fullLocation}, proxy_server = ${proxyServer} WHERE id = ${identityID}`;

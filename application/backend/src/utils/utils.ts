@@ -1,4 +1,5 @@
 import {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
+import {proxySecretKey} from '@core/config';
 import sharp from 'sharp';
 
 export function error(set: {[key: string]: unknown}, status: number, message: string) {
@@ -50,7 +51,7 @@ export async function proxyRequest(code: string, method = 'GET', body?: object) 
   return fetch(`https://${code}.shadowself.io/`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.SECRET_KEY}`,
+      Authorization: `Bearer ${proxySecretKey}`,
     },
     body: body ? JSON.stringify(body) : undefined,
     method,

@@ -231,6 +231,42 @@ export interface Message {
   to: string;
 }
 
+export interface CryptoWalletResponse {
+  btc: {
+    status: string;
+    balance: number;
+    utxos: UTXOData;
+    history: TransactionsHistory;
+    activeCount: number;
+    nextIndex: number;
+  };
+  ltc: {
+    status: string;
+    balance: number;
+    utxos: UTXOData;
+    history: TransactionsHistory;
+    activeCount: number;
+    nextIndex: number;
+  };
+  eth: {
+    status: string;
+    balance: number;
+    nonce: number;
+    history: TransactionsHistory;
+  };
+  usdt: {
+    status: string;
+    balance: number;
+    nonce: number;
+    history: TransactionsHistory;
+  };
+  xmr: {
+    status: string;
+    startingDate: Date;
+    nodeUrl: string;
+  };
+}
+
 export type CryptoFees = {
   [key in CryptoCurrencies]: {
     low: number;
@@ -271,39 +307,3 @@ export type TransactionsHistory = {
   amount: number;
   date: Date;
 }[];
-
-export type CryptoWalletResponse = {
-  btc: {
-    status: string;
-    balance: number;
-    utxos: UTXOData;
-    history: TransactionsHistory;
-    activeCount: number;
-    nextIndex: number;
-  };
-  ltc: {
-    status: string;
-    balance: number;
-    utxos: UTXOData;
-    history: TransactionsHistory;
-    activeCount: number;
-    nextIndex: number;
-  };
-  eth: {
-    status: string;
-    balance: number;
-    nonce: number;
-    history: TransactionsHistory;
-  };
-  usdt: {
-    status: string;
-    balance: number;
-    nonce: number;
-    history: TransactionsHistory;
-  };
-  xmr: {
-    status: string;
-    startingDate: Date;
-    nodeUrl: string;
-  };
-};

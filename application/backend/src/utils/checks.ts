@@ -1,9 +1,7 @@
-import type {BodyField, ContactDetail, CheckIdentity, APIRequest} from '@types';
+import type {BodyField, ContactDetail, CheckIdentity, APIRequest} from '@type';
+import {ETHNICITIES, LOCATIONS} from '@core/constants';
 import {toTitleCase} from '@utils/utils';
-import {locations} from '@constants';
 import {$} from 'bun';
-
-const ethnicities = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
   const body = rawBody as BodyField;
@@ -134,7 +132,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 
   switch (kind) {
     case 'location':
-      if (!locations.some((loc) => loc.code === body.location)) {
+      if (!LOCATIONS.some((loc) => loc.code === body.location)) {
         return {error: 'Invalid location code'};
       }
       break;
@@ -160,7 +158,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Age must be between 18 and 60'};
       }
 
-      if (!ethnicities.includes(body.ethnicity!)) {
+      if (!ETHNICITIES.includes(body.ethnicity!)) {
         return {error: 'Ethnicity must be a valid ethnicity'};
       }
 
@@ -299,7 +297,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'ethnicity':
-        if (typeof body.ethnicity !== 'string' || !ethnicities.includes(body.ethnicity)) {
+        if (typeof body.ethnicity !== 'string' || !ETHNICITIES.includes(body.ethnicity)) {
           return {err: 'Ethnicity must be a valid ethnicity from the allowed list'} as APIRequest;
         }
         break;

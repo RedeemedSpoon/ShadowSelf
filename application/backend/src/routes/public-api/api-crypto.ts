@@ -1,16 +1,16 @@
-import {ETH_API, BTC_API, LTC_API, USDT_CONTRACT} from '@utils/crypto-nodes';
+import {ETH_API, BTC_API, LTC_API, USDT_CONTRACT} from '@core/constants';
 import {getUtxoData, getEvmData, getXmrNode} from '@utils/crypto-nodes';
-import {cryptoFees, cryptoPrices} from '@background-workers';
-import {CryptoWalletResponse} from '@types';
-import {debounceCache} from '@constants';
-import middleware from '@middleware-api';
+import {cryptoFees, cryptoPrices, debounceCache} from '@core/states';
+import middlewareApi from '@middlewares/middleware-api';
+import {trocadorApiKey} from '@core/config';
+import {CryptoWalletResponse} from '@type';
 import {checkAPI} from '@utils/checks';
-import {sql} from '@utils/connection';
+import {sql} from '@core/services';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/crypto'})
-  .use(middleware)
+  .use(middlewareApi)
   .get('/xmr-node/:id', async ({identity}) => ({
     startingDate: identity?.creation_date ?? new Date(),
     ...(await getXmrNode()),
@@ -78,9 +78,8 @@ export default new Elysia({prefix: '/crypto'})
 
     const net = (t: string) => (t.toLowerCase().includes('usdt') ? 'ERC20' : 'Mainnet');
     const params = `?ticker_from=${coinFrom}&ticker_to=${coinTo}&network_from=${net(coinFrom)}&network_to=${net(coinTo)}&amount_from=${amount}`;
-    const apiKey = process.env.TROCADOR_API_KEY!;
 
-    const response = await fetch('https://api.trocador.app/new_rate' + params, {headers: {'API-Key': apiKey}});
+    const response = await fetch('https://api.trocador.app/new_rate' + params, {headers: {'API-Key': trocadorApiKey}});
     if (!response.ok) return error(set, 400, 'Something Went Wrong');
 
     const data = await response.json();
@@ -128,7 +127,6 @@ export default new Elysia({prefix: '/crypto'})
 
     const net = (t: string) => (t.toLowerCase().includes('usdt') ? 'ERC20' : 'Mainnet');
 
-    const apiKey = process.env.TROCADOR_API_KEY!;
     const params = new URLSearchParams({
       id: tradeID,
       ticker_from: coinFrom,
@@ -146,7 +144,7 @@ export default new Elysia({prefix: '/crypto'})
 
     try {
       const response = await fetch(`https://api.trocador.app/new_trade?${params.toString()}`, {
-        headers: {'API-Key': apiKey},
+        headers: {'API-Key': trocadorApiKey},
         method: 'GET',
       });
 

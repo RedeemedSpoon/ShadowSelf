@@ -1,14 +1,14 @@
 import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, getRecovery, checksum} from '@utils/cryptography';
+import middlewareBase from '@middlewares/middleware-base';
 import {sendOfficialEmail} from '@utils/email-smtp';
 import {request, error} from '@utils/utils';
-import {sql} from '@utils/connection';
-import middleware from '@middleware';
 import {check} from '@utils/checks';
-import {QueryUser} from '@types';
+import {sql} from '@core/services';
+import {QueryUser} from '@type';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/account'})
-  .use(middleware)
+  .use(middlewareBase)
   .onBeforeHandle(({set, user, path}) => {
     const relativePath = path.slice(8);
     const signUp = ['/signup', 'signup-email', '/signup-username', '/signup-otp', '/signup-recovery', '/signup-create'];

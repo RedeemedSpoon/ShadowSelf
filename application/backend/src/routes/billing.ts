@@ -1,7 +1,7 @@
-import {stripe, sql, twilio} from '@utils/connection';
+import middlewareBase from '@middlewares/middleware-base';
+import {sql, stripe, twilio} from '@core/services';
 import {error, proxyRequest} from '@utils/utils';
-import type {QueryIdentity} from '@types';
-import middleware from '@middleware';
+import type {QueryIdentity} from '@type';
 import {check} from '@utils/checks';
 import {Elysia} from 'elysia';
 import {$} from 'bun';
@@ -10,7 +10,7 @@ import billingFiat from './billing-fiat';
 import billingCrypto from './billing-crypto';
 
 export default new Elysia({prefix: '/billing'})
-  .use(middleware)
+  .use(middlewareBase)
   .use(billingFiat)
   .use(billingCrypto)
   .delete('/cancel', async ({set, body}) => {

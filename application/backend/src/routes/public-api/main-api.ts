@@ -1,9 +1,9 @@
+import middlewareApi from '@middlewares/middleware-api';
 import {listenForEmail} from '@utils/email-imap';
 import {error, resizeImage} from '@utils/utils';
-import {QueryIdentity, QueryUser} from '@types';
-import middleware from '@middleware-api';
-import {WSConnections} from '@constants';
-import {sql} from '@utils/connection';
+import {QueryIdentity, QueryUser} from '@type';
+import {wsConnections} from '@core/states';
+import {sql} from '@core/services';
 import {Elysia} from 'elysia';
 
 import information from './api-information';
@@ -13,7 +13,7 @@ import phone from './api-phone';
 import email from './api-email';
 
 export default new Elysia()
-  .use(middleware)
+  .use(middlewareApi)
   .group('/api', (app) => app.use(crypto).use(phone).use(email).use(account).use(information))
   .get('/api/test', () => 'Authentication is working ;)')
   .get('/api', async ({set, user}) => {
@@ -66,15 +66,15 @@ export default new Elysia()
     async open(ws) {
       const identity = ws.data.identity;
       const connection = await listenForEmail(identity!.email, identity!.email_password);
-      WSConnections.push({imapConnection: connection, websocket: ws, phoneNumber: identity!.phone, emailAddress: identity!.email});
+      wsConnections.push({imapConnection: connection, websocket: ws, phoneNumber: identity!.phone, emailAddress: identity!.email});
     },
 
     async close(ws) {
-      const connection = WSConnections.find((connection) => connection.websocket.id === ws.id);
+      const connection = wsConnections.find((connection) => connection.websocket.id === ws.id);
       if (!connection) return;
 
       connection.imapConnection.end();
-      WSConnections.splice(WSConnections.indexOf(connection), 1);
+      wsConnections.splice(wsConnections.indexOf(connection), 1);
     },
 
     async message(ws, message) {

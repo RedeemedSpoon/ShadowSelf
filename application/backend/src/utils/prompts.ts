@@ -1,5 +1,6 @@
 import {GoogleGenAI} from '@google/genai';
-import {Location} from '@types';
+import {geminiApiKey} from '@core/config';
+import {Location} from '@type';
 
 function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, bio: string): string {
   const subject = `${ethnicity} ${sex}, aged approximately ${age}. Bio for context: "${bio}" (Use the bio to influence the person's style, expression, and surroundings. Do not render or spell out any of this text on the image itself.)`;
@@ -122,8 +123,7 @@ function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, 
 
 export async function generateProfile(lang: Location, age: number, sex: string, ethnicity: string, bio: string): Promise<string> {
   const prompt = getPrompt(lang, ethnicity, age, sex, bio);
-  const apiKey = process.env.GEMINI_API_KEY;
-  const ai = new GoogleGenAI({apiKey});
+  const ai = new GoogleGenAI({apiKey: geminiApiKey});
 
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image-preview',

@@ -1,12 +1,12 @@
-import {APIRequest, QueryAccount} from '@types';
-import middleware from '@middleware-api';
+import middlewareApi from '@middlewares/middleware-api';
+import {APIRequest, QueryAccount} from '@type';
 import {checkAPI} from '@utils/checks';
-import {sql} from '@utils/connection';
 import {error} from '@utils/utils';
+import {sql} from '@core/services';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/account'})
-  .use(middleware)
+  .use(middlewareApi)
   .get('/:id', async ({identity}) => {
     const accounts = (await sql`SELECT * FROM accounts WHERE owner = ${identity!.id}`) as QueryAccount[];
     const formattedAccounts = accounts.map((account) => ({

@@ -1,10 +1,10 @@
 import {genSalt, hash, compare} from 'bcryptjs';
+import {LTC_NETWORK} from '@core/constants';
 import {p2wpkh} from '@scure/btc-signer';
+import {secretSauce} from '@core/config';
 import {randomBytes} from 'crypto';
-import * as OTPAuth from 'otpauth';
 import {HDKey} from '@scure/bip32';
-
-const LTC_NETWORK = {bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0};
+import * as OTPAuth from 'otpauth';
 
 export function xpubToAddress(coin: 'btc' | 'ltc', xpub: string, index: number = 0): string {
   const node = HDKey.fromExtendedKey(xpub);
@@ -53,7 +53,7 @@ export function getRecovery() {
 }
 
 export function checksum(string: string): string {
-  return Bun.hash(string + process.env.SECRET_SAUCE).toString();
+  return Bun.hash(string + secretSauce).toString();
 }
 
 export async function createHash(string: string): Promise<string> {

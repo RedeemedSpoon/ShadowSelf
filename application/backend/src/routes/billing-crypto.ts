@@ -1,9 +1,9 @@
-import middleware from '@middleware';
+import middlewareBase from '@middlewares/middleware-base';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/crypto'})
-  .use(middleware)
+  .use(middlewareBase)
   .onBeforeHandle(({set, user, path}) => {
     const relativePath = path.slice(15);
     const mustLogIn = ['/new-crypto-invoice'];

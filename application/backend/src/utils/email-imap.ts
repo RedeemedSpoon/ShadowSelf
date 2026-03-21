@@ -1,8 +1,8 @@
 import MailComposer from 'nodemailer/lib/mail-composer';
-import {imapConnection} from './connection';
-import {WSConnections} from '@constants';
+import {imapConnection} from '@core/services';
+import {wsConnections} from '@core/states';
 import {simpleParser} from 'mailparser';
-import {EmailContent} from '@types';
+import {EmailContent} from '@type';
 import imap from 'imap-simple';
 
 export async function listenForEmail(user: string, password: string) {
@@ -14,7 +14,7 @@ export async function listenForEmail(user: string, password: string) {
 
     for (const message of messages) {
       const email = await parseMassage(connection, message);
-      const ws = WSConnections.find((ws) => ws.emailAddress === user);
+      const ws = wsConnections.find((ws) => ws.emailAddress === user);
       if (!ws) return;
 
       ws.websocket.send(JSON.stringify({type: 'email', email}));

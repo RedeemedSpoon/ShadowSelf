@@ -23,6 +23,7 @@
     "elysia": "^1.4.27",
     "imap-simple": "^5.1.0",
     "mailparser": "^3.9.4",
+    "monero-ts": "^0.11.8",
     "nodemailer": "^8.0.2",
     "otpauth": "^9.5.0",
     "postgres": "^3.4.8",

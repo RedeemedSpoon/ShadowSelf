@@ -1,7 +1,7 @@
-import {initBackgroundWorkers} from '@background-workers';
+import {initBackgroundWorkers} from '@core/background-workers';
 import {checkContact} from '@utils/checks';
 import {contact} from '@utils/email-smtp';
-import {ContactDetail} from '@types';
+import {ContactDetail} from '@type';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 

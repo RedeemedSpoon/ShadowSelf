@@ -1,12 +1,13 @@
+import middlewareApi from '@middlewares/middleware-api';
 import {parseMessage, error} from '@utils/utils';
-import {twilio} from '@utils/connection';
-import middleware from '@middleware-api';
+import {twilioConfig} from '@core/config';
 import {checkAPI} from '@utils/checks';
-import {Message} from '@types';
+import {twilio} from '@core/services';
+import {Message} from '@type';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/phone'})
-  .use(middleware)
+  .use(middlewareApi)
   .get('/:id', async ({identity}) => {
     const receivedMessages = await twilio.messages.list({to: identity!.phone});
     const sentMessages = await twilio.messages.list({from: identity!.phone});
@@ -44,7 +45,7 @@ export default new Elysia({prefix: '/phone'})
     if (addressee === identity!.phone) return error(set, 400, 'You cannot send a message to yourself');
     if (messageBody.length > 160) return error(set, 400, 'Message is too long (<160 characters)');
 
-    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE;
+    const messagingServiceSid = twilioConfig.messagingService;
     const params = {body: messageBody, messagingServiceSid, from: identity!.phone, to: addressee};
 
     try {

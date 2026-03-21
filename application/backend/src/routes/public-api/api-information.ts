@@ -1,14 +1,14 @@
-import {locations, debounceCache} from '@constants';
+import middlewareApi from '@middlewares/middleware-api';
 import {generateProfile} from '@utils/prompts';
 import {allFakers} from '@faker-js/faker';
-import middleware from '@middleware-api';
+import {LOCATIONS} from '@core/constants';
 import {checkAPI} from '@utils/checks';
-import {sql} from '@utils/connection';
 import {error} from '@utils/utils';
+import {sql} from '@core/services';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/identity'})
-  .use(middleware)
+  .use(middlewareApi)
   .get('/:id', async ({identity}) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {email_password, proxy_password, payment_intent, subscription_id, owner, status, ...pubInfo} = identity!;
@@ -29,22 +29,7 @@ export default new Elysia({prefix: '/identity'})
     const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!}, fields);
     if (err) return error(set, 400, err);
 
-    const REQUEST_TYPE = 'Profile Gen';
-    const DEBOUNCE_DURATION = 60_000;
-
-    if (debounceCache[identity!.id]?.find((i) => i.requestType === REQUEST_TYPE)) {
-      return error(set, 429, 'Rate limit: Please wait a bit more');
-    }
-
-    if (!debounceCache[identity!.id]) debounceCache[identity!.id] = [];
-    debounceCache[identity!.id].push({requestType: REQUEST_TYPE, data: null});
-
-    setTimeout(() => {
-      if (debounceCache[identity!.id])
-        debounceCache[identity!.id] = debounceCache[identity!.id].filter((i) => i.requestType !== REQUEST_TYPE);
-    }, DEBOUNCE_DURATION);
-
-    const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
+    const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
     const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
     return {picture};
   })
@@ -52,14 +37,14 @@ export default new Elysia({prefix: '/identity'})
     const {err, sex} = await checkAPI({sex: identity!.sex, ...body!}, ['?sex']);
     if (err) return error(set, 400, err);
 
-    const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
+    const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
     const faker = allFakers[lang?.localization as keyof typeof allFakers];
     const name = faker.person.fullName({sex: sex as 'male' | 'female'});
 
     return {name};
   })
   .patch('/regenerate-bio/:id', async ({identity}) => {
-    const lang = locations.find((location) => location.code === identity!.location.split(',')[0]);
+    const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
     const faker = allFakers[lang?.localization as keyof typeof allFakers];
     const bio = faker.person.bio();
 
