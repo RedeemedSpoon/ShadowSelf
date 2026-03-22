@@ -7,9 +7,9 @@
   import Tooltip from '$component/feedback/Tooltip.svelte';
   import Steps from '$component/containers/Steps.svelte';
 
-  import KeylockIcon from '$icon/security/Keylock.svelte';
   import DownloadIcon from '$icon/actions/Download.svelte';
   import EmailIcon from '$icon/communication/Email.svelte';
+  import KeylockIcon from '$icon/security/Keylock.svelte';
   import QuestionIcon from '$icon/status/Question.svelte';
   import CopyIcon from '$icon/actions/Copy.svelte';
   import HappyIcon from '$icon/misc/Happy.svelte';

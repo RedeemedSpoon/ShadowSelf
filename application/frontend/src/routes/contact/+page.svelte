@@ -1,6 +1,7 @@
 <script lang="ts">
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import SelectMenu from '$component/inputs/SelectMenu.svelte';
+
   import {awaitPending, notify} from '$utils/shared';
   import type {Notification} from '$type';
   import type {PageData} from './$types';

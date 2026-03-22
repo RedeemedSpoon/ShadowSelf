@@ -1,8 +1,8 @@
 <script lang="ts">
   import CopyIcon from '$icon/actions/Copy.svelte';
+  import {deriveXPub} from '$utils/cryptography';
   import type {CryptoAPI, Coins} from '$type';
   import {identity, moneroData} from '$store';
-  import {deriveXPub} from '$utils/cryptography';
   import type {Writable} from 'svelte/store';
   import QRCode from 'qrcode';
 

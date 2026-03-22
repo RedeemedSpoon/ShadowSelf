@@ -1,6 +1,6 @@
 <script lang="ts">
-  import ChangelogIcon from '$icon/navigation/Changelog.svelte';
   import CommunityIcon from '$icon/communication/Community.svelte';
+  import ChangelogIcon from '$icon/navigation/Changelog.svelte';
   import ChevronIcon from '$icon/navigation/Chevron.svelte';
   import MultiUsersIcon from '$icon/user/MultiUsers.svelte';
   import EmailIcon from '$icon/communication/Email.svelte';

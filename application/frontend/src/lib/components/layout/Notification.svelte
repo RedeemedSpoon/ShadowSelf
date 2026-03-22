@@ -2,6 +2,7 @@
   import SuccessIcon from '$icon/status/Success.svelte';
   import AlertIcon from '$icon/status/Alert.svelte';
   import InfoIcon from '$icon/status/Info.svelte';
+
   import {slide} from 'svelte/transition';
   import {notification} from '$store';
 

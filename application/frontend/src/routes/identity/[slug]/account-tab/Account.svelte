@@ -1,29 +1,30 @@
 <script lang="ts">
+  import HoverCopyButton from '$component/buttons/HoverCopyButton.svelte';
   import ActionIcon from '$component/feedback/ActionIcon.svelte';
   import Tooltip from '$component/feedback/Tooltip.svelte';
-  import HoverCopyButton from '$component/buttons/HoverCopyButton.svelte';
-  import KeyIcon from '$icon/security/Key.svelte';
+
+  import UserDeleteIcon from '$icon/user/UserDelete.svelte';
   import KeylockIcon from '$icon/security/Keylock.svelte';
-  import UserIcon from '$icon/user/User.svelte';
+  import QuestionIcon from '$icon/status/Question.svelte';
+  import UserEditIcon from '$icon/user/UserEdit.svelte';
   import WWWIcon from '$icon/communication/WWW.svelte';
   import UserAddIcon from '$icon/user/UserAdd.svelte';
-  import UserEditIcon from '$icon/user/UserEdit.svelte';
-  import UserDeleteIcon from '$icon/user/UserDelete.svelte';
-  import QuestionIcon from '$icon/status/Question.svelte';
   import BackIcon from '$icon/navigation/Back.svelte';
+  import KeyIcon from '$icon/security/Key.svelte';
+  import UserIcon from '$icon/user/User.svelte';
 
-  import {pendingID, activeModal, masterPassword} from '$store';
   import group from '$image/empty-states/group.svg';
   import lock from '$image/empty-states/lock.svg';
+
+  import {pendingID, activeModal, masterPassword} from '$store';
   import type {Account, AccountAPI} from '$type';
+  import AccountEdit from './AccountEdit.svelte';
   import {decrypt} from '$utils/cryptography';
   import {fetchAPI} from '$utils/webfetch';
   import {writable} from 'svelte/store';
   import {notify} from '$utils/shared';
   import * as OTPAuth from 'otpauth';
   import {onMount} from 'svelte';
-
-  import AccountEdit from './AccountEdit.svelte';
 
   const mode = writable<'view' | 'add' | 'edit'>('view');
   const target = writable<Account | null>(null);

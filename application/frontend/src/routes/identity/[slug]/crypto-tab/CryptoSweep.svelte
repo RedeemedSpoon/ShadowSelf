@@ -3,16 +3,15 @@
   import QrScanner from '$component/special/QrScanner.svelte';
 
   import type {CryptoAPI, Coins, transactionData} from '$type';
+  import {privateKeyToAccount} from 'viem/accounts';
   import {deriveXPub} from '$utils/cryptography';
   import {signTransaction} from '$utils/wallet';
   import type {Writable} from 'svelte/store';
   import {fetchAPI} from '$utils/webfetch';
-  import {notify} from '$utils/shared';
-  import {identity} from '$store';
-
-  import {privateKeyToAccount} from 'viem/accounts';
   import * as btc from '@scure/btc-signer';
+  import {notify} from '$utils/shared';
   import {HDKey} from '@scure/bip32';
+  import {identity} from '$store';
 
   interface Props {
     currentCrypto: Writable<Coins>;

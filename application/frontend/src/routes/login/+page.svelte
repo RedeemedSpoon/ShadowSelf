@@ -1,11 +1,12 @@
 <script lang="ts">
-  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
   import StepsItem from '$component/containers/StepsItem.svelte';
+  import Steps from '$component/containers/Steps.svelte';
+
   import RecoveryIcon from '$icon/security/Recovery.svelte';
   import EmailIcon from '$icon/communication/Email.svelte';
   import KeylockIcon from '$icon/security/Keylock.svelte';
-  import Steps from '$component/containers/Steps.svelte';
   import KeyIcon from '$icon/security/Key.svelte';
 
   import type {Notification} from '$type';

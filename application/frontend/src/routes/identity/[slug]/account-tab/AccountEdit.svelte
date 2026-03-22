@@ -1,14 +1,15 @@
 <script lang="ts">
-  import KeyIcon from '$icon/security/Key.svelte';
-  import UserIcon from '$icon/user/User.svelte';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
+  import ActionIcon from '$component/feedback/ActionIcon.svelte';
+  import SelectMenu from '$component/inputs/SelectMenu.svelte';
+
   import KeylockIcon from '$icon/security/Keylock.svelte';
   import WWWIcon from '$icon/communication/WWW.svelte';
   import RepeatIcon from '$icon/actions/Repeat.svelte';
+  import KeyIcon from '$icon/security/Key.svelte';
   import EyeIcon from '$icon/security/Eye.svelte';
-  import ActionIcon from '$component/feedback/ActionIcon.svelte';
-  import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
-  import SelectMenu from '$component/inputs/SelectMenu.svelte';
+  import UserIcon from '$icon/user/User.svelte';
 
   import type {Account, AccountAPI} from '$type';
   import {encrypt} from '$utils/cryptography';

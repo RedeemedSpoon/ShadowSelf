@@ -1,11 +1,11 @@
 <script lang="ts">
-  import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import shredder from '$image/empty-states/shredder.svg';
   import mailbox from '$image/empty-states/mailbox.svg';
   import pencil from '$image/empty-states/pencil.svg';
-  import ReplyIcon from '$icon/actions/Reply.svelte';
   import file from '$image/empty-states/file.svg';
 
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import ReplyIcon from '$icon/actions/Reply.svelte';
   import type {Writable} from 'svelte/store';
   import type {Email} from '$type';
 

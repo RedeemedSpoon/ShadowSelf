@@ -1,6 +1,7 @@
 <script lang="ts">
   import CheckmarkIcon from '$icon/status/Checkmark.svelte';
   import ChevronIcon from '$icon/navigation/Chevron.svelte';
+
   import Card from '$component/containers/Card.svelte';
   import {FEATURES, PRICING_TIERS} from '$constant';
   import {user, pricingModel} from '$store';

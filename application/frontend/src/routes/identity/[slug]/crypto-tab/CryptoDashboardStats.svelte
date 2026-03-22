@@ -1,23 +1,23 @@
 <script lang="ts">
-  import {deriveXPub} from '$utils/cryptography';
-  import {formatUSD} from '$utils/formating';
-  import BoltIcon from '$icon/data/Bolt.svelte';
-  import HashIcon from '$icon/data/Hash.svelte';
-  import ChartIcon from '$icon/data/Chart.svelte';
-  import StackIcon from '$icon/data/Stack.svelte';
-  import ActivityIcon from '$icon/data/Activity.svelte';
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import BroadcastIcon from '$icon/communication/Broadcast.svelte';
   import GasStationIcon from '$icon/data/Gas-Station.svelte';
   import QuestionIcon from '$icon/status/Question.svelte';
-  import UpArcIcon from '$icon/misc/UpArc.svelte';
-  import DownArcIcon from '$icon/misc/DownArc.svelte';
-  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
-  import CameraIcon from '$icon/misc/Camera.svelte';
+  import ActivityIcon from '$icon/data/Activity.svelte';
   import WalletIcon from '$icon/finance/Wallet.svelte';
-  import CopyButton from '$component/buttons/CopyButton.svelte';
+  import DownArcIcon from '$icon/misc/DownArc.svelte';
+  import CameraIcon from '$icon/misc/Camera.svelte';
+  import ChartIcon from '$icon/data/Chart.svelte';
+  import StackIcon from '$icon/data/Stack.svelte';
+  import UpArcIcon from '$icon/misc/UpArc.svelte';
+  import BoltIcon from '$icon/data/Bolt.svelte';
+  import HashIcon from '$icon/data/Hash.svelte';
 
+  import CopyButton from '$component/buttons/CopyButton.svelte';
+  import {deriveXPub} from '$utils/cryptography';
   import type {CryptoAPI, Coins} from '$type';
   import {identity, moneroData} from '$store';
+  import {formatUSD} from '$utils/formating';
   import type {Writable} from 'svelte/store';
 
   interface Props {

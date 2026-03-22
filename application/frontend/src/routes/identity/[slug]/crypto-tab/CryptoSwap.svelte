@@ -1,12 +1,12 @@
 <script lang="ts">
-  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import SelectMenu from '$component/inputs/SelectMenu.svelte';
 
   import type {CryptoAPI, Coins, Provider, transactionData} from '$type';
   import {estimateTransactionFee, signTransaction} from '$utils/wallet';
-  import {pendingID, identity, moneroData} from '$store';
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import {decrypt, deriveXPub} from '$utils/cryptography';
+  import {pendingID, identity, moneroData} from '$store';
   import {onMount, type Component} from 'svelte';
   import {idbOperation} from '$utils/monero';
   import {formatUSD} from '$utils/formating';

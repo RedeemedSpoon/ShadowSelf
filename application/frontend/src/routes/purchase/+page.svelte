@@ -1,11 +1,13 @@
 <script lang="ts">
-  import {type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import CreditCardIcon from '$icon/finance/CreditCard.svelte';
-  import {pricingModel, activeModal, pendingID} from '$store';
-  import CheckmarkIcon from '$icon/status/Checkmark.svelte';
   import Modal from '$component/containers/Modal.svelte';
+
+  import CreditCardIcon from '$icon/finance/CreditCard.svelte';
+  import CheckmarkIcon from '$icon/status/Checkmark.svelte';
   import WalletIcon from '$icon/finance/Wallet.svelte';
+
+  import {type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
+  import {pricingModel, activeModal, pendingID} from '$store';
   import {notify, awaitPending} from '$utils/shared';
   import {FEATURES, PRICING_TIERS} from '$constant';
   import {loadStripe} from '@stripe/stripe-js/pure';

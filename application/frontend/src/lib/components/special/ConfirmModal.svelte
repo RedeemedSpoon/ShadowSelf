@@ -1,7 +1,8 @@
 <script lang="ts">
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import ChevronIcon from '$icon/navigation/Chevron.svelte';
   import Modal from '$component/containers/Modal.svelte';
+
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
   import {activeModal} from '$store';
 
   interface Props {

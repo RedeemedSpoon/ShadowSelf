@@ -1,11 +1,11 @@
 <script lang="ts">
+  import ComposeMessage from './ComposeMessage.svelte';
+  import MessageComponent from './Message.svelte';
+
   import {formatPhoneNumber} from '$utils/formating';
   import type {PhoneAPI, Message} from '$type';
   import type {Writable} from 'svelte/store';
   import {identity} from '$store';
-
-  import ComposeMessage from './ComposeMessage.svelte';
-  import MessageComponent from './Message.svelte';
 
   interface Props {
     fullDiscussion: Writable<Message[]>;

@@ -2,18 +2,25 @@
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
   import ConfirmModal from '$component/special/ConfirmModal.svelte';
+  import Modal from '$component/containers/Modal.svelte';
+
   import MultiUsersIcon from '$icon/user/MultiUsers.svelte';
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
   import EmailIcon from '$icon/communication/Email.svelte';
   import PhoneIcon from '$icon/communication/Phone.svelte';
-  import Modal from '$component/containers/Modal.svelte';
   import WalletIcon from '$icon/finance/Wallet.svelte';
   import InfoIcon from '$icon/status/Info.svelte';
+  import KeyIcon from '$icon/security/Key.svelte';
+
+  import IdentityInformation from './information-tab/Information.svelte';
+  import IdentityAccount from './account-tab/Account.svelte';
+  import IdentityCrypto from './crypto-tab/Crypto.svelte';
+  import IdentityPhone from './phone-tab/Phone.svelte';
+  import IdentityEmail from './email-tab/Email.svelte';
 
   import {pendingID, handleResponse, identity, activeModal, masterPassword} from '$store';
   import type {AccountAPI, CryptoAPI, Sections, WebSocketMessage} from '$type';
   import {decrypt, deriveMasterKey, encrypt} from '$utils/cryptography';
-  import ChevronIcon from '$icon/navigation/Chevron.svelte';
-  import KeyIcon from '$icon/security/Key.svelte';
   import {SECTIONS_ORDER} from '$constant';
   import {browser} from '$app/environment';
   import {fetchAPI} from '$utils/webfetch';
@@ -22,12 +29,6 @@
   import {notify} from '$utils/shared';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
-
-  import IdentityInformation from './information-tab/Information.svelte';
-  import IdentityAccount from './account-tab/Account.svelte';
-  import IdentityCrypto from './crypto-tab/Crypto.svelte';
-  import IdentityPhone from './phone-tab/Phone.svelte';
-  import IdentityEmail from './email-tab/Email.svelte';
 
   let {data}: PageProps = $props();
 

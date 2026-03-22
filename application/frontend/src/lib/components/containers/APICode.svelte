@@ -1,13 +1,14 @@
 <script lang="ts">
   import HTTPMethod from '$component/feedback/HTTPMethod.svelte';
   import SelectMenu from '$component/inputs/SelectMenu.svelte';
-  import type {APIResponse, Languages, Route} from '$type';
 
   import JavascriptIcon from '$icon/brands/Javascript.svelte';
   import PythonIcon from '$icon/brands/Python.svelte';
   import CurlIcon from '$icon/brands/Curl.svelte';
   import RustIcon from '$icon/brands/Rust.svelte';
   import GoIcon from '$icon/brands/Go.svelte';
+
+  import type {APIResponse, Languages, Route} from '$type';
 
   interface Props {
     response?: APIResponse;

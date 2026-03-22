@@ -1,6 +1,7 @@
 <script lang="ts">
   import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import AttachmentIcon from '$icon/communication/Attachment.svelte';
+
   import {base64ToBlob} from '$utils/shared';
   import DOMPurify from 'dompurify';
   import type {Email} from '$type';

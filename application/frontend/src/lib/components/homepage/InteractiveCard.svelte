@@ -2,8 +2,9 @@
   import CardContainer from '$component/aceternity/CardContainer.svelte';
   import CardBody from '$component/aceternity/CardBody.svelte';
   import CardItem from '$component/aceternity/CardItem.svelte';
-  import dashboard from '$image/homepage/dashboard.webp';
   import Card from '$component/containers/Card.svelte';
+
+  import dashboard from '$image/homepage/dashboard.webp';
 
   let isMouseEntered = $state(false);
 </script>

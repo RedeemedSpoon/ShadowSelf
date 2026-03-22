@@ -1,13 +1,13 @@
 <script lang="ts">
-  import type {CryptoAPI, Coins} from '$type';
-  import type {Writable} from 'svelte/store';
-  import {formatDate} from '$utils/formating';
-  import {EXTERNAL_TX_VIEWERS} from '$constant';
-
-  import ClockIcon from '$icon/data/Clock.svelte';
-  import BroomIcon from '$icon/misc/Broom.svelte';
   import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import SpreadSheetIcon from '$icon/data/SpreadSheet.svelte';
+  import ClockIcon from '$icon/data/Clock.svelte';
+  import BroomIcon from '$icon/misc/Broom.svelte';
+
+  import {EXTERNAL_TX_VIEWERS} from '$constant';
+  import type {CryptoAPI, Coins} from '$type';
+  import {formatDate} from '$utils/formating';
+  import type {Writable} from 'svelte/store';
 
   interface Props {
     currentCrypto: Writable<Coins>;

@@ -2,25 +2,20 @@
   import ActionIcon from '$component/feedback/ActionIcon.svelte';
   import Modal from '$component/containers/Modal.svelte';
   import Loader from '$component/feedback/Loader.svelte';
+
   import ReceiptIcon from '$icon/finance/Receipt.svelte';
   import FloppyIcon from '$icon/actions/Floppy.svelte';
-  import ShuffleIcon from '$icon/misc/Shuffle.svelte';
   import MarketIcon from '$icon/finance/Market.svelte';
+  import ShuffleIcon from '$icon/misc/Shuffle.svelte';
   import BackIcon from '$icon/navigation/Back.svelte';
+  import USDTIcon from '$icon/brands/USDT.svelte';
   import BTCIcon from '$icon/brands/BTC.svelte';
   import LTCIcon from '$icon/brands/LTC.svelte';
   import ETHIcon from '$icon/brands/ETH.svelte';
-  import USDTIcon from '$icon/brands/USDT.svelte';
   import XMRIcon from '$icon/brands/XMR.svelte';
 
-  import {identity, moneroData, masterPassword, activeModal} from '$store';
   import cart from '$image/empty-states/cart.svg';
   import lock from '$image/empty-states/lock.svg';
-  import type {Coins, CryptoAPI} from '$type';
-  import {decrypt} from '$utils/cryptography';
-  import initMoneroScan from '$utils/monero';
-  import {fetchAPI} from '$utils/webfetch';
-  import {writable} from 'svelte/store';
 
   import CryptoDashboardHistory from './CryptoDashboardHistory.svelte';
   import CryptoDashboardStats from './CryptoDashboardStats.svelte';
@@ -30,6 +25,13 @@
   import CryptoSweep from './CryptoSweep.svelte';
   import CryptoSend from './CryptoSend.svelte';
   import CryptoSwap from './CryptoSwap.svelte';
+
+  import {identity, moneroData, masterPassword, activeModal} from '$store';
+  import type {Coins, CryptoAPI} from '$type';
+  import {decrypt} from '$utils/cryptography';
+  import initMoneroScan from '$utils/monero';
+  import {fetchAPI} from '$utils/webfetch';
+  import {writable} from 'svelte/store';
 
   let crypto = $state({}) as CryptoAPI;
   let xmrScanProgress = $state(0);

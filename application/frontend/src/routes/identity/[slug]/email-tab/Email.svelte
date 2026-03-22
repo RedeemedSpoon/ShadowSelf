@@ -1,9 +1,10 @@
 <script lang="ts">
-  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
   import ActionIcon from '$component/feedback/ActionIcon.svelte';
   import Loader from '$component/feedback/Loader.svelte';
   import Modal from '$component/containers/Modal.svelte';
+
   import ForwardIcon from '$icon/actions/Forward.svelte';
   import BackIcon from '$icon/navigation/Back.svelte';
   import TrashIcon from '$icon/actions/Trash.svelte';
@@ -11,16 +12,16 @@
   import SendIcon from '$icon/actions/Send.svelte';
   import UserIcon from '$icon/user/User.svelte';
 
+  import ComposeEmail from './ComposeEmail.svelte';
+  import EmailInbox from './EmailInbox.svelte';
+  import EmailBody from './EmailBody.svelte';
+
   import type {EmailAPI, EditorParams, Email, WebSocketMessage} from '$type';
   import {identity, handleResponse, pendingID, activeModal} from '$store';
   import {fetchAPI} from '$utils/webfetch';
   import {writable} from 'svelte/store';
   import {notify} from '$utils/shared';
   import {onMount} from 'svelte';
-
-  import ComposeEmail from './ComposeEmail.svelte';
-  import EmailInbox from './EmailInbox.svelte';
-  import EmailBody from './EmailBody.svelte';
 
   const reply = writable<Email[]>([]);
   const target = writable<Email | null>();

@@ -2,17 +2,18 @@
   import InputWithButton from '$component/inputs/InputWithButton.svelte';
   import ReactiveButton from '$component/buttons/ReactiveButton.svelte';
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
   import ConfirmModal from '$component/special/ConfirmModal.svelte';
   import CopyButton from '$component/buttons/CopyButton.svelte';
+  import Modal from '$component/containers/Modal.svelte';
+
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import CreditCardIcon from '$icon/finance/CreditCard.svelte';
   import DownloadIcon from '$icon/actions/Download.svelte';
   import KeylockIcon from '$icon/security/Keylock.svelte';
-  import Modal from '$component/containers/Modal.svelte';
+  import CopyIcon from '$icon/actions/Copy.svelte';
   import KeyIcon from '$icon/security/Key.svelte';
   import InfoIcon from '$icon/status/Info.svelte';
-  import CopyIcon from '$icon/actions/Copy.svelte';
   import UserIcon from '$icon/user/User.svelte';
 
   import {type Stripe, type StripeCardElement} from '@stripe/stripe-js';

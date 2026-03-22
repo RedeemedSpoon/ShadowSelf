@@ -1,7 +1,8 @@
 <script lang="ts">
-  import ChevronIcon from '$icon/navigation/Chevron.svelte';
   import generic from '$image/brands/generic.svg';
   import github from '$image/brands/github.svg';
+
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
   import {toTitleCase} from '$utils/formating';
   import {EXTENSIONS_INFO} from '$constant';
 

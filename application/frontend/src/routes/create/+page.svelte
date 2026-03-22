@@ -1,15 +1,16 @@
 <script lang="ts">
   import ExtensionLinks from '$component/special/ExtensionLinks.svelte';
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
   import ActionIcon from '$component/feedback/ActionIcon.svelte';
   import SelectMenu from '$component/inputs/SelectMenu.svelte';
   import FlowStep from '$component/containers/FlowStep.svelte';
   import Tooltip from '$component/feedback/Tooltip.svelte';
+  import Modal from '$component/containers/Modal.svelte';
+
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import PhoneIcon from '$icon/communication/Phone.svelte';
   import EmailIcon from '$icon/communication/Email.svelte';
-  import Modal from '$component/containers/Modal.svelte';
   import RepeatIcon from '$icon/actions/Repeat.svelte';
   import FemaleIcon from '$icon/user/Female.svelte';
   import PinIcon from '$icon/navigation/Pin.svelte';
@@ -19,25 +20,25 @@
   import UserIcon from '$icon/user/User.svelte';
   import MaleIcon from '$icon/user/Male.svelte';
 
-  import {currentStep, pendingID, masterPassword, activeModal} from '$store';
-  import {deriveMasterKey, encrypt} from '$utils/cryptography';
   import screenshot from '$image/visuals/screenshot.webp';
-  import {notify, getCountriesFlags} from '$utils/shared';
-  import {formatPhoneNumber} from '$utils/formating';
   import canvas from '$image/brands/canvas.svg';
   import ublock from '$image/brands/ublock.svg';
+
+  import {currentStep, pendingID, masterPassword, activeModal} from '$store';
+  import {generateMnemonic, mnemonicToSeed} from '@scure/bip39';
+  import {deriveMasterKey, encrypt} from '$utils/cryptography';
+  import {wordlist} from '@scure/bip39/wordlists/english.js';
+  import {notify, getCountriesFlags} from '$utils/shared';
+  import {formatPhoneNumber} from '$utils/formating';
+  import {mnemonicToAccount} from 'viem/accounts';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
   import {dev} from '$app/environment';
   import {goto} from '$app/navigation';
-  import {page} from '$app/state';
-  import {onMount} from 'svelte';
-
-  import {generateMnemonic, mnemonicToSeed} from '@scure/bip39';
-  import {wordlist} from '@scure/bip39/wordlists/english.js';
-  import {mnemonicToAccount} from 'viem/accounts';
   import {HDKey} from '@scure/bip32';
   import moneroTs from 'monero-ts';
+  import {page} from '$app/state';
+  import {onMount} from 'svelte';
 
   let {data}: {data: PageData} = $props();
 

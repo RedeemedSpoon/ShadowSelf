@@ -1,22 +1,23 @@
 <script lang="ts">
-  import {formatCasing, formatToMarkdown} from '$utils/formating';
   import HTTPMethod from '$component/feedback/HTTPMethod.svelte';
   import APICode from '$component/containers/APICode.svelte';
+
   import CheckmarkIcon from '$icon/status/Checkmark.svelte';
-  import 'highlight.js/styles/tokyo-night-dark.css';
   import CopyIcon from '$icon/actions/Copy.svelte';
+
+  import {formatCasing, formatToMarkdown} from '$utils/formating';
+  import javascript from 'highlight.js/lib/languages/javascript';
+  import python from 'highlight.js/lib/languages/python';
+  import rust from 'highlight.js/lib/languages/rust';
+  import json from 'highlight.js/lib/languages/json';
+  import 'highlight.js/styles/tokyo-night-dark.css';
+  import go from 'highlight.js/lib/languages/go';
   import type {PageData} from './$types';
+  // @ts-expect-error declaration file
+  import curl from 'highlightjs-curl';
   import {page} from '$app/state';
   import hljs from 'highlight.js';
   import {onMount} from 'svelte';
-
-  // @ts-expect-error No declaration file
-  import curl from 'highlightjs-curl';
-  import go from 'highlight.js/lib/languages/go';
-  import rust from 'highlight.js/lib/languages/rust';
-  import json from 'highlight.js/lib/languages/json';
-  import python from 'highlight.js/lib/languages/python';
-  import javascript from 'highlight.js/lib/languages/javascript';
 
   hljs.configure({ignoreUnescapedHTML: true});
   hljs.registerLanguage('javascript', javascript);
