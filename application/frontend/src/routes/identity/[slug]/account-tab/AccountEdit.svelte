@@ -1,12 +1,21 @@
 <script lang="ts">
-  import {KeyIcon, UserIcon, KeylockIcon, WWWIcon, RepeatIcon, EyeIcon} from '$icon';
-  import {ActionIcon, LoadingButton, InputWithIcon, SelectMenu} from '$component';
+  import KeyIcon from '$icon/security/Key.svelte';
+  import UserIcon from '$icon/user/User.svelte';
+  import KeylockIcon from '$icon/security/Keylock.svelte';
+  import WWWIcon from '$icon/communication/WWW.svelte';
+  import RepeatIcon from '$icon/actions/Repeat.svelte';
+  import EyeIcon from '$icon/security/Eye.svelte';
+  import ActionIcon from '$component/feedback/ActionIcon.svelte';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
+  import SelectMenu from '$component/inputs/SelectMenu.svelte';
+
   import type {Account, AccountAPI} from '$type';
+  import {encrypt} from '$utils/cryptography';
   import type {Writable} from 'svelte/store';
-  import {encrypt} from '$cryptography';
+  import {fetchAPI} from '$utils/webfetch';
+  import {notify} from '$utils/shared';
   import {pendingID} from '$store';
-  import {fetchAPI} from '$fetch';
-  import {notify} from '$lib';
 
   interface Props {
     mode: Writable<'view' | 'add' | 'edit'>;

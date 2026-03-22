@@ -1,9 +1,9 @@
 <script lang="ts">
-  import {HamburgerMenu} from '$component';
-  import {logoBesideText} from '$image';
+  import logoBesideText from '$image/brands/shadowself/logo-beside-text.svg';
+  import HamburgerMenu from '$component/layout/HamburgerMenu.svelte';
+  import UserIcon from '$icon/user/User.svelte';
   import {scrollY, user} from '$store';
   import {page} from '$app/state';
-  import {UserIcon} from '$icon';
 
   let isHome = $derived(page.url.pathname === '/');
   let shouldFocus = $derived(isHome && $scrollY < 150);

@@ -1,9 +1,9 @@
 <script lang="ts">
   import type {PhoneAPI, Message} from '$type';
   import type {Writable} from 'svelte/store';
-  import {fetchAPI} from '$fetch';
+  import {fetchAPI} from '$utils/webfetch';
+  import {notify} from '$utils/shared';
   import {identity} from '$store';
-  import {notify} from '$lib';
 
   interface Props {
     mode: Writable<'browse' | 'read' | 'write' | 'reply'>;

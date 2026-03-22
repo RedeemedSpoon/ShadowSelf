@@ -1,7 +1,7 @@
 <script lang="ts">
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import type {EditorParams, Email} from '$type';
   import type {Writable} from 'svelte/store';
-  import {LoadingButton} from '$component';
   import {onMount} from 'svelte';
 
   interface Props {

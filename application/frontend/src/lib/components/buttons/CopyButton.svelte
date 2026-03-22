@@ -1,6 +1,6 @@
 <script lang="ts">
-  import {ReactiveButton} from '$component';
-  import {CopyIcon} from '$icon';
+  import ReactiveButton from '$component/buttons/ReactiveButton.svelte';
+  import CopyIcon from '$icon/actions/Copy.svelte';
 
   interface Props {
     className?: string;

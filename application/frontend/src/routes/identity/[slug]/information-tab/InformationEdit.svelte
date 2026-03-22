@@ -1,12 +1,18 @@
 <script lang="ts">
-  import {ActionIcon, SelectMenu, Tooltip, LoadingButton} from '$component';
-  import {FemaleIcon, MaleIcon, UserIcon, RepeatIcon} from '$icon';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import ActionIcon from '$component/feedback/ActionIcon.svelte';
+  import SelectMenu from '$component/inputs/SelectMenu.svelte';
+  import Tooltip from '$component/feedback/Tooltip.svelte';
+  import RepeatIcon from '$icon/actions/Repeat.svelte';
+  import FemaleIcon from '$icon/user/Female.svelte';
+  import MaleIcon from '$icon/user/Male.svelte';
+  import UserIcon from '$icon/user/User.svelte';
+
   import {identity, pendingID} from '$store';
   import type {InformationAPI} from '$type';
-  import {fetchAPI} from '$fetch';
-  import {notify} from '$lib';
-
-  const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
+  import {fetchAPI} from '$utils/webfetch';
+  import {ETHNICITIES} from '$constant';
+  import {notify} from '$utils/shared';
 
   async function regeneratePicture() {
     const bio = (document.querySelector('textarea') as HTMLTextAreaElement).value.trim();
@@ -82,7 +88,7 @@
     </div>
 
     <label for="ethnicity">Ethnicity</label>
-    <SelectMenu options={ethnicities} name="ethnicity" value={$identity.ethnicity} />
+    <SelectMenu options={ETHNICITIES} name="ethnicity" value={$identity.ethnicity} />
 
     <label for="age">Age</label>
     <div class="group relative mb-6">

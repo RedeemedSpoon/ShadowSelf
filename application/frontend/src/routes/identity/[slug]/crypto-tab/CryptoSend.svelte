@@ -1,16 +1,18 @@
 <script lang="ts">
-  import {estimateTransactionFee, selectBestUtxos, signTransaction} from '$cryptocoin';
+  import {estimateTransactionFee, selectBestUtxos, signTransaction} from '$utils/wallet';
   import type {CryptoAPI, Coins, Priority, transactionData, UTXOData} from '$type';
-  import {QrScanner, LoadingButton} from '$component';
-  import {CameraIcon, StackIcon} from '$icon';
+  import CameraIcon from '$icon/misc/Camera.svelte';
+  import StackIcon from '$icon/data/Stack.svelte';
+  import QrScanner from '$component/special/QrScanner.svelte';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import type {Writable} from 'svelte/store';
   import {pendingID, identity} from '$store';
-  import {decrypt} from '$cryptography';
-  import {idbOperation} from '$monero';
-  import {formatUSD} from '$format';
-  import {fetchAPI} from '$fetch';
+  import {decrypt} from '$utils/cryptography';
+  import {idbOperation} from '$utils/monero';
+  import {formatUSD} from '$utils/formating';
+  import {fetchAPI} from '$utils/webfetch';
   import {onMount} from 'svelte';
-  import {notify} from '$lib';
+  import {notify} from '$utils/shared';
 
   import * as monerots from 'monero-ts';
 

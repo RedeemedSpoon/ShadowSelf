@@ -1,8 +1,8 @@
 <script lang="ts">
+  import Card from '$component/containers/Card.svelte';
   import {onMount, type Snippet} from 'svelte';
   import type {ServicesContent} from '$type';
   import {stickyYScroll} from '$store';
-  import {Card} from '$component';
 
   interface Props {
     content: ServicesContent[];

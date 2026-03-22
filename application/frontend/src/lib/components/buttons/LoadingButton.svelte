@@ -1,6 +1,6 @@
 <script lang="ts">
+  import Loader from '$component/feedback/Loader.svelte';
   import type {Snippet} from 'svelte';
-  import {Loader} from '$component';
   import {pendingID} from '$store';
 
   interface Props {

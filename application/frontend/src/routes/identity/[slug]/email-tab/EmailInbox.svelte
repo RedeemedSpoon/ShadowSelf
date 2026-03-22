@@ -1,9 +1,13 @@
 <script lang="ts">
-  import {mailbox, shredder, file, pencil} from '$image';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import shredder from '$image/empty-states/shredder.svg';
+  import mailbox from '$image/empty-states/mailbox.svg';
+  import pencil from '$image/empty-states/pencil.svg';
+  import ReplyIcon from '$icon/actions/Reply.svelte';
+  import file from '$image/empty-states/file.svg';
+
   import type {Writable} from 'svelte/store';
-  import {LoadingButton} from '$component';
   import type {Email} from '$type';
-  import {ReplyIcon} from '$icon';
 
   interface Props {
     target: Writable<Email | null>;

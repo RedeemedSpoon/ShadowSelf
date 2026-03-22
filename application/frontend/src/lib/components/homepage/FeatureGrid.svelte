@@ -1,5 +1,12 @@
 <script lang="ts">
-  import {cog, tag, shield, support, handTap, customer, terminal, openSource} from '$image';
+  import openSource from '$image/homepage/features/open-source.svg';
+  import terminal from '$image/homepage/features/terminal.svg';
+  import customer from '$image/homepage/features/customer.svg';
+  import handTap from '$image/homepage/features/hand-tap.svg';
+  import support from '$image/homepage/features/support.svg';
+  import shield from '$image/homepage/features/shield.svg';
+  import tag from '$image/homepage/features/tag.svg';
+  import cog from '$image/homepage/features/cog.svg';
 
   const features = [
     {

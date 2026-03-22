@@ -1,13 +1,19 @@
 <script lang="ts">
-  import {CurlIcon, GoIcon, JavascriptIcon, PythonIcon, RustIcon} from '$icon';
+  import HTTPMethod from '$component/feedback/HTTPMethod.svelte';
+  import SelectMenu from '$component/inputs/SelectMenu.svelte';
   import type {APIResponse, Languages, Route} from '$type';
-  import {HTTPMethod, SelectMenu} from '$component';
+
+  import JavascriptIcon from '$icon/brands/Javascript.svelte';
+  import PythonIcon from '$icon/brands/Python.svelte';
+  import CurlIcon from '$icon/brands/Curl.svelte';
+  import RustIcon from '$icon/brands/Rust.svelte';
+  import GoIcon from '$icon/brands/Go.svelte';
 
   interface Props {
     response?: APIResponse;
     alt?: unknown;
     title?: string;
-    hljs?: unknown;
+    hljs?: any;
     route?: Route;
   }
 
@@ -27,7 +33,6 @@
 
   const callback = (value: string) => {
     lang = value as Languages;
-    // @ts-expect-error Unknown object
     setTimeout(() => hljs.highlightElement(document.getElementById(id)), 1);
   };
 </script>

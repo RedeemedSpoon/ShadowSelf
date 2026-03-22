@@ -1,8 +1,8 @@
-import {PUBLIC_STRIPE_KEY} from '$env/static/public';
 import type {PageServerLoad, Actions} from './$types';
+import {PUBLIC_STRIPE_KEY} from '$env/static/public';
+import {fetchBackend} from '$utils/webfetch';
+import {createCookie} from '$utils/shared';
 import {redirect} from '@sveltejs/kit';
-import {fetchBackend} from '$fetch';
-import {createCookie} from '$lib';
 import QRCode from 'qrcode';
 
 export const load: PageServerLoad = async ({cookies}) => {

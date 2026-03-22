@@ -1,10 +1,10 @@
 <script lang="ts">
-  import {SelectMenu, LoadingButton} from '$component';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import SelectMenu from '$component/inputs/SelectMenu.svelte';
+  import {awaitPending, notify} from '$utils/shared';
   import type {Notification} from '$type';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
-  import {pendingID} from '$store';
-  import {notify} from '$lib';
 
   interface Props {
     data: PageData;
@@ -16,18 +16,6 @@
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
   });
-
-  async function handleForm() {
-    pendingID.set(1);
-    await new Promise((resolve) => setTimeout(resolve, 750));
-
-    // @ts-expect-error TS2322
-    return async ({update, result}) => {
-      pendingID.set(0);
-      if (result.data.type && result.data.type === 'success') update({reset: true});
-      update({reset: false});
-    };
-  }
 </script>
 
 <svelte:head>
@@ -42,7 +30,7 @@
       If you have any questions, concerns, or feedback, please don't hesitate to contact us. We look forward to hearing from you!
     </p>
   </section>
-  <form use:enhance={handleForm} method="POST">
+  <form use:enhance={() => awaitPending(true, 1, true, true)} method="POST">
     <label for="subject">Subject</label>
     <input type="text" required placeholder="I am looking for..." name="subject" id="subject" />
 

@@ -1,6 +1,8 @@
 <script lang="ts">
-  import {Header, Footer, Notification} from '$component';
+  import Notification from '$component/layout/Notification.svelte';
   import {mobileHamburgerMenu, token, user} from '$store';
+  import Header from '$component/layout/Header.svelte';
+  import Footer from '$component/layout/Footer.svelte';
   import {onMount, type Snippet} from 'svelte';
   import type {LayoutData} from './$types';
   import '../app.css';

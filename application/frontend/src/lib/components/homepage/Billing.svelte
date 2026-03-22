@@ -1,30 +1,20 @@
 <script lang="ts">
-  import {CheckmarkIcon, ChevronIcon, QuestionIcon} from '$icon';
+  import CheckmarkIcon from '$icon/status/Checkmark.svelte';
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
+  import Card from '$component/containers/Card.svelte';
+  import {FEATURES, PRICING_TIERS} from '$constant';
   import {user, pricingModel} from '$store';
-  import {allPricingModels} from '$type';
   import {fly} from 'svelte/transition';
-  import {Card} from '$component';
   import {onMount} from 'svelte';
 
   function changePricingModel(model: string) {
-    const chosenModel = model.toLowerCase() as keyof typeof allPricingModels;
-    pricingModel.set({name: model, ...allPricingModels[chosenModel]});
+    const chosenModel = model.toLowerCase() as keyof typeof PRICING_TIERS;
+    pricingModel.set({name: model, ...PRICING_TIERS[chosenModel]});
 
     const margin = model === 'Monthly' ? '0%' : model === 'Annually' ? '33%' : '66%';
     const element = document.querySelector('#select-model-box') as HTMLElement;
     element.style.left = margin;
   }
-
-  const title = [
-    'You get a 14-day money-back guarantee, during which you can request a refund.',
-    'You can email us at anytime and we will assist you with any questions or issues you may have.',
-  ];
-
-  const sections = [
-    ['Personal Attributes', 'Email Address', 'Phone Number'],
-    ['Crypto Wallet', 'VPN Access', 'Account Management'],
-    ['14 Day Refund', '24/7 Support'],
-  ];
 
   onMount(() => changePricingModel($pricingModel.name));
 </script>
@@ -58,22 +48,15 @@
       </div>
     {/key}
     <p class="absolute inset-e-16 top-24 rotate-10 rounded-xl bg-neutral-600/30 px-4 font-bold shadow-md">20% OFF with Crypto</p>
-    <div class="flex w-full gap-6 py-6 text-left text-xl leading-10 max-sm:flex-col">
-      {#each sections as section, index (index)}
-        <ul>
-          {#each section as item, id (id)}
-            <li>
-              <CheckmarkIcon className="cursor-auto fill-green-500! w-6! h-6!" />
-              {item}
-              {#if index === 2}
-                <span title={title[section.indexOf(item)]}>
-                  <QuestionIcon className="cursor-help -ml-2 w-4! h-4! fill-neutral-700!" />
-                </span>
-              {/if}
-            </li>
-          {/each}
-        </ul>
-      {/each}
+    <div class="w-full py-6 text-left text-xl leading-10">
+      <ul>
+        {#each FEATURES as item (item)}
+          <li>
+            <CheckmarkIcon className="cursor-auto fill-green-500! w-6! h-6!" />
+            {item}
+          </li>
+        {/each}
+      </ul>
     </div>
   </div>
   <a href={$user ? '/purchase' : '/login'}>
@@ -102,7 +85,7 @@
   }
 
   ul {
-    @apply flex list-inside flex-col flex-nowrap md:mx-8;
+    @apply grid w-full grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2 md:mx-8 lg:grid-cols-3;
   }
 
   li {

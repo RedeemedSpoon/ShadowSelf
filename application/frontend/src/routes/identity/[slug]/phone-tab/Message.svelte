@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {formatDate, toTitleCase} from '$format';
+  import {formatDate, toTitleCase} from '$utils/formating';
   import type {Message} from '$type';
   import {identity} from '$store';
 

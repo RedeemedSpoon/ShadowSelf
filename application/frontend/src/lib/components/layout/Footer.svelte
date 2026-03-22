@@ -1,5 +1,8 @@
 <script lang="ts">
-  import {logo, github, mastodon, tor} from '$image';
+  import logo from '$image/brands/shadowself/logo-white-text.svg';
+  import mastodon from '$image/brands/mastodon.svg';
+  import github from '$image/brands/github.svg';
+  import tor from '$image/brands/tor.svg';
 
   const navLinks = {
     Product: ['Homepage', 'Extension', 'Purchase'],

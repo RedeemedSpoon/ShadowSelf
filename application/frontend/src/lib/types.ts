@@ -251,7 +251,7 @@ export type TransactionsHistory = {
   date: Date;
 }[];
 
-export type CryptoWallet = {
+export interface CryptoWallet {
   btc: {
     status: string;
     balance: number;
@@ -288,7 +288,7 @@ export type CryptoWallet = {
     unlockedBalance: number;
     balance: number;
   };
-};
+}
 
 export interface BaseAPI {
   err?: string;
@@ -402,13 +402,13 @@ export interface Route {
   code: {[key in Languages]: string};
 }
 
-export type Billing = {
+export interface Billing {
   step: BillingSteps;
   clientSecret: string;
   identityID: string;
   cardName: string;
   last4: number;
-};
+}
 
 export interface PricingModel {
   name: string;
@@ -416,23 +416,3 @@ export interface PricingModel {
   price: number;
   description: string;
 }
-
-export const allPricingModels = {
-  monthly: {
-    title: 'Monthly Subscription',
-    description: 'per month',
-    price: 4.99,
-  },
-
-  annually: {
-    title: 'Annual Subscription',
-    description: 'per year',
-    price: 49.99,
-  },
-
-  lifetime: {
-    title: 'Lifetime Access',
-    description: 'one time purchase',
-    price: 199.99,
-  },
-};

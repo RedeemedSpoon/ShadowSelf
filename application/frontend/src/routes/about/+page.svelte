@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {systemDesign} from '$image';
+  import systemDesign from '$image/visuals/system-design.webp';
 </script>
 
 <svelte:head>

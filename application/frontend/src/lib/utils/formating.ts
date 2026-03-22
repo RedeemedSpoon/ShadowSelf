@@ -5,10 +5,12 @@ export function toTitleCase(str: string): string {
 }
 
 export function formatCasing(sentence: string): string {
-  return sentence
-    .split(' ')
-    .map((word) => (word === 'api' ? 'API' : word ? word.charAt(0).toUpperCase() + word.slice(1) : ''))
-    .join(' ');
+  const cleanCasing = sentence.split(' ').map((word) => {
+    const titleCase = word ? word.charAt(0).toUpperCase() + word.slice(1) : '';
+    return word === 'api' ? 'API' : titleCase;
+  });
+
+  return cleanCasing.join(' ');
 }
 
 export function formatUSD(value: number): string {

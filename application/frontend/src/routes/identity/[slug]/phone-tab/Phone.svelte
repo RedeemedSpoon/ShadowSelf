@@ -1,13 +1,18 @@
 <script lang="ts">
+  import conversation from '$image/empty-states/conversation.svg';
   import type {WebSocketMessage, PhoneAPI, Message} from '$type';
-  import {SendIcon, TrashIcon, ReplyIcon, BackIcon} from '$icon';
+  import ActionIcon from '$component/feedback/ActionIcon.svelte';
+  import Loader from '$component/feedback/Loader.svelte';
   import {writable, type Writable} from 'svelte/store';
+  import {formatPhoneNumber} from '$utils/formating';
   import {identity, handleResponse} from '$store';
-  import {ActionIcon, Loader} from '$component';
-  import {formatPhoneNumber} from '$format';
-  import {conversation} from '$image';
-  import {fetchAPI} from '$fetch';
-  import {notify} from '$lib';
+  import {fetchAPI} from '$utils/webfetch';
+  import {notify} from '$utils/shared';
+
+  import SendIcon from '$icon/actions/Send.svelte';
+  import TrashIcon from '$icon/actions/Trash.svelte';
+  import ReplyIcon from '$icon/actions/Reply.svelte';
+  import BackIcon from '$icon/navigation/Back.svelte';
 
   import ConversationLists from './ConversationLists.svelte';
   import ComposeMessage from './ComposeMessage.svelte';

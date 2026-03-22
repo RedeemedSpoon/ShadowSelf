@@ -1,19 +1,27 @@
 <script lang="ts">
-  import {CopyIcon, WalletIcon, DownloadIcon, EmailIcon, PhoneIcon, EditIcon, BackIcon} from '$icon';
-  import {ActionIcon, CopyButton, ReactiveButton} from '$component';
-  import {toTitleCase, formatPhoneNumber, formatUSD} from '$format';
+  import ReactiveButton from '$component/buttons/ReactiveButton.svelte';
+  import ActionIcon from '$component/feedback/ActionIcon.svelte';
+  import CopyButton from '$component/buttons/CopyButton.svelte';
+  import DownloadIcon from '$icon/actions/Download.svelte';
+  import EmailIcon from '$icon/communication/Email.svelte';
+  import PhoneIcon from '$icon/communication/Phone.svelte';
+  import InformationEdit from './InformationEdit.svelte';
+  import WalletIcon from '$icon/finance/Wallet.svelte';
+  import BackIcon from '$icon/navigation/Back.svelte';
+  import CopyIcon from '$icon/actions/Copy.svelte';
+  import EditIcon from '$icon/actions/Edit.svelte';
+
+  import {toTitleCase, formatPhoneNumber, formatUSD} from '$utils/formating';
+  import {base64ToBlob, notify, getCountriesFlags} from '$utils/shared';
   import type {InformationAPI} from '$type';
-  import {base64ToBlob, notify} from '$lib';
-  import {countriesFlags} from '$image';
+  import {fetchAPI} from '$utils/webfetch';
   import {page} from '$app/state';
   import {identity} from '$store';
-  import {fetchAPI} from '$fetch';
-
-  import InformationEdit from './InformationEdit.svelte';
 
   let activeStatus = $state(false);
   let isEditingMode = $state(false);
 
+  const countriesFlags = getCountriesFlags();
   const relativeDate = new Date($identity.creationDate).getTime() - new Date().getTime();
   const dateInDays = Math.round(relativeDate / (1000 * 60 * 60 * 24));
   const dateInMonths = Math.round(dateInDays / 30);

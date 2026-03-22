@@ -1,4 +1,69 @@
-const markets = [
+export const ETHNICITIES = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
+export const PRODUCT_TRAILS = ['Effective', 'Simple', 'Affordable', 'Secure', 'Superior', 'Reliable', 'Trusted', 'Private', 'Fast'];
+export const SECTIONS_ORDER = ['info', 'email', 'phone', 'crypto', 'account'];
+
+export const VBYTE_INPUT = 68;
+export const VBYTE_OUTPUT = 31;
+export const VBYTE_OVERHEAD = 10;
+
+export const GAS_ETH_TRANSFER = 21_000;
+export const GAS_ERC20_TRANSFER = 65_000;
+export const LTC_NETWORK = {bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0};
+export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+
+export const FEATURES = ['Personal Attributes', 'Account Management', 'Email Address', 'Crypto Wallet', 'Phone Number', 'VPN Access'];
+
+export const EXTERNAL_TX_VIEWERS = {
+  btc: 'https://mempool.space/tx/',
+  ltc: 'https://litecoinspace.org/tx/',
+  eth: 'https://eth.blockscout.com/tx/',
+  usdt: 'https://eth.blockscout.com/tx/',
+  xmr: 'https://moneroblocks.info/tx/',
+};
+
+export const PRICING_TIERS = {
+  monthly: {
+    title: 'Monthly Subscription',
+    description: 'per month',
+    price: 4.99,
+  },
+
+  annually: {
+    title: 'Annual Subscription',
+    description: 'per year',
+    price: 49.99,
+  },
+
+  lifetime: {
+    title: 'Lifetime Access',
+    description: 'one time purchase',
+    price: 199.99,
+  },
+};
+
+export const EXTENSIONS_INFO = {
+  shadowself: {
+    firefox: 'https://addons.mozilla.org/en-US/firefox/addon/shadowself',
+    chrome: 'https://chromewebstore.google.com/detail/shadowself/paaidpbnnoopadhdodbjgfhfhhonmbmf',
+    edge: 'https://microsoftedge.microsoft.com/addons/detail/shadowself/fjlfnbhdginnpjnlkhhbjhejgaamhdhb',
+    opera: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  },
+  ublock: {
+    website: 'https://ublockorigin.com',
+    github: 'https://github.com/gorhill/uBlock',
+    firefox: 'https://addons.mozilla.org/en-US/firefox/addon/ublock-origin',
+    chrome: 'https://chromewebstore.google.com/detail/ublock-origin/cjpalhdlnbpafiamejdnhcphjbkeiagm',
+    edge: 'https://microsoftedge.microsoft.com/addons/detail/ublock-origin/odfafepnkmbhccpbejgmiehpchacaeak',
+    opera: 'https://addons.opera.com/en/extensions/details/ublock',
+  },
+  canvas: {
+    website: 'https://canvasblocker.kkapsner.de',
+    github: 'https://github.com/kkapsner/CanvasBlocker',
+    firefox: 'https://addons.mozilla.org/en-US/firefox/addon/canvasblocker',
+  },
+};
+
+export const MARKETS = [
   {
     name: 'KYCNOT.me',
     description: 'A curated list of non-KYC exchanges, services, and tools to preserve your identity.',
@@ -152,5 +217,3 @@ const markets = [
     category: 'Social Identity',
   },
 ];
-
-export default markets;

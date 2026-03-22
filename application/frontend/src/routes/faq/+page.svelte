@@ -1,6 +1,6 @@
 <script lang="ts">
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
   import type {PageData} from './$types';
-  import {ChevronIcon} from '$icon';
 
   let {data}: {data: PageData} = $props();
 

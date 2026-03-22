@@ -1,20 +1,14 @@
+import {GAS_ERC20_TRANSFER, GAS_ETH_TRANSFER, USDT_CONTRACT, VBYTE_INPUT, VBYTE_OUTPUT, VBYTE_OVERHEAD} from '$constant';
 import {createWalletClient, http, parseEther, parseUnits, encodeFunctionData, isAddress} from 'viem';
 import {privateKeyToAccount, mnemonicToAccount, type LocalAccount} from 'viem/accounts';
 import type {BtcSigner, Coins, PrivKeyType, transactionData, UTXOData} from '$type';
-import {deriveXPub} from './cryptography';
+import {deriveXPub} from '$utils/cryptography';
+import {notify} from '$utils/shared';
+
 import * as btc from '@scure/btc-signer';
 import * as bip39 from '@scure/bip39';
 import {mainnet} from 'viem/chains';
 import {HDKey} from '@scure/bip32';
-import {notify} from '$lib';
-
-// --- MAGIC NUMBERS (WEIGHTS) ---
-const VBYTE_INPUT = 68;
-const VBYTE_OUTPUT = 31;
-const VBYTE_OVERHEAD = 10;
-
-const GAS_ETH_TRANSFER = 21_000;
-const GAS_ERC20_TRANSFER = 65_000;
 
 export function selectBestUtxos(availableUtxos: UTXOData, amount: number, feeRate: number): UTXOData {
   const targetSats = Math.floor(amount * 100_000_000);
@@ -208,11 +202,7 @@ export async function signTransaction(coin: Coins, addr: string, amt: number, da
         const tokenBalance = parseUnits(String(data.balance), 6);
         const amountToken = parseUnits(String(amt), 6);
 
-        if (tokenBalance < amountToken) return notify('Insufficient USDT Balance', 'alert');
-        // if (ethBalanceWei < feeWei) return notify('Insufficient ETH for Gas', 'alert');
-
-        const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
-        const ERC20_ABI = [
+        const usdtABI = [
           {
             name: 'transfer',
             type: 'function',
@@ -225,8 +215,9 @@ export async function signTransaction(coin: Coins, addr: string, amt: number, da
           },
         ];
 
+        if (tokenBalance < amountToken) return notify('Insufficient USDT Balance', 'alert');
         const fdata = encodeFunctionData({
-          abi: ERC20_ABI,
+          abi: usdtABI,
           functionName: 'transfer',
           args: [addr, parseUnits(String(amt), 6)],
         });

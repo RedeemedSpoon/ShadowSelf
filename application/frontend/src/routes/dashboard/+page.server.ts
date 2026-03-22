@@ -1,6 +1,6 @@
 import type {PageServerLoad} from './$types';
+import {fetchBackend} from '$utils/webfetch';
 import type {Identity, Option} from '$type';
-import {fetchBackend} from '$fetch';
 
 export const load: PageServerLoad = async ({parent, cookies}) => {
   const otherObjects = await parent();

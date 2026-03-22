@@ -1,6 +1,6 @@
-import {PUBLIC_STRIPE_KEY} from '$env/static/public';
 import type {PageServerLoad, Actions} from './$types';
-import {fetchBackend} from '$fetch';
+import {PUBLIC_STRIPE_KEY} from '$env/static/public';
+import {fetchBackend} from '$utils/webfetch';
 
 export const load: PageServerLoad = async () => {
   return {stripeKey: PUBLIC_STRIPE_KEY};

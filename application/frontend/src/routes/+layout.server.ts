@@ -1,6 +1,6 @@
 import type {LayoutServerLoad} from './$types';
 import {error, redirect} from '@sveltejs/kit';
-import {fetchBackend} from '$fetch';
+import {fetchBackend} from '$utils/webfetch';
 
 export const load: LayoutServerLoad = async ({cookies, url}) => {
   const currentToken = cookies.get('token') || '';

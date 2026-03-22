@@ -1,10 +1,17 @@
 <script lang="ts">
-  import {Steps, StepsItem, InputWithIcon, LoadingButton} from '$component';
-  import {KeyIcon, KeylockIcon, RecoveryIcon, EmailIcon} from '$icon';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import StepsItem from '$component/containers/StepsItem.svelte';
+  import RecoveryIcon from '$icon/security/Recovery.svelte';
+  import EmailIcon from '$icon/communication/Email.svelte';
+  import KeylockIcon from '$icon/security/Keylock.svelte';
+  import Steps from '$component/containers/Steps.svelte';
+  import KeyIcon from '$icon/security/Key.svelte';
+
   import type {Notification} from '$type';
+  import {notify} from '$utils/shared';
   import {currentStep} from '$store';
   import {get} from 'svelte/store';
-  import {notify} from '$lib';
 
   const {form}: {form: Notification & {step?: number}} = $props();
 

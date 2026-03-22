@@ -1,7 +1,12 @@
 <script lang="ts">
-  import {profilePictures} from '$image';
-  import {Tooltip} from '$component';
+  import Tooltip from '$component/feedback/Tooltip.svelte';
 
+  const modules = import.meta.glob('$image/homepage/profile-pictures/**', {
+    eager: true,
+    import: 'default',
+  });
+
+  const profilePictures = Object.values(modules) as string[];
   const avatars = [
     {
       image: profilePictures[0],

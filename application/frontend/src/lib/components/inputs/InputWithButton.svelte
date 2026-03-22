@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {LoadingButton} from '$component';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
 
   interface Props {
     name: string;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {ChevronIcon} from '$icon';
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
   import {page} from '$app/state';
 </script>
 

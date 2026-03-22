@@ -1,16 +1,18 @@
 <script lang="ts">
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import SelectMenu from '$component/inputs/SelectMenu.svelte';
+
   import type {CryptoAPI, Coins, Provider, transactionData} from '$type';
-  import {estimateTransactionFee, signTransaction} from '$cryptocoin';
+  import {estimateTransactionFee, signTransaction} from '$utils/wallet';
   import {pendingID, identity, moneroData} from '$store';
-  import {LoadingButton, SelectMenu} from '$component';
-  import {decrypt, deriveXPub} from '$cryptography';
+  import {decrypt, deriveXPub} from '$utils/cryptography';
   import {onMount, type Component} from 'svelte';
-  import {ExternalLinkIcon} from '$icon';
+  import {idbOperation} from '$utils/monero';
+  import {formatUSD} from '$utils/formating';
+  import {fetchAPI} from '$utils/webfetch';
   import * as monerots from 'monero-ts';
-  import {idbOperation} from '$monero';
-  import {formatUSD} from '$format';
-  import {fetchAPI} from '$fetch';
-  import {notify} from '$lib';
+  import {notify} from '$utils/shared';
 
   interface Props {
     cryptoIcons: {[key: string]: Component};
@@ -112,7 +114,7 @@
 
       if (payCoin === 'xmr') {
         const localData = await idbOperation('readonly', $identity.id);
-        if (!localData) throw new Error('Wallet cache not found. Please wait for sync to complete.');
+        if (!localData) notify('Wallet cache not found. Please wait for sync to complete.', 'alert');
 
         const wallet = await monerots.openWalletFull({
           networkType: monerots.MoneroNetworkType.MAINNET,
@@ -174,7 +176,7 @@
         }
 
         const broadcastRes = await fetchAPI<CryptoAPI>('crypto/broadcast', 'POST', broadcastPayload);
-        if (broadcastRes.err) throw new Error(broadcastRes.err);
+        if (broadcastRes.err) notify(broadcastRes.err, 'alert');
 
         notify(`Sent ${amountToSend} ${payCoin.toUpperCase()}`, 'success');
       }

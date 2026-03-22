@@ -1,5 +1,5 @@
 <script lang="ts">
-  import markets from '$market';
+  import {MARKETS} from '$constant';
 </script>
 
 <section>
@@ -14,7 +14,7 @@
   </p>
 
   <div class="grid grid-cols-1 gap-4 py-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-    {#each markets as market}
+    {#each MARKETS as market}
       <a
         href={market.link}
         target="_blank"

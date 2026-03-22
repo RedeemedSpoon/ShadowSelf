@@ -1,12 +1,22 @@
 <script lang="ts">
-  import {SendIcon, TrashIcon, ReplyIcon, UserIcon, ForwardIcon, BackIcon} from '$icon';
-  import {ActionIcon, Loader, Modal, InputWithIcon, LoadingButton} from '$component';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import ActionIcon from '$component/feedback/ActionIcon.svelte';
+  import Loader from '$component/feedback/Loader.svelte';
+  import Modal from '$component/containers/Modal.svelte';
+  import ForwardIcon from '$icon/actions/Forward.svelte';
+  import BackIcon from '$icon/navigation/Back.svelte';
+  import TrashIcon from '$icon/actions/Trash.svelte';
+  import ReplyIcon from '$icon/actions/Reply.svelte';
+  import SendIcon from '$icon/actions/Send.svelte';
+  import UserIcon from '$icon/user/User.svelte';
+
   import type {EmailAPI, EditorParams, Email, WebSocketMessage} from '$type';
   import {identity, handleResponse, pendingID, activeModal} from '$store';
+  import {fetchAPI} from '$utils/webfetch';
   import {writable} from 'svelte/store';
-  import {fetchAPI} from '$fetch';
+  import {notify} from '$utils/shared';
   import {onMount} from 'svelte';
-  import {notify} from '$lib';
 
   import ComposeEmail from './ComposeEmail.svelte';
   import EmailInbox from './EmailInbox.svelte';

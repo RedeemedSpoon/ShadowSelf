@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {LightBulbIcon} from '$icon';
+  import LightBulbIcon from '$icon/status/LightBulb.svelte';
   import type {Snippet} from 'svelte';
 
   let {children}: {children: Snippet} = $props();

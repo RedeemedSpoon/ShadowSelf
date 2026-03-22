@@ -1,11 +1,15 @@
 <script lang="ts">
   import {type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
-  import {type Notification, type Billing, allPricingModels} from '$type';
-  import {CheckmarkIcon, CreditCardIcon, WalletIcon} from '$icon';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import CreditCardIcon from '$icon/finance/CreditCard.svelte';
   import {pricingModel, activeModal, pendingID} from '$store';
+  import CheckmarkIcon from '$icon/status/Checkmark.svelte';
+  import Modal from '$component/containers/Modal.svelte';
+  import WalletIcon from '$icon/finance/Wallet.svelte';
+  import {notify, awaitPending} from '$utils/shared';
+  import {FEATURES, PRICING_TIERS} from '$constant';
   import {loadStripe} from '@stripe/stripe-js/pure';
-  import {LoadingButton, Modal} from '$component';
-  import {notify, awaitPending} from '$lib';
+  import type {Notification, Billing} from '$type';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';
@@ -30,16 +34,6 @@
   let stripeLoaded = $state(false);
   let isStripeLoading = false;
 
-  const features = [
-    'Personal Attributes',
-    'Account Management',
-    'Email Address',
-    'Crypto Wallet',
-    'Phone Number',
-    'VPN Access',
-    'And More...',
-  ];
-
   $effect(() => {
     if ($activeModal === 1 && !stripeLoaded && !isStripeLoading) {
       isStripeLoading = true;
@@ -59,8 +53,8 @@
   });
 
   function changeModel(model: string) {
-    const chosenModel = model.toLowerCase() as keyof typeof allPricingModels;
-    pricingModel.set({name: model, ...allPricingModels[chosenModel]});
+    const chosenModel = model.toLowerCase() as keyof typeof PRICING_TIERS;
+    pricingModel.set({name: model, ...PRICING_TIERS[chosenModel]});
   }
 
   async function handleCheckout() {
@@ -173,7 +167,7 @@
         </div>
       {/key}
       <ul class="mt-4 grid gap-x-12 gap-y-4 text-center sm:grid-cols-2">
-        {#each features as feature, id (id)}
+        {#each FEATURES as feature, id (id)}
           <li><CheckmarkIcon className="cursor-auto fill-green-500! w-6! h-6!" />{feature}</li>
         {/each}
       </ul>

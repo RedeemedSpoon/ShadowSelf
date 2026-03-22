@@ -1,7 +1,8 @@
 <script lang="ts">
-  import {AttachmentIcon, ExternalLinkIcon} from '$icon';
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
+  import AttachmentIcon from '$icon/communication/Attachment.svelte';
+  import {base64ToBlob} from '$utils/shared';
   import DOMPurify from 'dompurify';
-  import {base64ToBlob} from '$lib';
   import type {Email} from '$type';
 
   let {email}: {email: Email} = $props();
@@ -12,6 +13,7 @@
     const blob = new Blob([email.type === 'html' ? DOMPurify.sanitize(email.body) : email.body], {
       type: email.type === 'html' ? 'text/html' : 'text/plain',
     });
+
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
   }

@@ -1,17 +1,27 @@
 <script lang="ts">
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
+  import ConfirmModal from '$component/special/ConfirmModal.svelte';
+  import MultiUsersIcon from '$icon/user/MultiUsers.svelte';
+  import EmailIcon from '$icon/communication/Email.svelte';
+  import PhoneIcon from '$icon/communication/Phone.svelte';
+  import Modal from '$component/containers/Modal.svelte';
+  import WalletIcon from '$icon/finance/Wallet.svelte';
+  import InfoIcon from '$icon/status/Info.svelte';
+
   import {pendingID, handleResponse, identity, activeModal, masterPassword} from '$store';
-  import {InfoIcon, PhoneIcon, MultiUsersIcon, EmailIcon, WalletIcon} from '$icon';
-  import {Modal, ConfirmModal, InputWithIcon, LoadingButton} from '$component';
   import type {AccountAPI, CryptoAPI, Sections, WebSocketMessage} from '$type';
-  import {decrypt, deriveMasterKey, encrypt} from '$cryptography';
-  import {ChevronIcon, KeyIcon} from '$icon';
+  import {decrypt, deriveMasterKey, encrypt} from '$utils/cryptography';
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
+  import KeyIcon from '$icon/security/Key.svelte';
+  import {SECTIONS_ORDER} from '$constant';
   import {browser} from '$app/environment';
+  import {fetchAPI} from '$utils/webfetch';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
-  import {fetchAPI} from '$fetch';
+  import {notify} from '$utils/shared';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
-  import {notify} from '$lib';
 
   import IdentityInformation from './information-tab/Information.svelte';
   import IdentityAccount from './account-tab/Account.svelte';
@@ -35,20 +45,12 @@
     wrapper: 'w-2/3',
   };
 
-  const sectionsNames = [
-    {name: 'Information', icon: InfoIcon},
-    {name: 'Email', icon: EmailIcon},
-    {name: 'Phone', icon: PhoneIcon},
-    {name: 'Crypto', icon: WalletIcon},
-    {name: 'Accounts', icon: MultiUsersIcon},
-  ];
-
-  const allSections = {
-    info: IdentityInformation,
-    email: IdentityEmail,
-    phone: IdentityPhone,
-    crypto: IdentityCrypto,
-    account: IdentityAccount,
+  const sectionData = {
+    info: {name: 'Information', icon: InfoIcon, component: IdentityInformation},
+    email: {name: 'Email', icon: EmailIcon, component: IdentityEmail},
+    phone: {name: 'Phone', icon: PhoneIcon, component: IdentityPhone},
+    crypto: {name: 'Crypto', icon: WalletIcon, component: IdentityCrypto},
+    account: {name: 'Accounts', icon: MultiUsersIcon, component: IdentityAccount},
   };
 
   function handleClick(section: Sections) {
@@ -178,17 +180,17 @@
     </div>
   {:else if data.identity && browser}
     <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
-      {#each Object.keys(allSections) as section, i (i)}
-        {@const Icon = sectionsNames[i].icon}
+      {#each SECTIONS_ORDER as section (section)}
+        {@const {icon: Icon, name} = sectionData[section]}
         <button class:main={section === currentSection} onclick={() => handleClick(section as Sections)}>
           <Icon className="h-6 w-6" />
-          <span class="max-sm:hidden">{sectionsNames[i].name}</span>
+          <span class="max-sm:hidden">{name}</span>
         </button>
       {/each}
     </div>
 
     {#key currentSection}
-      {@const SvelteComponent = allSections[currentSection]}
+      {@const SvelteComponent = sectionData[currentSection].component}
       <div class="mt-8 mb-12 w-full md:px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
         <SvelteComponent />
       </div>

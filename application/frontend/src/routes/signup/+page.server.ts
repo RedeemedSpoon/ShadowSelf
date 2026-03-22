@@ -1,8 +1,8 @@
 import {PUBLIC_STRIPE_KEY} from '$env/static/public';
+import {fetchBackend} from '$utils/webfetch';
+import {createCookie} from '$utils/shared';
 import {redirect} from '@sveltejs/kit';
 import type {Actions} from './$types';
-import {fetchBackend} from '$fetch';
-import {createCookie} from '$lib';
 import QRCode from 'qrcode';
 
 export const actions: Actions = {

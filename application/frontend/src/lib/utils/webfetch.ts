@@ -1,8 +1,7 @@
 import {PUBLIC_NODE_ENV} from '$env/static/public';
 import type {APIResponse} from '$type';
+import {identity, token} from '$store';
 import {get} from 'svelte/store';
-import {identity} from '$store';
-import {token} from '$store';
 
 export async function fetchAPI<Type = APIResponse>(url: string, method = 'GET', body?: Record<string, unknown>): Promise<Type> {
   let fullUrl = `/api/${url}/${get(identity).id}`;

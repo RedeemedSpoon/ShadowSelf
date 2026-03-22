@@ -1,6 +1,9 @@
 <script lang="ts">
-  import {Card, CardBody, CardContainer, CardItem} from '$component';
-  import {dashboard} from '$image';
+  import CardContainer from '$component/aceternity/CardContainer.svelte';
+  import CardBody from '$component/aceternity/CardBody.svelte';
+  import CardItem from '$component/aceternity/CardItem.svelte';
+  import dashboard from '$image/homepage/dashboard.webp';
+  import Card from '$component/containers/Card.svelte';
 
   let isMouseEntered = $state(false);
 </script>

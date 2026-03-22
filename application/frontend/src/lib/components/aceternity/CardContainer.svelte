@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
-  import {cn} from '$cn';
+  import {cn} from '$utils/cn';
 
   interface Props {
     className?: string | undefined;

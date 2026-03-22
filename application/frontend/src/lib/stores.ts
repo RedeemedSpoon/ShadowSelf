@@ -1,6 +1,6 @@
 import type {Notification, PricingModel, FullIdentity, WebSocketMessage, MoneroData} from '$type';
 import {writable, type Writable} from 'svelte/store';
-import {allPricingModels} from '$type';
+import {PRICING_TIERS} from '$constant';
 
 export const user: Writable<string> = writable('');
 export const token: Writable<string> = writable('');
@@ -19,4 +19,4 @@ export const handleResponse: Writable<(response: WebSocketMessage) => void> = wr
 
 export const mobileHamburgerMenu: Writable<boolean> = writable(false);
 export const notification: Writable<Notification> = writable({id: null, message: '', type: 'info'});
-export const pricingModel: Writable<PricingModel> = writable({name: 'Monthly', ...allPricingModels.monthly});
+export const pricingModel: Writable<PricingModel> = writable({name: 'Monthly', ...PRICING_TIERS.monthly});

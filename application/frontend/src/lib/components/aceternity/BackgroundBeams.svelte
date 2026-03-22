@@ -2,24 +2,24 @@
   import type {Action} from 'svelte/action';
   import {onMount, onDestroy} from 'svelte';
   import {browser} from '$app/environment';
-  import {writable} from 'svelte/store';
   import {Motion} from 'svelte-motion';
-  import {cn} from '$cn';
+  import {cn} from '$utils/cn';
 
-  const reduceMotion = writable(false);
+  let {class: className}: {class?: string} = $props();
 
   let mediaQueryList: MediaQueryList | null = null;
   let handleChange: (() => void) | null = null;
+  let reduceMotion = $state(false);
 
   onMount(() => {
     if (browser) {
       mediaQueryList = window.matchMedia('(prefers-reduced-motion: reduce)');
       const regex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i;
       const isMobile = regex.test(navigator.userAgent);
-      reduceMotion.set(mediaQueryList.matches || isMobile);
+      reduceMotion = mediaQueryList.matches || isMobile;
 
       handleChange = () => {
-        reduceMotion.set(mediaQueryList!.matches || isMobile);
+        reduceMotion = mediaQueryList!.matches || isMobile;
       };
 
       mediaQueryList.addEventListener('change', handleChange);
@@ -106,7 +106,7 @@
   };
 </script>
 
-<div class={cn('absolute inset-0 flex w-full items-center justify-center mask-size-[40px] mask-no-repeat', $$props.class)}>
+<div class={cn('absolute inset-0 flex w-full items-center justify-center mask-size-[40px] mask-no-repeat', className)}>
   <svg
     class="pointer-events-none absolute z-0 w-auto xl:w-full"
     width="100%"
@@ -132,7 +132,7 @@
 
     <defs>
       {#each paths as _, index (`gradient-${index}`)}
-        <Motion isSVG={true} animate={getGradientAnimateProps($reduceMotion)} transition={getGradientTransitionProps($reduceMotion)}>
+        <Motion isSVG={true} animate={getGradientAnimateProps(reduceMotion)} transition={getGradientTransitionProps(reduceMotion)}>
           {#snippet children({motion}: {motion: Action<SVGLinearGradientElement>})}
             <linearGradient use:motion id={`linearGradient-${index}`} x1="100%" x2="100%" y1="100%" y2="100%">
               <stop stop-color="#18CCFC" stop-opacity="0"></stop>

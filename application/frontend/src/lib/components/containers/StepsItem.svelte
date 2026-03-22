@@ -1,9 +1,9 @@
 <script lang="ts">
+  import Card from '$component/containers/Card.svelte';
+  import {awaitPending} from '$utils/shared';
   import type {Snippet} from 'svelte';
   import {enhance} from '$app/forms';
   import {currentStep} from '$store';
-  import {awaitPending} from '$lib';
-  import {Card} from '$component';
 
   interface Props {
     shouldWait?: boolean;

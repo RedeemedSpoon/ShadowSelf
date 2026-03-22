@@ -1,7 +1,9 @@
 <script lang="ts">
-  import {website, github} from '$image';
-  import {toTitleCase} from '$format';
-  import {ChevronIcon} from '$icon';
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
+  import generic from '$image/brands/generic.svg';
+  import github from '$image/brands/github.svg';
+  import {toTitleCase} from '$utils/formating';
+  import {EXTENSIONS_INFO} from '$constant';
 
   let {extension}: {extension: 'shadowself' | 'ublock' | 'canvas'} = $props();
   let expand = $state(false);
@@ -15,34 +17,12 @@
     opera:
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="small-icon w-6 h-6 inline fill-none stroke-current"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 12m-3 0a3 5 0 1 0 6 0a3 5 0 1 0 -6 0" /></svg>',
   };
-
-  const extensionInfo = {
-    shadowself: {
-      firefox: 'https://addons.mozilla.org/en-US/firefox/addon/shadowself',
-      chrome: 'https://chromewebstore.google.com/detail/shadowself/paaidpbnnoopadhdodbjgfhfhhonmbmf',
-      edge: 'https://microsoftedge.microsoft.com/addons/detail/shadowself/fjlfnbhdginnpjnlkhhbjhejgaamhdhb',
-      opera: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    },
-    ublock: {
-      website: 'https://ublockorigin.com',
-      github: 'https://github.com/gorhill/uBlock',
-      firefox: 'https://addons.mozilla.org/en-US/firefox/addon/ublock-origin',
-      chrome: 'https://chromewebstore.google.com/detail/ublock-origin/cjpalhdlnbpafiamejdnhcphjbkeiagm',
-      edge: 'https://microsoftedge.microsoft.com/addons/detail/ublock-origin/odfafepnkmbhccpbejgmiehpchacaeak',
-      opera: 'https://addons.opera.com/en/extensions/details/ublock',
-    },
-    canvas: {
-      website: 'https://canvasblocker.kkapsner.de',
-      github: 'https://github.com/kkapsner/CanvasBlocker',
-      firefox: 'https://addons.mozilla.org/en-US/firefox/addon/canvasblocker',
-    },
-  };
 </script>
 
 <!-- eslint-disable -->
 <div class="z-10 max-sm:scale-90">
   <div class="group flex w-87.5 items-center justify-center gap-0">
-    <a href={extensionInfo[extension]['firefox']} target="_blank" rel="noreferrer">
+    <a href={EXTENSIONS_INFO[extension]['firefox']} target="_blank" rel="noreferrer">
       <button
         class="group-hover:from-primary-800! group-hover:to-primary-800! h-16! {extension !== 'canvas' &&
           'rounded-r-none! pr-8!'} {expand && 'rounded-b-none!'}">
@@ -62,7 +42,7 @@
   {#if expand && extension !== 'canvas'}
     <div class="absolute">
       {#each ['chrome', 'edge', 'opera'] as otherBrowser, i (i)}
-        <a href={extensionInfo[extension][otherBrowser as 'firefox']} target="_blank" rel="noreferrer">
+        <a href={EXTENSIONS_INFO[extension][otherBrowser as 'firefox']} target="_blank" rel="noreferrer">
           <button class="other-link rounded-none! {i === 2 && 'rounded-b-xl!'}">
             <p>Download for {@html browserIcons[otherBrowser as 'firefox']} {toTitleCase(otherBrowser)}</p>
           </button>
@@ -73,10 +53,10 @@
 
   {#if extension === 'ublock' || extension === 'canvas'}
     <div id="sublinks" class="flex justify-evenly p-4">
-      <a href={extensionInfo[extension].website} target="_blank">
-        <img src={website} class="h-7 w-7" alt="Website" />Website
+      <a href={EXTENSIONS_INFO[extension].website} target="_blank">
+        <img src={generic} class="h-7 w-7" alt="Website" />Website
       </a>
-      <a href={extensionInfo[extension].github} target="_blank">
+      <a href={EXTENSIONS_INFO[extension].github} target="_blank">
         <img src={github} alt="Github" class="h-6 w-6" />Github
       </a>
     </div>

@@ -1,11 +1,10 @@
 <script lang="ts">
+  import circuitPattern from '$image/patterns/circuit-pattern.svg';
   import {onMount, type Snippet} from 'svelte';
-  import {circuitPattern} from '$image';
   import {fly} from 'svelte/transition';
   import {currentStep} from '$store';
 
   let {children}: {children: Snippet} = $props();
-
   onMount(() => currentStep.set(1));
 </script>
 

@@ -1,8 +1,10 @@
 <script lang="ts">
-  import {formatCasing, formatToMarkdown} from '$format';
+  import {formatCasing, formatToMarkdown} from '$utils/formating';
+  import HTTPMethod from '$component/feedback/HTTPMethod.svelte';
+  import APICode from '$component/containers/APICode.svelte';
+  import CheckmarkIcon from '$icon/status/Checkmark.svelte';
   import 'highlight.js/styles/tokyo-night-dark.css';
-  import {APICode, HTTPMethod} from '$component';
-  import {CopyIcon, CheckmarkIcon} from '$icon';
+  import CopyIcon from '$icon/actions/Copy.svelte';
   import type {PageData} from './$types';
   import {page} from '$app/state';
   import hljs from 'highlight.js';

@@ -1,9 +1,23 @@
 <script lang="ts">
-  import {Modal, InputWithButton, InputWithIcon, LoadingButton, ConfirmModal, CopyButton, ReactiveButton} from '$component';
-  import {UserIcon, KeylockIcon, KeyIcon, CreditCardIcon, InfoIcon, DownloadIcon, CopyIcon, ExternalLinkIcon} from '$icon';
+  import InputWithButton from '$component/inputs/InputWithButton.svelte';
+  import ReactiveButton from '$component/buttons/ReactiveButton.svelte';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
+  import ConfirmModal from '$component/special/ConfirmModal.svelte';
+  import CopyButton from '$component/buttons/CopyButton.svelte';
+  import CreditCardIcon from '$icon/finance/CreditCard.svelte';
+  import DownloadIcon from '$icon/actions/Download.svelte';
+  import KeylockIcon from '$icon/security/Keylock.svelte';
+  import Modal from '$component/containers/Modal.svelte';
+  import KeyIcon from '$icon/security/Key.svelte';
+  import InfoIcon from '$icon/status/Info.svelte';
+  import CopyIcon from '$icon/actions/Copy.svelte';
+  import UserIcon from '$icon/user/User.svelte';
+
   import {type Stripe, type StripeCardElement} from '@stripe/stripe-js';
+  import {notify, awaitPending, triggerModal} from '$utils/shared';
   import type {Notification, Settings, SettingsForm} from '$type';
-  import {notify, awaitPending, triggerModal} from '$lib';
   import {activeModal, pendingID, user} from '$store';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import type {PageData} from './$types';

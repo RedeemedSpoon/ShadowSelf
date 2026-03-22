@@ -1,5 +1,5 @@
 <script>
-  import {LightBulbIcon} from '$icon';
+  import LightBulbIcon from '$icon/status/LightBulb.svelte';
 </script>
 
 <p>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {welcomeBackground} from '$image';
+  import welcomeBackground from '$image/homepage/welcome-background.webp';
   import {onMount} from 'svelte';
 
   onMount(() => {

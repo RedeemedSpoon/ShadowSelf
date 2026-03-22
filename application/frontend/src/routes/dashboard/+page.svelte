@@ -1,13 +1,24 @@
 <script lang="ts">
-  import {LogoutIcon, IssuesIcon, ChangelogIcon, CommunityIcon, FilterIcon, SortIcon, ChevronIcon} from '$icon';
-  import {EmailIcon, PhoneIcon, WalletIcon, MultiUsersIcon, AddUserIcon} from '$icon';
-  import {formatPhoneNumber, formatUSD} from '$format';
-  import {worldMap, countriesFlags} from '$image';
+  import ChangelogIcon from '$icon/navigation/Changelog.svelte';
+  import CommunityIcon from '$icon/communication/Community.svelte';
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
+  import MultiUsersIcon from '$icon/user/MultiUsers.svelte';
+  import EmailIcon from '$icon/communication/Email.svelte';
+  import PhoneIcon from '$icon/communication/Phone.svelte';
+  import IssuesIcon from '$icon/navigation/Issues.svelte';
+  import LogoutIcon from '$icon/security/Logout.svelte';
+  import WalletIcon from '$icon/finance/Wallet.svelte';
+  import FilterIcon from '$icon/actions/Filter.svelte';
+  import AddUserIcon from '$icon/user/AddUser.svelte';
+  import SortIcon from '$icon/actions/Sort.svelte';
+
+  import SearchInput from '$component/inputs/SearchInput.svelte';
+  import {formatPhoneNumber, formatUSD} from '$utils/formating';
+  import {getCountriesFlags, notify} from '$utils/shared';
+  import worldMap from '$image/patterns/world-map.svg';
   import {onMount, type Component} from 'svelte';
-  import {SearchInput} from '$component';
   import type {PageData} from './$types';
   import {user, token} from '$store';
-  import {notify} from '$lib';
 
   const {data}: {data: PageData} = $props();
 
@@ -16,6 +27,7 @@
 
   let table = $state() as HTMLElement;
   let errorText = $state() as HTMLParagraphElement;
+  let countriesFlags = getCountriesFlags();
 
   $effect(() => {
     if (!$user) {

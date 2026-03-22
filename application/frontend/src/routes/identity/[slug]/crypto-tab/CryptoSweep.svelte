@@ -1,12 +1,14 @@
 <script lang="ts">
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import QrScanner from '$component/special/QrScanner.svelte';
+
   import type {CryptoAPI, Coins, transactionData} from '$type';
-  import {QrScanner, LoadingButton} from '$component';
-  import {signTransaction} from '$cryptocoin';
+  import {deriveXPub} from '$utils/cryptography';
+  import {signTransaction} from '$utils/wallet';
   import type {Writable} from 'svelte/store';
-  import {deriveXPub} from '$cryptography';
+  import {fetchAPI} from '$utils/webfetch';
+  import {notify} from '$utils/shared';
   import {identity} from '$store';
-  import {fetchAPI} from '$fetch';
-  import {notify} from '$lib';
 
   import {privateKeyToAccount} from 'viem/accounts';
   import * as btc from '@scure/btc-signer';

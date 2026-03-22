@@ -1,8 +1,13 @@
 <script lang="ts">
-  import {ClockIcon, ExternalLinkIcon, BroomIcon, SpreadSheetIcon} from '$icon';
   import type {CryptoAPI, Coins} from '$type';
   import type {Writable} from 'svelte/store';
-  import {formatDate} from '$format';
+  import {formatDate} from '$utils/formating';
+  import {EXTERNAL_TX_VIEWERS} from '$constant';
+
+  import ClockIcon from '$icon/data/Clock.svelte';
+  import BroomIcon from '$icon/misc/Broom.svelte';
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
+  import SpreadSheetIcon from '$icon/data/SpreadSheet.svelte';
 
   interface Props {
     currentCrypto: Writable<Coins>;
@@ -13,23 +18,7 @@
 
   let anchor = $state() as HTMLAnchorElement;
   const filename = $derived(`ShadowSelf-${$currentCrypto.toUpperCase()}-Transaction-History.csv`);
-
-  const externalUrl = $derived(
-    (() => {
-      switch ($currentCrypto) {
-        case 'btc':
-          return 'https://mempool.space/tx/';
-        case 'ltc':
-          return 'https://litecoinspace.org/tx/';
-        case 'eth':
-          return 'https://eth.blockscout.com/tx/';
-        case 'usdt':
-          return 'https://eth.blockscout.com/tx/';
-        case 'xmr':
-          return 'https://moneroblocks.info/tx/';
-      }
-    })(),
-  );
+  const externalUrl = $derived(EXTERNAL_TX_VIEWERS[$currentCrypto as keyof typeof EXTERNAL_TX_VIEWERS]);
 
   function copyCounterparty(counterparty: string) {
     navigator.clipboard.writeText(counterparty);

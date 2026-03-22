@@ -1,12 +1,24 @@
 <script lang="ts">
-  import {BoltIcon, HashIcon, ChartIcon, StackIcon, ActivityIcon, BroadcastIcon, GasStationIcon, QuestionIcon} from '$icon';
-  import {UpArcIcon, DownArcIcon, ExternalLinkIcon, CameraIcon, WalletIcon} from '$icon';
+  import {deriveXPub} from '$utils/cryptography';
+  import {formatUSD} from '$utils/formating';
+  import BoltIcon from '$icon/data/Bolt.svelte';
+  import HashIcon from '$icon/data/Hash.svelte';
+  import ChartIcon from '$icon/data/Chart.svelte';
+  import StackIcon from '$icon/data/Stack.svelte';
+  import ActivityIcon from '$icon/data/Activity.svelte';
+  import BroadcastIcon from '$icon/communication/Broadcast.svelte';
+  import GasStationIcon from '$icon/data/Gas-Station.svelte';
+  import QuestionIcon from '$icon/status/Question.svelte';
+  import UpArcIcon from '$icon/misc/UpArc.svelte';
+  import DownArcIcon from '$icon/misc/DownArc.svelte';
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
+  import CameraIcon from '$icon/misc/Camera.svelte';
+  import WalletIcon from '$icon/finance/Wallet.svelte';
+  import CopyButton from '$component/buttons/CopyButton.svelte';
+
   import type {CryptoAPI, Coins} from '$type';
   import {identity, moneroData} from '$store';
   import type {Writable} from 'svelte/store';
-  import {deriveXPub} from '$cryptography';
-  import {CopyButton} from '$component';
-  import {formatUSD} from '$format';
 
   interface Props {
     mode: Writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'market' | 'swap'>;

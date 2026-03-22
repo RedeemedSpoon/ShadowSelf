@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {ExtensionLinks} from '$component';
-  import {screenshot} from '$image';
-  import {Card} from '$component';
+  import ExtensionLinks from '$component/special/ExtensionLinks.svelte';
+  import screenshot from '$image/visuals/screenshot.webp';
+  import Card from '$component/containers/Card.svelte';
 </script>
 
 <svelte:head>

@@ -1,18 +1,37 @@
 <script lang="ts">
-  import {FlowStep, LoadingButton, SelectMenu, Tooltip, ExtensionLinks, Modal, InputWithIcon, ActionIcon} from '$component';
-  import {InfoIcon, ExternalLinkIcon, MaleIcon, FemaleIcon, RepeatIcon, HappyIcon} from '$icon';
+  import ExtensionLinks from '$component/special/ExtensionLinks.svelte';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
+  import ActionIcon from '$component/feedback/ActionIcon.svelte';
+  import SelectMenu from '$component/inputs/SelectMenu.svelte';
+  import FlowStep from '$component/containers/FlowStep.svelte';
+  import Tooltip from '$component/feedback/Tooltip.svelte';
+  import PhoneIcon from '$icon/communication/Phone.svelte';
+  import EmailIcon from '$icon/communication/Email.svelte';
+  import Modal from '$component/containers/Modal.svelte';
+  import RepeatIcon from '$icon/actions/Repeat.svelte';
+  import FemaleIcon from '$icon/user/Female.svelte';
+  import PinIcon from '$icon/navigation/Pin.svelte';
+  import HappyIcon from '$icon/misc/Happy.svelte';
+  import InfoIcon from '$icon/status/Info.svelte';
+  import KeyIcon from '$icon/security/Key.svelte';
+  import UserIcon from '$icon/user/User.svelte';
+  import MaleIcon from '$icon/user/Male.svelte';
+
   import {currentStep, pendingID, masterPassword, activeModal} from '$store';
-  import {PhoneIcon, EmailIcon, KeyIcon, UserIcon, PinIcon} from '$icon';
-  import {ublock, canvas, screenshot, countriesFlags} from '$image';
-  import {deriveMasterKey, encrypt} from '$cryptography';
+  import {deriveMasterKey, encrypt} from '$utils/cryptography';
+  import screenshot from '$image/visuals/screenshot.webp';
+  import {notify, getCountriesFlags} from '$utils/shared';
+  import {formatPhoneNumber} from '$utils/formating';
+  import canvas from '$image/brands/canvas.svg';
+  import ublock from '$image/brands/ublock.svg';
   import type {CreationProcess} from '$type';
-  import {formatPhoneNumber} from '$format';
   import type {PageData} from './$types';
   import {dev} from '$app/environment';
   import {goto} from '$app/navigation';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
-  import {notify} from '$lib';
 
   import {generateMnemonic, mnemonicToSeed} from '@scure/bip39';
   import {wordlist} from '@scure/bip39/wordlists/english.js';
@@ -21,8 +40,9 @@
   import moneroTs from 'monero-ts';
 
   let {data}: {data: PageData} = $props();
-  const ethnicities = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
+
   const identityID = page.url.searchParams.get('id');
+  const countriesFlags = getCountriesFlags();
   let walletPayload = {};
 
   let server = $state() as CreationProcess;

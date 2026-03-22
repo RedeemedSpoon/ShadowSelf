@@ -1,5 +1,7 @@
 <script lang="ts">
-  import {AlertIcon, InfoIcon, SuccessIcon} from '$icon';
+  import SuccessIcon from '$icon/status/Success.svelte';
+  import AlertIcon from '$icon/status/Alert.svelte';
+  import InfoIcon from '$icon/status/Info.svelte';
   import {slide} from 'svelte/transition';
   import {notification} from '$store';
 
@@ -8,12 +10,7 @@
   let message = $derived($notification.message);
 
   const handleClick = () => ($notification = {id: null, type: 'info', message: ''});
-
-  const icons = {
-    alert: AlertIcon,
-    info: InfoIcon,
-    success: SuccessIcon,
-  };
+  const icons = {alert: AlertIcon, info: InfoIcon, success: SuccessIcon};
 </script>
 
 {#if id}

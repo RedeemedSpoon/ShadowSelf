@@ -1,7 +1,7 @@
 <script lang="ts">
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
   import {onMount, type Component} from 'svelte';
   import type {Option} from '$type';
-  import {ChevronIcon} from '$icon';
 
   interface Props {
     options: Option[] | string[];
@@ -23,7 +23,7 @@
   let btn: HTMLButtonElement;
   let select: HTMLDivElement;
 
-  let givenOptions: Option[] = $derived(
+  let givenOptions = $derived(
     (() => {
       if (typeof options[0] === 'string') {
         return options.map((option) => ({

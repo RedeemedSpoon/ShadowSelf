@@ -1,6 +1,6 @@
 <script lang="ts">
+  import CheckmarkIcon from '$icon/status/Checkmark.svelte';
   import type {Component} from 'svelte';
-  import {CheckmarkIcon} from '$icon';
 
   interface Props {
     callback: () => void;

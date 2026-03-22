@@ -10,10 +10,9 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setFont('helvetica');
   doc.setTextColor(colorText);
 
-  // --- 1. HEADER (Logo + Invoice Meta) ---
+  // --- HEADER ---
   const startY = 20;
 
-  // Logo (Top Left)
   if (identityData.logo) {
     doc.addImage(identityData.logo, 'PNG', 20, startY, 25, 25);
   } else {
@@ -22,7 +21,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
     doc.text(identityData.name, 20, startY + 10);
   }
 
-  // Invoice Details (Top Right)
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text('INVOICE', 190, startY + 5, {align: 'right'});
@@ -33,11 +31,10 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.text(`Issued: ${identityData.date}`, 190, startY + 15, {align: 'right'});
   doc.text(`Due: ${identityData.dateDue}`, 190, startY + 20, {align: 'right'});
 
-  // --- 2. ADDRESSES (From / To) ---
+  // --- ADDRESSES ---
   const addrY = startY + 30;
   doc.setTextColor(colorText);
 
-  // From (Identity)
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.text('From:', 20, addrY);
@@ -46,7 +43,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.text(identityData.name, 20, addrY + 5);
   doc.text(identityData.email, 20, addrY + 10);
 
-  // Bill To (Client)
   doc.setTextColor(colorText);
   doc.setFont('helvetica', 'bold');
   doc.text('Bill To:', 100, addrY);
@@ -55,7 +51,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.text(clientData.clientName || 'Valued Client', 100, addrY + 5);
   if (clientData.clientEmail) doc.text(clientData.clientEmail, 100, addrY + 10);
 
-  // --- 3. BIG TOTAL (Hero Section) ---
+  // --- BIG TOTAL ---
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(colorText);
@@ -66,7 +62,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setTextColor(colorSub);
   doc.text('USD due', 190, addrY + 18, {align: 'right'});
 
-  // --- 4. TABLE ---
+  // --- TABLE ---
   const bodyData = tableData.tableRows.map((row: any) => [
     row.description,
     row.quantity,
@@ -105,7 +101,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
     },
   });
 
-  // --- 5. CRYPTO PAYMENT SECTION ---
+  // --- CRYPTO PAYMENT SECTION ---
   // @ts-expect-error Shenanigans
   let finalY = doc.lastAutoTable.finalY + 15;
   if (finalY > 230) {
@@ -113,13 +109,11 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
     finalY = 20;
   }
 
-  // Container Box (Optional visuals)
   doc.setDrawColor(230, 230, 230);
   doc.line(20, finalY, 190, finalY);
 
   const payY = finalY + 10;
 
-  // -- Left Side: Instructions --
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(colorText);
@@ -131,7 +125,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.text(`Please make payment via ${cryptoData.cryptoChoice.toUpperCase()} Network.`, 20, payY + 12);
   doc.text(`Exchange Rate locked: 1 ${cryptoData.cryptoChoice.toUpperCase()} = $${cryptoData.exchangeRate.toFixed(2)}`, 20, payY + 18);
 
-  // The Big Crypto Amount
   doc.setFontSize(14);
   doc.setTextColor(colorText);
   doc.setFont('helvetica', 'bold');
@@ -139,7 +132,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   const cryptoDisplay = cryptoData.cryptoChoice === 'usdt' ? cryptoData.cryptoDue.toFixed(2) : cryptoData.cryptoDue.toFixed(6);
   doc.text(`${cryptoDisplay} ${cryptoData.cryptoChoice.toUpperCase()}`, 20, payY + 28);
 
-  // Address (Monospace)
   doc.setFont('courier', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(colorText);
@@ -147,7 +139,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   const formattedAddress = cryptoData.destAddr.match(/.{1,45}/g)?.join('\n') || cryptoData.destAddr;
   doc.text(formattedAddress, 20, payY + 36);
 
-  // -- Right Side: QR Code --
   if (cryptoData.qrImage) {
     doc.addImage(cryptoData.qrImage, 'PNG', 150, payY, 35, 35);
     doc.setFont('helvetica', 'normal');
@@ -161,7 +152,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setTextColor(200, 200, 200);
   doc.text(`Generated via ShadowSelf.io | Invoice #${identityData.invoice}`, 105, 290, {align: 'center'});
 
-  // Save
   const safeName = clientData.clientName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'invoice';
   doc.save(`${safeName}_${identityData.invoice}.pdf`);
 }

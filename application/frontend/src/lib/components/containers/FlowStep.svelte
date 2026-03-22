@@ -1,8 +1,8 @@
 <script lang="ts">
+  import Loader from '$component/feedback/Loader.svelte';
   import {pendingID, currentStep} from '$store';
   import {fly} from 'svelte/transition';
   import type {Snippet} from 'svelte';
-  import {Loader} from '$component';
 
   interface Props {
     children: Snippet;

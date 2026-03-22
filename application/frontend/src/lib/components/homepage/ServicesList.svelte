@@ -1,6 +1,11 @@
 <script lang="ts">
-  import {proxy, email, crypto, phone, identity} from '$image';
-  import {StickyScrollReveal, TracingBeam} from '$component';
+  import StickyScrollReveal from '$component/aceternity/StickyScrollReveal.svelte';
+  import TracingBeam from '$component/aceternity/TracingBeam.svelte';
+  import identity from '$image/homepage/services/identity.svg';
+  import crypto from '$image/homepage/services/crypto.svg';
+  import proxy from '$image/homepage/services/crypto.svg';
+  import phone from '$image/homepage/services/phone.svg';
+  import email from '$image/homepage/services/email.svg';
   import type {ServicesContent} from '$type';
   import {blur} from 'svelte/transition';
 

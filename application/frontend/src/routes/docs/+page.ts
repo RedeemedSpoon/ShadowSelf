@@ -1,5 +1,13 @@
-import {BookIcon, DatabaseIcon, RocketIcon, WebsocketIcon, ProxyIcon} from '$icon';
-import {UserIcon, EmailIcon, PhoneIcon, WalletIcon, MultiUsersIcon} from '$icon';
+import WebsocketIcon from '$icon/communication/Websocket.svelte';
+import MultiUsersIcon from '$icon/user/MultiUsers.svelte';
+import ProxyIcon from '$icon/communication/Proxy.svelte';
+import EmailIcon from '$icon/communication/Email.svelte';
+import PhoneIcon from '$icon/communication/Phone.svelte';
+import DatabaseIcon from '$icon/data/Database.svelte';
+import WalletIcon from '$icon/finance/Wallet.svelte';
+import RocketIcon from '$icon/misc/Rocket.svelte';
+import BookIcon from '$icon/misc/Book.svelte';
+import UserIcon from '$icon/user/User.svelte';
 import * as rawContent from './content';
 import type {PageLoad} from './$types';
 import type {Docs, Route} from '$type';

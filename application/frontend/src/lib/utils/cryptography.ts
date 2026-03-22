@@ -1,17 +1,12 @@
 import {p2wpkh} from '@scure/btc-signer';
 import {masterPassword} from '$store';
+import {LTC_NETWORK} from '$constant';
+import {notify} from '$utils/shared';
 import {HDKey} from '@scure/bip32';
 import {get} from 'svelte/store';
 import type {Coins} from '$type';
 
 export function deriveXPub(coin: Coins, key: string, index: number = 0): string {
-  const LTC_NETWORK = {
-    bech32: 'ltc',
-    pubKeyHash: 0x30,
-    scriptHash: 0x32,
-    wif: 0xb0,
-  };
-
   const node = HDKey.fromExtendedKey(key);
   const child = node.deriveChild(0).deriveChild(index);
 
@@ -36,9 +31,7 @@ export async function deriveMasterKey(password: string, identityID: string): Pro
 
 export async function getMasterKey() {
   const storedKeyBase64 = get(masterPassword);
-  if (!storedKeyBase64) {
-    throw new Error('No Master Password loaded in memory.');
-  }
+  if (!storedKeyBase64) notify('No Master Password loaded in memory.', 'alert');
 
   const binaryString = atob(storedKeyBase64);
   const len = binaryString.length;
@@ -79,7 +72,6 @@ export async function decrypt(encryptedString: string, newKey?: CryptoKey) {
     const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, dataBuffer);
     return new TextDecoder().decode(decryptedBuffer);
   } catch (e) {
-    console.error('Decryption failed', e);
     return '';
   }
 }

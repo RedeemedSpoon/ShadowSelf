@@ -1,12 +1,27 @@
 <script lang="ts">
-  import {UserIcon, KeyIcon, KeylockIcon, DownloadIcon, CopyIcon, HappyIcon, EmailIcon, QuestionIcon} from '$icon';
-  import {Steps, StepsItem, InputWithIcon, LoadingButton, CopyButton, ReactiveButton, Tooltip} from '$component';
+  import ReactiveButton from '$component/buttons/ReactiveButton.svelte';
+  import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
+  import StepsItem from '$component/containers/StepsItem.svelte';
+  import CopyButton from '$component/buttons/CopyButton.svelte';
+  import Tooltip from '$component/feedback/Tooltip.svelte';
+  import Steps from '$component/containers/Steps.svelte';
+
+  import KeylockIcon from '$icon/security/Keylock.svelte';
+  import DownloadIcon from '$icon/actions/Download.svelte';
+  import EmailIcon from '$icon/communication/Email.svelte';
+  import QuestionIcon from '$icon/status/Question.svelte';
+  import CopyIcon from '$icon/actions/Copy.svelte';
+  import HappyIcon from '$icon/misc/Happy.svelte';
+  import KeyIcon from '$icon/security/Key.svelte';
+  import UserIcon from '$icon/user/User.svelte';
+
   import {type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Registration} from '$type';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import {currentStep, pendingID} from '$store';
+  import {notify} from '$utils/shared';
   import {get} from 'svelte/store';
-  import {notify} from '$lib';
 
   const {form}: {form: Notification & Registration & {stripeKey?: string}} = $props();
 

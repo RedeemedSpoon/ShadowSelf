@@ -1,15 +1,27 @@
 <script lang="ts">
-  import {KeyIcon, KeylockIcon, UserIcon, WWWIcon, UserAddIcon, UserEditIcon, UserDeleteIcon, QuestionIcon, BackIcon} from '$icon';
-  import {ActionIcon, Tooltip, HoverCopyButton} from '$component';
+  import ActionIcon from '$component/feedback/ActionIcon.svelte';
+  import Tooltip from '$component/feedback/Tooltip.svelte';
+  import HoverCopyButton from '$component/buttons/HoverCopyButton.svelte';
+  import KeyIcon from '$icon/security/Key.svelte';
+  import KeylockIcon from '$icon/security/Keylock.svelte';
+  import UserIcon from '$icon/user/User.svelte';
+  import WWWIcon from '$icon/communication/WWW.svelte';
+  import UserAddIcon from '$icon/user/UserAdd.svelte';
+  import UserEditIcon from '$icon/user/UserEdit.svelte';
+  import UserDeleteIcon from '$icon/user/UserDelete.svelte';
+  import QuestionIcon from '$icon/status/Question.svelte';
+  import BackIcon from '$icon/navigation/Back.svelte';
+
   import {pendingID, activeModal, masterPassword} from '$store';
+  import group from '$image/empty-states/group.svg';
+  import lock from '$image/empty-states/lock.svg';
   import type {Account, AccountAPI} from '$type';
+  import {decrypt} from '$utils/cryptography';
+  import {fetchAPI} from '$utils/webfetch';
   import {writable} from 'svelte/store';
-  import {decrypt} from '$cryptography';
+  import {notify} from '$utils/shared';
   import * as OTPAuth from 'otpauth';
-  import {lock, group} from '$image';
-  import {fetchAPI} from '$fetch';
   import {onMount} from 'svelte';
-  import {notify} from '$lib';
 
   import AccountEdit from './AccountEdit.svelte';
 

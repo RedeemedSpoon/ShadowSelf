@@ -1,11 +1,20 @@
 <script lang="ts">
-  import {Slogan, InteractiveCard, Billing, WordFlip, FeatureGrid, ServicesList, FloatingAvatars} from '$component';
-  import {BackgroundBeams, GridAndDotBackgrounds, Sparkle} from '$component';
-  import {addAnimation, addTabScrollEvent} from '$dom';
-  import {registration, management} from '$image';
+  import GridAndDotBackgrounds from '$component/aceternity/GridAndDotBackgrounds.svelte';
+  import BackgroundBeams from '$component/aceternity/BackgroundBeams.svelte';
+  import InteractiveCard from '$component/homepage/InteractiveCard.svelte';
+  import FloatingAvatars from '$component/homepage/FloatingAvatars.svelte';
+  import registration from '$image/homepage/usecases/registration.svg';
+  import ServicesList from '$component/homepage/ServicesList.svelte';
+  import FeatureGrid from '$component/homepage/FeatureGrid.svelte';
+  import management from '$image/homepage/usecases/management.svg';
+  import {addAnimation, addTabScrollEvent} from '$utils/motion';
+  import WordFlip from '$component/homepage/WordFlip.svelte';
+  import ChevronIcon from '$icon/navigation/Chevron.svelte';
+  import Billing from '$component/homepage/Billing.svelte';
+  import Sparkle from '$component/feedback/Sparkle.svelte';
+  import Slogan from '$component/homepage/Slogan.svelte';
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
-  import {ChevronIcon} from '$icon';
   import {onMount} from 'svelte';
   import {user} from '$store';
 
