@@ -1,3 +1,7 @@
+<script>
+  import {PRIVACY_POLICY_LAST_MODIFIED} from '$constant';
+</script>
+
 <svelte:head>
   <title>ShadowSelf - Privacy Policy</title>
   <meta name="description" content="Get to know how we handle your data and privacy." />
@@ -286,7 +290,7 @@
     By using our Website, you acknowledge that you have read and understood this Privacy Policy. Thank you for trusting Shadowself with
     your privacy.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: December 24, 2025</small>
+  <small class="text-lg text-neutral-500">Last updated: {PRIVACY_POLICY_LAST_MODIFIED}</small>
 </div>
 
 <style lang="postcss">

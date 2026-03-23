@@ -1,3 +1,7 @@
+<script>
+  import {TERMS_SERVICE_LAST_MODIFIED} from '$constant';
+</script>
+
 <svelte:head>
   <title>ShadowSelf - Terms of Service</title>
   <meta name="description" content="Gotta agree to our rules first, then we can get started!" />
@@ -184,7 +188,7 @@
     For any questions or concerns regarding these Terms of Service or the Service, please contact us via our
     <a href="/contact">contact page</a> or by emailing us at <a href="mailto:contact@shadowself.io">contact@shadowself.io</a>.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: Feb 25, 2026</small>
+  <small class="text-lg text-neutral-500">Last updated: {TERMS_SERVICE_LAST_MODIFIED}</small>
 </div>
 
 <style lang="postcss">

@@ -2,6 +2,7 @@
   import type {PhoneAPI, Message} from '$type';
   import type {Writable} from 'svelte/store';
   import {fetchAPI} from '$utils/webfetch';
+  import {SMS_MAX_LENGTH} from '$constant';
   import {notify} from '$utils/shared';
   import {identity} from '$store';
 
@@ -14,7 +15,7 @@
 
   let {messages, mode, discussion, fullDiscussion}: Props = $props();
 
-  let charLimit = $state(160) as number;
+  let charLimit = $state(SMS_MAX_LENGTH) as number;
   let showButton = $state(true) as boolean;
   let secondStep = $state(false) as boolean;
   let textarea = $state() as HTMLTextAreaElement;
@@ -29,7 +30,7 @@
     const event = e as unknown as KeyboardEvent;
     const textarea = event.target as HTMLTextAreaElement;
 
-    charLimit = 160 - textarea.value.length;
+    charLimit = SMS_MAX_LENGTH - textarea.value.length;
     if (charLimit < 0) charLimit = 0;
 
     textarea.style.height = 'auto';
@@ -75,13 +76,13 @@
   }
 
   function next() {
-    if (charLimit === 160) {
+    if (charLimit === SMS_MAX_LENGTH) {
       notify('Please enter the message body', 'alert');
       return;
     }
 
     if (charLimit === 0) {
-      notify('Message is too long (<160 characters)', 'alert');
+      notify(`Message is too long (<${SMS_MAX_LENGTH} characters)`, 'alert');
       return;
     }
 

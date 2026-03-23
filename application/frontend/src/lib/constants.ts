@@ -1,11 +1,16 @@
-export const USD_DUST_THRESHOLD = 0.5;
 export const NOTIFICATION_DURATION = 5000;
 export const SLEEP_DURATION = 650;
+
+export const PRIVACY_POLICY_LAST_MODIFIED = 'December 24, 2025';
+export const TERMS_SERVICE_LAST_MODIFIED = 'Feb 25, 2026';
+export const REFUND_POLICY_LAST_MODIFIED = 'May 13, 2025';
 
 export const DEFAULT_MASTER_PASSWORD = 'USING THIS IS INSECURE';
 export const ETHNICITIES = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
 export const SECTIONS_ORDER = ['info', 'email', 'phone', 'crypto', 'account'];
+export const USD_DUST_THRESHOLD = 0.5;
 export const EMAIL_FETCH_LIMIT = 10;
+export const SMS_MAX_LENGTH = 160;
 
 export const URL_IMAGE_EMBEDDER = 'https://wsrv.nl/?output=png&url=';
 export const EXTERNAL_TX_VIEWERS = {

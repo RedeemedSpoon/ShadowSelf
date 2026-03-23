@@ -1,6 +1,7 @@
 export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
 export const EMAIL_JUNK_RETENTION_DAYS = 7;
 export const EMAIL_FETCH_LIMIT = 10;
+export const SMS_MAX_LENGTH = 160;
 
 export const BTC_API = 'https://mempool.space/api';
 export const LTC_API = 'https://litecoinspace.org/api';

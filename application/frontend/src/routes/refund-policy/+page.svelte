@@ -1,3 +1,7 @@
+<script>
+  import {REFUND_POLICY_LAST_MODIFIED} from '$constant';
+</script>
+
 <svelte:head>
   <title>ShadowSelf - Refund Policy</title>
   <meta name="description" content="Want a refund? Cool, just check out our refund policy first" />
@@ -89,7 +93,7 @@
     If you have any questions or concerns regarding this Refund Policy, or if you encounter any issues with the automated refund
     process, please do not hesitate to contact us via our <a href="/contact">contact page</a>.
   </p>
-  <small class="text-lg text-neutral-500">Last updated: May 13, 2025</small>
+  <small class="text-lg text-neutral-500">Last updated: {REFUND_POLICY_LAST_MODIFIED}</small>
 </div>
 
 <style lang="postcss">
