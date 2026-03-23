@@ -7,6 +7,16 @@ export function error(set: {[key: string]: unknown}, status: number, message: st
   return message;
 }
 
+export async function safeFetch(url: string, fallback: any, options?: RequestInit) {
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) return fallback;
+    return await res.json();
+  } catch (_) {
+    return fallback;
+  }
+}
+
 export function toTitleCase(str: string) {
   return str.replace(/\w\S*/g, (txt) => {
     return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();

@@ -1,16 +1,7 @@
 import {BTC_API, COINGECKO_URL, ETH_API, LTC_API, XMR_NODE, POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL} from '@core/constants';
 import {cryptoFees, cryptoPrices} from '@core/states';
 import type {CryptoCurrencies} from '@type';
-
-async function safeFetch(url: string, fallback: any, options?: RequestInit) {
-  try {
-    const res = await fetch(url, options);
-    if (!res.ok) return fallback;
-    return await res.json();
-  } catch (_) {
-    return fallback;
-  }
-}
+import {safeFetch} from '@utils/utils';
 
 async function pollFees() {
   const btcFB = {hourFee: 0, halfHourFee: 0, fastestFee: 0};

@@ -2,8 +2,8 @@
   import CheckmarkIcon from '$icon/status/Checkmark.svelte';
   import ChevronIcon from '$icon/navigation/Chevron.svelte';
 
+  import {CRYPTO_DISCOUNT, FEATURES, PRICING_TIERS} from '$constant';
   import Card from '$component/containers/Card.svelte';
-  import {FEATURES, PRICING_TIERS} from '$constant';
   import {user, pricingModel} from '$store';
   import {fly} from 'svelte/transition';
   import {onMount} from 'svelte';
@@ -48,7 +48,9 @@
         </div>
       </div>
     {/key}
-    <p class="absolute inset-e-16 top-24 rotate-10 rounded-xl bg-neutral-600/30 px-4 font-bold shadow-md">20% OFF with Crypto</p>
+    <p class="absolute inset-e-16 top-24 rotate-10 rounded-xl bg-neutral-600/30 px-4 font-bold shadow-md">
+      {CRYPTO_DISCOUNT}% OFF with Crypto
+    </p>
     <div class="w-full py-6 text-left text-xl leading-10">
       <ul>
         {#each FEATURES as item (item)}

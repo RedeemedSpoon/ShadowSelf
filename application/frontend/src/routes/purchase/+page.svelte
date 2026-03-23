@@ -7,9 +7,9 @@
   import WalletIcon from '$icon/finance/Wallet.svelte';
 
   import type {Appearance, Stripe, StripeElements, StripePaymentElement} from '@stripe/stripe-js';
+  import {CRYPTO_DISCOUNT, FEATURES, PRICING_TIERS} from '$constant';
   import {pricingModel, activeModal, pendingID} from '$store';
   import {notify, awaitPending} from '$utils/shared';
-  import {FEATURES, PRICING_TIERS} from '$constant';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import type {Notification, Billing} from '$type';
   import type {PageData} from './$types';
@@ -148,7 +148,7 @@
     <h1 class="text-4xl font-bold text-neutral-300 sm:text-6xl">Choose your plan</h1>
     <p class="text-center text-neutral-400">
       All plans include a 14-day refund, 24/7 support and the same level of security.
-      <br />Buying with crypto gives a <b class="text-primary-600">20% discount</b> across the board
+      <br />Buying with crypto gives a <b class="text-primary-600">{CRYPTO_DISCOUNT}% discount</b> across the board
     </p>
   </section>
   <div id="purchase-box">

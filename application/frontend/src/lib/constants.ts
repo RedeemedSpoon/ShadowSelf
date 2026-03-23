@@ -22,6 +22,8 @@ export const EXTERNAL_TX_VIEWERS = {
 };
 
 export const FEATURES = ['Personal Attributes', 'Account Management', 'Email Address', 'Crypto Wallet', 'Phone Number', 'VPN Access'];
+export const CRYPTO_DISCOUNT = 20;
+
 export const PRICING_TIERS = {
   monthly: {
     title: 'Monthly Subscription',

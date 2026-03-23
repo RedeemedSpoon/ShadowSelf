@@ -1,3 +1,4 @@
+import {CRYPTO_DISCOUNT, PRICING_TIERS} from '$constant';
 import type {PageLoad} from './$types';
 import type {Faq} from '$type';
 
@@ -26,8 +27,7 @@ export const load: PageLoad = () => {
       },
       {
         question: 'How much does ShadowSelf cost?',
-        answer:
-          "We keep it affordable. You can choose from a monthly plan for $5, an annual plan for $50, or a lifetime plan for $200. If you pay with crypto (BTC, LTC, XMR, ETH, USDT), we give you a 20% discount across the board. That drops the price to €4/month, €40/year, or €160 for lifetime. It's cheaper, more private, and helps support the ecosystem we're all trying to build.",
+        answer: `We keep it affordable. You can choose from a monthly plan for $${PRICING_TIERS.monthly.price}, an annual plan for $${PRICING_TIERS.annually.price}, or a lifetime plan for $${PRICING_TIERS.lifetime.price}. If you pay with crypto, we give you a ${CRYPTO_DISCOUNT}% discount across the board. It's cheaper, more private, and helps support the ecosystem we're all trying to build.`,
       },
       {
         question: 'What are synthetic identities?',
@@ -67,12 +67,11 @@ export const load: PageLoad = () => {
       {
         question: 'What cryptocurrencies does the wallet support?',
         answer:
-          "We're not a casino, so we don't support every meme coin under the sun. Our wallet is a toolkit, and we've picked the best tools: Bitcoin (BTC) for savings, Monero (XMR) for privacy, Litecoin (LTC) for cheap payments, and Ethereum (ETH) & USDT on low-fee networks like Polygon/Arbitrum for stability and utility.",
+          "We're not a casino, so we don't support every meme coin under the sun. Our wallet is a toolkit, and we've picked the best tools: Bitcoin (BTC) for savings, Monero (XMR) for privacy, Litecoin (LTC) for cheap payments, and Ethereum (ETH) & Tether (USDT) on low-fee networks like Polygon/Arbitrum for stability and utility.",
       },
       {
         question: 'How can I pay for an identity?',
-        answer:
-          'We give you two paths: the Normie Way and the Shadow Way. The Normie Way is paying with a credit card via Stripe, quick and easy, but they know who you are. The Shadow Way is paying with crypto. To thank you for using sovereign money, you get a 20% discount if you pay with BTC, LTC, XMR, ETH, or USDT.',
+        answer: `We give you two paths: the Normie Way and the Shadow Way. The Normie Way is paying with a credit card via Stripe, quick and easy, but they know who you are. The Shadow Way is paying with crypto. To thank you for using sovereign money, you get a ${CRYPTO_DISCOUNT}% discount if you pay with crypto.`,
       },
       {
         question: 'Is there a mobile app for ShadowSelf?',
