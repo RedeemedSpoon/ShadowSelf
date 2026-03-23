@@ -2,9 +2,9 @@ import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, g
 import middlewareBase from '@middlewares/middleware-base';
 import {sendOfficialEmail} from '@utils/email-smtp';
 import {request, error} from '@utils/utils';
+import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
 import {sql} from '@core/services';
-import {QueryUser} from '@type';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/account'})
@@ -193,7 +193,7 @@ export default new Elysia({prefix: '/account'})
 
     const id = generateID();
     await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
-    await request('/billing/customer', 'POST', {email, payment});
+    await request('/billing/fiat/customer', 'POST', {email, payment});
 
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};

@@ -3,7 +3,7 @@ import {parseMessage, error} from '@utils/utils';
 import {twilioConfig} from '@core/config';
 import {checkAPI} from '@utils/checks';
 import {twilio} from '@core/services';
-import {Message} from '@type';
+import type {Message} from '@type';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/phone'})

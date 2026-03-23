@@ -5,8 +5,8 @@ import {sql, stripe} from '@core/services';
 import {stripeConfig} from '@core/config';
 import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
+import type Stripe from 'stripe';
 import {Elysia} from 'elysia';
-import Stripe from 'stripe';
 
 export default new Elysia({prefix: '/fiat'})
   .use(middlewareBase)

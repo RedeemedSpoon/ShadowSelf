@@ -1,4 +1,4 @@
-import {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
+import type {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
 import {secretProxyKey} from '@core/config';
 import sharp from 'sharp';
 
@@ -24,7 +24,7 @@ export async function blobToBase64(blob: Blob) {
   return buf.toString('base64');
 }
 
-export async function resizeImage(base64: string) {
+export async function resizeTo256(base64: string) {
   const buffer = Buffer.from(base64, 'base64');
   const resizedBuffer = await sharp(buffer).resize(256, 256).toBuffer();
   return resizedBuffer.toString('base64');

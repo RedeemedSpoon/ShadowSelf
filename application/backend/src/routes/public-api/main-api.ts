@@ -1,7 +1,7 @@
 import middlewareApi from '@middlewares/middleware-api';
+import type {QueryIdentity, QueryUser} from '@type';
 import {listenForEmail} from '@utils/email-imap';
-import {error, resizeImage} from '@utils/utils';
-import {QueryIdentity, QueryUser} from '@type';
+import {error, resizeTo256} from '@utils/utils';
 import {wsConnections} from '@core/states';
 import {sql} from '@core/services';
 import {Elysia} from 'elysia';
@@ -28,7 +28,7 @@ export default new Elysia()
       const country = identity.location.split(',')[0];
       const location = identity.location.slice(4).trim();
       const accounts = (await sql`SELECT * FROM accounts WHERE owner = ${id}`)?.length;
-      const picture = await resizeImage(identity.picture);
+      const picture = await resizeTo256(identity.picture);
 
       return {id, name, email, phone, country, picture, location, accounts, walletFunds: wallet_funds};
     });
@@ -51,7 +51,7 @@ export default new Elysia()
         id,
         name,
         location,
-        picture: await resizeImage(picture),
+        picture: await resizeTo256(picture),
         domain: `${location.split(',')[0].toLowerCase()}.shadowself.io`,
         server: proxy_server,
         port: 3128,

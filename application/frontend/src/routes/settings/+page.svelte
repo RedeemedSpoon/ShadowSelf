@@ -16,8 +16,8 @@
   import InfoIcon from '$icon/status/Info.svelte';
   import UserIcon from '$icon/user/User.svelte';
 
-  import {type Stripe, type StripeCardElement} from '@stripe/stripe-js';
   import {notify, awaitPending, triggerModal} from '$utils/shared';
+  import type {Stripe, StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Settings, SettingsForm} from '$type';
   import {activeModal, pendingID, user} from '$store';
   import {loadStripe} from '@stripe/stripe-js/pure';
@@ -126,7 +126,6 @@
 
   async function submitPayment() {
     pendingID.set(5);
-    await new Promise((resolve) => setTimeout(resolve, 300));
 
     const {paymentMethod, error} = await stripe!.createPaymentMethod({type: 'card', card});
     if (paymentMethod) {

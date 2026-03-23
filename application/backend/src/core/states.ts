@@ -1,4 +1,4 @@
-import {CryptoFees, CryptoPrices, WSConnection} from '@type';
+import type {CryptoFees, CryptoPrices, WSConnection} from '@type';
 import {error} from '@utils/utils';
 
 export const cryptoPrices = {} as CryptoPrices;

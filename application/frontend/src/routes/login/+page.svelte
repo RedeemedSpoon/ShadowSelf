@@ -12,19 +12,18 @@
   import type {Notification} from '$type';
   import {notify} from '$utils/shared';
   import {currentStep} from '$store';
-  import {get} from 'svelte/store';
 
   const {form}: {form: Notification & {step?: number}} = $props();
 
   $effect(() => {
     if (form?.message) notify(form.message, form.type);
-    if (form?.step) currentStep.set(Number(form.step));
+    if (form?.step) $currentStep = Number(form.step);
   });
 
   function backStep() {
-    let step = get(currentStep) - 1;
+    let step = $currentStep - 1;
     step = step === 3 ? 1 : step;
-    currentStep.set(step);
+    $currentStep = step;
   }
 </script>
 
@@ -47,7 +46,7 @@
 
     <div class="mt-4 -mb-2 flex justify-between px-3 text-nowrap max-md:flex-col md:items-center">
       <a class="text-md max-md:text-sm" href="/signup">Don't have an account?</a>
-      <span aria-hidden="true" class="text-md max-md:text-sm" onclick={() => currentStep.set(2)}>Forgot Password?</span>
+      <span aria-hidden="true" class="text-md max-md:text-sm" onclick={() => ($currentStep = 2)}>Forgot Password?</span>
     </div>
     <LoadingButton>Next</LoadingButton>
   </StepsItem>
@@ -72,7 +71,7 @@
     <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
     <p class="-mt-4 max-md:text-sm">
       Lost your 2FA method?
-      <span aria-hidden="true" onclick={() => currentStep.set(5)}>Switch to recovery codes</span>
+      <span aria-hidden="true" onclick={() => ($currentStep = 5)}>Switch to recovery codes</span>
     </p>
     <LoadingButton className="mt-2">Verify</LoadingButton>
   </StepsItem>

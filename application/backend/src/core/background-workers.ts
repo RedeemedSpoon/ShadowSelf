@@ -1,6 +1,6 @@
-import {BTC_API, COINGECKO_URL, ETH_API, LTC_API, XMR_NODE} from '@core/constants';
+import {BTC_API, COINGECKO_URL, ETH_API, LTC_API, XMR_NODE, POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL} from '@core/constants';
 import {cryptoFees, cryptoPrices} from '@core/states';
-import type {CoinGeckoResponse} from '@type';
+import type {CryptoCurrencies} from '@type';
 
 async function safeFetch(url: string, fallback: any, options?: RequestInit) {
   try {
@@ -42,26 +42,23 @@ async function pollFees() {
 }
 
 async function pollPrices() {
-  try {
-    const response = await fetch(COINGECKO_URL);
-    if (!response.ok) return;
+  const response = await fetch(COINGECKO_URL);
+  if (!response.ok) return;
 
-    const data = (await response.json()) as CoinGeckoResponse;
-
-    data.forEach((element) => {
-      cryptoPrices[element.symbol] = {
-        dailyChange: element.price_change_percentage_24h,
-        usdPrice: element.current_price,
-        chart: element.sparkline_in_7d.price,
-      };
-    });
-  } catch (_) {}
+  const data = await response.json();
+  data.forEach((element: any) => {
+    cryptoPrices[element.symbol as CryptoCurrencies] = {
+      dailyChange: element.price_change_percentage_24h,
+      usdPrice: element.current_price,
+      chart: element.sparkline_in_7d.price,
+    };
+  });
 }
 
 export function initBackgroundWorkers() {
   pollFees();
   pollPrices();
 
-  setInterval(pollPrices, 300_000); // 5 min
-  setInterval(pollFees, 180_000); // 3 min
+  setInterval(pollPrices, POLL_PRICES_INTERVAL);
+  setInterval(pollFees, POLL_FEES_INTERVAL);
 }

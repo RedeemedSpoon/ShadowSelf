@@ -6,7 +6,7 @@
   import CheckmarkIcon from '$icon/status/Checkmark.svelte';
   import WalletIcon from '$icon/finance/Wallet.svelte';
 
-  import {type Appearance, type Stripe, type StripeElements, type StripePaymentElement} from '@stripe/stripe-js';
+  import type {Appearance, Stripe, StripeElements, StripePaymentElement} from '@stripe/stripe-js';
   import {pricingModel, activeModal, pendingID} from '$store';
   import {notify, awaitPending} from '$utils/shared';
   import {FEATURES, PRICING_TIERS} from '$constant';

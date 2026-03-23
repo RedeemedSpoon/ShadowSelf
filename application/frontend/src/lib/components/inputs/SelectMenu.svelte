@@ -114,7 +114,7 @@
   }
 
   li {
-    @apply cursor-pointer bg-[#131c2e] px-4 py-2 text-neutral-300 select-none hover:bg-neutral-800;
+    @apply cursor-pointer bg-[#131c2e] px-4 py-2! text-neutral-300 select-none hover:bg-neutral-800;
     @apply text-lg first:rounded-t-xl last:rounded-b-xl;
   }
 

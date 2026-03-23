@@ -13,6 +13,7 @@
   import {idbOperation} from '$utils/monero';
   import {formatUSD} from '$utils/formating';
   import {fetchAPI} from '$utils/webfetch';
+  import {SLEEP_DURATION} from '$constant';
   import * as monerots from 'monero-ts';
   import {notify} from '$utils/shared';
   import {onMount} from 'svelte';
@@ -71,7 +72,7 @@
     const successMessage = `Successfully sent ${amt.toFixed(5)} ${$currentCrypto.toUpperCase()}`;
 
     $pendingID = 1;
-    await new Promise((resolve) => setTimeout(resolve, 650));
+    await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
 
     if ($currentCrypto === 'xmr') {
       try {

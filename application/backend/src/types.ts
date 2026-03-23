@@ -1,5 +1,5 @@
-import {ImapSimple} from 'imap-simple';
-import {ElysiaWS} from 'elysia/ws';
+import type {ImapSimple} from 'imap-simple';
+import type {ElysiaWS} from 'elysia/ws';
 
 export type User = {email: string; id: string} | undefined;
 export type Attachment = {filename: string; data: string};
@@ -276,15 +276,6 @@ export type CryptoPrices = {
     chart: number[];
   };
 };
-
-export type CoinGeckoResponse = {
-  symbol: CryptoCurrencies;
-  current_price: number;
-  price_change_percentage_24h: number;
-  sparkline_in_7d: {
-    price: number[];
-  };
-}[];
 
 export type UTXOData = {
   txid: string;

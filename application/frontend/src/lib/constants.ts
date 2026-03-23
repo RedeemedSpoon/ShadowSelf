@@ -1,18 +1,13 @@
+export const USD_DUST_THRESHOLD = 0.5;
+export const NOTIFICATION_DURATION = 5000;
+export const SLEEP_DURATION = 650;
+
+export const DEFAULT_MASTER_PASSWORD = 'USING THIS IS INSECURE';
 export const ETHNICITIES = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
-export const PRODUCT_TRAILS = ['Effective', 'Simple', 'Affordable', 'Secure', 'Superior', 'Reliable', 'Trusted', 'Private', 'Fast'];
 export const SECTIONS_ORDER = ['info', 'email', 'phone', 'crypto', 'account'];
+export const EMAIL_FETCH_LIMIT = 10;
 
-export const VBYTE_INPUT = 68;
-export const VBYTE_OUTPUT = 31;
-export const VBYTE_OVERHEAD = 10;
-
-export const GAS_ETH_TRANSFER = 21_000;
-export const GAS_ERC20_TRANSFER = 65_000;
-export const LTC_NETWORK = {bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0};
-export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
-
-export const FEATURES = ['Personal Attributes', 'Account Management', 'Email Address', 'Crypto Wallet', 'Phone Number', 'VPN Access'];
-
+export const URL_IMAGE_EMBEDDER = 'https://wsrv.nl/?output=png&url=';
 export const EXTERNAL_TX_VIEWERS = {
   btc: 'https://mempool.space/tx/',
   ltc: 'https://litecoinspace.org/tx/',
@@ -21,6 +16,7 @@ export const EXTERNAL_TX_VIEWERS = {
   xmr: 'https://moneroblocks.info/tx/',
 };
 
+export const FEATURES = ['Personal Attributes', 'Account Management', 'Email Address', 'Crypto Wallet', 'Phone Number', 'VPN Access'];
 export const PRICING_TIERS = {
   monthly: {
     title: 'Monthly Subscription',

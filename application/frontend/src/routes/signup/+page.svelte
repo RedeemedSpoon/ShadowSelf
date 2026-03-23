@@ -16,12 +16,11 @@
   import KeyIcon from '$icon/security/Key.svelte';
   import UserIcon from '$icon/user/User.svelte';
 
-  import {type Stripe, type StripeCardElement} from '@stripe/stripe-js';
+  import type {Stripe, StripeCardElement} from '@stripe/stripe-js';
   import type {Notification, Registration} from '$type';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import {currentStep, pendingID} from '$store';
   import {notify} from '$utils/shared';
-  import {get} from 'svelte/store';
 
   const {form}: {form: Notification & Registration & {stripeKey?: string}} = $props();
 
@@ -50,7 +49,7 @@
     if (form && Object.hasOwn(form, 'stripeKey')) key = form.stripeKey;
 
     if (form?.message) notify(form.message, form.type);
-    if (form?.step) currentStep.set(Number(form?.step));
+    if (form?.step) $currentStep = Number(form?.step);
 
     if (form?.secret || form?.secret === '') secret = form.secret;
     if (form?.username) username = form.username;
@@ -98,7 +97,6 @@
 
   async function createCard() {
     pendingID.set(1);
-    await new Promise((resolve) => setTimeout(resolve, 300));
 
     const {paymentMethod, error} = await stripe!.createPaymentMethod({type: 'card', card});
     if (paymentMethod) {
@@ -114,10 +112,10 @@
   }
 
   async function backStep() {
-    let step = get(currentStep) - 1;
+    let step = $currentStep - 1;
     step = step === 7 && !secret ? 4 : step;
     step = step === 9 ? (!key ? 8 : 9) : step;
-    currentStep.set(step);
+    $currentStep = step;
   }
 </script>
 

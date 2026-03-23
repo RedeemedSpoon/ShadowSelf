@@ -8,6 +8,7 @@ import WalletIcon from '$icon/finance/Wallet.svelte';
 import RocketIcon from '$icon/misc/Rocket.svelte';
 import BookIcon from '$icon/misc/Book.svelte';
 import UserIcon from '$icon/user/User.svelte';
+
 import * as rawContent from './content';
 import type {PageLoad} from './$types';
 import type {Docs, Route} from '$type';

@@ -1,8 +1,9 @@
+import {EMAIL_FETCH_LIMIT, EMAIL_JUNK_RETENTION_DAYS} from '@core/constants';
 import MailComposer from 'nodemailer/lib/mail-composer';
 import {imapConnection} from '@core/services';
 import {wsConnections} from '@core/states';
 import {simpleParser} from 'mailparser';
-import {EmailContent} from '@type';
+import type {EmailContent} from '@type';
 import imap from 'imap-simple';
 
 export async function listenForEmail(user: string, password: string) {
@@ -33,7 +34,8 @@ export async function fetchMoreEmails(user: string, password: string, mailbox: s
   let inbox;
 
   try {
-    const query = Number(since) - 7 < 0 ? `${1}:${since}` : `${Number(since) - 6}:${since}`;
+    const start = since - EMAIL_FETCH_LIMIT < 0 ? 1 : since - (EMAIL_FETCH_LIMIT - 1);
+    const query = `${start}:${since}`;
     inbox = await getInbox(mailbox, connection, query);
   } finally {
     connection.end();
@@ -148,7 +150,7 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
   if (messagesCount === 0) return {messagesCount: 0, emails: []};
 
   await connection.openBox(inbox);
-  const lastMessages = messagesCount - 7 < 0 ? 1 : messagesCount - 6;
+  const lastMessages = messagesCount - EMAIL_FETCH_LIMIT < 0 ? 1 : messagesCount - EMAIL_FETCH_LIMIT;
   const searchQuery = query ? query : `${lastMessages}:${messagesCount || 1}`;
 
   const messages = await connection.search([searchQuery], {bodies: ['']});
@@ -156,11 +158,11 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
   const emails: any[] = [];
   for (const message of messages) {
     if (inbox === 'Junk') {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - EMAIL_JUNK_RETENTION_DAYS);
       const internalDate = new Date(message.attributes.date);
 
-      if (internalDate < sevenDaysAgo) {
+      if (internalDate < cutoffDate) {
         await connection.deleteMessage(message.attributes.uid);
         continue;
       }

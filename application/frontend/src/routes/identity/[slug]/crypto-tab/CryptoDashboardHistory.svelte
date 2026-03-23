@@ -4,9 +4,9 @@
   import ClockIcon from '$icon/data/Clock.svelte';
   import BroomIcon from '$icon/misc/Broom.svelte';
 
-  import {EXTERNAL_TX_VIEWERS} from '$constant';
-  import type {CryptoAPI, Coins} from '$type';
+  import {EXTERNAL_TX_VIEWERS, USD_DUST_THRESHOLD} from '$constant';
   import {formatDate} from '$utils/formating';
+  import type {CryptoAPI, Coins} from '$type';
   import type {Writable} from 'svelte/store';
 
   interface Props {
@@ -32,14 +32,13 @@
     const tableElements = document.querySelectorAll('tbody tr') as NodeListOf<HTMLTableRowElement>;
 
     const transactionHistory = crypto.wallet[$currentCrypto].history;
-    const usdDustThreshold = 1.0;
 
     for (const i in transactionHistory) {
       const transactionAmount = transactionHistory[i].amount;
       const currentCryptoPrice = crypto.prices[$currentCrypto].usdPrice;
-      const usdtransactionAmount = transactionAmount * currentCryptoPrice;
+      const usdTransactionAmount = transactionAmount * currentCryptoPrice;
 
-      if (usdtransactionAmount < usdDustThreshold) {
+      if (usdTransactionAmount < USD_DUST_THRESHOLD) {
         excludeTransactionIndexes.push(Number(i));
       }
     }

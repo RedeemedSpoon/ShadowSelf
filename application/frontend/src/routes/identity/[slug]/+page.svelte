@@ -19,9 +19,9 @@
   import IdentityEmail from './email-tab/Email.svelte';
 
   import {pendingID, handleResponse, identity, activeModal, masterPassword} from '$store';
+  import {DEFAULT_MASTER_PASSWORD, SECTIONS_ORDER, SLEEP_DURATION} from '$constant';
   import type {AccountAPI, CryptoAPI, Sections, WebSocketMessage} from '$type';
   import {decrypt, deriveMasterKey, encrypt} from '$utils/cryptography';
-  import {SECTIONS_ORDER} from '$constant';
   import {browser} from '$app/environment';
   import {fetchAPI} from '$utils/webfetch';
   import type {PageProps} from './$types';
@@ -58,18 +58,18 @@
     if (section) window.location.hash = section;
     currentSection = section;
 
-    buttonWrapper.childNodes.forEach((node) => {
-      (node as HTMLButtonElement).disabled = true;
-      setTimeout(() => ((node as HTMLButtonElement).disabled = false), 500);
+    buttonWrapper.childNodes.forEach((node: any) => {
+      node.disabled = true;
+      setTimeout(() => (node.disabled = false), 500);
     });
   }
 
   async function setMasterPassword() {
     $pendingID = 1;
-    await new Promise((resolve) => setTimeout(resolve, 750));
+    await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
 
     const inputElement = document.querySelector('input#set-master') as HTMLInputElement;
-    const password = inputElement.value || 'test';
+    const password = inputElement.value || DEFAULT_MASTER_PASSWORD;
 
     const newKey = await deriveMasterKey(password, $identity.id);
     const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
@@ -82,11 +82,11 @@
 
   async function changeMasterPassword() {
     $pendingID = 1;
-    await new Promise((resolve) => setTimeout(resolve, 750));
+    await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
 
     // Account vault
     const inputElement = document.querySelector('input#change-master') as HTMLInputElement;
-    const password = inputElement.value || 'test';
+    const password = inputElement.value || DEFAULT_MASTER_PASSWORD;
 
     const newKey = await deriveMasterKey(password, $identity.id);
     const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
@@ -182,7 +182,7 @@
   {:else if data.identity && browser}
     <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
       {#each SECTIONS_ORDER as section (section)}
-        {@const {icon: Icon, name} = sectionData[section]}
+        {@const {icon: Icon, name} = sectionData[section as 'info']}
         <button class:main={section === currentSection} onclick={() => handleClick(section as Sections)}>
           <Icon className="h-6 w-6" />
           <span class="max-sm:hidden">{name}</span>
@@ -213,7 +213,9 @@
         <div class="px-2 font-bold text-neutral-500 select-none">|</div>
         <button type="button" onclick={() => ($activeModal = 3)} class="alt w-fit p-0">Delete Identity</button>
         <input type="hidden" name="id" value={data.identity.id} />
+
         <ConfirmModal id={3} text="Deleting permanently this identity" name="delete" />
+
         <Modal id={1}>
           <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
             <h3 class="w-full text-3xl! font-semibold text-neutral-300 md:text-5xl!">Restore Master Password</h3>
@@ -226,6 +228,7 @@
             <LoadingButton type="button" className="w-2/3" onclick={setMasterPassword}>Change Password</LoadingButton>
           </div>
         </Modal>
+
         <Modal id={2}>
           <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
             <h3 class="w-full text-3xl! font-semibold text-neutral-300 md:text-5xl!">Change Master Password</h3>

@@ -1,4 +1,4 @@
-import {BTC_API, ETH_API, GAP_LIMIT, HARD_LIMIT, LTC_API, USDT_CONTRACT, XMR_NODE} from '@core/constants';
+import {BTC_API, ETH_API, UTXO_GAP_LIMIT, UTXO_HARD_LIMIT, LTC_API, USDT_CONTRACT, XMR_NODE} from '@core/constants';
 import type {CryptoWalletResponse, UTXOData, TransactionsHistory} from '@type';
 import {xpubToAddress} from '@utils/cryptography';
 
@@ -12,7 +12,7 @@ export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<Cr
   let allHistory: TransactionsHistory = [];
 
   try {
-    for (let i = 0; i < HARD_LIMIT; i++) {
+    for (let i = 0; i < UTXO_HARD_LIMIT; i++) {
       const address = xpubToAddress(coin, xpub, i);
       const infoRes = await fetch(`${baseUrl}/address/${address}`);
       const info = await infoRes.json();
@@ -20,7 +20,7 @@ export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string): Promise<Cr
       const txCount = info.chain_stats.tx_count + info.mempool_stats.tx_count;
       if (txCount === 0) {
         gap++;
-        if (gap >= GAP_LIMIT) break;
+        if (gap >= UTXO_GAP_LIMIT) break;
         continue;
       }
 

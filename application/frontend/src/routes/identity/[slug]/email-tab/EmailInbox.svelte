@@ -6,6 +6,7 @@
 
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import ReplyIcon from '$icon/actions/Reply.svelte';
+  import {EMAIL_FETCH_LIMIT} from '$constant';
   import type {Writable} from 'svelte/store';
   import type {Email} from '$type';
 
@@ -57,7 +58,7 @@
     </div>
   {/each}
   {#key inbox.length}
-    {#if count > 7 && inbox.length <= count}
+    {#if count > EMAIL_FETCH_LIMIT && inbox.length <= count}
       <LoadingButton {className} onclick={loadMore}>Load More</LoadingButton>
     {/if}
   {/key}
@@ -87,7 +88,7 @@
   </section>
 {:else if label === 'Junk'}
   <section class="no-emails" style="background-image: url({shredder});">
-    <h3 class="mt-12">No Junk:)</h3>
+    <h3 class="mt-12">No Junk</h3>
     <p class="text-center md:w-1/2">No junk emails here! Keep it that way by sending only the emails you care about to your inbox.</p>
   </section>
 {/if}

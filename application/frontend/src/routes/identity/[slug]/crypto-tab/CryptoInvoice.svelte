@@ -4,6 +4,7 @@
   import receipt from '$image/empty-states/receipt.svg';
   import {deriveXPub} from '$utils/cryptography';
   import {generatePDF} from '$utils/pdf-invoice';
+  import {URL_IMAGE_EMBEDDER} from '$constant';
   import type {CryptoAPI, Coins} from '$type';
   import type {Component} from 'svelte';
   import QRCode from 'qrcode';
@@ -53,16 +54,14 @@
         reader.onload = (e) => (img.src = e.target?.result as string);
         reader.readAsDataURL(source);
       } else {
-        img.src = `https://wsrv.nl/?url=${encodeURIComponent(source)}&output=png`;
+        img.src = URL_IMAGE_EMBEDDER + encodeURIComponent(source);
       }
     });
   }
 
   async function gatherPDFData() {
-    $pendingID = 1;
-    await new Promise((resolve) => setTimeout(resolve, 650));
-
     const {name, email} = $identity;
+    $pendingID = 1;
 
     const now = new Date();
     const dueObj = new Date();

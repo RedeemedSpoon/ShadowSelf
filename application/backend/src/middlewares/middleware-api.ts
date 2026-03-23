@@ -1,4 +1,4 @@
-import {QueryIdentity, QueryUser} from '@type';
+import type {QueryIdentity, QueryUser} from '@type';
 import {jwtSecret} from '@core/config';
 import {sql} from '@core/services';
 import {jwt} from '@elysiajs/jwt';

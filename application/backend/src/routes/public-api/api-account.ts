@@ -1,5 +1,5 @@
 import middlewareApi from '@middlewares/middleware-api';
-import {APIRequest, QueryAccount} from '@type';
+import type {APIRequest, QueryAccount} from '@type';
 import {checkAPI} from '@utils/checks';
 import {error} from '@utils/utils';
 import {sql} from '@core/services';

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import InformationEdit from './InformationEdit.svelte';
   import ReactiveButton from '$component/buttons/ReactiveButton.svelte';
   import ActionIcon from '$component/feedback/ActionIcon.svelte';
   import CopyButton from '$component/buttons/CopyButton.svelte';
@@ -13,7 +14,6 @@
 
   import {toTitleCase, formatPhoneNumber, formatUSD} from '$utils/formating';
   import {base64ToBlob, notify, getCountriesFlags} from '$utils/shared';
-  import InformationEdit from './InformationEdit.svelte';
   import type {InformationAPI} from '$type';
   import {fetchAPI} from '$utils/webfetch';
   import {page} from '$app/state';

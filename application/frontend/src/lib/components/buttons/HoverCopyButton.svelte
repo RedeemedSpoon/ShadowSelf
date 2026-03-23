@@ -1,7 +1,6 @@
 <script lang="ts">
   import CheckmarkIcon from '$icon/status/Checkmark.svelte';
   import CopyIcon from '$icon/actions/Copy.svelte';
-
   import type {Component} from 'svelte';
 
   interface Props {

@@ -1,7 +1,7 @@
 import {createTOTP, getSecret, getAPIKey, createHash, getRecovery, checksum} from '@utils/cryptography';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendOfficialEmail} from '@utils/email-smtp';
-import {QueryUser, QueryIdentity} from '@type';
+import type {QueryUser, QueryIdentity} from '@type';
 import {error, request} from '@utils/utils';
 import {check} from '@utils/checks';
 import {sql} from '@core/services';
@@ -22,10 +22,10 @@ export default new Elysia({prefix: '/settings'})
     const result = (await sql`SELECT * FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const {email, recovery, totp, api_access, api_key} = result[0];
 
-    const res = await request('/billing/portal', 'POST', {email});
+    const res = await request('/billing/fiat/portal', 'POST', {email});
     const sessionUrl = res?.sessionUrl || '';
 
-    return {sessionUrl, email, recovery: recovery || [], key: api_key, API: api_access, OTP: totp && true};
+    return {sessionUrl, email, recovery: recovery || [], key: api_key, API: api_access, OTP: !!totp};
   })
   .get('/otp', async ({user}) => {
     const result = (await sql`SELECT username FROM users WHERE email = ${user!.email}`) as QueryUser[];
@@ -87,8 +87,8 @@ export default new Elysia({prefix: '/settings'})
     if (err) return error(set, 400, err);
 
     const email = user!.email;
-    await request('/billing/customer', 'PUT', {email, payment});
-    const res = await request('/billing/portal', 'POST', {email});
+    await request('/billing/fiat/customer', 'PUT', {email, payment});
+    const res = await request('/billing/fiat/portal', 'POST', {email});
 
     return {sessionUrl: res.sessionUrl || ''};
   })
@@ -99,7 +99,7 @@ export default new Elysia({prefix: '/settings'})
     const accessToken = checksum(email);
     if (access !== accessToken) return error(set, 400, 'Invalid access token. Please Try again');
 
-    await request('/billing/customer', 'PATCH', {oldEmail: user!.email, email});
+    await request('/billing/fiat/customer', 'PATCH', {oldEmail: user!.email, email});
     await sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`;
 
     const cookievalue = await jwt.sign({email, id: user!.id});
@@ -143,6 +143,6 @@ export default new Elysia({prefix: '/settings'})
       await request('/billing/cancel', 'DELETE', {id: purchase.id});
     }
 
-    await request('/billing/customer', 'DELETE', {email: user!.email});
+    await request('/billing/fiat/customer', 'DELETE', {email: user!.email});
     await sql`DELETE FROM users WHERE email = ${user!.email}`;
   });

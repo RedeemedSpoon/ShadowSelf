@@ -1,4 +1,14 @@
 <script lang="ts">
+  // @ts-expect-error declaration file
+  import curl from 'highlightjs-curl';
+  import 'highlight.js/styles/tokyo-night-dark.css';
+  import javascript from 'highlight.js/lib/languages/javascript';
+  import python from 'highlight.js/lib/languages/python';
+  import rust from 'highlight.js/lib/languages/rust';
+  import json from 'highlight.js/lib/languages/json';
+  import go from 'highlight.js/lib/languages/go';
+  import hljs from 'highlight.js';
+
   import HTTPMethod from '$component/feedback/HTTPMethod.svelte';
   import APICode from '$component/containers/APICode.svelte';
 
@@ -6,17 +16,8 @@
   import CopyIcon from '$icon/actions/Copy.svelte';
 
   import {formatCasing, formatToMarkdown} from '$utils/formating';
-  import javascript from 'highlight.js/lib/languages/javascript';
-  import python from 'highlight.js/lib/languages/python';
-  import rust from 'highlight.js/lib/languages/rust';
-  import json from 'highlight.js/lib/languages/json';
-  import 'highlight.js/styles/tokyo-night-dark.css';
-  import go from 'highlight.js/lib/languages/go';
   import type {PageData} from './$types';
-  // @ts-expect-error declaration file
-  import curl from 'highlightjs-curl';
   import {page} from '$app/state';
-  import hljs from 'highlight.js';
   import {onMount} from 'svelte';
 
   hljs.configure({ignoreUnescapedHTML: true});

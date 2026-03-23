@@ -1,15 +1,15 @@
 import {initBackgroundWorkers} from '@core/background-workers';
 import {checkContact} from '@utils/checks';
 import {contact} from '@utils/email-smtp';
-import {ContactDetail} from '@type';
+import type {ContactDetail} from '@type';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
-import webhooks from './routes/webhooks';
-import settings from './routes/user-settings';
 import creationProcess from './routes/creation-process';
 import api from './routes/public-api/main-api';
+import settings from './routes/user-settings';
 import account from './routes/user-account';
+import webhooks from './routes/webhooks';
 import billing from './routes/billing';
 
 const app = new Elysia()

@@ -16,8 +16,8 @@
   let {data, children}: Props = $props();
 
   $effect(() => {
-    if (data.user) user.set(data.user);
-    if (data.token) token.set(data.token);
+    if (data.user) $user = data.user;
+    if (data.token) $token = data.token;
   });
 
   onMount(() => {

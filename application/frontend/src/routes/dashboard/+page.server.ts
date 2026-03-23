@@ -2,15 +2,12 @@ import type {PageServerLoad} from './$types';
 import {fetchBackend} from '$utils/webfetch';
 import type {Identity, Option} from '$type';
 
-export const load: PageServerLoad = async ({parent, cookies}) => {
-  const otherObjects = await parent();
-
+export const load: PageServerLoad = async ({cookies}) => {
   const remains = await fetchBackend('/account/recovery-remaining', 'GET', undefined, cookies.get('token'));
   const response = await fetchBackend('/api', 'GET', undefined, cookies.get('token'));
 
   if (response.type === 'alert')
     return {
-      ...otherObjects,
       recoveryRemaining: remains.message,
       searchKeywords: [],
       identities: [],
@@ -28,7 +25,6 @@ export const load: PageServerLoad = async ({parent, cookies}) => {
   });
 
   return {
-    ...otherObjects,
     recoveryRemaining: remains.message,
     searchKeywords,
     identities,

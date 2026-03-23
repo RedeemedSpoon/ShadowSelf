@@ -1,10 +1,11 @@
 <script lang="ts">
   import {toTitleCase} from '$utils/formating';
   import {blur, fly} from 'svelte/transition';
-  import {PRODUCT_TRAILS} from '$constant';
 
   let index = $state(0);
-  setInterval(() => (index = (index + 1) % PRODUCT_TRAILS.length), 3000);
+  const words = ['effective', 'simple', 'affordable', 'secure', 'superior', 'reliable', 'trusted', 'private', 'fast'];
+
+  setInterval(() => (index = (index + 1) % words.length), 3000);
 </script>
 
 <div>
@@ -13,7 +14,7 @@
     <h2 class="text-6xl! max-sm:text-4xl! md:text-8xl!">The</h2>
     {#key index}
       <h1 in:fly={{y: 30, duration: 1000, delay: 300}} out:blur={{duration: 500, amount: 10}}>
-        {toTitleCase(PRODUCT_TRAILS[index])}
+        {toTitleCase(words[index])}
       </h1>
     {/key}
   </div>

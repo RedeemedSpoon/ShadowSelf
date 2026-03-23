@@ -1,6 +1,6 @@
 <script lang="ts">
+  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
   import SearchIcon from '$icon/actions/Search.svelte';
-  import InputWithIcon from './InputWithIcon.svelte';
 
   interface Props {
     keywords: {label: string; value: string}[];

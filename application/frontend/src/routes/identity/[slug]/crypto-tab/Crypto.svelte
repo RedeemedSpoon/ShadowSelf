@@ -62,7 +62,7 @@
   let anchor = $state() as HTMLAnchorElement;
 
   async function fetchWalletData() {
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
 
     //@ts-ignore

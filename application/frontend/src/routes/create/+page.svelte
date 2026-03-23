@@ -29,6 +29,7 @@
   import {deriveMasterKey, encrypt} from '$utils/cryptography';
   import {wordlist} from '@scure/bip39/wordlists/english.js';
   import {notify, getCountriesFlags} from '$utils/shared';
+  import {ETHNICITIES, SLEEP_DURATION} from '$constant';
   import {formatPhoneNumber} from '$utils/formating';
   import {mnemonicToAccount} from 'viem/accounts';
   import type {CreationProcess} from '$type';
@@ -112,7 +113,7 @@
   async function proceed() {
     if (![5, 7, 8, 9, 10].includes($currentStep)) {
       $pendingID = 1;
-      await new Promise((resolve) => setTimeout(resolve, 650));
+      await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
     }
 
     switch ($currentStep) {
@@ -183,7 +184,7 @@
         break;
 
       case 10:
-        await new Promise((resolve) => setTimeout(resolve, 1350));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
         clearInterval(loaderInterval as number);
         clearInterval(pingInterval as number);
         reply('provision');
@@ -244,7 +245,6 @@
 
       case 'wallet': {
         $pendingID = 2;
-        await new Promise((resolve) => setTimeout(resolve, 450));
 
         const mnemonic = generateMnemonic(wordlist);
         const seed = await mnemonicToSeed(mnemonic);
@@ -389,7 +389,7 @@
             </div>
 
             <label for="ethnicity">Ethnicity</label>
-            <SelectMenu options={ethnicities} name="ethnicity" value={server?.identity?.ethnicity} />
+            <SelectMenu options={ETHNICITIES} name="ethnicity" value={server?.identity?.ethnicity} />
 
             <label for="age">Age</label>
             <div class="group relative mb-6">

@@ -1,5 +1,4 @@
 import {genSalt, hash, compare} from 'bcryptjs';
-import {LTC_NETWORK} from '@core/constants';
 import {p2wpkh} from '@scure/btc-signer';
 import {secretSauce} from '@core/config';
 import {randomBytes} from 'crypto';
@@ -11,7 +10,7 @@ export function xpubToAddress(coin: 'btc' | 'ltc', xpub: string, index: number =
   const child = node.deriveChild(0).deriveChild(index);
 
   if (coin === 'btc') return p2wpkh(child.publicKey!).address!;
-  if (coin === 'ltc') return p2wpkh(child.publicKey!, LTC_NETWORK).address!;
+  if (coin === 'ltc') return p2wpkh(child.publicKey!, {bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0}).address!;
   else return '';
 }
 
@@ -42,7 +41,7 @@ export function getAPIKey(): string {
   return randomBytes(16).toString('hex');
 }
 
-export function generateProxyPassword() {
+export function generateProxyPassword(): string {
   return randomBytes(16).toString('hex');
 }
 

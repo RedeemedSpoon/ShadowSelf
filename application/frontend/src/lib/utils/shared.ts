@@ -1,3 +1,4 @@
+import {NOTIFICATION_DURATION, SLEEP_DURATION} from '$constant';
 import {notification, activeModal, pendingID} from '$store';
 import type {Cookies} from '@sveltejs/kit';
 import type {Notification} from '$type';
@@ -11,12 +12,12 @@ export function notify(message: string, type: Notification['type'] = 'info') {
     if (get(notification).id === id) {
       notification.set({id: null, message: '', type: 'info'});
     }
-  }, 5000);
+  }, NOTIFICATION_DURATION);
 }
 
 export async function awaitPending(shouldWait = false, index = 1, condition = true, allowException = false) {
   if (condition) pendingID.set(index);
-  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, 650));
+  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
 
   return async ({update, result}: {update: any; result: any}) => {
     pendingID.set(0);

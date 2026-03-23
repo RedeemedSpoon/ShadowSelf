@@ -18,6 +18,7 @@
 
   import type {EmailAPI, EditorParams, Email, WebSocketMessage} from '$type';
   import {identity, handleResponse, pendingID, activeModal} from '$store';
+  import {EMAIL_FETCH_LIMIT} from '$constant';
   import {fetchAPI} from '$utils/webfetch';
   import {writable} from 'svelte/store';
   import {notify} from '$utils/shared';
@@ -29,7 +30,7 @@
 
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
   let inbox = $state() as EmailAPI;
-  let from = $state(7) as number;
+  let from = $state(EMAIL_FETCH_LIMIT);
 
   const showActionButtons = $derived(!$target || label === 'Junk');
   const showSpesficAction = $derived(label === 'Drafts' || showActionButtons);
@@ -48,7 +49,7 @@
 
     inbox = await fetchAPI<EmailAPI>('email', 'GET');
     $target = null;
-    from = 7;
+    from = EMAIL_FETCH_LIMIT;
   }
 
   async function loadMore() {
@@ -63,7 +64,7 @@
     inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.nextEmails!];
 
     $pendingID = 0;
-    from += 7;
+    from += EMAIL_FETCH_LIMIT;
   }
 
   async function fetchReply(uuid?: string) {

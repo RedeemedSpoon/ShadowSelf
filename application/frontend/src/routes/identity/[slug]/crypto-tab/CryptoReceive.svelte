@@ -1,8 +1,8 @@
 <script lang="ts">
   import CopyIcon from '$icon/actions/Copy.svelte';
   import {deriveXPub} from '$utils/cryptography';
-  import type {CryptoAPI, Coins} from '$type';
   import {identity, moneroData} from '$store';
+  import type {CryptoAPI, Coins} from '$type';
   import type {Writable} from 'svelte/store';
   import QRCode from 'qrcode';
 
@@ -55,7 +55,7 @@
 <section class="flex gap-8 max-md:flex-col-reverse md:h-100">
   <div class="flex flex-col justify-center gap-6 md:w-1/2">
     <div class="space-y-2">
-      <h3>Receive {cryptoTitles[$currentCrypto]}</h3>
+      <h3 class="text-3xl font-bold text-neutral-300">Receive {cryptoTitles[$currentCrypto]}</h3>
       <p class="text-sm leading-relaxed text-neutral-400">
         Scan the QR code or share the following address to receive funds.
         {#if !newUtxoWallet}
@@ -107,11 +107,3 @@
     <footer class="text-xs font-medium tracking-widest text-neutral-500 uppercase">Scan with Camera</footer>
   </div>
 </section>
-
-<style lang="postcss">
-  @reference "$style";
-
-  h3 {
-    @apply text-3xl font-bold text-neutral-300;
-  }
-</style>

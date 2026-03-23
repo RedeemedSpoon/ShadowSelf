@@ -1,4 +1,3 @@
-import {GAS_ERC20_TRANSFER, GAS_ETH_TRANSFER, USDT_CONTRACT, VBYTE_INPUT, VBYTE_OUTPUT, VBYTE_OVERHEAD} from '$constant';
 import {createWalletClient, http, parseEther, parseUnits, encodeFunctionData, isAddress} from 'viem';
 import {privateKeyToAccount, mnemonicToAccount, type LocalAccount} from 'viem/accounts';
 import type {BtcSigner, Coins, PrivKeyType, transactionData, UTXOData} from '$type';
@@ -21,7 +20,7 @@ export function selectBestUtxos(availableUtxos: UTXOData, amount: number, feeRat
     selected.push(utxo);
     totalValue += utxo.value;
 
-    const currentBytes = VBYTE_OVERHEAD + selected.length * VBYTE_INPUT + 2 * VBYTE_OUTPUT;
+    const currentBytes = 10 + selected.length * 68 + 2 * 31;
     const currentFee = Math.ceil(currentBytes * feeRate);
 
     if (totalValue >= targetSats + currentFee) {
@@ -38,7 +37,7 @@ export function estimateTransactionFee(coin: Coins, inputs: UTXOData, feeRate: n
   }
 
   if (coin === 'eth' || coin === 'usdt') {
-    const gasLimit = coin === 'eth' ? GAS_ETH_TRANSFER : GAS_ERC20_TRANSFER;
+    const gasLimit = coin === 'eth' ? 21_000 : 65_000;
     const feeInEth = (gasLimit * feeRate) / 1_000_000_000;
 
     return {
@@ -57,7 +56,7 @@ export function estimateTransactionFee(coin: Coins, inputs: UTXOData, feeRate: n
     const amountSats = Math.floor(amount * 100_000_000);
     const inputTotalSats = inputs.reduce((acc, curr) => acc + curr.value, 0);
 
-    const sizeWithChange = VBYTE_OVERHEAD + inputs.length * VBYTE_INPUT + 2 * VBYTE_OUTPUT;
+    const sizeWithChange = 10 + inputs.length * 68 + 2 * 31;
     const feeWithChange = Math.ceil(sizeWithChange * feeRate);
 
     const remaining = inputTotalSats - amountSats - feeWithChange;
@@ -67,7 +66,7 @@ export function estimateTransactionFee(coin: Coins, inputs: UTXOData, feeRate: n
     let finalFee = feeWithChange;
 
     if (remaining < dustLimit) {
-      finalSize = VBYTE_OVERHEAD + inputs.length * VBYTE_INPUT + 1 * VBYTE_OUTPUT;
+      finalSize = 10 + inputs.length * 68 + 1 * 31;
       finalFee = Math.ceil(finalSize * feeRate);
     }
 
@@ -223,7 +222,7 @@ export async function signTransaction(coin: Coins, addr: string, amt: number, da
         });
 
         serializedRequest = await client.signTransaction({
-          to: USDT_CONTRACT,
+          to: '0xdac17f958d2ee523a2206206994597c13d831ec7',
           data: fdata,
           value: BigInt(0n),
           nonce: data.nonce,

@@ -1,12 +1,12 @@
 import {error, parseMessage, request as req} from '@utils/utils';
 import middlewareBase from '@middlewares/middleware-base';
 import {stripeConfig, twilioConfig} from '@core/config';
+import type {QueryIdentity, QueryUser} from '@type';
 import {sql, stripe, twilio} from '@core/services';
-import {QueryIdentity, QueryUser} from '@type';
 import {wsConnections} from '@core/states';
 import twilioClient from 'twilio';
+import type Stripe from 'stripe';
 import {Elysia} from 'elysia';
-import Stripe from 'stripe';
 
 export default new Elysia()
   .use(middlewareBase)

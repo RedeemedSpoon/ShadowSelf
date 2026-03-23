@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AccountEdit from './AccountEdit.svelte';
   import HoverCopyButton from '$component/buttons/HoverCopyButton.svelte';
   import ActionIcon from '$component/feedback/ActionIcon.svelte';
   import Tooltip from '$component/feedback/Tooltip.svelte';
@@ -18,7 +19,6 @@
 
   import {pendingID, activeModal, masterPassword} from '$store';
   import type {Account, AccountAPI} from '$type';
-  import AccountEdit from './AccountEdit.svelte';
   import {decrypt} from '$utils/cryptography';
   import {fetchAPI} from '$utils/webfetch';
   import {writable} from 'svelte/store';

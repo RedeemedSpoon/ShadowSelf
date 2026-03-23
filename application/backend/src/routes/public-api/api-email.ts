@@ -1,7 +1,7 @@
 import {fetchRecentEmails, appendToMailbox, deleteEmail, fetchEmail, fetchMoreEmails} from '@utils/email-imap';
 import middlewareApi from '@middlewares/middleware-api';
 import {sendIdentityEmail} from '@utils/email-smtp';
-import {APIRequest, EmailContent} from '@type';
+import type {APIRequest, EmailContent} from '@type';
 import {checkAPI} from '@utils/checks';
 import {throttle} from '@core/states';
 import {error} from '@utils/utils';
@@ -23,7 +23,7 @@ export default new Elysia({prefix: '/email'})
       const {err, mailbox, since} = await checkAPI(query, ['mailbox', 'since']);
       if (err) return error(set, 400, err);
 
-      const nextEmails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, since!);
+      const nextEmails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, Number(since!));
       return {mailbox, since, nextEmails};
     },
     throttle('More Email Fetch', 3_000),

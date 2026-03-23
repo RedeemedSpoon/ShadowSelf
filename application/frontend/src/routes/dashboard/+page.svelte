@@ -18,7 +18,7 @@
   import worldMap from '$image/patterns/world-map.svg';
   import {onMount, type Component} from 'svelte';
   import type {PageData} from './$types';
-  import {user, token} from '$store';
+  import {user} from '$store';
 
   const {data}: {data: PageData} = $props();
 
@@ -28,13 +28,6 @@
   let table = $state() as HTMLElement;
   let errorText = $state() as HTMLParagraphElement;
   let countriesFlags = getCountriesFlags();
-
-  $effect(() => {
-    if (!$user) {
-      $user = data.user;
-      $token = data.token!;
-    }
-  });
 
   const bottomLinks = {
     Issues: ['https://github.com/RedeemedSpoon/ShadowSelf/issues', IssuesIcon],

@@ -1,6 +1,6 @@
 import {GoogleGenAI} from '@google/genai';
 import {geminiApiKey} from '@core/config';
-import {Location} from '@type';
+import type {Location} from '@type';
 
 function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, bio: string): string {
   const subject = `${ethnicity} ${sex}, aged approximately ${age}. Bio for context: "${bio}" (Use the bio to influence the person's style, expression, and surroundings. Do not render or spell out any of this text on the image itself.)`;

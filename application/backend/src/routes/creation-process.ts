@@ -1,11 +1,11 @@
-import {User, CreationProcess, QueryIdentity, QueryUser} from '@type';
+import type {User, CreationProcess, QueryIdentity, QueryUser} from '@type';
 import {generateProxyPassword, checksum} from '@utils/cryptography';
 import middlewareBase from '@middlewares/middleware-base';
+import {ETHNICITIES, LOCATIONS} from '@core/constants';
 import {generateProfile} from '@utils/prompts';
 import {checkIdentity} from '@utils/checks';
 import {sql, twilio} from '@core/services';
 import {twilioConfig} from '@core/config';
-import {LOCATIONS} from '@core/constants';
 import {proxyRequest} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
 import {Elysia, t} from 'elysia';
@@ -60,7 +60,6 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             cookie.set({value: cookie.value + `&&${location}`});
           }
 
-          const ethnicities = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
           const lang = LOCATIONS.find((location) => location.code === (cookieStore[0] || message.location));
 
           let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};
@@ -85,7 +84,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
             name = faker.person.fullName({sex: sex as 'male' | 'female'});
             bio = faker.person.bio();
 
-            ethnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
+            ethnicity = ETHNICITIES[Math.floor(Math.random() * ETHNICITIES.length)];
             age = Math.floor(Math.random() * 42) + 18;
             error = undefined;
           }

@@ -14,6 +14,7 @@
   import type {Account, AccountAPI} from '$type';
   import {encrypt} from '$utils/cryptography';
   import type {Writable} from 'svelte/store';
+  import {SLEEP_DURATION} from '$constant';
   import {fetchAPI} from '$utils/webfetch';
   import {notify} from '$utils/shared';
   import {pendingID} from '$store';
@@ -38,7 +39,7 @@
 
   async function addOrUpdateAccount() {
     $pendingID = 1;
-    await new Promise((resolve) => setTimeout(resolve, 650));
+    await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
 
     const username = (document.querySelector('input[name="username"]') as HTMLInputElement)?.value;
     const rawPassword = (document.querySelector('input[name="password"]') as HTMLInputElement)?.value;

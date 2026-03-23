@@ -22,7 +22,6 @@
     const sex = document.querySelector('.selected')?.id;
 
     $pendingID = 1;
-    await new Promise((resolve) => setTimeout(resolve, 300));
     const response = await fetchAPI<InformationAPI>('identity/regenerate-picture', 'PATCH', {sex, age, ethnicity, bio});
     if (response.err) return notify(response.err, 'alert');
 
