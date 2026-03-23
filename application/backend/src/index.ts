@@ -6,8 +6,8 @@ import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
 import creationProcess from './routes/creation-process';
-import api from './routes/public-api/main-api';
 import settings from './routes/user-settings';
+import api from './routes/public-api/index';
 import account from './routes/user-account';
 import webhooks from './routes/webhooks';
 import billing from './routes/billing';

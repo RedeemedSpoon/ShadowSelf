@@ -1,9 +1,18 @@
 User-agent: *
 
 Allow: /
-Disallow: /ws/
-Disallow: /api/
-Disallow: /identity/
+
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /purchase
 Disallow: /create
+Disallow: /identity
+Disallow: /logout
+
+Disallow: /login
+Disallow: /signup
+
+Disallow: /api
+Disallow: /api/
 
 Sitemap: https://shadowself.io/sitemap.xml
