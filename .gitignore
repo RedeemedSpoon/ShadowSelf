@@ -16,6 +16,7 @@ Thumbs.db
 .output
 
 build
+cache_wallet
 node_modules
 .svelte-kit
 .easy-pki

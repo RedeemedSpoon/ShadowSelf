@@ -9,5 +9,6 @@ Thumbs.db
 
 build
 server
+cache_wallet
 node_modules
 .svelte-kit

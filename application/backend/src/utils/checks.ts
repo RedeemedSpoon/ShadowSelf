@@ -194,7 +194,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       }
       break;
 
-    case 'wallet':
+    case 'wallet': {
       if (!body.wallet || !body.wallet.keys) {
         return {error: 'Missing wallet data'};
       }
@@ -217,6 +217,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Invalid Ethereum Address'};
       }
       break;
+    }
 
     case 'provision': {
       const validationKinds = ['location', 'identity', 'email', 'phone', 'wallet'];
@@ -587,6 +588,16 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         }
         break;
 
+      case 'swapCoin':
+        if (typeof body.swapCoin !== 'string') {
+          return {err: 'Swap coin must be a string'} as APIRequest;
+        }
+
+        if (!/^[a-zA-Z0-9]{2,10}$/.test(body.swapCoin)) {
+          return {err: 'Invalid swap coin. Must be a valid coin ticker.'} as APIRequest;
+        }
+        break;
+
       case 'addresses':
         if (!Array.isArray(body.addresses)) {
           return {err: 'Addresses must be an array'} as APIRequest;
@@ -626,8 +637,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'amount':
-        const amt = Number(body.amount);
-        if (isNaN(amt) || amt <= 0) {
+        if (isNaN(Number(body.amount)) || Number(body.amount) <= 0) {
           return {err: 'Amount must be a positive number'} as APIRequest;
         }
         break;
@@ -639,6 +649,16 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
         if (!/^(0x)?[0-9a-fA-F]+$/.test(body.hex)) {
           return {err: 'Invalid hexadecimal string'} as APIRequest;
+        }
+        break;
+
+      case 'plan':
+        if (typeof body.plan !== 'string') {
+          return {err: 'Plan must be a string'} as APIRequest;
+        }
+
+        if (!['monthly', 'annually', 'lifetime'].includes(body.plan)) {
+          return {err: 'Invalid plan selected'} as APIRequest;
         }
         break;
     }

@@ -12,6 +12,11 @@ export interface WSConnection {
   emailAddress: string;
 }
 
+export interface InvoiceConnection {
+  websocket: ElysiaWS;
+  invoiceID: string;
+}
+
 export interface CryptoWallet {
   blob: string;
   keys: CryptoKeys;
@@ -202,6 +207,8 @@ export interface APIRequest {
   tradeID: string;
   amount: number;
   hex: string;
+  plan: string;
+  swapCoin: string;
 }
 
 export interface EmailContent {

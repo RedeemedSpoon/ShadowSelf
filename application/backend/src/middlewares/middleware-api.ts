@@ -39,6 +39,27 @@ export default (app: Elysia) =>
     if (!result.length) return error(set, 400, 'Identity not found');
     const identity = result[0];
 
+    if (identity.crypto_invoice) {
+      const invoice = await sql`SELECT creation_date, plan FROM crypto_invoices WHERE id = ${identity.crypto_invoice}`;
+
+      if (invoice.length) {
+        const {creation_date, plan} = invoice[0];
+
+        const now = new Date().getTime();
+        const creation = new Date(creation_date).getTime();
+        const days = (now - creation) / (1000 * 60 * 60 * 24);
+
+        let isExpired = false;
+        if (plan === 'monthly' && days > 30) isExpired = true;
+        if (plan === 'annually' && days > 365) isExpired = true;
+
+        if (isExpired && identity.status !== 'frozen') {
+          await sql`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
+          identity.status = 'frozen';
+        }
+      }
+    }
+
     if (identity.status === 'frozen') return error(set, 402, 'Identity is frozen');
     return {identity};
   });

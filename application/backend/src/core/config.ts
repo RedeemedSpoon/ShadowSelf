@@ -20,6 +20,12 @@ export const dbConfig = {
   password: getEnv('POSTGRES_PASSWORD'),
 };
 
+export const moneroWallet = {
+  address: getEnv('MONERO_ADDRESS'),
+  viewKey: getEnv('MONERO_VIEWKEY'),
+  password: getEnv('MONERO_PASSWORD'),
+};
+
 export const emailConfig = {
   contactPassword: getEnv('EMAIL_CONTACT'),
   verificationPassword: getEnv('EMAIL_VERIFICATION'),

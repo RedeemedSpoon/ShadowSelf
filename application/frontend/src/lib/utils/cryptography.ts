@@ -70,7 +70,7 @@ export async function decrypt(encryptedString: string, newKey?: CryptoKey) {
   try {
     const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, dataBuffer);
     return new TextDecoder().decode(decryptedBuffer);
-  } catch (e) {
+  } catch (_) {
     return '';
   }
 }

@@ -2,7 +2,6 @@ export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'e
 export const EMAIL_JUNK_RETENTION_DAYS = 7;
 export const EMAIL_FETCH_LIMIT = 10;
 export const SMS_MAX_LENGTH = 160;
-export const CRYPTO_DISCOUNT = 20;
 
 export const BTC_API = 'https://mempool.space/api';
 export const LTC_API = 'https://litecoinspace.org/api';
@@ -12,12 +11,15 @@ export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 export const COINGECKO_URL =
   'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
 
+export const POLL_INVOICES_INTERVAL = 15_000; // every 15 seconds
 export const POLL_PRICES_INTERVAL = 60_000; // every 60 seconds
-export const POLL_FEES_INTERVAL = 120_000; // every 120 seconds
+export const POLL_FEES_INTERVAL = 120_000; // every 2 minutes
 
 export const UTXO_GAP_LIMIT = 5;
 export const UTXO_HARD_LIMIT = 120;
 
+export const PAYMENT_WINDOW_MIN = 40;
+export const CRYPTO_DISCOUNT = 20;
 export const PRICING_TIERS = {
   monthly: 500,
   annually: 5000,

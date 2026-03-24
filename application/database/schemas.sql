@@ -1,10 +1,11 @@
 -- NOTHING SENSITIVE HERE, THIS IS JUST FOR INITIALIZATION OF THE DATABASE
 
 -- Delete Existing Tables
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS identities;
-DROP TABLE IF EXISTS crypto_invoices;
-DROP TABLE IF EXISTS accounts;
+DROP TABLE IF EXISTS accounts CASCADE;
+DROP TABLE IF EXISTS crypto_invoices CASCADE;
+DROP TABLE IF EXISTS identities CASCADE;
+DROP TABLE IF EXISTS wallet_cache CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
 -- Create Tables
 CREATE TABLE users (
@@ -65,6 +66,12 @@ CREATE TABLE accounts (
   "website" varchar(48),
   "algorithm" varchar(6),
   "totp" varchar(126)
+);
+
+CREATE TABLE wallet_cache (
+  "id" integer PRIMARY KEY DEFAULT 1,
+  "keys_data" bytea NOT NULL,
+  "cache_data" bytea NOT NULL
 );
 
 -- Close the loop

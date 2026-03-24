@@ -1,8 +1,11 @@
-import type {CryptoFees, CryptoPrices, WSConnection} from '@type';
+import type {CryptoFees, CryptoPrices, WSConnection, InvoiceConnection} from '@type';
 import {error} from '@utils/utils';
 
 export const cryptoPrices = {} as CryptoPrices;
 export const cryptoFees = {} as CryptoFees;
+
+export let watchWallet: moneroTs.MoneroWalletFull;
+export const setWatchWallet = (wallet: moneroTs.MoneroWalletFull) => (watchWallet = wallet);
 
 const rateLimits = new Set<string>();
 const cacheStore = new Map<string, any>();
@@ -55,4 +58,25 @@ class WSManager {
   }
 }
 
+class InvoiceManager {
+  private connections = new Map<string, InvoiceConnection>();
+
+  set(id: string, connection: InvoiceConnection) {
+    this.connections.set(id, connection);
+  }
+
+  get(id: string) {
+    return this.connections.get(id);
+  }
+
+  delete(id: string) {
+    this.connections.delete(id);
+  }
+
+  values() {
+    return Array.from(this.connections.values());
+  }
+}
+
 export const wsConnections = new WSManager();
+export const invoiceConnections = new InvoiceManager();
