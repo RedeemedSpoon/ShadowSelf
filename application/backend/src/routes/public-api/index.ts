@@ -65,21 +65,24 @@ export default new Elysia()
   .ws('/ws-api/:id', {
     async open(ws) {
       const identity = ws.data.identity;
-      const connection = await listenForEmail(identity!.email, identity!.email_password);
 
       wsConnections.set(ws.id, {
-        imapConnection: connection,
+        imapConnection: null as any,
         websocket: ws,
         phoneNumber: identity!.phone,
         emailAddress: identity!.email,
       });
+
+      const connection = await listenForEmail(identity!.email, identity!.email_password);
+      const wsData = wsConnections.get(ws.id);
+      if (wsData) wsData.imapConnection = connection as any;
     },
 
     async close(ws) {
       const connection = wsConnections.get(ws.id);
       if (!connection) return;
 
-      connection.imapConnection.end();
+      connection.imapConnection?.end();
       wsConnections.delete(ws.id);
     },
 

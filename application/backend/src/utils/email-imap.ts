@@ -7,8 +7,10 @@ import type {EmailContent} from '@type';
 import imap from 'imap-simple';
 
 export async function listenForEmail(user: string, password: string) {
+  let connection: imap.ImapSimple | null = null;
+
   async function onmail(mail: number) {
-    if (mail > 1) return;
+    if (mail > 1 || !connection) return;
 
     await connection.openBox('INBOX');
     const messages = await connection.search([`UNSEEN`], {bodies: ['']});
@@ -23,8 +25,25 @@ export async function listenForEmail(user: string, password: string) {
     }
   }
 
-  const connection = await imapConnection(user, password, onmail);
-  connection.openBox('INBOX');
+  async function connect(retries = 3) {
+    const sockets = [...wsConnections.values()].filter((ws) => ws.emailAddress === user);
+
+    if (!sockets.length || retries <= 0) return;
+
+    try {
+      connection?.end();
+      connection = await imapConnection(user, password, onmail);
+      await connection.openBox('INBOX');
+
+      sockets.forEach((ws) => (ws.imapConnection = connection!));
+
+      connection.on('error', () => {});
+      connection.once('end', () => setTimeout(() => connect(3), 5000));
+    } catch (_) {
+      setTimeout(() => connect(retries - 1), 5000);
+    }
+  }
+  await connect();
   return connection;
 }
 

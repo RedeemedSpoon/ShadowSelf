@@ -1,11 +1,11 @@
 -- NOTHING SENSITIVE HERE, THIS IS JUST FOR INITIALIZATION OF THE DATABASE
 
 -- Delete Existing Tables
-DROP TABLE IF EXISTS accounts CASCADE;
-DROP TABLE IF EXISTS crypto_invoices CASCADE;
-DROP TABLE IF EXISTS identities CASCADE;
-DROP TABLE IF EXISTS wallet_cache CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS accounts;
+DROP TABLE IF EXISTS wallet_cache;
+DROP TABLE IF EXISTS identities;
+DROP TABLE IF EXISTS crypto_invoices;
+DROP TABLE IF EXISTS users;
 
 -- Create Tables
 CREATE TABLE users (
@@ -73,8 +73,3 @@ CREATE TABLE wallet_cache (
   "keys_data" bytea NOT NULL,
   "cache_data" bytea NOT NULL
 );
-
--- Close the loop
-ALTER TABLE crypto_invoices
-  ADD CONSTRAINT fk_crypto_renewal 
-  FOREIGN KEY ("renewal_id") REFERENCES identities("id");
