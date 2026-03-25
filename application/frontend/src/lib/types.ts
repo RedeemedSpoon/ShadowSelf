@@ -408,6 +408,11 @@ export interface Billing {
   identityID: string;
   cardName: string;
   last4: number;
+  invoiceID: string;
+  depositAddress: string;
+  depositAmount: number;
+  coin: string;
+  externalLink: string;
 }
 
 export interface PricingModel {

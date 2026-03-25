@@ -7,14 +7,31 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions = {
-  init: async ({request, cookies}) => {
+  fiatInit: async ({request, cookies}) => {
     const formData = await request.formData();
     const type = formData.get('type')?.toString().toLowerCase();
     return await fetchBackend(`/billing/fiat/checkout?type=${type}`, 'GET', undefined, cookies.get('token'));
   },
-  confirm: async ({request, cookies}) => {
+  fiatConfirm: async ({request, cookies}) => {
     const formData = await request.formData();
     const type = formData.get('type')?.toString().toLowerCase();
     return await fetchBackend(`/billing/fiat/checkout-after-confirm?type=${type}`, 'GET', undefined, cookies.get('token'));
+  },
+  cryptoInit: async ({request, cookies}) => {
+    const formData = await request.formData();
+    const plan = formData.get('plan')?.toString().toLowerCase();
+    const swapCoin = formData.get('swapCoin')?.toString().toLowerCase();
+    const refundAddress = formData.get('refundAddress')?.toString();
+
+    return await fetchBackend(`/billing/crypto/new-invoice`, 'POST', {plan, swapCoin, refundAddress}, cookies.get('token'));
+  },
+  cryptoRenew: async ({request, cookies}) => {
+    const formData = await request.formData();
+    const plan = formData.get('plan')?.toString().toLowerCase();
+    const swapCoin = formData.get('swapCoin')?.toString().toLowerCase();
+    const refundAddress = formData.get('refundAddress')?.toString();
+    const id = formData.get('id')?.toString();
+
+    return await fetchBackend(`/billing/crypto/renew`, 'POST', {plan, swapCoin, refundAddress, id}, cookies.get('token'));
   },
 } satisfies Actions;

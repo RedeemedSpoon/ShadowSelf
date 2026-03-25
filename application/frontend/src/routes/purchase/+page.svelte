@@ -1,5 +1,6 @@
 <script lang="ts">
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
+  import CopyButton from '$component/buttons/CopyButton.svelte';
   import Modal from '$component/containers/Modal.svelte';
 
   import CreditCardIcon from '$icon/finance/CreditCard.svelte';
@@ -16,6 +17,7 @@
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';
   import {page} from '$app/state';
+  import QRCode from 'qrcode';
 
   interface Props {
     data: PageData;
@@ -36,7 +38,15 @@
   let stripeLoaded = $state(false);
   let isStripeLoading = false;
 
+  let ws: WebSocket | null = null;
+  let qrImage = $state('');
+  let cryptoChoice = $state('xmr');
+  let cryptoInvoice = $state<Billing | null>(null);
+  let invoiceStatus = $state({message: 'Waiting for payment...', color: 'text-neutral-500'});
+  let renewID = $state(page.url.searchParams.get('renewID'));
+
   $effect(() => {
+    if (renewID && $activeModal === 0) $activeModal = 3;
     if ($activeModal === 1 && !stripeLoaded && !isStripeLoading) {
       isStripeLoading = true;
       initStripe();
@@ -52,7 +62,60 @@
       form.step = '' as Billing['step'];
       handleCheckout();
     }
+    if (form?.invoiceID) {
+      cryptoInvoice = form;
+      generateQR();
+      connectWS();
+    }
   });
+
+  async function generateQR() {
+    qrImage = await QRCode.toDataURL(cryptoInvoice!.depositAddress, {width: 300, margin: 2});
+  }
+
+  function connectWS() {
+    if (ws) ws.close();
+    invoiceStatus = {message: 'Connecting to server...', color: 'text-yellow-500'};
+    ws = new WebSocket(`wss//${window.location.host}/billing/crypto/track-invoice/${cryptoInvoice?.invoiceID}`);
+
+    const handleConnectionClose = () => {
+      if (!invoiceStatus.message.includes('expired')) {
+        invoiceStatus = {message: 'Connection lost. Please refresh.', color: 'text-red-500'};
+      }
+    };
+
+    ws.onopen = () => (invoiceStatus = {message: 'Connected. Waiting for payment.', color: 'text-green-500'});
+    ws.onclose = handleConnectionClose;
+    ws.onerror = handleConnectionClose;
+
+    ws.onmessage = async (event) => {
+      const data = JSON.parse(event.data);
+      if (data.status === 'paid') {
+        notify('Payment received!', 'success');
+        await await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        if (renewID) window.location.href = '/dashboard';
+        else window.location.href = '/create?id=' + data.identityID;
+      }
+
+      if (data.status === 'underpaid') {
+        const message = `Underpaid! Please send ${data.remainingAmount} more ${cryptoInvoice?.coin.toUpperCase()}`;
+        invoiceStatus = {message, color: 'text-yellow-500'};
+        notify(message, 'info');
+      }
+
+      if (data.status === 'expired') {
+        const message = 'Invoice expired. Please generate a new one.';
+        invoiceStatus = {message, color: 'text-red-500'};
+        notify(message, 'alert');
+
+        setTimeout(() => {
+          $activeModal = 0;
+          cryptoInvoice = null;
+        }, 3000);
+      }
+    };
+  }
 
   function changeModel(model: string) {
     const chosenModel = model.toLowerCase() as keyof typeof PRICING_TIERS;
@@ -176,11 +239,15 @@
     </section>
 
     <section id="payment-methods" class="my-10">
-      <form class="flex gap-6 px-8 max-sm:flex-col" action="?/init" method="POST" use:enhance={() => awaitPending(true, 1)}>
-        <input hidden value={$pricingModel.name} name="type" type="hidden" />
-        <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="w-8! h-8!" />Pay With Card</LoadingButton>
-        <LoadingButton className="px-10 py-6 font-semibold"><WalletIcon className="w-8! h-8!" />Pay With Crypto</LoadingButton>
-      </form>
+      <div class="payment-buttons flex gap-6 px-8 max-sm:flex-col">
+        <form action="?/fiatInit" method="POST" use:enhance={() => awaitPending(true, 1)}>
+          <input hidden value={$pricingModel.name} name="type" type="hidden" />
+          <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="w-8! h-8!" />Pay With Card</LoadingButton>
+        </form>
+        <LoadingButton index={2} type="button" onclick={() => ($activeModal = 3)} className="px-10 py-6 font-semibold">
+          <WalletIcon className="w-8! h-8!" />Pay With Crypto
+        </LoadingButton>
+      </div>
     </section>
   </div>
 </div>
@@ -196,7 +263,7 @@
 </Modal>
 
 <Modal id={2}>
-  <form method="POST" action="?/confirm" use:enhance={() => awaitPending(true, 2)} class="m-6 mb-2 flex flex-col gap-8">
+  <form method="POST" action="?/fiatConfirm" use:enhance={() => awaitPending(true, 2)} class="m-6 mb-2 flex flex-col gap-8">
     <h3 class="text-4xl font-bold text-neutral-300">Confirm Payment</h3>
     <p class="w-140 max-w-[80vw]">
       Are you sure you want to pay ${$pricingModel.price} for an identity with your {cardName} credits card ending with ****{last4}?
@@ -213,6 +280,75 @@
       {/if}
     {/key}
   </form>
+</Modal>
+
+<Modal id={3}>
+  <div class="m-4 flex flex-col gap-8" id="crypto-modal">
+    <h3 class="text-center text-4xl font-bold text-neutral-300">Crypto Checkout</h3>
+    {#if !cryptoInvoice}
+      <form
+        method="POST"
+        action={renewID ? '?/cryptoRenew' : '?/cryptoInit'}
+        use:enhance={() => awaitPending(true, 3)}
+        class="flex flex-col gap-6">
+        <input hidden value={$pricingModel.name} name="plan" type="hidden" />
+        <input hidden value={cryptoChoice} name="swapCoin" type="hidden" />
+        <input hidden value={renewID || 0} name="id" type="hidden" />
+
+        <div class="flex flex-col gap-2">
+          <label for="cryptoChoice" class="text-sm text-neutral-500">Enter Coin Ticker (BTC, DOGE, SOL etc.)</label>
+          <input type="text" id="cryptoChoice" bind:value={cryptoChoice} required placeholder="XMR" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="refundAddress" class="text-sm text-neutral-500">
+            Refund Address (Optional, for {cryptoChoice.toUpperCase()})
+          </label>
+          <input
+            type="text"
+            id="refundAddress"
+            name="refundAddress"
+            placeholder="Enter your {cryptoChoice.toUpperCase()} refund address" />
+        </div>
+
+        <LoadingButton index={3} type="submit">Generate Invoice</LoadingButton>
+      </form>
+    {:else}
+      <div class="flex flex-col items-center gap-6">
+        <div class="rounded-xl bg-white p-4">
+          <img src={qrImage} alt="Deposit QR Code" class="h-64 w-64 object-contain" />
+        </div>
+
+        <div class="flex w-full flex-col gap-4 rounded-xl border-2 border-neutral-600 bg-neutral-800/50 p-6">
+          <div class="flex flex-col gap-1">
+            <span class="text-sm text-neutral-500">Amount to send</span>
+            <div class="flex items-center justify-between">
+              <span class="text-primary-700 text-2xl font-bold">{cryptoInvoice.depositAmount} {cryptoInvoice.coin.toUpperCase()}</span>
+              <CopyButton text={cryptoInvoice.depositAmount.toString()} />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <span class="text-sm text-neutral-500">Deposit Address</span>
+            <div class="flex items-center justify-between gap-4">
+              <span class="font-mono text-sm break-all text-neutral-300">{cryptoInvoice.depositAddress}</span>
+              <CopyButton text={cryptoInvoice.depositAddress} />
+            </div>
+          </div>
+
+          {#if cryptoInvoice.externalLink}
+            <a href={cryptoInvoice.externalLink} target="_blank" rel="noopener noreferrer" class="mt-2 text-center text-sm">
+              Track swap on Trocador
+            </a>
+          {/if}
+        </div>
+
+        <div class="mt-2 flex items-center justify-center gap-2 text-sm">
+          <p class="text-center text-sm {invoiceStatus.color}">{invoiceStatus.message}</p>
+        </div>
+      </div>
+    {/if}
+  </div>
 </Modal>
 
 <style lang="postcss">
@@ -242,5 +378,13 @@
 
   li {
     @apply flex items-center gap-4;
+  }
+
+  #crypto-modal input {
+    @apply border-neutral-700! bg-neutral-900/50! placeholder-neutral-700;
+  }
+
+  .payment-buttons > * {
+    @apply w-auto!;
   }
 </style>

@@ -29,7 +29,7 @@ async function initMoneroWallet() {
         primaryAddress: moneroWallet.address,
         privateViewKey: moneroWallet.viewKey,
         server: XMR_NODE,
-        restoreHeight: 3100000,
+        restoreHeight: 3300000,
       }),
     );
   }
@@ -156,11 +156,11 @@ async function pollPrices() {
 }
 
 export function initBackgroundWorkers() {
-  initMoneroWallet();
-  pollPrices();
   pollFees();
+  pollPrices();
+  initMoneroWallet();
 
-  setInterval(pollInvoices, POLL_INVOICES_INTERVAL);
-  setInterval(pollPrices, POLL_PRICES_INTERVAL);
   setInterval(pollFees, POLL_FEES_INTERVAL);
+  setInterval(pollPrices, POLL_PRICES_INTERVAL);
+  setInterval(pollInvoices, POLL_INVOICES_INTERVAL);
 }
