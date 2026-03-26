@@ -363,7 +363,7 @@ export interface CryptoAPI extends BaseAPI {
   depositAddress?: string;
   depositAmount?: number;
   depositMemo?: string;
-  providerTradeId?: string;
+  providerTradeID?: string;
   externalLink?: string;
   blob?: string;
 }

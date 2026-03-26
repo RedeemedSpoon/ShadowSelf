@@ -31,6 +31,6 @@
   <li>
     <code>depositMemo</code> (<span class="string">string</span>, optional): A memo/tag required for the deposit (if applicable).
   </li>
-  <li><code>providerTradeId</code> (<span class="string">string</span>): The trade ID assigned by the provider.</li>
+  <li><code>providerTradeID</code> (<span class="string">string</span>): The trade ID assigned by the provider.</li>
   <li><code>externalLink</code> (<span class="string">string</span>): A URL to track the trade status on the provider's website.</li>
 </ul>

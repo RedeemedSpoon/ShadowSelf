@@ -111,7 +111,7 @@ export default new Elysia({prefix: '/crypto'})
           depositAddress: data.address_provider,
           depositAmount: data.amount_from,
           depositMemo: data.address_provider_memo,
-          providerTradeId: data.id_provider,
+          providerTradeID: data.id_provider,
           externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
         };
       } catch (_) {

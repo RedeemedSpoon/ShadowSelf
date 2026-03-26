@@ -10,10 +10,10 @@
 
   let {onScan, close, sweepWallet = false}: Props = $props();
   let qrCode: Html5Qrcode | null = $state(null);
-  let scannerId = 'reader';
+  let scannerID = 'reader';
 
   onMount(async () => {
-    qrCode = new Html5Qrcode(scannerId);
+    qrCode = new Html5Qrcode(scannerID);
     await qrCode.start(
       {facingMode: 'environment'},
       {fps: 10, qrbox: {width: 250, height: 250}},
@@ -63,7 +63,7 @@
 <div id="scanner">
   <div class="relative w-full overflow-hidden">
     <h3 class="w-full p-4 pt-1 text-center text-2xl font-bold text-neutral-300">{title}</h3>
-    <div id={scannerId} class="mt-4 bg-neutral-800"></div>
+    <div id={scannerID} class="mt-4 bg-neutral-800"></div>
     <div id="file-reader-hidden" class="hidden"></div>
     <div class="flex flex-col gap-3 p-4">
       <p class="mb-2 text-center text-xs text-neutral-500">{explainer}</p>

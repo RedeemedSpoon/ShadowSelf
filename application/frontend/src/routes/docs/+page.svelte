@@ -42,13 +42,13 @@
     anchor = hash;
   };
 
-  const copyToMarkdown = async (element: HTMLElement, sectionId?: string) => {
+  const copyToMarkdown = async (element: HTMLElement, sectionID?: string) => {
     const markdown = formatToMarkdown(element);
     await navigator.clipboard.writeText(markdown);
 
-    if (sectionId) {
-      copiedSections[sectionId] = true;
-      setTimeout(() => (copiedSections[sectionId] = false), 2000);
+    if (sectionID) {
+      copiedSections[sectionID] = true;
+      setTimeout(() => (copiedSections[sectionID] = false), 2000);
     } else {
       copiedGlobal = true;
       setTimeout(() => (copiedGlobal = false), 2000);

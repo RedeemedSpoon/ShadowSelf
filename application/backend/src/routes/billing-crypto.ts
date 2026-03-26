@@ -80,7 +80,7 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
         depositAddress: data.address_provider,
         depositAmount: data.amount_from,
         depositMemo: data.address_provider_memo,
-        providerTradeId: data.id_provider,
+        providerTradeID: data.id_provider,
         externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
         coin: swapCoin,
       };
@@ -155,7 +155,7 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
         depositAddress: data.address_provider,
         depositAmount: data.amount_from,
         depositMemo: data.address_provider_memo,
-        providerTradeId: data.id_provider,
+        providerTradeID: data.id_provider,
         externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
         coin: swapCoin,
       };
