@@ -2,6 +2,7 @@
   "id": "ide38349c0ab",
   "creationDate": "2023-10-27T10:30:00Z",
   "plan": "monthly",
+  "paymentMethod": "crypto",
   "proxyServer": "125.73.217.156/32",
   "picture": "iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8x...",
   "name": "Jane Doe",
@@ -13,6 +14,7 @@
   "email": "jane.doe@shadowself.io",
   "phone": "+14165550123",
   "walletFunds": 1250.5,
+  "walletBlob": "U2FsdGVkX19nb...",
   "walletKeys": {
     "btc": "xpub6CUGRUonZSQ4...",
     "ltc": "Ltub2Z...",
@@ -21,6 +23,5 @@
       "address": "44AFFq...",
       "viewKey": "f3aa..."
     }
-  },
-  "walletBlob": "U2FsdGVkX19nb..."
+  }
 }

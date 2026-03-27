@@ -22,7 +22,7 @@ export default new Elysia({prefix: '/identity'})
       walletBlob: wallet_blob,
     };
 
-    return {...rest, ...reformattedData};
+    return {...rest, ...reformattedData, paymentMethod: crypto_invoice ? 'crypto' : 'fiat'};
   })
   .patch(
     '/regenerate-picture/:id',

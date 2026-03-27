@@ -20,6 +20,10 @@
     created.
   </li>
   <li>
+    <code>paymentMethod</code> (<span class="string">string</span>): The payment method used in the plan. Values : <code>'fiat'</code>,
+    or <code>'crypto'</code>.
+  </li>
+  <li>
     <code>plan</code> (<span class="string">string</span>): The subscription tier associated with this identity. Values:
     <code>'monthly'</code>, <code>'annually'</code>, or <code>'lifetime'</code>.
   </li>
@@ -43,11 +47,11 @@
     identity's wallet, denominated in USD.
   </li>
   <li>
-    <code>walletKeys</code> (<span class="object">object</span>): A JSON object containing the watch-only public keys (XPUBs,
-    Addresses, ViewKeys) for Bitcoin, Litecoin, Ethereum, Tether and Monero.
-  </li>
-  <li>
     <code>walletBlob</code> (<span class="string">string</span>): The AES-GCM encrypted base64 string containing the private mnemonic
     seed.
+  </li>
+  <li>
+    <code>walletKeys</code> (<span class="object">object</span>): A JSON object containing the watch-only public keys (XPUBs,
+    Addresses, ViewKeys) for Bitcoin, Litecoin, Ethereum, Tether and Monero.
   </li>
 </ul>

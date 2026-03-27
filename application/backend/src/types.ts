@@ -105,6 +105,17 @@ export interface QueryIdentity {
   wallet_funds: number;
 }
 
+export interface QueryInvoice {
+  id: string;
+  owner: number;
+  plan: 'monthly' | 'annually' | 'lifetime';
+  status: 'pending' | 'confirming' | 'paid' | 'underpaid' | 'expired' | 'refunded';
+  xmr_subaddress: string;
+  xmr_amount: string;
+  renewal_id: string;
+  creation_date: Date;
+}
+
 export interface QueryAccount {
   id: string;
   owner: string;
@@ -161,6 +172,7 @@ export interface APIRequest {
   bio: string;
   picture: string;
   id: number;
+  identityID: string;
   username: string;
   password: string;
   website: string;

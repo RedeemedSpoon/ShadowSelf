@@ -43,4 +43,11 @@
   <li>
     <code>accounts</code> (<span class="integer">integer</span>): The number of associated accounts entries stored for this identity.
   </li>
+  <li>
+    <code>paymentMethod</code> (<span class="string">string</span>): The original payment method used, either 'crypto' or 'fiat'.
+  </li>
+  <li>
+    <code>plan</code> (<span class="string">string</span>): The plan this identity uses, could be either 'monthly', 'annually' or
+    'lifetime'.
+  </li>
 </ul>

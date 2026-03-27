@@ -1,4 +1,4 @@
-import type {QueryIdentity, QueryUser} from '@type';
+import type {QueryIdentity, QueryInvoice, QueryUser} from '@type';
 import {jwtSecret} from '@core/config';
 import {sql} from '@core/services';
 import {jwt} from '@elysiajs/jwt';
@@ -40,7 +40,8 @@ export default (app: Elysia) =>
     const identity = result[0];
 
     if (identity.crypto_invoice) {
-      const invoice = await sql`SELECT creation_date, plan FROM crypto_invoices WHERE id = ${identity.crypto_invoice}`;
+      const invoice =
+        (await sql`SELECT creation_date, plan FROM crypto_invoices WHERE id = ${identity.crypto_invoice}`) as QueryInvoice[];
 
       if (invoice.length) {
         const {creation_date, plan} = invoice[0];
@@ -60,6 +61,10 @@ export default (app: Elysia) =>
       }
     }
 
-    if (identity.status === 'frozen') return error(set, 402, 'Identity is frozen');
+    if (identity.status === 'frozen') {
+      const details = !identity.crypto_invoice ? `[crypto/${identity.plan}]` : `[fiat/${identity.plan}]`;
+      return error(set, 402, 'Identity is frozen ' + details);
+    }
+
     return {identity};
   });

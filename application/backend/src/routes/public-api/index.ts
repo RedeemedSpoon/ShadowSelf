@@ -23,14 +23,15 @@ export default new Elysia()
 
     const allIdentitiesPromises = result.map(async (identity) => {
       if (!identity.name) return {id: identity.id};
-      const {id, name, email, phone, wallet_funds} = identity;
+      const {id, name, email, phone, wallet_funds: walletFunds, crypto_invoice, plan} = identity;
 
       const country = identity.location.split(',')[0];
       const location = identity.location.slice(4).trim();
+      const paymentMethod = crypto_invoice ? 'crypto' : 'fiat';
       const accounts = (await sql`SELECT * FROM accounts WHERE owner = ${id}`)?.length;
       const picture = await resizeTo256(identity.picture);
 
-      return {id, name, email, phone, country, picture, location, accounts, walletFunds: wallet_funds};
+      return {id, name, email, phone, country, picture, location, accounts, walletFunds, paymentMethod, plan};
     });
 
     return await Promise.all(allIdentitiesPromises);

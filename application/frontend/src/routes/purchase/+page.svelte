@@ -13,10 +13,12 @@
   import {notify, awaitPending} from '$utils/shared';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import type {Notification, Billing} from '$type';
+  import {toTitleCase} from '$utils/formating';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';
   import {page} from '$app/state';
+  import {untrack} from 'svelte';
   import QRCode from 'qrcode';
 
   interface Props {
@@ -39,14 +41,25 @@
   let isStripeLoading = false;
 
   let ws: WebSocket | null = null;
+  let initialModalOpened = false;
+  let currentInvoiceID = '';
+
   let qrImage = $state('');
-  let cryptoChoice = $state('xmr');
+  let cryptoChoice = $state('XMR');
   let cryptoInvoice = $state<Billing | null>(null);
   let invoiceStatus = $state({message: 'Waiting for payment...', color: 'text-neutral-500'});
-  let renewID = $state(page.url.searchParams.get('renewID'));
+
+  let renewID = $state(page.url.searchParams.get('id'));
+  let plan = $state(page.url.searchParams.get('plan'));
+  let isRenewing = $derived(plan && renewID);
 
   $effect(() => {
-    if (renewID && $activeModal === 0) $activeModal = 3;
+    if (isRenewing && $activeModal === 0 && !initialModalOpened) {
+      $pricingModel = {name: plan!, ...PRICING_TIERS[plan as 'monthly']};
+      initialModalOpened = true;
+      $activeModal = 3;
+    }
+
     if ($activeModal === 1 && !stripeLoaded && !isStripeLoading) {
       isStripeLoading = true;
       initStripe();
@@ -62,21 +75,27 @@
       form.step = '' as Billing['step'];
       handleCheckout();
     }
-    if (form?.invoiceID) {
-      cryptoInvoice = form;
-      generateQR();
-      connectWS();
+
+    if (form?.invoiceID && form.invoiceID !== currentInvoiceID) {
+      untrack(() => {
+        currentInvoiceID = form.invoiceID;
+        cryptoInvoice = form;
+        generateQR();
+        connectWS();
+      });
     }
   });
 
   async function generateQR() {
-    qrImage = await QRCode.toDataURL(cryptoInvoice!.depositAddress, {width: 300, margin: 2});
+    const svg = await QRCode.toString(cryptoInvoice!.depositAddress, {type: 'svg', margin: 2});
+    qrImage = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
   }
 
   function connectWS() {
     if (ws) ws.close();
+
     invoiceStatus = {message: 'Connecting to server...', color: 'text-yellow-500'};
-    ws = new WebSocket(`wss//${window.location.host}/billing/crypto/track-invoice/${cryptoInvoice?.invoiceID}`);
+    ws = new WebSocket(`wss://${page.url.hostname}/billing/crypto/track-invoice/${cryptoInvoice?.invoiceID}`);
 
     const handleConnectionClose = () => {
       if (!invoiceStatus.message.includes('expired')) {
@@ -94,7 +113,7 @@
         notify('Payment received!', 'success');
         await await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        if (renewID) window.location.href = '/dashboard';
+        if (isRenewing) window.location.href = '/dashboard';
         else window.location.href = '/create?id=' + data.identityID;
       }
 
@@ -112,6 +131,7 @@
         setTimeout(() => {
           $activeModal = 0;
           cryptoInvoice = null;
+          currentInvoiceID = '';
         }, 3000);
       }
     };
@@ -119,7 +139,7 @@
 
   function changeModel(model: string) {
     const chosenModel = model.toLowerCase() as keyof typeof PRICING_TIERS;
-    pricingModel.set({name: model, ...PRICING_TIERS[chosenModel]});
+    $pricingModel = {name: model, ...PRICING_TIERS[chosenModel]};
   }
 
   async function handleCheckout() {
@@ -208,21 +228,31 @@
 
 <div id="purchase">
   <section id="top-text">
-    <h1 class="text-4xl font-bold text-neutral-300 sm:text-6xl">Choose your plan</h1>
+    <h1 class="text-4xl font-bold text-neutral-300 sm:text-6xl">
+      {isRenewing ? 'Renew your plan' : 'Choose your plan'}
+    </h1>
     <p class="text-center text-neutral-400">
-      All plans include a 14-day refund, 24/7 support and the same level of security.
+      {#if isRenewing}
+        You are renewing your existing identity. Your data and settings will be preserved.
+      {:else}
+        All plans include a 14-day refund, 24/7 support and the same level of security.
+      {/if}
       <br />Buying with crypto gives a <b class="text-primary-600">{CRYPTO_DISCOUNT}% discount</b> across the board
     </p>
   </section>
   <div id="purchase-box">
-    <section id="plans" class="flex-row! gap-0!">
-      {#each ['Monthly', 'Annually', 'Lifetime'] as model (model)}
-        <button class:active={$pricingModel.name === model} type="button" onclick={() => changeModel(model)}>{model}</button>
-      {/each}
-    </section>
+    {#if !isRenewing}
+      <section id="plans" class="flex-row! gap-0!">
+        {#each ['Monthly', 'Annually', 'Lifetime'] as model (model)}
+          <button class:active={$pricingModel.name === model} type="button" onclick={() => changeModel(model)}>{model}</button>
+        {/each}
+      </section>
+    {/if}
 
     <section id="tier-table">
-      <h2 class="mt-8 text-3xl font-bold text-neutral-300 md:text-5xl">Complete Identity</h2>
+      <h2 class="mt-10 text-3xl font-bold text-neutral-300 md:text-5xl">
+        {isRenewing ? `Identity ${toTitleCase(plan!).slice(0, -2)} Renewal` : 'Complete Identity'}
+      </h2>
       {#key $pricingModel.price}
         <div in:fly={{x: -30, duration: 1000, opacity: 0}} class="my-1 flex flex-col items-center">
           <h1 class="text-primary-600 flex items-start gap-1 text-6xl">
@@ -240,12 +270,14 @@
 
     <section id="payment-methods" class="my-10">
       <div class="payment-buttons flex gap-6 px-8 max-sm:flex-col">
-        <form action="?/fiatInit" method="POST" use:enhance={() => awaitPending(true, 1)}>
-          <input hidden value={$pricingModel.name} name="type" type="hidden" />
-          <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="w-8! h-8!" />Pay With Card</LoadingButton>
-        </form>
+        {#if !isRenewing}
+          <form action="?/fiatInit" method="POST" use:enhance={() => awaitPending(true, 1)}>
+            <input hidden value={$pricingModel.name} name="type" type="hidden" />
+            <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="w-8! h-8!" />Pay With Card</LoadingButton>
+          </form>
+        {/if}
         <LoadingButton index={2} type="button" onclick={() => ($activeModal = 3)} className="px-10 py-6 font-semibold">
-          <WalletIcon className="w-8! h-8!" />Pay With Crypto
+          <WalletIcon className="w-8! h-8!" />{isRenewing ? 'Extend Crypto Subscription' : 'Pay With Crypto'}
         </LoadingButton>
       </div>
     </section>
@@ -288,12 +320,12 @@
     {#if !cryptoInvoice}
       <form
         method="POST"
-        action={renewID ? '?/cryptoRenew' : '?/cryptoInit'}
+        action={isRenewing ? '?/cryptoRenew' : '?/cryptoInit'}
         use:enhance={() => awaitPending(true, 3)}
         class="flex flex-col gap-6">
         <input hidden value={$pricingModel.name} name="plan" type="hidden" />
         <input hidden value={cryptoChoice} name="swapCoin" type="hidden" />
-        <input hidden value={renewID || 0} name="id" type="hidden" />
+        <input hidden value={renewID || 0} name="identityID" type="hidden" />
 
         <div class="flex flex-col gap-2">
           <label for="cryptoChoice" class="text-sm text-neutral-500">Enter Coin Ticker (BTC, DOGE, SOL etc.)</label>
@@ -304,42 +336,34 @@
           <label for="refundAddress" class="text-sm text-neutral-500">
             Refund Address (Optional, for {cryptoChoice.toUpperCase()})
           </label>
-          <input
-            type="text"
-            id="refundAddress"
-            name="refundAddress"
-            placeholder="Enter your {cryptoChoice.toUpperCase()} refund address" />
+          <input type="text" id="refundAddress" name="refundAddress" placeholder="{cryptoChoice.toUpperCase()} refund address" />
         </div>
 
         <LoadingButton index={3} type="submit">Generate Invoice</LoadingButton>
       </form>
     {:else}
-      <div class="flex flex-col items-center gap-6">
+      <div class="flex w-full max-w-2xl flex-col items-center gap-6">
         <div class="rounded-xl bg-white p-4">
           <img src={qrImage} alt="Deposit QR Code" class="h-64 w-64 object-contain" />
         </div>
 
+        <footer class="text-xs font-medium tracking-widest text-neutral-500 uppercase">
+          Scan with Camera or copy the address below
+        </footer>
+
         <div class="flex w-full flex-col gap-4 rounded-xl border-2 border-neutral-600 bg-neutral-800/50 p-6">
           <div class="flex flex-col gap-1">
-            <span class="text-sm text-neutral-500">Amount to send</span>
-            <div class="flex items-center justify-between">
-              <span class="text-primary-700 text-2xl font-bold">{cryptoInvoice.depositAmount} {cryptoInvoice.coin.toUpperCase()}</span>
-              <CopyButton text={cryptoInvoice.depositAmount.toString()} />
-            </div>
+            <span class="text-sm text-neutral-500">Amount to send (in {cryptoChoice.trim().toUpperCase()})</span>
+            <CopyButton className={'truncate w-96 text-left'} text={cryptoInvoice.depositAmount.toString()} />
           </div>
 
           <div class="flex flex-col gap-1">
             <span class="text-sm text-neutral-500">Deposit Address</span>
-            <div class="flex items-center justify-between gap-4">
-              <span class="font-mono text-sm break-all text-neutral-300">{cryptoInvoice.depositAddress}</span>
-              <CopyButton text={cryptoInvoice.depositAddress} />
-            </div>
+            <CopyButton className={'truncate w-96 text-left'} text={cryptoInvoice.depositAddress} />
           </div>
 
           {#if cryptoInvoice.externalLink}
-            <a href={cryptoInvoice.externalLink} target="_blank" rel="noopener noreferrer" class="mt-2 text-center text-sm">
-              Track swap on Trocador
-            </a>
+            <a href={cryptoInvoice.externalLink} target="_blank" rel="noopener noreferrer" class="mt-2"> Track swap on Trocador </a>
           {/if}
         </div>
 

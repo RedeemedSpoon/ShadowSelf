@@ -299,7 +299,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
       case 'ethnicity':
         if (typeof body.ethnicity !== 'string' || !ETHNICITIES.includes(body.ethnicity)) {
-          return {err: 'Ethnicity must be a valid ethnicity from the allowed list'} as APIRequest;
+          return {err: 'Ethnicity must be a valid ethnicity'} as APIRequest;
         }
         break;
 
@@ -365,13 +365,13 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
       case 'id':
         if (typeof body.id !== 'number' || !Number.isInteger(body.id) || body.uid < 1) {
-          return {err: 'Invalid ID (must be a positive integer), please try again'} as APIRequest;
+          return {err: 'Invalid ID, please try again'} as APIRequest;
         }
         break;
 
       case 'uid':
         if (typeof body.uid !== 'number' || !Number.isInteger(body.uid) || body.uid < 1) {
-          return {err: 'Invalid email UID (must be a positive integer), please try again'} as APIRequest;
+          return {err: 'Invalid email UID), please try again'} as APIRequest;
         }
         break;
 
@@ -391,9 +391,19 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         }
         break;
 
+      case 'identityID':
+        if (typeof body.identityID !== 'string') {
+          return {err: 'Identity ID must be a string'} as APIRequest;
+        }
+
+        if (body.identityID.length !== 12) {
+          return {err: 'Invalid Identity ID, please try again'} as APIRequest;
+        }
+        break;
+
       case 'since':
         if (typeof body.since !== 'string' || !Number.isInteger(Number(body.since)) || Number(body.since) < 1) {
-          return {err: 'Invalid since parameter (must be a positive integer), please try again'} as APIRequest;
+          return {err: 'Invalid since parameter, please try again'} as APIRequest;
         }
         break;
 
@@ -403,7 +413,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         }
 
         if (!/^\+\d{10,15}$/.test(body.addressee)) {
-          return {err: 'Invalid phone number format (e.g. +1xxxxxxxxxx), please try again'} as APIRequest;
+          return {err: 'Invalid phone number format, please try again'} as APIRequest;
         }
         break;
 
@@ -422,7 +432,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Body must be a string'} as APIRequest;
         }
 
-        if (body.body.trim().length < 2) {
+        if (body.body.trim().length < 4) {
           return {err: 'Body is too short, please try again'} as APIRequest;
         }
         break;

@@ -135,6 +135,7 @@ export interface FullIdentity {
   id: string;
   creationDate: Date;
   plan: 'monthly' | 'annually' | 'lifetime';
+  paymentMethod: string;
   proxyServer: string;
   location: string;
   picture: string;

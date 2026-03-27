@@ -5,6 +5,9 @@ declare global {
     interface PageData {
       user: string;
       token: string;
+      subsPlan?: string;
+      isFrozen?: boolean;
+      cryptoUse?: boolean;
       homepageIds?: string[];
       contactOptions?: Option[];
       animations?: AnimationSelector[];

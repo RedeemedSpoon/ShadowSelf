@@ -30,8 +30,8 @@ export const actions = {
     const plan = formData.get('plan')?.toString().toLowerCase();
     const swapCoin = formData.get('swapCoin')?.toString().toLowerCase();
     const refundAddress = formData.get('refundAddress')?.toString();
-    const id = formData.get('id')?.toString();
+    const identityID = formData.get('identityID')?.toString();
 
-    return await fetchBackend(`/billing/crypto/renew`, 'POST', {plan, swapCoin, refundAddress, id}, cookies.get('token'));
+    return await fetchBackend(`/billing/crypto/renew`, 'POST', {plan, swapCoin, refundAddress, identityID}, cookies.get('token'));
   },
 } satisfies Actions;

@@ -1,8 +1,8 @@
 import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, PAYMENT_WINDOW_MIN, RESTORE_HEIGHT} from '@core/constants';
 import {cryptoFees, cryptoPrices, invoiceConnections, watchWallet, setWatchWallet} from '@core/states';
 import {BTC_API, ETH_API, LTC_API, XMR_NODE, COINGECKO_URL} from '@core/constants';
+import type {CryptoCurrencies, QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
-import type {CryptoCurrencies} from '@type';
 import {moneroWallet} from '@core/config';
 import {safeFetch} from '@utils/utils';
 import {sql} from '@core/services';
@@ -57,7 +57,7 @@ async function pollInvoices() {
   if (!watchWallet) return;
 
   await watchWallet.sync();
-  const invoices = await sql`SELECT * FROM crypto_invoices WHERE status IN ('pending', 'confirming', 'underpaid')`;
+  const invoices = (await sql`SELECT * FROM crypto_invoices WHERE status IN ('pending', 'confirming', 'underpaid')`) as QueryInvoice[];
   let stateChanged = false;
 
   for (const invoice of invoices) {

@@ -1,10 +1,10 @@
 import {cryptoPrices, invoiceConnections, watchWallet} from '@core/states';
 import {CRYPTO_DISCOUNT, PRICING_TIERS} from '@core/constants';
 import middlewareBase from '@middlewares/middleware-base';
+import type {QueryIdentity, QueryUser} from '@type';
 import {trocadorApiKey} from '@core/config';
 import {error, net} from '@utils/utils';
 import {checkAPI} from '@utils/checks';
-import type {QueryUser} from '@type';
 import {sql} from '@core/services';
 import {Elysia, t} from 'elysia';
 
@@ -89,14 +89,16 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
     }
   })
   .post('/renew', async ({set, user, body}) => {
-    const {err, plan, swapCoin, refundAddress, id} = await checkAPI(body, ['plan', 'swapCoin', 'id', '?refundAddress']);
+    const fields = ['plan', 'swapCoin', 'identityID', '?refundAddress'];
+    const {err, plan, swapCoin, refundAddress, identityID} = await checkAPI(body, fields);
     if (err) return error(set, 400, err);
 
     const customer = (await sql`SELECT id FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const owner = customer[0].id;
 
-    const identity = await sql`SELECT id FROM identities WHERE id = ${id} AND owner = ${owner}`;
+    const identity = await sql`SELECT id, plan FROM identities WHERE id = ${identityID} AND owner = ${owner}`;
     if (!identity.length) return error(set, 404, 'Identity not found');
+    if (identity[0].plan !== plan) return error(set, 404, 'Plan does not match');
 
     const fiatPrice = PRICING_TIERS[plan as keyof typeof PRICING_TIERS] / 100;
     const discountedPrice = fiatPrice * (1 - CRYPTO_DISCOUNT / 100);
@@ -105,12 +107,12 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
     if (!xmrPrice) return error(set, 503, 'Crypto prices are currently unavailable');
 
     const xmrAmount = discountedPrice / xmrPrice;
-    const subaddress = await watchWallet.createSubaddress(0, `Renewal for ${id}`);
+    const subaddress = await watchWallet.createSubaddress(0, `Renewal for ${identityID}`);
     const xmrSubaddress = subaddress.getAddress();
 
     const invoiceResult = await sql`
       INSERT INTO crypto_invoices (owner, plan, xmr_subaddress, xmr_amount, renewal_id)
-      VALUES (${owner}, ${plan}, ${xmrSubaddress}, ${xmrAmount}, ${id})
+      VALUES (${owner}, ${plan}, ${xmrSubaddress}, ${xmrAmount}, ${identityID})
       RETURNING id
     `;
 
@@ -119,7 +121,7 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
     if (swapCoin === 'xmr') {
       return {
         invoiceID,
-        identityID: id,
+        identityID: identityID,
         depositAddress: xmrSubaddress,
         depositAmount: xmrAmount,
         coin: 'xmr',
@@ -151,7 +153,7 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
 
       return {
         invoiceID,
-        identityID: id,
+        identityID: identityID,
         depositAddress: data.address_provider,
         depositAmount: data.amount_from,
         depositMemo: data.address_provider_memo,

@@ -8,7 +8,9 @@
     "country": "CA",
     "location": "Toronto, Canada",
     "walletFunds": 1250.5,
-    "accounts": 21
+    "accounts": 21,
+    "paymentMethod": "crypto",
+    "plan": "lifetime"
   },
   {
     "id": "awe9ff12a4de",
@@ -19,6 +21,8 @@
     "country": "GB",
     "location": "London, United Kingdom",
     "walletFunds": 0,
-    "accounts": 6
+    "accounts": 6,
+    "paymentMethod": "fiat",
+    "plan": "monthly"
   }
 ]

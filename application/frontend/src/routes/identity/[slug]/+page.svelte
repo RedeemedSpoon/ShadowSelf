@@ -130,33 +130,34 @@
   }
 
   onMount(() => {
-    $masterPassword = localStorage.getItem('key-' + $identity.id) || '';
-    let pingInterval: unknown;
+    $masterPassword = localStorage.getItem('key-' + data.slug) || '';
+    if ($identity?.id) {
+      let pingInterval: unknown;
+      ws = new WebSocket(`wss://${page.url.hostname}/ws-api/${data.identity?.id}`);
 
-    ws = new WebSocket(`wss://${page.url.hostname}/ws-api/${data.identity?.id}`);
+      ws.onopen = () => {
+        pingInterval = setInterval(() => ws?.send('ping'), 5000);
+      };
 
-    ws.onopen = () => {
-      pingInterval = setInterval(() => ws?.send('ping'), 5000);
-    };
+      ws.onerror = () => {
+        notify('Something went horribly wrong. Try reloading the page.', 'alert');
+      };
 
-    ws.onerror = () => {
-      notify('Something went horribly wrong. Try reloading the page.', 'alert');
-    };
+      ws.onclose = (ws) => {
+        clearInterval(pingInterval as number);
+        if (ws.code === 1014) notify(ws.reason, 'alert');
+      };
 
-    ws.onclose = (ws) => {
-      clearInterval(pingInterval as number);
-      if (ws.code === 1014) notify(ws.reason, 'alert');
-    };
+      ws.onmessage = (event) => {
+        if (Number(event.data) == event.data) return;
+        if (event.data === 'pong') return;
 
-    ws.onmessage = (event) => {
-      if (Number(event.data) == event.data) return;
-      if (event.data === 'pong') return;
+        const response = JSON.parse(event.data) as WebSocketMessage;
+        $handleResponse(response);
+      };
 
-      const response = JSON.parse(event.data) as WebSocketMessage;
-      $handleResponse(response);
-    };
-
-    window.onbeforeunload = () => ws.close();
+      window.onbeforeunload = () => ws.close();
+    }
   });
 </script>
 
@@ -169,15 +170,33 @@
   {#if data.isFrozen}
     <div class="flex min-h-[50vh] flex-col items-center justify-center gap-8">
       <h1>Identity Frozen</h1>
-      <p class="text-center">
-        This identity has been temporarily frozen due to a failed subscription payment.
-        <br class="max-lg:hidden" /> Please update your payment method in the billing portal to restore access.
-        <br class="max-lg:hidden" /> If the payment issue is not resolved within 7 days, this identity will be
-        <b>permanently deleted</b>.
-      </p>
-      <a href="/dashboard">
-        <button class="flex items-center gap-1"> ← Back to Dashboard </button>
-      </a>
+
+      {#if data.cryptoUse}
+        <p class="text-center">
+          This identity has been temporarily frozen because your subscription has expired.
+          <br class="max-lg:hidden" /> Please renew your subscription to restore access.
+          <br class="max-lg:hidden" /> If the subscription is not renewed within 7 days, this identity will be
+          <b>permanently deleted</b>.
+        </p>
+      {:else}
+        <p class="text-center">
+          This identity has been temporarily frozen due to a failed subscription payment.
+          <br class="max-lg:hidden" /> Please update your payment method in the billing portal to restore access.
+          <br class="max-lg:hidden" /> If the payment issue is not resolved within 7 days, this identity will be
+          <b>permanently deleted</b>.
+        </p>
+      {/if}
+
+      <div class="mt-8 flex justify-evenly gap-4">
+        <a href="/dashboard">
+          <button class="flex items-center gap-1 {data.cryptoUse && 'alt'}">← Back to Dashboard</button>
+        </a>
+        {#if data.cryptoUse}
+          <a href="/purchase?id={data.slug}&plan={data.subsPlan}">
+            <button>Renew Subscription</button>
+          </a>
+        {/if}
+      </div>
     </div>
   {:else if data.identity && browser}
     <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">

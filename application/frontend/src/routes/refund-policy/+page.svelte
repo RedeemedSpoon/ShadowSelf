@@ -13,8 +13,9 @@
   <section>
     <p>
       <span>TLDR</span> Not sure if Shadowself is right for you? No problem! If you purchased an identity and it was created less than 14
-      days ago, you can get a full refund. Just delete that specific identity from its individual page, and if eligible, your refund will
-      be processed automatically, usually within a few minutes on our end.
+      days ago, you can get a full refund. For credit card payments, just delete that specific identity from its individual page, and if
+      eligible, your refund will be processed automatically. For cryptocurrency payments, delete the identity and then contact us with your
+      Identity ID, email address and a Monero (XMR) address to receive your refund manually.
     </p>
   </section>
 
@@ -48,7 +49,12 @@
     <li>Delete the identity in the confirmation modal.</li>
     <li>
       Our system will automatically check if the identity was created less than 14 days ago. If eligible, the refund process will be
-      initiated automatically.
+      initiated automatically for credit card payments.
+    </li>
+    <li>
+      <b>If you paid with cryptocurrency:</b> Because crypto transactions are irreversible, we process these refunds manually. After
+      deleting the identity, please contact us through our <a href="/contact">contact page</a> with your <b>Identity ID</b>, the email
+      you used to register to ShadowSelf and a secure <b>Monero (XMR) address</b>.
     </li>
   </ol>
   <p>
@@ -59,12 +65,29 @@
   <h3>Refund Processing</h3>
   <p>Once an eligible refund is initiated by deleting the identity:</p>
   <ul>
-    <li>Our system will process the refund request automatically, typically within a few minutes.</li>
-    <li>The refund will be issued to the original payment method used for the purchase.</li>
     <li>
-      Please note that while we process the refund promptly on our end, it may take your bank or payment provider an additional <b
-        >5-10 business days</b> (or longer, depending on the provider) to reflect the refunded amount in your account. This timeframe is
-      outside of our direct control.
+      <b>For Credit Cards:</b> Our system will process the refund request automatically, typically within a few minutes. The refund
+      will be issued to the original payment method used for the purchase. Please note that while we process the refund promptly on our
+      end, it may take your bank or payment provider an additional <b>5-10 business days</b> (or longer, depending on the provider) to reflect
+      the refunded amount in your account. This timeframe is outside of our direct control.
+    </li>
+    <li>
+      <b>For Cryptocurrency:</b> We process these manually, usually within 72 hours of receiving your email with your XMR address. To
+      keep things simple and secure on our end, all manual refunds for canceled service or overpayments are issued in
+      <b>Monero (XMR)</b>, regardless of which coin you originally used to pay. Network transaction fees are non-refundable.
+    </li>
+  </ul>
+
+  <h3>Failed Crypto Swaps & Overpayments</h3>
+  <ul>
+    <li>
+      <b>If a swap fails:</b> If you are paying with a coin other than Monero (like Litecoin or Bitcoin) and the transaction times out or
+      fails to confirm, our swap partner will automatically return the funds to the 'Refund Address' you provided during checkout. Always
+      double-check that address before sending.
+    </li>
+    <li>
+      <b>If you overpay:</b> If you accidentally send more Monero than the invoice requested, the system will activate your account, but
+      it won't automatically credit the excess. Just reach out to us, and we'll manually refund the difference.
     </li>
   </ul>
 
@@ -77,9 +100,9 @@
 
   <h3>Data Privacy</h3>
   <p>
-    Any personal information processed in relation to your refund request will be handled in accordance with our <a
-      href="/privacy-policy">Privacy Policy</a
-    >. Deleting an identity as part of the refund process will also be subject to the data handling practices outlined therein.
+    Any personal information processed in relation to your refund request will be handled in accordance with our
+    <a href="/privacy-policy">Privacy Policy</a>. Deleting an identity as part of the refund process will also be subject to the data
+    handling practices outlined therein.
   </p>
 
   <h3>Changes to this Refund Policy</h3>

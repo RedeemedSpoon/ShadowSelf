@@ -5,9 +5,18 @@ import {redirect} from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({params, cookies}) => {
   const response = (await fetchBackend('/api/identity/' + params.slug, 'GET', undefined, cookies.get('token'))) as FullIdentity;
-  if ((response as any).message === 'Identity is frozen') return {slug: params.slug, identity: null, isFrozen: true};
-  if (!response.id) return {slug: params.slug, isFrozen: false, identity: null};
-  return {slug: params.slug, identity: response, isFrozen: false};
+
+  const slug = params.slug;
+  const message = (response as any)?.message as string | undefined;
+
+  if (message?.startsWith('Identity is frozen')) {
+    const subsPlan = message.includes('monthly') ? 'monthly' : 'annually';
+    const cryptoUse = message.includes('crypto') ? true : false;
+    return {slug, identity: null, isFrozen: true, subsPlan, cryptoUse};
+  }
+
+  if (!response.id) return {slug, isFrozen: false, identity: null};
+  else return {slug, identity: response, isFrozen: false};
 };
 
 export const actions: Actions = {
