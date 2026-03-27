@@ -17,6 +17,7 @@ export const POLL_FEES_INTERVAL = 120_000; // every 2 minutes
 
 export const UTXO_GAP_LIMIT = 5;
 export const UTXO_HARD_LIMIT = 120;
+export const RESTORE_HEIGHT = 3_600_000;
 
 export const PAYMENT_WINDOW_MIN = 40;
 export const CRYPTO_DISCOUNT = 20;

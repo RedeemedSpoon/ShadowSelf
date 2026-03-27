@@ -1,4 +1,4 @@
-import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, PAYMENT_WINDOW_MIN} from '@core/constants';
+import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, PAYMENT_WINDOW_MIN, RESTORE_HEIGHT} from '@core/constants';
 import {cryptoFees, cryptoPrices, invoiceConnections, watchWallet, setWatchWallet} from '@core/states';
 import {BTC_API, ETH_API, LTC_API, XMR_NODE, COINGECKO_URL} from '@core/constants';
 import {generateIdentityID} from '@utils/cryptography';
@@ -29,43 +29,36 @@ async function initMoneroWallet() {
         primaryAddress: moneroWallet.address,
         privateViewKey: moneroWallet.viewKey,
         server: XMR_NODE,
-        restoreHeight: 3300000,
+        restoreHeight: RESTORE_HEIGHT,
       }),
     );
+
+    await watchWallet.sync();
+    await saveWalletState();
   }
+}
 
-  const saveWalletState = async () => {
-    const data = await watchWallet.getData();
-    const keysBuffer = Buffer.from(data[0].buffer, data[0].byteOffset, data[0].byteLength);
-    const cacheBuffer = Buffer.from(data[1].buffer, data[1].byteOffset, data[1].byteLength);
+async function saveWalletState() {
+  if (!watchWallet) return;
+  const data = await watchWallet.getData();
+  const keysBuffer = Buffer.from(data[0].buffer, data[0].byteOffset, data[0].byteLength);
+  const cacheBuffer = Buffer.from(data[1].buffer, data[1].byteOffset, data[1].byteLength);
 
-    await sql`
-      INSERT INTO wallet_cache (id, keys_data, cache_data)
-      VALUES (1, ${keysBuffer}, ${cacheBuffer})
-      ON CONFLICT (id) DO UPDATE SET
-        keys_data = EXCLUDED.keys_data,
-        cache_data = EXCLUDED.cache_data
-    `;
-  };
-
-  watchWallet.addListener(
-    new (class extends moneroTs.MoneroWalletListener {
-      async onBalancesChanged() {
-        await saveWalletState();
-      }
-      async onOutputReceived() {
-        await saveWalletState();
-      }
-    })(),
-  );
-
-  await watchWallet.startSyncing(10_000);
+  await sql`
+    INSERT INTO wallet_cache (id, keys_data, cache_data)
+    VALUES (1, ${keysBuffer}, ${cacheBuffer})
+    ON CONFLICT (id) DO UPDATE SET
+      keys_data = EXCLUDED.keys_data,
+      cache_data = EXCLUDED.cache_data
+  `;
 }
 
 async function pollInvoices() {
   if (!watchWallet) return;
 
+  await watchWallet.sync();
   const invoices = await sql`SELECT * FROM crypto_invoices WHERE status IN ('pending', 'confirming', 'underpaid')`;
+  let stateChanged = false;
 
   for (const invoice of invoices) {
     const subaddress = await watchWallet.getAddressIndex(invoice.xmr_subaddress);
@@ -75,6 +68,7 @@ async function pollInvoices() {
     const isExpired = new Date().getTime() - new Date(invoice.creation_date).getTime() > PAYMENT_WINDOW_MIN * 60 * 1000;
 
     if (balance >= xmrAmount) {
+      stateChanged = true;
       await sql`UPDATE crypto_invoices SET status = 'paid' WHERE id = ${invoice.id}`;
 
       let identityID;
@@ -95,6 +89,7 @@ async function pollInvoices() {
       }
     } else if (balance > 0n && balance < xmrAmount) {
       if (invoice.status !== 'underpaid') {
+        stateChanged = true;
         await sql`UPDATE crypto_invoices SET status = 'underpaid' WHERE id = ${invoice.id}`;
       }
       const remainingAmount = Number(xmrAmount - balance) / 1e12;
@@ -109,6 +104,10 @@ async function pollInvoices() {
         ws.websocket.send(JSON.stringify({status: 'expired'}));
       }
     }
+  }
+
+  if (stateChanged || invoices.length > 0) {
+    await saveWalletState();
   }
 }
 
@@ -155,12 +154,16 @@ async function pollPrices() {
   });
 }
 
-export function initBackgroundWorkers() {
+export async function initBackgroundWorkers() {
   pollFees();
   pollPrices();
-  initMoneroWallet();
+  await initMoneroWallet();
 
   setInterval(pollFees, POLL_FEES_INTERVAL);
   setInterval(pollPrices, POLL_PRICES_INTERVAL);
-  setInterval(pollInvoices, POLL_INVOICES_INTERVAL);
+
+  while (true) {
+    await pollInvoices().catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, POLL_INVOICES_INTERVAL));
+  }
 }
