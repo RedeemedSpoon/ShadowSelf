@@ -6,6 +6,9 @@
   import {mobileHamburgerMenu, token, user} from '$store';
   import {onMount, type Snippet} from 'svelte';
   import type {LayoutData} from './$types';
+
+  import '@fontsource-variable/fira-code';
+  import '@fontsource-variable/inter';
   import '../app.css';
 
   interface Props {

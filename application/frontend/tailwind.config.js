@@ -52,8 +52,8 @@ export default {
       },
     },
     fontFamily: {
-      sans: ['Inter', ...defaultTheme.fontFamily.sans],
-      mono: ['Fira Code', ...defaultTheme.fontFamily.mono],
+      sans: ['"Inter Variable"', 'Inter', ...defaultTheme.fontFamily.sans],
+      mono: ['"Fira Code Variable"', 'Fira Code', ...defaultTheme.fontFamily.mono],
     },
   },
   plugins: [forms, aspectRatio, addVariablesForColors, GridAndDotBackgrounds, addCustomClasses],
