@@ -10,4 +10,4 @@ RUN sed -i "s|http://localhost:3000|http://backend:3000|g" nginx.conf
 
 VOLUME [ "/var/www/certbot" ]
 
-EXPOSE 80 443
+EXPOSE 80 443 8080

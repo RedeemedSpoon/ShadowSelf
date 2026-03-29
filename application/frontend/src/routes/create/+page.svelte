@@ -34,7 +34,6 @@
   import {mnemonicToAccount} from 'viem/accounts';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';
-  import {dev} from '$app/environment';
   import {goto} from '$app/navigation';
   import {HDKey} from '@scure/bip32';
   import moneroTs from 'monero-ts';
@@ -94,7 +93,7 @@
       }
 
       if (response.done) {
-        document.cookie = `creation-process=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${dev ? 'localhost' : 'shadowself.io'}`;
+        document.cookie = 'creation-process=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
         return goto('/dashboard');
       }
 

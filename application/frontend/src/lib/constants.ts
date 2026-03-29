@@ -12,6 +12,7 @@ export const USD_DUST_THRESHOLD = 0.5;
 export const EMAIL_FETCH_LIMIT = 10;
 export const SMS_MAX_LENGTH = 160;
 
+export const ONION_URL = 'http://shadow7sk64geknoyyzsfyjm4rylnknx5pzhfhzkecoggowhitafggqd.onion';
 export const URL_IMAGE_EMBEDDER = 'https://wsrv.nl/?output=png&url=';
 export const EXTERNAL_TX_VIEWERS = {
   btc: 'https://mempool.space/tx/',

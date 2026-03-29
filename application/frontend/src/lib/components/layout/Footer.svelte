@@ -3,6 +3,7 @@
   import mastodon from '$image/brands/mastodon.svg';
   import github from '$image/brands/github.svg';
   import tor from '$image/brands/tor.svg';
+  import {ONION_URL} from '$constant';
 
   const navLinks = {
     Product: ['Homepage', 'Extension', 'Purchase'],
@@ -14,7 +15,7 @@
   const socialLinks = {
     'Github Repository': {href: 'https://github.com/RedeemedSpoon/ShadowSelf', img: github},
     'Mastodon Account': {href: 'https://mastodon.social/@shadow_self', img: mastodon},
-    'Onion Website': {href: 'https://www.torproject.org/download/', img: tor},
+    'Onion Website': {href: ONION_URL, img: tor},
   };
 </script>
 

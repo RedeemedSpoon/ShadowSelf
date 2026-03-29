@@ -18,6 +18,7 @@ Thumbs.db
 build
 cache_wallet
 node_modules
+.onion_keys
 .svelte-kit
 .easy-pki
 .certs

@@ -1,8 +1,8 @@
 import {redirect, type Handle} from '@sveltejs/kit';
 import {sequence} from '@sveltejs/kit/hooks';
+import {ONION_URL} from '$constant';
 import csrf from '$utils/csrf';
 
-const csrfProtect = csrf([], ['https://shadowself.io', 'https://localhost']);
 const authAndRedirects: Handle = async ({event, resolve}) => {
   const isLogged = event.cookies.get('token');
   const path = event.url.pathname;
@@ -27,4 +27,5 @@ const authAndRedirects: Handle = async ({event, resolve}) => {
   return resolve(event);
 };
 
+const csrfProtect = csrf([], ['https://shadowself.io', 'https://localhost', ONION_URL]);
 export const handle = sequence(csrfProtect, authAndRedirects);
