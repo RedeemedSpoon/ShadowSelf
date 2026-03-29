@@ -1,9 +1,9 @@
 export const NOTIFICATION_DURATION = 5000;
 export const SLEEP_DURATION = 650;
 
-export const PRIVACY_POLICY_LAST_MODIFIED = 'December 24, 2025';
-export const TERMS_SERVICE_LAST_MODIFIED = 'Feb 25, 2026';
-export const REFUND_POLICY_LAST_MODIFIED = 'May 13, 2025';
+export const PRIVACY_POLICY_LAST_MODIFIED = 'March 29, 2026';
+export const TERMS_SERVICE_LAST_MODIFIED = 'March 29, 2026';
+export const REFUND_POLICY_LAST_MODIFIED = 'March 29, 2026';
 
 export const DEFAULT_MASTER_PASSWORD = 'USING THIS IS INSECURE';
 export const ETHNICITIES = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
