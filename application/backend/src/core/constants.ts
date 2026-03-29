@@ -11,6 +11,7 @@ export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 export const COINGECKO_URL =
   'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
 
+export const POLL_CLEANUP_INTERVAL = 3_600_000; // every 1 hour
 export const POLL_INVOICES_INTERVAL = 15_000; // every 15 seconds
 export const POLL_PRICES_INTERVAL = 60_000; // every 60 seconds
 export const POLL_FEES_INTERVAL = 120_000; // every 2 minutes

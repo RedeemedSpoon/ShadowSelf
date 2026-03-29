@@ -1,6 +1,7 @@
-import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, PAYMENT_WINDOW_MIN, RESTORE_HEIGHT} from '@core/constants';
+import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, POLL_CLEANUP_INTERVAL} from '@core/constants';
 import {cryptoFees, cryptoPrices, invoiceConnections, watchWallet, setWatchWallet} from '@core/states';
 import {BTC_API, ETH_API, LTC_API, XMR_NODE, COINGECKO_URL} from '@core/constants';
+import {PAYMENT_WINDOW_MIN, RESTORE_HEIGHT} from '@core/constants';
 import type {CryptoCurrencies, QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
 import {moneroWallet} from '@core/config';
@@ -154,13 +155,40 @@ async function pollPrices() {
   });
 }
 
+async function cleanupWorkers() {
+  const identities = await sql`
+    SELECT i.id, c.creation_date, c.plan
+    FROM identities i
+    JOIN crypto_invoices c ON i.crypto_invoice = c.id
+    WHERE i.status = 'active' AND i.crypto_invoice IS NOT NULL
+  `;
+
+  const now = new Date().getTime();
+
+  for (const identity of identities) {
+    const creation = new Date(identity.creation_date).getTime();
+    const days = (now - creation) / (1000 * 60 * 60 * 24);
+
+    const condition1 = identity.plan === 'monthly' && days > 30;
+    const condition2 = identity.plan === 'annually' && days > 365;
+
+    if (condition1 || condition2) {
+      await sql`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
+    }
+  }
+
+  await sql`DELETE FROM crypto_invoices WHERE status = 'expired'`;
+}
+
 export async function initBackgroundWorkers() {
   pollFees();
   pollPrices();
   await initMoneroWallet();
+  cleanupWorkers();
 
   setInterval(pollFees, POLL_FEES_INTERVAL);
   setInterval(pollPrices, POLL_PRICES_INTERVAL);
+  setInterval(cleanupWorkers, POLL_CLEANUP_INTERVAL);
 
   while (true) {
     await pollInvoices().catch(() => {});
