@@ -1,6 +1,8 @@
 FROM oven/bun:latest
 
 ENV STRIPE_PUBLISHABLE_KEY ""
+ENV PUBLIC_NODE_ENV="prod"
+ARG PUBLIC_NODE_ENV="prod"
 
 WORKDIR /app
 

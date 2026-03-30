@@ -10,6 +10,9 @@ services:
     volumes:
       - /var/www/certbot:/var/www/certbot
       - /etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - frontend
+      - backend
 
   certbot:
     build: ./certbot
@@ -47,7 +50,6 @@ services:
       - /home:/home
     depends_on:
       - postgres
-      - nginx
     restart: always
     init: true
 
@@ -59,7 +61,6 @@ services:
       - ./frontend/.env
     depends_on:
       - backend
-      - nginx
     restart: always
     init: true
 

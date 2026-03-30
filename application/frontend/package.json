@@ -17,7 +17,7 @@
     "@scure/bip32": "^2.0.1",
     "@scure/bip39": "^2.0.1",
     "@scure/btc-signer": "^2.0.1",
-    "@stripe/stripe-js": "^8.11.0",
+    "@stripe/stripe-js": "^9.0.1",
     "@sveltejs/adapter-auto": "^7.0.1",
     "@sveltejs/kit": "2.55.0",
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
@@ -42,16 +42,16 @@
     "postcss": "^8.5.8",
     "qrcode": "^1.5.4",
     "quill": "^2.0.3",
-    "svelte": "5.54.1",
+    "svelte": "5.55.1",
     "svelte-adapter-bun": "^1.0.1",
     "svelte-check": "4.4.5",
     "svelte-motion": "^0.12.2",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "viem": "^2.47.6",
-    "vite": "^8.0.1",
-    "vite-plugin-node-polyfills": "^0.25.0"
+    "vite": "^8.0.3",
+    "vite-plugin-node-polyfills": "^0.26.0"
   },
   "type": "module"
 }
