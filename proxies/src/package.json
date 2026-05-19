@@ -8,7 +8,7 @@
     "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile proxy ./index.ts"
   },
   "dependencies": {
-    "bun-types": "^1.3.11",
+    "bun-types": "^1.3.14",
     "elysia": "^1.4.28"
   },
   "type": "module",
