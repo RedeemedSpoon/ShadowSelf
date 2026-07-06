@@ -11,7 +11,7 @@ export default new Elysia({prefix: '/account'})
   .use(middlewareBase)
   .onBeforeHandle(({set, user, path}) => {
     const relativePath = path.slice(8);
-    const signUp = ['/signup', 'signup-email', '/signup-username', '/signup-otp', '/signup-recovery', '/signup-create'];
+    const signUp = ['/signup', '/signup-email', '/signup-username', '/signup-otp', '/signup-recovery', '/signup-create'];
     const otherPaths = ['/login', '/login-email', '/login-otp', '/login-recovery', '/recovery-remaining'];
     const mustNotLogIn = [...signUp, ...otherPaths];
 

@@ -31,8 +31,8 @@ export default new Elysia({prefix: '/phone'})
 
     if (addressee === identity!.phone) return error(set, 400, 'You cannot fetch your own conversation');
 
-    const sentMessages = await twilio.messages.list({to: addressee});
-    const receivedMessages = await twilio.messages.list({from: addressee});
+    const sentMessages = await twilio.messages.list({from: identity!.phone, to: addressee});
+    const receivedMessages = await twilio.messages.list({from: addressee, to: identity!.phone});
 
     let conversation = [...sentMessages, ...receivedMessages].map((msg) => parseMessage(msg));
     conversation = conversation.sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -60,12 +60,14 @@ export default new Elysia({prefix: '/phone'})
       return error(set, 400, e instanceof Error ? e.message : (e as string));
     }
   })
-  .delete('/delete-conversation/:id', async ({set, body}) => {
+  .delete('/delete-conversation/:id', async ({set, identity, body}) => {
     const {err, addressee} = await checkAPI(body, ['addressee']);
     if (err) return error(set, 400, err);
 
-    const receivedMessages = await twilio.messages.list({to: addressee});
-    const sentMessages = await twilio.messages.list({from: addressee});
+    if (addressee === identity!.phone) return error(set, 400, 'You cannot delete your own conversation');
+
+    const receivedMessages = await twilio.messages.list({from: addressee, to: identity!.phone});
+    const sentMessages = await twilio.messages.list({from: identity!.phone, to: addressee});
 
     for (const message of [...receivedMessages, ...sentMessages]) {
       await twilio.messages(message.sid).remove();

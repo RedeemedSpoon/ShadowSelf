@@ -5,7 +5,7 @@ import {ETHNICITIES, LOCATIONS} from '@core/constants';
 import {generateProfile} from '@utils/prompts';
 import {checkIdentity} from '@utils/checks';
 import {sql, twilio} from '@core/services';
-import {twilioConfig} from '@core/config';
+import {origin, twilioConfig} from '@core/config';
 import {proxyRequest} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
 import {Elysia, t} from 'elysia';

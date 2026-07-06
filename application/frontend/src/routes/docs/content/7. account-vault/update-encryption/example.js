@@ -26,12 +26,13 @@ async function updateEncryption() {
     console.log(JSON.stringify(response.data, null, 2));
   } catch (error) {
     let message = 'Error updating encryption: ';
-    if (error.response) {
-      const status = error.response.status;
-      const data = JSON.stringify(error.response.data);
+    const response = error && typeof error === 'object' ? Reflect.get(error, 'response') : null;
+    if (response) {
+      const status = Reflect.get(response, 'status');
+      const data = JSON.stringify(Reflect.get(response, 'data'));
       message += `${status} - ${data}`;
     } else {
-      message += error.message;
+      message += error instanceof Error ? error.message : String(error);
     }
     console.error(message);
   }

@@ -1,4 +1,5 @@
 server
+/proxies/src/proxy
 bun.lockb
 package-lock.json
 monero.worker.js

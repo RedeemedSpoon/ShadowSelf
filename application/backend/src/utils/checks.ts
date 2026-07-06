@@ -364,7 +364,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'id':
-        if (typeof body.id !== 'number' || !Number.isInteger(body.id) || body.uid < 1) {
+        if (typeof body.id !== 'number' || !Number.isInteger(body.id) || body.id < 1) {
           return {err: 'Invalid ID, please try again'} as APIRequest;
         }
         break;

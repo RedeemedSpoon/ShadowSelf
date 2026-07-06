@@ -20,7 +20,7 @@ export default new Elysia({prefix: '/billing'})
     const customer = (await sql`SELECT id FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const owner = customer[0].id;
 
-    const identity = (await sql`SELECT id FROM identities WHERE id = ${id} AND owner = ${owner}`)?.[0] as QueryIdentity;
+    const identity = (await sql`SELECT * FROM identities WHERE id = ${id} AND owner = ${owner}`)?.[0] as QueryIdentity;
     if (!identity) return error(set, 404, 'Identity not found');
 
     const intent = identity.payment_intent;

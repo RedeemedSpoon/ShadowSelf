@@ -2,7 +2,7 @@
   import LightBulbIcon from '$icon/status/LightBulb.svelte';
   import type {Snippet} from 'svelte';
 
-  let {children}: {children: Snippet} = $props();
+  let {children}: {children?: Snippet} = $props();
 </script>
 
 <p>
