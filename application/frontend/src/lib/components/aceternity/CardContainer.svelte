@@ -33,7 +33,10 @@
   };
 </script>
 
-<div class={cn('flex items-center justify-center py-20', containerClassName)} style="perspective: 1000px;">
+<div
+  class={cn('flex items-center justify-center py-20', containerClassName)}
+  data-hovered={isMouseEntered}
+  style="perspective: 1000px;">
   <div
     aria-hidden="true"
     bind:this={containerRef}

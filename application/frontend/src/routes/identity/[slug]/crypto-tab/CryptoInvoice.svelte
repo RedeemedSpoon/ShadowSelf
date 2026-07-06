@@ -63,12 +63,11 @@
     const {name, email} = $identity;
     $pendingID = 1;
 
-    const now = new Date();
-    const dueObj = new Date();
-    dueObj.setDate(now.getDate() + (dueDate || 0));
-
-    const date = now.toLocaleDateString();
-    const dateDue = dueObj.toLocaleDateString();
+    const day = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const formatter = new Intl.DateTimeFormat();
+    const date = formatter.format(now);
+    const dateDue = formatter.format(now + (dueDate || 0) * day);
     const invoice = Math.floor(Math.random() * 1e6);
 
     let logoSource = logoFiles && logoFiles.length > 0 ? logoFiles[0] : logoUrl ? logoUrl : receipt;
@@ -103,11 +102,14 @@
       destAddr = $moneroData.address;
     }
 
-    let uri = destAddr;
-    if (cryptoChoice === 'btc') uri = `bitcoin:${destAddr}?amount=${cryptoDue.toFixed(8)}`;
-    else if (cryptoChoice === 'ltc') uri = `litecoin:${destAddr}?amount=${cryptoDue.toFixed(8)}`;
-    else if (cryptoChoice === 'xmr') uri = `monero:${destAddr}?tx_amount=${cryptoDue.toFixed(12)}`;
-    else uri = `ethereum:${destAddr}?value=${cryptoDue.toFixed(18)}`;
+    const uri =
+      cryptoChoice === 'btc'
+        ? `bitcoin:${destAddr}?amount=${cryptoDue.toFixed(8)}`
+        : cryptoChoice === 'ltc'
+          ? `litecoin:${destAddr}?amount=${cryptoDue.toFixed(8)}`
+          : cryptoChoice === 'xmr'
+            ? `monero:${destAddr}?tx_amount=${cryptoDue.toFixed(12)}`
+            : `ethereum:${destAddr}?value=${cryptoDue.toFixed(18)}`;
 
     const qrImage = await QRCode.toDataURL(uri, {width: 300, margin: 2});
 
@@ -161,7 +163,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-neutral-800" bind:this={pdfTableRows}>
-          {#each items as _, i}
+          {#each items as item, i (item.id)}
             <tr class="*:py-4 *:pr-2">
               <td><input class="bg-transparent focus:ring-1!" name="description" type="text" placeholder="Service" /></td>
               <td><input class="bg-transparent focus:ring-1!" name="quantity" type="number" value="1" /></td>
@@ -193,7 +195,7 @@
       <div class="flex flex-col gap-2">
         <label for="crypto">Payment Method</label>
         <div id="cryptocoins">
-          {#each Object.keys(cryptoIcons) as coin}
+          {#each Object.keys(cryptoIcons) as coin (coin)}
             {@const SvelteComponent = cryptoIcons[coin as Coins]}
             <button class:selected={cryptoChoice === coin} onclick={() => (cryptoChoice = coin as Coins)}>
               <div class="-mt-2 -ml-2 h-6 w-6"><SvelteComponent /></div>

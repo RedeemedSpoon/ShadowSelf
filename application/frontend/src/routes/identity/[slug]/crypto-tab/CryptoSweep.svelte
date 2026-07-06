@@ -23,10 +23,38 @@
   let scanning = $state(false);
   let sweepStepMessage: string = $state('');
 
+  function isUtxoCoin(coin: Coins) {
+    return coin === 'btc' || coin === 'ltc';
+  }
+
+  function deriveSweepAddresses(coin: Coins, result: string) {
+    if (!isUtxoCoin(coin)) return [privateKeyToAccount((result.startsWith('0x') ? result : `0x${result}`) as `0x${string}`).address];
+
+    const net = coin === 'btc' ? undefined : ({bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0} as any);
+    const privKeyBytes = btc.WIF(net).decode(result);
+    const pub = new HDKey({privateKey: privKeyBytes, chainCode: new Uint8Array(32)}).publicKey!;
+
+    return [btc.p2wpkh(pub, net).address!, btc.p2sh(btc.p2wpkh(pub, net), net).address!, btc.p2pkh(pub, net).address!];
+  }
+
+  function getSweepTransfer(coin: Coins, info: CryptoAPI) {
+    if (isUtxoCoin(coin)) {
+      const vBytes = info.utxos!.length * 68 + 31 + 10;
+      const feeBtc = (vBytes * crypto.fees[coin].medium) / 100_000_000;
+      return {amt: info.balance! / 100_000_000 - feeBtc, feeParam: {fee: feeBtc}};
+    }
+
+    const gasPriceGwei = crypto.fees[coin].medium;
+    if (coin === 'usdt') return {amt: Number(info.balance) / 1_000_000, feeParam: gasPriceGwei};
+
+    const gasLimit = 21000;
+    const feeEth = (gasLimit * gasPriceGwei) / 1_000_000_000;
+    return {amt: Number(info.balance) / 1e18 - feeEth, feeParam: gasPriceGwei};
+  }
+
   async function sweepWallet(result: string) {
     scanning = false;
     const coin = $currentCrypto;
-    let addresses: string[] = [];
 
     sweepStepMessage = 'Decrypting Private Key...';
     await new Promise((r) => setTimeout(r, Math.random() * 400 + 400));
@@ -34,14 +62,7 @@
     sweepStepMessage = 'Deriving Address Formats...';
     await new Promise((r) => setTimeout(r, Math.random() * 300 + 200));
 
-    if (['btc', 'ltc'].includes(coin)) {
-      const net = coin === 'btc' ? undefined : ({bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0} as any);
-      const privKeyBytes = btc.WIF(net).decode(result);
-      const pub = new HDKey({privateKey: privKeyBytes, chainCode: new Uint8Array(32)}).publicKey!;
-      addresses = [btc.p2wpkh(pub, net).address!, btc.p2sh(btc.p2wpkh(pub, net), net).address!, btc.p2pkh(pub, net).address!];
-    } else {
-      addresses = [privateKeyToAccount((result.startsWith('0x') ? result : `0x${result}`) as `0x${string}`).address];
-    }
+    const addresses = deriveSweepAddresses(coin, result);
 
     sweepStepMessage = 'Scanning Blockchain Nodes...';
     await new Promise((r) => setTimeout(r, Math.random() * 600 + 300));
@@ -52,37 +73,18 @@
     sweepStepMessage = 'Calculating Network Fees...';
     await new Promise((r) => setTimeout(r, Math.random() * 200 + 400));
 
-    let amt = 0;
-    let feeParam: any = 0;
-
-    if (['btc', 'ltc'].includes(coin)) {
-      const vBytes = info.utxos!.length * 68 + 31 + 10;
-      const feeBtc = (vBytes * crypto.fees[coin].medium) / 100_000_000;
-      amt = info.balance! / 100_000_000 - feeBtc;
-      feeParam = {fee: feeBtc};
-    } else {
-      const gasPriceGwei = crypto.fees[coin].medium;
-      feeParam = gasPriceGwei;
-
-      if (coin === 'usdt') {
-        amt = Number(info.balance) / 1_000_000;
-      } else {
-        const gasLimit = 21000;
-        const feeEth = (gasLimit * gasPriceGwei) / 1_000_000_000;
-        amt = Number(info.balance) / 1e18 - feeEth;
-      }
-    }
+    const {amt, feeParam} = getSweepTransfer(coin, info);
 
     sweepStepMessage = 'Cryptographically Signing...';
     await new Promise((r) => setTimeout(r, Math.random() * 600 + 500));
 
-    const destAddr = ['btc', 'ltc'].includes(coin)
+    const destAddr = isUtxoCoin(coin)
       ? deriveXPub(coin, $identity.walletKeys[coin as 'btc'], Math.max(0, crypto.wallet[coin as 'btc'].nextIndex))
       : $identity.walletKeys.evm;
 
     const data: transactionData = {
       estimatedFee: feeParam,
-      privKeyType: ['btc', 'ltc'].includes(coin) ? 'wif' : 'hex',
+      privKeyType: isUtxoCoin(coin) ? 'wif' : 'hex',
       wifKey: result,
       utxos: info.utxos?.map((u: any) => ({...u, pathIndex: 0})),
       nonce: info.nonce,

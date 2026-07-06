@@ -174,25 +174,24 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
 
   const messages = await connection.search([searchQuery], {bodies: ['']});
 
-  const emails: any[] = [];
-  for (const message of messages) {
-    if (inbox === 'Junk') {
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - EMAIL_JUNK_RETENTION_DAYS);
-      const internalDate = new Date(message.attributes.date);
+  const emails = await Promise.all(
+    messages.map(async (message) => {
+      if (inbox === 'Junk') {
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - EMAIL_JUNK_RETENTION_DAYS);
+        const internalDate = new Date(message.attributes.date);
 
-      if (internalDate < cutoffDate) {
-        await connection.deleteMessage(message.attributes.uid);
-        continue;
+        if (internalDate < cutoffDate) {
+          await connection.deleteMessage(message.attributes.uid);
+          return null;
+        }
       }
-    }
 
-    parseMassage(connection, message)
-      .catch(() => {})
-      .then((result) => emails.unshift(result));
-  }
+      return parseMassage(connection, message).catch(() => null);
+    }),
+  );
 
-  return {messagesCount, emails};
+  return {messagesCount, emails: emails.filter(Boolean).reverse()};
 }
 
 async function parseMassage(connection: imap.ImapSimple, message: imap.Message) {

@@ -62,7 +62,9 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
           const lang = LOCATIONS.find((location) => location.code === (cookieStore[0] || message.location));
 
-          let {name, age, ethnicity, bio, sex, error} = (await checkIdentity('identity', message.regenerate)) || {};
+          const checkedIdentity = (await checkIdentity('identity', message.regenerate)) || {};
+          const {error} = checkedIdentity;
+          let {name, age, ethnicity, bio, sex} = checkedIdentity;
           if (error) return ws.send({error});
 
           if (!message.regenerate) {
@@ -86,7 +88,6 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
             ethnicity = ETHNICITIES[Math.floor(Math.random() * ETHNICITIES.length)];
             age = Math.floor(Math.random() * 42) + 18;
-            error = undefined;
           }
 
           const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);

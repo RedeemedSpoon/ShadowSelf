@@ -65,10 +65,8 @@
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
 
-    //@ts-ignore
-    crypto.wallet = {};
-    //@ts-ignore
-    crypto.wallet.xmr = {};
+    crypto.wallet = {} as CryptoAPI['wallet'];
+    crypto.wallet.xmr = {} as CryptoAPI['wallet']['xmr'];
 
     $moneroData = {
       viewKey: await decrypt($identity.walletKeys.xmr.viewKey),
@@ -158,7 +156,7 @@ If a hacker finds this file, your money is gone.
       <div class="mt-[5vh] mb-2 flex justify-between gap-4 max-md:flex-col md:items-center">
         <h3 class="text-3xl! font-semibold text-neutral-300 lg:text-4xl!">{title}</h3>
         <div id="cryptocoins" class="flex">
-          {#each Object.keys(cryptoIcons) as coin}
+          {#each Object.keys(cryptoIcons) as coin (coin)}
             {@const SvelteComponent = cryptoIcons[coin as Coins]}
             <button class:selected={$currentCrypto === coin} onclick={() => ($currentCrypto = coin as Coins)}>
               <SvelteComponent />

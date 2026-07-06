@@ -301,7 +301,7 @@
     </div>
 
     <div class="grid grid-cols-1 gap-6 py-6 md:grid-cols-2 lg:grid-cols-3">
-      {#each providers as provider, i}
+      {#each providers as provider, i (provider.name)}
         {@const costGrade = provider.costPercentage < -8 ? 'bad' : provider.costPercentage < -4 ? 'mid' : 'good'}
         <div
           aria-hidden="true"

@@ -20,8 +20,8 @@ export const load: PageServerLoad = async ({cookies}) => {
   identities.forEach((identity) => {
     if (!identity.name) return;
     const concat = `${identity.name} ${identity.country} ${identity.location} ${identity.id} `;
-    concat.concat(`${identity.email} ${identity.phone} ${identity.accounts} ${identity.walletFunds}`);
-    searchKeywords.push({label: identity.id, value: concat.toLowerCase()});
+    const keywords = concat + `${identity.email} ${identity.phone} ${identity.accounts} ${identity.walletFunds}`;
+    searchKeywords.push({label: identity.id, value: keywords.toLowerCase()});
   });
 
   return {

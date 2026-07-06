@@ -28,6 +28,7 @@
   let table = $state() as HTMLElement;
   let errorText = $state() as HTMLParagraphElement;
   let countriesFlags = getCountriesFlags();
+  let sortedIdentities = $derived(sortAsc ? data.identities : [...data.identities].reverse());
 
   const bottomLinks = {
     Issues: ['https://github.com/RedeemedSpoon/ShadowSelf/issues', IssuesIcon],
@@ -66,16 +67,6 @@
     }
   }
 
-  function sortTable() {
-    if (!data.identities.length) return;
-
-    const children = Array.from(table.children);
-    const reverse = children.reverse();
-
-    table.replaceChildren(...reverse);
-    fixBorder(children);
-  }
-
   function fixBorder(children: Element[]) {
     const allVisible = children.filter((child) => !child.classList.contains('hidden!'));
     allVisible[allVisible.length - 1].classList.remove('border-0!');
@@ -85,7 +76,6 @@
   onMount(() => {
     if (data.recoveryRemaining === 0) notify('You have no recovery codes left. Please generate new ones', 'info');
     if (filterOverflow) filterTable();
-    if (!sortAsc) sortTable();
   });
 </script>
 
@@ -105,7 +95,7 @@
           <button onclick={() => ((filterOverflow = !filterOverflow), filterTable())} class="px-0">
             <FilterIcon {filterOverflow} />
           </button>
-          <button onclick={() => ((sortAsc = !sortAsc), sortTable())}>
+          <button onclick={() => (sortAsc = !sortAsc)}>
             <SortIcon {sortAsc} />
           </button>
           <SearchInput keywords={data.searchKeywords} {handleSearch} />
@@ -113,7 +103,7 @@
       </div>
       <p bind:this={errorText} id="error" class="hidden!">No results found.</p>
       <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
-        {#each data.identities as identity (identity.id)}
+        {#each sortedIdentities as identity (identity.id)}
           {#if !identity.name}
             <a class="flex! gap-6! max-md:mb-24" href="/create?id={identity.id}">
               <AddUserIcon />

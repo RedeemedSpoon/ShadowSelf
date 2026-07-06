@@ -2,7 +2,7 @@ import middlewareBase from '@middlewares/middleware-base';
 import {generateIdentityID} from '@utils/cryptography';
 import {toTitleCase, error} from '@utils/utils';
 import {sql, stripe} from '@core/services';
-import {stripeConfig} from '@core/config';
+import {origin, stripeConfig} from '@core/config';
 import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
 import type Stripe from 'stripe';

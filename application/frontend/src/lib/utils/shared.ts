@@ -36,15 +36,16 @@ export async function triggerModal(index = 1, condition = true) {
 }
 
 export function createCookie(cookies: Cookies, name: string, value: string, short: boolean = false) {
-  const ninetyDays = 7_776_000_000;
-  const oneHour = 3_600_000;
+  const ninetyDays = 60 * 60 * 24 * 90;
+  const oneHour = 60 * 60;
+  const maxAge = short ? oneHour : ninetyDays;
 
   return cookies.set(name, value, {
     path: '/',
     secure: true,
     sameSite: 'strict',
-    expires: new Date(Date.now() + (short ? oneHour : ninetyDays)),
-    maxAge: short ? oneHour : ninetyDays,
+    expires: new Date(Date.now() + maxAge * 1000),
+    maxAge,
   });
 }
 

@@ -186,7 +186,7 @@
         await new Promise((resolve) => setTimeout(resolve, 1500));
         clearInterval(loaderInterval as number);
         clearInterval(pingInterval as number);
-        reply('provision');
+        reply('provision-identity');
         break;
     }
   }

@@ -28,7 +28,7 @@ export default new Elysia({prefix: '/account'})
   })
   .get('/recovery-remaining', async ({user}) => {
     const result = (await sql`SELECT recovery FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    return result[0]?.recovery.length;
+    return result[0]?.recovery?.length ?? 0;
   })
   .post('/login', async ({set, jwt, body}) => {
     const {password, email, err} = check(body, ['password', 'email'], true);

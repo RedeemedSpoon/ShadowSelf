@@ -354,12 +354,12 @@
         <div class="flex w-full flex-col gap-4 rounded-xl border-2 border-neutral-600 bg-neutral-800/50 p-6">
           <div class="flex flex-col gap-1">
             <span class="text-sm text-neutral-500">Amount to send (in {cryptoChoice.trim().toUpperCase()})</span>
-            <CopyButton className={'truncate w-96 text-left'} text={cryptoInvoice.depositAmount.toString()} />
+            <CopyButton className="truncate w-96 text-left" text={cryptoInvoice.depositAmount.toString()} />
           </div>
 
           <div class="flex flex-col gap-1">
             <span class="text-sm text-neutral-500">Deposit Address</span>
-            <CopyButton className={'truncate w-96 text-left'} text={cryptoInvoice.depositAddress} />
+            <CopyButton className="truncate w-96 text-left" text={cryptoInvoice.depositAddress} />
           </div>
 
           {#if cryptoInvoice.externalLink}
