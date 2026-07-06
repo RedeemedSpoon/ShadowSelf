@@ -14,10 +14,6 @@
     <code>totp</code> (<span class="string">string</span>, <span class="optional">optional</span>): Updated
     <b>client-side encrypted</b> TOTP secret data.
   </li>
-  <li>
-    <code>algorithm</code> (<span class="string">string</span>, <span class="optional">optional</span>): The TOTP algorithm ('SHA1',
-    'SHA256', 'SHA512'). Required if <code>totp</code> is updated.
-  </li>
 </ul>
 
 <h5>Response Body</h5>
@@ -28,5 +24,4 @@
   <li><code>password</code> (<span class="string">string</span>): Updated encrypted password.</li>
   <li><code>website</code> (<span class="string">string</span>)</li>
   <li><code>totp</code> (<span class="string">string</span>): Updated encrypted TOTP secret.</li>
-  <li><code>algorithm</code> (<span class="string">string</span>)</li>
 </ul>

@@ -3,6 +3,5 @@
   "username": "jd_service_user_revised",
   "password": "U2FsdGVkX1+UpdatedPassDataLooksLikeThisMaybe==",
   "website": "https://service-updated.example.com",
-  "totp": "U2FsdGVkX1+abcDefGhiJKLmnoPqrStuVwxYz012345=",
-  "algorithm": "SHA1"
+  "totp": "U2FsdGVkX1+abcDefGhiJKLmnoPqrStuVwxYz012345="
 }

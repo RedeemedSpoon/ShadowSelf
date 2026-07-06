@@ -23,10 +23,6 @@
         <code>totp</code> (<span class="string">string</span>): The client-side encrypted TOTP secret key. Your client must decrypt
         this to generate codes.
       </li>
-      <li>
-        <code>algorithm</code> (<span class="string">string</span>): The algorithm used for TOTP generation ('SHA1', 'SHA256',
-        'SHA512'), relevant only if <code>totp</code> is set.
-      </li>
     </ul>
   </li>
 </ul>

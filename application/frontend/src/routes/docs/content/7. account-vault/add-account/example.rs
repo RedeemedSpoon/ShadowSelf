@@ -12,8 +12,7 @@ async fn main() {
         "username": "forum_reader_12",
         "password": "U2FsdGVkX19abcDefGhiJKLmnoPqrStuVwxYz012345=",
         "website": "https://communityforum.org",
-        "totp": "U2FsdGVkX1+zxcvBNMqwertyUIOPasdfghJKL098765=",
-        "algorithm": "SHA256"
+        "totp": "U2FsdGVkX1+zxcvBNMqwertyUIOPasdfghJKL098765="
     });
     let response = Client::new()
         .post(&url)

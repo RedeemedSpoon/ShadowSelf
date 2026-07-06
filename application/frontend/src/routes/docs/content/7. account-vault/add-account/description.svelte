@@ -15,10 +15,6 @@
     <code>totp</code> (<span class="string">string</span>, <span class="optional">optional</span>): The
     <b>client-side encrypted</b> TOTP secret key data (e.g., Base64).
   </li>
-  <li>
-    <code>algorithm</code> (<span class="string">string</span>, <span class="optional">optional</span>): The TOTP algorithm ('SHA1',
-    'SHA256', 'SHA512'). Required if <code>totp</code> is provided.
-  </li>
 </ul>
 
 <h5>Response Body</h5>
@@ -32,5 +28,4 @@
   <li><code>password</code> (<span class="string">string</span>): The encrypted password provided.</li>
   <li><code>website</code> (<span class="string">string</span>): The website URL provided.</li>
   <li><code>totp</code> (<span class="string">string</span>): The encrypted TOTP secret provided.</li>
-  <li><code>algorithm</code> (<span class="string">string</span>): The TOTP algorithm provided.</li>
 </ul>

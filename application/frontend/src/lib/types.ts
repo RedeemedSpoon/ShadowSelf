@@ -205,8 +205,7 @@ export interface Account {
   username: string;
   password: string;
   website: string;
-  totp: string;
-  algorithm: string;
+  totp: string | null;
 }
 
 export interface Inbox {
@@ -312,7 +311,6 @@ export interface AccountAPI extends BaseAPI {
   password?: string;
   website?: string;
   totp?: string;
-  algorithm?: string;
 }
 
 export interface EmailAPI extends BaseAPI {

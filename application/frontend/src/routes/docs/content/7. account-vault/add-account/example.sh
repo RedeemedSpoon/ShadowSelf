@@ -8,6 +8,5 @@ curl -X POST "https://shadowself.io/api/account/add-account/$IDENTITY_ID" \
            "username": "forum_reader_12",
            "password": "'"$ENCRYPTED_PASS"'",
            "website": "https://communityforum.org",
-           "totp": "'"$ENCRYPTED_TOTP"'",
-           "algorithm": "SHA256"
+           "totp": "'"$ENCRYPTED_TOTP"'"
          }'

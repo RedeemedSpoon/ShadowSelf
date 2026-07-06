@@ -392,16 +392,6 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         }
         break;
 
-      case 'algorithm':
-        if (typeof body.algorithm !== 'string') {
-          return {err: 'Algorithm must be a string'} as APIRequest;
-        }
-
-        if (!['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
-          return {err: 'Unrecognized algorithm, please try again'} as APIRequest;
-        }
-        break;
-
       case 'id':
         if (typeof body.id !== 'number' || !Number.isInteger(body.id) || body.id < 1) {
           return {err: 'Invalid ID, please try again'} as APIRequest;

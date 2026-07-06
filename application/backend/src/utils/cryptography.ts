@@ -18,7 +18,6 @@ export function createTOTP(secret: string, username: string): OTPAuth.TOTP {
   return new OTPAuth.TOTP({
     label: username,
     issuer: 'ShadowSelf',
-    algorithm: 'SHA512',
     digits: 6,
     period: 30,
     secret,

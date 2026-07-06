@@ -44,10 +44,10 @@
     $target = account;
   }
 
-  async function createTOTPGenerator(secret: string, algorithm: string, id: number) {
+  async function createTOTPGenerator(secret: string, id: number) {
     await new Promise((resolve) => setTimeout(resolve, 10));
 
-    const generator = new OTPAuth.TOTP({algorithm, secret});
+    const generator = new OTPAuth.TOTP({secret});
     const element = document.getElementById(id.toString()) as HTMLParagraphElement;
     element.innerText = generator.generate();
 
@@ -68,11 +68,9 @@
     $mode = 'edit';
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    for (const input of ['username', 'password', 'website', 'totp', 'algorithm']) {
+    for (const input of ['username', 'password', 'website', 'totp']) {
       const element = document.querySelector('input[name="' + input + '"]') as HTMLInputElement;
-      element.value = $target![input as keyof Account] as string;
-
-      if (input === 'algorithm') element.click();
+      element.value = ($target![input as keyof Account] as string | null) || '';
     }
   }
 
@@ -122,7 +120,7 @@
                     <div class="animate-progress bg-primary-700 absolute top-0 left-0 h-full rounded-2xl"></div>
                   </div>
                 </div>
-                {@const _ = createTOTPGenerator(account.totp, account.algorithm, account.id)}
+                {@const _ = createTOTPGenerator(account.totp, account.id)}
               {/if}
             </div>
             <div class="w-1/3 overflow-hidden">

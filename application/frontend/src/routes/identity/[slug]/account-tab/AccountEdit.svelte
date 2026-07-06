@@ -2,7 +2,6 @@
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
   import ActionIcon from '$component/feedback/ActionIcon.svelte';
-  import SelectMenu from '$component/inputs/SelectMenu.svelte';
 
   import KeylockIcon from '$icon/security/Keylock.svelte';
   import WWWIcon from '$icon/communication/WWW.svelte';
@@ -45,7 +44,6 @@
     const rawPassword = (document.querySelector('input[name="password"]') as HTMLInputElement)?.value;
     const website = (document.querySelector('input[name="website"]') as HTMLInputElement)?.value;
     const rawTotp = (document.querySelector('input[name="totp"]') as HTMLInputElement)?.value;
-    const algorithm = (document.querySelector('input[name="algorithm"]') as HTMLInputElement)?.value.toUpperCase();
 
     if (!username || !rawPassword) {
       notify('Username and Password are required', 'alert');
@@ -55,7 +53,7 @@
     const password = await encrypt(rawPassword);
     const totp = rawTotp ? await encrypt(rawTotp) : null;
     const id = $mode === 'edit' ? $target!.id : null;
-    const body = {id, username, password, website, totp, algorithm};
+    const body = {id, username, password, website, totp};
 
     if ($mode === 'add') {
       const response = await fetchAPI<AccountAPI>('account/add-account', 'POST', body);
@@ -106,8 +104,6 @@
         <label for="totp">2FA TOTP Secret</label>
         <InputWithIcon type="text" name="totp" placeholder="TOTP Secret" icon={KeylockIcon} />
 
-        <label for="algorithm">Algorithm (For TOTP)</label>
-        <SelectMenu options={['SHA1', 'SHA256', 'SHA512']} name="algorithm" value={$target?.algorithm} />
         <p>* Required Fields</p>
       </div>
     </div>

@@ -130,8 +130,7 @@ export interface QueryAccount {
   username: string;
   password: string;
   website: string;
-  algorithm: string;
-  totp: string;
+  totp: string | null;
 }
 
 export interface RegenerateIdentity {
@@ -185,7 +184,6 @@ export interface APIRequest {
   password: string;
   website: string;
   totp: string;
-  algorithm: string;
   uid: number;
   uuid: string;
   mailbox: string;
