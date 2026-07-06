@@ -18,12 +18,12 @@ export async function contact(body: ContactDetail) {
   }
 }
 
-export async function sendOfficialEmail(email: string, token: string, reason: keyof typeof EMAIL_TEMPLATES) {
+export async function sendOfficialEmail(email: string, code: string, reason: keyof typeof EMAIL_TEMPLATES) {
   const mailOptions = {
     from: 'verification@shadowself.io',
     to: email,
     subject: 'Shadowself: Please confirm your email address',
-    html: getEmailTemplate(token, reason),
+    html: getEmailTemplate(code, reason),
   };
 
   try {
@@ -65,7 +65,7 @@ export async function sendIdentityEmail(emailContent: EmailContent) {
   return {messageID: message?.messageId, date, type: isHtml ? 'html' : 'text'};
 }
 
-function getEmailTemplate(token: string, reason: keyof typeof EMAIL_TEMPLATES): string {
+function getEmailTemplate(code: string, reason: keyof typeof EMAIL_TEMPLATES): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -87,7 +87,7 @@ function getEmailTemplate(token: string, reason: keyof typeof EMAIL_TEMPLATES): 
         <h1>${EMAIL_TEMPLATES[reason].title}</h1>
         <p style="color: #0f172a;">Hi there!</p>
         <p style="color: #0f172a;">${EMAIL_TEMPLATES[reason].description}</p>
-        <p style="color: #0f172a;">Please copy the following ${EMAIL_TEMPLATES[reason].type} token : <span style="color: #4338ca;">${token}</span></p>
+        <p style="color: #0f172a;">Please copy the following ${EMAIL_TEMPLATES[reason].type}: <span style="color: #4338ca;">${code}</span></p>
         <p style="color: #0f172a;">If you did not sign up for Shadowself, please ignore this email. if you keep receiving this email, please contact us here: <a href="mailto:contact@shadowself.io" style="color: #4338ca;">contact@shadowself.io</a></p>
         <p style="color: #0f172a;">Once you have completed this step, you will be able to ${EMAIL_TEMPLATES[reason].action}</p>
         <p style="color: #0f172a;">Best regards,<br />Shadowself</p>

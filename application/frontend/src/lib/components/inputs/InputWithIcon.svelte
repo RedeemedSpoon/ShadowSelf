@@ -1,5 +1,6 @@
 <script lang="ts">
   import type {Component} from 'svelte';
+  import type {HTMLInputAttributes} from 'svelte/elements';
 
   interface Props {
     name: string;
@@ -9,11 +10,29 @@
     icon?: Component;
     disabled?: boolean;
     placeholder?: string;
+    inputmode?: HTMLInputAttributes['inputmode'];
+    maxlength?: HTMLInputAttributes['maxlength'];
+    pattern?: HTMLInputAttributes['pattern'];
+    autocomplete?: HTMLInputAttributes['autocomplete'];
     className?: {wrapper?: string; input?: string; label?: string; icon?: string};
     handleInput?: (e: Event) => void;
   }
 
-  let {icon, name, value, type, disabled, fill, placeholder, className, handleInput}: Props = $props();
+  let {
+    icon,
+    name,
+    value,
+    type,
+    disabled,
+    fill,
+    placeholder,
+    inputmode,
+    maxlength,
+    pattern,
+    autocomplete,
+    className,
+    handleInput,
+  }: Props = $props();
 </script>
 
 <div class="group/input flex flex-initial {className?.wrapper}">
@@ -26,7 +45,20 @@
           'cursor-not-allowed!'}" />
     {/if}
   </label>
-  <input id={name} {name} {disabled} {value} {type} oninput={handleInput} {placeholder} class={className?.input} required />
+  <input
+    id={name}
+    {name}
+    {disabled}
+    {value}
+    {type}
+    {inputmode}
+    {maxlength}
+    {pattern}
+    {autocomplete}
+    oninput={handleInput}
+    {placeholder}
+    class={className?.input}
+    required />
 </div>
 
 <style lang="postcss">

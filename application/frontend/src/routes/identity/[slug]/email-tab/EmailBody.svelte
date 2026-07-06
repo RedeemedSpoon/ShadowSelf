@@ -45,7 +45,7 @@
             iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 50 + 'px';
           }
         }}
-        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+        sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>
     </div>
   {:else}
     <div class="min-h-[20vh] bg-neutral-800/50 px-8 py-6">

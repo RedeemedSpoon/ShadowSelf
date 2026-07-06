@@ -42,8 +42,10 @@ export interface Location {
   map: string;
 }
 
+export type EmailCodePurpose = 'signup' | 'login' | 'change';
+
 export interface ContactDetail {
-  category: 'question' | 'feedback' | 'collaboration' | 'bug' | 'help' | 'other';
+  category: 'question' | 'feedback' | 'collaboration' | 'refund' | 'bug' | 'help' | 'other';
   message: string;
   subject: string;
   email: string;
@@ -53,6 +55,7 @@ export interface ContactDetail {
 export interface BodyField {
   email: string;
   access: string;
+  verification: string;
   username: string;
   password: string;
   recovery: string[];
@@ -77,6 +80,11 @@ export interface QueryUser {
   sessions: string[];
   api_access: boolean;
   api_key: string;
+}
+
+export interface QueryEmailAccessCode {
+  id: string;
+  code_hash: string;
 }
 
 export interface QueryIdentity {

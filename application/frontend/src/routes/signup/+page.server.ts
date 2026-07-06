@@ -25,10 +25,10 @@ export const actions: Actions = {
     const access = form.get('access');
 
     const response = await fetchBackend('/account/signup-email', 'POST', {access, email}, cookies.get('token'));
-    if (!response.email) return response;
+    if (!response.email || !response.verification) return response;
 
     const cookie = cookies.get('signup')?.split('&&').join('&&');
-    const concat = `${cookie}&&${access}`;
+    const concat = `${cookie}&&${response.verification}`;
     createCookie(cookies, 'signup', concat, true);
 
     return {step: 3};
@@ -106,7 +106,7 @@ export const actions: Actions = {
   },
   create: async ({cookies}) => {
     const object = cookies.get('signup')?.split('&&') as string[];
-    const [email, password, access, username] = object ?? [];
+    const [email, password, verification, username] = object ?? [];
     let [secret, recovery, payment] = ['', [], ''] as [string, string[], string];
 
     const hasOTP = object[4]?.length === 32 && object[5]?.split(',')?.length === 6;
@@ -121,7 +121,7 @@ export const actions: Actions = {
       payment = hasOTP ? object[6] : object[4];
     }
 
-    const body = {email, access, username, password, secret, recovery, payment};
+    const body = {email, verification, username, password, secret, recovery, payment};
     const response = await fetchBackend('/account/signup-create', 'POST', body, cookies.get('token'));
     if (!response.cookie) return response;
 

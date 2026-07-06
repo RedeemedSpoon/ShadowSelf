@@ -1,7 +1,7 @@
 import {genSalt, hash, compare} from 'bcryptjs';
 import {p2wpkh} from '@scure/btc-signer';
 import {secretSauce} from '@core/config';
-import {randomBytes} from 'crypto';
+import {randomBytes, randomInt} from 'crypto';
 import {HDKey} from '@scure/bip32';
 import * as OTPAuth from 'otpauth';
 
@@ -43,6 +43,14 @@ export function getAPIKey(): string {
 
 export function generateProxyPassword(): string {
   return randomBytes(16).toString('hex');
+}
+
+export function generateEmailAccessCode(): string {
+  return randomInt(0, 1_000_000).toString().padStart(6, '0');
+}
+
+export function generateEmailVerificationToken(): string {
+  return randomBytes(32).toString('hex');
 }
 
 export function getRecovery() {

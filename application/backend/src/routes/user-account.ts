@@ -1,6 +1,7 @@
-import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, getRecovery, checksum} from '@utils/cryptography';
+import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, getRecovery} from '@utils/cryptography';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendOfficialEmail} from '@utils/email-smtp';
+import {consumeEmailCode, consumeEmailVerification, createEmailCode, createEmailVerification} from '@utils/email-codes';
 import {request, error} from '@utils/utils';
 import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
@@ -57,8 +58,8 @@ export default new Elysia({prefix: '/account'})
     const result = await sql`SELECT * FROM users WHERE email = ${email}`;
     if (!result.length) return error(set, 400, 'Email address is not registered on our systems');
 
-    const accessToken = checksum(email);
-    const response = await sendOfficialEmail(email, accessToken, 'recover');
+    const accessCode = await createEmailCode(email, 'login');
+    const response = await sendOfficialEmail(email, accessCode, 'recover');
     if (response.err) return error(set, 500, 'Failed to send verification email. Try later');
 
     return {email};
@@ -70,8 +71,8 @@ export default new Elysia({prefix: '/account'})
     const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
     if (!result.length) return error(set, 400, 'Email address is not registered on our systems');
 
-    const accessToken = checksum(email);
-    if (access !== accessToken) return error(set, 400, 'Invalid access token. Please Try again');
+    const hasValidCode = await consumeEmailCode(email, access, 'login');
+    if (!hasValidCode) return error(set, 400, 'Invalid or expired access code. Please try again');
 
     const has2fa = result[0].totp;
     if (has2fa) return {email};
@@ -128,8 +129,8 @@ export default new Elysia({prefix: '/account'})
     const isTaken = await sql`SELECT * FROM users WHERE email = ${email}`;
     if (isTaken.length) return error(set, 409, 'This email is already taken');
 
-    const accessToken = checksum(email);
-    const response = await sendOfficialEmail(email, accessToken, 'confirm');
+    const accessCode = await createEmailCode(email, 'signup');
+    const response = await sendOfficialEmail(email, accessCode, 'confirm');
 
     if (response.err) return error(set, 500, 'Failed to send verification email. Try later');
 
@@ -139,10 +140,10 @@ export default new Elysia({prefix: '/account'})
     const {email, access, err} = check(body, ['email', 'access']);
     if (err) return error(set, 400, err);
 
-    const accessToken = checksum(email);
-    if (access !== accessToken) return error(set, 400, 'Invalid access token. Please Try again');
+    const verification = await createEmailVerification(email, access, 'signup');
+    if (!verification) return error(set, 400, 'Invalid or expired access code. Please try again');
 
-    return {email};
+    return {email, verification};
   })
   .post('/signup-username', async ({set, body}) => {
     const {username, err} = check(body, ['username']);
@@ -170,12 +171,12 @@ export default new Elysia({prefix: '/account'})
     return {recovery};
   })
   .post('/signup-create', async ({set, jwt, body}) => {
-    const fields = ['username', 'password', 'email', 'access', '?secret', '?recovery', '?payment'];
-    const {password, username, email, access, secret, recovery, payment, err} = check(body, fields);
+    const fields = ['username', 'password', 'email', 'verification', '?secret', '?recovery', '?payment'];
+    const {password, username, email, verification, secret, recovery, payment, err} = check(body, fields);
     if (err) return error(set, 400, err);
 
-    const accessToken = checksum(email);
-    if (access !== accessToken) return error(set, 400, 'Invalid access token');
+    const hasVerifiedEmail = await consumeEmailVerification(email, verification, 'signup');
+    if (!hasVerifiedEmail) return error(set, 400, 'Invalid or expired email verification');
 
     const isTaken = await sql`SELECT * FROM users WHERE email = ${email}`;
     if (isTaken.length) return error(set, 409, 'This email is already taken');

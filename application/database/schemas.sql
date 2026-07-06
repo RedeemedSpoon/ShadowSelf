@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS accounts;
 DROP TABLE IF EXISTS wallet_cache;
 DROP TABLE IF EXISTS identities;
 DROP TABLE IF EXISTS crypto_invoices;
+DROP TABLE IF EXISTS email_access_codes;
 DROP TABLE IF EXISTS users;
 
 -- Create Tables
@@ -20,6 +21,19 @@ CREATE TABLE users (
   "api_access" boolean DEFAULT false,
   "api_key" varchar(32)
 );
+
+CREATE TABLE email_access_codes (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "email" varchar(48) NOT NULL,
+  "purpose" varchar(12) NOT NULL,
+  "code_hash" varchar(60) NOT NULL,
+  "verification_token" varchar(64),
+  "expires_at" timestamp NOT NULL,
+  "consumed_at" timestamp,
+  "creation_date" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX email_access_codes_lookup_idx ON email_access_codes ("email", "purpose", "expires_at");
 
 CREATE TABLE crypto_invoices (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),

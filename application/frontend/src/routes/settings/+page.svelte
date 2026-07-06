@@ -267,9 +267,18 @@
 
 <Modal id={1}>
   <form class="flex-col! p-8" use:enhance={() => awaitPending(true, 2, true)} method="POST" action="?/access">
-    <h1 class="-mb-2!">Enter the access token</h1>
-    <p>We sent an email with the access token to the new address. Enter it below to continue</p>
-    <InputWithIcon {className} type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
+    <h1 class="-mb-2!">Enter the access code</h1>
+    <p>We sent a six-digit one-time code to the new address. Enter it below to continue</p>
+    <InputWithIcon
+      {className}
+      type="password"
+      name="access"
+      placeholder="123456"
+      inputmode="numeric"
+      maxlength={6}
+      pattern="\\d{6}"
+      autocomplete="one-time-code"
+      icon={KeylockIcon} />
     <LoadingButton index={2} className="mt-2">Confirm</LoadingButton>
     <input hidden value={newEmailValue} name="email" />
   </form>

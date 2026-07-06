@@ -1,6 +1,7 @@
-import {createTOTP, getSecret, getAPIKey, createHash, getRecovery, checksum} from '@utils/cryptography';
+import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '@utils/cryptography';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendOfficialEmail} from '@utils/email-smtp';
+import {consumeEmailCode, createEmailCode} from '@utils/email-codes';
 import type {QueryUser, QueryIdentity} from '@type';
 import {error, request} from '@utils/utils';
 import {check} from '@utils/checks';
@@ -96,8 +97,8 @@ export default new Elysia({prefix: '/settings'})
     const {err, email, access} = check(body, ['email', 'access']);
     if (err) return error(set, 400, err);
 
-    const accessToken = checksum(email);
-    if (access !== accessToken) return error(set, 400, 'Invalid access token. Please Try again');
+    const hasValidCode = await consumeEmailCode(email, access, 'change');
+    if (!hasValidCode) return error(set, 400, 'Invalid or expired access code. Please try again');
 
     await request('/billing/fiat/customer', 'PATCH', {oldEmail: user!.email, email});
     await sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`;
@@ -112,8 +113,8 @@ export default new Elysia({prefix: '/settings'})
     const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
     if (result.length) return error(set, 400, 'Email address is already registered on our systems');
 
-    const accessToken = checksum(email);
-    const response = await sendOfficialEmail(email, accessToken, 'change');
+    const accessCode = await createEmailCode(email, 'change');
+    const response = await sendOfficialEmail(email, accessCode, 'change');
     if (response.err) return error(set, 500, 'Failed to send verification email. Try later');
 
     return {email};

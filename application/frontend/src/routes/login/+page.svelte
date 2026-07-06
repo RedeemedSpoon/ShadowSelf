@@ -53,15 +53,23 @@
 
   <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
     <h1 class="-mb-2!">Give us your email</h1>
-    <p>Write below the account's email address and we will send a reset token to get access back</p>
+    <p>Write below the account's email address and we will send a one-time code to get access back</p>
     <InputWithIcon type="email" name="email" placeholder="example@domain.tld" fill={true} icon={EmailIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 
   <StepsItem shouldWait={true} {backStep} index={3} action="checkAccess">
-    <h1 class="-mb-2!">Enter the recovery token</h1>
-    <p>We sent you an email with an recovery token. Enter it below to continue</p>
-    <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
+    <h1 class="-mb-2!">Enter the recovery code</h1>
+    <p>We sent you an email with a six-digit recovery code. Enter it below to continue</p>
+    <InputWithIcon
+      type="password"
+      name="access"
+      placeholder="123456"
+      inputmode="numeric"
+      maxlength={6}
+      pattern="\\d{6}"
+      autocomplete="one-time-code"
+      icon={KeylockIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 

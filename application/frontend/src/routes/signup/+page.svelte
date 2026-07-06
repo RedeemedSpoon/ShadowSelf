@@ -150,8 +150,16 @@
 
   <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
     <h1 class="-mb-2!">Verify your email address</h1>
-    <p>We sent you an email with an access token. Enter it below to continue</p>
-    <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
+    <p>We sent you an email with a six-digit one-time code. Enter it below to continue</p>
+    <InputWithIcon
+      type="password"
+      name="access"
+      placeholder="123456"
+      inputmode="numeric"
+      maxlength={6}
+      pattern="\\d{6}"
+      autocomplete="one-time-code"
+      icon={KeylockIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 

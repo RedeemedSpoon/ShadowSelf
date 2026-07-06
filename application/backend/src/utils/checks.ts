@@ -4,21 +4,24 @@ import {toTitleCase} from '@utils/utils';
 import {$} from 'bun';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
+  if (!rawBody || typeof rawBody !== 'object') return {err: 'Invalid request body'} as BodyField;
   const body = rawBody as BodyField;
 
   for (const field of fields) {
     const isOptional = field.startsWith('?');
     const fieldType = isOptional ? field.slice(1) : field;
 
-    if (!Object.prototype.hasOwnProperty.call(body, field) && !isOptional) {
-      return {err: `${toTitleCase(field)} is a required field`} as BodyField;
+    if (!Object.prototype.hasOwnProperty.call(body, fieldType) && !isOptional) {
+      return {err: `${toTitleCase(fieldType)} is a required field`} as BodyField;
     }
 
-    if (ignore) continue;
     if (isOptional && !body[fieldType as keyof BodyField]) continue;
+    if (ignore && fieldType === 'password' && typeof body.password === 'string') continue;
 
     switch (fieldType) {
       case 'username':
+        if (typeof body.username !== 'string') return {err: 'Username must be a string'} as BodyField;
+
         if (!/^[\p{L}\p{N}\s]+$/u.test(body.username)) {
           return {err: 'Username can only contain letters, numbers and spaces'} as BodyField;
         } else if (body.username.length > 25) {
@@ -27,13 +30,17 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         break;
 
       case 'password':
+        if (typeof body.password !== 'string') return {err: 'Password must be a string'} as BodyField;
+
         if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
           return {err: 'Password is too weak. Improve it a bit'} as BodyField;
         }
         break;
 
       case 'email':
-        if (!/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
+        if (typeof body.email !== 'string') return {err: 'Email must be a string'} as BodyField;
+
+        if (!/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/i.test(body.email)) {
           return {err: 'Invalid email address. Please try again'} as BodyField;
         } else if (body.email.length > 48) {
           return {err: 'Email is too long (<48 characters)'} as BodyField;
@@ -41,25 +48,31 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         break;
 
       case 'access':
-        if (!/^\d+$/.test(body.access)) {
-          return {err: 'Invalid access token. Please try again'} as BodyField;
+        if (typeof body.access !== 'string' || !/^\d{6}$/.test(body.access)) {
+          return {err: 'Access code must be a 6 digit number'} as BodyField;
+        }
+        break;
+
+      case 'verification':
+        if (typeof body.verification !== 'string' || !/^[a-f0-9]{64}$/i.test(body.verification)) {
+          return {err: 'Invalid verification token. Please try again'} as BodyField;
         }
         break;
 
       case 'secret':
-        if (body.secret.length > 32 && !/^[A-Z0-9]+$/.test(body.secret)) {
+        if (typeof body.secret !== 'string' || body.secret.length !== 32 || !/^[A-Z2-7]+$/.test(body.secret)) {
           return {err: 'OTP secret is invalid. Get a new one'} as BodyField;
         }
         break;
 
       case 'token':
-        if (!/^\d{6}$/.test(body.token)) {
+        if (typeof body.token !== 'string' || !/^\d{6}$/.test(body.token)) {
           return {err: 'Validation token must be a 6 digit number'} as BodyField;
         }
         break;
 
       case 'code':
-        if (!/^\d{9}$/.test(body.code)) {
+        if (typeof body.code !== 'string' || !/^\d{9}$/.test(body.code)) {
           return {err: 'recovery codes must be a 9 digit number'} as BodyField;
         }
         break;
@@ -71,25 +84,25 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         break;
 
       case 'payment':
-        if (body.payment.length !== 27 || !body.payment.startsWith('pm_')) {
+        if (typeof body.payment !== 'string' || body.payment.length !== 27 || !body.payment.startsWith('pm_')) {
           return {err: 'Payment method is invalid. Please try again'} as BodyField;
         }
         break;
 
       case 'intent':
-        if (body.intent.length !== 27 || !body.intent.startsWith('pi_')) {
+        if (typeof body.intent !== 'string' || body.intent.length !== 27 || !body.intent.startsWith('pi_')) {
           return {err: 'Payment Intent is invalid. Please try again'} as BodyField;
         }
         break;
 
       case 'subscription':
-        if (body.subscription.length !== 28 || !body.subscription.startsWith('sub_')) {
+        if (typeof body.subscription !== 'string' || body.subscription.length !== 28 || !body.subscription.startsWith('sub_')) {
           return {err: 'Subscription ID is invalid. Please try again'} as BodyField;
         }
         break;
 
       case 'id':
-        if (body.id.length !== 12) {
+        if (typeof body.id !== 'string' || body.id.length !== 12) {
           return {err: 'Invalid ID, please try again'} as BodyField;
         }
         break;
@@ -100,6 +113,7 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
 }
 
 export function checkContact(rawBody: unknown): ContactDetail {
+  if (!rawBody || typeof rawBody !== 'object') return {err: 'Invalid request body'} as ContactDetail;
   const body = rawBody as ContactDetail;
 
   for (const field of ['category', 'message', 'subject']) {
@@ -108,16 +122,28 @@ export function checkContact(rawBody: unknown): ContactDetail {
     }
   }
 
+  if (typeof body.subject !== 'string') return {err: 'Subject must be a string'} as ContactDetail;
+
   if (body.subject.length > 120) {
     return {err: 'Subject is too long (<120 characters)'} as ContactDetail;
   }
+
+  if (typeof body.message !== 'string') return {err: 'Message must be a string'} as ContactDetail;
 
   if (!body.message.length) {
     return {err: 'Message is empty'} as ContactDetail;
   }
 
+  if (body.email && typeof body.email !== 'string') {
+    return {err: 'Email must be a string'} as ContactDetail;
+  }
+
   if (body.email && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
     return {err: 'Please enter a valid email'} as ContactDetail;
+  }
+
+  if (typeof body.category !== 'string') {
+    return {err: 'Category must be a string'} as ContactDetail;
   }
 
   if (!body.category.match(/^(question|feedback|collaboration|refund|bug|help|other)$/i)) {
@@ -129,6 +155,7 @@ export function checkContact(rawBody: unknown): ContactDetail {
 
 export async function checkIdentity(kind: string, body: CheckIdentity): Promise<CheckIdentity> {
   if (!body) return body;
+  if (typeof body !== 'object') return {error: 'Invalid identity payload'};
 
   switch (kind) {
     case 'location':
@@ -138,15 +165,19 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       break;
 
     case 'identity':
-      if (body.name!.trim().length < 2) {
+      if (typeof body.name !== 'string') {
+        return {error: 'Name must be a string'};
+      }
+
+      if (body.name.trim().length < 2) {
         return {error: 'Name must be at least 2 characters long'};
       }
 
-      if (body.name!.length > 30) {
+      if (body.name.length > 30) {
         return {error: 'Name is too long (<30 characters)'};
       }
 
-      if (!/^[\p{L}\s.'-]+$/u.test(body.name!)) {
+      if (!/^[\p{L}\s.'-]+$/u.test(body.name)) {
         return {error: 'Name contains invalid characters'};
       }
 
@@ -154,23 +185,31 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Sex must be either "male" or "female"'};
       }
 
-      if (body.age! < 18 || body.age! > 60) {
+      if (typeof body.age !== 'number' || !Number.isInteger(body.age)) {
+        return {error: 'Age must be a whole number'};
+      }
+
+      if (body.age < 18 || body.age > 60) {
         return {error: 'Age must be between 18 and 60'};
       }
 
-      if (!ETHNICITIES.includes(body.ethnicity!)) {
+      if (typeof body.ethnicity !== 'string' || !ETHNICITIES.includes(body.ethnicity)) {
         return {error: 'Ethnicity must be a valid ethnicity'};
       }
 
-      if (body.bio!.trim().length > 0 && body.bio!.trim().length < 5) {
+      if (typeof body.bio !== 'string') {
+        return {error: 'Biography must be a string'};
+      }
+
+      if (body.bio.trim().length > 0 && body.bio.trim().length < 5) {
         return {error: 'Biography must be at least 5 characters long if provided'};
       }
 
-      if (body.bio!.length > 126) {
+      if (body.bio.length > 126) {
         return {error: 'Biography is too long (<126 characters)'};
       }
 
-      if (!/^[A-Za-z0-9+/=]+$/.test(body.picture!)) {
+      if (body.picture !== undefined && (typeof body.picture !== 'string' || !/^[A-Za-z0-9+/=]+$/.test(body.picture))) {
         return {error: 'Incorrect profile picture format'};
       }
       break;
@@ -242,8 +281,8 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
     const isOptional = field.startsWith('?');
     const fieldType = isOptional ? field.slice(1) : field;
 
-    if (!Object.prototype.hasOwnProperty.call(body, field) && !isOptional) {
-      return {err: `${toTitleCase(field)} is a required field`} as APIRequest;
+    if (!Object.prototype.hasOwnProperty.call(body, fieldType) && !isOptional) {
+      return {err: `${toTitleCase(fieldType)} is a required field`} as APIRequest;
     }
 
     if (isOptional && !body[fieldType as keyof APIRequest]) continue;

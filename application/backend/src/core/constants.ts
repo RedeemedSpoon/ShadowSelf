@@ -1,6 +1,8 @@
 export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
 export const EMAIL_JUNK_RETENTION_DAYS = 7;
 export const EMAIL_FETCH_LIMIT = 10;
+export const EMAIL_ACCESS_CODE_TTL_MS = 10 * 60 * 1000;
+export const EMAIL_VERIFICATION_TTL_MS = 30 * 60 * 1000;
 export const SMS_MAX_LENGTH = 160;
 
 export const BTC_API = 'https://mempool.space/api';
@@ -32,19 +34,19 @@ export const EMAIL_TEMPLATES = {
   confirm: {
     title: 'Confirm Your Email Address',
     description: 'Thank you for signing up for Shadowself. To create your account, you need to first verify your email address.',
-    type: 'access',
+    type: 'verification code',
     action: 'create your account & start using Shadowself',
   },
   change: {
     title: 'Change Your Email Address',
     description: 'To change the email address associated with your account, you need to first verify this new email address.',
-    type: 'access',
+    type: 'verification code',
     action: 'login to your account with the new email address',
   },
   recover: {
     title: 'Recover Your Account',
-    description: 'Since you forgot your password, we will resort to using recovery token to get back your account.',
-    type: 'recovery',
+    description: 'Since you forgot your password, we will use a temporary recovery code to help you get back into your account.',
+    type: 'recovery code',
     action: 'login to your account & start using Shadowself',
   },
 };
