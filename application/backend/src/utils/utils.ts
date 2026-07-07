@@ -1,5 +1,6 @@
 import type {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
 import {secretProxyKey} from '@core/config';
+import type {Attachment} from '@type';
 import sharp from 'sharp';
 
 export function error(set: {[key: string]: unknown}, status: number, message: string) {
@@ -38,6 +39,18 @@ export async function resizeTo256(base64: string) {
   const buffer = Buffer.from(base64, 'base64');
   const resizedBuffer = await sharp(buffer).resize(256, 256).toBuffer();
   return resizedBuffer.toString('base64');
+}
+
+export function toBase64Content(data: string) {
+  return data.includes(',') ? data.split(',').at(1) || '' : data;
+}
+
+export function toMailAttachment(attachment: Attachment) {
+  return {
+    filename: attachment.filename,
+    content: toBase64Content(attachment.data),
+    encoding: 'base64',
+  };
 }
 
 export function parseMessage(msg: MessageInstance) {

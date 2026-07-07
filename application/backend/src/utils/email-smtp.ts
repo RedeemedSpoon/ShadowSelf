@@ -1,6 +1,7 @@
 import {contactTransporter, smtpTransporter, verificationTransporter} from '@core/services';
 import type {ContactDetail, EmailContent} from '@type';
 import {EMAIL_TEMPLATES} from '@core/constants';
+import {toMailAttachment} from '@utils/utils';
 
 export async function contact(body: ContactDetail) {
   const mailOptions = {
@@ -41,13 +42,7 @@ export async function sendIdentityEmail(emailContent: EmailContent) {
   const isHtml = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(body);
   const date = new Date();
 
-  const attachmentsList = attachments.map((attachment) => {
-    return {
-      filename: attachment.filename,
-      content: attachment.data.split(',')[1],
-      encoding: 'base64',
-    };
-  });
+  const attachmentsList = attachments.map(toMailAttachment);
 
   const mailOptions = {
     from: email,

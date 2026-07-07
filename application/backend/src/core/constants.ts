@@ -30,6 +30,13 @@ export const PRICING_TIERS = {
   lifetime: 20000,
 };
 
+export const PARSER_OPTIONS = {
+  keepCidLinks: true,
+  skipHtmlToText: true,
+  skipImageLinks: true,
+  skipTextToHtml: true,
+};
+
 export const EMAIL_TEMPLATES = {
   confirm: {
     title: 'Confirm Your Email Address',

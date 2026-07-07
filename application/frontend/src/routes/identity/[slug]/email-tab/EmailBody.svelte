@@ -9,6 +9,15 @@
 
   let iframe = $state() as HTMLIFrameElement | null;
 
+  function resizeIframe() {
+    if (!iframe) return;
+
+    try {
+      const body = iframe.contentDocument?.body;
+      if (body) iframe.style.height = body.scrollHeight + 50 + 'px';
+    } catch (_) {}
+  }
+
   function openInNewTab() {
     const blob = new Blob([email.type === 'html' ? DOMPurify.sanitize(email.body) : email.body], {
       type: email.type === 'html' ? 'text/html' : 'text/plain',
@@ -40,11 +49,7 @@
         title={email.subject}
         srcdoc={DOMPurify.sanitize(email.body)}
         class="min-h-[50vh] w-full overflow-y-hidden"
-        onload={() => {
-          if (iframe?.contentWindow?.document.body) {
-            iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 50 + 'px';
-          }
-        }}
+        onload={resizeIframe}
         sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>
     </div>
   {:else}

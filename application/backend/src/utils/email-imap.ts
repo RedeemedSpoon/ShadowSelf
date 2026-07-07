@@ -1,8 +1,10 @@
-import {EMAIL_FETCH_LIMIT, EMAIL_JUNK_RETENTION_DAYS} from '@core/constants';
+import {EMAIL_FETCH_LIMIT, EMAIL_JUNK_RETENTION_DAYS, PARSER_OPTIONS} from '@core/constants';
+import type {AddressObject, Attachment as ParsedAttachment, ParsedMail} from 'mailparser';
 import MailComposer from 'nodemailer/lib/mail-composer';
 import {imapConnection} from '@core/services';
 import {wsConnections} from '@core/states';
 import {simpleParser} from 'mailparser';
+import {toMailAttachment} from '@utils/utils';
 import type {EmailContent} from '@type';
 import imap from 'imap-simple';
 
@@ -16,7 +18,7 @@ export async function listenForEmail(user: string, password: string) {
     const messages = await connection.search([`UNSEEN`], {bodies: ['']});
 
     for (const message of messages) {
-      const email = await parseMassage(connection, message);
+      const email = await parseMessage(connection, message);
 
       const sockets = wsConnections.values().filter((ws) => ws.emailAddress === user);
       for (const ws of sockets) {
@@ -99,7 +101,7 @@ export async function fetchEmail(user: string, password: string, isReply: boolea
       const message = await connection.search(query, {bodies: ['']});
 
       if (message.length === 0) continue;
-      reply = await parseMassage(connection, message[0]);
+      reply = await parseMessage(connection, message[0]);
     }
   } finally {
     connection.end();
@@ -115,13 +117,7 @@ export async function appendToMailbox(asDraft: boolean, content: EmailContent & 
 
   const shownDate = content.date || new Date();
 
-  const attachmentsList = content.attachments.map((attachment) => {
-    return {
-      filename: attachment.filename,
-      content: attachment.data.split(',')[1],
-      encoding: 'base64',
-    };
-  });
+  const attachmentsList = content.attachments.map(toMailAttachment);
 
   const mail = new MailComposer({
     messageId: content.messageID,
@@ -187,71 +183,74 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
         }
       }
 
-      return parseMassage(connection, message).catch(() => null);
+      return parseMessage(connection, message).catch(() => null);
     }),
   );
 
   return {messagesCount, emails: emails.filter(Boolean).reverse()};
 }
 
-async function parseMassage(connection: imap.ImapSimple, message: imap.Message) {
+async function parseMessage(connection: imap.ImapSimple, message: imap.Message) {
   if (!message.attributes.flags.includes('\\Seen')) {
     connection.addFlags(message.attributes.uid, ['\\Seen']);
   }
 
-  const rawEmail = message.parts.find((part) => part.which === '')?.body;
-  const email = await simpleParser(rawEmail);
-
-  const attachments = email.attachments
-    .filter((att) => att.filename && !att.filename.includes('.asc'))
-    .map((att) => ({
-      filename: att.filename!,
-      data: att.content.toString('base64'),
-    }));
+  const rawEmail = getRawEmail(message);
+  const email = await simpleParser(rawEmail, PARSER_OPTIONS);
 
   const uid = message.attributes.uid;
-  const contentType = (email.headers.get('content-type') as any)?.value;
-
-  const isHtmlContentType =
-    typeof contentType === 'string' &&
-    (contentType.includes('text/html') ||
-      contentType.includes('multipart/alternative') ||
-      contentType.includes('multipart/signed') ||
-      contentType.includes('multipart/mixed') ||
-      contentType.includes('multipart/related'));
-
-  const hasHtmlTags = !!email.html && /<\/?(html|body|head|title|div|p|span|table|a|img)[^>]*>/i.test(email.html);
-  const isHtml = isHtmlContentType && hasHtmlTags;
-  const type = isHtml ? 'html' : 'text';
-
-  let body = email.text;
-  if (type === 'html' && typeof email.html === 'string') {
-    const htmlMatch = email.html.match(/<body[^>]*>(.*?)<\/body>/is) || email.html.match(/<html[^>]*>(.*?)<\/html>/is);
-    body = htmlMatch ? htmlMatch[1] : email.html;
-  }
-
-  const to = email.to && Array.isArray(email.to) ? email.to.map((t) => t.text).join(', ') : email.to?.text;
-
-  let references: string[] | undefined = undefined;
-  if (email.references) {
-    if (Array.isArray(email.references)) {
-      references = email.references;
-    } else if (typeof email.references === 'string') {
-      references = email.references.split(/\s+/).filter(Boolean);
-    }
-  }
+  const {body, type} = getParsedBody(email);
 
   return {
-    messageID: email.messageId,
-    subject: email.subject,
-    from: email.from?.text,
-    date: email.date,
-    to: to?.toString(),
-    inReplyTo: email.inReplyTo,
-    references,
-    attachments,
+    messageID: email.messageId || '',
+    subject: email.subject || '',
+    from: email.from?.text || '',
+    date: email.date || new Date(message.attributes.date),
+    to: formatAddressList(email.to),
+    inReplyTo: email.inReplyTo || null,
+    references: normalizeReferences(email.references),
+    attachments: normalizeAttachments(email.attachments),
     uid,
     body,
     type,
   };
+}
+
+function getRawEmail(message: imap.Message) {
+  const rawEmail = message.parts.find((part) => part.which === '')?.body;
+  if (!rawEmail) throw new Error('Missing email source');
+
+  return rawEmail;
+}
+
+function getParsedBody(email: ParsedMail) {
+  const html = typeof email.html === 'string' ? email.html.trim() : '';
+  if (html) return {body: html, type: 'html' as const};
+
+  return {body: email.text || '', type: 'text' as const};
+}
+
+function formatAddressList(addresses?: AddressObject | AddressObject[]) {
+  const addressList = Array.isArray(addresses) ? addresses : addresses ? [addresses] : [];
+  return addressList
+    .map((address) => address.text)
+    .filter(Boolean)
+    .join(', ');
+}
+
+function normalizeReferences(references?: ParsedMail['references']) {
+  if (!references) return [];
+  return Array.isArray(references) ? references : [references];
+}
+
+function normalizeAttachments(attachments: ParsedAttachment[]) {
+  return attachments.filter(isVisibleAttachment).map((attachment) => ({
+    filename: attachment.filename!,
+    data: attachment.content.toString('base64'),
+  }));
+}
+
+function isVisibleAttachment(attachment: ParsedAttachment) {
+  const filename = attachment.filename?.trim();
+  return Boolean(filename && !filename.toLowerCase().endsWith('.asc') && !attachment.related);
 }
