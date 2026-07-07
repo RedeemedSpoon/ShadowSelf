@@ -4,31 +4,31 @@ You are an autonomous expert developer. You are writing code for a production ap
 
 # Code Style & Constraints
 
-- No inline comments. Code must be self-explanatory. Exclusively never use them.
-- Max 60 lines per function, for code line width its around 100-120 characters.
-- Max 5+ levels of indentation. If you exceed this, extract logic into a new, well-named helper function.
-- Don't overdo functions, 10 function each 3-5 lines long for one feature is dislikable, prefer merging some of them.
-- Don't create new utils files until the old ones becomes cluttered, or the new file being part of a new feature which will require tons of helpers functions.
-- use the appropriate files/modules when needed, for example store constants in @utils/contants, types in @utils/type etc. (only exception is when its too large AND single scoped)
-- Prefer functional paradigms (`reduce()`, `map()`, ternary operators) over imperative loops and conditionals where readable.
-- Strictly match the syntax and naming conventions of the surrounding code in the file.
+- Write self-explanatory code with no inline comments.
+- Keep functions under 60 lines, lines around 100-120 chars, and nesting under 5 levels; extract clear helpers when needed.
+- Avoid tiny-function soup. Keep cohesive logic together instead of splitting one feature into many 3-5 line helpers.
+- Use the right existing module: constants in `@utils/constants`, types in `@utils/type`, and shared helpers only where they belong.
+- Do not create new utils files unless existing ones are cluttered or the feature is large and helper-heavy.
+- Prefer `map`, `reduce`, ternaries, and functional patterns when readable; use simpler control flow when it is clearer.
+- Match the syntax, naming, and conventions of the surrounding code.
 
-# UI & Copywriting Tone For Frontend
+# UI/UX & Copywriting Tone
 
-- **Persona:** Write like the lead engineer of a respected, highly useful niche tool speaking directly to a peer. The UI should feel like a genuine, high-quality small business, not a faceless sanitized environment.
-- **Tone Balance:** Grounded, warmly professional, and highly practical. Show quiet, genuine pride in the craft, but never force excitement or use fake emotion.
-- **Technical but Accessible:** Use the correct technical terminology so power users know they are in the right place, but frame the sentences simply so new users aren't gatekept by jargon.
-- **Absolute Honesty:** Zero marketing fluff, zero overselling, zero legal jargon. Be exceptionally literal about what the feature does, its limitations, and how to use it.
+- **Core Direction:** Dark neo-privacy console: slate/black surfaces, indigo/sky/purple accents, glassy depth, crisp typography, restrained motion.
+- **Brand Shape:** Landing pages can be cinematic and bespoke; app pages should be dense, calm, and operational, with product-specific visuals over default SaaS/Tailwind patterns.
+- **UX Priority:** Make flows scannable and decisive: visible states, compact controls, strong empty states, useful icons, and responsive layouts that keep key actions obvious.
+- **Voice:** Write like the lead engineer of a respected niche tool speaking to a peer: grounded, warmly professional, practical, and quietly proud of the craft.
+- **Copy:** Use correct technical terms with simple framing. Be literal about what features do, how to use them, and their limits. No marketing fluff, overselling, legal jargon, fake excitement, or sanitized corporate voice.
 
 # Workflow & Execution
 
-- **Server:** Assume `bun dev` is already running in a separate background terminal and auto-reloads. Do not attempt to start it. frontend runs at port 5000 and backend at 3000.
-- **Git:** Always use current git branch without creating new one, leave committing and other git commands to me.
-- **Dependencies:** Do NOT install new libraries or packages without asking me for approval first.
-- **Refactoring:** You have a green flag to aggressively refactor code for better UX/UI/Architecture. However, if a refactor touches multiple files, outline it in a Plan first.
-- **Clean-up:** After work is done, clean trace of old/replaced code and logic across the codebase, to avoid filler/useless code.
-- **Before Finishing:** Before declaring a task finished, you should run `bun lint` and fix any errors aswell as `bun format` to ensure styling matches, if change is critical or massive, try building the project and previewing it aswell (using `bun run build`).
+- **Server:** Assume `bun dev` is already running and auto-reloads. Do not start it. Frontend: `5000`; backend: `3000`.
+- **Git:** Stay on the current branch. Do not create branches, commit, push, or run destructive git commands.
+- **Dependencies:** Do not install new libraries or packages without approval.
+- **Refactoring:** Refactor aggressively for better UX, UI, and architecture; outline a Plan first if it touches multiple files.
+- **Clean-up:** Remove replaced code and stale logic so the codebase does not keep filler.
+- **Before Finishing:** Run `bun format` and `bun lint`, then fix errors. For critical or broad changes, also run `bun run build` and preview when practical.
 
-# Considerations
+# Important Note
 
-- If other files you haven't touched are should to have uncommitted changes, ignore it, its another agent or myself, until it directly interferes with the logic you are working on right now.
+- Ignore unrelated uncommitted changes from other agents or me unless they directly interfere with your task.
