@@ -42,6 +42,16 @@ export interface Location {
   map: string;
 }
 
+export type GuardIssue = {
+  status: number;
+  message: string;
+};
+
+export type QueryRule = {
+  pattern: RegExp;
+  keys: Set<string>;
+};
+
 export type EmailCodePurpose = 'signup' | 'login' | 'change';
 
 export interface ContactDetail {

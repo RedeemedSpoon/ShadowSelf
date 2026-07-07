@@ -1,4 +1,5 @@
 import {initBackgroundWorkers} from '@core/background-workers';
+import requestGuard from '@middlewares/middleware-request-guard';
 import {checkContact} from '@utils/checks';
 import {contact} from '@utils/email-smtp';
 import type {ContactDetail} from '@type';
@@ -13,6 +14,7 @@ import webhooks from './routes/webhooks';
 import billing from './routes/billing';
 
 const app = new Elysia()
+  .use(requestGuard)
   .onError(async ({error}) => {
     if (error instanceof Error) return {message: error.message};
     else if (error instanceof Response) return {message: await error.text()};
