@@ -1,4 +1,4 @@
-import { GuardIssue, QueryRule } from '@type';
+import {GuardIssue, QueryRule} from '@type';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 

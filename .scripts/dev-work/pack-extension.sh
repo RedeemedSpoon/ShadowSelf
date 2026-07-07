@@ -1,6 +1,7 @@
 #!/bin/bash
 
-SHADOWSELF_PATH=$(dirname "$(dirname "$(realpath "$0")")")
+SCRIPT_PATH=$(dirname "$(realpath "$0")")
+SHADOWSELF_PATH=$(dirname "$(dirname "$SCRIPT_PATH")")
 EXTENSION_DIR="$SHADOWSELF_PATH/extension"
 SLEEP_TIME=0.25
 

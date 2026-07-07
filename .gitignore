@@ -8,8 +8,7 @@ pnpm-lock.yaml
 
 ShadowSelf-Chromium.zip
 ShadowSelf-Firefox.zip
-db_backup.sql.gz
-db_backup.sql
+backup-db-*.zip
 
 Thumbs.db
 .DS_Store
