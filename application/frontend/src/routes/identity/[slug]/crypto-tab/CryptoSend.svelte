@@ -10,11 +10,10 @@
   import {decrypt} from '$utils/cryptography';
   import type {Writable} from 'svelte/store';
   import {pendingID, identity} from '$store';
-  import {idbOperation} from '$utils/monero';
+  import {idbOperation, moneroTs} from '$utils/monero';
   import {formatUSD} from '$utils/formating';
   import {fetchAPI} from '$utils/webfetch';
   import {SLEEP_DURATION} from '$constant';
-  import * as monerots from 'monero-ts';
   import {notify} from '$utils/shared';
   import {onMount} from 'svelte';
 
@@ -77,8 +76,8 @@
     if ($currentCrypto === 'xmr') {
       try {
         const localData = await idbOperation('readonly', $identity.id);
-        const wallet = await monerots.openWalletFull({
-          networkType: monerots.MoneroNetworkType.MAINNET,
+        const wallet = await moneroTs.openWalletFull({
+          networkType: moneroTs.MoneroNetworkType.MAINNET,
           server: {uri: crypto.wallet.xmr.nodeUrl},
           password: 'shadowself_xmr',
           keysData: localData.keys,

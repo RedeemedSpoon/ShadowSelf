@@ -24,8 +24,8 @@ You are an autonomous expert developer. You are writing code for a production ap
 
 # Workflow & Execution
 
-- **Server:** Assume `bun dev` is already running in a separate background terminal and auto-reloads. Do not attempt to start it.
+- **Server:** Assume `bun dev` is already running in a separate background terminal and auto-reloads. Do not attempt to start it. frontend runs at port 5000 and backend at 3000.
 - **Git:** Always use current git branch without creating new one, leave committing and other git commands to me.
 - **Dependencies:** Do NOT install new libraries or packages without asking me for approval first.
 - **Refactoring:** You have a green flag to aggressively refactor code for better UX/UI/Architecture. However, if a refactor touches multiple files, outline it in a Plan first.
-- **Definition of Done:** Before declaring a task finished, you should run `bun lint` and fix any errors aswell aswell as `bun format` to ensure styling matches.
+- **Definition of Done:** Before declaring a task finished, you should run `bun lint` and fix any errors aswell aswell as `bun format` to ensure styling matches, if change is critical or technically massive, try building the project and previewing it too.

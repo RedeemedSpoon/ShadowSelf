@@ -1,6 +1,14 @@
 import {identity, moneroData} from '$store';
-import * as monerots from 'monero-ts';
+import moneroTs from 'monero-ts';
 import {get} from 'svelte/store';
+
+const createMoneroWorker = () =>
+  new Worker(new URL('monero-ts/dist/monero.worker.js', import.meta.url), {
+    type: 'module',
+  });
+
+moneroTs.LibraryUtils.setWorkerLoader(createMoneroWorker);
+export {moneroTs};
 
 export function idbOperation(mode: 'readonly' | 'readwrite', id: string, data?: any): Promise<any> {
   return new Promise((resolve, reject) => {
@@ -52,9 +60,9 @@ export default async function initMoneroScan(
 
       if (localData) {
         onCache(true);
-        wallet = await monerots.openWalletFull({
+        wallet = await moneroTs.openWalletFull({
           fs: {promises: {stat: () => Promise.reject(new Error('Memory'))}} as any,
-          networkType: monerots.MoneroNetworkType.MAINNET,
+          networkType: moneroTs.MoneroNetworkType.MAINNET,
           server: {uri: nodeData.nodeUrl},
           password: 'shadowself_xmr',
           keysData: localData.keys,
@@ -62,8 +70,8 @@ export default async function initMoneroScan(
         });
       } else {
         onCache(false);
-        wallet = await monerots.createWalletFull({
-          networkType: monerots.MoneroNetworkType.MAINNET,
+        wallet = await moneroTs.createWalletFull({
+          networkType: moneroTs.MoneroNetworkType.MAINNET,
           primaryAddress: get(moneroData).address,
           privateViewKey: get(moneroData).viewKey,
           privateSpendKey: get(moneroData).spendKey,
@@ -106,13 +114,14 @@ export default async function initMoneroScan(
         .map((tx: any) => {
           const incoming = Number(tx.getIncomingAmount() || 0);
           const outgoing = Number(tx.getOutgoingAmount() || 0);
+          const type = incoming > outgoing ? 'received' : 'sent';
 
           const block = tx.getBlock();
           const timestamp = block ? block.getTimestamp() : Math.floor(Date.now() / 1000);
 
           return {
             txid: String(tx.getHash()),
-            type: (incoming > outgoing ? 'received' : 'sent') as 'sent',
+            type,
             counterparty: 'RingCT Hidden',
             amount: Math.abs(incoming - outgoing) / 1e12,
             date: new Date(timestamp * 1000),

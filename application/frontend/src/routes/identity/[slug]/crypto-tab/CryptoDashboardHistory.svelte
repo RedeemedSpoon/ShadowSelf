@@ -20,9 +20,8 @@
   const filename = $derived(`ShadowSelf-${$currentCrypto.toUpperCase()}-Transaction-History.csv`);
   const externalUrl = $derived(EXTERNAL_TX_VIEWERS[$currentCrypto as keyof typeof EXTERNAL_TX_VIEWERS]);
 
-  function copyCounterparty(counterparty: string) {
+  function copyCounterparty(element: HTMLTableCellElement, counterparty: string) {
     navigator.clipboard.writeText(counterparty);
-    const element = document.querySelector(`#counterparty-${counterparty}`) as HTMLTableCellElement;
     element.innerText = 'Copied to clipboard!            ';
     setTimeout(() => (element.innerText = counterparty), 1000);
   }
@@ -84,15 +83,14 @@
       </tr>
     </thead>
     <tbody class="divide-y divide-neutral-800">
-      {#each crypto.wallet[$currentCrypto].history as transaction (transaction.txid)}
+      {#each crypto.wallet[$currentCrypto].history as transaction, index (`${transaction.txid}-${index}`)}
         <tr class="transition-colors hover:bg-neutral-800/40">
           <td class="text-xs font-bold tracking-wide uppercase {transaction.type}">{transaction.type}</td>
           <td class="font-medium text-neutral-300">{transaction.amount}</td>
           <td class="whitespace-nowrap text-neutral-400">{formatDate(new Date(transaction.date).toString())}</td>
           <td
-            id="counterparty-{transaction.counterparty}"
             class="max-w-50 cursor-pointer font-mono font-medium text-neutral-300"
-            onclick={() => copyCounterparty(transaction.counterparty)}
+            onclick={(event) => copyCounterparty(event.currentTarget, transaction.counterparty)}
             title={transaction.counterparty}>
             {transaction.counterparty}</td>
           <td class="max-w-30 font-mono text-neutral-500" title={transaction.txid}>

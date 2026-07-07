@@ -8,10 +8,9 @@
   import {decrypt, deriveXPub} from '$utils/cryptography';
   import {pendingID, identity, moneroData} from '$store';
   import {onMount, type Component} from 'svelte';
-  import {idbOperation} from '$utils/monero';
+  import {idbOperation, moneroTs} from '$utils/monero';
   import {formatUSD} from '$utils/formating';
   import {fetchAPI} from '$utils/webfetch';
-  import * as monerots from 'monero-ts';
   import {notify} from '$utils/shared';
 
   interface Props {
@@ -116,8 +115,8 @@
         const localData = await idbOperation('readonly', $identity.id);
         if (!localData) notify('Wallet cache not found. Please wait for sync to complete.', 'alert');
 
-        const wallet = await monerots.openWalletFull({
-          networkType: monerots.MoneroNetworkType.MAINNET,
+        const wallet = await moneroTs.openWalletFull({
+          networkType: moneroTs.MoneroNetworkType.MAINNET,
           server: {uri: crypto.wallet.xmr.nodeUrl},
           password: 'shadowself_xmr',
           keysData: localData.keys,

@@ -45,6 +45,6 @@ export default defineConfig([
     },
   },
   {
-    ignores: ['**/node_modules/**', '**/build/**', '**/.svelte-kit/**', '**/monero.worker.js'],
+    ignores: ['**/node_modules/**', '**/build/**', '**/.svelte-kit/**'],
   },
 ]);

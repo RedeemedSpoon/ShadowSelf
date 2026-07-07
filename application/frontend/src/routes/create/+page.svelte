@@ -36,7 +36,7 @@
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
   import {HDKey} from '@scure/bip32';
-  import moneroTs from 'monero-ts';
+  import {moneroTs} from '$utils/monero';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
 
