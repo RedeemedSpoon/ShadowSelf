@@ -1,8 +1,14 @@
-import {origin, request, read, store, sleep} from '../../shared.js';
+import {origin, request, read, store, sleep, getSessionToken, clearStoredSessionToken} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const cookie = await read('cookie');
-  if (!cookie) location.href = '../welcome/welcome.html';
+  await clearStoredSessionToken();
+
+  const authenticated = await read('authenticated');
+  const token = await getSessionToken();
+  if (!authenticated || !token) {
+    location.href = '../welcome/welcome.html';
+    return;
+  }
 
   const identities = await initialize();
   listIdentities(identities);

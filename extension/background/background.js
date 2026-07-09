@@ -1,9 +1,10 @@
 import {connect, disconnect, toggleKillSwitch} from './proxy.js';
 import {updateIcon, disableNetworking} from './utils.js';
 import {spoofUserAgent} from './user-agent.js';
-import {read, store} from '../shared.js';
+import {read, store, clearStoredSessionToken} from '../shared.js';
 
 chrome.runtime.onInstalled.addListener(async () => {
+  await clearStoredSessionToken();
   await store('agent-browser', 'chrome');
   await store('agent-os', 'Windows');
   await store('actualAgent', true);
@@ -40,6 +41,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
 });
 
 chrome.runtime.onStartup.addListener(async () => {
+  await clearStoredSessionToken();
   const killSwitch = await read('killSwitch');
   const isVPNEnabled = await read('isVPNEnabled');
   if (killSwitch && isVPNEnabled === 'off') disableNetworking();

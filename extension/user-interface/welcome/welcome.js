@@ -1,9 +1,11 @@
-import {origin, sleep, request, store, remove, isChrome} from '../../shared.js';
+import {sleep, request, store, remove, getSessionToken, clearStoredSessionToken} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  await clearStoredSessionToken();
+
   const params = new URLSearchParams(window.location.search);
   if (params.has('delete') && params.get('delete') === 'true') {
-    await remove('cookie');
+    await remove(['authenticated', 'username', 'identities']);
   }
 
   const button = document.querySelector('button');
@@ -15,17 +17,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     button.disabled = true;
     await sleep(500);
 
-    const token = await fetchCookie();
+    const token = await getSessionToken({openLogin: true});
     if (!token) {
       status.innerText = 'Failed to fetch ShadowSelf token cookie.\nPlease login to ShadowSelf in your browser.';
       button.innerText = 'Synchronize';
       button.disabled = false;
       return;
     }
-
-    button.innerText = 'Storing...';
-    await store('cookie', token);
-    await sleep(1000);
 
     button.innerText = 'Syncing...';
     await sleep(750);
@@ -39,6 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     button.innerText = 'Finishing...';
+    await store('authenticated', true);
     await store('username', response.username);
     await store('identities', response.identities);
 
@@ -46,29 +45,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     location.href = '../dashboard/dashboard.html?ignore=true';
   });
 });
-
-async function fetchCookie() {
-  let shadowselfTab, cookie;
-
-  chrome.tabs.query({url: `https://*.${origin}/*`}, async (tabs) => {
-    if (tabs.length) shadowselfTab = tabs[0];
-    else shadowselfTab = await chrome.tabs.create({url: `https://${origin}/dashboard`, active: true});
-
-    if (!isChrome) {
-      chrome.windows.update(shadowselfTab.windowId, {focused: true});
-      chrome.tabs.update(shadowselfTab.id, {active: true});
-    }
-
-    await sleep(1000);
-    const option = {
-      storeId: shadowselfTab.cookieStoreId,
-      url: 'https://' + origin,
-      name: 'token',
-    };
-
-    cookie = (await chrome.cookies.getAll(option)) || [];
-  });
-
-  while (!cookie) await sleep(25);
-  return cookie[0]?.value;
-}
