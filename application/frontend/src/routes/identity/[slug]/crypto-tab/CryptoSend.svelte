@@ -109,13 +109,16 @@
       return;
     }
 
+    const isUtxoCoin = ['btc', 'ltc'].includes($currentCrypto);
+    const selectedCoinUtxos = isUtxoCoin ? selectedUtxos : undefined;
+
     const data: transactionData = {
-      estimatedFee: ['btc', 'ltc'].includes($currentCrypto) ? estimatedFee : crypto.fees[$currentCrypto][selectedPriority],
+      estimatedFee: isUtxoCoin ? estimatedFee : crypto.fees[$currentCrypto][selectedPriority],
       privKeyType: 'mnemonic',
       wifKey: await decrypt($identity.walletBlob),
       index: Math.max(0, crypto.wallet[$currentCrypto as 'btc'].nextIndex),
       xpubKey: $identity.walletKeys[$currentCrypto as 'btc'],
-      utxos: crypto.wallet[$currentCrypto as 'btc'].utxos,
+      utxos: selectedCoinUtxos,
       nonce: crypto.wallet[$currentCrypto as 'eth'].nonce,
       balance: crypto.wallet[$currentCrypto as 'eth'].balance,
     };

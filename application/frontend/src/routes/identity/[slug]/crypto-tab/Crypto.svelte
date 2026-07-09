@@ -33,14 +33,19 @@
   import {fetchAPI} from '$utils/webfetch';
   import {writable} from 'svelte/store';
 
-  let crypto = $state({}) as CryptoAPI;
+  type CryptoResponse = Partial<CryptoAPI> & {message?: string};
+  type XmrNodeResponse = Partial<CryptoAPI['wallet']['xmr']> & {err?: string; message?: string};
+
   let xmrScanProgress = $state(0);
   let xmrScannedBlocks = $state(0);
   let xmrTotalBlocks = $state(0);
   let xmrHasLocalCache = $state(false);
+  let walletError = $state('');
+  let xmrError = $state('');
 
   const currentCrypto = writable<Coins>('btc');
   let mode = writable<'view' | 'send' | 'sweep' | 'receive' | 'invoice' | 'market' | 'swap'>('view');
+  const coins = ['btc', 'ltc', 'eth', 'usdt', 'xmr'] as const;
 
   const cryptoTitles = {
     btc: 'Bitcoin',
@@ -60,13 +65,68 @@
 
   const title = $derived(`${cryptoTitles[$currentCrypto]} (${$currentCrypto.toUpperCase()})`);
   let anchor = $state() as HTMLAnchorElement;
+  let crypto = $state(getCryptoFallback());
+
+  function getCryptoFallback(status = 'Unavailable'): CryptoAPI {
+    const prices = Object.fromEntries(
+      coins.map((coin) => [coin, {dailyChange: 0, usdPrice: coin === 'usdt' ? 1 : 0, chart: [0, 0]}]),
+    ) as CryptoAPI['prices'];
+    const fees = Object.fromEntries(coins.map((coin) => [coin, {low: 0, medium: 0, high: 0}])) as CryptoAPI['fees'];
+
+    return {
+      type: 'info',
+      prices,
+      fees,
+      wallet: {
+        btc: {status, balance: 0, utxos: [], history: [], activeCount: 0, nextIndex: 0},
+        ltc: {status, balance: 0, utxos: [], history: [], activeCount: 0, nextIndex: 0},
+        eth: {status, balance: 0, nonce: 0, history: []},
+        usdt: {status, balance: 0, nonce: 0, history: []},
+        xmr: {status, startingDate: new Date(), nodeUrl: '', history: [], unlockedBalance: 0, balance: 0},
+      },
+    };
+  }
+
+  function mergeCryptoResponse(response: CryptoResponse): CryptoAPI {
+    const fallback = getCryptoFallback(response.type === 'alert' ? 'Unavailable' : 'Ready');
+    const wallet = response.wallet;
+
+    return {
+      ...fallback,
+      ...response,
+      type: response.type ?? fallback.type,
+      prices: {...fallback.prices, ...response.prices},
+      fees: {...fallback.fees, ...response.fees},
+      wallet: {
+        btc: {...fallback.wallet.btc, ...wallet?.btc},
+        ltc: {...fallback.wallet.ltc, ...wallet?.ltc},
+        eth: {...fallback.wallet.eth, ...wallet?.eth},
+        usdt: {...fallback.wallet.usdt, ...wallet?.usdt},
+        xmr: {...fallback.wallet.xmr, ...wallet?.xmr},
+      },
+    };
+  }
+
+  function getResponseError(response: CryptoResponse, fallback: string) {
+    const rawError = response.err || response.message;
+    if (!rawError) return response.wallet ? '' : fallback;
+
+    const cleanedError = rawError.trim();
+    if (cleanedError.includes('<html') || cleanedError.length > 180) return fallback;
+
+    return cleanedError;
+  }
 
   async function fetchWalletData() {
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
 
-    crypto.wallet = {} as CryptoAPI['wallet'];
-    crypto.wallet.xmr = {} as CryptoAPI['wallet']['xmr'];
+    crypto = getCryptoFallback('Loading');
+    walletError = '';
+    xmrError = '';
+    xmrScanProgress = 0;
+    xmrScannedBlocks = 0;
+    xmrTotalBlocks = 0;
 
     $moneroData = {
       viewKey: await decrypt($identity.walletKeys.xmr.viewKey),
@@ -74,12 +134,19 @@
       address: await decrypt($identity.walletKeys.xmr.address),
     };
 
-    const cryptoPromise = fetchAPI<CryptoAPI>('crypto', 'GET');
-    const xmrNodePromise = fetchAPI<CryptoAPI>('crypto/xmr-node', 'GET');
+    const cryptoPromise = fetchAPI<CryptoResponse>('crypto', 'GET');
+    const xmrNodePromise = fetchAPI<XmrNodeResponse>('crypto/xmr-node', 'GET');
 
-    const scanPromise = xmrNodePromise.then((res) =>
-      initMoneroScan(
-        res,
+    const scanPromise = xmrNodePromise.then((res) => {
+      const error = res.err || res.message || (!res.nodeUrl ? 'Monero node details are temporarily unavailable.' : '');
+      if (error) {
+        xmrError = error;
+        xmrScanProgress = 100;
+        return {...crypto.wallet.xmr, status: 'Network Error'};
+      }
+
+      return initMoneroScan(
+        res as CryptoAPI['wallet']['xmr'],
         (hasCache) => (xmrHasLocalCache = hasCache),
         (progress, scanned, total) => {
           xmrScanProgress = progress;
@@ -88,11 +155,22 @@
           crypto.wallet.xmr.status = 'Scanning...';
         },
         (xmrData) => Object.assign(crypto.wallet.xmr, xmrData),
-        () => (crypto.wallet.xmr.status = 'Network Error'),
-      ),
-    );
+        () => {
+          xmrError = 'Monero wallet sync failed. Check the node connection and try again.';
+          xmrScanProgress = 100;
+          crypto.wallet.xmr.status = 'Network Error';
+        },
+      ).catch(() => {
+        xmrError = 'Monero wallet sync could not start. Check the node connection and try again.';
+        xmrScanProgress = 100;
+        return {...crypto.wallet.xmr, status: 'Network Error'};
+      });
+    });
 
-    [crypto, crypto.wallet.xmr] = await Promise.all([cryptoPromise, scanPromise]);
+    const [walletResponse, xmrData] = await Promise.all([cryptoPromise, scanPromise]);
+    walletError = getResponseError(walletResponse, 'Wallet data is temporarily unavailable.');
+    crypto = mergeCryptoResponse(walletResponse);
+    crypto.wallet.xmr = {...crypto.wallet.xmr, ...xmrData};
   }
 
   async function backupKeys() {
@@ -194,6 +272,24 @@ If a hacker finds this file, your money is gone.
             Do not navigate away from this page or switch tabs. Interrupting the background worker will discard current progress and
             force a full rescan.
           </div>
+        </section>
+      {:else if walletError && $currentCrypto !== 'xmr'}
+        <section id="no-funds" style="background-image: url({lock});">
+          <h2 class="mt-12 text-center text-5xl text-neutral-300">Wallet Data Unavailable</h2>
+          <p class="text-center md:w-1/2">
+            The wallet overview service did not return usable data. Your keys are still local; balances and history will refresh when
+            the service recovers.
+          </p>
+          <small class="max-w-xl text-center text-neutral-500">{walletError}</small>
+        </section>
+      {:else if xmrError && $currentCrypto === 'xmr'}
+        <section id="no-funds" style="background-image: url({lock});">
+          <h2 class="mt-12 text-center text-5xl text-neutral-300">Monero Sync Unavailable</h2>
+          <p class="text-center md:w-1/2">
+            The local Monero scanner could not connect to a usable node. Your keys remain on this device and no private wallet data was
+            sent.
+          </p>
+          <small class="max-w-xl text-center text-neutral-500">{xmrError}</small>
         </section>
       {:else if crypto.wallet[$currentCrypto].history.length === 0}
         <section id="no-funds" style="background-image: url({cart});">
