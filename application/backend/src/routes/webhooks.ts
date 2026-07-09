@@ -1,8 +1,9 @@
-import {error, parseMessage, request as req} from '@utils/utils';
+import {error, parseMessage} from '@utils/utils';
 import middlewareBase from '@middlewares/middleware-base';
 import {stripeConfig, twilioConfig} from '@core/config';
 import type {QueryIdentity, QueryUser} from '@type';
 import {sql, stripe, twilio} from '@core/services';
+import {cancelIdentityBilling} from '@core/billing';
 import {wsConnections} from '@core/states';
 import twilioClient from 'twilio';
 import type Stripe from 'stripe';
@@ -119,14 +120,14 @@ export default new Elysia()
       }
 
       if (identityQuery.length) {
-        await req('/billing/cancel', 'DELETE', {id: identityQuery[0].id});
+        await cancelIdentityBilling(identityQuery[0].id);
       }
     }
 
     if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object;
       const exist = await sql`SELECT id FROM identities WHERE subscription_id = ${subscription.id}`;
-      if (exist.length) await req('/billing/cancel', 'DELETE', {id: exist[0].id});
+      if (exist.length) await cancelIdentityBilling(exist[0].id);
     }
 
     return {received: true};

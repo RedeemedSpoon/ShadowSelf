@@ -193,7 +193,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           });
 
           const messagingService = twilio.messaging.v1.services(twilioConfig.messagingService!);
-          messagingService.phoneNumbers.create({phoneNumberSid: result.sid});
+          await messagingService.phoneNumbers.create({phoneNumberSid: result.sid});
 
           await sql`UPDATE identities SET location = ${fullLocation}, proxy_server = ${proxyServer} WHERE id = ${identityID}`;
           await sql`UPDATE identities SET proxy_password = ${proxyPassword} WHERE id = ${identityID}`;
@@ -202,7 +202,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           await sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`;
 
           await sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`;
-          await sql`UPDATE identities SET phone = ${phone}  WHERE id = ${identityID}`;
+          await sql`UPDATE identities SET phone = ${phone}, twilio_phone_sid = ${result.sid} WHERE id = ${identityID}`;
 
           await sql`UPDATE identities SET wallet_blob = ${wallet.blob}, wallet_keys = ${walletKeys} WHERE id = ${identityID}`;
           await sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`;

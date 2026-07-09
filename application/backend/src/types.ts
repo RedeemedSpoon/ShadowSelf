@@ -118,6 +118,7 @@ export interface QueryIdentity {
   email: string;
   email_password: string;
   phone: string;
+  twilio_phone_sid: string | null;
   wallet_blob: string;
   wallet_keys: CryptoKeys;
   wallet_funds: number;

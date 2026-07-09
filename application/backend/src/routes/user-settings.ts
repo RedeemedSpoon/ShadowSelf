@@ -2,7 +2,8 @@ import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '@utils/
 import middlewareBase from '@middlewares/middleware-base';
 import {sendOfficialEmail} from '@utils/email-smtp';
 import {consumeEmailCode, createEmailCode} from '@utils/email-codes';
-import type {QueryUser, QueryIdentity} from '@type';
+import {deleteAccountBilling} from '@core/billing';
+import type {QueryUser} from '@type';
 import {error, request} from '@utils/utils';
 import {check} from '@utils/checks';
 import {sql} from '@core/services';
@@ -136,14 +137,9 @@ export default new Elysia({prefix: '/settings'})
     await sql`UPDATE users SET totp = NULL WHERE email = ${user!.email}`;
     await sql`UPDATE users SET recovery = ARRAY[]::varchar(9)[] WHERE email = ${user!.email}`;
   })
-  .delete('/full', async ({user}) => {
-    const account = (await sql`SELECT id FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const allPurchases = (await sql`SELECT * FROM identities WHERE owner = ${account?.[0].id}`) as QueryIdentity[];
+  .delete('/full', async ({set, user}) => {
+    const account = ((await sql`SELECT id, email FROM users WHERE email = ${user!.email}`) as QueryUser[])[0];
+    if (!account) return error(set, 404, 'Account not found');
 
-    for (const purchase of allPurchases) {
-      await request('/billing/cancel', 'DELETE', {id: purchase.id});
-    }
-
-    await request('/billing/fiat/customer', 'DELETE', {email: user!.email});
-    await sql`DELETE FROM users WHERE email = ${user!.email}`;
+    await deleteAccountBilling(account);
   });

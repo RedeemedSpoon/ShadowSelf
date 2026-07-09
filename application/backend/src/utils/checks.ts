@@ -1,5 +1,6 @@
 import type {BodyField, ContactDetail, CheckIdentity, APIRequest} from '@type';
 import {ETHNICITIES, LOCATIONS} from '@core/constants';
+import {sql} from '@core/services';
 import {toTitleCase} from '@utils/utils';
 import {$} from 'bun';
 
@@ -223,7 +224,12 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
         return {error: 'Email is too long (<48 characters)'};
       }
 
-      const command = await $`id $EMAIL_ADDRESS`.env({EMAIL_ADDRESS: body.email!}).quiet().nothrow();
+      const email = body.email!.toLowerCase();
+      const mailbox = email.split('@')[0];
+      const existingIdentity = await sql`SELECT id FROM identities WHERE email = ${email} LIMIT 1`;
+      if (existingIdentity.length) return {error: 'Email address is already registered on our systems'};
+
+      const command = await $`id -- $MAILBOX`.env({MAILBOX: mailbox}).quiet().nothrow();
       return command.exitCode === 0 ? {error: 'Email address is already registered on our systems'} : body;
     }
 

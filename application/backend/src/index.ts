@@ -1,5 +1,6 @@
 import {initBackgroundWorkers} from '@core/background-workers';
 import requestGuard from '@middlewares/middleware-request-guard';
+import {ensureDatabaseSchema} from '@core/services';
 import {checkContact} from '@utils/checks';
 import {contact} from '@utils/email-smtp';
 import type {ContactDetail} from '@type';
@@ -13,29 +14,38 @@ import account from './routes/user-account';
 import webhooks from './routes/webhooks';
 import billing from './routes/billing';
 
-const app = new Elysia()
-  .use(requestGuard)
-  .onError(async ({error}) => {
-    if (error instanceof Error) return {message: error.message};
-    else if (error instanceof Response) return {message: await error.text()};
-    else return {message: error};
-  })
-  .get('/', () => 'Hello from ShadowSelf!')
-  .post('/contact', async ({body, set}) => {
-    const {err} = checkContact(body);
-    if (err) return error(set, 400, err);
+async function startServer() {
+  await ensureDatabaseSchema();
 
-    const result = await contact(body as ContactDetail);
-    if (result.err) return error(set, 500, result.err);
-    return result.message;
-  })
-  .use(api)
-  .use(webhooks)
-  .use(creationProcess)
-  .use(settings)
-  .use(account)
-  .use(billing)
-  .listen(3000);
+  const app = new Elysia()
+    .use(requestGuard)
+    .onError(async ({error}) => {
+      if (error instanceof Error) return {message: error.message};
+      else if (error instanceof Response) return {message: await error.text()};
+      else return {message: error};
+    })
+    .get('/', () => 'Hello from ShadowSelf!')
+    .post('/contact', async ({body, set}) => {
+      const {err} = checkContact(body);
+      if (err) return error(set, 400, err);
 
-initBackgroundWorkers();
-console.log(`Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
+      const result = await contact(body as ContactDetail);
+      if (result.err) return error(set, 500, result.err);
+      return result.message;
+    })
+    .use(api)
+    .use(webhooks)
+    .use(creationProcess)
+    .use(settings)
+    .use(account)
+    .use(billing)
+    .listen(3000);
+
+  initBackgroundWorkers();
+  console.log(`Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
+}
+
+startServer().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

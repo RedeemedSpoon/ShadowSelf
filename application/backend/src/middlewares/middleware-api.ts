@@ -62,7 +62,7 @@ export default (app: Elysia) =>
     }
 
     if (identity.status === 'frozen') {
-      const details = !identity.crypto_invoice ? `[crypto/${identity.plan}]` : `[fiat/${identity.plan}]`;
+      const details = identity.crypto_invoice ? `[crypto/${identity.plan}]` : `[fiat/${identity.plan}]`;
       return error(set, 402, 'Identity is frozen ' + details);
     }
 

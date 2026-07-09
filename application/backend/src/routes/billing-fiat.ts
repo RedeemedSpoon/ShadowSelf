@@ -3,6 +3,7 @@ import {generateIdentityID} from '@utils/cryptography';
 import {toTitleCase, error} from '@utils/utils';
 import {sql, stripe} from '@core/services';
 import {origin, stripeConfig} from '@core/config';
+import {deleteStripeCustomer} from '@core/billing';
 import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
 import type Stripe from 'stripe';
@@ -201,9 +202,6 @@ export default new Elysia({prefix: '/fiat'})
         const {email, err} = check(body, ['email']);
         if (err) return error(set, 400, err);
 
-        const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
-        const id = customer[0]?.stripe_customer || '';
-
-        if (id) await stripe.customers.del(customer[0].stripe_customer);
+        await deleteStripeCustomer(email);
       }),
   );

@@ -16,6 +16,10 @@ export const sql = postgres({
   password: dbConfig.password,
 });
 
+export async function ensureDatabaseSchema() {
+  await sql`ALTER TABLE identities ADD COLUMN IF NOT EXISTS "twilio_phone_sid" varchar(34)`;
+}
+
 export function smtpTransporter(user: string, pass: string) {
   return nodemailer.createTransport({
     host: 'mail.shadowself.io',
