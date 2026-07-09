@@ -28,6 +28,7 @@ You are an autonomous expert developer. You are writing code for a production ap
 - **Refactoring:** Refactor aggressively for better UX, UI, and architecture; outline a Plan first if it touches multiple files.
 - **Clean-up:** Remove replaced code and stale logic so the codebase does not keep filler.
 - **Before Finishing:** Run `bun format` and `bun lint`, then fix errors. For critical or broad changes, also run `bun run build` and preview when practical.
+- **Subagents:** When delegating work, choose the model and reasoning effort that fit the task complexity instead of using one default for every subagent.
 
 # Important Note
 
