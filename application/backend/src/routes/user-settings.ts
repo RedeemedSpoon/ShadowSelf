@@ -2,9 +2,9 @@ import {createTOTP, getSecret, getAPIKey, createHash, getRecovery} from '@utils/
 import middlewareBase from '@middlewares/middleware-base';
 import {sendOfficialEmail} from '@utils/email-smtp';
 import {consumeEmailCode, createEmailCode} from '@utils/email-codes';
-import {deleteAccountBilling} from '@core/billing';
+import {deleteAccountBilling, getBillingPortalSession, updateStripeCustomerEmail, updateStripeCustomerPayment} from '@core/billing';
 import type {QueryUser} from '@type';
-import {error, request} from '@utils/utils';
+import {error} from '@utils/utils';
 import {check} from '@utils/checks';
 import {sql} from '@core/services';
 import {Elysia} from 'elysia';
@@ -24,8 +24,7 @@ export default new Elysia({prefix: '/settings'})
     const result = (await sql`SELECT * FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const {email, recovery, totp, api_access, api_key} = result[0];
 
-    const res = await request('/billing/fiat/portal', 'POST', {email});
-    const sessionUrl = res?.sessionUrl || '';
+    const sessionUrl = await getBillingPortalSession(email);
 
     return {sessionUrl, email, recovery: recovery || [], key: api_key, API: api_access, OTP: !!totp};
   })
@@ -89,10 +88,10 @@ export default new Elysia({prefix: '/settings'})
     if (err) return error(set, 400, err);
 
     const email = user!.email;
-    await request('/billing/fiat/customer', 'PUT', {email, payment});
-    const res = await request('/billing/fiat/portal', 'POST', {email});
+    await updateStripeCustomerPayment(email, payment);
+    const sessionUrl = await getBillingPortalSession(email);
 
-    return {sessionUrl: res.sessionUrl || ''};
+    return {sessionUrl};
   })
   .post('/email', async ({set, user, jwt, body}) => {
     const {err, email, access} = check(body, ['email', 'access']);
@@ -101,7 +100,7 @@ export default new Elysia({prefix: '/settings'})
     const hasValidCode = await consumeEmailCode(email, access, 'change');
     if (!hasValidCode) return error(set, 400, 'Invalid or expired access code. Please try again');
 
-    await request('/billing/fiat/customer', 'PATCH', {oldEmail: user!.email, email});
+    await updateStripeCustomerEmail(user!.email, email);
     await sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`;
 
     const cookievalue = await jwt.sign({email, id: user!.id});

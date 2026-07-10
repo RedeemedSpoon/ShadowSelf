@@ -5,7 +5,6 @@ export const PRIVACY_POLICY_LAST_MODIFIED = 'March 29, 2026';
 export const TERMS_SERVICE_LAST_MODIFIED = 'March 29, 2026';
 export const REFUND_POLICY_LAST_MODIFIED = 'March 29, 2026';
 
-export const DEFAULT_MASTER_PASSWORD = 'USING THIS IS INSECURE';
 export const ETHNICITIES = ['Caucasian', 'Black', 'Hispanic', 'Slav', 'Arab', 'East asian', 'South asian'];
 export const SECTIONS_ORDER = ['info', 'email', 'phone', 'crypto', 'account'];
 export const USD_DUST_THRESHOLD = 0.5;

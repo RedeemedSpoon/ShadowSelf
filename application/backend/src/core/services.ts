@@ -17,7 +17,6 @@ export const sql = postgres({
 });
 
 export async function ensureDatabaseSchema() {
-  await sql`ALTER TABLE identities ADD COLUMN IF NOT EXISTS "twilio_phone_sid" varchar(34)`;
   await sql`
     CREATE INDEX IF NOT EXISTS crypto_invoices_payable_renewal_idx
     ON crypto_invoices ("owner", "plan", "renewal_id")

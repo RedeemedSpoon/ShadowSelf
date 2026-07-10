@@ -17,7 +17,6 @@ export default new Elysia({prefix: '/identity'})
       payment_intent: _paymentIntent,
       crypto_invoice,
       subscription_id: _subscriptionID,
-      twilio_phone_sid: _twilioPhoneSid,
       owner: _owner,
       status: _status,
       ...pubInfo

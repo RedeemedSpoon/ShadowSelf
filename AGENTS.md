@@ -25,6 +25,8 @@ You are an autonomous expert developer. You are writing code for a production ap
 - **Server:** Assume `bun dev` is already running and auto-reloads. Do not start it. Frontend: `5000`; backend: `3000`.
 - **Git:** Stay on the current branch. Do not create branches, commit, push, or run destructive git commands.
 - **Dependencies:** Do not install new libraries or packages without approval.
+- **Database:** Adding a database table or column should be the last option you consider, and only when the existing model cannot safely support the feature.
+- **Compatibility:** Do not keep legacy or backward-compatibility code unless the user explicitly asks for it or active production data requires it.
 - **Refactoring:** Refactor aggressively for better UX, UI, and architecture; outline a Plan first if it touches multiple files.
 - **Clean-up:** Remove replaced code and stale logic so the codebase does not keep filler.
 - **Before Finishing:** Run `bun format` and `bun lint`, then fix errors. For critical or broad changes, also run `bun run build` and preview when practical.

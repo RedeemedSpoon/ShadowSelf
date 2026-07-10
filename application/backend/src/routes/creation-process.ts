@@ -172,25 +172,12 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
           const emailUsername = email!.split('@')[0];
           const emailPassword = (await $`openssl rand -base64 24`.quiet()).stdout.toString('utf-8').trim();
-
           const walletKeys = JSON.stringify(wallet.keys);
-          const daysSinceEpoch = Math.floor(Date.now() / 1000 / 86400);
-          const passwordHash = (await $`openssl passwd -6 "${emailPassword}"`.text()).trim();
-
-          const idsRaw =
-            await $`U=$(awk -F: '($3>=1000){print $3}' /etc/passwd|sort -n|tail -1|awk '{print $1+1}'); G=$(getent group mail|cut -d: -f3); echo $U:$G`.text();
-          const [uid, gid] = idsRaw.trim().split(':');
-
-          await $`
-            echo "${emailUsername}:x:${uid}:${gid}::/home/${emailUsername}:/bin/sh" >> /etc/passwd
-            echo "${emailUsername}:${passwordHash}:${daysSinceEpoch}:0:99999:7:::" >> /etc/shadow      
-            sed -i "/^mail:/ s/$/,${emailUsername}/" /etc/group
-
-            mkdir -p /home/${emailUsername} && cp -r /etc/skel/. /home/${emailUsername}
-            chown -R ${uid}:${gid} /home/${emailUsername}
-          `
-            .nothrow()
-            .quiet();
+          const mailboxCreated = await createMailboxUser(emailUsername, emailPassword);
+          if (!mailboxCreated) {
+            await proxyRequest(loc!.code.toLowerCase(), 'DELETE', {username: identityID});
+            return ws.send({error: 'Failed to provision email mailbox. Try again later'});
+          }
 
           const result = await twilio.incomingPhoneNumbers.create({
             emergencyStatus: 'Inactive',
@@ -208,7 +195,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           await sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`;
 
           await sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`;
-          await sql`UPDATE identities SET phone = ${phone}, twilio_phone_sid = ${result.sid} WHERE id = ${identityID}`;
+          await sql`UPDATE identities SET phone = ${phone} WHERE id = ${identityID}`;
 
           await sql`UPDATE identities SET wallet_blob = ${wallet.blob}, wallet_keys = ${walletKeys} WHERE id = ${identityID}`;
           await sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`;
@@ -256,4 +243,11 @@ function parseCreationProcessCookie(value: string | undefined) {
 function getCreationProcessAuthMessage(issue: string) {
   if (issue === 'expired') return 'Creation session expired. Reload to continue';
   return CREATION_PROCESS_AUTH_ERROR;
+}
+
+async function createMailboxUser(username: string, password: string) {
+  const passwordHash = (await $`openssl passwd -6 ${password}`.text()).trim();
+  const result = await $`useradd --create-home --shell /bin/sh --gid mail --password ${passwordHash} -- ${username}`.nothrow().quiet();
+
+  return result.exitCode === 0;
 }

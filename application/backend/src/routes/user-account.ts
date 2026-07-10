@@ -2,7 +2,8 @@ import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, g
 import middlewareBase from '@middlewares/middleware-base';
 import {sendOfficialEmail} from '@utils/email-smtp';
 import {consumeEmailCode, consumeEmailVerification, createEmailCode, createEmailVerification} from '@utils/email-codes';
-import {request, error} from '@utils/utils';
+import {createStripeCustomer} from '@core/billing';
+import {error} from '@utils/utils';
 import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
 import {sql} from '@core/services';
@@ -194,7 +195,7 @@ export default new Elysia({prefix: '/account'})
 
     const id = generateID();
     await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
-    await request('/billing/fiat/customer', 'POST', {email, payment});
+    await createStripeCustomer(email, payment);
 
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};

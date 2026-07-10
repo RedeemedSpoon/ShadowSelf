@@ -23,6 +23,7 @@ export async function fetchAPI<Type = APIResponse>(url: string, method = 'GET', 
       const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';
       if (res.headers.get('Content-Type')?.includes('application/json')) {
         const message = await res.json();
+        if (Array.isArray(message)) return Object.assign(message, {type});
         return {...message, type};
       } else {
         const err = await res.text();

@@ -1,6 +1,7 @@
 import type {QueryIdentity, QueryUser} from '@type';
 import {proxyRequest} from '@utils/utils';
 import {sql, stripe, twilio} from '@core/services';
+import {origin} from '@core/config';
 import type Stripe from 'stripe';
 import {$} from 'bun';
 
@@ -138,7 +139,6 @@ function isMissingTwilioResource(err: unknown) {
 }
 
 async function findIncomingPhoneNumberSid(identity: QueryIdentity) {
-  if (identity.twilio_phone_sid) return identity.twilio_phone_sid;
   if (!identity.phone) return '';
 
   const numbers = await twilio.incomingPhoneNumbers.list({phoneNumber: identity.phone, limit: 1});
@@ -159,7 +159,7 @@ async function deleteTwilioPhoneNumber(identity: QueryIdentity) {
 async function deleteIdentityResources(identity: QueryIdentity) {
   if (identity.email) {
     const username = identity.email.split('@')[0];
-    await $`userdel -r ${username}`.nothrow().quiet();
+    await $`userdel -r -- ${username}`.nothrow().quiet();
   }
 
   await deleteTwilioPhoneNumber(identity);
@@ -228,6 +228,55 @@ export async function deleteStripeCustomer(email: string, silent = false) {
   } catch (err) {
     if (!silent) throw err;
   }
+}
+
+export async function createStripeCustomer(email: string, payment?: string) {
+  const object: Stripe.CustomerCreateParams = payment
+    ? {email, payment_method: payment, invoice_settings: {default_payment_method: payment}}
+    : {email};
+  const customer = await stripe.customers.create(object);
+
+  if (payment) await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
+  await sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`;
+
+  return customer.id;
+}
+
+export async function getBillingPortalSession(email: string) {
+  const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
+  const customerID = customer[0]?.stripe_customer || '';
+  if (!customerID) return '';
+
+  const hasPaymentMethod = await stripe.paymentMethods.list({customer: customerID, type: 'card'});
+  if (!hasPaymentMethod.data.length) return '';
+
+  const session = await stripe.billingPortal.sessions.create({
+    configuration: 'bpc_1QjGV8ByRGrIIrNdbBoPD90b',
+    customer: customerID,
+    return_url: `${origin}/settings`,
+  });
+
+  return session.url;
+}
+
+export async function updateStripeCustomerPayment(email: string, payment: string) {
+  const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
+  const customerID = customer[0]?.stripe_customer || '';
+  if (!customerID) {
+    await createStripeCustomer(email, payment);
+    return;
+  }
+
+  await stripe.paymentMethods.attach(payment, {customer: customerID});
+  await stripe.customers.update(customerID, {invoice_settings: {default_payment_method: payment}});
+  await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
+}
+
+export async function updateStripeCustomerEmail(oldEmail: string, email: string) {
+  const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${oldEmail}`) as QueryUser[];
+  const id = customer[0]?.stripe_customer || '';
+
+  if (id) await stripe.customers.update(id, {email});
 }
 
 export async function deleteAccountBilling(account: AccountOwner) {

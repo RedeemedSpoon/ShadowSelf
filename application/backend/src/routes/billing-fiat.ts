@@ -2,8 +2,14 @@ import middlewareBase from '@middlewares/middleware-base';
 import {generateIdentityID} from '@utils/cryptography';
 import {toTitleCase, error} from '@utils/utils';
 import {sql, stripe} from '@core/services';
-import {origin, stripeConfig} from '@core/config';
-import {deleteStripeCustomer} from '@core/billing';
+import {stripeConfig} from '@core/config';
+import {
+  createStripeCustomer,
+  deleteStripeCustomer,
+  getBillingPortalSession,
+  updateStripeCustomerEmail,
+  updateStripeCustomerPayment,
+} from '@core/billing';
 import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
 import type Stripe from 'stripe';
@@ -23,19 +29,7 @@ export default new Elysia({prefix: '/fiat'})
     const {email, err} = check(body, ['email']);
     if (err) return error(set, 400, err);
 
-    const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
-    if (!customer[0].stripe_customer) return {sessionUrl: ''};
-
-    const hasPaymentMethod = await stripe.paymentMethods.list({customer: customer[0].stripe_customer, type: 'card'});
-    if (!hasPaymentMethod.data.length) return {sessionUrl: ''};
-
-    const session = await stripe.billingPortal.sessions.create({
-      configuration: 'bpc_1QjGV8ByRGrIIrNdbBoPD90b',
-      customer: customer[0].stripe_customer,
-      return_url: `${origin}/settings`,
-    });
-
-    return {sessionUrl: session.url};
+    return {sessionUrl: await getBillingPortalSession(email)};
   })
   .get('/checkout', async ({set, user, query}) => {
     const type = query?.type as keyof typeof stripeConfig.prices;
@@ -174,29 +168,20 @@ export default new Elysia({prefix: '/fiat'})
         const {email, payment, err} = check(body, ['email', '?payment']);
         if (err) return error(set, 400, err);
 
-        const object = payment ? {email, payment_method: payment, invoice_settings: {default_payment_method: payment}} : {email};
-        const customer = await stripe.customers.create(object);
-
-        if (payment) await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
-        await sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`;
+        await createStripeCustomer(email, payment);
       })
       .put('/', async ({set, body}) => {
-        const {email, payment, err} = check(body, ['email']);
+        const {email, payment, err} = check(body, ['email', 'payment']);
         if (err) return error(set, 400, err);
 
-        const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
-        await stripe.paymentMethods.attach(payment, {customer: customer[0]?.stripe_customer});
-        await stripe.customers.update(customer[0]?.stripe_customer, {invoice_settings: {default_payment_method: payment}});
+        await updateStripeCustomerPayment(email, payment);
       })
       .patch('/', async ({set, body}) => {
         const {email, err} = check(body, ['email']);
         if (err) return error(set, 400, err);
 
         const oldEmail = (body as any)?.oldEmail;
-        const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${oldEmail}`) as QueryUser[];
-        const id = customer[0]?.stripe_customer || '';
-
-        if (id) await stripe.customers.update(id, {email});
+        await updateStripeCustomerEmail(oldEmail, email);
       })
       .delete('/', async ({set, body}) => {
         const {email, err} = check(body, ['email']);

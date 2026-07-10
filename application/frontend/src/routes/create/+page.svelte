@@ -150,10 +150,16 @@
 
       case 5: {
         const inputElement = document.querySelector('input#master') as HTMLInputElement;
-        const password = inputElement.value || 'test';
+        const password = inputElement.value;
 
         const confirmInputElement = document.querySelector('input#confirm-master') as HTMLInputElement;
-        const confirmPassword = confirmInputElement.value || 'another-test';
+        const confirmPassword = confirmInputElement.value;
+
+        if (!password || !confirmPassword) {
+          notify('Enter and confirm a master password', 'alert');
+          $pendingID = 0;
+          break;
+        }
 
         if (password != confirmPassword) {
           notify('Passwords do not match', 'alert');

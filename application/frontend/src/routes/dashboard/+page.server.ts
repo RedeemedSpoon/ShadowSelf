@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({cookies}) => {
   const remains = await fetchBackend('/account/recovery-remaining', 'GET', undefined, cookies.get('token'));
   const response = await fetchBackend('/api', 'GET', undefined, cookies.get('token'));
 
-  if (response.type === 'alert')
+  if (response.type === 'alert' || !Array.isArray(response))
     return {
       recoveryRemaining: remains.message,
       searchKeywords: [],
@@ -14,9 +14,8 @@ export const load: PageServerLoad = async ({cookies}) => {
     };
 
   const searchKeywords: Option[] = [];
-  const identities = Object.values(response) as Identity[];
+  const identities = response as Identity[];
 
-  identities.pop();
   identities.forEach((identity) => {
     if (!identity.name) return;
     const concat = `${identity.name} ${identity.country} ${identity.location} ${identity.id} `;

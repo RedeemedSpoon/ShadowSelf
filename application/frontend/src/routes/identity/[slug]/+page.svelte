@@ -19,7 +19,7 @@
   import IdentityEmail from './email-tab/Email.svelte';
 
   import {pendingID, handleResponse, identity, activeModal, masterPassword} from '$store';
-  import {DEFAULT_MASTER_PASSWORD, SECTIONS_ORDER, SLEEP_DURATION} from '$constant';
+  import {SECTIONS_ORDER, SLEEP_DURATION} from '$constant';
   import type {AccountAPI, CryptoAPI, Sections, WebSocketMessage} from '$type';
   import {decrypt, deriveMasterKey, encrypt} from '$utils/cryptography';
   import {browser} from '$app/environment';
@@ -68,7 +68,11 @@
     await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
 
     const inputElement = document.querySelector('input#set-master') as HTMLInputElement;
-    const password = inputElement.value || DEFAULT_MASTER_PASSWORD;
+    const password = inputElement.value;
+    if (!password) {
+      $pendingID = 0;
+      return notify('Enter your master password to unlock this identity.', 'alert');
+    }
 
     const newKey = await deriveMasterKey(password, $identity.id);
     const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
@@ -83,41 +87,56 @@
     $pendingID = 1;
     await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
 
-    // Account vault
     const inputElement = document.querySelector('input#change-master') as HTMLInputElement;
-    const password = inputElement.value || DEFAULT_MASTER_PASSWORD;
+    const password = inputElement.value;
+    if (!password) {
+      $pendingID = 0;
+      return notify('Enter a new master password before changing encryption.', 'alert');
+    }
 
     const newKey = await deriveMasterKey(password, $identity.id);
     const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
     const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
 
     const accounts = await fetchAPI<AccountAPI>('account', 'GET');
-    const updatedAccounts = await Promise.all(
-      accounts.accounts!.map(async (account) => {
-        const oldPassword = await decrypt(account.password);
-        const oldTotp = account.totp ? await decrypt(account.totp) : 'unable to decrypt';
+    const updatedAccounts = [];
+    for (const account of accounts.accounts || []) {
+      const oldPassword = await decrypt(account.password);
+      const oldTotp = account.totp ? await decrypt(account.totp) : '';
+      if (!oldPassword || (account.totp && !oldTotp)) {
+        $pendingID = 0;
+        return notify('Current master password could not decrypt the account vault.', 'alert');
+      }
 
-        if (oldPassword === 'unable to decrypt' && oldTotp === 'unable to decrypt') return account;
-
-        return {
-          id: account.id,
-          password: await encrypt(oldPassword, newKey),
-          totp: account.totp ? await encrypt(oldTotp, newKey) : null,
-        };
-      }),
-    );
+      updatedAccounts.push({
+        id: account.id,
+        password: await encrypt(oldPassword, newKey),
+        totp: account.totp ? await encrypt(oldTotp, newKey) : null,
+      });
+    }
 
     const accountResponse = await fetchAPI<AccountAPI>('account/update-encryption', 'PUT', {accounts: updatedAccounts});
     if (accountResponse.err) return notify(accountResponse.err, 'alert');
 
-    // Crypto wallet
     const mnemonic = await decrypt($identity.walletBlob);
+    if (!mnemonic) {
+      $pendingID = 0;
+      return notify('Current master password could not decrypt the wallet.', 'alert');
+    }
+
     const blob = await encrypt(mnemonic, newKey);
+    const viewKey = await decrypt($identity.walletKeys.xmr.viewKey);
+    const spendKey = await decrypt($identity.walletKeys.xmr.spendKey);
+    const address = await decrypt($identity.walletKeys.xmr.address);
+    if (!viewKey || !spendKey || !address) {
+      $pendingID = 0;
+      return notify('Current master password could not decrypt the wallet keys.', 'alert');
+    }
 
     const keys = {
-      viewKey: await encrypt(await decrypt($identity.walletKeys.xmr.viewKey), newKey),
-      spendKey: await encrypt(await decrypt($identity.walletKeys.xmr.spendKey), newKey),
-      address: await encrypt(await decrypt($identity.walletKeys.xmr.address), newKey),
+      viewKey: await encrypt(viewKey, newKey),
+      spendKey: await encrypt(spendKey, newKey),
+      address: await encrypt(address, newKey),
     };
 
     const walletResponse = await fetchAPI<CryptoAPI>('crypto/update-encryption', 'PUT', {blob, keys});

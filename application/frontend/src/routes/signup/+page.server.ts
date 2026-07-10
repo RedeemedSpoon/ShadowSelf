@@ -14,8 +14,7 @@ export const actions: Actions = {
     const response = await fetchBackend('/account/signup', 'POST', {email, password}, cookies.get('token'));
     if (!response.email) return response;
 
-    const concat = `${email}&&${password}`;
-    createCookie(cookies, 'signup', concat, true);
+    createCookie(cookies, 'signup', email, true);
 
     return {step: 2, email};
   },
@@ -51,7 +50,7 @@ export const actions: Actions = {
     const wantOTP = form.has('enable');
 
     if (wantOTP) {
-      const username = cookies.get('signup')?.split('&&')[3];
+      const username = cookies.get('signup')?.split('&&')[2];
       const response = await fetchBackend('/account/signup-otp', 'POST', {username}, cookies.get('token'));
       if (!response.secret) return response;
 
@@ -71,7 +70,7 @@ export const actions: Actions = {
     const form = await request.formData();
     const token = form.get('token');
 
-    const secret = cookies.get('signup')?.split('&&')[4];
+    const secret = cookies.get('signup')?.split('&&')[3];
     const response = await fetchBackend('/account/signup-recovery', 'POST', {token, secret}, cookies.get('token'));
     if (!response.recovery) return response;
 
@@ -104,21 +103,23 @@ export const actions: Actions = {
 
     return {step: 10};
   },
-  create: async ({cookies}) => {
-    const object = cookies.get('signup')?.split('&&') as string[];
-    const [email, password, verification, username] = object ?? [];
+  create: async ({request, cookies}) => {
+    const form = await request.formData();
+    const password = form.get('password') as string;
+    const object = cookies.get('signup')?.split('&&') || [];
+    const [email, verification, username] = object;
     let [secret, recovery, payment] = ['', [], ''] as [string, string[], string];
 
-    const hasOTP = object[4]?.length === 32 && object[5]?.split(',')?.length === 6;
-    const hasBilling = object[4]?.length === 27 || object[6]?.length === 27;
+    const hasOTP = object[3]?.length === 32 && object[4]?.split(',')?.length === 6;
+    const hasBilling = object[3]?.length === 27 || object[5]?.length === 27;
 
     if (hasOTP) {
-      secret = object[4];
-      recovery = object[5].split(',');
+      secret = object[3];
+      recovery = object[4].split(',');
     }
 
     if (hasBilling) {
-      payment = hasOTP ? object[6] : object[4];
+      payment = hasOTP ? object[5] : object[3];
     }
 
     const body = {email, verification, username, password, secret, recovery, payment};

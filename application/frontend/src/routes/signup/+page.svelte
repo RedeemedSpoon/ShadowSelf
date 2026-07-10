@@ -32,6 +32,7 @@
   let anchor = $state() as HTMLAnchorElement;
   let card = $state() as StripeCardElement;
   let key = $state() as string | undefined;
+  let signupPassword = $state('');
   let stripeLoaded = $state(false);
   let stripe = $state() as Stripe;
   let isStripeLoading = false;
@@ -66,6 +67,10 @@
     const blob = new Blob([text], {type: 'text/plain'});
     anchor.href = URL.createObjectURL(blob);
     anchor.click();
+  }
+
+  function rememberSignupPassword(event: Event) {
+    signupPassword = (event.currentTarget as HTMLInputElement).value;
   }
 
   async function initStripe(stripeKey: string) {
@@ -134,7 +139,12 @@
     </div>
     <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
       <label for="password">Password</label>
-      <InputWithIcon type="password" icon={KeyIcon} name="password" placeholder="correct horse battery staple" />
+      <InputWithIcon
+        type="password"
+        icon={KeyIcon}
+        name="password"
+        placeholder="correct horse battery staple"
+        handleInput={rememberSignupPassword} />
     </div>
     <div class="mt-4 -mb-2 flex justify-between px-3 text-nowrap max-md:flex-col md:items-center">
       <a class="text-md max-md:text-sm md:mr-8" href="/login">Already have an account?</a>
@@ -248,6 +258,7 @@
     <p class="-mt-2 mb-4 text-center">
       Just click the button below to finish setting up your account. You can still go back to make changes
     </p>
+    <input type="hidden" name="password" value={signupPassword} />
     <LoadingButton>Create the account</LoadingButton>
     <p class="-mb-6 text-center text-sm text-neutral-400">
       By continuing, you agree to our
