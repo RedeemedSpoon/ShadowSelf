@@ -4,6 +4,10 @@ function getEnv(key: string): string {
   else return value;
 }
 
+function getOptionalEnv(key: string): string {
+  return process.env[key] || '';
+}
+
 export const inProduction = getEnv('NODE_ENV') === 'prod';
 export const origin = getEnv('NODE_ENV') === 'dev' ? 'https://localhost' : 'https://shadowself.io';
 
@@ -29,6 +33,11 @@ export const moneroWallet = {
 export const emailConfig = {
   contactPassword: getEnv('EMAIL_CONTACT'),
   verificationPassword: getEnv('EMAIL_VERIFICATION'),
+};
+
+export const mailAdminConfig = {
+  url: getOptionalEnv('MAIL_ADMIN_URL'),
+  token: getOptionalEnv('MAIL_ADMIN_TOKEN'),
 };
 
 export const stripeConfig = {
