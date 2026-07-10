@@ -17,6 +17,4 @@ COPY . .
 
 EXPOSE 3000
 
-VOLUME [ "/etc/passwd", "/etc/shadow", "/etc/group", "/home" ]
-
 CMD ["bun", "run", "src/index.ts"]

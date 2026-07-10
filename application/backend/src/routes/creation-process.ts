@@ -1,5 +1,10 @@
 import type {CreationProcess, QueryIdentity, QueryUser} from '@type';
-import {createCreationProcessToken, consumeCreationProcessToken, generateProxyPassword} from '@utils/cryptography';
+import {
+  createCreationProcessToken,
+  consumeCreationProcessToken,
+  generateMailboxPassword,
+  generateProxyPassword,
+} from '@utils/cryptography';
 import {getBearerToken, verifySessionToken} from '@middlewares/session-auth';
 import middlewareBase from '@middlewares/middleware-base';
 import {ETHNICITIES, LOCATIONS} from '@core/constants';
@@ -10,7 +15,6 @@ import {origin, twilioConfig} from '@core/config';
 import {error, proxyRequest} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
 import {Elysia, t} from 'elysia';
-import {$} from 'bun';
 
 const CREATION_PROCESS_COOKIE = 'creation-process';
 const CREATION_PROCESS_AUTH_ERROR = 'You do not have permission to perform this action';
@@ -166,21 +170,16 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const proxyServer = loc!.ip;
 
           const proxyPassword = generateProxyPassword();
-          const emailUsername = email!.split('@')[0];
-          const emailPassword = (await $`openssl rand -base64 24`.quiet()).stdout.toString('utf-8').trim();
+          const emailPassword = generateMailboxPassword();
           const walletKeys = JSON.stringify(wallet.keys);
           const resources: ProvisionedIdentityResources = {
             country: loc!.code.toLowerCase(),
             proxyUsername: identityID,
-            mailboxUsername: emailUsername,
           };
 
           try {
             await proxyRequest(resources.country, 'POST', {username: identityID, password: proxyPassword});
             resources.proxyCreated = true;
-
-            resources.mailboxCreated = await createMailboxUser(emailUsername, emailPassword);
-            if (!resources.mailboxCreated) throw new Error('mailbox');
 
             const phoneNumber = await twilio.incomingPhoneNumbers.create({
               emergencyStatus: 'Inactive',
@@ -256,19 +255,10 @@ function getCreationProcessAuthMessage(issue: string) {
   return CREATION_PROCESS_AUTH_ERROR;
 }
 
-async function createMailboxUser(username: string, password: string) {
-  const passwordHash = (await $`openssl passwd -6 ${password}`.text()).trim();
-  const result = await $`useradd --create-home --shell /bin/sh --gid mail --password ${passwordHash} -- ${username}`.nothrow().quiet();
-
-  return result.exitCode === 0;
-}
-
 type ProvisionedIdentityResources = {
   country: string;
   proxyUsername: string;
-  mailboxUsername: string;
   proxyCreated?: boolean;
-  mailboxCreated?: boolean;
   phoneNumberSid?: string;
   messagingServicePhoneNumberSid?: string;
 };
@@ -285,7 +275,6 @@ async function cleanupProvisionedIdentityResources(resources: ProvisionedIdentit
   const cleanupTasks = [
     () => deleteMessagingServicePhoneNumber(resources.messagingServicePhoneNumberSid || resources.phoneNumberSid),
     () => deleteTwilioPhoneNumber(resources.phoneNumberSid),
-    () => deleteMailboxUser(resources.mailboxCreated ? resources.mailboxUsername : ''),
     () => deleteProxyUser(resources.proxyCreated ? resources.country : '', resources.proxyUsername),
   ];
 
@@ -311,11 +300,6 @@ async function deleteTwilioPhoneNumber(sid: string | undefined) {
   } catch (err) {
     if (!isMissingTwilioResource(err)) throw err;
   }
-}
-
-async function deleteMailboxUser(username: string) {
-  if (!username) return;
-  await $`userdel -r -- ${username}`.nothrow().quiet();
 }
 
 async function deleteProxyUser(country: string, username: string) {

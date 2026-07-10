@@ -1,6 +1,7 @@
 -- NOTHING SENSITIVE HERE, THIS IS JUST FOR INITIALIZATION OF THE DATABASE
 
 -- Delete Existing Tables
+DROP VIEW IF EXISTS mail_identities;
 DROP TABLE IF EXISTS accounts;
 DROP TABLE IF EXISTS wallet_cache;
 DROP TABLE IF EXISTS identities;
@@ -80,6 +81,16 @@ CREATE TABLE identities (
 CREATE INDEX identities_crypto_invoice_idx
 ON identities ("crypto_invoice")
 WHERE "crypto_invoice" IS NOT NULL;
+
+CREATE VIEW mail_identities AS
+SELECT
+  LOWER("email") AS "email",
+  "email_password",
+  '/var/vmail/shadowself.io/' || SPLIT_PART(LOWER("email"), '@', 1) AS "home"
+FROM identities
+WHERE "email" IS NOT NULL
+  AND "email_password" IS NOT NULL
+  AND "status" = 'active';
 
 CREATE TABLE accounts (
   "id" SERIAL PRIMARY KEY,

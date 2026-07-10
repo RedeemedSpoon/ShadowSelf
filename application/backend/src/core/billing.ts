@@ -3,7 +3,6 @@ import {proxyRequest} from '@utils/utils';
 import {sql, stripe, twilio} from '@core/services';
 import {origin} from '@core/config';
 import type Stripe from 'stripe';
-import {$} from 'bun';
 
 type AccountOwner = Pick<QueryUser, 'id' | 'email'>;
 type FiatIdentityStatus = Extract<QueryIdentity['status'], 'active' | 'frozen'>;
@@ -157,11 +156,6 @@ async function deleteTwilioPhoneNumber(identity: QueryIdentity) {
 }
 
 async function deleteIdentityResources(identity: QueryIdentity) {
-  if (identity.email) {
-    const username = identity.email.split('@')[0];
-    await $`userdel -r -- ${username}`.nothrow().quiet();
-  }
-
   await deleteTwilioPhoneNumber(identity);
 
   if (identity.location) {

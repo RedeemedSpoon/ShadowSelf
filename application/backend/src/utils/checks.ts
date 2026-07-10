@@ -2,7 +2,6 @@ import type {BodyField, ContactDetail, CheckIdentity, APIRequest} from '@type';
 import {ETHNICITIES, LOCATIONS} from '@core/constants';
 import {sql} from '@core/services';
 import {toTitleCase} from '@utils/utils';
-import {$} from 'bun';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
   if (!rawBody || typeof rawBody !== 'object') return {err: 'Invalid request body'} as BodyField;
@@ -235,8 +234,14 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       const existingIdentity = await sql`SELECT id FROM identities WHERE email = ${email} LIMIT 1`;
       if (existingIdentity.length) return {error: 'Email address is already registered on our systems'};
 
-      const command = await $`id -- $MAILBOX`.env({MAILBOX: mailbox}).quiet().nothrow();
-      return command.exitCode === 0 ? {error: 'Email address is already registered on our systems'} : body;
+      const existingMailbox = await sql`
+        SELECT email
+        FROM mail_identities
+        WHERE SPLIT_PART(email, '@', 1) = ${mailbox}
+        LIMIT 1
+      `;
+
+      return existingMailbox.length ? {error: 'Email address is already registered on our systems'} : body;
     }
 
     case 'phone':

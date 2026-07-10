@@ -60,6 +60,10 @@ export function generateProxyPassword(): string {
   return randomBytes(16).toString('hex');
 }
 
+export function generateMailboxPassword(): string {
+  return randomBytes(24).toString('base64url');
+}
+
 export function generateEmailAccessCode(): string {
   return randomInt(0, 1_000_000).toString().padStart(6, '0');
 }
