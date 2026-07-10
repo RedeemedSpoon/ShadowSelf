@@ -3,7 +3,6 @@ import {writable, type Writable} from 'svelte/store';
 import {PRICING_TIERS} from '$constant';
 
 export const user: Writable<string> = writable('');
-export const token: Writable<string> = writable('');
 
 export const scrollY: Writable<number> = writable(0);
 export const currentStep: Writable<number> = writable(1);

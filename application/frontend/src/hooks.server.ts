@@ -3,6 +3,12 @@ import {sequence} from '@sveltejs/kit/hooks';
 import {ONION_URL} from '$constant';
 import csrf from '$utils/csrf';
 
+const protectedRoutes = ['/dashboard', '/settings', '/identity', '/purchase', '/create'];
+
+function isProtectedPath(path: string) {
+  return protectedRoutes.some((route) => path === route || path.startsWith(`${route}/`));
+}
+
 const authAndRedirects: Handle = async ({event, resolve}) => {
   const isLogged = event.cookies.get('token');
   const path = event.url.pathname;
@@ -20,7 +26,7 @@ const authAndRedirects: Handle = async ({event, resolve}) => {
     redirect(302, '/dashboard');
   }
 
-  if (['/dashboard', '/settings', '/identity/', '/purchase', '/create'].includes(path) && !isLogged) {
+  if (isProtectedPath(path) && !isLogged) {
     redirect(302, '/login');
   }
 

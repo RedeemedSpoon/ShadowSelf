@@ -168,40 +168,57 @@ export default new Elysia({websocket: {idleTimeout: 300}})
           const proxyServer = loc!.ip;
 
           const proxyPassword = generateProxyPassword();
-          await proxyRequest(loc!.code.toLowerCase(), 'POST', {username: identityID, password: proxyPassword});
-
           const emailUsername = email!.split('@')[0];
           const emailPassword = (await $`openssl rand -base64 24`.quiet()).stdout.toString('utf-8').trim();
           const walletKeys = JSON.stringify(wallet.keys);
-          const mailboxCreated = await createMailboxUser(emailUsername, emailPassword);
-          if (!mailboxCreated) {
-            await proxyRequest(loc!.code.toLowerCase(), 'DELETE', {username: identityID});
-            return ws.send({error: 'Failed to provision email mailbox. Try again later'});
+          const resources: ProvisionedIdentityResources = {
+            country: loc!.code.toLowerCase(),
+            proxyUsername: identityID,
+            mailboxUsername: emailUsername,
+          };
+
+          try {
+            await proxyRequest(resources.country, 'POST', {username: identityID, password: proxyPassword});
+            resources.proxyCreated = true;
+
+            resources.mailboxCreated = await createMailboxUser(emailUsername, emailPassword);
+            if (!resources.mailboxCreated) throw new Error('mailbox');
+
+            const phoneNumber = await twilio.incomingPhoneNumbers.create({
+              emergencyStatus: 'Inactive',
+              smsUrl: `${origin}/webhook-twilio`,
+              phoneNumber: phone,
+            });
+            resources.phoneNumberSid = phoneNumber.sid;
+
+            const messagingService = twilio.messaging.v1.services(twilioConfig.messagingService!);
+            const phoneNumberAttachment = await messagingService.phoneNumbers.create({phoneNumberSid: phoneNumber.sid});
+            resources.messagingServicePhoneNumberSid = phoneNumberAttachment.sid || phoneNumber.sid;
+
+            await sql.begin(async (tx) => {
+              await tx`
+                UPDATE identities
+                SET location = ${fullLocation}, proxy_server = ${proxyServer}
+                WHERE id = ${identityID}
+              `;
+              await tx`UPDATE identities SET proxy_password = ${proxyPassword} WHERE id = ${identityID}`;
+
+              await tx`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`;
+              await tx`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`;
+
+              await tx`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`;
+              await tx`UPDATE identities SET phone = ${phone} WHERE id = ${identityID}`;
+
+              await tx`UPDATE identities SET wallet_blob = ${wallet.blob}, wallet_keys = ${walletKeys} WHERE id = ${identityID}`;
+              await tx`UPDATE identities SET status = 'active' WHERE id = ${identityID}`;
+            });
+
+            cookie.remove();
+            ws.send({done: true});
+          } catch (err) {
+            await cleanupProvisionedIdentityResources(resources);
+            ws.send({error: getProvisionIdentityError(err)});
           }
-
-          const result = await twilio.incomingPhoneNumbers.create({
-            emergencyStatus: 'Inactive',
-            smsUrl: `${origin}/webhook-twilio`,
-            phoneNumber: phone,
-          });
-
-          const messagingService = twilio.messaging.v1.services(twilioConfig.messagingService!);
-          await messagingService.phoneNumbers.create({phoneNumberSid: result.sid});
-
-          await sql`UPDATE identities SET location = ${fullLocation}, proxy_server = ${proxyServer} WHERE id = ${identityID}`;
-          await sql`UPDATE identities SET proxy_password = ${proxyPassword} WHERE id = ${identityID}`;
-
-          await sql`UPDATE identities SET picture = ${picture}, name = ${name}, bio = ${bio} WHERE id = ${identityID}`;
-          await sql`UPDATE identities SET age = ${age}, sex = ${sex}, ethnicity = ${ethnicity} WHERE id = ${identityID}`;
-
-          await sql`UPDATE identities SET email = ${email}, email_password = ${emailPassword} WHERE id = ${identityID}`;
-          await sql`UPDATE identities SET phone = ${phone} WHERE id = ${identityID}`;
-
-          await sql`UPDATE identities SET wallet_blob = ${wallet.blob}, wallet_keys = ${walletKeys} WHERE id = ${identityID}`;
-          await sql`UPDATE identities SET status = 'active' WHERE id = ${identityID}`;
-
-          cookie.remove();
-          ws.send({done: true});
           break;
         }
       }
@@ -250,4 +267,71 @@ async function createMailboxUser(username: string, password: string) {
   const result = await $`useradd --create-home --shell /bin/sh --gid mail --password ${passwordHash} -- ${username}`.nothrow().quiet();
 
   return result.exitCode === 0;
+}
+
+type ProvisionedIdentityResources = {
+  country: string;
+  proxyUsername: string;
+  mailboxUsername: string;
+  proxyCreated?: boolean;
+  mailboxCreated?: boolean;
+  phoneNumberSid?: string;
+  messagingServicePhoneNumberSid?: string;
+};
+
+function getProvisionIdentityError(err: unknown) {
+  if (err instanceof Error && err.message === 'mailbox') {
+    return 'Failed to provision email mailbox. Created resources were cleaned up. Try again later.';
+  }
+
+  return 'Failed to provision identity. Created resources were cleaned up. Try again later.';
+}
+
+async function cleanupProvisionedIdentityResources(resources: ProvisionedIdentityResources) {
+  const cleanupTasks = [
+    () => deleteMessagingServicePhoneNumber(resources.messagingServicePhoneNumberSid || resources.phoneNumberSid),
+    () => deleteTwilioPhoneNumber(resources.phoneNumberSid),
+    () => deleteMailboxUser(resources.mailboxCreated ? resources.mailboxUsername : ''),
+    () => deleteProxyUser(resources.proxyCreated ? resources.country : '', resources.proxyUsername),
+  ];
+
+  for (const cleanupTask of cleanupTasks) await cleanupTask().catch(() => {});
+}
+
+async function deleteMessagingServicePhoneNumber(sid: string | undefined) {
+  if (!sid) return;
+
+  try {
+    const messagingService = twilio.messaging.v1.services(twilioConfig.messagingService!);
+    await messagingService.phoneNumbers(sid).remove();
+  } catch (err) {
+    if (!isMissingTwilioResource(err)) throw err;
+  }
+}
+
+async function deleteTwilioPhoneNumber(sid: string | undefined) {
+  if (!sid) return;
+
+  try {
+    await twilio.incomingPhoneNumbers(sid).remove();
+  } catch (err) {
+    if (!isMissingTwilioResource(err)) throw err;
+  }
+}
+
+async function deleteMailboxUser(username: string) {
+  if (!username) return;
+  await $`userdel -r -- ${username}`.nothrow().quiet();
+}
+
+async function deleteProxyUser(country: string, username: string) {
+  if (!country) return;
+  await proxyRequest(country, 'DELETE', {username});
+}
+
+function isMissingTwilioResource(err: unknown) {
+  if (!err || typeof err !== 'object') return false;
+
+  const details = err as {status?: number; code?: number};
+  return details.status === 404 || details.code === 20404;
 }

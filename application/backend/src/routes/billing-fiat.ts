@@ -3,15 +3,7 @@ import {generateIdentityID} from '@utils/cryptography';
 import {toTitleCase, error} from '@utils/utils';
 import {sql, stripe} from '@core/services';
 import {stripeConfig} from '@core/config';
-import {
-  createStripeCustomer,
-  deleteStripeCustomer,
-  getBillingPortalSession,
-  updateStripeCustomerEmail,
-  updateStripeCustomerPayment,
-} from '@core/billing';
 import type {QueryUser} from '@type';
-import {check} from '@utils/checks';
 import type Stripe from 'stripe';
 import {Elysia} from 'elysia';
 
@@ -24,12 +16,6 @@ export default new Elysia({prefix: '/fiat'})
     if (mustLogIn.some((p) => relativePath === p || relativePath === p + '/') && !user) {
       return error(set, 401, 'You are not logged in');
     }
-  })
-  .post('/portal', async ({set, body}) => {
-    const {email, err} = check(body, ['email']);
-    if (err) return error(set, 400, err);
-
-    return {sessionUrl: await getBillingPortalSession(email)};
   })
   .get('/checkout', async ({set, user, query}) => {
     const type = query?.type as keyof typeof stripeConfig.prices;
@@ -161,32 +147,4 @@ export default new Elysia({prefix: '/fiat'})
     if (status === 'requires_payment_method') return error(set, 400, 'Something went wrong. Please try again.');
     else if (status === 'requires_action') return {step: 'auth', clientSecret, identityID};
     else if (status === 'succeeded') return {step: 'finish', identityID};
-  })
-  .group('/customer', (app) =>
-    app
-      .post('/', async ({set, body}) => {
-        const {email, payment, err} = check(body, ['email', '?payment']);
-        if (err) return error(set, 400, err);
-
-        await createStripeCustomer(email, payment);
-      })
-      .put('/', async ({set, body}) => {
-        const {email, payment, err} = check(body, ['email', 'payment']);
-        if (err) return error(set, 400, err);
-
-        await updateStripeCustomerPayment(email, payment);
-      })
-      .patch('/', async ({set, body}) => {
-        const {email, err} = check(body, ['email']);
-        if (err) return error(set, 400, err);
-
-        const oldEmail = (body as any)?.oldEmail;
-        await updateStripeCustomerEmail(oldEmail, email);
-      })
-      .delete('/', async ({set, body}) => {
-        const {email, err} = check(body, ['email']);
-        if (err) return error(set, 400, err);
-
-        await deleteStripeCustomer(email);
-      }),
-  );
+  });

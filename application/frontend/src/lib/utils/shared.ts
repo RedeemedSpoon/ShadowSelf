@@ -42,6 +42,7 @@ export function createCookie(cookies: Cookies, name: string, value: string, shor
 
   return cookies.set(name, value, {
     path: '/',
+    httpOnly: true,
     secure: true,
     sameSite: 'strict',
     expires: new Date(Date.now() + maxAge * 1000),

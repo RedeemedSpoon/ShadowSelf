@@ -3,6 +3,7 @@
   import type {EditorParams, Email} from '$type';
   import type {Writable} from 'svelte/store';
   import {onMount} from 'svelte';
+  import DOMPurify from 'dompurify';
 
   interface Props {
     submit: (content: EditorParams, save: boolean, isdraft: boolean) => void;
@@ -50,7 +51,8 @@
 
     if (isDraft && singleRun && $target) {
       singleRun = false;
-      quill.root.innerHTML = isTypeHTML ? $target.body : $target.body.replaceAll('\n', '<br>');
+      const draftBody = isTypeHTML ? $target.body : $target.body.replaceAll('\n', '<br>');
+      quill.root.innerHTML = DOMPurify.sanitize(draftBody);
 
       const recipient = document.querySelector('input[name="recipient"]') as HTMLInputElement;
       const subject = document.querySelector('input[name="subject"]') as HTMLInputElement;

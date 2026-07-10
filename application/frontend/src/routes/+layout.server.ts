@@ -6,7 +6,7 @@ export const load: LayoutServerLoad = async ({cookies, url}) => {
   const currentToken = cookies.get('token') || '';
   const response = await fetchBackend('/account', 'GET', undefined, currentToken);
 
-  if (response.message === 'You are not logged in') return {user: '', token: currentToken};
+  if (response.message === 'You are not logged in') return {user: ''};
   else if (response.message === 'An error occurred. Please try again later') error(500, 'Server error');
   else if (response.message === 'Not authorized') {
     cookies.delete('token', {path: '/'});
@@ -14,5 +14,5 @@ export const load: LayoutServerLoad = async ({cookies, url}) => {
   }
 
   const username = response.message || '';
-  return {user: username, token: currentToken};
+  return {user: username};
 };

@@ -55,6 +55,33 @@ async function saveWalletState() {
   `;
 }
 
+function logWorkerError(worker: string, error: unknown) {
+  console.error(`[background-workers] ${worker} failed`, error);
+}
+
+async function runWorker(worker: string, callback: () => Promise<void>) {
+  try {
+    await callback();
+  } catch (error) {
+    logWorkerError(worker, error);
+  }
+}
+
+async function runRequiredWorker(worker: string, callback: () => Promise<void>) {
+  try {
+    await callback();
+  } catch (error) {
+    logWorkerError(worker, error);
+    throw error;
+  }
+}
+
+function scheduleWorker(worker: string, callback: () => Promise<void>, interval: number) {
+  return setInterval(() => {
+    void runWorker(worker, callback);
+  }, interval);
+}
+
 async function pollInvoices() {
   if (!watchWallet) return;
 
@@ -182,17 +209,17 @@ async function cleanupWorkers() {
 }
 
 export async function initBackgroundWorkers() {
-  pollFees();
-  pollPrices();
-  await initMoneroWallet();
-  cleanupWorkers();
+  void runWorker('pollFees startup', pollFees);
+  void runWorker('pollPrices startup', pollPrices);
+  await runRequiredWorker('initMoneroWallet startup', initMoneroWallet);
+  void runWorker('cleanupWorkers startup', cleanupWorkers);
 
-  setInterval(pollFees, POLL_FEES_INTERVAL);
-  setInterval(pollPrices, POLL_PRICES_INTERVAL);
-  setInterval(cleanupWorkers, POLL_CLEANUP_INTERVAL);
+  scheduleWorker('pollFees', pollFees, POLL_FEES_INTERVAL);
+  scheduleWorker('pollPrices', pollPrices, POLL_PRICES_INTERVAL);
+  scheduleWorker('cleanupWorkers', cleanupWorkers, POLL_CLEANUP_INTERVAL);
 
   while (true) {
-    await pollInvoices().catch(() => {});
+    await runWorker('pollInvoices', pollInvoices);
     await new Promise((resolve) => setTimeout(resolve, POLL_INVOICES_INTERVAL));
   }
 }

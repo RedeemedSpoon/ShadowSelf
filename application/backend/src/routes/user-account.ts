@@ -14,7 +14,7 @@ export default new Elysia({prefix: '/account'})
   .onBeforeHandle(({set, user, path}) => {
     const relativePath = path.slice(8);
     const signUp = ['/signup', '/signup-email', '/signup-username', '/signup-otp', '/signup-recovery', '/signup-create'];
-    const otherPaths = ['/login', '/login-email', '/login-otp', '/login-recovery', '/recovery-remaining'];
+    const otherPaths = ['/login', '/login-email', '/login-otp', '/login-recovery'];
     const mustNotLogIn = [...signUp, ...otherPaths];
 
     if (mustNotLogIn.some((p) => relativePath === p || relativePath === p + '/') && user) {
@@ -28,7 +28,9 @@ export default new Elysia({prefix: '/account'})
     if (!result[0].sessions.includes(user!.id)) return error(set, 401, 'Not authorized');
     return result[0].username;
   })
-  .get('/recovery-remaining', async ({user}) => {
+  .get('/recovery-remaining', async ({set, user}) => {
+    if (!user) return error(set, 401, 'You are not logged in');
+
     const result = (await sql`SELECT recovery FROM users WHERE email = ${user!.email}`) as QueryUser[];
     return result[0]?.recovery?.length ?? 0;
   })

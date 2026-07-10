@@ -1,7 +1,7 @@
 import {cryptoPrices, invoiceConnections, watchWallet} from '@core/states';
 import {CRYPTO_DISCOUNT, PRICING_TIERS} from '@core/constants';
 import middlewareBase from '@middlewares/middleware-base';
-import type {QueryInvoice, QueryUser} from '@type';
+import type {QueryInvoice, QueryUser, User} from '@type';
 import {trocadorApiKey} from '@core/config';
 import {error, net} from '@utils/utils';
 import {checkAPI} from '@utils/checks';
@@ -191,11 +191,20 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
     params: t.Object({id: t.String()}),
     async open(ws) {
       const invoiceID = ws.data.params.id;
-      const invoice = await sql`SELECT status FROM crypto_invoices WHERE id = ${invoiceID}`;
+      const invoice = (await sql`SELECT status, owner FROM crypto_invoices WHERE id = ${invoiceID}`) as Pick<
+        QueryInvoice,
+        'status' | 'owner'
+      >[];
 
       if (!invoice.length) {
         ws.send(JSON.stringify({error: 'Invoice not found'}));
         return ws.close();
+      }
+
+      const owner = await getInvoiceSocketOwner(ws);
+      if (owner !== invoice[0].owner) {
+        ws.send(JSON.stringify({error: 'You are not logged in'}));
+        return ws.close(1014, 'You are not logged in');
       }
 
       ws.send(JSON.stringify({status: invoice[0].status}));
@@ -210,3 +219,16 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
       if (message === 'ping') ws.send('pong');
     },
   });
+
+async function getInvoiceSocketOwner(ws: any) {
+  const token = ws.data.cookie.token?.value;
+  if (!token) return 0;
+
+  const user = (await ws.data.jwt.verify(token)) as User;
+  if (!user) return 0;
+
+  const account = (await sql`SELECT id, sessions FROM users WHERE email = ${user.email}`) as QueryUser[];
+  if (!account.length || !account[0].sessions.includes(user.id)) return 0;
+
+  return account[0].id;
+}

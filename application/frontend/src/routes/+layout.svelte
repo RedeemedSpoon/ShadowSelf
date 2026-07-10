@@ -3,7 +3,7 @@
   import Header from '$component/layout/Header.svelte';
   import Footer from '$component/layout/Footer.svelte';
 
-  import {mobileHamburgerMenu, token, user} from '$store';
+  import {mobileHamburgerMenu, user} from '$store';
   import {onMount, type Snippet} from 'svelte';
   import type {LayoutData} from './$types';
 
@@ -20,7 +20,6 @@
 
   $effect(() => {
     if (data.user) $user = data.user;
-    if (data.token) $token = data.token;
   });
 
   onMount(() => {

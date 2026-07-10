@@ -1,6 +1,6 @@
 import {PUBLIC_NODE_ENV} from '$env/static/public';
 import type {APIResponse} from '$type';
-import {identity, token} from '$store';
+import {identity} from '$store';
 import {get} from 'svelte/store';
 
 export async function fetchAPI<Type = APIResponse>(url: string, method = 'GET', body?: Record<string, unknown>): Promise<Type> {
@@ -17,7 +17,8 @@ export async function fetchAPI<Type = APIResponse>(url: string, method = 'GET', 
   return await fetch(fullUrl, {
     method,
     body: body && method !== 'GET' ? JSON.stringify(body) : undefined,
-    headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
+    headers: {'Content-Type': 'application/json'},
+    credentials: 'same-origin',
   })
     .then(async (res) => {
       const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';
