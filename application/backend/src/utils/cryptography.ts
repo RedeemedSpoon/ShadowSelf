@@ -69,9 +69,13 @@ export function generateEmailVerificationToken(): string {
 }
 
 export function getRecovery() {
-  return [...new Array(6)].map(() => {
-    return Math.floor(Math.random() * 900_000_000) + 100_000_000;
-  });
+  const codes = new Set<number>();
+
+  while (codes.size < 6) {
+    codes.add(randomInt(100_000_000, 1_000_000_000));
+  }
+
+  return [...codes];
 }
 
 export function checksum(string: string): string {
