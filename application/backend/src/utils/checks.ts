@@ -38,6 +38,12 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         }
         break;
 
+      case 'currentPassword':
+        if (typeof body.currentPassword !== 'string' || !body.currentPassword.length) {
+          return {err: 'Current password is required'} as BodyField;
+        }
+        break;
+
       case 'email':
         if (typeof body.email !== 'string') return {err: 'Email must be a string'} as BodyField;
 

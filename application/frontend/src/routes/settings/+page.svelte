@@ -181,7 +181,16 @@
     </form>
     <form use:enhance={() => awaitPending(true, 4)} method="POST" action="?/password">
       <label class="md:w-fit!" for="password">Password:</label>
-      <InputWithButton placeholder="New password" type="password" index={4} label="Change Password" name="password" />
+      <div class="flex flex-col gap-3 md:w-[32rem]">
+        <InputWithIcon
+          {className}
+          type="password"
+          name="currentPassword"
+          placeholder="Current password"
+          autocomplete="current-password"
+          icon={KeylockIcon} />
+        <InputWithButton placeholder="New password" type="password" index={4} label="Change Password" name="password" />
+      </div>
     </form>
     <hr />
 
@@ -190,15 +199,25 @@
       <label for="totp">Time-based one-time password:</label>
       {#if settings.OTP}
         <button formaction="?/generateOtp" type="submit" class="w-fit">Change 2FA</button>
-        <button formaction="?/deleteOtp" type="submit" name="remove" class="disable w-fit">Remove 2FA</button>
+        <button type="button" onclick={() => ($activeModal = 6)} name="remove" class="disable w-fit">Remove 2FA</button>
+        <ConfirmModal
+          id={6}
+          name="remove"
+          text="Removing two-factor authentication"
+          formaction="?/deleteOtp"
+          requirePassword
+          danger={false} />
       {:else}
         <button formaction="?/generateOtp" type="submit" class="enable w-fit">Add 2FA</button>
       {/if}
     </form>
-    <form class="flex-col" use:enhance method="POST" action="?/recovery">
+    <form class="flex-col" use:enhance={() => triggerModal(0)} method="POST" action="?/recovery">
       <div class="flex justify-between gap-4 max-md:flex-col md:items-center">
         <label for="recovery">Remaining Recovery Codes:</label>
-        <button disabled={!settings.OTP} type="submit" class="w-fit">Generate New Recovery Codes</button>
+        <button disabled={!settings.OTP} type="button" onclick={() => ($activeModal = 7)} class="w-fit">
+          Generate New Recovery Codes
+        </button>
+        <ConfirmModal id={7} text="Generating new recovery codes" requirePassword />
       </div>
     </form>
     {#if settings.OTP}
@@ -220,22 +239,24 @@
     <hr />
 
     <h2 id="api"><KeyIcon className="h-10! w-10! cursor-default" />API Access & Key:</h2>
-    <form use:enhance method="POST" action="?/toggleApi">
+    <form use:enhance={() => triggerModal(0)} method="POST" action="?/toggleApi">
       <label for="access">API Access:</label>
       {#if settings.API}
-        <button name="disable" type="submit" class="disable w-fit">Disable API Access</button>
+        <button name="disable" type="button" onclick={() => ($activeModal = 8)} class="disable w-fit">Disable API Access</button>
       {:else}
-        <button name="enable" type="submit" class="enable w-fit">Enable API Access</button>
+        <button name="enable" type="button" onclick={() => ($activeModal = 8)} class="enable w-fit">Enable API Access</button>
       {/if}
+      <ConfirmModal id={8} name={settings.API ? 'disable' : 'enable'} text="Changing API access" requirePassword danger={false} />
     </form>
-    <form use:enhance method="POST" action="?/api">
+    <form use:enhance={() => triggerModal(0)} method="POST" action="?/api">
       <div class="flex gap-4 max-md:flex-col md:items-center">
         <label class="w-fit" for="key">API Key:</label>
         {#if settings.API}
           <CopyButton text={settings.key} className="md:max-lg:max-w-[20vw]" change={false} />
         {/if}
       </div>
-      <button disabled={!settings.API} type="submit" class="w-fit">Generate New API Key</button>
+      <button disabled={!settings.API} type="button" onclick={() => ($activeModal = 9)} class="w-fit">Generate New API Key</button>
+      <ConfirmModal id={9} text="Generating a new API key" requirePassword danger={false} />
     </form>
     <hr />
 
@@ -255,12 +276,12 @@
       <label for="logout">Session Management:</label>
       <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>
       <button type="button" onclick={() => ($activeModal = 4)} class="md:w-fit" name="revoke">Revoke All Session</button>
-      <ConfirmModal id={4} name="revoke" text="Revoking all sessions" />
+      <ConfirmModal id={4} name="revoke" text="Revoking all sessions" requirePassword />
     </form>
     <form use:enhance={() => triggerModal(0)} method="POST" action="?/delete">
       <label for="delete">Account Deletion:</label>
       <button onclick={() => ($activeModal = 5)} type="button" class="disable md:w-fit">Delete Account</button>
-      <ConfirmModal id={5} name="delete" text="Deleting your account" />
+      <ConfirmModal id={5} name="delete" text="Deleting your account" requirePassword />
     </form>
   </section>
 </div>
@@ -279,6 +300,14 @@
       pattern="\\d{6}"
       autocomplete="one-time-code"
       icon={KeylockIcon} />
+    <input
+      id="email-current-password"
+      name="currentPassword"
+      type="password"
+      autocomplete="current-password"
+      placeholder="Current password"
+      class="w-full"
+      required />
     <LoadingButton index={2} className="mt-2">Confirm</LoadingButton>
     <input hidden value={newEmailValue} name="email" />
   </form>
@@ -318,6 +347,14 @@
         <p class="md:w-[40vw]">
           You can now use 2FA to log into your account. We gave you the recovery codes below, please keep them safe
         </p>
+        <input
+          id="otp-current-password"
+          name="currentPassword"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Current password"
+          class="w-full"
+          required />
         <div class="mx-8 mt-12 flex justify-between gap-4">
           <button class="alt" onclick={() => (settings.step = 1)} name="cancel" type="button">Cancel</button>
           <button type="submit" name="finish">Finish →</button>

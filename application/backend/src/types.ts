@@ -68,6 +68,7 @@ export interface BodyField {
   verification: string;
   username: string;
   password: string;
+  currentPassword: string;
   recovery: string[];
   subscription: string;
   intent: string;
