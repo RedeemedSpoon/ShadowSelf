@@ -42,9 +42,14 @@ CREATE TABLE crypto_invoices (
   "xmr_subaddress" varchar(95) UNIQUE NOT NULL,
   "xmr_amount" numeric(20, 12) NOT NULL,
   "status" varchar(15) DEFAULT 'pending',
-  "renewal_id" varchar(12), 
+  "renewal_id" varchar(12),
   "creation_date" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE UNIQUE INDEX crypto_invoices_payable_renewal_idx
+ON crypto_invoices ("owner", "plan", "renewal_id")
+WHERE "renewal_id" IS NOT NULL
+  AND "status" IN ('pending', 'confirming', 'underpaid');
 
 CREATE TABLE identities (
   "id" varchar(12) PRIMARY KEY,
@@ -68,10 +73,14 @@ CREATE TABLE identities (
   "phone" varchar(15),
   "twilio_phone_sid" varchar(34),
   "wallet_blob" varchar(512),
-  "wallet_keys" jsonb, 
+  "wallet_keys" jsonb,
   "wallet_funds" numeric(15, 2) DEFAULT 0.00,
   "status" varchar(8) DEFAULT 'inactive'
 );
+
+CREATE INDEX identities_crypto_invoice_idx
+ON identities ("crypto_invoice")
+WHERE "crypto_invoice" IS NOT NULL;
 
 CREATE TABLE accounts (
   "id" SERIAL PRIMARY KEY,

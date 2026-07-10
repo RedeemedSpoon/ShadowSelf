@@ -1,9 +1,14 @@
 import type {QueryIdentity, QueryUser} from '@type';
 import {proxyRequest} from '@utils/utils';
 import {sql, stripe, twilio} from '@core/services';
+import type Stripe from 'stripe';
 import {$} from 'bun';
 
 type AccountOwner = Pick<QueryUser, 'id' | 'email'>;
+type FiatIdentityStatus = Extract<QueryIdentity['status'], 'active' | 'frozen'>;
+
+const terminalSubscriptionStatuses = new Set(['canceled', 'incomplete_expired', 'paused', 'unpaid']);
+const activeSubscriptionStatuses = new Set(['active', 'trialing']);
 
 async function findIdentity(id: string, owner?: number) {
   const identities =
@@ -24,6 +29,88 @@ async function refundSubscriptionInvoice(subscription: string) {
   const paymentIntentID = typeof paymentIntent === 'string' ? paymentIntent : paymentIntent?.id;
 
   if (paymentIntentID) await stripe.refunds.create({payment_intent: paymentIntentID});
+}
+
+function getStripeResourceID(resource: string | {id: string} | null | undefined) {
+  return typeof resource === 'string' ? resource : resource?.id || '';
+}
+
+function isMissingStripeResource(err: unknown) {
+  if (!err || typeof err !== 'object') return false;
+
+  const details = err as {statusCode?: number; status?: number; code?: string};
+  return details.statusCode === 404 || details.status === 404 || details.code === 'resource_missing';
+}
+
+function isInvoicePaid(invoice: Stripe.Invoice) {
+  return invoice.status === 'paid' || invoice.amount_remaining === 0;
+}
+
+function isInvoiceTerminallyUnpaid(invoice: Stripe.Invoice) {
+  return invoice.status === 'uncollectible' || invoice.status === 'void';
+}
+
+async function retrieveLatestInvoice(subscription: Stripe.Subscription) {
+  const invoice = subscription.latest_invoice;
+  const invoiceID = getStripeResourceID(invoice);
+
+  if (!invoiceID) return null;
+  return typeof invoice === 'string' ? await stripe.invoices.retrieve(invoiceID) : invoice;
+}
+
+async function retrieveInvoicePaymentStatus(invoiceID: string) {
+  const payments = await stripe.invoicePayments.list({
+    invoice: invoiceID,
+    limit: 1,
+    expand: ['data.payment.payment_intent'],
+  });
+  const paymentIntent = payments.data[0]?.payment?.payment_intent;
+
+  return typeof paymentIntent === 'string' ? '' : paymentIntent?.status || '';
+}
+
+async function resolveFiatSubscriptionStatus(subscription: Stripe.Subscription, invoice?: Stripe.Invoice) {
+  if (terminalSubscriptionStatuses.has(subscription.status)) return 'frozen';
+
+  const latestInvoice = invoice || (await retrieveLatestInvoice(subscription));
+  if (latestInvoice && isInvoicePaid(latestInvoice)) return 'active';
+  if (activeSubscriptionStatuses.has(subscription.status)) return 'active';
+  if (latestInvoice && isInvoiceTerminallyUnpaid(latestInvoice)) return 'frozen';
+
+  const invoiceID = latestInvoice?.id || getStripeResourceID(subscription.latest_invoice);
+  if (!invoiceID) return 'frozen';
+
+  const paymentStatus = await retrieveInvoicePaymentStatus(invoiceID);
+  if (paymentStatus === 'succeeded') return 'active';
+  return 'frozen';
+}
+
+export async function getFiatSubscriptionStatus(subscriptionID: string, invoice?: Stripe.Invoice): Promise<FiatIdentityStatus> {
+  try {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionID, {expand: ['latest_invoice']});
+    return await resolveFiatSubscriptionStatus(subscription, invoice);
+  } catch (err) {
+    if (isMissingStripeResource(err)) return 'frozen';
+    throw err;
+  }
+}
+
+export async function reconcileFiatIdentityStatus(identity: QueryIdentity) {
+  if (!identity.subscription_id || identity.crypto_invoice) return identity.status;
+
+  const status = await getFiatSubscriptionStatus(identity.subscription_id);
+  if (status !== identity.status) {
+    await sql`UPDATE identities SET status = ${status} WHERE id = ${identity.id}`;
+    identity.status = status;
+  }
+
+  return status;
+}
+
+export async function reconcileFiatSubscriptionStatus(subscriptionID: string, invoice?: Stripe.Invoice) {
+  const status = await getFiatSubscriptionStatus(subscriptionID, invoice);
+  await sql`UPDATE identities SET status = ${status} WHERE subscription_id = ${subscriptionID}`;
+  return status;
 }
 
 async function cancelStripeBilling(identity: QueryIdentity) {
@@ -85,9 +172,38 @@ async function deleteIdentityResources(identity: QueryIdentity) {
 
 async function deleteIdentityRows(identityID: string) {
   await sql.begin(async (tx) => {
+    const deletedIdentities = (await tx`
+      SELECT crypto_invoice
+      FROM identities
+      WHERE id = ${identityID}
+    `) as Pick<QueryIdentity, 'crypto_invoice'>[];
+    const cryptoInvoice = deletedIdentities[0]?.crypto_invoice || null;
+
     await tx`DELETE FROM accounts WHERE owner = ${identityID}`;
     await tx`DELETE FROM identities WHERE id = ${identityID}`;
+
+    await tx`
+      DELETE FROM crypto_invoices c
+      WHERE (c.renewal_id = ${identityID} OR c.id = ${cryptoInvoice})
+        AND NOT EXISTS (
+          SELECT 1
+          FROM identities i
+          WHERE i.crypto_invoice = c.id
+        )
+    `;
   });
+}
+
+export async function deleteExpiredCryptoInvoices() {
+  await sql`
+    DELETE FROM crypto_invoices c
+    WHERE c.status = 'expired'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM identities i
+        WHERE i.crypto_invoice = c.id
+      )
+  `;
 }
 
 export async function cancelIdentityBilling(id: string, owner?: number) {
@@ -127,7 +243,15 @@ export async function deleteAccountBilling(account: AccountOwner) {
   await sql.begin(async (tx) => {
     await tx`DELETE FROM accounts WHERE owner IN (SELECT id FROM identities WHERE owner = ${account.id})`;
     await tx`DELETE FROM identities WHERE owner = ${account.id}`;
-    await tx`DELETE FROM crypto_invoices WHERE owner = ${account.id}`;
+    await tx`
+      DELETE FROM crypto_invoices c
+      WHERE c.owner = ${account.id}
+        AND NOT EXISTS (
+          SELECT 1
+          FROM identities i
+          WHERE i.crypto_invoice = c.id
+        )
+    `;
     await tx`DELETE FROM users WHERE id = ${account.id}`;
   });
 }

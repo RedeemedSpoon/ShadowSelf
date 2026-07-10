@@ -3,11 +3,22 @@ import middlewareBase from '@middlewares/middleware-base';
 import {stripeConfig, twilioConfig} from '@core/config';
 import type {QueryIdentity, QueryUser} from '@type';
 import {sql, stripe, twilio} from '@core/services';
-import {cancelIdentityBilling} from '@core/billing';
+import {cancelIdentityBilling, reconcileFiatSubscriptionStatus} from '@core/billing';
 import {wsConnections} from '@core/states';
 import twilioClient from 'twilio';
 import type Stripe from 'stripe';
 import {Elysia} from 'elysia';
+
+function getSubscriptionIDFromInvoice(invoice: Stripe.Invoice) {
+  const isSubscription = invoice.parent?.type === 'subscription_details';
+  const subscription = isSubscription ? invoice.parent?.subscription_details?.subscription : null;
+
+  return typeof subscription === 'string' ? subscription : subscription?.id || '';
+}
+
+function isFiatPlan(plan: string | undefined): plan is QueryIdentity['plan'] {
+  return plan === 'monthly' || plan === 'annually' || plan === 'lifetime';
+}
 
 export default new Elysia()
   .use(middlewareBase)
@@ -34,56 +45,59 @@ export default new Elysia()
         const identityID = paymentIntent.metadata.id;
         const plan = paymentIntent.metadata.type;
 
-        if (customerID) {
+        if (customerID && isFiatPlan(plan)) {
           const userQuery = (await sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`) as QueryUser[];
-          const owner = userQuery[0].id;
+          const owner = userQuery[0]?.id;
 
-          const alreadyExists = await sql`SELECT id FROM identities WHERE id = ${identityID}`;
-          if (alreadyExists.length) return {received: true};
+          if (owner) {
+            const alreadyExists = await sql`SELECT id FROM identities WHERE id = ${identityID}`;
 
-          await sql`INSERT INTO identities (id, owner, creation_date, plan, payment_intent) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${intentID})`;
+            if (!alreadyExists.length) {
+              await sql`INSERT INTO identities (id, owner, creation_date, plan, payment_intent) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${intentID})`;
+            }
+          }
         }
       }
     }
 
     if (event.type === 'invoice.paid') {
       const invoice = event.data.object;
-
-      const isSubscription = invoice.parent?.type === 'subscription_details';
-      const subObj = isSubscription ? invoice.parent?.subscription_details?.subscription : null;
-      const subscriptionID = typeof subObj === 'string' ? subObj : subObj?.id;
+      const subscriptionID = getSubscriptionIDFromInvoice(invoice);
 
       if (subscriptionID) {
+        const status = await reconcileFiatSubscriptionStatus(subscriptionID, invoice);
+
         if (invoice.billing_reason === 'subscription_create' && invoice.customer) {
           const customerID = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer.id;
           const date = new Date(invoice.created * 1000);
 
           const subscription = await stripe.subscriptions.retrieve(subscriptionID);
-          const identityID = subscription.metadata!.id;
-          const plan = subscription.metadata!.type;
+          const identityID = subscription.metadata?.id;
+          const plan = subscription.metadata?.type;
 
           const userQuery = (await sql`SELECT id FROM users WHERE stripe_customer = ${customerID}`) as QueryUser[];
-          const owner = userQuery[0].id;
+          const owner = userQuery[0]?.id;
 
-          const alreadyExists = await sql`SELECT id FROM identities WHERE id = ${identityID}`;
-          if (alreadyExists.length) return {received: true};
+          if (identityID && isFiatPlan(plan) && owner) {
+            const alreadyExists = await sql`SELECT id FROM identities WHERE id = ${identityID}`;
 
-          await sql`INSERT INTO identities (id, owner, creation_date, plan, subscription_id) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${subscriptionID})`;
-        } else {
-          await sql`UPDATE identities SET status = 'active' WHERE subscription_id = ${subscriptionID}`;
+            if (!alreadyExists.length) {
+              await sql`
+                INSERT INTO identities (id, owner, creation_date, plan, subscription_id, status)
+                VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${subscriptionID}, ${status})
+              `;
+            }
+          }
         }
       }
     }
 
     if (event.type === 'invoice.payment_failed') {
       const invoice = event.data.object;
-
-      const isSubscription = invoice.parent?.type === 'subscription_details';
-      const subObj = isSubscription ? invoice.parent?.subscription_details?.subscription : null;
-      const subscriptionID = typeof subObj === 'string' ? subObj : subObj?.id;
+      const subscriptionID = getSubscriptionIDFromInvoice(invoice);
 
       if (subscriptionID) {
-        await sql`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${subscriptionID}`;
+        await reconcileFiatSubscriptionStatus(subscriptionID, invoice);
       }
     }
 

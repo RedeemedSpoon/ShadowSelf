@@ -1,12 +1,25 @@
 import {cryptoPrices, invoiceConnections, watchWallet} from '@core/states';
 import {CRYPTO_DISCOUNT, PRICING_TIERS} from '@core/constants';
 import middlewareBase from '@middlewares/middleware-base';
-import type {QueryUser} from '@type';
+import type {QueryInvoice, QueryUser} from '@type';
 import {trocadorApiKey} from '@core/config';
 import {error, net} from '@utils/utils';
 import {checkAPI} from '@utils/checks';
 import {sql} from '@core/services';
 import {Elysia, t} from 'elysia';
+
+type PayableRenewalInvoice = Pick<QueryInvoice, 'id' | 'status' | 'xmr_subaddress' | 'xmr_amount'>;
+
+function xmrInvoiceResponse(invoice: PayableRenewalInvoice, identityID?: string) {
+  return {
+    invoiceID: invoice.id,
+    ...(identityID ? {identityID} : {}),
+    depositAddress: invoice.xmr_subaddress,
+    depositAmount: Number(invoice.xmr_amount),
+    coin: 'xmr',
+    status: invoice.status,
+  };
+}
 
 export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
   .use(middlewareBase)
@@ -106,35 +119,44 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
 
     if (!xmrPrice) return error(set, 503, 'Crypto prices are currently unavailable');
 
-    const xmrAmount = discountedPrice / xmrPrice;
-    const subaddress = await watchWallet.createSubaddress(0, `Renewal for ${identityID}`);
-    const xmrSubaddress = subaddress.getAddress();
+    const renewalInvoice = await sql.begin(async (tx) => {
+      await tx`SELECT pg_advisory_xact_lock(${owner}, hashtext(${`${plan}:${identityID}`}))`;
 
-    const invoiceResult = await sql`
-      INSERT INTO crypto_invoices (owner, plan, xmr_subaddress, xmr_amount, renewal_id)
-      VALUES (${owner}, ${plan}, ${xmrSubaddress}, ${xmrAmount}, ${identityID})
-      RETURNING id
-    `;
+      const existingInvoices = (await tx`
+        SELECT id, status, xmr_subaddress, xmr_amount
+        FROM crypto_invoices
+        WHERE owner = ${owner}
+          AND plan = ${plan}
+          AND renewal_id = ${identityID}
+          AND status IN ('pending', 'confirming', 'underpaid')
+        ORDER BY creation_date DESC
+        LIMIT 1
+      `) as PayableRenewalInvoice[];
 
-    const invoiceID = invoiceResult[0].id;
+      if (existingInvoices.length) return {invoice: existingInvoices[0], isNew: false};
 
-    if (swapCoin === 'xmr') {
-      return {
-        invoiceID,
-        identityID: identityID,
-        depositAddress: xmrSubaddress,
-        depositAmount: xmrAmount,
-        coin: 'xmr',
-      };
-    }
+      const xmrAmount = discountedPrice / xmrPrice;
+      const subaddress = await watchWallet.createSubaddress(0, `Renewal for ${identityID}`);
+      const xmrSubaddress = subaddress.getAddress();
+
+      const invoiceResult = (await tx`
+        INSERT INTO crypto_invoices (owner, plan, xmr_subaddress, xmr_amount, renewal_id)
+        VALUES (${owner}, ${plan}, ${xmrSubaddress}, ${xmrAmount}, ${identityID})
+        RETURNING id, status, xmr_subaddress, xmr_amount
+      `) as PayableRenewalInvoice[];
+
+      return {invoice: invoiceResult[0], isNew: true};
+    });
+
+    if (!renewalInvoice.isNew || swapCoin === 'xmr') return xmrInvoiceResponse(renewalInvoice.invoice, identityID);
 
     const params = new URLSearchParams({
       ticker_from: swapCoin,
       ticker_to: 'xmr',
       network_from: net(swapCoin),
       network_to: 'Mainnet',
-      amount_to: String(xmrAmount),
-      address: xmrSubaddress,
+      amount_to: String(renewalInvoice.invoice.xmr_amount),
+      address: renewalInvoice.invoice.xmr_subaddress,
       address_memo: '0',
       refund: refundAddress,
       refund_memo: '0',
@@ -152,8 +174,8 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
       }
 
       return {
-        invoiceID,
-        identityID: identityID,
+        invoiceID: renewalInvoice.invoice.id,
+        identityID,
         depositAddress: data.address_provider,
         depositAmount: data.amount_from,
         depositMemo: data.address_provider_memo,

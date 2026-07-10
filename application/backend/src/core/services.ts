@@ -18,6 +18,17 @@ export const sql = postgres({
 
 export async function ensureDatabaseSchema() {
   await sql`ALTER TABLE identities ADD COLUMN IF NOT EXISTS "twilio_phone_sid" varchar(34)`;
+  await sql`
+    CREATE INDEX IF NOT EXISTS crypto_invoices_payable_renewal_idx
+    ON crypto_invoices ("owner", "plan", "renewal_id")
+    WHERE "renewal_id" IS NOT NULL
+      AND "status" IN ('pending', 'confirming', 'underpaid')
+  `;
+  await sql`
+    CREATE INDEX IF NOT EXISTS identities_crypto_invoice_idx
+    ON identities ("crypto_invoice")
+    WHERE "crypto_invoice" IS NOT NULL
+  `;
 }
 
 export function smtpTransporter(user: string, pass: string) {

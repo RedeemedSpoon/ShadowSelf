@@ -4,6 +4,7 @@ import {BTC_API, ETH_API, LTC_API, XMR_NODE, COINGECKO_URL} from '@core/constant
 import {PAYMENT_WINDOW_MIN, RESTORE_HEIGHT} from '@core/constants';
 import type {CryptoCurrencies, QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
+import {deleteExpiredCryptoInvoices} from '@core/billing';
 import {moneroWallet} from '@core/config';
 import {safeFetch} from '@utils/utils';
 import {sql} from '@core/services';
@@ -177,7 +178,7 @@ async function cleanupWorkers() {
     }
   }
 
-  await sql`DELETE FROM crypto_invoices WHERE status = 'expired'`;
+  await deleteExpiredCryptoInvoices();
 }
 
 export async function initBackgroundWorkers() {

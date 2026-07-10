@@ -1,4 +1,5 @@
 import type {QueryIdentity, QueryInvoice, QueryUser} from '@type';
+import {reconcileFiatIdentityStatus} from '@core/billing';
 import {jwtSecret} from '@core/config';
 import {sql} from '@core/services';
 import {jwt} from '@elysiajs/jwt';
@@ -58,6 +59,14 @@ export default (app: Elysia) =>
           await sql`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
           identity.status = 'frozen';
         }
+      }
+    }
+
+    if (identity.subscription_id && !identity.crypto_invoice) {
+      try {
+        await reconcileFiatIdentityStatus(identity);
+      } catch (_) {
+        return error(set, 503, 'Unable to verify fiat subscription status');
       }
     }
 
