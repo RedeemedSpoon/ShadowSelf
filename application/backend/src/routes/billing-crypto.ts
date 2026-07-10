@@ -1,7 +1,8 @@
 import {cryptoPrices, invoiceConnections, watchWallet} from '@core/states';
 import {CRYPTO_DISCOUNT, PRICING_TIERS} from '@core/constants';
 import middlewareBase from '@middlewares/middleware-base';
-import type {QueryInvoice, QueryUser, User} from '@type';
+import {verifySessionToken} from '@middlewares/session-auth';
+import type {QueryInvoice, QueryUser} from '@type';
 import {trocadorApiKey} from '@core/config';
 import {error, net} from '@utils/utils';
 import {checkAPI} from '@utils/checks';
@@ -224,11 +225,11 @@ async function getInvoiceSocketOwner(ws: any) {
   const token = ws.data.cookie.token?.value;
   if (!token) return 0;
 
-  const user = (await ws.data.jwt.verify(token)) as User;
+  const user = await verifySessionToken(token, ws.data.jwt);
   if (!user) return 0;
 
-  const account = (await sql`SELECT id, sessions FROM users WHERE email = ${user.email}`) as QueryUser[];
-  if (!account.length || !account[0].sessions.includes(user.id)) return 0;
+  const account = (await sql`SELECT id FROM users WHERE email = ${user.email}`) as QueryUser[];
+  if (!account.length) return 0;
 
   return account[0].id;
 }

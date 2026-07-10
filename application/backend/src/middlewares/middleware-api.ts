@@ -1,5 +1,6 @@
 import type {QueryIdentity, QueryInvoice, QueryUser} from '@type';
 import {reconcileFiatIdentityStatus} from '@core/billing';
+import {getBearerToken, verifySessionToken} from '@middlewares/session-auth';
 import {jwtSecret} from '@core/config';
 import {sql} from '@core/services';
 import {jwt} from '@elysiajs/jwt';
@@ -15,11 +16,10 @@ const error = (set: {[key: string]: unknown}, status: number, message: string) =
 
 export default (app: Elysia) =>
   app.use(jwt({name: 'jwt', secret: jwtSecret, exp: '90d'})).derive(async ({headers, jwt, params, path, cookie, set}) => {
-    const auth = headers['authorization'];
-    const token = auth && auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : (cookie['token']?.value as string);
+    const token = getBearerToken(headers['authorization']) || (cookie['token']?.value as string);
 
     if (!token) return error(set, 401, 'You are not authenticated correctly');
-    let user;
+    let user: {email: string} | undefined;
 
     if (token.length === 32) {
       const apiKey = (await sql`SELECT email, api_key, api_access FROM users WHERE api_key = ${token}`) as QueryUser[];
@@ -28,7 +28,7 @@ export default (app: Elysia) =>
       user = {email: apiKey[0].email};
     }
 
-    if (!user) user = (await jwt.verify(token)) as {email: string};
+    if (!user) user = await verifySessionToken(token, jwt);
     if (!user) return error(set, 401, 'You are not authenticated correctly');
 
     const excludedPaths = /(?:\/api\/proxy|\/api)\/?$|\/api\/test$/;

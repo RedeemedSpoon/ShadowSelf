@@ -1,5 +1,6 @@
-import type {User, CreationProcess, QueryIdentity, QueryUser} from '@type';
+import type {CreationProcess, QueryIdentity, QueryUser} from '@type';
 import {createCreationProcessToken, consumeCreationProcessToken, generateProxyPassword} from '@utils/cryptography';
+import {getBearerToken, verifySessionToken} from '@middlewares/session-auth';
 import middlewareBase from '@middlewares/middleware-base';
 import {ETHNICITIES, LOCATIONS} from '@core/constants';
 import {generateProfile} from '@utils/prompts';
@@ -16,12 +17,9 @@ const CREATION_PROCESS_AUTH_ERROR = 'You do not have permission to perform this 
 
 export default new Elysia({websocket: {idleTimeout: 300}})
   .use(middlewareBase)
-  .post('/creation-process', async ({headers, jwt, body, set}) => {
+  .post('/creation-process', async ({headers, user, body, set}) => {
     const sessionToken = getBearerToken(headers['authorization']);
-    if (!sessionToken) return error(set, 401, CREATION_PROCESS_AUTH_ERROR);
-
-    const user = (await jwt.verify(sessionToken)) as User;
-    if (!user) return error(set, 401, CREATION_PROCESS_AUTH_ERROR);
+    if (!sessionToken || !user) return error(set, 401, CREATION_PROCESS_AUTH_ERROR);
 
     const {id} = body as {id: string};
     const account = (await sql`SELECT id FROM users WHERE email = ${user.email}`) as QueryUser[];
@@ -225,10 +223,6 @@ export default new Elysia({websocket: {idleTimeout: 300}})
     },
   });
 
-function getBearerToken(auth: string | undefined) {
-  return auth && auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : undefined;
-}
-
 async function authorizeCreationProcessSocket(ws: any) {
   const cookie = ws.data.cookie[CREATION_PROCESS_COOKIE];
   const sessionCookie = ws.data.cookie.token;
@@ -236,7 +230,7 @@ async function authorizeCreationProcessSocket(ws: any) {
 
   if (!token || !sessionCookie?.value) return 'missing';
 
-  const user = (await ws.data.jwt.verify(sessionCookie.value)) as User;
+  const user = await verifySessionToken(sessionCookie.value, ws.data.jwt);
   if (!user) return 'mismatch';
 
   const account = (await sql`SELECT id FROM users WHERE email = ${user.email}`) as QueryUser[];
