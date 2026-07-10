@@ -3,6 +3,7 @@ FROM nginx:alpine
 WORKDIR /etc/nginx 
 
 COPY nginx.conf .
+COPY security-headers.conf .
 
 RUN sed -i "s|http://localhost:5000|http://frontend:5000|g" nginx.conf
 
