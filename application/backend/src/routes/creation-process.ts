@@ -1,50 +1,56 @@
 import type {User, CreationProcess, QueryIdentity, QueryUser} from '@type';
-import {generateProxyPassword, checksum} from '@utils/cryptography';
+import {createCreationProcessToken, consumeCreationProcessToken, generateProxyPassword} from '@utils/cryptography';
 import middlewareBase from '@middlewares/middleware-base';
 import {ETHNICITIES, LOCATIONS} from '@core/constants';
 import {generateProfile} from '@utils/prompts';
 import {checkIdentity} from '@utils/checks';
 import {sql, twilio} from '@core/services';
 import {origin, twilioConfig} from '@core/config';
-import {proxyRequest} from '@utils/utils';
+import {error, proxyRequest} from '@utils/utils';
 import {allFakers} from '@faker-js/faker';
 import {Elysia, t} from 'elysia';
 import {$} from 'bun';
 
+const CREATION_PROCESS_COOKIE = 'creation-process';
+const CREATION_PROCESS_AUTH_ERROR = 'You do not have permission to perform this action';
+
 export default new Elysia({websocket: {idleTimeout: 300}})
   .use(middlewareBase)
-  .post('/creation-process', async ({headers, jwt, body}) => {
-    const auth = headers['authorization'];
-    const token = auth && auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : undefined;
+  .post('/creation-process', async ({headers, jwt, body, set}) => {
+    const sessionToken = getBearerToken(headers['authorization']);
+    if (!sessionToken) return error(set, 401, CREATION_PROCESS_AUTH_ERROR);
 
-    const user = (await jwt.verify(token)) as User;
-    if (!user) return;
+    const user = (await jwt.verify(sessionToken)) as User;
+    if (!user) return error(set, 401, CREATION_PROCESS_AUTH_ERROR);
 
     const {id} = body as {id: string};
-    const account = (await sql`SELECT * FROM users WHERE email = ${user?.email}`) as QueryUser[];
-    const identity = (await sql`SELECT * FROM identities WHERE id = ${id}`) as QueryIdentity[];
+    const account = (await sql`SELECT id FROM users WHERE email = ${user.email}`) as QueryUser[];
+    if (!account.length) return error(set, 401, CREATION_PROCESS_AUTH_ERROR);
 
-    if (!identity.length) return;
-    if (identity[0].owner !== account[0].id) return;
-    if (identity[0].status !== 'inactive') return;
+    const identity = (await sql`SELECT owner, status FROM identities WHERE id = ${id}`) as QueryIdentity[];
 
-    const cookie = checksum(id);
+    if (!identity.length) return error(set, 404, 'Identity not found');
+    if (identity[0].owner !== account[0].id) return error(set, 401, CREATION_PROCESS_AUTH_ERROR);
+    if (identity[0].status !== 'inactive') return error(set, 400, 'Identity is not ready for creation');
+
+    const cookie = createCreationProcessToken({identityID: id, sessionToken, userID: account[0].id});
     return {cookie};
   })
   .ws('/ws-creation-process', {
     query: t.Object({id: t.String()}),
+    async open(ws) {
+      const issue = await authorizeCreationProcessSocket(ws);
+      if (issue) return ws.close(1014, getCreationProcessAuthMessage(issue));
+    },
+
     async message(ws, message: CreationProcess | 'ping') {
       if (message === 'ping') return ws.send('pong');
 
-      const cookie = ws.data.cookie['creation-process'];
-      if (!cookie) return ws.close(1014, 'You do not have permission to perform this action');
+      const auth = (ws.data as any).creationProcessAuth as {cookie: any; identityID: string} | undefined;
+      if (!auth) return ws.close(1014, CREATION_PROCESS_AUTH_ERROR);
 
-      const cookieValue = cookie.value || '';
-      const [validationCookie, ...cookieStore] = (cookieValue as string).split('&&') || [];
-      const identityID = ws.data.query.id;
-
-      const validToken = checksum(identityID);
-      if (validToken !== validationCookie) return ws.close(1014, 'You do not have permission to perform this action');
+      const {cookie, identityID} = auth;
+      const [, ...cookieStore] = parseCreationProcessCookie(cookie.value);
 
       switch (message.kind) {
         case 'init/fetch-locations': {
@@ -214,3 +220,40 @@ export default new Elysia({websocket: {idleTimeout: 300}})
       }
     },
   });
+
+function getBearerToken(auth: string | undefined) {
+  return auth && auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : undefined;
+}
+
+async function authorizeCreationProcessSocket(ws: any) {
+  const cookie = ws.data.cookie[CREATION_PROCESS_COOKIE];
+  const sessionCookie = ws.data.cookie.token;
+  const [token] = parseCreationProcessCookie(cookie?.value);
+
+  if (!token || !sessionCookie?.value) return 'missing';
+
+  const user = (await ws.data.jwt.verify(sessionCookie.value)) as User;
+  if (!user) return 'mismatch';
+
+  const account = (await sql`SELECT id FROM users WHERE email = ${user.email}`) as QueryUser[];
+  if (!account.length) return 'mismatch';
+
+  const identityID = ws.data.query.id;
+  const issue = consumeCreationProcessToken(token, {identityID, sessionToken: sessionCookie.value, userID: account[0].id});
+  if (issue) return issue;
+
+  const identity =
+    (await sql`SELECT id FROM identities WHERE id = ${identityID} AND owner = ${account[0].id} AND status = 'inactive'`) as QueryIdentity[];
+  if (!identity.length) return 'mismatch';
+
+  ws.data.creationProcessAuth = {cookie, identityID};
+}
+
+function parseCreationProcessCookie(value: string | undefined) {
+  return (value || '').split('&&');
+}
+
+function getCreationProcessAuthMessage(issue: string) {
+  if (issue === 'expired') return 'Creation session expired. Reload to continue';
+  return CREATION_PROCESS_AUTH_ERROR;
+}

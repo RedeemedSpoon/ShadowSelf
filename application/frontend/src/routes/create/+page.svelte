@@ -53,7 +53,7 @@
   let ws: WebSocket | null;
 
   async function init() {
-    if (data.cookie) initWebsocket();
+    if (data.authorized) initWebsocket();
     const loader = document.querySelector('#loader-process') as HTMLParagraphElement;
 
     loaderInterval = setInterval(() => {
@@ -63,7 +63,7 @@
     }, 650);
 
     return new Promise((resolve, reject) => {
-      setTimeout(() => (data.cookie && ws?.readyState !== 3 ? resolve(true) : reject()), 1950);
+      setTimeout(() => (data.authorized && ws?.readyState !== 3 ? resolve(true) : reject()), 1950);
     });
   }
 
