@@ -11,6 +11,7 @@ You are an autonomous expert developer. You are writing code for a production ap
 - Do not create new utils files unless existing ones are cluttered or the feature is large and helper-heavy.
 - Prefer `map`, `reduce`, ternaries, and functional patterns when readable; use simpler control flow when it is clearer.
 - Match the syntax, naming, and conventions of the surrounding code.
+- The less code, the better.
 
 # UI/UX & Copywriting Tone
 
