@@ -131,13 +131,13 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Redeem
 Here are some quick guidelines to help you get started:
 
 - **Stick to TypeScript Basics**  
-   The code in this repo follows the usual TypeScript practices, so keep it simple. Use camelCase for variables, functions, and method names, UPPER_CASE for constants, and PascalCase for classes and Svelte components. If you’re working with TypeScript, feel free to use interfaces when needed.
+  The code in this repo follows the usual TypeScript practices, so keep it simple. Use camelCase for variables, functions, and method names, UPPER_CASE for constants, and PascalCase for classes and Svelte components. If you’re working with TypeScript, feel free to use interfaces when needed.
 - **Prettier Is Your Friend**  
-   Before you submit your code, run it through **Prettier** to make sure everything’s nicely formatted. We’ve got a `.prettierrc` file set up with our preferences. It’ll save you time and keep things consistent!
+  Before you submit your code, run it through **Prettier** to make sure everything’s nicely formatted. We’ve got a `.prettierrc` file set up with our preferences. It’ll save you time and keep things consistent!
 - **Trust Your Instincts**  
-   We keep things pretty flexible, so if you’re not sure about something, just use your best judgment. We'll clean things up during the code review if needed.
+  We keep things pretty flexible, so if you’re not sure about something, just use your best judgment. We'll clean things up during the code review if needed.
 - **No Over-Formatting**  
-   Don’t stress too much about formatting, Prettier will handle that for you. Focus on writing clear, functional code first, and let Prettier do the rest.
+  Don’t stress too much about formatting, Prettier will handle that for you. Focus on writing clear, functional code first, and let Prettier do the rest.
 
 # Commit Messages
 
