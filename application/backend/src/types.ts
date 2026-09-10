@@ -312,3 +312,12 @@ export type TransactionsHistory = {
   amount: number;
   date: Date;
 }[];
+
+export interface LoginChallenge {
+  email: string;
+  password: string;
+  totp: string;
+  expiresAt: number;
+  attempts: number;
+  busy: boolean;
+}

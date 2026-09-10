@@ -75,3 +75,7 @@ export const LOCATIONS = [
     map: 'https://osm.org/go/euunRP',
   },
 ];
+
+export const LOGIN_CHALLENGE_TTL = 300_000;
+export const LOGIN_CHALLENGE_ATTEMPTS = 5;
+export const LOGIN_CHALLENGE_CAPACITY = 10_000;
