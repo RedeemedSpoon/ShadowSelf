@@ -5,21 +5,23 @@
   "private": true,
   "scripts": {
     "lint": "prettier --check . && eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "check": "bun run --cwd application/frontend check && bun run --cwd application/backend check && bun run --cwd proxies/src check",
+    "build": "bun run --cwd application/frontend build && bun run --cwd application/backend build && bun run --cwd proxies/src build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/chrome": "^0.1.42",
-    "@types/eslint": "^9.6.1",
-    "autoprefixer": "^10.5.0",
-    "eslint": "^10.4.0",
+    "@types/chrome": "^0.2.9",
+    "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-svelte": "^3.17.1",
-    "globals": "^17.6.0",
-    "prettier": "^3.8.3",
-    "prettier-plugin-svelte": "^3.5.2",
-    "prettier-plugin-tailwindcss": "^0.8.0",
-    "typescript-eslint": "^8.59.4"
+    "eslint-plugin-svelte": "^3.23.0",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-svelte": "^4.1.1",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript-eslint": "^8.70.0",
+    "typescript": "~6.0.3"
   },
-  "type": "module"
+  "type": "module",
+  "packageManager": "bun@1.4.2"
 }

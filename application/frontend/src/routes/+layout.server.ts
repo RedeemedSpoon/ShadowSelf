@@ -4,6 +4,7 @@ import {fetchBackend} from '$utils/webfetch';
 
 export const load: LayoutServerLoad = async ({cookies, url}) => {
   const currentToken = cookies.get('token') || '';
+  if (!currentToken) return {user: '', token: ''};
   const response = await fetchBackend('/account', 'GET', undefined, currentToken);
 
   if (response.message === 'You are not logged in') return {user: '', token: currentToken};

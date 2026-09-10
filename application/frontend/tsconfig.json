@@ -12,6 +12,8 @@
     "strict": true,
     "moduleResolution": "bundler",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  }
+    "emitDecoratorMetadata": true,
+    "types": ["bun"]
+  },
+  "exclude": ["node_modules", "build", "src/routes/docs/content/**/example.js"]
 }

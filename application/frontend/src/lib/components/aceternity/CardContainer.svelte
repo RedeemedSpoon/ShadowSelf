@@ -22,7 +22,7 @@
   };
 
   const handleMouseEnter = (_e: MouseEvent) => {
-    isMouseEntered = true;
+    if (!isMouseEntered) isMouseEntered = true;
     if (!containerRef) return;
   };
 

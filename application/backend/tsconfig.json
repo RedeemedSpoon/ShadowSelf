@@ -18,6 +18,7 @@
       "@utils/*": ["./src/utils/*"],
       "@middlewares/*": ["./src/middlewares/*"],
       "@type": ["./src/types.ts"]
-    }
+    },
+    "types": ["bun"]
   }
 }

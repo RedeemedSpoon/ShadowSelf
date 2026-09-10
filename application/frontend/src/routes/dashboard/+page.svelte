@@ -25,8 +25,11 @@
   let sortAsc = $state(true);
   let filterOverflow = $state(false);
 
-  let table = $state() as HTMLElement;
-  let errorText = $state() as HTMLParagraphElement;
+  let searchResults = $state<string[] | null>(null);
+  const visibleIdentities = $derived.by(() => {
+    const identities = data.identities.filter((identity) => searchResults === null || searchResults.includes(identity.id));
+    return sortAsc ? identities : identities.reverse();
+  });
   let countriesFlags = getCountriesFlags();
 
   const bottomLinks = {
@@ -36,56 +39,11 @@
   };
 
   function handleSearch(result: string[]) {
-    if (!data.identities.length) return;
-
-    const children = Array.from(table.children);
-    children.forEach((child) => {
-      child.classList.add('hidden!');
-      child.classList.remove('border-0!');
-    });
-
-    if (!result.length) {
-      errorText.classList.remove('hidden!');
-      return;
-    }
-
-    result.forEach((id) => table.querySelector('#identity-' + id)!.classList.remove('hidden!'));
-    errorText.classList.add('hidden!');
-    fixBorder(children);
-  }
-
-  function filterTable() {
-    if (!data.identities.length) return;
-
-    if (filterOverflow) {
-      table.style.maxHeight = '40vh';
-      table.style.overflowY = 'scroll';
-    } else {
-      table.style.maxHeight = 'none';
-      table.style.overflowY = 'hidden';
-    }
-  }
-
-  function sortTable() {
-    if (!data.identities.length) return;
-
-    const children = Array.from(table.children);
-    const reverse = children.reverse();
-
-    table.replaceChildren(...reverse);
-    fixBorder(children);
-  }
-
-  function fixBorder(children: Element[]) {
-    const allVisible = children.filter((child) => !child.classList.contains('hidden!'));
-    allVisible[allVisible.length - 1].classList.remove('border-0!');
-    allVisible[0].classList.add('border-0!');
+    searchResults = result;
   }
 
   onMount(() => {
     if (data.recoveryRemaining === 0) notify('You have no recovery codes left. Please generate new ones', 'info');
-    if (filterOverflow) filterTable();
-    if (!sortAsc) sortTable();
   });
 </script>
 
@@ -102,18 +60,21 @@
           Welcome back, <span class="pretty-style">{$user}</span>
         </h1>
         <div class="flex items-center max-md:scale-75">
-          <button onclick={() => ((filterOverflow = !filterOverflow), filterTable())} class="px-0">
+          <button onclick={() => (filterOverflow = !filterOverflow)} class="px-0">
             <FilterIcon {filterOverflow} />
           </button>
-          <button onclick={() => ((sortAsc = !sortAsc), sortTable())}>
+          <button onclick={() => (sortAsc = !sortAsc)}>
             <SortIcon {sortAsc} />
           </button>
           <SearchInput keywords={data.searchKeywords} {handleSearch} />
         </div>
       </div>
-      <p bind:this={errorText} id="error" class="hidden!">No results found.</p>
-      <section bind:this={table} class="mt-10 h-fit min-h-[50vh]">
-        {#each data.identities as identity (identity.id)}
+      {#if !visibleIdentities.length}<p id="error">No results found.</p>{/if}
+      <section
+        class="mt-10 h-fit min-h-[50vh]"
+        style:max-height={filterOverflow ? '40vh' : 'none'}
+        style:overflow-y={filterOverflow ? 'auto' : 'visible'}>
+        {#each visibleIdentities as identity (identity.id)}
           {#if !identity.name}
             <a class="flex! gap-6! max-md:mb-24" href="/create?id={identity.id}">
               <AddUserIcon />

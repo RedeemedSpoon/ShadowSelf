@@ -2,6 +2,7 @@ import type {ImapSimple} from 'imap-simple';
 import type {ElysiaWS} from 'elysia/ws';
 
 export type User = {email: string; id: string} | undefined;
+export type SessionJwt = {verify: (token?: string) => Promise<unknown>};
 export type Attachment = {filename: string; data: string};
 export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
 

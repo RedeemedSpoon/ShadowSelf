@@ -54,7 +54,10 @@ services:
     init: true
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        PUBLIC_STRIPE_KEY: ${PUBLIC_STRIPE_KEY:?Set PUBLIC_STRIPE_KEY for the frontend build}
     expose:
       - 5000
     env_file:

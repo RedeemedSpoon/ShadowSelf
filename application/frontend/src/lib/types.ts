@@ -346,6 +346,11 @@ export interface PhoneAPI extends BaseAPI {
   sid?: string;
 }
 
+export interface MoneroNodeAPI extends BaseAPI {
+  nodeUrl: string;
+  startingDate: string;
+}
+
 export interface CryptoAPI extends BaseAPI {
   prices: CryptoPrices;
   fees: CryptoFees;

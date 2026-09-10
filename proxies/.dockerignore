@@ -9,3 +9,6 @@ Thumbs.db
 
 node_modules
 proxy
+
+.env
+.env.*

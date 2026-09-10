@@ -27,7 +27,7 @@
   import CryptoSwap from './CryptoSwap.svelte';
 
   import {identity, moneroData, masterPassword, activeModal} from '$store';
-  import type {Coins, CryptoAPI} from '$type';
+  import type {Coins, CryptoAPI, MoneroNodeAPI} from '$type';
   import {decrypt} from '$utils/cryptography';
   import initMoneroScan from '$utils/monero';
   import {fetchAPI} from '$utils/webfetch';
@@ -62,39 +62,42 @@
   let anchor = $state() as HTMLAnchorElement;
 
   async function fetchWalletData() {
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    document.getElementById('hold-load')?.remove();
-
-    //@ts-ignore
-    crypto.wallet = {};
-    //@ts-ignore
-    crypto.wallet.xmr = {};
-
     $moneroData = {
       viewKey: await decrypt($identity.walletKeys.xmr.viewKey),
       spendKey: await decrypt($identity.walletKeys.xmr.spendKey),
       address: await decrypt($identity.walletKeys.xmr.address),
     };
 
-    const cryptoPromise = fetchAPI<CryptoAPI>('crypto', 'GET');
-    const xmrNodePromise = fetchAPI<CryptoAPI>('crypto/xmr-node', 'GET');
+    const [walletData, nodeData] = await Promise.all([
+      fetchAPI<CryptoAPI>('crypto', 'GET'),
+      fetchAPI<MoneroNodeAPI>('crypto/xmr-node', 'GET'),
+    ]);
+    if (!walletData.wallet || !walletData.prices || !walletData.fees || !nodeData.nodeUrl || !nodeData.startingDate) {
+      throw new Error('Wallet data is unavailable');
+    }
 
-    const scanPromise = xmrNodePromise.then((res) =>
-      initMoneroScan(
-        res,
-        (hasCache) => (xmrHasLocalCache = hasCache),
-        (progress, scanned, total) => {
-          xmrScanProgress = progress;
-          xmrScannedBlocks = scanned;
-          xmrTotalBlocks = total;
-          crypto.wallet.xmr.status = 'Scanning...';
-        },
-        (xmrData) => Object.assign(crypto.wallet.xmr, xmrData),
-        () => (crypto.wallet.xmr.status = 'Network Error'),
-      ),
+    crypto = walletData;
+    crypto.wallet.xmr = {
+      status: 'Connecting...',
+      startingDate: new Date(nodeData.startingDate),
+      nodeUrl: nodeData.nodeUrl,
+      history: [],
+      unlockedBalance: 0,
+      balance: 0,
+    };
+    const initialState = await initMoneroScan(
+      nodeData,
+      (hasCache) => (xmrHasLocalCache = hasCache),
+      (progress, scanned, total) => {
+        xmrScanProgress = progress;
+        xmrScannedBlocks = scanned;
+        xmrTotalBlocks = total;
+        crypto.wallet.xmr.status = 'Scanning...';
+      },
+      (xmrData) => Object.assign(crypto.wallet.xmr, xmrData),
+      () => (crypto.wallet.xmr.status = 'Network Error'),
     );
-
-    [crypto, crypto.wallet.xmr] = await Promise.all([cryptoPromise, scanPromise]);
+    Object.assign(crypto.wallet.xmr, initialState);
   }
 
   async function backupKeys() {
@@ -146,7 +149,6 @@ If a hacker finds this file, your money is gone.
 </section>
 
 {#if $masterPassword}
-  <div id="hold-load" class="h-[40vh]"></div>
   {#await fetchWalletData()}
     <div class="flex h-[40vh] items-center justify-center">
       <h4 class="flex items-center gap-6">
@@ -158,7 +160,7 @@ If a hacker finds this file, your money is gone.
       <div class="mt-[5vh] mb-2 flex justify-between gap-4 max-md:flex-col md:items-center">
         <h3 class="text-3xl! font-semibold text-neutral-300 lg:text-4xl!">{title}</h3>
         <div id="cryptocoins" class="flex">
-          {#each Object.keys(cryptoIcons) as coin}
+          {#each Object.keys(cryptoIcons) as coin (coin)}
             {@const SvelteComponent = cryptoIcons[coin as Coins]}
             <button class:selected={$currentCrypto === coin} onclick={() => ($currentCrypto = coin as Coins)}>
               <SvelteComponent />
@@ -263,6 +265,8 @@ If a hacker finds this file, your money is gone.
     {:else if $mode === 'invoice'}
       <CryptoInvoice {cryptoIcons} {crypto} />
     {/if}
+  {:catch}
+    <p role="alert" class="my-12 text-center text-neutral-400">Unable to load wallet data. Reload this page to retry.</p>
   {/await}
 {:else}
   <section id="no-funds" style="background-image: url({lock});">
