@@ -1,0 +1,13 @@
+.env
+.env.*
+node_modules
+.svelte-kit
+build
+server
+proxy
+cache_wallet
+bun.lock
+bun.lockb
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

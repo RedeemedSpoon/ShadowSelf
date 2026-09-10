@@ -26,7 +26,7 @@
   async function sweepWallet(result: string) {
     scanning = false;
     const coin = $currentCrypto;
-    let addresses: string[] = [];
+    let addresses: string[];
 
     sweepStepMessage = 'Decrypting Private Key...';
     await new Promise((r) => setTimeout(r, Math.random() * 400 + 400));
@@ -52,8 +52,8 @@
     sweepStepMessage = 'Calculating Network Fees...';
     await new Promise((r) => setTimeout(r, Math.random() * 200 + 400));
 
-    let amt = 0;
-    let feeParam: any = 0;
+    let amt: number;
+    let feeParam: number | {fee: number};
 
     if (['btc', 'ltc'].includes(coin)) {
       const vBytes = info.utxos!.length * 68 + 31 + 10;

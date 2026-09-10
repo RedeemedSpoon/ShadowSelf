@@ -5,7 +5,7 @@ import postgres from 'postgres';
 import imap from 'imap-simple';
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(stripeConfig.secretKey, {apiVersion: '2026-02-25.clover'});
+export const stripe = new Stripe(stripeConfig.secretKey, {apiVersion: '2026-08-26.dahlia'});
 export const twilio = twilioClient(twilioConfig.sid, twilioConfig.token);
 
 export const sql = postgres({

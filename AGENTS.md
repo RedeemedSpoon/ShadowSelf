@@ -23,7 +23,6 @@ You are an autonomous expert developer. You are writing code for a production ap
 # Workflow & Execution
 
 - **Server:** Assume `bun dev` is already running and auto-reloads. Do not start it. Frontend: `5000`; backend: `3000`.
-- **Git and GitHub:** Handle routine Git and GitHub work autonomously, including branches, commits, pushes, pull requests, and issue updates.
 - **Dependencies:** Do not install new libraries or packages without approval.
 - **Security:** Choose the most secure practical implementation; security and privacy take priority over convenience.
 - **Database:** Do not add database fields for transient or derivable state. When a feature genuinely requires persistent, queryable data, prefer an explicit migration over overloading an unrelated field. Describe migration, backfill, and rollback implications.
@@ -31,6 +30,7 @@ You are an autonomous expert developer. You are writing code for a production ap
 - **Contracts:** When changing an API response, request body, validation rule, or shared domain concept, inspect every frontend and backend consumer. Update both ends in the same change and keep status codes and error shapes consistent.
 - **Refactoring:** Refactor freely within the requested scope. Outline a plan first when work crosses subsystems or carries meaningful risk.
 - **Clean-up:** Remove replaced code and stale logic so the codebase does not keep filler.
+- **Tests:** Never commit test files. Use temporary tests for validation, then delete them and any test-only artifacts or commands before finishing.
 - **Before Finishing:** Run `bun format` and `bun lint`, then fix errors. For critical or broad changes, also run `bun run build` and preview when practical.
 - **Subagents:** When delegating work, choose the model and reasoning effort that fit the task complexity instead of using one default for every subagent.
 

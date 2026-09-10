@@ -32,11 +32,10 @@
 
   let {data}: PageProps = $props();
 
-  let currentSection = $state('info') as Sections;
+  let currentSection = $state((page.url.hash?.slice(1) || 'info') as Sections);
   let buttonWrapper = $state() as HTMLDivElement;
   let ws = $state() as WebSocket;
 
-  currentSection = (page.url.hash?.slice(1) || 'info') as Sections;
   $identity = (() => data.identity)()!;
 
   const className = {

@@ -1,12 +1,14 @@
-FROM oven/bun:latest
+FROM oven/bun:1.4.2
 
 ENV SECRET_KEY "secure-key"
 
 WORKDIR /app
 
-COPY tsconfig.json package.json index.ts ./
+COPY package.json ./
 
 RUN bun install
+
+COPY tsconfig.json index.ts ./
 
 EXPOSE 4000  
 

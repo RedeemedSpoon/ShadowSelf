@@ -12,3 +12,6 @@ server
 cache_wallet
 node_modules
 .svelte-kit
+
+.env
+.env.*

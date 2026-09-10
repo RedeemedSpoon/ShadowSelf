@@ -1,7 +1,7 @@
 import {cryptoPrices, invoiceConnections, watchWallet} from '@core/states';
 import {CRYPTO_DISCOUNT, PRICING_TIERS} from '@core/constants';
 import middlewareBase from '@middlewares/middleware-base';
-import type {QueryIdentity, QueryUser} from '@type';
+import type {QueryUser} from '@type';
 import {trocadorApiKey} from '@core/config';
 import {error, net} from '@utils/utils';
 import {checkAPI} from '@utils/checks';
