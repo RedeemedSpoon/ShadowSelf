@@ -52,9 +52,7 @@
 
   const title = $derived(sweepWallet ? 'Scan Private Key' : 'Scan Address QR Code');
   const explainer = $derived(
-    sweepWallet
-      ? 'Point your camera at the Private Key (WIF) QR code to import funds.'
-      : 'Point your camera at a QR code to fill the address automatically.',
+    sweepWallet ? 'Point your camera at the Private Key (WIF) QR code to import funds.' : 'Point your camera at a QR code to fill the address automatically.',
   );
   onDestroy(() => stopCamera());
 </script>

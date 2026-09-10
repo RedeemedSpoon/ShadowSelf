@@ -127,8 +127,7 @@
             </div>
             <div class="w-1/3 overflow-hidden">
               {#if account.password === 'unable to decrypt' || account.totp === 'unable to decrypt'}
-                <Tooltip
-                  tip="The password/TOTP decryption failed, most likely due to a mismatch with the master password during the decryption process.">
+                <Tooltip tip="The password/TOTP decryption failed, most likely due to a mismatch with the master password during the decryption process.">
                   <p class="text-right text-red-600">
                     Unable to decrypt
                     <QuestionIcon className="inline-block ml-1 hover:cursor-default w-4 h-4" />
@@ -149,8 +148,7 @@
   <section id="no-accounts" style="background-image: url({group});">
     <h2 class="mt-12 text-5xl text-neutral-300">No Accounts</h2>
     <p class="text-center md:w-1/2">
-      Keep track of your accounts linked to this identity using entries. You can store/generate your passwords, usernames, and set up
-      TOTP all in one spot
+      Keep track of your accounts linked to this identity using entries. You can store/generate your passwords, usernames, and set up TOTP all in one spot
     </p>
     <button onclick={() => ($mode = 'add')}>Add Account</button>
   </section>

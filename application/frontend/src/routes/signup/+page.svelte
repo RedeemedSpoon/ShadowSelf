@@ -92,6 +92,7 @@
       stripeLoaded = true;
       pendingID.set(0);
     }, 300);
+
     return 9;
   }
 
@@ -150,8 +151,8 @@
 
   <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
     <h1 class="-mb-2!">Verify your email address</h1>
-    <p>We sent you an email with an access token. Enter it below to continue</p>
-    <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
+    <p>Enter the eight-digit email code. It expires in ten minutes.</p>
+    <InputWithIcon type="password" name="access" placeholder="12345678" icon={KeylockIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 
@@ -165,8 +166,7 @@
   <StepsItem {backStep} index={4} action="askOTP">
     <h1>Hello <span class="pretty-style">{username}</span>,<br /> Would you like to enable 2FA now?</h1>
     <p class="-mt-4 mb-8">
-      Two-Factor Authentication (2FA) is a common security feature that adds an extra layer of protection to your account when trying
-      to logging in.
+      Two-Factor Authentication (2FA) is a common security feature that adds an extra layer of protection to your account when trying to logging in.
     </p>
     <div class="flex w-full justify-between gap-2 px-8 max-md:flex-col-reverse">
       <button class="alt" name="skip" type="submit">Skip this step</button>
@@ -199,9 +199,7 @@
 
   <StepsItem {backStep} index={7} action="showRecovery">
     <h1>Store safely these recovery codes</h1>
-    <p class="-mt-6">
-      Store these recovery codes somewhere safe, you will need them to restore your account if you lose your 2FA method.
-    </p>
+    <p class="-mt-6">Save these codes now. Each works once if you lose your authenticator. We cannot show them again.</p>
     <div id="recovery">
       {#each recovery as code, index (index)}
         <p>{code}</p>
@@ -238,9 +236,7 @@
   <StepsItem shouldWait={true} {backStep} index={10} action="create">
     <HappyIcon className="w-36 h-36 -mt-12" />
     <h1 class="-mb-2! text-center">And we're done, <span class="pretty-style">{username}</span></h1>
-    <p class="-mt-2 mb-4 text-center">
-      Just click the button below to finish setting up your account. You can still go back to make changes
-    </p>
+    <p class="-mt-2 mb-4 text-center">Just click the button below to finish setting up your account. You can still go back to make changes</p>
     <LoadingButton>Create the account</LoadingButton>
     <p class="-mb-6 text-center text-sm text-neutral-400">
       By continuing, you agree to our
@@ -257,7 +253,7 @@
   }
 
   #recovery {
-    @apply grid place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono font-medium tracking-wider md:grid-cols-3;
+    @apply grid place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono text-sm font-medium md:grid-cols-2;
   }
 
   #recovery-actions-buttons > * {

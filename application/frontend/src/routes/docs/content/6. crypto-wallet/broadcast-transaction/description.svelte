@@ -1,7 +1,4 @@
-<p>
-  This endpoint broadcasts a raw hex transaction to the blockchain network. It supports Bitcoin (BTC), Litecoin (LTC), Ethereum (ETH),
-  and Tether (USDT).
-</p>
+<p>This endpoint broadcasts a raw hex transaction to the blockchain network. It supports Bitcoin (BTC), Litecoin (LTC), Ethereum (ETH), and Tether (USDT).</p>
 
 <h5>Request</h5>
 <p>

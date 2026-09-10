@@ -60,8 +60,8 @@
 
   <StepsItem shouldWait={true} {backStep} index={3} action="checkAccess">
     <h1 class="-mb-2!">Enter the recovery token</h1>
-    <p>We sent you an email with an recovery token. Enter it below to continue</p>
-    <InputWithIcon type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
+    <p>Enter the eight-digit email code. It expires in ten minutes.</p>
+    <InputWithIcon type="password" name="access" placeholder="12345678" icon={KeylockIcon} />
     <LoadingButton className="mt-2">Continue</LoadingButton>
   </StepsItem>
 
@@ -79,7 +79,7 @@
   <StepsItem shouldWait={true} {backStep} index={5} action="checkRecovery">
     <h1 class="-mb-2!">Enter one of your recovery codes</h1>
     <p>Use one of the recovery tokens we gave when you first created your account to verify your authenticity</p>
-    <InputWithIcon type="number" name="code" icon={RecoveryIcon} placeholder="123456789" />
+    <InputWithIcon type="text" name="code" icon={RecoveryIcon} placeholder="abcdef-123456-abcdef-123456" />
     <LoadingButton className="mt-2">Check</LoadingButton>
   </StepsItem>
 </Steps>

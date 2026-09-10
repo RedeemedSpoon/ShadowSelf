@@ -11,6 +11,7 @@ function setLoginChallenge(cookies: Cookies, challenge: string, expiresIn: numbe
 export const actions: Actions = {
   checkCredentials: async ({request, cookies}) => {
     cookies.delete('login-challenge', {path: '/login'});
+
     const form = await request.formData();
     const password = form.get('password');
     const email = form.get('email');
@@ -21,14 +22,17 @@ export const actions: Actions = {
     if (response.cookie) {
       if (cookies.get('login')) cookies.delete('login', {path: '/'});
       createCookie(cookies, 'token', response.cookie);
+
       redirect(302, '/dashboard');
     }
 
     setLoginChallenge(cookies, response.challenge, response.expiresIn);
+
     return {step: 4};
   },
   checkEmail: async ({request, cookies}) => {
     cookies.delete('login-challenge', {path: '/login'});
+
     const form = await request.formData();
     const email = form.get('email');
 
@@ -36,6 +40,7 @@ export const actions: Actions = {
     if (!response.email) return response;
 
     createCookie(cookies, 'login', `${email}`);
+
     return {step: 3};
   },
   checkAccess: async ({request, cookies}) => {
@@ -49,11 +54,13 @@ export const actions: Actions = {
     if (response.cookie) {
       cookies.delete('login', {path: '/'});
       createCookie(cookies, 'token', response.cookie);
+
       redirect(302, '/dashboard');
     }
 
     cookies.delete('login', {path: '/'});
     setLoginChallenge(cookies, response.challenge, response.expiresIn);
+
     return {step: 4};
   },
   checkOTP: async ({request, cookies}) => {
@@ -64,13 +71,17 @@ export const actions: Actions = {
     const response = await fetchBackend('/account/login-otp', 'POST', {token, challenge}, cookies.get('token'));
     if (!response.cookie) {
       if (response.type !== 'info') return response;
+
       cookies.delete('login-challenge', {path: '/login'});
+
       return {...response, step: 1};
     }
+
     cookies.delete('login-challenge', {path: '/login'});
 
     cookies.delete('login', {path: '/'});
     createCookie(cookies, 'token', response.cookie);
+
     redirect(302, '/dashboard');
   },
   checkRecovery: async ({request, cookies}) => {
@@ -81,13 +92,17 @@ export const actions: Actions = {
     const response = await fetchBackend('/account/login-recovery', 'POST', {code, challenge}, cookies.get('token'));
     if (!response.cookie) {
       if (response.type !== 'info') return response;
+
       cookies.delete('login-challenge', {path: '/login'});
+
       return {...response, step: 1};
     }
+
     cookies.delete('login-challenge', {path: '/login'});
 
     cookies.delete('login', {path: '/'});
     createCookie(cookies, 'token', response.cookie);
+
     redirect(302, '/dashboard');
   },
 };

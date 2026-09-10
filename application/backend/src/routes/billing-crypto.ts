@@ -173,6 +173,7 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
 
       if (!invoice.length) {
         ws.send(JSON.stringify({error: 'Invoice not found'}));
+
         return ws.close();
       }
 

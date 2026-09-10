@@ -179,9 +179,8 @@
           {#each attachments as attachment (attachment.filename)}
             <div class="flex items-center gap-2">
               <p class="text-sm text-neutral-500">{attachment.filename}</p>
-              <button
-                class="alt px-2 py-1 text-sm"
-                onclick={() => (attachments = attachments.filter((a) => a.filename !== attachment.filename))}>Remove</button>
+              <button class="alt px-2 py-1 text-sm" onclick={() => (attachments = attachments.filter((a) => a.filename !== attachment.filename))}
+                >Remove</button>
             </div>
           {/each}
         {/key}

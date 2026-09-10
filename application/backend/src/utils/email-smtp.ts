@@ -1,3 +1,5 @@
+import {issueEmailCode, discardEmailCode} from '@core/states';
+import type {EmailCodePurpose} from '@type';
 import {contactTransporter, smtpTransporter, verificationTransporter} from '@core/services';
 import type {ContactDetail, EmailContent} from '@type';
 import {EMAIL_TEMPLATES} from '@core/constants';
@@ -12,6 +14,7 @@ export async function contact(body: ContactDetail) {
 
   try {
     await contactTransporter.sendMail(mailOptions);
+
     return {message: 'Your message has been sent!', err: ''};
   } catch {
     return {message: '', err: 'Something went wrong. Try again later.'};
@@ -28,6 +31,7 @@ export async function sendOfficialEmail(email: string, token: string, reason: ke
 
   try {
     await verificationTransporter.sendMail(mailOptions);
+
     return {message: 'Your message has been sent!', err: ''};
   } catch (_) {
     return {message: '', err: 'Something went wrong. Try again later.'};
@@ -62,6 +66,7 @@ export async function sendIdentityEmail(emailContent: EmailContent) {
   };
 
   const message = await transporter.sendMail(mailOptions).catch(() => {});
+
   return {messageID: message?.messageId, date, type: isHtml ? 'html' : 'text'};
 }
 
@@ -87,6 +92,7 @@ function getEmailTemplate(token: string, reason: keyof typeof EMAIL_TEMPLATES): 
         <h1>${EMAIL_TEMPLATES[reason].title}</h1>
         <p style="color: #0f172a;">Hi there!</p>
         <p style="color: #0f172a;">${EMAIL_TEMPLATES[reason].description}</p>
+        <p style="color: #0f172a;">This code expires in ten minutes and can be used once.</p>
         <p style="color: #0f172a;">Please copy the following ${EMAIL_TEMPLATES[reason].type} token : <span style="color: #4338ca;">${token}</span></p>
         <p style="color: #0f172a;">If you did not sign up for Shadowself, please ignore this email. if you keep receiving this email, please contact us here: <a href="mailto:contact@shadowself.io" style="color: #4338ca;">contact@shadowself.io</a></p>
         <p style="color: #0f172a;">Once you have completed this step, you will be able to ${EMAIL_TEMPLATES[reason].action}</p>
@@ -96,4 +102,17 @@ function getEmailTemplate(token: string, reason: keyof typeof EMAIL_TEMPLATES): 
   </body>
 </html>
 `;
+}
+
+export async function sendVerificationCode(purpose: EmailCodePurpose, email: string, binding: string) {
+  const issued = issueEmailCode(purpose, email, binding);
+  if (issued.status === 429) return {status: 429, message: 'Too many email requests. Wait before trying again'};
+  if (issued.status !== 200) return {status: 503, message: 'Verification is busy. Please try again later'};
+
+  const response = await sendOfficialEmail(email, issued.code, purpose);
+  if (!response.err) return {status: 200, message: ''};
+
+  discardEmailCode(purpose, email, binding, issued.code);
+
+  return {status: 500, message: 'Failed to send verification email. Try later'};
 }

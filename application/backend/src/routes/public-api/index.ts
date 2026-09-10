@@ -17,8 +17,7 @@ export default new Elysia()
   .group('/api', (app) => app.use(crypto).use(phone).use(email).use(account).use(information))
   .get('/api/test', () => 'Authentication is working ;)')
   .get('/api', async ({set, user}) => {
-    const result =
-      (await sql` SELECT * FROM users u JOIN identities i ON u.id = i.owner WHERE u.email = ${user!.email}`) as QueryIdentity[];
+    const result = (await sql` SELECT * FROM users u JOIN identities i ON u.id = i.owner WHERE u.email = ${user!.email}`) as QueryIdentity[];
     if (!result.length) return error(set, 400, 'No identities were found');
 
     const allIdentitiesPromises = result.map(async (identity) => {

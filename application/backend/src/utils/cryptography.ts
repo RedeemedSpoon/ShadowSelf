@@ -1,7 +1,7 @@
 import {genSalt, hash, compare} from 'bcryptjs';
 import {p2wpkh} from '@scure/btc-signer';
 import {secretSauce} from '@core/config';
-import {randomBytes} from 'crypto';
+import {randomBytes, createHmac} from 'node:crypto';
 import {HDKey} from '@scure/bip32';
 import * as OTPAuth from 'otpauth';
 
@@ -46,9 +46,7 @@ export function generateProxyPassword(): string {
 }
 
 export function getRecovery() {
-  return [...new Array(6)].map(() => {
-    return Math.floor(Math.random() * 900_000_000) + 100_000_000;
-  });
+  return Array.from({length: 6}, () => randomBytes(12).toString('hex').match(/.{6}/g)!.join('-'));
 }
 
 export function checksum(string: string): string {
@@ -61,4 +59,12 @@ export async function createHash(string: string): Promise<string> {
 
 export async function compareHash(string: string, hash: string): Promise<boolean> {
   return await compare(string, hash);
+}
+
+export function hashVerification(value: string) {
+  return createHmac('sha256', secretSauce).update(value).digest('hex');
+}
+
+export function hashRecoveryCode(value: string) {
+  return hashVerification(`recovery:${value.trim().toLowerCase()}`);
 }

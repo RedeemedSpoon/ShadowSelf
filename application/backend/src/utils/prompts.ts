@@ -81,8 +81,7 @@ function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, 
     {
       shotType: 'Professional headshot',
       action: 'facing the camera squarely with a polite, confident smile and upright posture',
-      environment:
-        'a clean, neutral background, such as a plain textured wall or a heavily blurred office setting, completely free of distractions',
+      environment: 'a clean, neutral background, such as a plain textured wall or a heavily blurred office setting, completely free of distractions',
       lighting: 'soft, even, studio-quality lighting that highlights facial features without harsh shadows',
       mood: 'trustworthy, competent, and professional',
       cameraDetails: 'an 85mm portrait lens with a shallow depth of field',

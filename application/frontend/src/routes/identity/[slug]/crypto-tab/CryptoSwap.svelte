@@ -59,6 +59,7 @@
     });
     if (response.err) {
       $pendingID = 0;
+
       return notify(response.err, 'alert');
     }
 
@@ -106,6 +107,7 @@
     const response = await fetchAPI<CryptoAPI>('crypto/swap-trades', 'POST', payload);
     if (response.err) {
       $pendingID = 0;
+
       return notify(response.err, 'alert');
     }
 
@@ -172,6 +174,7 @@
 
         if (!broadcastPayload) {
           $pendingID = 0;
+
           return notify('Transaction signing cancelled', 'alert');
         }
 
@@ -182,6 +185,7 @@
       }
     } catch (e: any) {
       $pendingID = 0;
+
       return notify(e.message || 'Swap execution failed, please try again.', 'alert');
     }
 
@@ -303,10 +307,7 @@
     <div class="grid grid-cols-1 gap-6 py-6 md:grid-cols-2 lg:grid-cols-3">
       {#each providers as provider, i (i)}
         {@const costGrade = provider.costPercentage < -8 ? 'bad' : provider.costPercentage < -4 ? 'mid' : 'good'}
-        <div
-          aria-hidden="true"
-          onclick={() => (selectedProviderIndex = i)}
-          class="provider {i === selectedProviderIndex && 'selected'}">
+        <div aria-hidden="true" onclick={() => (selectedProviderIndex = i)} class="provider {i === selectedProviderIndex && 'selected'}">
           {#if bestProviderIndex === i}
             <div id="best-rate">
               <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

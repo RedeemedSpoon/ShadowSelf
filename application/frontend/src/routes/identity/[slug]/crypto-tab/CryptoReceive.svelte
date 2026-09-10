@@ -59,18 +59,18 @@
       <p class="text-sm leading-relaxed text-neutral-400">
         Scan the QR code or share the following address to receive funds.
         {#if !newUtxoWallet}
-          {$currentCrypto === 'btc' ? 'Bitcoin' : 'Litecoin'} uses the <b>UTXO Protocol</b>, therefore, for better privacy, we
-          recommend generating a fresh address for every transaction to prevent chain analysis from linking your payments.
+          {$currentCrypto === 'btc' ? 'Bitcoin' : 'Litecoin'} uses the <b>UTXO Protocol</b>, therefore, for better privacy, we recommend generating a fresh
+          address for every transaction to prevent chain analysis from linking your payments.
           <br /><br />
           <span class="font-semibold text-amber-600">⚠️ Performance Note:</span>
-          Spreading your funds across many derived addresses will increase the wallet's synchronization time. Since ShadowSelf scans the
-          blockchain live, checking 15+ addresses takes significantly longer than checking one.
+          Spreading your funds across many derived addresses will increase the wallet's synchronization time. Since ShadowSelf scans the blockchain live, checking
+          15+ addresses takes significantly longer than checking one.
         {:else if $currentCrypto === 'xmr'}
-          Monero uses <b>Stealth Addresses</b>. While this public address looks static, the protocol automatically generates a unique
-          one-time destination for every transaction. Manual derivation is not required.
+          Monero uses <b>Stealth Addresses</b>. While this public address looks static, the protocol automatically generates a unique one-time destination for
+          every transaction. Manual derivation is not required.
         {:else if ['eth', 'usdt'].includes($currentCrypto)}
-          Ethereum uses the <b>Account Model</b>. This address is static. Unlike UTXO chains (BTC/LTC), your entire transaction history
-          is permanently linked to this single public address.
+          Ethereum uses the <b>Account Model</b>. This address is static. Unlike UTXO chains (BTC/LTC), your entire transaction history is permanently linked to
+          this single public address.
         {/if}
       </p>
     </div>

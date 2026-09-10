@@ -89,12 +89,7 @@
           <label for="password">Password<span class="text-red-600">*</span></label>
           <div class="mt-2 flex gap-1">
             <ActionIcon title="Regenerate Random Password" icon={RepeatIcon} action={generatePassword} size="small" />
-            <ActionIcon
-              title="Show Password"
-              icon={EyeIcon}
-              {showPassword}
-              action={() => (showPassword = !showPassword)}
-              size="small" />
+            <ActionIcon title="Show Password" icon={EyeIcon} {showPassword} action={() => (showPassword = !showPassword)} size="small" />
           </div>
         </div>
         <InputWithIcon type={showPassword ? 'text' : 'password'} name="password" placeholder="Password" icon={KeyIcon} />

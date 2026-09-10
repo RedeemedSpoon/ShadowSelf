@@ -4,6 +4,8 @@ import {toTitleCase} from '@utils/utils';
 import {$} from 'bun';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
+  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) return {err: 'Invalid request body'} as BodyField;
+
   const body = rawBody as BodyField;
 
   for (const field of fields) {
@@ -24,12 +26,14 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         } else if (body.username.length > 25) {
           return {err: 'Username is too long (<25 characters)'} as BodyField;
         }
+
         break;
 
       case 'password':
         if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
           return {err: 'Password is too weak. Improve it a bit'} as BodyField;
         }
+
         break;
 
       case 'email':
@@ -38,60 +42,56 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         } else if (body.email.length > 48) {
           return {err: 'Email is too long (<48 characters)'} as BodyField;
         }
+
         break;
 
       case 'access':
         if (!/^\d+$/.test(body.access)) {
           return {err: 'Invalid access token. Please try again'} as BodyField;
         }
+
         break;
 
       case 'secret':
         if (body.secret.length > 32 && !/^[A-Z0-9]+$/.test(body.secret)) {
           return {err: 'OTP secret is invalid. Get a new one'} as BodyField;
         }
+
         break;
 
       case 'token':
         if (!/^\d{6}$/.test(body.token)) {
           return {err: 'Validation token must be a 6 digit number'} as BodyField;
         }
-        break;
 
-      case 'code':
-        if (!/^\d{9}$/.test(body.code)) {
-          return {err: 'recovery codes must be a 9 digit number'} as BodyField;
-        }
-        break;
-
-      case 'recovery':
-        if (!Array.isArray(body.recovery) || !body.recovery.every((b) => /^\d{9}$/.test(b))) {
-          return {err: 'Wrong recovery codes structure. Generate new ones'} as BodyField;
-        }
         break;
 
       case 'payment':
         if (body.payment.length !== 27 || !body.payment.startsWith('pm_')) {
           return {err: 'Payment method is invalid. Please try again'} as BodyField;
         }
+
         break;
 
       case 'intent':
         if (body.intent.length !== 27 || !body.intent.startsWith('pi_')) {
           return {err: 'Payment Intent is invalid. Please try again'} as BodyField;
         }
+
         break;
 
       case 'subscription':
         if (body.subscription.length !== 28 || !body.subscription.startsWith('sub_')) {
           return {err: 'Subscription ID is invalid. Please try again'} as BodyField;
         }
+
         break;
 
       case 'id':
         if (body.id.length !== 12) {
           return {err: 'Invalid ID, please try again'} as BodyField;
         }
+
         break;
     }
   }
@@ -135,6 +135,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       if (!LOCATIONS.some((loc) => loc.code === body.location)) {
         return {error: 'Invalid location code'};
       }
+
       break;
 
     case 'identity':
@@ -173,6 +174,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       if (!/^[A-Za-z0-9+/=]+$/.test(body.picture!)) {
         return {error: 'Incorrect profile picture format'};
       }
+
       break;
 
     case 'email': {
@@ -185,6 +187,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       }
 
       const command = await $`id $EMAIL_ADDRESS`.env({EMAIL_ADDRESS: body.email!}).quiet().nothrow();
+
       return command.exitCode === 0 ? {error: 'Email address is already registered on our systems'} : body;
     }
 
@@ -192,6 +195,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       if (!/^\+(\d{10,13})$/.test(body.phone!)) {
         return {error: 'Invalid phone number, please try again'};
       }
+
       break;
 
     case 'wallet': {
@@ -216,6 +220,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
       if (!/^0x[a-fA-F0-9]{40}$/.test(keys.evm)) {
         return {error: 'Invalid Ethereum Address'};
       }
+
       break;
     }
 
@@ -236,6 +241,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 
 export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIRequest> {
   if (!rawBody || typeof rawBody !== 'object') return {err: 'Invalid request body'} as APIRequest;
+
   const body = rawBody as APIRequest;
 
   for (const field of fields) {
@@ -265,6 +271,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.name.length > 30) {
           return {err: 'Name is too long (<30 characters)'} as APIRequest;
         }
+
         break;
 
       case 'bio':
@@ -279,12 +286,14 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.bio.length > 126) {
           return {err: 'Biography is too long (<126 characters)'} as APIRequest;
         }
+
         break;
 
       case 'sex':
         if (body.sex !== 'male' && body.sex !== 'female') {
           return {err: 'Sex must be either "male" or "female"'} as APIRequest;
         }
+
         break;
 
       case 'age':
@@ -295,12 +304,14 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.age < 18 || body.age > 60) {
           return {err: 'Age must be between 18 and 60'} as APIRequest;
         }
+
         break;
 
       case 'ethnicity':
         if (typeof body.ethnicity !== 'string' || !ETHNICITIES.includes(body.ethnicity)) {
           return {err: 'Ethnicity must be a valid ethnicity'} as APIRequest;
         }
+
         break;
 
       case 'picture':
@@ -311,6 +322,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^[A-Za-z0-9+/=]+$/.test(body.picture)) {
           return {err: 'Incorrect profile picture format'} as APIRequest;
         }
+
         break;
 
       case 'username':
@@ -321,6 +333,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.username.length > 25) {
           return {err: 'Username is too long (<25 characters)'} as APIRequest;
         }
+
         break;
 
       case 'password':
@@ -331,6 +344,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
           return {err: 'Password is too weak. Minimum 8 chars, requires letters and numbers.'} as APIRequest;
         }
+
         break;
 
       case 'website':
@@ -341,6 +355,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
           return {err: 'Invalid website address, please try again'} as APIRequest;
         }
+
         break;
 
       case 'totp':
@@ -351,6 +366,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^[A-Za-z0-9+/=]+$/.test(body.totp)) {
           return {err: 'Invalid TOTP secret, please try again'} as APIRequest;
         }
+
         break;
 
       case 'algorithm':
@@ -361,18 +377,21 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
           return {err: 'Unrecognized algorithm, please try again'} as APIRequest;
         }
+
         break;
 
       case 'id':
         if (typeof body.id !== 'number' || !Number.isInteger(body.id) || body.uid < 1) {
           return {err: 'Invalid ID, please try again'} as APIRequest;
         }
+
         break;
 
       case 'uid':
         if (typeof body.uid !== 'number' || !Number.isInteger(body.uid) || body.uid < 1) {
           return {err: 'Invalid email UID), please try again'} as APIRequest;
         }
+
         break;
 
       case 'sid':
@@ -383,12 +402,14 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.sid.length !== 34) {
           return {err: 'Invalid message SID, please try again'} as APIRequest;
         }
+
         break;
 
       case 'uuid':
         if (typeof body.uuid !== 'string') {
           return {err: 'Email UUID must be a string'} as APIRequest;
         }
+
         break;
 
       case 'identityID':
@@ -399,12 +420,14 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.identityID.length !== 12) {
           return {err: 'Invalid Identity ID, please try again'} as APIRequest;
         }
+
         break;
 
       case 'since':
         if (typeof body.since !== 'string' || !Number.isInteger(Number(body.since)) || Number(body.since) < 1) {
           return {err: 'Invalid since parameter, please try again'} as APIRequest;
         }
+
         break;
 
       case 'addressee':
@@ -415,6 +438,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^\+\d{10,15}$/.test(body.addressee)) {
           return {err: 'Invalid phone number format, please try again'} as APIRequest;
         }
+
         break;
 
       case 'subject':
@@ -425,6 +449,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.subject.length > 126) {
           return {err: 'Long subject (>126 characters), please try again'} as APIRequest;
         }
+
         break;
 
       case 'body':
@@ -435,6 +460,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.body.trim().length < 4) {
           return {err: 'Body is too short, please try again'} as APIRequest;
         }
+
         break;
 
       case 'mailbox':
@@ -445,6 +471,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!['INBOX', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
           return {err: 'Non-existent mailbox, please try again'} as APIRequest;
         }
+
         break;
 
       case 'from':
@@ -466,6 +493,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^[\w\-+.%]+@([\w-]+\.)+[\w-]{2,}$/i.test(body.to)) {
           return {err: 'Invalid recipient email, please try again'} as APIRequest;
         }
+
         break;
 
       case 'forward':
@@ -476,6 +504,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^[\w\-+.%]+@([\w-]+\.)+[\w-]{2,}$/i.test(body.forward)) {
           return {err: 'Invalid forward email, please try again'} as APIRequest;
         }
+
         break;
 
       case 'inReplyTo':
@@ -486,6 +515,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.inReplyTo && !/^<[^<>]+@[^<>]+>$/.test(body.inReplyTo.trim())) {
           return {err: 'Invalid inReplyTo value (should be Message-ID format like <id@domain>), please try again'} as APIRequest;
         }
+
         break;
 
       case 'references':
@@ -500,6 +530,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
             } as APIRequest;
           }
         }
+
         break;
 
       case 'attachments':
@@ -520,12 +551,14 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
             return {err: 'One or more attachments exceed the 15MB size limit, please try again'} as APIRequest;
           }
         }
+
         break;
 
       case 'blob':
         if (typeof body.blob !== 'string' || body.blob.length < 20) {
           return {err: 'Invalid wallet encryption blob. Must be a valid encrypted string.'} as APIRequest;
         }
+
         break;
 
       case 'keys':
@@ -544,6 +577,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (typeof body.keys.viewKey !== 'string' || body.keys.viewKey.length < 20) {
           return {err: 'Invalid encrypted viewKey in keys'} as APIRequest;
         }
+
         break;
 
       case 'btc':
@@ -554,6 +588,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^[xyzXtTuUvV]pub[a-zA-Z0-9]{100,130}$/.test(body.btc)) {
           return {err: 'Invalid Bitcoin Extended Public Key (XPUB)'} as APIRequest;
         }
+
         break;
 
       case 'ltc':
@@ -564,6 +599,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^[LMxyzXtTuUvV]pub[a-zA-Z0-9]{100,130}$/.test(body.ltc)) {
           return {err: 'Invalid Litecoin Extended Public Key (XPUB)'} as APIRequest;
         }
+
         break;
 
       case 'evm':
@@ -574,6 +610,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^0x[a-fA-F0-9]{40}$/.test(body.evm)) {
           return {err: 'Invalid Ethereum/EVM Address format'} as APIRequest;
         }
+
         break;
 
       case 'xmr':
@@ -584,6 +621,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^[48][a-zA-Z0-9]{90,110}$/.test(body.xmr)) {
           return {err: 'Invalid Monero Address format'} as APIRequest;
         }
+
         break;
 
       case 'coin':
@@ -596,6 +634,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!['btc', 'ltc', 'eth', 'usdt', 'xmr'].includes(body[fieldType].toLowerCase())) {
           return {err: `Invalid ${fieldType}. Must be BTC, LTC, ETH, USDT, or XMR.`} as APIRequest;
         }
+
         break;
 
       case 'swapCoin':
@@ -606,6 +645,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^[a-zA-Z0-9]{2,10}$/.test(body.swapCoin)) {
           return {err: 'Invalid swap coin. Must be a valid coin ticker.'} as APIRequest;
         }
+
         break;
 
       case 'addresses':
@@ -620,6 +660,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body.addresses.some((addr) => typeof addr !== 'string' || addr.length < 10)) {
           return {err: 'Addresses array contains invalid data'} as APIRequest;
         }
+
         break;
 
       case 'destinationAddress':
@@ -631,6 +672,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (body[fieldType].length < 10) {
           return {err: `Invalid ${fieldType} format`} as APIRequest;
         }
+
         break;
 
       case 'provider':
@@ -638,18 +680,21 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (typeof body[fieldType] !== 'string' || body[fieldType].length < 3 || body[fieldType].length > 20) {
           return {err: `Invalid ${fieldType}`} as APIRequest;
         }
+
         break;
 
       case 'isFixed':
         if (typeof body[fieldType] !== 'boolean') {
           return {err: `Invalid ${fieldType}`} as APIRequest;
         }
+
         break;
 
       case 'amount':
         if (isNaN(Number(body.amount)) || Number(body.amount) <= 0) {
           return {err: 'Amount must be a positive number'} as APIRequest;
         }
+
         break;
 
       case 'hex':
@@ -660,6 +705,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!/^(0x)?[0-9a-fA-F]+$/.test(body.hex)) {
           return {err: 'Invalid hexadecimal string'} as APIRequest;
         }
+
         break;
 
       case 'plan':
@@ -670,6 +716,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         if (!['monthly', 'annually', 'lifetime'].includes(body.plan)) {
           return {err: 'Invalid plan selected'} as APIRequest;
         }
+
         break;
     }
   }

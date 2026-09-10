@@ -21,8 +21,7 @@
     },
     {
       title: 'Affordable to All',
-      description:
-        'Our competitive prices allow you to get the most out of our service without compromising on any quality or features.',
+      description: 'Our competitive prices allow you to get the most out of our service without compromising on any quality or features.',
       image: tag,
     },
     {

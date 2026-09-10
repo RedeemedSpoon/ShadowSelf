@@ -94,8 +94,7 @@
       <section id="no-messages" style="background-image: url({conversation});">
         <h2 class="mt-12 text-5xl text-neutral-300">No Messages</h2>
         <p class="text-center md:w-1/2">
-          No messages have been sent to this number yet. Sending a quick text or starting a conversation to get things rolling could be
-          a good first step!
+          No messages have been sent to this number yet. Sending a quick text or starting a conversation to get things rolling could be a good first step!
         </p>
         <button onclick={() => ($mode = 'write')}>Start Conversation</button>
       </section>

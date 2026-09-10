@@ -29,6 +29,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
     if (identity[0].status !== 'inactive') return;
 
     const cookie = checksum(id);
+
     return {cookie};
   })
   .ws('/ws-creation-process', {
@@ -64,6 +65,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
           const profile = (await checkIdentity('identity', message.regenerate)) || {};
           if (profile.error) return ws.send({error: profile.error});
+
           let {name, age, ethnicity, bio, sex} = profile;
 
           if (!message.regenerate) {
@@ -74,10 +76,12 @@ export default new Elysia({websocket: {idleTimeout: 300}})
                 name = faker.person.fullName({sex: message.repeat.sex});
                 ws.send({repeat: {name}});
               }
+
               if (message.repeat.bio) {
                 bio = faker.person.bio();
                 ws.send({repeat: {bio}});
               }
+
               break;
             }
 

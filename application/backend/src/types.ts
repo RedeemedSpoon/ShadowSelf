@@ -2,8 +2,11 @@ import type {ImapSimple} from 'imap-simple';
 import type {ElysiaWS} from 'elysia/ws';
 
 export type User = {email: string; id: string} | undefined;
+
 export type SessionJwt = {verify: (token?: string) => Promise<unknown>};
+
 export type Attachment = {filename: string; data: string};
+
 export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
 
 export interface WSConnection {
@@ -56,13 +59,11 @@ export interface BodyField {
   access: string;
   username: string;
   password: string;
-  recovery: string[];
   subscription: string;
   intent: string;
   payment: string;
   secret: string;
   token: string;
-  code: string;
   id: string;
   err: string;
 }
@@ -73,7 +74,7 @@ export interface QueryUser {
   password: string;
   email: string;
   totp: string;
-  recovery: string[];
+  recovery_hashes: string[];
   stripe_customer: string;
   sessions: string[];
   api_access: boolean;
@@ -320,4 +321,29 @@ export interface LoginChallenge {
   expiresAt: number;
   attempts: number;
   busy: boolean;
+}
+
+export type EmailCodePurpose = 'confirm' | 'recover' | 'change';
+
+export interface EmailCode {
+  binding: string;
+  hash: string;
+  expiresAt: number;
+  attempts: number;
+}
+
+export interface EmailDeliveryLimit {
+  expiresAt: number;
+  nextSend: number;
+  count: number;
+}
+
+export interface SignupDraft {
+  email: string;
+  password: string;
+  expiresAt: number;
+  verified: boolean;
+  username: string;
+  secret: string;
+  recoveryHashes: string[];
 }

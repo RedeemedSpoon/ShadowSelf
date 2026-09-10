@@ -8,8 +8,7 @@ export const LTC_API = 'https://litecoinspace.org/api';
 export const ETH_API = 'https://eth.blockscout.com/api';
 export const XMR_NODE = 'https://xmr-node.cakewallet.com:18081/json_rpc';
 export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
-export const COINGECKO_URL =
-  'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
+export const COINGECKO_URL = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
 
 export const POLL_CLEANUP_INTERVAL = 3_600_000; // every 1 hour
 export const POLL_INVOICES_INTERVAL = 15_000; // every 15 seconds
@@ -79,3 +78,11 @@ export const LOCATIONS = [
 export const LOGIN_CHALLENGE_TTL = 300_000;
 export const LOGIN_CHALLENGE_ATTEMPTS = 5;
 export const LOGIN_CHALLENGE_CAPACITY = 10_000;
+
+export const EMAIL_CODE_TTL = 600_000;
+export const EMAIL_CODE_ATTEMPTS = 5;
+export const EMAIL_RESEND_INTERVAL = 60_000;
+export const EMAIL_DELIVERY_WINDOW = 3_600_000;
+export const EMAIL_DELIVERY_LIMIT = 5;
+export const VERIFICATION_CAPACITY = 10_000;
+export const SIGNUP_DRAFT_TTL = 1_800_000;

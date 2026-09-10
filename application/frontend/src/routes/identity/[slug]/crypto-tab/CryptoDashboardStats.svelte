@@ -157,12 +157,8 @@
         <h3 class="text-primary-600 flex gap-x-1.5 text-2xl font-semibold">
           <ChartIcon />Price Chart <span class="text-lg text-neutral-500">(last 7 days)</span>
         </h3>
-        <a
-          target="_blank"
-          class="group flex gap-1"
-          href="https://www.coingecko.com/en/coins/{cryptoTitles[$currentCrypto].toLowerCase()}">
-          More Metrics <ExternalLinkIcon
-            className="w-4! h-4! transition-colors duration-300 stroke-primary-600 group-hover:stroke-primary-700" />
+        <a target="_blank" class="group flex gap-1" href="https://www.coingecko.com/en/coins/{cryptoTitles[$currentCrypto].toLowerCase()}">
+          More Metrics <ExternalLinkIcon className="w-4! h-4! transition-colors duration-300 stroke-primary-600 group-hover:stroke-primary-700" />
         </a>
       </div>
       <div class="mb-6">

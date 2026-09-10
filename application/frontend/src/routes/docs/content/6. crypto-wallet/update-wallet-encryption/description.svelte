@@ -1,6 +1,6 @@
 <p>
-  This endpoint updates the encrypted wallet blob and the Monero XMR keys for the identity stored in the database. This is used to
-  synchronize the local wallet state with the server, ensuring that the user's encrypted seed/keys are safely stored.
+  This endpoint updates the encrypted wallet blob and the Monero XMR keys for the identity stored in the database. This is used to synchronize the local wallet
+  state with the server, ensuring that the user's encrypted seed/keys are safely stored.
 </p>
 
 <h5>Request</h5>
@@ -9,8 +9,7 @@
 </p>
 <ul>
   <li>
-    <code>blob</code> (<span class="string">string</span>): The new AES-GCM encrypted base64 string containing the private mnemonic
-    seed or wallet data.
+    <code>blob</code> (<span class="string">string</span>): The new AES-GCM encrypted base64 string containing the private mnemonic seed or wallet data.
   </li>
   <li>
     <code>keys</code> (<span class="object">object</span>): The new AES-GCM encrypted base64 object containing Monero keys. includes:

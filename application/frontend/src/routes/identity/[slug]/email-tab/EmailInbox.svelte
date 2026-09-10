@@ -65,25 +65,19 @@
 {:else if label === 'INBOX'}
   <section class="no-emails" style="background-image: url({mailbox});">
     <h3 class="mt-12">No Emails Received</h3>
-    <p class="text-center md:w-1/2">
-      Looks like no emails have been sent to this email address yet. Maybe it's a good idea to send one to kick things off?
-    </p>
+    <p class="text-center md:w-1/2">Looks like no emails have been sent to this email address yet. Maybe it's a good idea to send one to kick things off?</p>
     <button onclick={() => ($mode = 'write')}>Send Email</button>
   </section>
 {:else if label === 'Sent'}
   <section class="no-emails" style="background-image: url({pencil});">
     <h3 class="mt-12">No Emails Sent</h3>
-    <p class="text-center md:w-1/2">
-      It looks like you haven't sent any emails from this account yet. Why not start by writing one now?
-    </p>
+    <p class="text-center md:w-1/2">It looks like you haven't sent any emails from this account yet. Why not start by writing one now?</p>
     <button onclick={() => ($mode = 'write')}>Compose Email</button>
   </section>
 {:else if label === 'Drafts'}
   <section class="no-emails" style="background-image: url({file});">
     <h3 class="mt-12">No Drafts</h3>
-    <p class="text-center md:w-1/2">
-      Looks like you don’t have any drafts at the moment. Start writing an email and save it as a draft to come back to later!
-    </p>
+    <p class="text-center md:w-1/2">Looks like you don’t have any drafts at the moment. Start writing an email and save it as a draft to come back to later!</p>
     <button onclick={() => ($mode = 'write')}>Write Draft</button>
   </section>
 {:else if label === 'Junk'}

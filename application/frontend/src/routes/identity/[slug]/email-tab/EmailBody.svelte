@@ -63,10 +63,7 @@
         </h3>
         <div class="flex flex-wrap gap-3">
           {#each email.attachments as attachment, id (id)}
-            <a
-              href={URL.createObjectURL(base64ToBlob(attachment.data, 'application/octet-stream'))}
-              download={attachment.filename}
-              class="attachment">
+            <a href={URL.createObjectURL(base64ToBlob(attachment.data, 'application/octet-stream'))} download={attachment.filename} class="attachment">
               <AttachmentIcon className="h-4 w-4" />
               <span class="max-w-50 truncate">{attachment.filename}</span>
             </a>

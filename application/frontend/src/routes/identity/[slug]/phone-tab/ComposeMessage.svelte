@@ -114,12 +114,7 @@
     <h3 class="text-center text-3xl text-neutral-300 md:text-5xl">{title}</h3>
   {/if}
   <div class="relative {$discussion ? 'w-full' : 'md:w-3/4'}">
-    <textarea
-      bind:this={textarea}
-      oninput={handleInput}
-      onfocusin={() => (showButton = false)}
-      onfocusout={() => (showButton = true)}
-      {placeholder}></textarea>
+    <textarea bind:this={textarea} oninput={handleInput} onfocusin={() => (showButton = false)} onfocusout={() => (showButton = true)} {placeholder}></textarea>
     <button class:hidden={!showButton} onclick={next} id="send">→</button>
   </div>
   <small class:ml-8={!!$discussion} class={charLimit === 0 ? 'text-red-500' : 'text-neutral-500'}>{hint}</small>

@@ -9,7 +9,7 @@
 </script>
 
 <div id="steps" style="background-image: url({circuitPattern})">
-  <div class="absolute w-full">
+  <div class="grid w-full">
     {#key $currentStep}
       <section in:fly={{delay: 500, x: 35, opacity: 0, duration: 500}} out:fly={{x: -35, opacity: 0, duration: 500}}>
         {@render children?.()}
@@ -22,10 +22,10 @@
   @reference "$style";
 
   #steps {
-    @apply relative h-250 bg-repeat pt-16 pb-16 md:pt-56 md:pb-40;
+    @apply relative min-h-250 bg-repeat pt-16 pb-16 md:pt-56 md:pb-40;
   }
 
   section {
-    @apply mx-auto flex w-4/5 justify-center lg:w-1/3;
+    @apply col-start-1 row-start-1 mx-auto flex w-4/5 justify-center lg:w-1/3;
   }
 </style>

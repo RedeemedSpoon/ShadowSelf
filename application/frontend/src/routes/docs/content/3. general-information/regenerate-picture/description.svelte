@@ -1,7 +1,6 @@
 <p>
-  Regenerates the profile picture for a specific synthetic identity. This uses Stable Diffusion Core to generate a new picture
-  influenced by the identity's characteristics. You can optionally provide specific characteristics in the request body to guide the
-  generation process.
+  Regenerates the profile picture for a specific synthetic identity. This uses Stable Diffusion Core to generate a new picture influenced by the identity's
+  characteristics. You can optionally provide specific characteristics in the request body to guide the generation process.
 </p>
 
 <h5>Request</h5>
@@ -12,16 +11,15 @@
 <ul>
   <li><code>sex</code> (<span class="string">string</span>, <span class="optional">optional</span>): Must be 'male' or 'female'.</li>
   <li>
-    <code>age</code> (<span class="integer">integer</span>, <span class="optional">optional</span>): Must be a whole number between 18
-    and 60.
+    <code>age</code> (<span class="integer">integer</span>, <span class="optional">optional</span>): Must be a whole number between 18 and 60.
   </li>
   <li>
-    <code>ethnicity</code> (<span class="string">string</span>, <span class="optional">optional</span>): Must be a valid ethnicity
-    string from the allowed list (check dashboard for the list).
+    <code>ethnicity</code> (<span class="string">string</span>, <span class="optional">optional</span>): Must be a valid ethnicity string from the allowed list
+    (check dashboard for the list).
   </li>
   <li>
-    <code>bio</code> (<span class="string">string</span>, <span class="optional">optional</span>): A string used as a prompt hint. Must
-    be between 10 and 126 characters if provided.
+    <code>bio</code> (<span class="string">string</span>, <span class="optional">optional</span>): A string used as a prompt hint. Must be between 10 and 126
+    characters if provided.
   </li>
 </ul>
 

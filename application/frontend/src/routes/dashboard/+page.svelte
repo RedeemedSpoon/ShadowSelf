@@ -28,8 +28,10 @@
   let searchResults = $state<string[] | null>(null);
   const visibleIdentities = $derived.by(() => {
     const identities = data.identities.filter((identity) => searchResults === null || searchResults.includes(identity.id));
+
     return sortAsc ? identities : identities.reverse();
   });
+
   let countriesFlags = getCountriesFlags();
 
   const bottomLinks = {
@@ -70,10 +72,7 @@
         </div>
       </div>
       {#if !visibleIdentities.length}<p id="error">No results found.</p>{/if}
-      <section
-        class="mt-10 h-fit min-h-[50vh]"
-        style:max-height={filterOverflow ? '40vh' : 'none'}
-        style:overflow-y={filterOverflow ? 'auto' : 'visible'}>
+      <section class="mt-10 h-fit min-h-[50vh]" style:max-height={filterOverflow ? '40vh' : 'none'} style:overflow-y={filterOverflow ? 'auto' : 'visible'}>
         {#each visibleIdentities as identity (identity.id)}
           {#if !identity.name}
             <a class="flex! gap-6! max-md:mb-24" href="/create?id={identity.id}">
@@ -125,8 +124,7 @@
     <div id="empty">
       <h1 class="basic-style mt-16 max-md:text-5xl md:mt-28">Start by making an identity</h1>
       <p class="mb-4 w-2/3 text-neutral-300!">
-        You can craft as many identities as you want. They are completely isolated from each other and can be used for a variety of
-        purposes.
+        You can craft as many identities as you want. They are completely isolated from each other and can be used for a variety of purposes.
       </p>
       <img src={worldMap} alt="world map" class="absolute -z-20 w-full max-xl:top-12" />
       <a href="/purchase">

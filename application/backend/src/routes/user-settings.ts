@@ -1,6 +1,7 @@
-import {createTOTP, getSecret, getAPIKey, createHash, getRecovery, checksum} from '@utils/cryptography';
+import {consumeEmailCode} from '@core/states';
+import {createTOTP, getSecret, getAPIKey, createHash, getRecovery, hashRecoveryCode, compareHash} from '@utils/cryptography';
 import middlewareBase from '@middlewares/middleware-base';
-import {sendOfficialEmail} from '@utils/email-smtp';
+import {sendVerificationCode} from '@utils/email-smtp';
 import type {QueryUser, QueryIdentity} from '@type';
 import {error, request} from '@utils/utils';
 import {check} from '@utils/checks';
@@ -9,23 +10,19 @@ import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/settings'})
   .use(middlewareBase)
-  .onBeforeHandle(({set, user, path}) => {
-    const relativePath = path.slice(9);
-    const paths = ['', '/revoke', '/otp', '/recovery', '/payment', '/api-access', '/api-key', '/full'];
-    const mustLogIn = [...paths, '/email', '/username', '/password'];
-
-    if (mustLogIn.some((p) => relativePath === p || relativePath === p + '/') && !user) {
-      return error(set, 401, 'You are not logged in');
-    }
+  .onBeforeHandle(({set, user}) => {
+    set.headers['cache-control'] = 'no-store';
+    if (!user) return error(set, 401, 'You are not logged in');
   })
   .get('/', async ({user}) => {
     const result = (await sql`SELECT * FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const {email, recovery, totp, api_access, api_key} = result[0];
+    const {email, recovery_hashes, totp, api_access, api_key} = result[0];
 
     const res = await request('/billing/fiat/portal', 'POST', {email});
+
     const sessionUrl = res?.sessionUrl || '';
 
-    return {sessionUrl, email, recovery: recovery || [], key: api_key, API: api_access, OTP: !!totp};
+    return {sessionUrl, email, recoveryRemaining: recovery_hashes.length, key: api_key, API: api_access, OTP: !!totp};
   })
   .get('/otp', async ({user}) => {
     const result = (await sql`SELECT username FROM users WHERE email = ${user!.email}`) as QueryUser[];
@@ -37,20 +34,28 @@ export default new Elysia({prefix: '/settings'})
 
     return {uri, secret};
   })
-  .get('/recovery', async ({set, user}) => {
-    const otp = (await sql`SELECT totp FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    if (!otp[0].totp) return error(set, 400, '2FA is disabled. Enable it to proceed');
+  .post('/recovery', async ({set, body, user}) => {
+    const {password, err} = check(body, ['password'], true);
+    if (err || typeof password !== 'string') return error(set, 400, err || 'Password is required');
 
-    const recoveryCodes = getRecovery();
-    await sql`UPDATE users SET recovery = ${recoveryCodes} WHERE email = ${user!.email}`;
+    const accounts = (await sql`SELECT * FROM users WHERE email = ${user!.email}`) as QueryUser[];
+    const account = accounts[0];
+    if (!account?.totp) return error(set, 400, 'Enable two-factor authentication first');
+    if (!(await compareHash(password, account.password))) return error(set, 400, 'Incorrect password');
 
-    return {recovery: recoveryCodes};
+    const recovery = getRecovery();
+    const updated = await sql`UPDATE users SET recovery_hashes = ${recovery.map(hashRecoveryCode)}
+      WHERE email = ${user!.email} AND password = ${account.password} AND totp = ${account.totp} RETURNING email`;
+    if (!updated.length) return error(set, 409, 'Account changed. Please try again');
+
+    return {recovery, recoveryRemaining: recovery.length};
   })
   .get('/api-access', async ({user}) => {
     const access = (await sql`SELECT api_access FROM users WHERE email = ${user!.email}`) as QueryUser[];
     const toggle = !access[0].api_access;
 
     await sql`UPDATE users SET api_access = ${toggle} WHERE email = ${user!.email}`;
+
     return {API: toggle};
   })
   .get('/api-key', async ({set, user}) => {
@@ -59,28 +64,23 @@ export default new Elysia({prefix: '/settings'})
 
     const key = getAPIKey();
     await sql`UPDATE users SET api_key = ${key} WHERE email = ${user!.email}`;
+
     return {key};
   })
   .get('/revoke', async ({user}) => {
     await sql`UPDATE users SET sessions = ARRAY[]::varchar(8)[] WHERE email = ${user!.email}`;
   })
-  .post('/otp-check', async ({set, body}) => {
-    const {err, secret, token} = check(body, ['token', 'secret']);
-    if (err) return error(set, 400, err);
-
-    const totp = createTOTP(secret, 'temporarily');
-    const isValid = totp.generate() === token;
-
-    if (!isValid) return error(set, 400, 'Incorrect validation token. Please try again');
-  })
   .post('/otp', async ({set, body, user}) => {
-    const {err, secret} = check(body, ['secret']);
+    const {err, secret, token} = check(body, ['secret', 'token']);
     if (err) return error(set, 400, err);
+    if (createTOTP(secret, 'temporarily').generate() !== token) {
+      return error(set, 400, 'Incorrect verification code. Please try again');
+    }
 
-    const recoveryCodes = getRecovery();
-    await sql`UPDATE users SET totp = ${secret}, recovery = ${recoveryCodes} WHERE email = ${user!.email}`;
+    const recovery = getRecovery();
+    await sql`UPDATE users SET totp = ${secret}, recovery_hashes = ${recovery.map(hashRecoveryCode)} WHERE email = ${user!.email}`;
 
-    return {recovery: recoveryCodes};
+    return {recovery, recoveryRemaining: recovery.length};
   })
   .post('/payment', async ({set, body, user}) => {
     const {err, payment} = check(body, ['payment']);
@@ -88,33 +88,38 @@ export default new Elysia({prefix: '/settings'})
 
     const email = user!.email;
     await request('/billing/fiat/customer', 'PUT', {email, payment});
+
     const res = await request('/billing/fiat/portal', 'POST', {email});
 
     return {sessionUrl: res.sessionUrl || ''};
   })
   .post('/email', async ({set, user, jwt, body}) => {
-    const {err, email, access} = check(body, ['email', 'access']);
+    const {err, email, access} = check(body, ['email', 'access'], true);
     if (err) return error(set, 400, err);
 
-    const accessToken = checksum(email);
-    if (access !== accessToken) return error(set, 400, 'Invalid access token. Please Try again');
+    if (!consumeEmailCode('change', email, `${user!.email}:${user!.id}`, access)) {
+      return error(set, 400, 'Invalid or expired email code. Request a new code if needed');
+    }
+
+    const existing = await sql`SELECT email FROM users WHERE email = ${email}`;
+    if (existing.length) return error(set, 409, 'Email address is already registered');
 
     await request('/billing/fiat/customer', 'PATCH', {oldEmail: user!.email, email});
     await sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`;
 
     const cookievalue = await jwt.sign({email, id: user!.id});
+
     return {cookie: cookievalue};
   })
-  .put('/email', async ({set, body}) => {
+  .put('/email', async ({set, body, user}) => {
     const {err, email} = check(body, ['email']);
     if (err) return error(set, 400, err);
 
     const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
     if (result.length) return error(set, 400, 'Email address is already registered on our systems');
 
-    const accessToken = checksum(email);
-    const response = await sendOfficialEmail(email, accessToken, 'change');
-    if (response.err) return error(set, 500, 'Failed to send verification email. Try later');
+    const response = await sendVerificationCode('change', email, `${user!.email}:${user!.id}`);
+    if (response.status !== 200) return error(set, response.status, response.message);
 
     return {email};
   })
@@ -132,8 +137,9 @@ export default new Elysia({prefix: '/settings'})
     await sql`UPDATE users SET password = ${hashedPassword} WHERE email = ${user!.email}`;
   })
   .delete('/otp', async ({user}) => {
-    await sql`UPDATE users SET totp = NULL WHERE email = ${user!.email}`;
-    await sql`UPDATE users SET recovery = ARRAY[]::varchar(9)[] WHERE email = ${user!.email}`;
+    await sql`UPDATE users SET totp = NULL, recovery_hashes = ARRAY[]::varchar(64)[] WHERE email = ${user!.email}`;
+
+    return {recoveryRemaining: 0};
   })
   .delete('/full', async ({user}) => {
     const account = (await sql`SELECT id FROM users WHERE email = ${user!.email}`) as QueryUser[];
