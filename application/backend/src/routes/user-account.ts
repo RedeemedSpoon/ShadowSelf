@@ -1,3 +1,4 @@
+import {issueLoginChallenge, claimLoginChallenge, finishLoginChallenge} from '@core/states';
 import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, getRecovery, checksum} from '@utils/cryptography';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendOfficialEmail} from '@utils/email-smtp';
@@ -42,7 +43,7 @@ export default new Elysia({prefix: '/account'})
     if (!isPasswordCorrect) return error(set, 400, 'Invalid credentials. Please try again');
 
     const has2fa = result[0].totp;
-    if (has2fa) return {email};
+    if (has2fa) return issueLoginChallenge(result[0]) || error(set, 503, 'Login is busy. Please try again later');
 
     const id = generateID();
     await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
@@ -74,7 +75,7 @@ export default new Elysia({prefix: '/account'})
     if (access !== accessToken) return error(set, 400, 'Invalid access token. Please Try again');
 
     const has2fa = result[0].totp;
-    if (has2fa) return {email};
+    if (has2fa) return issueLoginChallenge(result[0]) || error(set, 503, 'Login is busy. Please try again later');
 
     const id = generateID();
     await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
@@ -82,45 +83,8 @@ export default new Elysia({prefix: '/account'})
     const cookievalue = await jwt.sign({email, id});
     return {cookie: cookievalue};
   })
-  .post('/login-otp', async ({set, body, jwt}) => {
-    const {token, email, err} = check(body, ['token', 'email'], true);
-    if (err) return error(set, 400, err);
-
-    const secret = (await sql`SELECT totp FROM users WHERE email = ${email}`) as QueryUser[];
-    if (!secret.length) return error(set, 400, 'Incorrect validation token. Please try again');
-
-    const totp = createTOTP(secret[0].totp, 'temporarily');
-    const isValid = totp.generate() === token;
-    if (!isValid) return error(set, 400, 'Incorrect validation token. Please try again');
-
-    const id = generateID();
-    await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
-
-    const cookieValue = await jwt.sign({email, id});
-    return {cookie: cookieValue};
-  })
-  .post('/login-recovery', async ({set, body, jwt}) => {
-    const {code, email, err} = check(body, ['code', 'email'], true);
-    if (err) return error(set, 400, err);
-
-    const recovery = (await sql`SELECT recovery FROM users WHERE email = ${email}`) as QueryUser[];
-    if (!recovery.length) return error(set, 400, 'Incorrect recovery code. Try another one');
-
-    const allCodes = recovery[0].recovery;
-    if (!allCodes.length) return error(set, 400, 'Incorrect recovery code. Try another one');
-
-    const isValid = allCodes.includes(code);
-    if (!isValid) return error(set, 400, 'Incorrect recovery code. Try another one');
-
-    const newCodes = allCodes.filter((c) => c !== code);
-    await sql`UPDATE users SET recovery = ${newCodes} WHERE email = ${email}`;
-
-    const id = generateID();
-    await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
-
-    const cookieValue = await jwt.sign({email, id});
-    return {cookie: cookieValue};
-  })
+  .post('/login-otp', ({set, body, jwt}) => completeSecondFactor(body, set, jwt, false))
+  .post('/login-recovery', ({set, body, jwt}) => completeSecondFactor(body, set, jwt, true))
   .post('/signup', async ({set, body}) => {
     const {email, err} = check(body, ['email', 'password']);
     if (err) return error(set, 400, err);
@@ -198,3 +162,44 @@ export default new Elysia({prefix: '/account'})
     const cookieValue = await jwt.sign({email, id});
     return {cookie: cookieValue};
   });
+
+async function completeSecondFactor(
+  body: unknown,
+  set: Parameters<typeof error>[0],
+  jwt: {sign: (payload: {email: string; id: string}) => Promise<string>},
+  recovery: boolean,
+) {
+  const input = body as {challenge?: unknown; token?: unknown; code?: unknown} | null;
+  const challenge = input?.challenge;
+  const entry = claimLoginChallenge(challenge);
+  if (!entry) return error(set, 401, 'Login expired or unavailable. Start again');
+
+  try {
+    const value = recovery ? input?.code : input?.token;
+    if (typeof value !== 'string' || !(recovery ? /^\d{9}$/ : /^\d{6}$/).test(value)) {
+      return error(set, 400, 'Incorrect verification code. Please try again');
+    }
+    const users = (await sql`SELECT * FROM users WHERE email = ${entry.email}`) as QueryUser[];
+    const account = users[0];
+    if (!account?.totp || account.password !== entry.password || account.totp !== entry.totp) {
+      finishLoginChallenge(challenge as string, entry, true);
+      return error(set, 401, 'Login expired or unavailable. Start again');
+    }
+    const valid = recovery ? account.recovery?.includes(value) : createTOTP(account.totp, 'temporarily').generate() === value;
+    if (!valid) return error(set, 400, 'Incorrect verification code. Please try again');
+    if (!finishLoginChallenge(challenge as string, entry, true)) {
+      return error(set, 401, 'Login expired or unavailable. Start again');
+    }
+    const id = generateID();
+    const updated = recovery
+      ? await sql`UPDATE users SET recovery = ARRAY_REMOVE(recovery, ${value}), sessions = ARRAY_APPEND(sessions, ${id})
+          WHERE email = ${entry.email} AND password = ${entry.password} AND totp = ${entry.totp}
+          AND ${value} = ANY(recovery) RETURNING email`
+      : await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id})
+          WHERE email = ${entry.email} AND password = ${entry.password} AND totp = ${entry.totp} RETURNING email`;
+    if (!updated.length) return error(set, 401, 'Login expired or unavailable. Start again');
+    return {cookie: await jwt.sign({email: entry.email, id})};
+  } finally {
+    finishLoginChallenge(challenge as string, entry, false);
+  }
+}

@@ -1,3 +1,6 @@
+import {randomBytes} from 'node:crypto';
+import {LOGIN_CHALLENGE_TTL, LOGIN_CHALLENGE_ATTEMPTS, LOGIN_CHALLENGE_CAPACITY} from '@core/constants';
+import type {LoginChallenge, QueryUser} from '@type';
 import type {CryptoFees, CryptoPrices, WSConnection, InvoiceConnection} from '@type';
 import {error} from '@utils/utils';
 
@@ -80,3 +83,44 @@ class InvoiceManager {
 
 export const wsConnections = new WSManager();
 export const invoiceConnections = new InvoiceManager();
+
+const loginChallenges = new Map<string, LoginChallenge>();
+
+export function issueLoginChallenge(user: QueryUser) {
+  for (const [key, entry] of loginChallenges) {
+    if (entry.expiresAt <= Date.now() || entry.email === user.email) loginChallenges.delete(key);
+  }
+  if (loginChallenges.size >= LOGIN_CHALLENGE_CAPACITY) return undefined;
+  const challenge = randomBytes(32).toString('hex');
+  loginChallenges.set(challenge, {
+    email: user.email,
+    password: user.password,
+    totp: user.totp,
+    expiresAt: Date.now() + LOGIN_CHALLENGE_TTL,
+    attempts: 0,
+    busy: false,
+  });
+  return {challenge, expiresIn: LOGIN_CHALLENGE_TTL / 1000};
+}
+
+export function claimLoginChallenge(value: unknown) {
+  if (typeof value !== 'string') return undefined;
+  const entry = loginChallenges.get(value);
+  if (!entry || entry.busy) return undefined;
+  if (entry.expiresAt <= Date.now() || entry.attempts >= LOGIN_CHALLENGE_ATTEMPTS) {
+    loginChallenges.delete(value);
+    return undefined;
+  }
+  entry.attempts++;
+  entry.busy = true;
+  return entry;
+}
+
+export function finishLoginChallenge(value: string, entry: LoginChallenge, success: boolean) {
+  const valid = loginChallenges.get(value) === entry && entry.expiresAt > Date.now();
+  if (loginChallenges.get(value) === entry && (success || !valid || entry.attempts >= LOGIN_CHALLENGE_ATTEMPTS)) {
+    loginChallenges.delete(value);
+  }
+  entry.busy = false;
+  return valid;
+}
