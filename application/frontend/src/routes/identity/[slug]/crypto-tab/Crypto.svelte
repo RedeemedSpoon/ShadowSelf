@@ -68,10 +68,7 @@
       address: await decrypt($identity.walletKeys.xmr.address),
     };
 
-    const [walletData, nodeData] = await Promise.all([
-      fetchAPI<CryptoAPI>('crypto', 'GET'),
-      fetchAPI<MoneroNodeAPI>('crypto/xmr-node', 'GET'),
-    ]);
+    const [walletData, nodeData] = await Promise.all([fetchAPI<CryptoAPI>('crypto', 'GET'), fetchAPI<MoneroNodeAPI>('crypto/xmr-node', 'GET')]);
     if (!walletData.wallet || !walletData.prices || !walletData.fees || !nodeData.nodeUrl || !nodeData.startingDate) {
       throw new Error('Wallet data is unavailable');
     }
@@ -85,6 +82,7 @@
       unlockedBalance: 0,
       balance: 0,
     };
+
     const initialState = await initMoneroScan(
       nodeData,
       (hasCache) => (xmrHasLocalCache = hasCache),
@@ -173,8 +171,8 @@ If a hacker finds this file, your money is gone.
         <section class="my-12 flex flex-col items-center gap-6">
           <h3 class="text-4xl font-bold text-neutral-300 md:text-5xl">Syncing Monero Wallet</h3>
           <div class="text-center text-sm leading-relaxed text-neutral-400 md:w-2/3">
-            To maintain a strict zero-knowledge architecture, your Private View/Spend Key never leaves this device. Instead of trusting
-            our servers, your browser is scanning the Monero blockchain locally to cryptographically derive your balance.
+            To maintain a strict zero-knowledge architecture, your Private View/Spend Key never leaves this device. Instead of trusting our servers, your
+            browser is scanning the Monero blockchain locally to cryptographically derive your balance.
           </div>
 
           <p class="font-semibold text-amber-600">
@@ -195,16 +193,14 @@ If a hacker finds this file, your money is gone.
             </div>
           </div>
           <div class="text-center text-xs text-neutral-500 md:w-1/3">
-            Do not navigate away from this page or switch tabs. Interrupting the background worker will discard current progress and
-            force a full rescan.
+            Do not navigate away from this page or switch tabs. Interrupting the background worker will discard current progress and force a full rescan.
           </div>
         </section>
       {:else if crypto.wallet[$currentCrypto].history.length === 0}
         <section id="no-funds" style="background-image: url({cart});">
           <h2 class="mt-12 text-5xl text-neutral-300">No Funds</h2>
           <p class="text-center md:w-1/2">
-            No money has been transferred to this wallet and no spending has been made yet. Send some funds over and start using it
-            right away!
+            No money has been transferred to this wallet and no spending has been made yet. Send some funds over and start using it right away!
           </p>
           <button onclick={() => ($activeModal = 4)}>Add Funds</button>
         </section>
@@ -228,16 +224,15 @@ If a hacker finds this file, your money is gone.
               <h3 class="text-lg font-medium text-neutral-300">2. Cash Deposit (Paper Wallet)</h3>
               <p class="text-sm text-neutral-400">
                 Bought Crypto at an ATM? Click
-                <button class="alt px-0 py-0 text-sm" onclick={() => (($activeModal = 0), ($mode = 'sweep'))}>Here</button> action to scan
-                your paper receipt receipt. We will instantly move the funds into your secure vault.
+                <button class="alt px-0 py-0 text-sm" onclick={() => (($activeModal = 0), ($mode = 'sweep'))}>Here</button> action to scan your paper receipt receipt.
+                We will instantly move the funds into your secure vault.
               </p>
             </div>
 
             <div class="flex flex-col gap-2 rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
               <h3 class="text-lg font-medium text-neutral-300">3. Buy with Fiat (No ID)</h3>
               <p class="text-sm text-neutral-400">
-                We do not process credit cards to protect your privacy. To buy crypto anonymously using Bank Transfer or Neo-banks, we
-                recommend P2P markets.
+                We do not process credit cards to protect your privacy. To buy crypto anonymously using Bank Transfer or Neo-banks, we recommend P2P markets.
               </p>
               <div class="mt-1 flex gap-4">
                 <a href="https://learn.robosats.org" target="_blank">RoboSats (Tor) ↗</a>

@@ -25,16 +25,14 @@
   <div class="group flex w-87.5 items-center justify-center gap-0">
     <a href={EXTENSIONS_INFO[extension]['firefox']} target="_blank" rel="noreferrer">
       <button
-        class="group-hover:from-primary-800! group-hover:to-primary-800! h-16! {extension !== 'canvas' &&
-          'rounded-r-none! pr-8!'} {expand && 'rounded-b-none!'}">
+        class="group-hover:from-primary-800! group-hover:to-primary-800! h-16! {extension !== 'canvas' && 'rounded-r-none! pr-8!'} {expand &&
+          'rounded-b-none!'}">
         <p>Download for {@html browserIcons['firefox']} Firefox</p>
       </button>
     </a>
     {#if extension !== 'canvas'}
       <div class="z-10 h-8 w-0.5 bg-neutral-300/90"></div>
-      <button
-        onclick={() => (expand = !expand)}
-        class="group-hover:from-primary-800! group-hover:to-primary-800! expand -ml-1! {expand && 'rounded-b-none!'}">
+      <button onclick={() => (expand = !expand)} class="group-hover:from-primary-800! group-hover:to-primary-800! expand -ml-1! {expand && 'rounded-b-none!'}">
         <span class:rotate-180={expand}><ChevronIcon className="rotate-90" /></span>
       </button>
     {/if}

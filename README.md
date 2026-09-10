@@ -35,10 +35,6 @@ If you're looking for areas to contribute, focusing on other parts of the applic
 
 ### Application
 
-Use Bun 1.4.2, declared in package.json and the Docker images. Install dependencies in the root, frontend, backend, and proxy directories. Lockfiles remain ignored in this repository.
-
-For Docker builds, provide `PUBLIC_STRIPE_KEY` in the environment or use `docker compose --env-file frontend/.env up --build` from `application`. Local `.env` files are excluded from images.
-
 To run the application locally with Docker, execute `docker-compose up --build`. Note that this requires all necessary configuration files and environment variables to be correctly set up beforehand.
 
 Alternatively, if you prefer a non-Docker setup, instructions are provided below.
@@ -91,8 +87,6 @@ To set up the browser extension, navigate to its directory. Based on your browse
 
 ### Linting/Formatting
 
-Run `bun run check` and `bun run build` from the root to check and build all three packages. Install root dependencies before type checks. TypeScript stays on the supported 6.0 release because Svelte tooling requires its JavaScript API. Documentation examples loaded as raw text are excluded from application type checks.
-
 - `bun install` To install both eslint and prettier (project root)
 
 - `bun lint` To run the linter on the project
@@ -108,6 +102,8 @@ To quickly spawn a `tmux` session with all servers running and other relevant pr
 - `bash tmux-session.sh` To run the script and start the `tmux-session` session.
 
 ## Contribution
+
+All contributors and agents must fully enforce every rule in [AGENTS.md](AGENTS.md). This app has no users or production data. Use the fresh schema directly. Do not add legacy compatibility code, old-format fallbacks, backfills, or migration scripts for previous development schemas.
 
 If you'd like to contribute, please [open an issue](https://github.com/RedeemedSpoon/ShadowSelf/issues) or [open a pull request](https://github.com/RedeemedSpoon/ShadowSelf/pulls).
 

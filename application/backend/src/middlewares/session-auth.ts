@@ -11,6 +11,7 @@ export async function verifySessionToken(token: string | undefined, jwt: Session
   try {
     const claims = await jwt.verify(token);
     if (!claims || typeof claims !== 'object' || !('email' in claims) || !('id' in claims)) return undefined;
+
     const {email, id} = claims;
     if (typeof email !== 'string' || typeof id !== 'string' || !email || !id) return undefined;
 

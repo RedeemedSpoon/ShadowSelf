@@ -132,11 +132,7 @@
         </div>
         <div>
           <WalletIcon fill={true} className="text-primary-700 cursor-default" />
-          <CopyButton
-            alt={true}
-            change={false}
-            text={Number($identity.walletFunds).toFixed(2)}
-            label={formatUSD(Number($identity.walletFunds))} />
+          <CopyButton alt={true} change={false} text={Number($identity.walletFunds).toFixed(2)} label={formatUSD(Number($identity.walletFunds))} />
         </div>
       </div>
     </div>

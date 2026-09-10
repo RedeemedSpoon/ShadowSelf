@@ -1,6 +1,6 @@
 <p>
-  Regenerates the biography (bio) for a specific synthetic identity. This uses a localization-aware generator based on the identity's
-  country to create a plausible short bio.
+  Regenerates the biography (bio) for a specific synthetic identity. This uses a localization-aware generator based on the identity's country to create a
+  plausible short bio.
 </p>
 
 <h5>Request</h5>

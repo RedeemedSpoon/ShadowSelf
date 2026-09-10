@@ -13,8 +13,8 @@
   <section class="flex flex-col items-start gap-6 max-md:items-center lg:w-1/2">
     <h1 class="max-md:text-center">Download Browser Extension</h1>
     <p class="mb-4 max-md:text-center">
-      ShadowSelf provides a VPN directly in your browser. Masks IP for bypassing censorship & geo-blocks, hides activity from your ISP.
-      Select different user agents to reduce fingerprinting & boost privacy.
+      ShadowSelf provides a VPN directly in your browser. Masks IP for bypassing censorship & geo-blocks, hides activity from your ISP. Select different user
+      agents to reduce fingerprinting & boost privacy.
     </p>
     <ExtensionLinks extension="shadowself" />
   </section>

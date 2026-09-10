@@ -86,8 +86,7 @@ export default new Elysia({prefix: '/fiat'})
       };
 
       const subscription = await stripe.subscriptions.create(subscriptionParams);
-      const latestInvoiceID =
-        typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
+      const latestInvoiceID = typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
 
       if (latestInvoiceID) {
         const payments = await stripe.invoicePayments.list({
@@ -145,8 +144,7 @@ export default new Elysia({prefix: '/fiat'})
         },
       });
 
-      const latestInvoiceID =
-        typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
+      const latestInvoiceID = typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
 
       if (latestInvoiceID) {
         const payments = await stripe.invoicePayments.list({invoice: latestInvoiceID, limit: 1});

@@ -8,125 +8,81 @@ import QRCode from 'qrcode';
 export const actions: Actions = {
   init: async ({request, cookies}) => {
     const form = await request.formData();
-    const email = form.get('email') as string;
-    const password = form.get('password') as string;
+    const email = form.get('email');
+    const password = form.get('password');
 
-    const response = await fetchBackend('/account/signup', 'POST', {email, password}, cookies.get('token'));
-    if (!response.email) return response;
+    const response = await fetchBackend('/account/signup', 'POST', {email, password});
+    if (!response.signup) return response;
 
-    const concat = `${email}&&${password}`;
-    createCookie(cookies, 'signup', concat, true);
+    cookies.set('signup', response.signup, {
+      path: '/signup',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: response.expiresIn,
+    });
+    cookies.delete('signup-payment', {path: '/signup'});
 
     return {step: 2, email};
   },
   checkEmail: async ({request, cookies}) => {
-    const email = cookies.get('signup')?.split('&&')[0];
-    const form = await request.formData();
-    const access = form.get('access');
+    const access = (await request.formData()).get('access');
 
-    const response = await fetchBackend('/account/signup-email', 'POST', {access, email}, cookies.get('token'));
-    if (!response.email) return response;
+    const response = await fetchBackend('/account/signup-email', 'POST', {signup: cookies.get('signup'), access});
 
-    const cookie = cookies.get('signup')?.split('&&').join('&&');
-    const concat = `${cookie}&&${access}`;
-    createCookie(cookies, 'signup', concat, true);
-
-    return {step: 3};
+    return response.email ? {step: 3} : response;
   },
   checkUsername: async ({request, cookies}) => {
-    const form = await request.formData();
-    const username = form.get('username');
+    const username = (await request.formData()).get('username');
 
-    const response = await fetchBackend('/account/signup-username', 'POST', {username}, cookies.get('token'));
-    if (!response.username) return response;
+    const response = await fetchBackend('/account/signup-username', 'POST', {signup: cookies.get('signup'), username});
 
-    const cookie = cookies.get('signup')?.split('&&').join('&&');
-    const concat = `${cookie}&&${username}`;
-    createCookie(cookies, 'signup', concat, true);
-
-    return {step: 4, ...response};
+    return response.username ? {step: 4, ...response} : response;
   },
   askOTP: async ({request, cookies}) => {
-    const form = await request.formData();
-    const wantOTP = form.has('enable');
+    const enable = (await request.formData()).has('enable');
 
-    if (wantOTP) {
-      const username = cookies.get('signup')?.split('&&')[3];
-      const response = await fetchBackend('/account/signup-otp', 'POST', {username}, cookies.get('token'));
-      if (!response.secret) return response;
+    const response = await fetchBackend('/account/signup-otp', 'POST', {signup: cookies.get('signup'), enable});
+    if (response.type !== 'success') return response;
+    if (!enable) return {step: 8, secret: ''};
 
-      const cookie = cookies.get('signup')?.split('&&').join('&&');
-      const concat = `${cookie}&&${response.secret}`;
-      createCookie(cookies, 'signup', concat, true);
+    const svg = await QRCode.toString(response.uri, {type: 'svg', margin: 2});
+    const qr = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 
-      const svg = await QRCode.toString(response.uri, {type: 'svg', margin: 2});
-      const qr = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
-      return {step: 5, secret: response.secret, qr};
-    }
-
-    return {step: 8, secret: ''};
+    return {step: 5, secret: response.secret, qr};
   },
   showOTP: async () => ({step: 6}),
   checkOTP: async ({request, cookies}) => {
-    const form = await request.formData();
-    const token = form.get('token');
+    const token = (await request.formData()).get('token');
 
-    const secret = cookies.get('signup')?.split('&&')[4];
-    const response = await fetchBackend('/account/signup-recovery', 'POST', {token, secret}, cookies.get('token'));
-    if (!response.recovery) return response;
+    const response = await fetchBackend('/account/signup-recovery', 'POST', {signup: cookies.get('signup'), token});
 
-    const cookie = cookies.get('signup')?.split('&&').join('&&');
-    const concat = `${cookie}&&${response.recovery}`;
-    createCookie(cookies, 'signup', concat, true);
-
-    return {step: 7, ...response};
+    return response.recovery ? {step: 7, ...response} : response;
   },
   showRecovery: async () => ({step: 8}),
   askBilling: async ({request}) => {
-    const form = await request.formData();
-    const wantBilling = form.has('add');
+    const wantBilling = (await request.formData()).has('add');
 
-    if (wantBilling) {
-      const stripeKey = PUBLIC_STRIPE_KEY;
-      return {step: 9, stripeKey: stripeKey};
-    }
-
-    return {step: 10, stripeKey: ''};
+    return wantBilling ? {step: 9, stripeKey: PUBLIC_STRIPE_KEY} : {step: 10, stripeKey: ''};
   },
   addBilling: async ({request, cookies}) => {
-    const form = await request.formData();
-    const payment = form.get('paymentID');
+    const payment = (await request.formData()).get('paymentID');
+    if (typeof payment !== 'string' || !payment) return {step: 9};
 
-    if (!payment) return {step: 9};
-    const cookie = cookies.get('signup')?.split('&&').join('&&');
-    const concat = `${cookie}&&${payment}`;
-    createCookie(cookies, 'signup', concat, true);
+    cookies.set('signup-payment', payment, {path: '/signup', httpOnly: true, secure: true, sameSite: 'strict', maxAge: 1800});
 
     return {step: 10};
   },
   create: async ({cookies}) => {
-    const object = cookies.get('signup')?.split('&&') as string[];
-    const [email, password, access, username] = object ?? [];
-    let [secret, recovery, payment] = ['', [], ''] as [string, string[], string];
+    const body = {signup: cookies.get('signup'), payment: cookies.get('signup-payment')};
 
-    const hasOTP = object[4]?.length === 32 && object[5]?.split(',')?.length === 6;
-    const hasBilling = object[4]?.length === 27 || object[6]?.length === 27;
-
-    if (hasOTP) {
-      secret = object[4];
-      recovery = object[5].split(',');
-    }
-
-    if (hasBilling) {
-      payment = hasOTP ? object[6] : object[4];
-    }
-
-    const body = {email, access, username, password, secret, recovery, payment};
-    const response = await fetchBackend('/account/signup-create', 'POST', body, cookies.get('token'));
+    const response = await fetchBackend('/account/signup-create', 'POST', body);
     if (!response.cookie) return response;
 
     createCookie(cookies, 'token', response.cookie);
-    cookies.delete('signup', {path: '/'});
+    cookies.delete('signup', {path: '/signup'});
+    cookies.delete('signup-payment', {path: '/signup'});
+
     redirect(302, '/dashboard');
   },
 };

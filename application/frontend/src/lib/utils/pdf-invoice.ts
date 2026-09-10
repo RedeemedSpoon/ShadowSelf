@@ -63,12 +63,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.text('USD due', 190, addrY + 18, {align: 'right'});
 
   // --- TABLE ---
-  const bodyData = tableData.tableRows.map((row: any) => [
-    row.description,
-    row.quantity,
-    `$${row.price.toFixed(2)}`,
-    `$${row.total.toFixed(2)}`,
-  ]);
+  const bodyData = tableData.tableRows.map((row: any) => [row.description, row.quantity, `$${row.price.toFixed(2)}`, `$${row.total.toFixed(2)}`]);
 
   autoTable(doc, {
     startY: addrY + 25,

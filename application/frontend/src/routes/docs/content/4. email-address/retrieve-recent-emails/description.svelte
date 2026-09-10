@@ -1,7 +1,6 @@
 <p>
-  Fetches a list of the most recent emails (up to 7 per mailbox) from the primary mailboxes (INBOX, Sent, Drafts, Junk) associated with
-  the specified identity's email account. It also returns the total message count for each of these mailboxes. This provides an initial
-  snapshot of recent activity and mailbox sizes.
+  Fetches a list of the most recent emails (up to 7 per mailbox) from the primary mailboxes (INBOX, Sent, Drafts, Junk) associated with the specified identity's
+  email account. It also returns the total message count for each of these mailboxes. This provides an initial snapshot of recent activity and mailbox sizes.
 </p>
 
 <h5>Request</h5>
@@ -19,8 +18,7 @@
     <code>sent</code> (<span class="array">array</span>): An array containing the most recent email objects from the 'Sent' mailbox.
   </li>
   <li>
-    <code>drafts</code> (<span class="array">array</span>): An array containing the most recent email objects from the 'Drafts'
-    mailbox.
+    <code>drafts</code> (<span class="array">array</span>): An array containing the most recent email objects from the 'Drafts' mailbox.
   </li>
   <li>
     <code>junk</code> (<span class="array">array</span>): An array containing the most recent email objects from the 'Junk' mailbox.
@@ -40,8 +38,7 @@
   <li><code>type</code> (<span class="string">string</span>): Format of the body ('html' or 'text').</li>
   <li><code>inReplyTo</code> (<span class="string">string</span>): The Message-ID this email is replying to.</li>
   <li>
-    <code>references</code> (<span class="array">array</span>): An array of Message-IDs (<span class="string">string</span>) for
-    threading.
+    <code>references</code> (<span class="array">array</span>): An array of Message-IDs (<span class="string">string</span>) for threading.
   </li>
   <li>
     <code>attachments</code> (<span class="array">array</span>): An array of attachment objects. Each object contains:

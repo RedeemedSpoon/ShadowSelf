@@ -16,15 +16,14 @@
     <b>client-side encrypted</b> TOTP secret key data (e.g., Base64).
   </li>
   <li>
-    <code>algorithm</code> (<span class="string">string</span>, <span class="optional">optional</span>): The TOTP algorithm ('SHA1',
-    'SHA256', 'SHA512'). Required if <code>totp</code> is provided.
+    <code>algorithm</code> (<span class="string">string</span>, <span class="optional">optional</span>): The TOTP algorithm ('SHA1', 'SHA256', 'SHA512').
+    Required if <code>totp</code> is provided.
   </li>
 </ul>
 
 <h5>Response Body</h5>
 <p>
-  Returns a JSON payload confirming the details of the added account, including its new <code>id</code>. Sensitive fields are returned
-  as sent (encrypted).
+  Returns a JSON payload confirming the details of the added account, including its new <code>id</code>. Sensitive fields are returned as sent (encrypted).
 </p>
 <ul>
   <li><code>id</code> (<span class="integer">integer</span>): The unique ID assigned.</li>

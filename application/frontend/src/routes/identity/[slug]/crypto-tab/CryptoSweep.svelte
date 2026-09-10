@@ -104,9 +104,9 @@
   <div class="flex w-2/3 flex-col items-center gap-3 md:w-1/2">
     <h3 class="text-3xl font-bold text-neutral-300">Sweep {$currentCrypto.toUpperCase()} Wallet</h3>
     <p class="mb-4 text-center text-base leading-relaxed text-neutral-400">
-      Sweeping imports funds from a paper wallet or private key directly into your ShadowSelf vault. We calculate the maximum
-      transferable amount (minus network miner fees) and broadcast a transaction to move 100% of the assets to your main address. Your
-      private key is processed locally and never leaves your browser.
+      Sweeping imports funds from a paper wallet or private key directly into your ShadowSelf vault. We calculate the maximum transferable amount (minus network
+      miner fees) and broadcast a transaction to move 100% of the assets to your main address. Your private key is processed locally and never leaves your
+      browser.
     </p>
     <div>
       <LoadingButton type="button" onclick={() => (scanning = true)}>Scan Paper Wallet</LoadingButton>

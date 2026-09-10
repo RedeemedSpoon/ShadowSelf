@@ -1,6 +1,6 @@
 <p>
-  Forwards an existing email (identified by UID) to a new recipient. Subject is prefixed "FWD: " and body prepended with headers.
-  Original attachments are included.
+  Forwards an existing email (identified by UID) to a new recipient. Subject is prefixed "FWD: " and body prepended with headers. Original attachments are
+  included.
 </p>
 
 <h5>Request</h5>
@@ -16,7 +16,7 @@
   <li><code>uid</code> (<span class="integer">integer</span>): UID of the original forwarded email.</li>
   <li><code>forward</code> (<span class="string">string</span>): Address email was forwarded to.</li>
   <li>
-    <code>forwardEmail</code> (<span class="object">object</span>): Details of the new forwarded email (similar structure to
-    `sentEmail`, includes attachments with data).
+    <code>forwardEmail</code> (<span class="object">object</span>): Details of the new forwarded email (similar structure to `sentEmail`, includes attachments
+    with data).
   </li>
 </ul>

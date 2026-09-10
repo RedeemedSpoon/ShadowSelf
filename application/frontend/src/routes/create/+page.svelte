@@ -324,9 +324,7 @@
     <FlowStep {disabled} finalStep={10} handleClick={proceed}>
       {#if $currentStep === 1}
         <h3>Choose your location</h3>
-        <p class="lg:w-1/2">
-          Choose the location of your synthetic identity. You will be able to access this location via our extension afterwards.
-        </p>
+        <p class="lg:w-1/2">Choose the location of your synthetic identity. You will be able to access this location via our extension afterwards.</p>
         <div class="flex cursor-pointer flex-col">
           {#each server.locations as location (location.code)}
             <div id={location.code} class="locations-box" onclick={() => handleEvent('locations', location.code)} aria-hidden="true">
@@ -351,12 +349,8 @@
         <div class="flex w-full items-center justify-center gap-12 max-md:flex-col">
           <div class="flex flex-col items-center gap-4">
             <h3 class="w-96 text-center">{server.identity.name}, {server.identity.age}</h3>
-            <img
-              class="my-2 h-64 w-64 rounded-lg sm:h-96 sm:w-96"
-              src={`data:image/png;base64,${server.identity.picture}`}
-              alt="identity look" />
-            <Tooltip
-              tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
+            <img class="my-2 h-64 w-64 rounded-lg sm:h-96 sm:w-96" src={`data:image/png;base64,${server.identity.picture}`} alt="identity look" />
+            <Tooltip tip="Regenerate the identity's profile picture based on the information you provided us. The bio will be taken into account">
               <LoadingButton onclick={() => handleEvent('identities')} index={2}>
                 <UserIcon className="h-6 w-6 -mr-2" />Regenerate profile picture
               </LoadingButton>
@@ -371,11 +365,7 @@
 
             <label for="sex">Sex</label>
             <div class="flex flex-row gap-4">
-              <div
-                id="male"
-                class="sex-box {server.identity.sex === 'male' && 'selected'}"
-                onclick={() => handleEvent('sexes', 'male')}
-                aria-hidden="true">
+              <div id="male" class="sex-box {server.identity.sex === 'male' && 'selected'}" onclick={() => handleEvent('sexes', 'male')} aria-hidden="true">
                 <MaleIcon /> Male
               </div>
               <div
@@ -415,19 +405,16 @@
           <label class="mt-0!" for="email">@shadowself.io</label>
         </div>
         <small class="text-sm! text-neutral-500! lg:w-1/3!">
-          Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as
-          we take care of security and credentials for you.
+          Note: To access the inbox and send messages, you will only use our client. other clients (ex: thunderbird) will not work as we take care of security
+          and credentials for you.
         </small>
       {:else if $currentStep === 4}
         <h3>Give yourself a phone number</h3>
         <p class="lg:w-1/2">Select from the available phone numbers we have for you to use with your identity.</p>
-        <SelectMenu
-          options={server.phone.map((phone) => ({value: phone, label: formatPhoneNumber(phone)}))}
-          icon={PhoneIcon}
-          name="phone" />
+        <SelectMenu options={server.phone.map((phone) => ({value: phone, label: formatPhoneNumber(phone)}))} icon={PhoneIcon} name="phone" />
         <small class="text-sm! text-neutral-500! lg:w-1/3!">
-          Important: These phone numbers are either mobile or local. However, if left inactive, they may be reclaimed by the provider.
-          To avoid this, make sure to keep them in use.
+          Important: These phone numbers are either mobile or local. However, if left inactive, they may be reclaimed by the provider. To avoid this, make sure
+          to keep them in use.
         </small>
       {:else if $currentStep === 5}
         <h3>Setup a master password</h3>
@@ -435,30 +422,24 @@
         <InputWithIcon icon={KeyIcon} type="password" placeholder="Password" name="master" handleInput={() => (disabled = false)} />
         <InputWithIcon {disabled} icon={KeyIcon} type="password" placeholder="Confirm Password" name="confirm-master" />
         <small class="text-sm! text-neutral-500! lg:w-1/3!">
-          <b>Critical Warning:</b> ShadowSelf is a zero-knowledge platform. We do not know your password and cannot reset it. If you lose
-          this password, your wallet and account vault will be lost forever. You can still change this later.
+          <b>Critical Warning:</b> ShadowSelf is a zero-knowledge platform. We do not know your password and cannot reset it. If you lose this password, your wallet
+          and account vault will be lost forever. You can still change this later.
         </small>
       {:else if $currentStep === 6}
         <h3>Initialize your wallet</h3>
-        <p class="lg:w-1/2">
-          Secure yourself a crypto wallet to scrub coins, make untraceable payments, and buy gift cards instantly.
-        </p>
+        <p class="lg:w-1/2">Secure yourself a crypto wallet to scrub coins, make untraceable payments, and buy gift cards instantly.</p>
         <LoadingButton index={2} type="button" onclick={() => handleEvent('wallet')}>Generate Keys</LoadingButton>
         <div id="mnemonic" class="rounded-xl bg-neutral-800/50 p-6 text-neutral-400">12-word Mnemonic will appear here</div>
         <small class="text-sm! text-neutral-500! lg:w-1/3!">
-          We use a 12-word Mnemonic to generate your BTC, XMR, LTC, and ETH keys. These are encrypted locally by your Master Password,
-          making them inaccessible to us. You will be asked to back up your recovery phrase later.
+          We use a 12-word Mnemonic to generate your BTC, XMR, LTC, and ETH keys. These are encrypted locally by your Master Password, making them inaccessible
+          to us. You will be asked to back up your recovery phrase later.
         </small>
       {:else if $currentStep === 7}
         <h3>Install our browser extension</h3>
-        <p class="lg:w-1/2">
-          With our browser extension, you can access our VPN services, change user agents, and view your identity information.
-        </p>
+        <p class="lg:w-1/2">With our browser extension, you can access our VPN services, change user agents, and view your identity information.</p>
         <div class="relative -mb-24 inline-block">
           <img loading="lazy" id="screenshot" src={screenshot} class="block h-auto w-80" alt="shadowself extension" />
-          <div
-            class="pointer-events-none absolute inset-0 h-full w-full bg-linear-to-b from-transparent via-transparent via-15% to-slate-900 to-70%">
-          </div>
+          <div class="pointer-events-none absolute inset-0 h-full w-full bg-linear-to-b from-transparent via-transparent via-15% to-slate-900 to-70%"></div>
         </div>
         <ExtensionLinks extension="shadowself" />
       {:else if $currentStep === 8}
@@ -472,13 +453,12 @@
           <div class="flex w-180 max-w-[80vw] flex-col gap-4">
             <h3 class="mb-8 pl-4 text-left! max-xl:hidden">Install ublock origin (optional)</h3>
             <p class="short text-neutral-300!">
-              uBlock Origin is a powerful, open-source ad blocker that boosts online privacy by blocking ads, trackers, and malicious
-              scripts. Lightweight and efficient, it ensures a cleaner, more secure web experience. Combined with our tools, it keeps
-              your privacy protected.
+              uBlock Origin is a powerful, open-source ad blocker that boosts online privacy by blocking ads, trackers, and malicious scripts. Lightweight and
+              efficient, it ensures a cleaner, more secure web experience. Combined with our tools, it keeps your privacy protected.
             </p>
             <p class="short">
-              Note: The recent Manifest V3 update on Chromium browsers limits uBlock Origin’s functionality. Switching to Firefox
-              ensures full privacy control and extension support.
+              Note: The recent Manifest V3 update on Chromium browsers limits uBlock Origin’s functionality. Switching to Firefox ensures full privacy control
+              and extension support.
             </p>
           </div>
         </div>
@@ -493,13 +473,12 @@
           <div class="flex w-180 max-w-[80vw] flex-col gap-4">
             <h3 class="mb-8 pl-4 text-left! max-xl:hidden">Install canvas blocker (optional)</h3>
             <p class="text-left! text-pretty text-neutral-300!">
-              Canvas Blocker protects against browser fingerprinting by blocking tracking techniques based on unique device
-              characteristics. It enhances privacy by preventing websites from creating identifiable profiles. Paired with Shadowself,
-              it ensures your identity remains untraceable.
+              Canvas Blocker protects against browser fingerprinting by blocking tracking techniques based on unique device characteristics. It enhances privacy
+              by preventing websites from creating identifiable profiles. Paired with Shadowself, it ensures your identity remains untraceable.
             </p>
             <p class="text-left! text-pretty">
-              Note: Canvas Blocker is only available for Firefox and its forks, offering fingerprinting protection exclusively on these
-              browsers, not on Chrome or other Chromium-based browsers.
+              Note: Canvas Blocker is only available for Firefox and its forks, offering fingerprinting protection exclusively on these browsers, not on Chrome
+              or other Chromium-based browsers.
             </p>
           </div>
         </div>
@@ -507,8 +486,8 @@
         <HappyIcon className="w-40 h-40" />
         <h3>Your identity is now ready!</h3>
         <p class="lg:w-1/2">
-          Thank you for completing the entire process. You can now use your identity however you wish. You still have the option to
-          redo the process now, but keep in mind that you won’t be able to make some changes later.
+          Thank you for completing the entire process. You can now use your identity however you wish. You still have the option to redo the process now, but
+          keep in mind that you won’t be able to make some changes later.
         </p>
         <div class="flex w-full items-center justify-center gap-16">
           <button class="alt px-4 sm:px-8" onclick={() => window.location.reload()}>Redo</button>
@@ -534,8 +513,8 @@
       <InfoIcon fill={true} className="h-28 w-28 text-neutral-300" />
       <h3>Something Went Wrong.</h3>
       <p class="lg:w-3/5">
-        There was an issue with your request. This could be due to a network error or a bad request on your part. Please try reloading
-        the page and give it another go.
+        There was an issue with your request. This could be due to a network error or a bad request on your part. Please try reloading the page and give it
+        another go.
       </p>
       <button class="w-1/3" onclick={() => window.location.reload()}>Retry</button>
     </div>

@@ -15,8 +15,8 @@
     <b>client-side encrypted</b> TOTP secret data.
   </li>
   <li>
-    <code>algorithm</code> (<span class="string">string</span>, <span class="optional">optional</span>): The TOTP algorithm ('SHA1',
-    'SHA256', 'SHA512'). Required if <code>totp</code> is updated.
+    <code>algorithm</code> (<span class="string">string</span>, <span class="optional">optional</span>): The TOTP algorithm ('SHA1', 'SHA256', 'SHA512').
+    Required if <code>totp</code> is updated.
   </li>
 </ul>
 

@@ -3,9 +3,7 @@
 </script>
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class={className + ' small-icon fill-none stroke-none'}>
-  <path
-    fill="currentColor"
-    d="M12 3v6.65l5.625 2.516zm0 0-5.625 9.166L12 9.651zm0 13.477v4.522l5.625-7.784zM12 21v-4.523l-5.625-3.262z" />
+  <path fill="currentColor" d="M12 3v6.65l5.625 2.516zm0 0-5.625 9.166L12 9.651zm0 13.477v4.522l5.625-7.784zM12 21v-4.523l-5.625-3.262z" />
   <path fill="currentColor" d="m12 15.43 5.625-3.263L12 9.65zm-5.625-3.263L12 15.429V9.651z" />
   <path
     fill="currentColor"

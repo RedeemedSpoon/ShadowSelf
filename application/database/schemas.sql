@@ -14,7 +14,7 @@ CREATE TABLE users (
   "password" varchar(60) NOT NULL,
   "email" varchar(48) UNIQUE NOT NULL,
   "totp" varchar(32),
-  "recovery" varchar(9)[],
+  "recovery_hashes" varchar(64)[] NOT NULL DEFAULT '{}',
   "stripe_customer" varchar(18),
   "sessions" varchar(8)[],
   "api_access" boolean DEFAULT false,

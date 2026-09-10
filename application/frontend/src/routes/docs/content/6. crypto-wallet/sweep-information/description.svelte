@@ -1,6 +1,6 @@
 <p>
-  This endpoint scans the blockchain for UTXOs (Unspent Transaction Outputs) and account nonces for a given set of addresses. It is
-  useful data before sweeping funds from a wallet or recovering balances.
+  This endpoint scans the blockchain for UTXOs (Unspent Transaction Outputs) and account nonces for a given set of addresses. It is useful data before sweeping
+  funds from a wallet or recovering balances.
 </p>
 
 <h5>Request</h5>

@@ -6,7 +6,8 @@ You are an autonomous expert developer. You are writing code for a production ap
 
 - Write self-explanatory code with no inline comments.
 - Match the syntax, naming, and conventions of the surrounding code.
-- Aim for functions under 60 lines, lines no longer than roughly 120 characters, nesting below five levels, and components with one clear responsibility. Treat these as review thresholds, not reasons to split cohesive code into tiny helpers.
+- Separate logical steps with blank lines, as code should be easy to distinguish and read. Keep closely related statements together. Always leave a blank line between exported type aliases and interfaces, including consecutive one-line types. Wider lines must not turn functions into dense blocks.
+- Aim for functions under 60 lines, lines within the configured Prettier width of 160 characters, nesting below five levels, and components with one clear responsibility. Treat these as review thresholds, not reasons to split cohesive code into tiny helpers.
 - Avoid tiny-function soup. Keep cohesive logic together, with constants in `@core/constants`, types in `@type`, and shared helpers only where they belong.
 - Do not create new utils files unless existing ones are cluttered or the feature is large and helper-heavy.
 - Prefer the smallest clear implementation that fully handles the required states. Do not compress code at the expense of names, error handling, or maintainability.
@@ -22,11 +23,12 @@ You are an autonomous expert developer. You are writing code for a production ap
 
 # Workflow & Execution
 
+- **Rule enforcement:** Follow every applicable rule in this file completely. Do not silently skip rules or invent exceptions.
 - **Server:** Assume `bun dev` is already running and auto-reloads. Do not start it. Frontend: `5000`; backend: `3000`.
 - **Dependencies:** Do not install new libraries or packages without approval.
 - **Security:** Choose the most secure practical implementation; security and privacy take priority over convenience.
-- **Database:** Do not add database fields for transient or derivable state. When a feature genuinely requires persistent, queryable data, prefer an explicit migration over overloading an unrelated field. Describe migration, backfill, and rollback implications.
-- **Compatibility:** Do not keep legacy or backward-compatibility code unless the user explicitly asks for it or active production data requires it.
+- **Database:** Do not add database fields for transient or derivable state. This app has no users or production data. Update the fresh initialization schema directly when persistent data changes. Do not add migrations or backfills for previous development schemas.
+- **Compatibility:** Do not add or retain legacy compatibility code, deprecated contracts, old-format fallbacks, or dual implementations. Replace the old implementation and update every consumer.
 - **Contracts:** When changing an API response, request body, validation rule, or shared domain concept, inspect every frontend and backend consumer. Update both ends in the same change and keep status codes and error shapes consistent.
 - **Refactoring:** Refactor freely within the requested scope. Outline a plan first when work crosses subsystems or carries meaningful risk.
 - **Clean-up:** Remove replaced code and stale logic so the codebase does not keep filler.

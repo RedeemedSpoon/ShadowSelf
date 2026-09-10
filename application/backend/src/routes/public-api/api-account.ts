@@ -25,8 +25,7 @@ export default new Elysia({prefix: '/account'})
     const {err, username, password, website, totp, algorithm} = await checkAPI(body, fields);
     if (err) return error(set, 400, err);
 
-    const res =
-      await sql`INSERT INTO accounts (owner, username, password) VALUES (${identity!.id}, ${username!}, ${password!}) RETURNING id`;
+    const res = await sql`INSERT INTO accounts (owner, username, password) VALUES (${identity!.id}, ${username!}, ${password!}) RETURNING id`;
     if (website) await sql`UPDATE accounts SET website = ${website!} WHERE id = ${res[0].id}`;
     if (totp) await sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${res[0].id!}`;
 

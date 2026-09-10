@@ -1,6 +1,5 @@
 <p>
-  This endpoint retrieves available swap rates and providers for exchanging one cryptocurrency for another. It uses the Trocador API to
-  find the best rates.
+  This endpoint retrieves available swap rates and providers for exchanging one cryptocurrency for another. It uses the Trocador API to find the best rates.
 </p>
 
 <h5>Request</h5>

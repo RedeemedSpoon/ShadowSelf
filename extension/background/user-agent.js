@@ -207,18 +207,7 @@ export async function updateRequestHeaders(newAgent) {
     },
     condition: {
       urlFilter: '*://*/*',
-      resourceTypes: [
-        'main_frame',
-        'sub_frame',
-        'xmlhttprequest',
-        'script',
-        'image',
-        'font',
-        'object',
-        'stylesheet',
-        'media',
-        'websocket',
-      ],
+      resourceTypes: ['main_frame', 'sub_frame', 'xmlhttprequest', 'script', 'image', 'font', 'object', 'stylesheet', 'media', 'websocket'],
     },
   };
 

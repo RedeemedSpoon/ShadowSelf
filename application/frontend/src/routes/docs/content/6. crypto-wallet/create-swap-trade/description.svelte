@@ -1,7 +1,4 @@
-<p>
-  This endpoint creates a new swap trade with a selected provider. It returns the deposit address and other details needed to complete
-  the swap.
-</p>
+<p>This endpoint creates a new swap trade with a selected provider. It returns the deposit address and other details needed to complete the swap.</p>
 
 <h5>Request</h5>
 <p>

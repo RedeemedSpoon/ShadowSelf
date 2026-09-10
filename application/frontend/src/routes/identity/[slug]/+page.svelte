@@ -238,8 +238,7 @@
           <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
             <h3 class="w-full text-3xl! font-semibold text-neutral-300 md:text-5xl!">Restore Master Password</h3>
             <p class="md:w-[40vw]">
-              Enter the Master Password previously set for this identity to decrypt your account vault and crypto wallet on this
-              device.
+              Enter the Master Password previously set for this identity to decrypt your account vault and crypto wallet on this device.
               <br /><b>Without this specific password, your encrypted data cannot be retrieved.</b>
             </p>
             <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="set-master" />
@@ -251,8 +250,8 @@
           <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
             <h3 class="w-full text-3xl! font-semibold text-neutral-300 md:text-5xl!">Change Master Password</h3>
             <p class="md:w-[40vw]">
-              Immediately re-encrypt your accounts vault and crypto wallet with a new password. You will need it to access your data on
-              a new device or browser.<br /><b>Irreversible: Forgotten passwords mean total data loss.</b>
+              Immediately re-encrypt your accounts vault and crypto wallet with a new password. You will need it to access your data on a new device or browser.<br /><b
+                >Irreversible: Forgotten passwords mean total data loss.</b>
             </p>
             <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="change-master" />
             <LoadingButton type="button" className="w-2/3" onclick={changeMasterPassword}>Change Password</LoadingButton>

@@ -37,6 +37,7 @@
   let card = $state() as StripeCardElement;
   let newEmailValue = $state() as string;
   let stripeLoaded = $state(false);
+  let recoveryCodes = $state<string[]>([]);
   let isStripeLoading = false;
   let stripe = $state() as Stripe;
 
@@ -79,7 +80,9 @@
     if (form && Object.hasOwn(form, 'API')) settings.API = form.API;
 
     if (form?.username) $user = form.username;
-    if (form?.recovery) settings.recovery = form.recovery;
+    if (form?.recovery) recoveryCodes = form.recovery;
+    if (form && Object.hasOwn(form, 'recoveryRemaining')) settings.recoveryRemaining = form.recoveryRemaining;
+    if (form?.OTP === false) recoveryCodes = [];
     if (form?.secret) settings.secret = form.secret;
     if (form?.email) newEmailValue = form.email;
     if (form?.step) settings.step = form.step;
@@ -93,9 +96,9 @@
     array[index + 1].classList.add('bg-neutral-300/10!', 'border-l-4', '2xl:pl-24!');
   }
 
-  const copyRecovery = () => navigator.clipboard.writeText(settings.recovery.join('\n'));
+  const copyRecovery = () => navigator.clipboard.writeText(recoveryCodes.join('\n'));
   const downloadRecovery = () => {
-    const text = settings.recovery.join('\n');
+    const text = recoveryCodes.join('\n');
     const blob = new Blob([text], {type: 'text/plain'});
     anchor.href = URL.createObjectURL(blob);
     anchor.click();
@@ -121,6 +124,7 @@
       stripeLoaded = true;
       pendingID.set(0);
     }, 300);
+
     return 9;
   }
 
@@ -197,19 +201,22 @@
     </form>
     <form class="flex-col" use:enhance method="POST" action="?/recovery">
       <div class="flex justify-between gap-4 max-md:flex-col md:items-center">
-        <label for="recovery">Remaining Recovery Codes:</label>
+        <label for="recovery">Remaining recovery codes: {settings.recoveryRemaining}</label>
         <button disabled={!settings.OTP} type="submit" class="w-fit">Generate New Recovery Codes</button>
       </div>
+      <p>New codes replace all previous codes. Save them now; they cannot be shown again.</p>
+      <InputWithIcon type="password" name="password" placeholder="Current account password" icon={KeyIcon} />
     </form>
     {#if settings.OTP}
-      <div id="recovery" class={settings.recovery.length ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1'}>
-        {#each settings.recovery as code, id (id)}
-          <p>{code}</p>
+      <div id="recovery" class="grid-cols-1 xl:grid-cols-2">
+        {#each recoveryCodes as code, id (id)}
+          <p class="font-mono text-sm">{code}</p>
         {:else}
-          <p>No Codes Left</p>
+          <p>Saved codes are hidden. Generate replacements if you lost them.</p>
         {/each}
       </div>
-      {#if settings.recovery.length}
+      {#if recoveryCodes.length}
+        <button type="button" class="alt" onclick={() => (recoveryCodes = [])}>I saved these codes. Hide them</button>
         <div class="flex justify-evenly max-md:flex-col max-md:items-center">
           <ReactiveButton icon={CopyIcon} text="Copy to clipboard" newText="Copied!" callback={copyRecovery} />
           <ReactiveButton icon={DownloadIcon} text="Download as .txt" newText="Downloaded!" callback={downloadRecovery} />
@@ -267,9 +274,9 @@
 
 <Modal id={1}>
   <form class="flex-col! p-8" use:enhance={() => awaitPending(true, 2, true)} method="POST" action="?/access">
-    <h1 class="-mb-2!">Enter the access token</h1>
-    <p>We sent an email with the access token to the new address. Enter it below to continue</p>
-    <InputWithIcon {className} type="password" name="access" placeholder="1DE2F3G4H5J6K7L8" icon={KeylockIcon} />
+    <h1 class="-mb-2!">Enter the email code</h1>
+    <p>Enter the eight-digit code sent to your new address. It expires in ten minutes.</p>
+    <InputWithIcon {className} type="password" name="access" placeholder="12345678" icon={KeylockIcon} />
     <LoadingButton index={2} className="mt-2">Confirm</LoadingButton>
     <input hidden value={newEmailValue} name="email" />
   </form>
@@ -307,11 +314,8 @@
       <input hidden name="secret" value={settings.secret} />
       <div class="flex flex-col gap-4 xl:m-8">
         <h1>2FA Setup Complete!</h1>
-        <p class="md:w-[40vw]">
-          You can now use 2FA to log into your account. We gave you the recovery codes below, please keep them safe
-        </p>
+        <p class="md:w-[40vw]">You can now use 2FA to log into your account. We gave you the recovery codes below, please keep them safe</p>
         <div class="mx-8 mt-12 flex justify-between gap-4">
-          <button class="alt" onclick={() => (settings.step = 1)} name="cancel" type="button">Cancel</button>
           <button type="submit" name="finish">Finish →</button>
         </div>
       </div>

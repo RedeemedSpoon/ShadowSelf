@@ -46,8 +46,8 @@
     <Slogan />
   {/if}
   <p class="my-4 w-3/4 text-center text-balance max-sm:w-full lg:w-1/2">
-    Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your personal information
-    remains hidden, far away from malicious threats. Experience the freedom of online interactions without the fear of compromise.
+    Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your personal information remains hidden, far away
+    from malicious threats. Experience the freedom of online interactions without the fear of compromise.
   </p>
   <div class="flex gap-16 max-sm:flex-col-reverse max-sm:items-center max-sm:gap-8">
     <a href={'#' + data.homepageIds[1]} class="no-underline">
@@ -69,9 +69,8 @@
         <br />Control of Your Data.
       </h1>
       <p>
-        Unlike profit-hungry conglomerates, we’re a open-source project dedicated to fighting back. We’ve developed a platform that
-        allow individuals to create synthetic identities, effectively confusing trackers and protecting your personal information from
-        misuse, fraud, or theft.
+        Unlike profit-hungry conglomerates, we’re a open-source project dedicated to fighting back. We’ve developed a platform that allow individuals to create
+        synthetic identities, effectively confusing trackers and protecting your personal information from misuse, fraud, or theft.
       </p>
     </div>
   </section>
@@ -86,22 +85,16 @@
       <div id="account" class="mt-6 flex items-center justify-center gap-16 text-center text-balance max-lg:flex-col xl:gap-32">
         <div class="flex flex-col items-center gap-8 sm:w-120">
           <img src={registration} width="200" alt="Account Registration" class="max-sm:w-37.5" />
-          <h2 style="background-image: linear-gradient(to bottom, #ef4444, #e11d48);" class="text-3xl font-bold sm:text-4xl">
-            Account Registration
-          </h2>
+          <h2 style="background-image: linear-gradient(to bottom, #ef4444, #e11d48);" class="text-3xl font-bold sm:text-4xl">Account Registration</h2>
           <p class="max-sm:px-8">
-            Use our service to create untrackable accounts and register for services while still concealing your actual identity from
-            being at risk.
+            Use our service to create untrackable accounts and register for services while still concealing your actual identity from being at risk.
           </p>
         </div>
         <div class="flex flex-col items-center gap-8 sm:w-120">
           <img src={management} width="200" alt="Account Managenent" class="max-sm:w-37.5" />
-          <h2 style="background-image: linear-gradient(to bottom, #22c55e, #059669);" class="text-3xl font-bold sm:text-4xl">
-            Account Managenent
-          </h2>
+          <h2 style="background-image: linear-gradient(to bottom, #22c55e, #059669);" class="text-3xl font-bold sm:text-4xl">Account Managenent</h2>
           <p class="max-sm:px-8">
-            Add, delete, and update entries to manage your online accounts. Create, generate and store passwords/usernames, implement
-            TOTP, etc.
+            Add, delete, and update entries to manage your online accounts. Create, generate and store passwords/usernames, implement TOTP, etc.
           </p>
         </div>
       </div>
@@ -120,9 +113,9 @@
     <div class="flex flex-col items-start gap-8">
       <WordFlip />
       <p class="mb-24 w-5/6">
-        We offers a holistic approach to your digital life, ensuring top-tier privacy doesn't break the bank. Forget juggling multiple
-        services or settling for less, our platform provides the well-rounded protection you need in one place. Get serious security
-        that respects both your privacy needs and your budget.
+        We offers a holistic approach to your digital life, ensuring top-tier privacy doesn't break the bank. Forget juggling multiple services or settling for
+        less, our platform provides the well-rounded protection you need in one place. Get serious security that respects both your privacy needs and your
+        budget.
       </p>
     </div>
     <FloatingAvatars />
@@ -138,8 +131,8 @@
       Unlock<span class="pretty-style mx-3 italic">True</span>Privacy
     </h1>
     <p class="z-10 w-3/5 text-center lg:w-1/2 xl:w-1/3">
-      Don't leave your online privacy to chance. ShadowSelf delivers the critical advantage you need, regardless of your current
-      expertise. Gain the control and security essential for navigating the modern web. It's time to step up.
+      Don't leave your online privacy to chance. ShadowSelf delivers the critical advantage you need, regardless of your current expertise. Gain the control and
+      security essential for navigating the modern web. It's time to step up.
     </p>
     <a class="z-10 mt-8" href={$user ? '/dashboard' : '/signup'}>
       <button id="action">Take Control Now!</button>

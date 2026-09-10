@@ -36,12 +36,7 @@
   </main>
   <Footer />
   <Notification />
-  <div
-    id="overlay"
-    aria-hidden="true"
-    class={$mobileHamburgerMenu ? 'visible! opacity-35!' : ''}
-    onclick={() => ($mobileHamburgerMenu = false)}>
-  </div>
+  <div id="overlay" aria-hidden="true" class={$mobileHamburgerMenu ? 'visible! opacity-35!' : ''} onclick={() => ($mobileHamburgerMenu = false)}></div>
 </div>
 
 <noscript class="flex h-screen w-full flex-col items-center justify-center gap-2 text-center">

@@ -18,12 +18,14 @@ export default (app: Elysia) =>
     const token = getBearerToken(headers.authorization) ?? (cookie['token']?.value as string);
 
     if (!token) return error(set, 401, 'You are not authenticated correctly');
+
     let user;
 
     if (token.length === 32) {
       const apiKey = (await sql`SELECT email, api_key, api_access FROM users WHERE api_key = ${token}`) as QueryUser[];
       if (!apiKey.length) return error(set, 401, 'You are not authenticated correctly');
       if (!apiKey[0].api_access) return error(set, 401, 'You disabled API access');
+
       user = {email: apiKey[0].email};
     }
 
@@ -34,14 +36,15 @@ export default (app: Elysia) =>
     if (excludedPaths.test(path)) return {user};
 
     const givenID = (await sql`SELECT * FROM users WHERE email = ${user.email}`)[0]?.id;
+
     const result = (await sql`SELECT * FROM identities WHERE id = ${params.id} AND owner = ${givenID}`) as QueryIdentity[];
 
     if (!result.length) return error(set, 400, 'Identity not found');
+
     const identity = result[0];
 
     if (identity.crypto_invoice) {
-      const invoice =
-        (await sql`SELECT creation_date, plan FROM crypto_invoices WHERE id = ${identity.crypto_invoice}`) as QueryInvoice[];
+      const invoice = (await sql`SELECT creation_date, plan FROM crypto_invoices WHERE id = ${identity.crypto_invoice}`) as QueryInvoice[];
 
       if (invoice.length) {
         const {creation_date, plan} = invoice[0];
@@ -63,6 +66,7 @@ export default (app: Elysia) =>
 
     if (identity.status === 'frozen') {
       const details = !identity.crypto_invoice ? `[crypto/${identity.plan}]` : `[fiat/${identity.plan}]`;
+
       return error(set, 402, 'Identity is frozen ' + details);
     }
 

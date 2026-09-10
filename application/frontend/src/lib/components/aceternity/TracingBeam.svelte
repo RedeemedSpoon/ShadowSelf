@@ -31,11 +31,7 @@
     </div>
     <svg viewBox={`0 0 20 ${svgHeight}`} width="20" height={svgHeight} class="ml-4" aria-hidden="true">
       <path d={`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`} fill="none" stroke="#9091A0" stroke-opacity="0.16" />
-      <path
-        d={`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`}
-        fill="none"
-        stroke="url(#tracing-gradient)"
-        stroke-width="4" />
+      <path d={`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`} fill="none" stroke="url(#tracing-gradient)" stroke-width="4" />
       <defs>
         <linearGradient id="tracing-gradient" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={y1.target} y2={y2.target}>
           <stop stop-color="#18CCFC" stop-opacity="0"></stop>

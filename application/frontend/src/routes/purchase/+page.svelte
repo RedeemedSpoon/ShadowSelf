@@ -318,11 +318,7 @@
   <div class="m-4 flex flex-col gap-8" id="crypto-modal">
     <h3 class="text-center text-4xl font-bold text-neutral-300">Crypto Checkout</h3>
     {#if !cryptoInvoice}
-      <form
-        method="POST"
-        action={isRenewing ? '?/cryptoRenew' : '?/cryptoInit'}
-        use:enhance={() => awaitPending(true, 3)}
-        class="flex flex-col gap-6">
+      <form method="POST" action={isRenewing ? '?/cryptoRenew' : '?/cryptoInit'} use:enhance={() => awaitPending(true, 3)} class="flex flex-col gap-6">
         <input hidden value={$pricingModel.name} name="plan" type="hidden" />
         <input hidden value={cryptoChoice} name="swapCoin" type="hidden" />
         <input hidden value={renewID || 0} name="identityID" type="hidden" />
@@ -347,9 +343,7 @@
           <img src={qrImage} alt="Deposit QR Code" class="h-64 w-64 object-contain" />
         </div>
 
-        <footer class="text-xs font-medium tracking-widest text-neutral-500 uppercase">
-          Scan with Camera or copy the address below
-        </footer>
+        <footer class="text-xs font-medium tracking-widest text-neutral-500 uppercase">Scan with Camera or copy the address below</footer>
 
         <div class="flex w-full flex-col gap-4 rounded-xl border-2 border-neutral-600 bg-neutral-800/50 p-6">
           <div class="flex flex-col gap-1">

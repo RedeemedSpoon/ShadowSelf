@@ -34,9 +34,7 @@
 
   let newUtxoWallet = $derived(!(['btc', 'ltc'].includes($currentCrypto) && crypto.wallet[$currentCrypto as 'btc'].nextIndex !== 0));
 
-  const estimatedFee = $derived(
-    estimateTransactionFee($currentCrypto, selectedUtxos, crypto.fees[$currentCrypto][selectedPriority], amount),
-  );
+  const estimatedFee = $derived(estimateTransactionFee($currentCrypto, selectedUtxos, crypto.fees[$currentCrypto][selectedPriority], amount));
 
   function automaticUtxoSelection() {
     if (['btc', 'ltc'].includes($currentCrypto)) {
@@ -56,12 +54,7 @@
   }
 
   function scanQRCode(result: string) {
-    const clean = result
-      .replace('bitcoin:', '')
-      .replace('litecoin:', '')
-      .replace('monero:', '')
-      .replace('ethereum:', '')
-      .split('?')[0];
+    const clean = result.replace('bitcoin:', '').replace('litecoin:', '').replace('monero:', '').replace('ethereum:', '').split('?')[0];
 
     destinationAddress = clean;
     scanning = false;
@@ -162,10 +155,7 @@
       <label for="fees">Network Priority (Miner Fee)</label>
       <div class="grid grid-cols-3 gap-2">
         {#each ['low', 'medium', 'high'] as p (p)}
-          <div
-            aria-hidden="true"
-            class="fee-box {selectedPriority === p && 'selected'}"
-            onclick={() => (selectedPriority = p as 'low')}>
+          <div aria-hidden="true" class="fee-box {selectedPriority === p && 'selected'}" onclick={() => (selectedPriority = p as 'low')}>
             <span class="text-sm font-bold text-neutral-300 capitalize">{p}</span>
             <span class="text-xs {selectedPriority === p ? 'text-neutral-300' : 'text-neutral-500'}">
               {crypto.fees[$currentCrypto][p as 'low']}
@@ -191,8 +181,8 @@
         <p class="mt-1 text-sm leading-relaxed text-neutral-500">
           Manually select which UTXOs (coins) to spend. We automatically select them for you but you can update it here.
           <br />
-          <span class="text-amber-600">Why?</span> Mixing coins from different sources (e.g. KYC Exchange + Private Trade) links them permanently
-          on the blockchain. Keep them separate to preserve your synthetic identities.
+          <span class="text-amber-600">Why?</span> Mixing coins from different sources (e.g. KYC Exchange + Private Trade) links them permanently on the blockchain.
+          Keep them separate to preserve your synthetic identities.
         </p>
       </div>
       <table class="w-full text-left text-sm">

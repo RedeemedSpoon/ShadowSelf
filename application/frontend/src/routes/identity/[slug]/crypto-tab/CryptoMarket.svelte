@@ -5,9 +5,10 @@
 <section>
   <h3 class="mt-8 text-3xl font-bold text-neutral-300">Spend and Discover</h3>
   <p class="mt-2 text-sm leading-relaxed">
-    We decided to keep it simple. No APIs or middlemen, just a list of places where you can spend crypto privately. Most of these are
-    zero-KYC, crypto native, privacy focused and don't require even an account to use. You can find more services and product in the
-    directories bellow like <a href="https://kycnot.me" id="kycme">KYCNOT.me</a>
+    We decided to keep it simple. No APIs or middlemen, just a list of places where you can spend crypto privately. Most of these are zero-KYC, crypto native,
+    privacy focused and don't require even an account to use. You can find more services and product in the directories bellow like <a
+      href="https://kycnot.me"
+      id="kycme">KYCNOT.me</a>
   </p>
   <p class="mb-4 text-sm leading-relaxed text-neutral-500">
     <i>We have no affiliation or sponsorship with the services listed below. The list is updated frequently.</i>

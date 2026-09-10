@@ -126,8 +126,7 @@
   <div class="flex flex-col gap-2 border-b border-neutral-800 pb-4">
     <h3 class="text-3xl font-bold text-neutral-300">Generate PDF Invoice</h3>
     <p class="text-sm text-neutral-400">
-      Create a professional, cryptographically verifiable invoice. All data is processed locally in your browser, we do not store your
-      client details.
+      Create a professional, cryptographically verifiable invoice. All data is processed locally in your browser, we do not store your client details.
     </p>
   </div>
 
@@ -139,9 +138,7 @@
           <input id="logo-url" type="url" bind:value={logoUrl} disabled={logoUrl === 'File Uploaded'} placeholder="https://..." />
           <div class="relative">
             <input id="files" type="file" accept="image/*" onchange={() => (logoUrl = 'File Uploaded')} bind:files={logoFiles} />
-            <button onclick={() => document.getElementById('files')?.click()} class="p-3 text-sm font-medium shadow-md">
-              Upload File
-            </button>
+            <button onclick={() => document.getElementById('files')?.click()} class="p-3 text-sm font-medium shadow-md"> Upload File </button>
           </div>
         </div>
       </div>
