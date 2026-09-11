@@ -15,6 +15,7 @@ export default new Elysia({prefix: '/identity'})
     const {email_password, proxy_password, payment_intent, crypto_invoice, subscription_id, owner, status, ...pubInfo} = identity!;
     const {creation_date, proxy_server, wallet_keys, wallet_blob, wallet_funds, ...rest} = pubInfo;
     const reformattedData = {
+      encryptionVersion: identity!.encryption_version,
       creationDate: creation_date,
       proxyServer: proxy_server,
       walletFunds: wallet_funds,

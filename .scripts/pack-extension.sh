@@ -1,33 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-SHADOWSELF_PATH=$(dirname "$(dirname "$(realpath "$0")")")
-EXTENSION_DIR="$SHADOWSELF_PATH/extension"
-SLEEP_TIME=0.25
+project_dir=$(dirname "$(dirname "$(realpath "$0")")")
+output_dir=${1:-"$project_dir"}
+package_dir=$(mktemp -d)
+trap 'rm -rf -- "$package_dir"' EXIT
+mkdir -p "$output_dir"
+output_dir=$(realpath "$output_dir")
 
-echo "Starting packaging of browser extensions..."
-mv $EXTENSION_DIR/manifest-chrome.json $EXTENSION_DIR/manifest.json
-mv $EXTENSION_DIR/manifest-firefox.json .
-sleep $SLEEP_TIME
-
-zip -r ShadowSelf-Chromium.zip $EXTENSION_DIR > /dev/null
-echo "Chromium extension packaged as ShadowSelf-Chromium.zip"
-sleep $SLEEP_TIME
-
-mv $EXTENSION_DIR/manifest.json $EXTENSION_DIR/manifest-chrome.json
-mv ./manifest-firefox.json $EXTENSION_DIR
-sleep $SLEEP_TIME
-
-echo "Preparing Firefox extension..."
-mv $EXTENSION_DIR/manifest-firefox.json $EXTENSION_DIR/manifest.json
-mv $EXTENSION_DIR/manifest-chrome.json .
-sleep $SLEEP_TIME
-
-zip -r ShadowSelf-Firefox.zip $EXTENSION_DIR > /dev/null
-echo "Firefox extension packaged as ShadowSelf-Firefox.zip"
-sleep $SLEEP_TIME
-
-mv $EXTENSION_DIR/manifest.json $EXTENSION_DIR/manifest-firefox.json
-mv ./manifest-chrome.json $EXTENSION_DIR
-sleep $SLEEP_TIME
-
-echo "Packaging complete!"
+for variant in chrome firefox; do
+  stage="$package_dir/$variant"
+  mkdir -p "$stage"
+  cp -R "$project_dir/extension/." "$stage/"
+  cp "$stage/manifest-$variant.json" "$stage/manifest.json"
+  rm "$stage/manifest-chrome.json" "$stage/manifest-firefox.json"
+  name=Chromium
+  [[ "$variant" != firefox ]] || name=Firefox
+  archive="$output_dir/ShadowSelf-$name.zip"
+  rm -f -- "$archive"
+  (cd "$stage" && zip -qr "$archive" .)
+  unzip -p "$archive" manifest.json >/dev/null
+  if unzip -Z1 "$archive" | grep -Eq '(^/|(^|/)\.\./|manifest-(chrome|firefox)\.json)'; then
+    exit 1
+  fi
+  echo "Packaged $archive"
+done

@@ -1,3 +1,4 @@
+import {SOCKET_AUTH_INTERVAL} from '@core/constants';
 import middlewareApi from '@middlewares/middleware-api';
 import type {QueryIdentity, QueryUser} from '@type';
 import {listenForEmail} from '@utils/email-imap';
@@ -65,10 +66,18 @@ export default new Elysia()
   .ws('/ws-api/:id', {
     async open(ws) {
       const identity = ws.data.identity;
+      const authorize = ws.data.authorize;
+      if (!(await authorize())) return ws.close(1008, 'Session expired');
+
+      const authTimer = setInterval(async () => {
+        if (!(await authorize())) ws.close(1008, 'Session expired');
+      }, SOCKET_AUTH_INTERVAL);
 
       wsConnections.set(ws.id, {
         imapConnection: null as any,
         websocket: ws,
+        authorize,
+        authTimer,
         phoneNumber: identity!.phone,
         emailAddress: identity!.email,
       });
@@ -76,17 +85,21 @@ export default new Elysia()
       const connection = await listenForEmail(identity!.email, identity!.email_password);
       const wsData = wsConnections.get(ws.id);
       if (wsData) wsData.imapConnection = connection as any;
+      else connection?.end();
     },
 
     async close(ws) {
       const connection = wsConnections.get(ws.id);
       if (!connection) return;
 
+      clearInterval(connection.authTimer);
       connection.imapConnection?.end();
       wsConnections.delete(ws.id);
     },
 
     async message(ws, message) {
+      if (!(await ws.data.authorize())) return ws.close(1008, 'Session expired');
+
       if (message === 'ping') return ws.send('pong');
       else return ws.send('It is useless to send a message, it will be ignored.');
     },

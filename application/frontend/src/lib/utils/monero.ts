@@ -1,5 +1,5 @@
 import {identity, moneroData} from '$store';
-import * as monerots from 'monero-ts';
+import {encrypt, decrypt, getMasterKey} from '$utils/cryptography';
 import {get} from 'svelte/store';
 
 export function idbOperation(mode: 'readonly' | 'readwrite', id: string, data?: any): Promise<any> {
@@ -12,7 +12,14 @@ export function idbOperation(mode: 'readonly' | 'readwrite', id: string, data?: 
       const store = tx.objectStore('wallets');
 
       const op = mode === 'readonly' ? store.get(id) : store.put(data, id);
-      op.onsuccess = () => resolve(op.result);
+      tx.oncomplete = () => {
+        db.close();
+        resolve(op.result);
+      };
+      tx.onabort = () => {
+        db.close();
+        reject(tx.error);
+      };
       op.onerror = () => reject(op.error);
     };
     req.onerror = () => reject(req.error);
@@ -26,13 +33,19 @@ export default async function initMoneroScan(
   onSuccess: (data: any) => void,
   onError: () => void,
 ) {
+  const monerots = await import('monero-ts');
+  monerots.LibraryUtils.setWorkerDistPath(new URL('/monero.worker.js', location.origin).href);
+  const identityID = get(identity).id;
+  const encryptionKey = await getMasterKey();
   const res = await fetch(nodeData.nodeUrl, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({jsonrpc: '2.0', id: '0', method: 'get_info'}),
   });
 
-  const currentHeight = (await res.json()).result.height;
+  if (!res.ok) throw new Error('Monero node is unavailable');
+  const currentHeight = (await res.json()).result?.height;
+  if (!Number.isSafeInteger(currentHeight) || currentHeight <= 0) throw new Error('Invalid Monero node response');
   const msAgo = Date.now() - new Date(nodeData.startingDate).getTime();
   const restoreHeight = Math.max(0, currentHeight - Math.floor(msAgo / 120000) - 1000);
 
@@ -46,9 +59,11 @@ export default async function initMoneroScan(
   };
 
   const processBlockchain = async () => {
+    let wallet: import('monero-ts').MoneroWalletFull | undefined;
+    let progressTracker: ReturnType<typeof setInterval> | undefined;
     try {
-      let wallet;
-      const localData = await idbOperation('readonly', get(identity).id);
+      const saved = await idbOperation('readonly', identityID);
+      const localData = saved ? JSON.parse(await decrypt(saved, encryptionKey)) : null;
 
       if (localData) {
         onCache(true);
@@ -57,8 +72,8 @@ export default async function initMoneroScan(
           networkType: monerots.MoneroNetworkType.MAINNET,
           server: {uri: nodeData.nodeUrl},
           password: 'shadowself_xmr',
-          keysData: localData.keys,
-          cacheData: localData.cache,
+          keysData: Uint8Array.from(localData.keys),
+          cacheData: Uint8Array.from(localData.cache),
         });
       } else {
         onCache(false);
@@ -76,9 +91,9 @@ export default async function initMoneroScan(
       const daemonHeight = await wallet.getDaemonHeight();
       const totalBlocks = daemonHeight - restoreHeight;
 
-      const progressTracker = setInterval(async () => {
+      progressTracker = setInterval(async () => {
         try {
-          const currentHeight = await wallet.getHeight();
+          const currentHeight = await wallet!.getHeight();
 
           let percent = 0;
           let scanned = 0;
@@ -99,7 +114,17 @@ export default async function initMoneroScan(
       const keysData = memoryBuffers[0];
       const cacheData = memoryBuffers[1];
 
-      await idbOperation('readwrite', get(identity).id, {keys: keysData, cache: cacheData});
+      await idbOperation(
+        'readwrite',
+        identityID,
+        await encrypt(
+          JSON.stringify({
+            keys: Array.from(new Uint8Array(keysData.buffer, keysData.byteOffset, keysData.byteLength)),
+            cache: Array.from(new Uint8Array(cacheData.buffer, cacheData.byteOffset, cacheData.byteLength)),
+          }),
+          encryptionKey,
+        ),
+      );
       const [balance, unlocked, txs] = await Promise.all([wallet.getBalance(), wallet.getUnlockedBalance(), wallet.getTxs()]);
 
       const history = txs
@@ -127,10 +152,11 @@ export default async function initMoneroScan(
         history,
         status: 'Synced',
       });
-
-      await wallet.close();
     } catch (_) {
       onError();
+    } finally {
+      clearInterval(progressTracker);
+      await wallet?.close().catch(() => {});
     }
   };
 

@@ -1,4 +1,4 @@
-import {getBearerToken, verifySessionToken} from '@middlewares/session-auth';
+import {getBearerToken, verifySessionToken, trustedCookieRequest} from '@middlewares/session-auth';
 import type {QueryIdentity, QueryInvoice, QueryUser} from '@type';
 import {jwtSecret} from '@core/config';
 import {sql} from '@core/services';
@@ -14,7 +14,9 @@ const error = (set: {[key: string]: unknown}, status: number, message: string) =
 };
 
 export default (app: Elysia) =>
-  app.use(jwt({name: 'jwt', secret: jwtSecret, exp: '90d'})).derive(async ({headers, jwt, params, path, cookie, set}) => {
+  app.use(jwt({name: 'jwt', secret: jwtSecret, exp: '90d'})).derive(async ({headers, jwt, params, path, cookie, set, request}) => {
+    if (cookie.token?.value && !trustedCookieRequest(request)) return error(set, 403, 'Untrusted request origin');
+
     const token = getBearerToken(headers.authorization) ?? (cookie['token']?.value as string);
 
     if (!token) return error(set, 401, 'You are not authenticated correctly');
@@ -32,8 +34,21 @@ export default (app: Elysia) =>
     if (!user) user = await verifySessionToken(token, jwt);
     if (!user) return error(set, 401, 'You are not authenticated correctly');
 
+    const authorize = async () => {
+      try {
+        if (token.length === 32) {
+          const accounts = await sql`SELECT email FROM users WHERE api_key = ${token} AND api_access = true`;
+          return accounts[0]?.email === user.email;
+        }
+
+        return !!(await verifySessionToken(token, jwt));
+      } catch {
+        return false;
+      }
+    };
+
     const excludedPaths = /(?:\/api\/proxy|\/api)\/?$|\/api\/test$/;
-    if (excludedPaths.test(path)) return {user};
+    if (excludedPaths.test(path)) return {user, authorize};
 
     const givenID = (await sql`SELECT * FROM users WHERE email = ${user.email}`)[0]?.id;
 
@@ -64,11 +79,11 @@ export default (app: Elysia) =>
       }
     }
 
-    if (identity.status === 'frozen') {
+    if (identity.status !== 'active') {
       const details = !identity.crypto_invoice ? `[crypto/${identity.plan}]` : `[fiat/${identity.plan}]`;
 
       return error(set, 402, 'Identity is frozen ' + details);
     }
 
-    return {identity};
+    return {identity, user, authorize};
   });

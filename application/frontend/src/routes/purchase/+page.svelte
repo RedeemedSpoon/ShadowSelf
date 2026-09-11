@@ -95,7 +95,7 @@
     if (ws) ws.close();
 
     invoiceStatus = {message: 'Connecting to server...', color: 'text-yellow-500'};
-    ws = new WebSocket(`wss://${page.url.hostname}/billing/crypto/track-invoice/${cryptoInvoice?.invoiceID}`);
+    ws = new WebSocket(`${page.url.protocol === 'https:' ? 'wss:' : 'ws:'}//${page.url.host}/billing/crypto/track-invoice/${cryptoInvoice?.invoiceID}`);
 
     const handleConnectionClose = () => {
       if (!invoiceStatus.message.includes('expired')) {
@@ -117,8 +117,12 @@
         else window.location.href = '/create?id=' + data.identityID;
       }
 
+      if (data.status === 'confirming') invoiceStatus = {message: 'Payment observed. Waiting for confirmations.', color: 'text-yellow-500'};
+      if (data.status === 'late')
+        invoiceStatus = {message: 'Payment arrived after expiry and needs reconciliation. Do not send again.', color: 'text-yellow-500'};
+
       if (data.status === 'underpaid') {
-        const message = `Underpaid! Please send ${data.remainingAmount} more ${cryptoInvoice?.coin.toUpperCase()}`;
+        const message = `Underpaid! Please send ${data.remainingAmount} more XMR to the invoice Monero address`;
         invoiceStatus = {message, color: 'text-yellow-500'};
         notify(message, 'info');
       }
@@ -272,6 +276,7 @@
       <div class="payment-buttons flex gap-6 px-8 max-sm:flex-col">
         {#if !isRenewing}
           <form action="?/fiatInit" method="POST" use:enhance={() => awaitPending(true, 1)}>
+            <input type="hidden" name="requestID" value={data.requestID} />
             <input hidden value={$pricingModel.name} name="type" type="hidden" />
             <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="w-8! h-8!" />Pay With Card</LoadingButton>
           </form>
@@ -296,6 +301,7 @@
 
 <Modal id={2}>
   <form method="POST" action="?/fiatConfirm" use:enhance={() => awaitPending(true, 2)} class="m-6 mb-2 flex flex-col gap-8">
+    <input type="hidden" name="requestID" value={data.requestID} />
     <h3 class="text-4xl font-bold text-neutral-300">Confirm Payment</h3>
     <p class="w-140 max-w-[80vw]">
       Are you sure you want to pay ${$pricingModel.price} for an identity with your {cardName} credits card ending with ****{last4}?
@@ -319,6 +325,7 @@
     <h3 class="text-center text-4xl font-bold text-neutral-300">Crypto Checkout</h3>
     {#if !cryptoInvoice}
       <form method="POST" action={isRenewing ? '?/cryptoRenew' : '?/cryptoInit'} use:enhance={() => awaitPending(true, 3)} class="flex flex-col gap-6">
+        <input type="hidden" name="requestID" value={data.requestID} />
         <input hidden value={$pricingModel.name} name="plan" type="hidden" />
         <input hidden value={cryptoChoice} name="swapCoin" type="hidden" />
         <input hidden value={renewID || 0} name="identityID" type="hidden" />

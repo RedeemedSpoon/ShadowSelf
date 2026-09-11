@@ -10,7 +10,7 @@ export default function csrf(allowedPaths: string[], allowedOrigins: string[] = 
     const isAllowedPath = allowedPaths.includes(url.pathname);
     const isAllowedMethod = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method);
 
-    const forbidden = isFormContentType(request) && isAllowedMethod && !isSameOrigin && !isAllowedOrigin && !isAllowedPath;
+    const forbidden = isAllowedMethod && !isSameOrigin && !isAllowedOrigin && !isAllowedPath;
 
     if (forbidden) {
       const message = `Cross-site ${request.method} form submissions are forbidden`;
@@ -22,13 +22,4 @@ export default function csrf(allowedPaths: string[], allowedOrigins: string[] = 
 
     return resolve(event);
   };
-}
-
-function isContentType(request: Request, ...types: string[]) {
-  const type = request.headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
-  return types.includes(type.toLowerCase());
-}
-
-function isFormContentType(request: Request) {
-  return isContentType(request, 'application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain');
 }

@@ -1,9 +1,8 @@
-FROM postgres:alpine
-
-ENV POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+FROM postgres:18.4-alpine
 
 WORKDIR /docker-entrypoint-initdb.d
 
-COPY schemas.sql .
+COPY schemas.sql 10-schema.sql
+COPY roles.sql 20-roles.sql
 
-VOLUME [ "/var/lib/postgresql/data" ]
+VOLUME [ "/var/lib/postgresql" ]

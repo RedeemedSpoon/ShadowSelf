@@ -36,7 +36,6 @@
   import type {PageData} from './$types';
   import {goto} from '$app/navigation';
   import {HDKey} from '@scure/bip32';
-  import moneroTs from 'monero-ts';
   import {page} from '$app/state';
   import {onMount} from 'svelte';
 
@@ -53,7 +52,7 @@
   let ws: WebSocket | null;
 
   async function init() {
-    if (data.cookie) initWebsocket();
+    if (data.creationReady) initWebsocket();
     const loader = document.querySelector('#loader-process') as HTMLParagraphElement;
 
     loaderInterval = setInterval(() => {
@@ -63,12 +62,12 @@
     }, 650);
 
     return new Promise((resolve, reject) => {
-      setTimeout(() => (data.cookie && ws?.readyState !== 3 ? resolve(true) : reject()), 1950);
+      setTimeout(() => (data.creationReady && ws?.readyState !== 3 ? resolve(true) : reject()), 1950);
     });
   }
 
   async function initWebsocket() {
-    ws = new WebSocket(`wss://${page.url.hostname}/ws-creation-process?id=${identityID}`);
+    ws = new WebSocket(`${page.url.protocol === 'https:' ? 'wss:' : 'ws:'}//${page.url.host}/ws-creation-process?id=${identityID}`);
 
     ws.onopen = () => {
       pingInterval = setInterval(() => ws?.send('ping'), 5000);
@@ -93,7 +92,6 @@
       }
 
       if (response.done) {
-        document.cookie = 'creation-process=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
         return goto('/dashboard');
       }
 
@@ -165,7 +163,6 @@
         const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
         const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
 
-        localStorage.setItem('key-' + identityID, base64Key);
         $masterPassword = base64Key;
         $currentStep++;
         break;
@@ -260,6 +257,8 @@
           .map((b) => b.toString(16).padStart(2, '0'))
           .join('');
 
+        const moneroTs = await import('monero-ts');
+        moneroTs.LibraryUtils.setWorkerDistPath(new URL('/monero.worker.js', location.origin).href);
         const xmrWallet = await moneroTs.createWalletFull({
           networkType: moneroTs.MoneroNetworkType.MAINNET,
           privateSpendKey: spendKeyHex,

@@ -12,12 +12,16 @@ export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
 export interface WSConnection {
   imapConnection: ImapSimple;
   websocket: ElysiaWS;
+  authorize: () => Promise<boolean>;
+  authTimer: ReturnType<typeof setInterval>;
   phoneNumber: string;
   emailAddress: string;
 }
 
 export interface InvoiceConnection {
   websocket: ElysiaWS;
+  authorize: () => Promise<boolean>;
+  authTimer: ReturnType<typeof setInterval>;
   invoiceID: string;
 }
 
@@ -82,6 +86,7 @@ export interface QueryUser {
 }
 
 export interface QueryIdentity {
+  encryption_version: number;
   id: string;
   owner: number;
   creation_date: Date;
@@ -346,4 +351,32 @@ export interface SignupDraft {
   username: string;
   secret: string;
   recoveryHashes: string[];
+}
+
+export interface CreationConnection {
+  ready?: Promise<void>;
+  jobID: string;
+  busy: boolean;
+  authTimer?: ReturnType<typeof setInterval>;
+}
+
+export interface IdentityProvision {
+  location: string;
+  picture: string;
+  name: string;
+  bio: string;
+  age: number;
+  sex: string;
+  ethnicity: string;
+  email: string;
+  phone: string;
+  wallet: CryptoWallet;
+}
+
+export interface VaultMutation {
+  encryptionVersion: number;
+  blob: string;
+  keys: CryptoKeys['xmr'];
+  accounts: {id: number; password: string; totp: string | null}[];
+  apply: (transaction: import('postgres').TransactionSql) => Promise<Record<string, unknown> | string>;
 }

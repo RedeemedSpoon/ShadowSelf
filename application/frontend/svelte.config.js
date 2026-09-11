@@ -5,7 +5,31 @@ import adapter from 'svelte-adapter-bun';
 const config = {
   preprocess: vitePreprocess(),
   kit: {
-    csrf: {trustedOrigins: ['*']},
+    csrf: {trustedOrigins: []},
+    csp: {
+      mode: 'auto',
+      directives: {
+        'default-src': ['self'],
+        'script-src': ['self', 'wasm-unsafe-eval', 'https://js.stripe.com'],
+        'style-src': ['self', 'unsafe-inline'],
+        'img-src': ['self', 'data:', 'blob:', 'https:'],
+        'connect-src': [
+          'self',
+          'https://api.stripe.com',
+          'https://mempool.space',
+          'https://litecoinspace.org',
+          'https://eth.blockscout.com',
+          'https://xmr-node.cakewallet.com:18081',
+        ],
+        'frame-src': ['self', 'blob:', 'https://js.stripe.com', 'https://hooks.stripe.com'],
+        'worker-src': ['self', 'blob:'],
+        'font-src': ['self', 'data:'],
+        'object-src': ['none'],
+        'base-uri': ['self'],
+        'form-action': ['self'],
+        'frame-ancestors': ['none'],
+      },
+    },
     adapter: adapter({
       out: 'build',
       assets: true,

@@ -1,21 +1,31 @@
 <script lang="ts">
   import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
   import AttachmentIcon from '$icon/communication/Attachment.svelte';
-  import {base64ToBlob} from '$utils/shared';
-  import DOMPurify from 'dompurify';
+  import {base64ToBlob, sanitizeEmailHtml} from '$utils/shared';
   import type {Email} from '$type';
 
   let {email}: {email: Email} = $props();
 
-  let iframe = $state() as HTMLIFrameElement | null;
+  let attachments = $state<{filename: string; url: string}[]>([]);
+  const documentHtml = $derived(
+    `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer">${sanitizeEmailHtml(email.body, email.attachments)}`,
+  );
+
+  $effect(() => {
+    const urls = email.attachments.map((attachment) => ({
+      filename: attachment.filename,
+      url: URL.createObjectURL(base64ToBlob(attachment.data, 'application/octet-stream')),
+    }));
+    attachments = urls;
+
+    return () => urls.forEach((attachment) => URL.revokeObjectURL(attachment.url));
+  });
 
   function openInNewTab() {
-    const blob = new Blob([email.type === 'html' ? DOMPurify.sanitize(email.body) : email.body], {
-      type: email.type === 'html' ? 'text/html' : 'text/plain',
-    });
-
+    const blob = new Blob([email.type === 'html' ? documentHtml : email.body], {type: email.type === 'html' ? 'text/html' : 'text/plain'});
     const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 </script>
 
@@ -35,17 +45,7 @@
 <div class="relative mb-6 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900 shadow-sm">
   {#if email?.type === 'html'}
     <div class="bg-white p-4">
-      <iframe
-        bind:this={iframe}
-        title={email.subject}
-        srcdoc={DOMPurify.sanitize(email.body)}
-        class="min-h-[50vh] w-full overflow-y-hidden"
-        onload={() => {
-          if (iframe?.contentWindow?.document.body) {
-            iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 50 + 'px';
-          }
-        }}
-        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+      <iframe title={email.subject} srcdoc={documentHtml} class="min-h-[50vh] w-full" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>
     </div>
   {:else}
     <div class="min-h-[20vh] bg-neutral-800/50 px-8 py-6">
@@ -62,8 +62,8 @@
           {email.attachments.length} Attachment{email.attachments.length > 1 ? 's' : ''}
         </h3>
         <div class="flex flex-wrap gap-3">
-          {#each email.attachments as attachment, id (id)}
-            <a href={URL.createObjectURL(base64ToBlob(attachment.data, 'application/octet-stream'))} download={attachment.filename} class="attachment">
+          {#each attachments as attachment (attachment.url)}
+            <a href={attachment.url} download={attachment.filename} class="attachment">
               <AttachmentIcon className="h-4 w-4" />
               <span class="max-w-50 truncate">{attachment.filename}</span>
             </a>

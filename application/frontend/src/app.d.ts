@@ -4,7 +4,6 @@ declare global {
   namespace App {
     interface PageData {
       user: string;
-      token: string;
       subsPlan?: string;
       isFrozen?: boolean;
       cryptoUse?: boolean;

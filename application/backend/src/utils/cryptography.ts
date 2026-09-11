@@ -18,7 +18,7 @@ export function createTOTP(secret: string, username: string): OTPAuth.TOTP {
   return new OTPAuth.TOTP({
     label: username,
     issuer: 'ShadowSelf',
-    algorithm: 'SHA512',
+    algorithm: 'SHA1',
     digits: 6,
     period: 30,
     secret,
@@ -30,7 +30,7 @@ export function getSecret(): string {
 }
 
 export function generateID(): string {
-  return randomBytes(4).toString('hex');
+  return randomBytes(32).toString('hex');
 }
 
 export function generateIdentityID(): string {

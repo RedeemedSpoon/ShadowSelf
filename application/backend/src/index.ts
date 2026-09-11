@@ -12,13 +12,14 @@ import account from './routes/user-account';
 import webhooks from './routes/webhooks';
 import billing from './routes/billing';
 
-const app = new Elysia()
+const app = new Elysia({serve: {maxRequestBodySize: 20 * 1024 * 1024}})
   .onError(async ({error}) => {
     if (error instanceof Error) return {message: error.message};
     else if (error instanceof Response) return {message: await error.text()};
     else return {message: error};
   })
   .get('/', () => 'Hello from ShadowSelf!')
+  .get('/health/live', () => ({status: 'ok'}))
   .post('/contact', async ({body, set}) => {
     const {err} = checkContact(body);
     if (err) return error(set, 400, err);

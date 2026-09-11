@@ -1,0 +1,6 @@
+driver = pgsql
+connect = host=127.0.0.1 port=5432 dbname=SHADOWSELF_DATABASE user=shadowself_mail password=SHADOWSELF_MAIL_DB_PASSWORD
+default_pass_scheme = SHA256
+password_query = SELECT email AS user, password FROM mailboxes WHERE email = '%u'
+user_query = SELECT 5000 AS uid, 5000 AS gid, '/var/vmail/' || split_part(email, '@', 2) || '/' || split_part(email, '@', 1) AS home FROM mailboxes WHERE email = '%u'
+iterate_query = SELECT email AS username FROM mailboxes

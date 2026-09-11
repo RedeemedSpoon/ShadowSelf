@@ -8,7 +8,8 @@ export const load: PageServerLoad = async (event) => {
   if (!id) redirect(302, '/dashboard');
 
   const response = await fetchBackend('/creation-process', 'POST', {id}, event.cookies.get('token'));
-  createCookie(event.cookies, 'creation-process', response.cookie);
+  if (response.type !== 'success') redirect(303, '/dashboard');
+  createCookie(event.cookies, 'creation-process', response.cookie, true);
 
-  return {cookie: response.cookie || ''};
+  return {creationReady: true};
 };

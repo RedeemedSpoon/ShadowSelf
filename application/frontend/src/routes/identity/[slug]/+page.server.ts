@@ -22,9 +22,9 @@ export const load: PageServerLoad = async ({params, cookies}) => {
 export const actions: Actions = {
   default: async ({request, cookies}) => {
     const data = await request.formData();
-    if (data.get('delete')) return;
+    if (!data.has('delete')) return;
 
-    const response = await fetchBackend('/billing/cancel', 'DELETE', {id: data.get('id')}, cookies.get('token'));
+    const response = await fetchBackend('/billing/cancel', 'DELETE', {id: data.get('id'), currentPassword: data.get('currentPassword')}, cookies.get('token'));
     if (!response.success) return response;
 
     redirect(302, '/dashboard');

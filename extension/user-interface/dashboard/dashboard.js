@@ -1,8 +1,11 @@
 import {origin, request, read, store, sleep} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const cookie = await read('cookie');
-  if (!cookie) location.href = '../welcome/welcome.html';
+  const accountTab = await read('accountTab');
+  if (!accountTab) {
+    location.href = '../welcome/welcome.html';
+    return;
+  }
 
   const identities = await initialize();
   listIdentities(identities);

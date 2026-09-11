@@ -63,14 +63,13 @@ export async function request(url: string, method = 'GET', body?: object) {
 }
 
 export async function proxyRequest(code: string, method = 'GET', body?: object) {
-  return fetch(`https://${code}.shadowself.io/`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${secretProxyKey}`,
-    },
+  const response = await fetch(`https://${code}.shadowself.io/`, {
+    headers: {'Content-Type': 'application/json', Authorization: `Bearer ${secretProxyKey}`},
     body: body ? JSON.stringify(body) : undefined,
     method,
-  })
-    .then((res) => res.json())
-    .catch((err) => err);
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) throw new Error('Proxy operation failed');
+
+  return await response.json();
 }

@@ -2,10 +2,10 @@ import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, g
 import {issueLoginChallenge, claimLoginChallenge, finishLoginChallenge} from '@core/states';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendVerificationCode} from '@utils/email-smtp';
-import {request, error} from '@utils/utils';
+import {error} from '@utils/utils';
 import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
-import {sql} from '@core/services';
+import {sql, createBillingCustomer} from '@core/services';
 import {consumeEmailCode, createSignupDraft, getSignupDraft} from '@core/states';
 import {SIGNUP_DRAFT_TTL} from '@core/constants';
 import {Elysia} from 'elysia';
@@ -177,7 +177,7 @@ export default new Elysia({prefix: '/account'})
       ON CONFLICT (email) DO NOTHING RETURNING email`;
     if (!inserted.length) return error(set, 409, 'This email is already taken');
 
-    await request('/billing/fiat/customer', 'POST', {email, payment});
+    await createBillingCustomer(email, payment);
 
     return {cookie: await jwt.sign({email, id})};
   });

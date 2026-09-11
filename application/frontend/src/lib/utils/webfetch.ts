@@ -1,9 +1,11 @@
 import {PUBLIC_NODE_ENV} from '$env/static/public';
 import type {APIResponse} from '$type';
-import {identity, token} from '$store';
+import {identity} from '$store';
 import {get} from 'svelte/store';
 
 export async function fetchAPI<Type = APIResponse>(url: string, method = 'GET', body?: Record<string, unknown>): Promise<Type> {
+  if (body && method !== 'GET' && url.startsWith('account/')) body = {...body, encryptionVersion: get(identity).encryptionVersion};
+
   let fullUrl = `/api/${url}/${get(identity).id}`;
   if (method === 'GET' && body) {
     let index = 0;
@@ -17,12 +19,14 @@ export async function fetchAPI<Type = APIResponse>(url: string, method = 'GET', 
   return await fetch(fullUrl, {
     method,
     body: body && method !== 'GET' ? JSON.stringify(body) : undefined,
-    headers: {'Content-Type': 'application/json', authorization: `Bearer ${get(token)}`},
+    credentials: 'same-origin',
+    headers: {'Content-Type': 'application/json'},
   })
     .then(async (res) => {
       const type = res.status === 200 ? 'success' : res.status === 401 ? 'info' : 'alert';
       if (res.headers.get('Content-Type')?.includes('application/json')) {
         const message = await res.json();
+        if (res.ok && Number.isSafeInteger(message.encryptionVersion)) identity.update((value) => ({...value, encryptionVersion: message.encryptionVersion}));
         return {...message, type};
       } else {
         const err = await res.text();

@@ -1,6 +1,6 @@
 import middlewareApi from '@middlewares/middleware-api';
-import type {APIRequest, QueryAccount} from '@type';
-import {checkAPI} from '@utils/checks';
+import {checkAPI, validCiphertext} from '@utils/checks';
+import type {VaultMutation} from '@type';
 import {error} from '@utils/utils';
 import {sql} from '@core/services';
 import {Elysia} from 'elysia';
@@ -8,61 +8,87 @@ import {Elysia} from 'elysia';
 export default new Elysia({prefix: '/account'})
   .use(middlewareApi)
   .get('/:id', async ({identity}) => {
-    const accounts = (await sql`SELECT * FROM accounts WHERE owner = ${identity!.id}`) as QueryAccount[];
-    const formattedAccounts = accounts.map((account) => ({
-      id: account.id,
-      username: account.username,
-      password: account.password,
-      website: account.website,
-      totp: account.totp,
-      algorithm: account.algorithm,
-    }));
+    const accounts = await sql`SELECT id, username, password, website, totp, algorithm FROM accounts WHERE owner = ${identity!.id}`;
 
-    return {accounts: formattedAccounts};
+    return {accounts, encryptionVersion: identity!.encryption_version};
   })
   .post('/add-account/:id', async ({set, identity, body}) => {
-    const fields = ['username', 'password', '?website', '?totp', '?algorithm'];
-    const {err, username, password, website, totp, algorithm} = await checkAPI(body, fields);
+    const {err, username, password, website, totp, algorithm} = await checkAPI(body, ['username', 'password', '?website', '?totp', '?algorithm']);
     if (err) return error(set, 400, err);
 
-    const res = await sql`INSERT INTO accounts (owner, username, password) VALUES (${identity!.id}, ${username!}, ${password!}) RETURNING id`;
-    if (website) await sql`UPDATE accounts SET website = ${website!} WHERE id = ${res[0].id}`;
-    if (totp) await sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${res[0].id!}`;
+    return mutateVault(identity!.id, body, set, async (transaction) => {
+      const rows = await transaction`INSERT INTO accounts (owner, username, password, website, totp, algorithm)
+        VALUES (${identity!.id}, ${username}, ${password}, ${website || null}, ${totp || null}, ${totp ? algorithm || 'SHA1' : null})
+        RETURNING id, username, password, website, totp, algorithm`;
 
-    return {username, password, website, totp, algorithm, id: res[0].id};
+      return rows[0];
+    });
   })
   .put('/edit-account/:id', async ({set, identity, body}) => {
-    const fields = ['username', 'password', '?website', '?totp', '?algorithm', 'id'];
-    const {err, username, password, website, totp, algorithm, id} = await checkAPI(body, fields);
+    const {err, id, username, password, website, totp, algorithm} = await checkAPI(body, ['id', 'username', 'password', '?website', '?totp', '?algorithm']);
     if (err) return error(set, 400, err);
 
-    const uid = identity!.id;
-    await sql`UPDATE accounts SET username = ${username!}, password = ${password!} WHERE id= ${id} AND owner = ${uid}`;
+    return mutateVault(identity!.id, body, set, async (transaction) => {
+      const existing = await transaction`SELECT * FROM accounts WHERE id = ${id} AND owner = ${identity!.id}`;
+      if (!existing.length) return error(set, 404, 'Account not found');
+      const nextTotp = totp === undefined ? existing[0].totp : totp || null;
+      const nextWebsite = website === undefined ? existing[0].website : website || null;
+      const nextAlgorithm = nextTotp ? algorithm || existing[0].algorithm || 'SHA1' : null;
+      const rows = await transaction`UPDATE accounts SET username = ${username}, password = ${password}, website = ${nextWebsite},
+        totp = ${nextTotp}, algorithm = ${nextAlgorithm} WHERE id = ${id} AND owner = ${identity!.id}
+        RETURNING id, username, password, website, totp, algorithm`;
 
-    if (website) await sql`UPDATE accounts SET website = ${website!} WHERE id = ${id!}  AND owner = ${uid}`;
-    if (totp) await sql`UPDATE accounts SET totp = ${totp!}, algorithm = ${algorithm!} WHERE id = ${id!} AND owner = ${uid}`;
-
-    return {username, password, website, totp, algorithm, id};
+      return rows[0];
+    });
   })
   .put('/update-encryption/:id', async ({set, identity, body}) => {
-    const accounts = (body as APIRequest)?.accounts || null;
-    if (!accounts || typeof accounts !== 'object') return error(set, 400, 'Accounts Array are required');
-
-    for (const account of accounts) {
-      const fields = ['id', 'password', '?totp'];
-      const {err, id, password, totp} = await checkAPI(account, fields);
-      if (err) return error(set, 400, err);
-
-      await sql`UPDATE accounts SET password = ${password!} WHERE id = ${id!} AND owner = ${identity!.id}`;
-      if (totp) await sql`UPDATE accounts SET totp = ${totp!} WHERE id = ${id!} AND owner = ${identity!.id}`;
+    const input = body as VaultMutation;
+    if (!input || !Array.isArray(input.accounts) || !validCiphertext(input.blob) || !input.keys) return error(set, 400, 'Invalid encryption payload');
+    if (![input.keys.address, input.keys.viewKey, input.keys.spendKey].every(validCiphertext)) return error(set, 400, 'Invalid encrypted wallet keys');
+    if (input.accounts.some((account) => !account || !validCiphertext(account.password) || (account.totp !== null && !validCiphertext(account.totp)))) {
+      return error(set, 400, 'Invalid encrypted account');
     }
 
-    return {accounts};
+    return mutateVault(identity!.id, body, set, async (transaction) => {
+      const accounts = await transaction`SELECT id FROM accounts WHERE owner = ${identity!.id}`;
+      const ids = new Set(input.accounts.map((account) => account.id));
+      if (ids.size !== input.accounts.length || accounts.length !== ids.size || accounts.some((account) => !ids.has(account.id))) {
+        return error(set, 409, 'The vault changed. Reload before changing its password');
+      }
+
+      for (const account of input.accounts) {
+        await transaction`UPDATE accounts SET password = ${account.password}, totp = ${account.totp} WHERE id = ${account.id} AND owner = ${identity!.id}`;
+      }
+      await transaction`UPDATE identities SET wallet_blob = ${input.blob}, wallet_keys = jsonb_set(wallet_keys, '{xmr}', ${transaction.json({...input.keys})}) WHERE id = ${identity!.id}`;
+
+      return {accounts: input.accounts, blob: input.blob, keys: input.keys};
+    });
   })
   .delete('/delete-account/:id', async ({set, identity, body}) => {
     const {err, id} = await checkAPI(body, ['id']);
     if (err) return error(set, 400, err);
 
-    await sql`DELETE FROM accounts WHERE id = ${id!} AND owner = ${identity!.id}`;
-    return {id};
+    return mutateVault(identity!.id, body, set, async (transaction) => {
+      const rows = await transaction`DELETE FROM accounts WHERE id = ${id} AND owner = ${identity!.id} RETURNING id`;
+      if (!rows.length) return error(set, 404, 'Account not found');
+
+      return {id};
+    });
   });
+
+async function mutateVault(id: string, body: unknown, set: Record<string, any>, mutation: VaultMutation['apply']) {
+  const version = (body as VaultMutation)?.encryptionVersion;
+  if (!Number.isSafeInteger(version) || version < 1) return error(set, 400, 'Encryption version is required');
+
+  return sql.begin(async (transaction) => {
+    const identities = await transaction`SELECT encryption_version FROM identities WHERE id = ${id} AND status = 'active' FOR UPDATE`;
+    if (!identities.length) return error(set, 404, 'Identity not found');
+    if (identities[0].encryption_version !== version) return error(set, 409, 'The vault changed. Reload before editing');
+
+    const result = await mutation(transaction);
+    if (typeof result === 'string') return result;
+    await transaction`UPDATE identities SET encryption_version = encryption_version + 1 WHERE id = ${id}`;
+
+    return {...result, encryptionVersion: version + 1};
+  });
+}

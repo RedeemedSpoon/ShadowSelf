@@ -1,12 +1,11 @@
 import {connect, disconnect, toggleKillSwitch} from './proxy.js';
 import {updateIcon, disableNetworking} from './utils.js';
 import {spoofUserAgent} from './user-agent.js';
-import {read, store} from '../shared.js';
+
+import {read} from '../shared.js';
 
 chrome.runtime.onInstalled.addListener(async () => {
-  await store('agent-browser', 'chrome');
-  await store('agent-os', 'Windows');
-  await store('actualAgent', true);
+  await spoofUserAgent();
 });
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {

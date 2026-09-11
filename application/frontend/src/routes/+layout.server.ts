@@ -4,12 +4,14 @@ import {fetchBackend} from '$utils/webfetch';
 
 export const load: LayoutServerLoad = async ({cookies, url}) => {
   const currentToken = cookies.get('token') || '';
-  if (!currentToken) return {user: '', token: ''};
+  if (!currentToken) return {user: ''};
 
   const response = await fetchBackend('/account', 'GET', undefined, currentToken);
 
-  if (response.message === 'You are not logged in') return {user: '', token: currentToken};
-  else if (response.message === 'An error occurred. Please try again later') error(500, 'Server error');
+  if (response.message === 'You are not logged in') {
+    cookies.delete('token', {path: '/'});
+    redirect(302, '/login');
+  } else if (response.message === 'An error occurred. Please try again later') error(500, 'Server error');
   else if (response.message === 'Not authorized') {
     cookies.delete('token', {path: '/'});
     if (url.pathname !== '/') redirect(302, '/');
@@ -17,5 +19,5 @@ export const load: LayoutServerLoad = async ({cookies, url}) => {
 
   const username = response.message || '';
 
-  return {user: username, token: currentToken};
+  return {user: username};
 };

@@ -1,23 +1,19 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
 
-REMOTE_USER="root"
-REMOTE_HOST="shadowself.io"
-SHADOWSELF_PATH=$(dirname "$(dirname "$(realpath "$0")")")
+remote=${SHADOWSELF_SSH_TARGET:?Set SHADOWSELF_SSH_TARGET}
+container=${SHADOWSELF_DB_CONTAINER:?Set SHADOWSELF_DB_CONTAINER}
+[[ "$container" =~ ^[a-zA-Z0-9_-]+$ ]] || exit 1
+backup=${1:-db_backup.dump}
+[[ ! -e "$backup" ]] || { echo 'Backup already exists' >&2; exit 1; }
+ssh_options=(-o BatchMode=yes)
+[[ -z "${SSH_KEY:-}" ]] || ssh_options+=(-i "$SSH_KEY")
+partial=$(mktemp "${backup}.XXXXXX")
+trap 'rm -f -- "$partial"' EXIT
 
-DB_USER=$(grep POSTGRES_USER ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
-DB_PASSWORD=$(grep POSTGRES_PASSWORD ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
-DB_NAME=$(grep POSTGRES_DB ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
-
-BACKUP_FILE="db_backup.sql.gz"
-
-echo "Backing up database..."
-
-ssh -i "$SSH_KEY" ${REMOTE_USER}@${REMOTE_HOST} "
-  set -e
-  CONTAINER_ID=\$(docker ps -q --filter \"ancestor=shadowself-core-postgres\")
-  docker exec -e PGPASSWORD=${DB_PASSWORD} \$CONTAINER_ID \
-    pg_dump -U ${DB_USER} -d ${DB_NAME}
-" | gzip > "${BACKUP_FILE}"
-
-echo "Database backup completed and saved to ${BACKUP_FILE}"
+ssh "${ssh_options[@]}" "$remote" "docker exec '$container' sh -c 'pg_dump -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -Fc'" > "$partial"
+pg_restore --list "$partial" >/dev/null
+mv "$partial" "$backup"
+chmod 600 "$backup"
+echo "Backup written to $backup"

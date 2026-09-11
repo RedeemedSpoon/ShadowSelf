@@ -5,7 +5,7 @@ function getEnv(key: string): string {
 }
 
 export const inProduction = getEnv('NODE_ENV') === 'prod';
-export const origin = getEnv('NODE_ENV') === 'dev' ? 'https://localhost' : 'https://shadowself.io';
+export const origin = process.env.APP_ORIGIN || (getEnv('NODE_ENV') === 'dev' ? 'https://localhost' : 'https://shadowself.io');
 
 export const jwtSecret = getEnv('JWT_SECRET');
 export const secretSauce = getEnv('SECRET_SAUCE');
@@ -16,8 +16,8 @@ export const trocadorApiKey = getEnv('TROCADOR_API_KEY');
 
 export const dbConfig = {
   dbName: getEnv('POSTGRES_DB'),
-  username: getEnv('POSTGRES_USER'),
-  password: getEnv('POSTGRES_PASSWORD'),
+  username: 'shadowself_app',
+  password: getEnv('APP_DB_PASSWORD'),
 };
 
 export const moneroWallet = {

@@ -1,207 +1,103 @@
 import middlewareBase from '@middlewares/middleware-base';
 import {generateIdentityID} from '@utils/cryptography';
-import {toTitleCase, error} from '@utils/utils';
-import {sql, stripe} from '@core/services';
-import {stripeConfig} from '@core/config';
-import type {QueryUser} from '@type';
-import {check} from '@utils/checks';
+import {createBillingCustomer, sql, stripe} from '@core/services';
+import {stripeConfig, origin} from '@core/config';
+import {PRICING_TIERS} from '@core/constants';
+import {error, toTitleCase} from '@utils/utils';
 import type Stripe from 'stripe';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/fiat'})
   .use(middlewareBase)
-  .onBeforeHandle(({set, user, path}) => {
-    const relativePath = path.slice(13);
-    const mustLogIn = ['/checkout', '/checkout-after-confirm'];
+  .post('/checkout', ({set, user, body}) => checkout(set, user?.email, body, false))
+  .post('/checkout-after-confirm', ({set, user, body}) => checkout(set, user?.email, body, true));
 
-    if (mustLogIn.some((p) => relativePath === p || relativePath === p + '/') && !user) {
-      return error(set, 401, 'You are not logged in');
-    }
-  })
-  .post('/portal', async ({set, body}) => {
-    const {email, err} = check(body, ['email']);
-    if (err) return error(set, 400, err);
+async function checkout(set: Record<string, any>, email: string | undefined, body: unknown, confirm: boolean) {
+  if (!email) return error(set, 401, 'You are not logged in');
+  const input = body as {type?: string; requestID?: string};
+  if (!input || !input.type || !Object.hasOwn(stripeConfig.prices, input.type) || !/^[a-f0-9-]{36}$/.test(input.requestID || '')) {
+    return error(set, 400, 'A valid plan and payment request ID are required');
+  }
 
-    const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
-    if (!customer[0].stripe_customer) return {sessionUrl: ''};
+  const type = input.type as keyof typeof stripeConfig.prices;
+  const customerID = await createBillingCustomer(email);
+  const accounts = await sql`SELECT id FROM users WHERE email = ${email}`;
+  const owner = accounts[0].id;
+  await sql`INSERT INTO fiat_intents (request_id, owner, plan, identity_id)
+    VALUES (${input.requestID!}, ${owner}, ${type}, ${generateIdentityID()}) ON CONFLICT (owner, request_id) DO NOTHING`;
+  const connection = await sql.reserve();
 
-    const hasPaymentMethod = await stripe.paymentMethods.list({customer: customer[0].stripe_customer, type: 'card'});
-    if (!hasPaymentMethod.data.length) return {sessionUrl: ''};
+  try {
+    await connection`SELECT pg_advisory_lock(hashtextextended(${`${owner}:${input.requestID}`}, 0))`;
+    const intents = await connection`SELECT * FROM fiat_intents WHERE owner = ${owner} AND request_id = ${input.requestID!}`;
+    const intent = intents[0];
+    if (intent.plan !== type) return error(set, 409, 'This payment request already has a different plan');
+    if (intent.response && (!confirm || intent.response.step !== 'confirm')) return intent.response;
 
-    const session = await stripe.billingPortal.sessions.create({
-      configuration: 'bpc_1QjGV8ByRGrIIrNdbBoPD90b',
-      customer: customer[0].stripe_customer,
-      return_url: `${origin}/settings`,
-    });
-
-    return {sessionUrl: session.url};
-  })
-  .get('/checkout', async ({set, user, query}) => {
-    const type = query?.type as keyof typeof stripeConfig.prices;
-    const identityID = generateIdentityID();
-
-    if (!type) return error(set, 400, 'Missing or invalid query type. Try again');
-    if (!stripeConfig.prices[type]) return error(set, 400, 'Invalid query type. Try again');
-
-    const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const customerID = customer[0]?.stripe_customer;
-
-    const request = (await stripe.customers.retrieve(customerID)) as Stripe.Customer;
-    const paymentMethodsID =
-      typeof request.invoice_settings?.default_payment_method === 'string'
-        ? request.invoice_settings.default_payment_method
-        : request.invoice_settings?.default_payment_method?.id;
-
-    if (paymentMethodsID) {
-      const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodsID);
-      const cardName = toTitleCase(paymentMethod.card?.brand as string);
-      const last4 = paymentMethod.card?.last4;
-
-      return {step: 'confirm', cardName, last4};
+    const customer = (await stripe.customers.retrieve(customerID)) as Stripe.Customer;
+    const reference = customer.invoice_settings?.default_payment_method;
+    const paymentMethod = typeof reference === 'string' ? reference : reference?.id;
+    if (!confirm && paymentMethod && !intent.provider_id) {
+      const method = await stripe.paymentMethods.retrieve(paymentMethod);
+      const response = {step: 'confirm', cardName: toTitleCase(method.card?.brand || 'card'), last4: method.card?.last4, identityID: intent.identity_id};
+      await connection`UPDATE fiat_intents SET response = ${connection.json(response)} WHERE id = ${intent.id}`;
+      return response;
     }
 
-    const metadata = {id: identityID, type};
-    let clientSecret = '';
+    const response = await createStripePayment(intent, customerID, paymentMethod, confirm);
+    await connection`UPDATE fiat_intents SET response = ${connection.json(response)}, provider_id = ${response.providerID} WHERE id = ${intent.id}`;
 
-    if (type === 'lifetime') {
-      const paymentIntent = await stripe.paymentIntents.create({
+    return response;
+  } finally {
+    await connection`SELECT pg_advisory_unlock(hashtextextended(${`${owner}:${input.requestID}`}, 0))`;
+    connection.release();
+  }
+}
+
+async function createStripePayment(intent: Record<string, any>, customer: string, paymentMethod: string | undefined, confirm: boolean) {
+  const metadata = {id: intent.identity_id, type: intent.plan};
+  const idempotencyKey = `checkout:${intent.id}`;
+  let payment: Stripe.PaymentIntent;
+
+  if (intent.plan === 'lifetime') {
+    payment = await stripe.paymentIntents.create(
+      {
         metadata,
-        customer: customerID,
-        amount: Number(stripeConfig.prices.lifetime),
-        payment_method_types: ['card'],
+        customer,
+        amount: PRICING_TIERS.lifetime,
         currency: 'eur',
-      });
-
-      clientSecret = paymentIntent.client_secret!;
-    } else {
-      const subscriptionParams: Stripe.SubscriptionCreateParams = {
+        payment_method_types: ['card'],
+        ...(confirm && paymentMethod ? {payment_method: paymentMethod} : {}),
+      },
+      {idempotencyKey},
+    );
+  } else {
+    const subscription = await stripe.subscriptions.create(
+      {
         metadata,
-        customer: customerID,
-        items: [{price: stripeConfig.prices[type]}],
+        customer,
+        items: [{price: stripeConfig.prices[intent.plan as 'monthly' | 'annually']}],
         payment_behavior: 'default_incomplete',
-        payment_settings: {
-          save_default_payment_method: 'on_subscription',
-          payment_method_types: ['card'],
-        },
-      };
+        payment_settings: {save_default_payment_method: 'on_subscription', payment_method_types: ['card']},
+      },
+      {idempotencyKey},
+    );
+    const invoiceID = typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
+    if (!invoiceID) throw new Error('Stripe invoice is not available yet');
+    const payments = await stripe.invoicePayments.list({invoice: invoiceID, limit: 1, expand: ['data.payment.payment_intent']});
+    const reference = payments.data[0]?.payment.payment_intent;
+    if (!reference) throw new Error('Stripe payment is not available yet');
+    payment = typeof reference === 'string' ? await stripe.paymentIntents.retrieve(reference) : reference;
+  }
 
-      const subscription = await stripe.subscriptions.create(subscriptionParams);
-      const latestInvoiceID = typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
+  if (confirm && paymentMethod && ['requires_payment_method', 'requires_confirmation'].includes(payment.status)) {
+    payment = await stripe.paymentIntents.confirm(
+      payment.id,
+      {payment_method: paymentMethod, return_url: `${origin}/dashboard`},
+      {idempotencyKey: `confirm:${intent.id}`},
+    );
+  }
+  const step = payment.status === 'succeeded' ? 'finish' : payment.status === 'requires_action' ? 'auth' : 'create';
 
-      if (latestInvoiceID) {
-        const payments = await stripe.invoicePayments.list({
-          invoice: latestInvoiceID,
-          limit: 1,
-          expand: ['data.payment.payment_intent'],
-        });
-
-        const piObj = payments.data[0]?.payment?.payment_intent as Stripe.PaymentIntent;
-        clientSecret = piObj?.client_secret || '';
-      }
-    }
-
-    return {step: 'create', clientSecret, identityID};
-  })
-  .get('/checkout-after-confirm', async ({set, user, query}) => {
-    const type = query?.type as keyof typeof stripeConfig.prices;
-    const identityID = generateIdentityID();
-
-    if (!type) return error(set, 400, 'Missing or invalid query type. Try again');
-    if (!stripeConfig.prices[type]) return error(set, 400, 'Invalid query type. Try again');
-
-    const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const customerID = customer[0]?.stripe_customer;
-
-    const request = (await stripe.customers.retrieve(customerID)) as Stripe.Customer;
-    const paymentMethodsID =
-      typeof request.invoice_settings?.default_payment_method === 'string'
-        ? request.invoice_settings.default_payment_method
-        : request.invoice_settings?.default_payment_method?.id;
-
-    const metadata = {id: identityID, type};
-    let paymentIntentID = '';
-
-    if (type === 'lifetime') {
-      paymentIntentID = (
-        await stripe.paymentIntents.create({
-          metadata,
-          customer: customerID,
-          amount: Number(stripeConfig.prices.lifetime),
-          payment_method_types: ['card'],
-          payment_method: paymentMethodsID,
-          currency: 'eur',
-          confirm: false,
-        })
-      ).id;
-    } else {
-      const subscription = await stripe.subscriptions.create({
-        metadata,
-        customer: customerID,
-        items: [{price: stripeConfig.prices[type]}],
-        payment_behavior: 'default_incomplete',
-        payment_settings: {
-          save_default_payment_method: 'on_subscription',
-        },
-      });
-
-      const latestInvoiceID = typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
-
-      if (latestInvoiceID) {
-        const payments = await stripe.invoicePayments.list({invoice: latestInvoiceID, limit: 1});
-        const piObj = payments.data[0]?.payment?.payment_intent;
-        paymentIntentID = typeof piObj === 'string' ? piObj : piObj!.id;
-      }
-    }
-
-    await stripe.paymentIntents.confirm(paymentIntentID, {
-      payment_method_options: {card: {request_three_d_secure: 'automatic'}},
-    });
-
-    const result = await stripe.paymentIntents.retrieve(paymentIntentID);
-    const clientSecret = result.client_secret;
-    const status = result.status;
-
-    if (status === 'requires_payment_method') return error(set, 400, 'Something went wrong. Please try again.');
-    else if (status === 'requires_action') return {step: 'auth', clientSecret, identityID};
-    else if (status === 'succeeded') return {step: 'finish', identityID};
-  })
-  .group('/customer', (app) =>
-    app
-      .post('/', async ({set, body}) => {
-        const {email, payment, err} = check(body, ['email', '?payment']);
-        if (err) return error(set, 400, err);
-
-        const object = payment ? {email, payment_method: payment, invoice_settings: {default_payment_method: payment}} : {email};
-        const customer = await stripe.customers.create(object);
-
-        if (payment) await stripe.paymentMethods.update(payment, {allow_redisplay: 'always'});
-        await sql`UPDATE users SET stripe_customer = ${customer.id} WHERE email = ${email}`;
-      })
-      .put('/', async ({set, body}) => {
-        const {email, payment, err} = check(body, ['email']);
-        if (err) return error(set, 400, err);
-
-        const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
-        await stripe.paymentMethods.attach(payment, {customer: customer[0]?.stripe_customer});
-        await stripe.customers.update(customer[0]?.stripe_customer, {invoice_settings: {default_payment_method: payment}});
-      })
-      .patch('/', async ({set, body}) => {
-        const {email, err} = check(body, ['email']);
-        if (err) return error(set, 400, err);
-
-        const oldEmail = (body as any)?.oldEmail;
-        const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${oldEmail}`) as QueryUser[];
-        const id = customer[0]?.stripe_customer || '';
-
-        if (id) await stripe.customers.update(id, {email});
-      })
-      .delete('/', async ({set, body}) => {
-        const {email, err} = check(body, ['email']);
-        if (err) return error(set, 400, err);
-
-        const customer = (await sql`SELECT stripe_customer FROM users WHERE email = ${email}`) as QueryUser[];
-        const id = customer[0]?.stripe_customer || '';
-
-        if (id) await stripe.customers.del(customer[0].stripe_customer);
-      }),
-  );
+  return {step, clientSecret: payment.client_secret, identityID: intent.identity_id, providerID: payment.id};
+}

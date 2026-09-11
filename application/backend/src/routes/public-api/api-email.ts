@@ -49,13 +49,19 @@ export default new Elysia({prefix: '/email'})
     if (!response.messageID) return error(set, 400, 'Failed to send email');
     const fullEmail = {...content, messageID: response.messageID, date: response.date};
 
-    const {uid} = await appendToMailbox(false, fullEmail);
-    if (draft) await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
+    let uid;
+    let warning;
+    try {
+      uid = (await appendToMailbox(false, fullEmail)).uid;
+      if (draft) await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
+    } catch {
+      warning = 'Email was sent, but saving it in Sent or removing its draft failed. Do not resend it.';
+    }
 
     delete (fullEmail as {password?: string}).password;
 
     const sentEmail = {...fullEmail, uid, type: response.type};
-    return {draft, sentEmail};
+    return {draft, sentEmail, warning};
   })
   .post('/forward-email/:id', async ({set, identity, body}) => {
     const {err, uid, forward} = await checkAPI(body, ['uid', 'forward']);
@@ -65,13 +71,15 @@ export default new Elysia({prefix: '/email'})
     if (!email) return error(set, 400, 'Failed to fetch email');
 
     if (email.type === 'html') {
+      const escape = (value: unknown) =>
+        String(value ?? '').replace(/[&<>"']/g, (char) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[char]!);
       email.body = `
       <p><strong>--- Forwarded Message ---</strong></p>
-      <p><strong>From:</strong> ${email.from}</p>
-      <p><strong>To:</strong> ${forward}</p>
-      <p><strong>Subject:</strong> ${email.subject}</p>
-      <p><strong>Date:</strong> ${email.date}</p>
-      <p><strong>Subject:</strong> ${email.subject}</p>
+      <p><strong>From:</strong> ${escape(email.from)}</p>
+      <p><strong>To:</strong> ${escape(forward)}</p>
+      <p><strong>Subject:</strong> ${escape(email.subject)}</p>
+      <p><strong>Date:</strong> ${escape(email.date)}</p>
+      <p><strong>Subject:</strong> ${escape(email.subject)}</p>
       <p>${email.body}</p>
     `;
     } else {
@@ -88,19 +96,25 @@ export default new Elysia({prefix: '/email'})
     }
 
     email.subject = email.subject!.toUpperCase().includes('FWD: ') ? email.subject : `FWD: ${email?.subject}`;
-    let forwardEmail = {...email, to: forward, email: identity!.email, password: identity!.email_password};
+    const forwardContent = {...email, to: forward, email: identity!.email, password: identity!.email_password};
 
-    const response = await sendIdentityEmail(forwardEmail as EmailContent);
+    const response = await sendIdentityEmail(forwardContent as EmailContent);
     if (!response.messageID) return error(set, 400, 'Failed to forward email');
 
-    const fullEmail = {...forwardEmail, messageID: response.messageID, date: response.date};
-    const newUID = await appendToMailbox(false, fullEmail as EmailContent);
+    const fullEmail = {...forwardContent, messageID: response.messageID, date: response.date};
+    let saved;
+    let warning;
+    try {
+      saved = await appendToMailbox(false, fullEmail as EmailContent);
+    } catch {
+      warning = 'Email was forwarded, but saving it in Sent failed. Do not resend it.';
+    }
 
     delete (fullEmail as {password?: string}).password;
     delete (fullEmail as {email?: string}).email;
 
-    forwardEmail = {...fullEmail, uid: newUID.uid, type: response.type};
-    return {uid, forward, forwardEmail};
+    const forwardEmail = {...fullEmail, uid: saved?.uid, type: response.type};
+    return {uid, forward, forwardEmail, warning};
   })
   .put('/save-draft/:id', async ({set, identity, body}) => {
     const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
@@ -112,13 +126,14 @@ export default new Elysia({prefix: '/email'})
     const flatReferences = Array.isArray(references) ? references.flat(Infinity) : references;
     const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
 
-    if (draft) await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
     const fullEmail = await appendToMailbox(true, content);
+    if (draft) await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
 
     delete (fullEmail as {password?: string}).password;
     delete (fullEmail as {email?: string}).email;
 
-    const savedDraft = {...fullEmail, ...content};
+    const {password: _password, email: _email, ...safeContent} = content;
+    const savedDraft = {...fullEmail, ...safeContent};
     return {draft, savedDraft};
   })
   .delete('/delete-email/:id', async ({set, identity, body}) => {

@@ -5,12 +5,13 @@ import {wsConnections} from '@core/states';
 import {simpleParser} from 'mailparser';
 import type {EmailContent} from '@type';
 import imap from 'imap-simple';
+import {randomUUID} from 'node:crypto';
 
-export async function listenForEmail(user: string, password: string) {
+export async function listenForEmail(user: string, password: string): Promise<imap.ImapSimple | null> {
   let connection: imap.ImapSimple | null = null;
 
   async function onmail(mail: number) {
-    if (mail > 1 || !connection) return;
+    if (mail < 1 || !connection) return;
 
     await connection.openBox('INBOX');
     const messages = await connection.search([`UNSEEN`], {bodies: ['']});
@@ -20,7 +21,7 @@ export async function listenForEmail(user: string, password: string) {
 
       const sockets = wsConnections.values().filter((ws) => ws.emailAddress === user);
       for (const ws of sockets) {
-        ws.websocket.send(JSON.stringify({type: 'email', email}));
+        if (await ws.authorize()) ws.websocket.send(JSON.stringify({type: 'email', email}));
       }
     }
   }
@@ -48,13 +49,13 @@ export async function listenForEmail(user: string, password: string) {
 }
 
 export async function fetchMoreEmails(user: string, password: string, mailbox: string, since: number) {
-  if (since < 0) return [];
+  if (!Number.isInteger(since) || since <= 1) return [];
   const connection = await imapConnection(user, password);
   let inbox;
 
   try {
-    const start = since - EMAIL_FETCH_LIMIT < 0 ? 1 : since - (EMAIL_FETCH_LIMIT - 1);
-    const query = `${start}:${since}`;
+    const start = Math.max(1, since - EMAIL_FETCH_LIMIT);
+    const query = `${start}:${since - 1}`;
     inbox = await getInbox(mailbox, connection, query);
   } finally {
     connection.end();
@@ -110,49 +111,48 @@ export async function fetchEmail(user: string, password: string, isReply: boolea
 
 export async function appendToMailbox(asDraft: boolean, content: EmailContent & {messageID?: string; date?: Date}) {
   const connection = await imapConnection(content.email, content.password);
-  if (asDraft) await connection.openBox('Drafts');
-  else await connection.openBox('Sent');
 
-  const shownDate = content.date || new Date();
-
-  const attachmentsList = content.attachments.map((attachment) => {
-    return {
+  try {
+    await connection.openBox(asDraft ? 'Drafts' : 'Sent');
+    const date = content.date || new Date();
+    const messageID = content.messageID || `<${randomUUID()}@${content.email.split('@')[1]}>`;
+    const type = /<[a-z][^>]*>/i.test(content.body) ? 'html' : 'text';
+    const attachments = (content.attachments || []).map((attachment) => ({
       filename: attachment.filename,
-      content: attachment.data.split(',')[1],
+      content: attachment.data.includes(',') ? attachment.data.split(',')[1] : attachment.data,
       encoding: 'base64',
-    };
-  });
+    }));
+    const mail = new MailComposer({
+      messageId: messageID,
+      from: content.email,
+      to: content.to,
+      subject: content.subject,
+      ...(type === 'html' ? {html: content.body} : {text: content.body}),
+      references: content.references,
+      inReplyTo: content.inReplyTo,
+      attachments,
+      date,
+    });
 
-  const mail = new MailComposer({
-    messageId: content.messageID,
-    from: content.email,
-    to: content.to,
-    subject: content.subject,
-    text: content.body,
-    html: content.body,
-    references: content.references,
-    inReplyTo: content.inReplyTo,
-    attachments: attachmentsList,
-    date: content.date,
-  });
+    await connection.append(await mail.compile().build(), {flags: asDraft ? ['\\Seen', '\\Draft'] : ['\\Seen']});
+    const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {bodies: ['']});
+    if (!messages[0]) throw new Error('Saved message could not be located');
 
-  const RFC822Message = await mail.compile().build();
-  await connection.append(RFC822Message, {flags: ['\\Seen']});
-
-  const message = await connection.search([['SINCE', shownDate]], {bodies: ['']});
-  const type = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(content.body) ? 'html' : 'text';
-  const messageID = message[0].parts[0].body['message-id'][0];
-  const {uid, date} = message[0].attributes;
-
-  connection.end();
-  return {uid, date, messageID, type};
+    return {uid: messages[0].attributes.uid, date, messageID, type};
+  } finally {
+    connection.end();
+  }
 }
 
 export async function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
   const connection = await imapConnection(user, password);
-  await connection.openBox(mailbox);
-  await connection.moveMessage(uid.toString(), 'Junk');
-  connection.end();
+
+  try {
+    await connection.openBox(mailbox);
+    await connection.moveMessage(uid.toString(), 'Junk');
+  } finally {
+    connection.end();
+  }
 }
 
 async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
@@ -169,7 +169,7 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
   if (messagesCount === 0) return {messagesCount: 0, emails: []};
 
   await connection.openBox(inbox);
-  const lastMessages = messagesCount - EMAIL_FETCH_LIMIT < 0 ? 1 : messagesCount - EMAIL_FETCH_LIMIT;
+  const lastMessages = Math.max(1, messagesCount - EMAIL_FETCH_LIMIT + 1);
   const searchQuery = query ? query : `${lastMessages}:${messagesCount || 1}`;
 
   const messages = await connection.search([searchQuery], {bodies: ['']});
@@ -187,9 +187,7 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
       }
     }
 
-    parseMassage(connection, message)
-      .catch(() => {})
-      .then((result) => emails.unshift(result));
+    emails.unshift(await parseMassage(connection, message));
   }
 
   return {messagesCount, emails};
@@ -197,39 +195,21 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
 
 async function parseMassage(connection: imap.ImapSimple, message: imap.Message) {
   if (!message.attributes.flags.includes('\\Seen')) {
-    connection.addFlags(message.attributes.uid, ['\\Seen']);
+    await connection.addFlags(message.attributes.uid, ['\\Seen']);
   }
 
   const rawEmail = message.parts.find((part) => part.which === '')?.body;
   const email = await simpleParser(rawEmail);
 
-  const attachments = email.attachments
-    .filter((att) => att.filename && !att.filename.includes('.asc'))
-    .map((att) => ({
-      filename: att.filename!,
-      data: att.content.toString('base64'),
-    }));
-
+  const attachments = email.attachments.map((attachment) => ({
+    filename: attachment.filename || 'attachment',
+    data: attachment.content.toString('base64'),
+    cid: attachment.contentId,
+    contentType: attachment.contentType,
+  }));
   const uid = message.attributes.uid;
-  const contentType = (email.headers.get('content-type') as any)?.value;
-
-  const isHtmlContentType =
-    typeof contentType === 'string' &&
-    (contentType.includes('text/html') ||
-      contentType.includes('multipart/alternative') ||
-      contentType.includes('multipart/signed') ||
-      contentType.includes('multipart/mixed') ||
-      contentType.includes('multipart/related'));
-
-  const hasHtmlTags = !!email.html && /<\/?(html|body|head|title|div|p|span|table|a|img)[^>]*>/i.test(email.html);
-  const isHtml = isHtmlContentType && hasHtmlTags;
-  const type = isHtml ? 'html' : 'text';
-
-  let body = email.text;
-  if (type === 'html' && typeof email.html === 'string') {
-    const htmlMatch = email.html.match(/<body[^>]*>(.*?)<\/body>/is) || email.html.match(/<html[^>]*>(.*?)<\/html>/is);
-    body = htmlMatch ? htmlMatch[1] : email.html;
-  }
+  const type = typeof email.html === 'string' && email.html ? 'html' : 'text';
+  const body = type === 'html' ? email.html || '' : email.text || '';
 
   const to = email.to && Array.isArray(email.to) ? email.to.map((t) => t.text).join(', ') : email.to?.text;
 
@@ -246,7 +226,7 @@ async function parseMassage(connection: imap.ImapSimple, message: imap.Message) 
     messageID: email.messageId,
     subject: email.subject,
     from: email.from?.text,
-    date: email.date,
+    date: email.date || message.attributes.date,
     to: to?.toString(),
     inReplyTo: email.inReplyTo,
     references,

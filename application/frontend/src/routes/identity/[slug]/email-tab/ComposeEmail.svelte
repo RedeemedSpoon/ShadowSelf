@@ -2,6 +2,7 @@
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import type {EditorParams, Email} from '$type';
   import type {Writable} from 'svelte/store';
+  import {sanitizeEmailHtml} from '$utils/shared';
   import {onMount} from 'svelte';
 
   interface Props {
@@ -50,7 +51,8 @@
 
     if (isDraft && singleRun && $target) {
       singleRun = false;
-      quill.root.innerHTML = isTypeHTML ? $target.body : $target.body.replaceAll('\n', '<br>');
+      if (isTypeHTML) quill.clipboard.dangerouslyPasteHTML(sanitizeEmailHtml($target.body));
+      else quill.setText($target.body);
 
       const recipient = document.querySelector('input[name="recipient"]') as HTMLInputElement;
       const subject = document.querySelector('input[name="subject"]') as HTMLInputElement;
