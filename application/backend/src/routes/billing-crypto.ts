@@ -1,7 +1,8 @@
+import {allocateInvoiceAddress, quoteXmr} from '@core/wallet-service';
+import {SOCKET_AUTH_INTERVAL} from '@core/constants';
 import {cryptoPrices, invoiceConnections, watchWallet} from '@core/states';
-import {CRYPTO_DISCOUNT, PRICING_TIERS} from '@core/constants';
+import {CRYPTO_DISCOUNT, PRICING_TIERS, PAYMENT_WINDOW_MIN} from '@core/constants';
 import middlewareBase from '@middlewares/middleware-base';
-import type {QueryUser} from '@type';
 import {trocadorApiKey} from '@core/config';
 import {error, net} from '@utils/utils';
 import {checkAPI} from '@utils/checks';
@@ -18,158 +19,19 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
       return error(set, 401, 'You are not logged in');
     }
   })
-  .post('/new-invoice', async ({set, user, body}) => {
-    const {err, plan, swapCoin, refundAddress} = await checkAPI(body, ['plan', 'swapCoin', '?refundAddress']);
-    if (err) return error(set, 400, err);
-
-    const fiatPrice = PRICING_TIERS[plan as keyof typeof PRICING_TIERS] / 100;
-    const discountedPrice = fiatPrice * (1 - CRYPTO_DISCOUNT / 100);
-    const xmrPrice = cryptoPrices.xmr?.usdPrice;
-
-    if (!xmrPrice) return error(set, 503, 'Crypto prices are currently unavailable');
-
-    const xmrAmount = discountedPrice / xmrPrice;
-    const subaddress = await watchWallet.createSubaddress(0, `Invoice for ${user!.email}`);
-    const xmrSubaddress = subaddress.getAddress();
-
-    const customer = (await sql`SELECT id FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const owner = customer[0].id;
-
-    const invoiceResult = await sql`
-      INSERT INTO crypto_invoices (owner, plan, xmr_subaddress, xmr_amount)
-      VALUES (${owner}, ${plan}, ${xmrSubaddress}, ${xmrAmount})
-      RETURNING id
-    `;
-
-    const invoiceID = invoiceResult[0].id;
-
-    if (swapCoin === 'xmr') {
-      return {
-        invoiceID,
-        depositAddress: xmrSubaddress,
-        depositAmount: xmrAmount,
-        coin: 'xmr',
-      };
-    }
-
-    const params = new URLSearchParams({
-      ticker_from: swapCoin,
-      ticker_to: 'xmr',
-      network_from: net(swapCoin),
-      network_to: 'Mainnet',
-      amount_to: String(xmrAmount),
-      address: xmrSubaddress,
-      address_memo: '0',
-      refund: refundAddress,
-      refund_memo: '0',
-    });
-
-    try {
-      const response = await fetch(`https://api.trocador.app/new_trade?${params.toString()}`, {
-        headers: {'API-Key': trocadorApiKey},
-        method: 'GET',
-      });
-
-      const data = await response.json();
-      if (!response.ok || (data as any).error) {
-        return error(set, 400, (data as any).error || 'Failed to create trade at provider');
-      }
-
-      return {
-        invoiceID,
-        depositAddress: data.address_provider,
-        depositAmount: data.amount_from,
-        depositMemo: data.address_provider_memo,
-        providerTradeID: data.id_provider,
-        externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
-        coin: swapCoin,
-      };
-    } catch (_) {
-      return error(set, 502, 'Upstream Service Error');
-    }
-  })
-  .post('/renew', async ({set, user, body}) => {
-    const fields = ['plan', 'swapCoin', 'identityID', '?refundAddress'];
-    const {err, plan, swapCoin, refundAddress, identityID} = await checkAPI(body, fields);
-    if (err) return error(set, 400, err);
-
-    const customer = (await sql`SELECT id FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const owner = customer[0].id;
-
-    const identity = await sql`SELECT id, plan FROM identities WHERE id = ${identityID} AND owner = ${owner}`;
-    if (!identity.length) return error(set, 404, 'Identity not found');
-    if (identity[0].plan !== plan) return error(set, 404, 'Plan does not match');
-
-    const fiatPrice = PRICING_TIERS[plan as keyof typeof PRICING_TIERS] / 100;
-    const discountedPrice = fiatPrice * (1 - CRYPTO_DISCOUNT / 100);
-    const xmrPrice = cryptoPrices.xmr?.usdPrice;
-
-    if (!xmrPrice) return error(set, 503, 'Crypto prices are currently unavailable');
-
-    const xmrAmount = discountedPrice / xmrPrice;
-    const subaddress = await watchWallet.createSubaddress(0, `Renewal for ${identityID}`);
-    const xmrSubaddress = subaddress.getAddress();
-
-    const invoiceResult = await sql`
-      INSERT INTO crypto_invoices (owner, plan, xmr_subaddress, xmr_amount, renewal_id)
-      VALUES (${owner}, ${plan}, ${xmrSubaddress}, ${xmrAmount}, ${identityID})
-      RETURNING id
-    `;
-
-    const invoiceID = invoiceResult[0].id;
-
-    if (swapCoin === 'xmr') {
-      return {
-        invoiceID,
-        identityID: identityID,
-        depositAddress: xmrSubaddress,
-        depositAmount: xmrAmount,
-        coin: 'xmr',
-      };
-    }
-
-    const params = new URLSearchParams({
-      ticker_from: swapCoin,
-      ticker_to: 'xmr',
-      network_from: net(swapCoin),
-      network_to: 'Mainnet',
-      amount_to: String(xmrAmount),
-      address: xmrSubaddress,
-      address_memo: '0',
-      refund: refundAddress,
-      refund_memo: '0',
-    });
-
-    try {
-      const response = await fetch(`https://api.trocador.app/new_trade?${params.toString()}`, {
-        headers: {'API-Key': trocadorApiKey},
-        method: 'GET',
-      });
-
-      const data = await response.json();
-      if (!response.ok || (data as any).error) {
-        return error(set, 400, (data as any).error || 'Failed to create trade at provider');
-      }
-
-      return {
-        invoiceID,
-        identityID: identityID,
-        depositAddress: data.address_provider,
-        depositAmount: data.amount_from,
-        depositMemo: data.address_provider_memo,
-        providerTradeID: data.id_provider,
-        externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
-        coin: swapCoin,
-      };
-    } catch (_) {
-      return error(set, 502, 'Upstream Service Error');
-    }
-  })
+  .post('/new-invoice', ({set, user, body}) => createInvoice(set, user?.email, body, false))
+  .post('/renew', ({set, user, body}) => createInvoice(set, user?.email, body, true))
   .ws('/track-invoice/:id', {
     params: t.Object({id: t.String()}),
     async open(ws) {
       const invoiceID = ws.data.params.id;
-      const invoice = await sql`SELECT status FROM crypto_invoices WHERE id = ${invoiceID}`;
+      const authorize = ws.data.authorize;
+      const user = ws.data.user;
+      if (!user || !(await authorize())) return ws.close(1008, 'Session expired');
+
+      const invoice = await sql`SELECT c.status, i.id AS identity_id FROM crypto_invoices c JOIN users u ON u.id = c.owner
+        LEFT JOIN identities i ON i.crypto_invoice = c.id AND i.owner = c.owner
+        WHERE c.id = ${invoiceID} AND u.email = ${user.email}`;
 
       if (!invoice.length) {
         ws.send(JSON.stringify({error: 'Invoice not found'}));
@@ -177,15 +39,98 @@ export default new Elysia({prefix: '/crypto', websocket: {idleTimeout: 300}})
         return ws.close();
       }
 
-      ws.send(JSON.stringify({status: invoice[0].status}));
-      invoiceConnections.set(ws.id, {websocket: ws, invoiceID});
+      ws.send(JSON.stringify({status: invoice[0].status, identityID: invoice[0].identity_id}));
+      const authTimer = setInterval(async () => {
+        if (!(await authorize())) ws.close(1008, 'Session expired');
+      }, SOCKET_AUTH_INTERVAL);
+      invoiceConnections.set(ws.id, {websocket: ws, invoiceID, authorize, authTimer});
     },
 
     async close(ws) {
+      clearInterval(invoiceConnections.get(ws.id)?.authTimer);
       invoiceConnections.delete(ws.id);
     },
 
     async message(ws, message) {
+      if (!(await ws.data.authorize())) return ws.close(1008, 'Session expired');
+
       if (message === 'ping') ws.send('pong');
     },
   });
+
+async function createInvoice(set: Record<string, any>, email: string | undefined, body: unknown, renewal: boolean) {
+  if (!email) return error(set, 401, 'You are not logged in');
+  const fields = ['plan', 'swapCoin', '?refundAddress', ...(renewal ? ['identityID'] : [])];
+  const {err, plan, swapCoin, refundAddress, identityID} = await checkAPI(body, fields);
+  if (err) return error(set, 400, err);
+  const requestID = (body as {requestID?: string})?.requestID;
+  if (!/^[a-f0-9-]{36}$/.test(requestID || '')) return error(set, 400, 'A payment request ID is required');
+  if (!watchWallet || !cryptoPrices.xmr?.usdPrice) return error(set, 503, 'Crypto billing is initializing');
+
+  const users = await sql`SELECT id FROM users WHERE email = ${email}`;
+  const owner = users[0].id;
+  if (renewal) {
+    const identities = await sql`SELECT id FROM identities WHERE id = ${identityID} AND owner = ${owner} AND plan = ${plan} AND status <> 'deleting'`;
+    if (!identities.length) return error(set, 404, 'Identity not found or plan does not match');
+  }
+  const xmrAmount = quoteXmr(PRICING_TIERS[plan as keyof typeof PRICING_TIERS], CRYPTO_DISCOUNT, cryptoPrices.xmr.usdPrice);
+  await sql`INSERT INTO crypto_invoices (owner, plan, xmr_amount, renewal_id, request_id, swap_coin, refund_address)
+    VALUES (${owner}, ${plan}, ${xmrAmount}, ${renewal ? identityID : null}, ${requestID!}, ${swapCoin}, ${refundAddress || null})
+    ON CONFLICT (owner, request_id) DO NOTHING`;
+
+  const connection = await sql.reserve();
+  try {
+    await connection`SELECT pg_advisory_lock(hashtextextended(${`${owner}:${requestID}`}, 0))`;
+    const invoices = await connection`SELECT * FROM crypto_invoices WHERE owner = ${owner} AND request_id = ${requestID!}`;
+    const invoice = invoices[0];
+    if (invoice.plan !== plan || invoice.swap_coin !== swapCoin || (invoice.renewal_id || null) !== (renewal ? identityID : null)) {
+      return error(set, 409, 'This payment request has different details. Start a new purchase');
+    }
+    if (invoice.response) return invoice.response;
+    if (Date.now() >= new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000) return error(set, 410, 'Quote expired. Start a new purchase');
+    if (invoice.provider_state === 'requested')
+      return error(set, 503, 'Provider request needs reconciliation. Do not send payment or retry with a new purchase');
+
+    if (!invoice.xmr_subaddress) {
+      const address = await allocateInvoiceAddress(invoice.id);
+      await connection`UPDATE crypto_invoices SET xmr_subaddress = ${address} WHERE id = ${invoice.id}`;
+      invoice.xmr_subaddress = address;
+    }
+    let response;
+    if (swapCoin === 'xmr') response = {invoiceID: invoice.id, depositAddress: invoice.xmr_subaddress, depositAmount: invoice.xmr_amount, coin: swapCoin};
+    else {
+      await connection`UPDATE crypto_invoices SET provider_state = 'requested' WHERE id = ${invoice.id}`;
+      const params = new URLSearchParams({
+        ticker_from: swapCoin,
+        ticker_to: 'xmr',
+        network_from: net(swapCoin),
+        network_to: 'Mainnet',
+        amount_to: invoice.xmr_amount,
+        address: invoice.xmr_subaddress,
+        address_memo: '0',
+        refund: refundAddress || '',
+        refund_memo: '0',
+      });
+      const provider = await fetch(`https://api.trocador.app/new_trade?${params}`, {headers: {'API-Key': trocadorApiKey}, signal: AbortSignal.timeout(30_000)});
+      const trade = await provider.json();
+      if (!provider.ok || trade.error || !trade.trade_id || !trade.address_provider || !trade.amount_from)
+        throw new Error('Provider request needs reconciliation');
+      response = {
+        invoiceID: invoice.id,
+        depositAddress: trade.address_provider,
+        depositAmount: trade.amount_from,
+        depositMemo: trade.address_provider_memo,
+        providerTradeID: trade.id_provider,
+        externalLink: `https://trocador.app/en/checkout/${trade.trade_id}`,
+        coin: swapCoin,
+      };
+      await connection`UPDATE crypto_invoices SET provider_reference = ${trade.trade_id}, provider_state = 'created' WHERE id = ${invoice.id}`;
+    }
+    await connection`UPDATE crypto_invoices SET response = ${connection.json(response)} WHERE id = ${invoice.id}`;
+
+    return response;
+  } finally {
+    await connection`SELECT pg_advisory_unlock(hashtextextended(${`${owner}:${requestID}`}, 0))`;
+    connection.release();
+  }
+}

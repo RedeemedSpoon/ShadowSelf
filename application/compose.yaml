@@ -27,33 +27,43 @@ services:
 
   postgres:
     build: ./database
-    expose:
-      - 5432
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 127.0.0.1:5432:5432
     env_file:
       - ./database/.env
     volumes:
-      - data:/var/lib/postgresql/data
+      - data:/var/lib/postgresql
     restart: always
     init: true
 
   backend:
     build: ./backend
+    healthcheck:
+      test: ['CMD', 'bun', '-e', "fetch('http://localhost:3000/health/live').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
     expose:
       - 3000
     env_file:
       - ./backend/.env
       - ./database/.env
-    volumes:
-      - /etc/passwd:/etc/passwd
-      - /etc/shadow:/etc/shadow
-      - /etc/group:/etc/group
-      - /home:/home
     depends_on:
       - postgres
     restart: always
     init: true
 
   frontend:
+    healthcheck:
+      test: ['CMD', 'bun', '-e', "fetch('http://localhost:5000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
     build:
       context: ./frontend
       args:

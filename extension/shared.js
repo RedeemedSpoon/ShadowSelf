@@ -17,17 +17,26 @@ export async function sleep(time) {
   await new Promise((resolve) => setTimeout(resolve, time));
 }
 
-export async function request(url, method, data) {
-  const response = await fetch(url, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + (await read('cookie')),
-    },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
+export async function request(url, method = 'GET') {
+  if (url !== `https://${origin}/api/proxy` || method !== 'GET') throw new Error('Unsupported extension request');
 
-  if (!response.ok) return await response.text();
-  return await response.json();
+  const tabId = await read('accountTab');
+  if (!Number.isInteger(tabId)) return 'Select a signed-in ShadowSelf tab first.';
+
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (new URL(tab.url).origin !== `https://${origin}`) return 'The selected tab is no longer on ShadowSelf.';
+
+    const results = await chrome.scripting.executeScript({
+      target: {tabId},
+      func: async () => {
+        const response = await fetch('/api/proxy', {credentials: 'same-origin', cache: 'no-store'});
+        return response.ok ? await response.json() : await response.text();
+      },
+    });
+
+    return results[0]?.result ?? 'Could not read this account. Sign in and try again.';
+  } catch {
+    return 'The selected ShadowSelf tab is unavailable. Synchronize again.';
+  }
 }

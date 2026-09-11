@@ -1,3 +1,4 @@
+import {SENSITIVE_ATTEMPT_WINDOW, SENSITIVE_ATTEMPT_LIMIT} from '@core/constants';
 import type {EmailCodePurpose, EmailCode, EmailDeliveryLimit, SignupDraft} from '@type';
 import {hashVerification} from '@utils/cryptography';
 import {randomInt, randomBytes} from 'node:crypto';
@@ -221,3 +222,19 @@ export function getSignupDraft(id: unknown, consume = false) {
 const emailCodes = new Map<string, EmailCode>();
 const emailDeliveries = new Map<string, EmailDeliveryLimit>();
 const signupDrafts = new Map<string, SignupDraft>();
+
+const sensitiveAttempts = new Map<string, {count: number; expiresAt: number}>();
+
+export function claimSensitiveAttempt(email: string) {
+  for (const [key, entry] of sensitiveAttempts) {
+    if (entry.expiresAt <= Date.now()) sensitiveAttempts.delete(key);
+  }
+
+  const entry = sensitiveAttempts.get(email) ?? {count: 0, expiresAt: Date.now() + SENSITIVE_ATTEMPT_WINDOW};
+  if (entry.count >= SENSITIVE_ATTEMPT_LIMIT || (sensitiveAttempts.size >= VERIFICATION_CAPACITY && !sensitiveAttempts.has(email))) return false;
+
+  entry.count++;
+  sensitiveAttempts.set(email, entry);
+
+  return true;
+}

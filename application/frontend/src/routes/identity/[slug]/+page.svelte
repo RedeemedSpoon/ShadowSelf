@@ -71,19 +71,23 @@
     const password = inputElement.value || DEFAULT_MASTER_PASSWORD;
 
     const newKey = await deriveMasterKey(password, $identity.id);
+    if (!(await decrypt($identity.walletBlob, newKey))) {
+      $pendingID = 0;
+      return notify('Incorrect master password', 'alert');
+    }
+
     const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
     const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
 
     $masterPassword = base64Key;
-    localStorage.setItem('key-' + $identity.id, base64Key);
-    window.location.reload();
+    $activeModal = 0;
+    $pendingID = 0;
   }
 
   async function changeMasterPassword() {
     $pendingID = 1;
     await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
 
-    // Account vault
     const inputElement = document.querySelector('input#change-master') as HTMLInputElement;
     const password = inputElement.value || DEFAULT_MASTER_PASSWORD;
 
@@ -97,7 +101,7 @@
         const oldPassword = await decrypt(account.password);
         const oldTotp = account.totp ? await decrypt(account.totp) : 'unable to decrypt';
 
-        if (oldPassword === 'unable to decrypt' && oldTotp === 'unable to decrypt') return account;
+        if (!oldPassword || (account.totp && !oldTotp)) throw new Error('Could not decrypt the complete vault');
 
         return {
           id: account.id,
@@ -107,10 +111,6 @@
       }),
     );
 
-    const accountResponse = await fetchAPI<AccountAPI>('account/update-encryption', 'PUT', {accounts: updatedAccounts});
-    if (accountResponse.err) return notify(accountResponse.err, 'alert');
-
-    // Crypto wallet
     const mnemonic = await decrypt($identity.walletBlob);
     const blob = await encrypt(mnemonic, newKey);
 
@@ -120,19 +120,21 @@
       address: await encrypt(await decrypt($identity.walletKeys.xmr.address), newKey),
     };
 
-    const walletResponse = await fetchAPI<CryptoAPI>('crypto/update-encryption', 'PUT', {blob, keys});
+    const walletResponse = await fetchAPI<CryptoAPI>('account/update-encryption', 'PUT', {accounts: updatedAccounts, blob, keys});
     if (walletResponse.err) return notify(walletResponse.err, 'alert');
 
+    $identity = {...$identity, walletBlob: blob, walletKeys: {...$identity.walletKeys, xmr: keys}};
     $masterPassword = base64Key;
-    localStorage.setItem('key-' + $identity.id, base64Key);
-    window.location.reload();
+    $activeModal = 0;
+    $pendingID = 0;
   }
 
   onMount(() => {
-    $masterPassword = localStorage.getItem('key-' + data.slug) || '';
+    $masterPassword = '';
+    localStorage.removeItem('key-' + data.slug);
     if ($identity?.id) {
       let pingInterval: unknown;
-      ws = new WebSocket(`wss://${page.url.hostname}/ws-api/${data.identity?.id}`);
+      ws = new WebSocket(`${page.url.protocol === 'https:' ? 'wss:' : 'ws:'}//${page.url.host}/ws-api/${data.identity?.id}`);
 
       ws.onopen = () => {
         pingInterval = setInterval(() => ws?.send('ping'), 5000);
@@ -232,6 +234,7 @@
         <button type="button" onclick={() => ($activeModal = 3)} class="alt w-fit p-0">Delete Identity</button>
         <input type="hidden" name="id" value={data.identity.id} />
 
+        <input type="password" name="currentPassword" placeholder="Current account password" autocomplete="current-password" required />
         <ConfirmModal id={3} text="Deleting permanently this identity" name="delete" />
 
         <Modal id={1}>

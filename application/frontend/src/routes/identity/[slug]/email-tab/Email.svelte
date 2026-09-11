@@ -99,6 +99,7 @@
     const response = await fetchAPI<EmailAPI>('email/forward-email', 'POST', {forward, uid: Number($target!.uid)});
     if (response.err) return notify(response.err, 'alert');
 
+    if (response.warning) notify(response.warning, 'info');
     inbox.emails.sent.unshift(response.forwardEmail!);
     $pendingID = 0;
     $activeModal = 0;
@@ -143,6 +144,7 @@
         inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
       }
 
+      if (response.warning) notify(response.warning, 'info');
       inbox.emails.sent.unshift(response.sentEmail!);
       inbox.emails.sentMessagesCount++;
     }

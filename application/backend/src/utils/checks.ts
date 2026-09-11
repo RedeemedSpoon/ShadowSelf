@@ -205,7 +205,9 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 
       const {blob, keys} = body.wallet;
 
-      if (!blob || blob.length < 20) {
+      if (!keys.xmr || ![keys.xmr.address, keys.xmr.viewKey, keys.xmr.spendKey].every(validCiphertext)) return {error: 'Invalid encrypted Monero keys'};
+
+      if (!validCiphertext(blob)) {
         return {error: 'Invalid wallet encryption blob'};
       }
 
@@ -240,7 +242,7 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 }
 
 export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIRequest> {
-  if (!rawBody || typeof rawBody !== 'object') return {err: 'Invalid request body'} as APIRequest;
+  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) return {err: 'Invalid request body'} as APIRequest;
 
   const body = rawBody as APIRequest;
 
@@ -337,14 +339,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'password':
-        if (typeof body.password !== 'string') {
-          return {err: 'Password must be a string'} as APIRequest;
-        }
-
-        if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
-          return {err: 'Password is too weak. Minimum 8 chars, requires letters and numbers.'} as APIRequest;
-        }
-
+        if (!validCiphertext(body.password)) return {err: 'Invalid encrypted password'} as APIRequest;
         break;
 
       case 'website':
@@ -359,14 +354,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'totp':
-        if (typeof body.totp !== 'string') {
-          return {err: 'TOTP secret must be a string'} as APIRequest;
-        }
-
-        if (!/^[A-Za-z0-9+/=]+$/.test(body.totp)) {
-          return {err: 'Invalid TOTP secret, please try again'} as APIRequest;
-        }
-
+        if (!validCiphertext(body.totp)) return {err: 'Invalid encrypted authenticator secret'} as APIRequest;
         break;
 
       case 'algorithm':
@@ -555,7 +543,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'blob':
-        if (typeof body.blob !== 'string' || body.blob.length < 20) {
+        if (!validCiphertext(body.blob)) {
           return {err: 'Invalid wallet encryption blob. Must be a valid encrypted string.'} as APIRequest;
         }
 
@@ -566,15 +554,15 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Keys must be an object'} as APIRequest;
         }
 
-        if (typeof body.keys.address !== 'string' || body.keys.address.length < 20) {
+        if (!validCiphertext(body.keys.address)) {
           return {err: 'Invalid encrypted address in keys'} as APIRequest;
         }
 
-        if (typeof body.keys.spendKey !== 'string' || body.keys.spendKey.length < 20) {
+        if (!validCiphertext(body.keys.spendKey)) {
           return {err: 'Invalid encrypted spendKey in keys'} as APIRequest;
         }
 
-        if (typeof body.keys.viewKey !== 'string' || body.keys.viewKey.length < 20) {
+        if (!validCiphertext(body.keys.viewKey)) {
           return {err: 'Invalid encrypted viewKey in keys'} as APIRequest;
         }
 
@@ -722,4 +710,12 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
   }
 
   return body as unknown as APIRequest;
+}
+
+export function validCiphertext(value: unknown): value is string {
+  if (typeof value !== 'string' || !/^v1\.[A-Za-z0-9+/]+={0,2}$/.test(value) || value.length > 5503) return false;
+  const encoded = value.slice(3);
+  const decoded = Buffer.from(encoded, 'base64');
+
+  return decoded.length >= 29 && decoded.length <= 4124 && decoded.toString('base64') === encoded;
 }

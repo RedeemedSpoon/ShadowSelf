@@ -110,7 +110,7 @@
     </div>
     <hr class="max-md:hidden" />
     <div class="-my-8 flex justify-between max-md:hidden lg:mx-6">
-      <a href="/logout"><button><LogoutIcon />Logout</button></a>
+      <form method="POST" action="/logout"><button><LogoutIcon />Logout</button></form>
       <div class="flex lg:gap-3">
         {#each Object.entries(bottomLinks) as [name, [url, Icon]] (name)}
           {@const SvelteComponent = Icon as Component}

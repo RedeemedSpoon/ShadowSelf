@@ -16,61 +16,11 @@
       <a href="../dashboard/dashboard.html?ignore=true">← Back<span></span></a>
     </header>
     <main>
-      <section id="system">
-        <label class="container">
-          <input type="checkbox" />
-          <span class="checkmark"></span>
-          <p>Use Actual User Agent</p>
-        </label>
+      <section>
+        <h2>Browser identity</h2>
+        <p>ShadowSelf uses your browser's real User-Agent. Changing this header alone creates mismatches with browser APIs and client hints.</p>
+        <pre id="actual-user-agent"></pre>
       </section>
-      <div id="or">
-        <hr />
-        <h3>OR</h3>
-      </div>
-      <section id="user-agent">
-        <div id="device">
-          <p>Device</p>
-          <div class="custom-select">
-            <div class="selected-value">Laptop</div>
-            <ul>
-              <li>Laptop</li>
-              <li>Tablet</li>
-              <li>Phone</li>
-            </ul>
-          </div>
-        </div>
-        <div id="os">
-          <p>Operating System</p>
-          <div class="custom-select">
-            <div class="selected-value">Windows</div>
-            <ul>
-              <li class="laptop">Windows</li>
-              <li class="laptop">macOS</li>
-              <li class="laptop">Linux</li>
-              <li class="laptop">ChromeOS</li>
-              <li class="tablet">iPadOS</li>
-              <li class="tablet">FireOS</li>
-              <li class="phone">iOS</li>
-              <li class="phone">Android</li>
-              <li class="phone">HarmonyOS</li>
-            </ul>
-          </div>
-        </div>
-        <div id="browser">
-          <p>Web Browser</p>
-          <div class="custom-select">
-            <div class="selected-value">Chrome</div>
-            <ul>
-              <li>Chrome</li>
-              <li>Firefox</li>
-              <li>Safari</li>
-              <li>Edge</li>
-              <li>Opera</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-      <small> User Agent is an HTTP header string sent by clients identifying the browser, rendering engine, version, and OS. </small>
     </main>
     <hr />
     <footer>

@@ -184,7 +184,7 @@
         <h1>Or enter the secret key</h1>
         <p class="mb-2">Alternatively, you can paste this secret key into your auth app if you don't have a phone:</p>
         <CopyButton text={secret} change={false} />
-        <p class="mt-2 ml-1 text-sm text-red-500">Make sure to use 'SHA512' as the algorithm</p>
+        <p class="mt-2 ml-1 text-sm text-red-500">Use SHA-1, six digits and a 30-second period.</p>
       </div>
     </div>
     <button type="submit">Next →</button>

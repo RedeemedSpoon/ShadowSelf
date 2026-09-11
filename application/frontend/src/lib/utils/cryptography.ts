@@ -52,14 +52,15 @@ export async function encrypt(data: string, key?: CryptoKey) {
   encryptedDataArray.set(iv);
   encryptedDataArray.set(new Uint8Array(encryptedBuffer), iv.length);
 
-  return btoa(String.fromCharCode(...encryptedDataArray));
+  return 'v1.' + btoa(Array.from(encryptedDataArray, (byte) => String.fromCharCode(byte)).join(''));
 }
 
 export async function decrypt(encryptedString: string, newKey?: CryptoKey) {
+  if (!encryptedString.startsWith('v1.')) throw new Error('Unsupported encrypted value');
   const key = newKey || (await getMasterKey());
 
   const encryptedData = new Uint8Array(
-    atob(encryptedString)
+    atob(encryptedString.slice(3))
       .split('')
       .map((char) => char.charCodeAt(0)),
   );

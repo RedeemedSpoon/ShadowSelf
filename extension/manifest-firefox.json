@@ -35,5 +35,5 @@
     "type": "module"
   },
   "host_permissions": ["<all_urls>"],
-  "permissions": ["webRequest", "webRequestAuthProvider", "declarativeNetRequestWithHostAccess", "notifications", "cookies", "storage", "proxy", "tabs"]
+  "permissions": ["webRequest", "webRequestAuthProvider", "declarativeNetRequestWithHostAccess", "notifications", "storage", "proxy", "tabs", "scripting"]
 }

@@ -1,0 +1,5 @@
+hosts = 127.0.0.1:5432
+user = shadowself_mail
+password = SHADOWSELF_MAIL_DB_PASSWORD
+dbname = SHADOWSELF_DATABASE
+query = SELECT split_part(email, '@', 2) || '/' || split_part(email, '@', 1) || '/' FROM mailboxes WHERE email = '%s'

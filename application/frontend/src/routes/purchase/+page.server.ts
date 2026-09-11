@@ -1,21 +1,22 @@
+import {randomUUID} from 'node:crypto';
 import type {PageServerLoad, Actions} from './$types';
 import {PUBLIC_STRIPE_KEY} from '$env/static/public';
 import {fetchBackend} from '$utils/webfetch';
 
 export const load: PageServerLoad = async () => {
-  return {stripeKey: PUBLIC_STRIPE_KEY};
+  return {stripeKey: PUBLIC_STRIPE_KEY, requestID: randomUUID()};
 };
 
 export const actions = {
   fiatInit: async ({request, cookies}) => {
     const formData = await request.formData();
     const type = formData.get('type')?.toString().toLowerCase();
-    return await fetchBackend(`/billing/fiat/checkout?type=${type}`, 'GET', undefined, cookies.get('token'));
+    return await fetchBackend('/billing/fiat/checkout', 'POST', {type, requestID: formData.get('requestID')}, cookies.get('token'));
   },
   fiatConfirm: async ({request, cookies}) => {
     const formData = await request.formData();
     const type = formData.get('type')?.toString().toLowerCase();
-    return await fetchBackend(`/billing/fiat/checkout-after-confirm?type=${type}`, 'GET', undefined, cookies.get('token'));
+    return await fetchBackend('/billing/fiat/checkout-after-confirm', 'POST', {type, requestID: formData.get('requestID')}, cookies.get('token'));
   },
   cryptoInit: async ({request, cookies}) => {
     const formData = await request.formData();
@@ -23,7 +24,12 @@ export const actions = {
     const swapCoin = formData.get('swapCoin')?.toString().toLowerCase();
     const refundAddress = formData.get('refundAddress')?.toString();
 
-    return await fetchBackend(`/billing/crypto/new-invoice`, 'POST', {plan, swapCoin, refundAddress}, cookies.get('token'));
+    return await fetchBackend(
+      `/billing/crypto/new-invoice`,
+      'POST',
+      {plan, swapCoin, refundAddress, requestID: formData.get('requestID')},
+      cookies.get('token'),
+    );
   },
   cryptoRenew: async ({request, cookies}) => {
     const formData = await request.formData();
@@ -32,6 +38,11 @@ export const actions = {
     const refundAddress = formData.get('refundAddress')?.toString();
     const identityID = formData.get('identityID')?.toString();
 
-    return await fetchBackend(`/billing/crypto/renew`, 'POST', {plan, swapCoin, refundAddress, identityID}, cookies.get('token'));
+    return await fetchBackend(
+      `/billing/crypto/renew`,
+      'POST',
+      {plan, swapCoin, refundAddress, identityID, requestID: formData.get('requestID')},
+      cookies.get('token'),
+    );
   },
 } satisfies Actions;

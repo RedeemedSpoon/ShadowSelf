@@ -1,7 +1,8 @@
+import DOMPurify from 'dompurify';
 import {NOTIFICATION_DURATION, SLEEP_DURATION} from '$constant';
 import {notification, activeModal, pendingID} from '$store';
 import type {Cookies} from '@sveltejs/kit';
-import type {Notification} from '$type';
+import type {Notification, Attachment} from '$type';
 import {get} from 'svelte/store';
 
 export function notify(message: string, type: Notification['type'] = 'info') {
@@ -44,7 +45,8 @@ export function createCookie(cookies: Cookies, name: string, value: string, shor
     secure: true,
     sameSite: 'strict',
     expires: new Date(Date.now() + (short ? oneHour : ninetyDays)),
-    maxAge: short ? oneHour : ninetyDays,
+    httpOnly: true,
+    maxAge: (short ? oneHour : ninetyDays) / 1000,
   });
 }
 
@@ -80,4 +82,34 @@ export function getCountriesFlags() {
       return [countryCode, url as string];
     }),
   );
+}
+
+export function sanitizeEmailHtml(html: string, attachments: Attachment[] = []) {
+  if (typeof window === 'undefined') return '';
+
+  const clean = DOMPurify.sanitize(html, {
+    USE_PROFILES: {html: true},
+    FORBID_TAGS: ['style', 'link', 'meta', 'base', 'form', 'input', 'button', 'video', 'audio', 'source', 'iframe', 'object', 'embed'],
+    FORBID_ATTR: ['style', 'srcset', 'background', 'ping', 'action', 'formaction'],
+  });
+  const document = new DOMParser().parseFromString(clean, 'text/html');
+
+  for (const element of document.querySelectorAll('[src]')) {
+    let source = element.getAttribute('src') || '';
+    if (source.startsWith('cid:')) {
+      const attachment = attachments.find((attachment) => attachment.cid?.replace(/[<>]/g, '') === source.slice(4));
+      if (attachment) source = `data:${attachment.contentType};base64,${attachment.data}`;
+      element.setAttribute('src', source);
+    }
+    if (element.tagName !== 'IMG' || !/^data:image\/(png|jpeg|gif|webp);base64,[a-z0-9+/=]+$/i.test(source)) element.removeAttribute('src');
+  }
+
+  for (const link of document.querySelectorAll('a')) {
+    const href = link.getAttribute('href') || '';
+    if (!/^(https?:|mailto:)/i.test(href)) link.removeAttribute('href');
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+  }
+
+  return document.body.innerHTML;
 }

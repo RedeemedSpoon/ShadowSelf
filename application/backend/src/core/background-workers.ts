@@ -1,94 +1,58 @@
+import {repairStripeEvents} from '@core/stripe-service';
+import {withBillingWallet, saveWalletState, parseXmr, invoiceState} from '@core/wallet-service';
 import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, POLL_CLEANUP_INTERVAL} from '@core/constants';
-import {cryptoFees, cryptoPrices, invoiceConnections, watchWallet, setWatchWallet} from '@core/states';
+import {cryptoFees, cryptoPrices, invoiceConnections, watchWallet} from '@core/states';
 import {BTC_API, ETH_API, LTC_API, XMR_NODE, COINGECKO_URL} from '@core/constants';
-import {PAYMENT_WINDOW_MIN, RESTORE_HEIGHT} from '@core/constants';
+import {PAYMENT_WINDOW_MIN} from '@core/constants';
 import type {CryptoCurrencies, QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
-import {moneroWallet} from '@core/config';
 import {safeFetch} from '@utils/utils';
 import {sql} from '@core/services';
-import moneroTs from 'monero-ts';
-
-async function initMoneroWallet() {
-  const cacheQuery = await sql`SELECT keys_data, cache_data FROM wallet_cache WHERE id = 1`;
-
-  if (cacheQuery.length > 0) {
-    setWatchWallet(
-      await moneroTs.openWalletFull({
-        password: moneroWallet.password,
-        networkType: moneroTs.MoneroNetworkType.MAINNET,
-        server: XMR_NODE,
-        keysData: cacheQuery[0].keys_data,
-        cacheData: cacheQuery[0].cache_data,
-      }),
-    );
-  } else {
-    setWatchWallet(
-      await moneroTs.createWalletFull({
-        password: moneroWallet.password,
-        networkType: moneroTs.MoneroNetworkType.MAINNET,
-        primaryAddress: moneroWallet.address,
-        privateViewKey: moneroWallet.viewKey,
-        server: XMR_NODE,
-        restoreHeight: RESTORE_HEIGHT,
-      }),
-    );
-
-    await watchWallet.sync();
-    await saveWalletState();
-  }
-}
-
-async function saveWalletState() {
-  if (!watchWallet) return;
-  const data = await watchWallet.getData();
-  const keysBuffer = Buffer.from(data[0].buffer, data[0].byteOffset, data[0].byteLength);
-  const cacheBuffer = Buffer.from(data[1].buffer, data[1].byteOffset, data[1].byteLength);
-
-  await sql`
-    INSERT INTO wallet_cache (id, keys_data, cache_data)
-    VALUES (1, ${keysBuffer}, ${cacheBuffer})
-    ON CONFLICT (id) DO UPDATE SET
-      keys_data = EXCLUDED.keys_data,
-      cache_data = EXCLUDED.cache_data
-  `;
-}
 
 async function pollInvoices() {
   if (!watchWallet) return;
 
   await watchWallet.sync();
-  const invoices = (await sql`SELECT * FROM crypto_invoices WHERE status IN ('pending', 'confirming', 'underpaid')`) as QueryInvoice[];
+  const invoices =
+    (await sql`SELECT * FROM crypto_invoices WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late') AND xmr_subaddress IS NOT NULL`) as QueryInvoice[];
   let stateChanged = false;
 
   for (const invoice of invoices) {
     const subaddress = await watchWallet.getAddressIndex(invoice.xmr_subaddress);
     const balance = await watchWallet.getBalance(subaddress.getAccountIndex(), subaddress.getIndex());
-    const xmrAmount = BigInt(Math.round(parseFloat(invoice.xmr_amount) * 1e12));
+    const unlocked = await watchWallet.getUnlockedBalance(subaddress.getAccountIndex(), subaddress.getIndex());
+    const xmrAmount = parseXmr(invoice.xmr_amount);
+    await sql`INSERT INTO invoice_observations (invoice_id, total, unlocked)
+      SELECT ${invoice.id}, ${balance.toString()}, ${unlocked.toString()}
+      WHERE NOT EXISTS (SELECT 1 FROM (SELECT total, unlocked FROM invoice_observations WHERE invoice_id = ${invoice.id} ORDER BY id DESC LIMIT 1) latest
+        WHERE total = ${balance.toString()} AND unlocked = ${unlocked.toString()})`;
+    const first = await sql`SELECT MIN(observed_at) AS first_payment FROM invoice_observations WHERE invoice_id = ${invoice.id} AND total > 0`;
+    const expiry = new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000;
+    const state = invoiceState(balance, unlocked, xmrAmount, expiry, first[0].first_payment ? new Date(first[0].first_payment).getTime() : null, Date.now());
 
-    const isExpired = new Date().getTime() - new Date(invoice.creation_date).getTime() > PAYMENT_WINDOW_MIN * 60 * 1000;
-
-    if (balance >= xmrAmount) {
+    if (state === 'paid') {
       stateChanged = true;
-      await sql`UPDATE crypto_invoices SET status = 'paid' WHERE id = ${invoice.id}`;
+      const identityID = invoice.renewal_id || generateIdentityID();
+      const activated = await sql.begin(async (transaction) => {
+        const claimed = await transaction`UPDATE crypto_invoices SET status = 'paid' WHERE id = ${invoice.id} AND status <> 'paid' RETURNING id`;
+        if (!claimed.length) return false;
 
-      let identityID;
-      if (invoice.renewal_id) {
-        identityID = invoice.renewal_id;
-        await sql`UPDATE identities SET crypto_invoice = ${invoice.id}, status = 'active' WHERE id = ${identityID}`;
-      } else {
-        identityID = generateIdentityID();
-        await sql`
-          INSERT INTO identities (id, owner, creation_date, plan, crypto_invoice)
-          VALUES (${identityID}, ${invoice.owner}, ${new Date()}, ${invoice.plan}, ${invoice.id})
-        `;
-      }
+        if (invoice.renewal_id) {
+          await transaction`UPDATE identities SET crypto_invoice = ${invoice.id}, status = 'active' WHERE id = ${identityID} AND owner = ${invoice.owner} AND status <> 'deleting'`;
+        } else {
+          await transaction`INSERT INTO identities (id, owner, creation_date, plan, crypto_invoice)
+            VALUES (${identityID}, ${invoice.owner}, ${new Date()}, ${invoice.plan}, ${invoice.id})`;
+        }
+
+        return true;
+      });
+      if (!activated) continue;
 
       const sockets = invoiceConnections.values().filter((ws) => ws.invoiceID === invoice.id);
       for (const ws of sockets) {
-        ws.websocket.send(JSON.stringify({status: 'paid', identityID}));
+        if (await ws.authorize()) ws.websocket.send(JSON.stringify({status: 'paid', identityID}));
       }
-    } else if (balance > 0n && balance < xmrAmount) {
+    } else if (state === 'underpaid') {
       if (invoice.status !== 'underpaid') {
         stateChanged = true;
         await sql`UPDATE crypto_invoices SET status = 'underpaid' WHERE id = ${invoice.id}`;
@@ -96,13 +60,13 @@ async function pollInvoices() {
       const remainingAmount = Number(xmrAmount - balance) / 1e12;
       const sockets = invoiceConnections.values().filter((ws) => ws.invoiceID === invoice.id);
       for (const ws of sockets) {
-        ws.websocket.send(JSON.stringify({status: 'underpaid', remainingAmount}));
+        if (await ws.authorize()) ws.websocket.send(JSON.stringify({status: 'underpaid', remainingAmount}));
       }
-    } else if (isExpired) {
-      await sql`UPDATE crypto_invoices SET status = 'expired' WHERE id = ${invoice.id}`;
+    } else {
+      await sql`UPDATE crypto_invoices SET status = ${state} WHERE id = ${invoice.id} AND status <> 'paid'`;
       const sockets = invoiceConnections.values().filter((ws) => ws.invoiceID === invoice.id);
       for (const ws of sockets) {
-        ws.websocket.send(JSON.stringify({status: 'expired'}));
+        if (await ws.authorize()) ws.websocket.send(JSON.stringify({status: state}));
       }
     }
   }
@@ -176,22 +140,22 @@ async function cleanupWorkers() {
       await sql`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
     }
   }
-
-  await sql`DELETE FROM crypto_invoices WHERE status = 'expired'`;
 }
 
 export async function initBackgroundWorkers() {
-  pollFees();
-  pollPrices();
-  await initMoneroWallet();
-  cleanupWorkers();
+  await Promise.allSettled([pollFees(), pollPrices(), cleanupWorkers()]);
 
-  setInterval(pollFees, POLL_FEES_INTERVAL);
-  setInterval(pollPrices, POLL_PRICES_INTERVAL);
-  setInterval(cleanupWorkers, POLL_CLEANUP_INTERVAL);
+  setInterval(() => void pollFees().catch(() => {}), POLL_FEES_INTERVAL);
+  setInterval(() => void pollPrices().catch(() => {}), POLL_PRICES_INTERVAL);
+  setInterval(() => void cleanupWorkers().catch(() => {}), POLL_CLEANUP_INTERVAL);
 
   while (true) {
-    await pollInvoices().catch(() => {});
+    await repairStripeEvents().catch(() => {});
+    try {
+      await withBillingWallet(pollInvoices);
+    } catch {
+      console.error('Wallet polling failed; billing will retry');
+    }
     await new Promise((resolve) => setTimeout(resolve, POLL_INVOICES_INTERVAL));
   }
 }

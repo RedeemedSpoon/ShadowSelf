@@ -42,13 +42,13 @@ export async function sendIdentityEmail(emailContent: EmailContent) {
   const {email, password, to, subject, body, attachments, inReplyTo, references} = emailContent;
   const transporter = smtpTransporter(email, password);
 
-  const isHtml = /<\/?(html|body|head|title|div|p|span|a|img)>/.test(body);
+  const isHtml = /<[a-z][^>]*>/i.test(body);
   const date = new Date();
 
-  const attachmentsList = attachments.map((attachment) => {
+  const attachmentsList = (attachments || []).map((attachment) => {
     return {
       filename: attachment.filename,
-      content: attachment.data.split(',')[1],
+      content: attachment.data.includes(',') ? attachment.data.split(',')[1] : attachment.data,
       encoding: 'base64',
     };
   });

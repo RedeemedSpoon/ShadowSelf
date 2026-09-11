@@ -21,7 +21,7 @@ export type BtcSigner = {type: 'hd'; root: HDKey} | {type: 'key'; privKey: Uint8
 
 export type FullEmail = Email & {messageID: string; date: Date};
 
-export type Attachment = {filename: string; data: string};
+export type Attachment = {filename: string; data: string; cid?: string; contentType?: string};
 
 export interface Notification {
   id: number | null;
@@ -142,6 +142,7 @@ export interface Identity {
 }
 
 export interface FullIdentity {
+  encryptionVersion: number;
   id: string;
   creationDate: Date;
   plan: 'monthly' | 'annually' | 'lifetime';
@@ -326,6 +327,7 @@ export interface AccountAPI extends BaseAPI {
 }
 
 export interface EmailAPI extends BaseAPI {
+  warning?: string;
   emails: Inbox;
   nextEmails?: Email[];
   fetchEmail?: Email;
