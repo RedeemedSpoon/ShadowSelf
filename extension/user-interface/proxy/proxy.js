@@ -1,13 +1,21 @@
-import {sleep, read} from '../../shared.js';
+import {sleep, read, request, origin} from '../../shared.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
-  const [location, server, domain, username, password] = params.values();
+  const windowId = (await chrome.windows.getCurrent()).id;
+  const response = await request(`https://${origin}/api/proxy`, 'GET', windowId);
+  const identity = response?.identities?.find((item) => item.id === params.get('identity'));
+  if (!identity) {
+    window.location.href = '../welcome/welcome.html';
+    return;
+  }
+
+  const {location, server} = identity;
 
   const [country, ...place] = location.split(', ');
   const url = chrome.runtime.getURL(`assets/countries/${country.toLowerCase()}.svg`);
 
-  await configureVPN(server, {server, username, domain, password});
+  await configureVPN(identity.id, {identity: identity.id, windowId});
   document.getElementById('country-background').style.backgroundImage = `url("${url}")`;
   document.getElementById('ip-address').textContent = server.split('/')[0];
   document.getElementById('location').textContent = place.join(', ');
@@ -30,7 +38,7 @@ async function configureVPN(proxy, response) {
   const activeElements = [countryContainer, container, powerBtn];
 
   const proxyConfig = await read('proxyConfig');
-  if (proxyConfig?.ip === proxy) {
+  if (proxyConfig?.identity === proxy && proxyConfig.windowId === response.windowId) {
     status.textContent = 'Connected';
     activeElements.forEach((el) => el.classList.add('active'));
   }
@@ -53,7 +61,8 @@ async function configureVPN(proxy, response) {
     }, 250);
 
     await sleep(850);
-    const error = await toggleVPN(wasConnected, response);
+    const error = await toggleVPN(wasConnected, response).catch(() => true);
+    clearInterval(interval);
 
     activeElements.forEach((el) => el.classList.remove('processing'));
     status.textContent = error ? 'Error Occurred' : wasConnected ? 'Disconnected' : 'Connected';

@@ -1,6 +1,7 @@
 import type {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
 import {secretProxyKey} from '@core/config';
 import sharp from 'sharp';
+import type {ReservedSql} from 'postgres';
 
 export function error(set: {[key: string]: unknown}, status: number, message: string) {
   set.status = status;
@@ -9,7 +10,7 @@ export function error(set: {[key: string]: unknown}, status: number, message: st
 
 export async function safeFetch(url: string, fallback: any, options?: RequestInit) {
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(url, {...options, signal: options?.signal || AbortSignal.timeout(15_000)});
     if (!res.ok) return fallback;
     return await res.json();
   } catch (_) {
@@ -72,4 +73,17 @@ export async function proxyRequest(code: string, method = 'GET', body?: object) 
   if (!response.ok) throw new Error('Proxy operation failed');
 
   return await response.json();
+}
+
+export async function withReservedTransaction<T>(connection: ReservedSql, operation: (transaction: ReservedSql) => Promise<T>) {
+  await connection`BEGIN`;
+  try {
+    const result = await operation(connection);
+    await connection`COMMIT`;
+
+    return result;
+  } catch (error) {
+    await connection`ROLLBACK`;
+    throw error;
+  }
 }

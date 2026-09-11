@@ -1,22 +1,31 @@
 package main
 
-import ("bytes"; "fmt"; "io"; "net/http"; "os")
+import (
+ "fmt"
+ "io"
+ "net/http"
+ "os"
+ "strings"
+)
 
 func main() {
-	url := fmt.Sprintf("https://shadowself.io/api/account/add-account/%s", os.Getenv("IDENTITY_ID"))
-	payload := []byte(`{
-		"username": "forum_reader_12",
-		"password": "U2FsdGVkX19abcDefGhiJKLmnoPqrStuVwxYz012345=",
-		"website": "https://communityforum.org",
-		"totp": "U2FsdGVkX1+zxcvBNMqwertyUIOPasdfghJKL098765=",
-		"algorithm": "SHA256"
-	}`)
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	req.Header.Add("Authorization", "Bearer "+os.Getenv("API_KEY"))
-	req.Header.Add("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, _ := client.Do(req)
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
+ payload := `{
+  "encryptionVersion": 1,
+  "username": "example",
+  "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "website": "https://example.com",
+  "totp": null,
+  "algorithm": null
+}`
+ request, err := http.NewRequest("POST", "https://shadowself.io/api/account/add-account/"+os.Getenv("IDENTITY_ID"), strings.NewReader(payload))
+ if err != nil { panic(err) }
+ request.Header.Set("Authorization", "Bearer "+os.Getenv("API_KEY"))
+ request.Header.Set("Content-Type", "application/json")
+ response, err := http.DefaultClient.Do(request)
+ if err != nil { panic(err) }
+ defer response.Body.Close()
+ body, err := io.ReadAll(response.Body)
+ if err != nil { panic(err) }
+ if response.StatusCode != 200 { panic(string(body)) }
+ fmt.Println(string(body))
 }

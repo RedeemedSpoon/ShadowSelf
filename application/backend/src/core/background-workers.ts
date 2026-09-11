@@ -1,18 +1,21 @@
+import {repairIdentityDeletions} from '@core/identity-service';
 import {repairStripeEvents} from '@core/stripe-service';
 import {withBillingWallet, saveWalletState, parseXmr, invoiceState} from '@core/wallet-service';
 import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, POLL_CLEANUP_INTERVAL} from '@core/constants';
-import {cryptoFees, cryptoPrices, invoiceConnections, watchWallet} from '@core/states';
+import {cryptoFees, cryptoPrices, invoiceConnections, watchWallet, billingReadiness} from '@core/states';
 import {BTC_API, ETH_API, LTC_API, XMR_NODE, COINGECKO_URL} from '@core/constants';
 import {PAYMENT_WINDOW_MIN} from '@core/constants';
 import type {CryptoCurrencies, QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
-import {safeFetch} from '@utils/utils';
+import {safeFetch, withReservedTransaction} from '@utils/utils';
 import {sql} from '@core/services';
+import type {ReservedSql} from 'postgres';
 
-async function pollInvoices() {
+async function pollInvoices(sql: ReservedSql) {
   if (!watchWallet) return;
 
   await watchWallet.sync();
+  billingReadiness.lastSync = Date.now();
   const invoices =
     (await sql`SELECT * FROM crypto_invoices WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late') AND xmr_subaddress IS NOT NULL`) as QueryInvoice[];
   let stateChanged = false;
@@ -26,19 +29,22 @@ async function pollInvoices() {
       SELECT ${invoice.id}, ${balance.toString()}, ${unlocked.toString()}
       WHERE NOT EXISTS (SELECT 1 FROM (SELECT total, unlocked FROM invoice_observations WHERE invoice_id = ${invoice.id} ORDER BY id DESC LIMIT 1) latest
         WHERE total = ${balance.toString()} AND unlocked = ${unlocked.toString()})`;
-    const first = await sql`SELECT MIN(observed_at) AS first_payment FROM invoice_observations WHERE invoice_id = ${invoice.id} AND total > 0`;
+    const first =
+      await sql`SELECT MIN(observed_at) AS first_payment FROM invoice_observations WHERE invoice_id = ${invoice.id} AND total >= ${xmrAmount.toString()}`;
     const expiry = new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000;
     const state = invoiceState(balance, unlocked, xmrAmount, expiry, first[0].first_payment ? new Date(first[0].first_payment).getTime() : null, Date.now());
 
     if (state === 'paid') {
       stateChanged = true;
       const identityID = invoice.renewal_id || generateIdentityID();
-      const activated = await sql.begin(async (transaction) => {
+      const activated = await withReservedTransaction(sql, async (transaction) => {
         const claimed = await transaction`UPDATE crypto_invoices SET status = 'paid' WHERE id = ${invoice.id} AND status <> 'paid' RETURNING id`;
         if (!claimed.length) return false;
 
         if (invoice.renewal_id) {
-          await transaction`UPDATE identities SET crypto_invoice = ${invoice.id}, status = 'active' WHERE id = ${identityID} AND owner = ${invoice.owner} AND status <> 'deleting'`;
+          const renewed =
+            await transaction`UPDATE identities SET crypto_invoice = ${invoice.id}, status = 'active' WHERE id = ${identityID} AND owner = ${invoice.owner} AND status <> 'deleting' RETURNING id`;
+          if (!renewed.length) throw new Error('Renewal needs reconciliation; identity is unavailable');
         } else {
           await transaction`INSERT INTO identities (id, owner, creation_date, plan, crypto_invoice)
             VALUES (${identityID}, ${invoice.owner}, ${new Date()}, ${invoice.plan}, ${invoice.id})`;
@@ -72,7 +78,7 @@ async function pollInvoices() {
   }
 
   if (stateChanged || invoices.length > 0) {
-    await saveWalletState();
+    await saveWalletState(sql);
   }
 }
 
@@ -106,22 +112,26 @@ async function pollFees() {
 }
 
 async function pollPrices() {
-  const response = await fetch(COINGECKO_URL);
+  const response = await fetch(COINGECKO_URL, {signal: AbortSignal.timeout(15_000)});
   if (!response.ok) return;
 
   const data = await response.json();
+  if (!Array.isArray(data) || !data.some((element) => element.symbol === 'xmr' && Number.isFinite(element.current_price) && element.current_price > 0)) return;
+
   data.forEach((element: any) => {
+    if (!Number.isFinite(element.current_price) || element.current_price <= 0) return;
     cryptoPrices[element.symbol as CryptoCurrencies] = {
       dailyChange: element.price_change_percentage_24h,
       usdPrice: element.current_price,
       chart: element.sparkline_in_7d.price,
     };
   });
+  billingReadiness.priceSync = Date.now();
 }
 
 async function cleanupWorkers() {
   const identities = await sql`
-    SELECT i.id, c.creation_date, c.plan
+    SELECT i.id, i.crypto_invoice, c.creation_date, c.plan
     FROM identities i
     JOIN crypto_invoices c ON i.crypto_invoice = c.id
     WHERE i.status = 'active' AND i.crypto_invoice IS NOT NULL
@@ -137,25 +147,28 @@ async function cleanupWorkers() {
     const condition2 = identity.plan === 'annually' && days > 365;
 
     if (condition1 || condition2) {
-      await sql`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
+      await sql`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id} AND crypto_invoice = ${identity.crypto_invoice} AND status = 'active'`;
     }
   }
 }
 
-export async function initBackgroundWorkers() {
-  await Promise.allSettled([pollFees(), pollPrices(), cleanupWorkers()]);
-
-  setInterval(() => void pollFees().catch(() => {}), POLL_FEES_INTERVAL);
-  setInterval(() => void pollPrices().catch(() => {}), POLL_PRICES_INTERVAL);
-  setInterval(() => void cleanupWorkers().catch(() => {}), POLL_CLEANUP_INTERVAL);
-
+async function runWorker(name: string, operation: () => Promise<unknown>, interval: number) {
   while (true) {
-    await repairStripeEvents().catch(() => {});
     try {
-      await withBillingWallet(pollInvoices);
+      await operation();
     } catch {
-      console.error('Wallet polling failed; billing will retry');
+      console.error(`${name} failed; retrying after the polling interval`);
     }
-    await new Promise((resolve) => setTimeout(resolve, POLL_INVOICES_INTERVAL));
+
+    await new Promise((resolve) => setTimeout(resolve, interval));
   }
+}
+
+export function initBackgroundWorkers() {
+  void runWorker('Fee polling', pollFees, POLL_FEES_INTERVAL);
+  void runWorker('Price polling', pollPrices, POLL_PRICES_INTERVAL);
+  void runWorker('Identity expiry', cleanupWorkers, POLL_CLEANUP_INTERVAL);
+  void runWorker('Identity deletion', repairIdentityDeletions, POLL_CLEANUP_INTERVAL);
+  void runWorker('Stripe reconciliation', repairStripeEvents, POLL_INVOICES_INTERVAL);
+  void runWorker('Invoice polling', () => withBillingWallet(pollInvoices), POLL_INVOICES_INTERVAL);
 }

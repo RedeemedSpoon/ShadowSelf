@@ -1,21 +1,32 @@
 package main
 
-import ("bytes"; "fmt"; "io"; "net/http"; "os")
+import (
+ "fmt"
+ "io"
+ "net/http"
+ "os"
+ "strings"
+)
 
 func main() {
-	url := fmt.Sprintf("https://shadowself.io/api/account/edit-account/%s", os.Getenv("IDENTITY_ID"))
-	payload := []byte(`{
-		"id": 101,
-		"username": "jd_service_user_revised",
-		"password": "U2FsdGVkX1+UpdatedPassDataLooksLikeThisMaybe==",
-		"website": "https://service-updated.example.com"
-	}`)
-	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(payload))
-	req.Header.Add("Authorization", "Bearer "+os.Getenv("API_KEY"))
-	req.Header.Add("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, _ := client.Do(req)
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
+ payload := `{
+  "encryptionVersion": 1,
+  "id": 101,
+  "username": "example",
+  "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "website": "https://example.com",
+  "totp": null,
+  "algorithm": null
+}`
+ request, err := http.NewRequest("PUT", "https://shadowself.io/api/account/edit-account/"+os.Getenv("IDENTITY_ID"), strings.NewReader(payload))
+ if err != nil { panic(err) }
+ request.Header.Set("Authorization", "Bearer "+os.Getenv("API_KEY"))
+ request.Header.Set("Content-Type", "application/json")
+ response, err := http.DefaultClient.Do(request)
+ if err != nil { panic(err) }
+ defer response.Body.Close()
+ body, err := io.ReadAll(response.Body)
+ if err != nil { panic(err) }
+ if response.StatusCode != 200 { panic(string(body)) }
+ fmt.Println(string(body))
 }

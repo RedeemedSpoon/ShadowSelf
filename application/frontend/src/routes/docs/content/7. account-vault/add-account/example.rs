@@ -1,24 +1,23 @@
 use std::env;
-use reqwest::Client;
-use serde_json::json;
 
 #[tokio::main]
-async fn main() {
-    let url = format!(
-        "https://shadowself.io/api/account/add-account/{}",
-        env::var("IDENTITY_ID").unwrap()
-    );
-    let payload = json!({
-        "username": "forum_reader_12",
-        "password": "U2FsdGVkX19abcDefGhiJKLmnoPqrStuVwxYz012345=",
-        "website": "https://communityforum.org",
-        "totp": "U2FsdGVkX1+zxcvBNMqwertyUIOPasdfghJKL098765=",
-        "algorithm": "SHA256"
-    });
-    let response = Client::new()
-        .post(&url)
-        .bearer_auth(env::var("API_KEY").unwrap())
-        .json(&payload)
-        .send().await.unwrap().text().await.unwrap();
-    println!("{}", response);
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let response = reqwest::Client::new()
+        .request(reqwest::Method::POST, format!("https://shadowself.io/api/account/add-account/{}", env::var("IDENTITY_ID")?))
+        .bearer_auth(env::var("API_KEY")?)
+        .header("Content-Type", "application/json")
+        .body(r#"{
+  "encryptionVersion": 1,
+  "username": "example",
+  "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "website": "https://example.com",
+  "totp": null,
+  "algorithm": null
+}"#)
+        .send().await?;
+    let status = response.status();
+    let body = response.text().await?;
+    if !status.is_success() { return Err(format!("{status}: {body}").into()); }
+    println!("{body}");
+    Ok(())
 }

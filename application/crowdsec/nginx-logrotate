@@ -1,0 +1,10 @@
+/var/log/shadowself/nginx/*.log {
+  daily
+  rotate 14
+  compress
+  delaycompress
+  missingok
+  notifempty
+  copytruncate
+  create 0640 root adm
+}

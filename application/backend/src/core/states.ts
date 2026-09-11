@@ -16,6 +16,8 @@ import {
   SIGNUP_DRAFT_TTL,
 } from '@core/constants';
 
+export const billingReadiness = {lastSync: 0, priceSync: 0, available: false};
+
 export const cryptoPrices = {} as CryptoPrices;
 export const cryptoFees = {} as CryptoFees;
 

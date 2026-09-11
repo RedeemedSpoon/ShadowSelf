@@ -1,7 +1,6 @@
 <script lang="ts">
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
-  import ConfirmModal from '$component/special/ConfirmModal.svelte';
   import Modal from '$component/containers/Modal.svelte';
 
   import MultiUsersIcon from '$icon/user/MultiUsers.svelte';
@@ -24,6 +23,7 @@
   import {decrypt, deriveMasterKey, encrypt} from '$utils/cryptography';
   import {browser} from '$app/environment';
   import {fetchAPI} from '$utils/webfetch';
+  import {idbOperation} from '$utils/monero';
   import type {PageProps} from './$types';
   import {slide} from 'svelte/transition';
   import {notify} from '$utils/shared';
@@ -32,7 +32,7 @@
 
   let {data}: PageProps = $props();
 
-  let currentSection = $state((page.url.hash?.slice(1) || 'info') as Sections);
+  let currentSection = $state((SECTIONS_ORDER.includes(page.url.hash.slice(1)) ? page.url.hash.slice(1) : 'info') as Sections);
   let buttonWrapper = $state() as HTMLDivElement;
   let ws = $state() as WebSocket;
 
@@ -86,47 +86,49 @@
 
   async function changeMasterPassword() {
     $pendingID = 1;
-    await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
+    try {
+      await navigator.locks.request(`shadowself-xmr-${$identity.id}`, {ifAvailable: true}, async (lock) => {
+        if (!lock) throw new Error('Wait for the wallet operation to finish before changing its password');
+        const input = document.querySelector('input#change-master') as HTMLInputElement;
+        const newKey = await deriveMasterKey(input.value || DEFAULT_MASTER_PASSWORD, $identity.id);
+        const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
+        const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
+        const cacheID = `${$identity.id}:${$identity.walletBlob}`;
+        const accounts = await fetchAPI<AccountAPI>('account', 'GET');
+        if (accounts.err || !accounts.accounts) throw new Error(accounts.err || 'Could not load the complete vault');
 
-    const inputElement = document.querySelector('input#change-master') as HTMLInputElement;
-    const password = inputElement.value || DEFAULT_MASTER_PASSWORD;
+        const updatedAccounts = await Promise.all(
+          accounts.accounts.map(async (account) => {
+            const password = account.password ? await decrypt(account.password) : null;
+            const totp = account.totp ? await decrypt(account.totp) : null;
+            if ((account.password && !password) || (account.totp && !totp)) throw new Error('Could not decrypt the complete vault');
 
-    const newKey = await deriveMasterKey(password, $identity.id);
-    const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
-    const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
+            return {id: account.id, password: password ? await encrypt(password, newKey) : null, totp: totp ? await encrypt(totp, newKey) : null};
+          }),
+        );
+        const mnemonic = await decrypt($identity.walletBlob);
+        const walletKeys = await Promise.all(['viewKey', 'spendKey', 'address'].map((name) => decrypt($identity.walletKeys.xmr[name as 'viewKey'])));
+        if (!mnemonic || walletKeys.some((value) => !value)) throw new Error('Could not decrypt the complete wallet');
 
-    const accounts = await fetchAPI<AccountAPI>('account', 'GET');
-    const updatedAccounts = await Promise.all(
-      accounts.accounts!.map(async (account) => {
-        const oldPassword = await decrypt(account.password);
-        const oldTotp = account.totp ? await decrypt(account.totp) : 'unable to decrypt';
-
-        if (!oldPassword || (account.totp && !oldTotp)) throw new Error('Could not decrypt the complete vault');
-
-        return {
-          id: account.id,
-          password: await encrypt(oldPassword, newKey),
-          totp: account.totp ? await encrypt(oldTotp, newKey) : null,
+        const blob = await encrypt(mnemonic, newKey);
+        const keys = {
+          viewKey: await encrypt(walletKeys[0], newKey),
+          spendKey: await encrypt(walletKeys[1], newKey),
+          address: await encrypt(walletKeys[2], newKey),
         };
-      }),
-    );
+        const response = await fetchAPI<CryptoAPI>('account/update-encryption', 'PUT', {accounts: updatedAccounts, blob, keys});
+        if (response.err) throw new Error(response.err);
 
-    const mnemonic = await decrypt($identity.walletBlob);
-    const blob = await encrypt(mnemonic, newKey);
-
-    const keys = {
-      viewKey: await encrypt(await decrypt($identity.walletKeys.xmr.viewKey), newKey),
-      spendKey: await encrypt(await decrypt($identity.walletKeys.xmr.spendKey), newKey),
-      address: await encrypt(await decrypt($identity.walletKeys.xmr.address), newKey),
-    };
-
-    const walletResponse = await fetchAPI<CryptoAPI>('account/update-encryption', 'PUT', {accounts: updatedAccounts, blob, keys});
-    if (walletResponse.err) return notify(walletResponse.err, 'alert');
-
-    $identity = {...$identity, walletBlob: blob, walletKeys: {...$identity.walletKeys, xmr: keys}};
-    $masterPassword = base64Key;
-    $activeModal = 0;
-    $pendingID = 0;
+        $identity = {...$identity, walletBlob: blob, walletKeys: {...$identity.walletKeys, xmr: keys}};
+        $masterPassword = base64Key;
+        $activeModal = 0;
+        await idbOperation('delete', cacheID).catch(() => notify('Password changed. The old encrypted wallet cache could not be removed', 'alert'));
+      });
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Could not change the master password', 'alert');
+    } finally {
+      $pendingID = 0;
+    }
   }
 
   onMount(() => {
@@ -157,7 +159,11 @@
         $handleResponse(response);
       };
 
-      window.onbeforeunload = () => ws.close();
+      return () => {
+        clearInterval(pingInterval as number);
+        ws.close();
+        $masterPassword = '';
+      };
     }
   });
 </script>
@@ -203,7 +209,7 @@
     <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
       {#each SECTIONS_ORDER as section (section)}
         {@const {icon: Icon, name} = sectionData[section as 'info']}
-        <button class:main={section === currentSection} onclick={() => handleClick(section as Sections)}>
+        <button aria-label={name} class:main={section === currentSection} onclick={() => handleClick(section as Sections)}>
           <Icon className="h-6 w-6" />
           <span class="max-sm:hidden">{name}</span>
         </button>
@@ -222,7 +228,7 @@
       <a href="/dashboard">
         <button class="alt border-none">← Back</button>
       </a>
-      <form class="flex items-center" method="POST">
+      <form class="flex flex-wrap items-center justify-center gap-y-3" method="POST">
         {#key $masterPassword}
           {#if $masterPassword}
             <button type="button" onclick={() => ($activeModal = 2)} class="alt w-fit p-0">Change Local Master Password</button>
@@ -234,8 +240,17 @@
         <button type="button" onclick={() => ($activeModal = 3)} class="alt w-fit p-0">Delete Identity</button>
         <input type="hidden" name="id" value={data.identity.id} />
 
-        <input type="password" name="currentPassword" placeholder="Current account password" autocomplete="current-password" required />
-        <ConfirmModal id={3} text="Deleting permanently this identity" name="delete" />
+        <Modal id={3}>
+          <div class="flex flex-col gap-4 p-6">
+            <h3 class="text-3xl font-semibold text-neutral-300">Delete Identity</h3>
+            <p>This permanently deletes the identity and its resources. Enter your account password to confirm.</p>
+            <input type="password" name="currentPassword" placeholder="Current account password" autocomplete="current-password" required />
+            <div class="flex justify-end gap-4">
+              <button class="alt" type="button" onclick={() => ($activeModal = 0)}>Cancel</button>
+              <button name="delete" type="submit">Delete Identity</button>
+            </div>
+          </div>
+        </Modal>
 
         <Modal id={1}>
           <div class="flex flex-col items-center gap-8 p-4 sm:p-8">

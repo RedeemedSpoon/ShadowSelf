@@ -1,20 +1,19 @@
-RE_ENCRYPTED_PASS_1="U2FsdGVkX1+NewKeyEncPassDataOne=="
-RE_ENCRYPTED_TOTP_1="U2FsdGVkX1+NewKeyEncTotpDataOne=="
-RE_ENCRYPTED_PASS_2="U2FsdGVkX1+NewKeyEncPassDataTwo=="
-
-curl -X PUT "https://shadowself.io/api/account/update-encryption/$IDENTITY_ID" \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer $API_KEY" \
-     -d '{
-           "accounts": [
-             {
-               "id": 101,
-               "password": "'"$RE_ENCRYPTED_PASS_1"'",
-               "totp": "'"$RE_ENCRYPTED_TOTP_1"'"
-             },
-             {
-               "id": 102,
-               "password": "'"$RE_ENCRYPTED_PASS_2"'"
-             }
-           ]
-         }'
+curl --fail-with-body --request PUT "https://shadowself.io/api/account/update-encryption/${IDENTITY_ID}" \
+  --header "Authorization: Bearer ${API_KEY}" \
+  --header "Content-Type: application/json" \
+  --data-binary '{
+  "encryptionVersion": 1,
+  "accounts": [
+    {
+      "id": 101,
+      "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+      "totp": null
+    }
+  ],
+  "blob": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "keys": {
+    "address": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+    "viewKey": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+    "spendKey": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
+  }
+}'

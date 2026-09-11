@@ -5,10 +5,11 @@
 
 <h5>Response Body</h5>
 <p>
-  Returns a JSON payload containing an array of stored account objects. The <code>password</code> and <code>totp</code> fields will contain the client-side encrypted
-  data as stored.
+  Returns a JSON payload containing an array of stored account objects. The <code>password</code> and <code>totp</code> fields will contain the client-side
+  encrypted AES-GCM envelopes as stored, prefixed with <code>v1.</code>. Optional website, TOTP and algorithm fields can be null.
 </p>
 <ul>
+  <li><code>encryptionVersion</code> (<span class="integer">integer</span>): Pass this version with the next vault mutation. A stale version returns 409.</li>
   <li>
     <code>accounts</code> (<span class="array">array</span>): An array of account objects associated with the identity. Each object includes:
     <ul>

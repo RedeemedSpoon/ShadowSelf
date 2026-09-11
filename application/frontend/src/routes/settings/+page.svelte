@@ -170,23 +170,41 @@
     {/each}
   </ul>
 
-  <section class="my-20 flex h-full w-full flex-col gap-8 px-6 xl:px-24">
+  <section class="my-20 flex h-full w-full min-w-0 flex-col gap-8 px-6 xl:px-24">
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
     <h2 id="credentials"><UserIcon className="h-10! w-10! cursor-default" />Basic Credentials:</h2>
     <form use:enhance={() => awaitPending(true, 1, true)} method="POST" action="?/email">
-      <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+      <InputWithIcon
+        type="password"
+        name="currentPassword"
+        id="current-password-1"
+        placeholder="Current account password"
+        icon={KeyIcon}
+        className={{wrapper: 'w-full'}} />
       <label class="md:w-fit!" for="email">Email:</label>
       <InputWithButton value={settings.email} placeholder="New address" type="email" index={1} label="Change Email" name="email" />
     </form>
     <form use:enhance={() => awaitPending(true, 3)} method="POST" action="?/username">
-      <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+      <InputWithIcon
+        type="password"
+        name="currentPassword"
+        id="current-password-2"
+        placeholder="Current account password"
+        icon={KeyIcon}
+        className={{wrapper: 'w-full'}} />
       <label class="md:w-fit!" for="username">Username:</label>
       <InputWithButton placeholder="New username" value={data.user} index={3} label="Change Username" name="username" />
     </form>
     <form use:enhance={() => awaitPending(true, 4)} method="POST" action="?/password">
-      <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+      <InputWithIcon
+        type="password"
+        name="currentPassword"
+        id="current-password-3"
+        placeholder="Current account password"
+        icon={KeyIcon}
+        className={{wrapper: 'w-full'}} />
       <label class="md:w-fit!" for="password">Password:</label>
       <InputWithButton placeholder="New password" type="password" index={4} label="Change Password" name="password" />
     </form>
@@ -194,7 +212,13 @@
 
     <h2 id="2fa"><KeylockIcon className="h-10! w-10! cursor-default" fill={true} />Two Factor Authentication:</h2>
     <form class="gap-4!" use:enhance={({formData}) => triggerModal(2, !formData.has('remove'))} method="POST" action="?/checkOtp">
-      <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+      <InputWithIcon
+        type="password"
+        name="currentPassword"
+        id="current-password-4"
+        placeholder="Current account password"
+        icon={KeyIcon}
+        className={{wrapper: 'w-full'}} />
       <label for="totp">Time-based one-time password:</label>
       {#if settings.OTP}
         <button formaction="?/generateOtp" type="submit" class="w-fit">Change 2FA</button>
@@ -232,7 +256,13 @@
 
     <h2 id="api"><KeyIcon className="h-10! w-10! cursor-default" />API Access & Key:</h2>
     <form use:enhance method="POST" action="?/toggleApi">
-      <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+      <InputWithIcon
+        type="password"
+        name="currentPassword"
+        id="current-password-5"
+        placeholder="Current account password"
+        icon={KeyIcon}
+        className={{wrapper: 'w-full'}} />
       <label for="access">API Access:</label>
       {#if settings.API}
         <button name="disable" type="submit" class="disable w-fit">Disable API Access</button>
@@ -241,7 +271,13 @@
       {/if}
     </form>
     <form use:enhance method="POST" action="?/api">
-      <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+      <InputWithIcon
+        type="password"
+        name="currentPassword"
+        id="current-password-6"
+        placeholder="Current account password"
+        icon={KeyIcon}
+        className={{wrapper: 'w-full'}} />
       <div class="flex gap-4 max-md:flex-col md:items-center">
         <label class="w-fit" for="key">API Key:</label>
         {#if settings.API}
@@ -254,7 +290,13 @@
 
     <h2 id="billing"><CreditCardIcon fill={true} className="h-10! w-10! cursor-default" />Billing Information:</h2>
     <form method="POST" action="?/portal" use:enhance>
-      <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+      <InputWithIcon
+        type="password"
+        name="currentPassword"
+        id="current-password-7"
+        placeholder="Current account password"
+        icon={KeyIcon}
+        className={{wrapper: 'w-full'}} />
       <button type="submit">Open Billing Portal</button>
       <p class="text-xl font-semibold text-neutral-300">Payment Details:</p>
       {#if settings.sessionUrl}
@@ -265,15 +307,33 @@
     </form>
     <hr />
 
+    <h2>Active sessions</h2>
+    <p>Revoke a session to stop its requests and close its active connections.</p>
+    {#each data.sessions as session (session.id)}
+      <form method="POST" action="?/revokeSession" use:enhance class="flex flex-wrap items-center gap-3">
+        <span>{session.current ? 'This session' : 'Other session'} · {session.id.slice(0, 8)}</span>
+        <input type="hidden" name="id" value={session.id} />
+        <input type="hidden" name="current" value={String(session.current)} />
+        <button type="submit" class="md:w-fit">{session.current ? 'Log out' : 'Revoke session'}</button>
+      </form>
+    {/each}
+    <hr />
+
     <h2 id="danger"><InfoIcon fill={true} className="mr-1 h-9! w-9! cursor-default" />Danger Zone:</h2>
     <form use:enhance={() => triggerModal(0)} method="POST" action="?/session">
       <label for="logout">Session Management:</label>
       <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>
-      <button type="button" onclick={() => ($activeModal = 4)} class="md:w-fit" name="revoke">Revoke All Session</button>
+      <button type="button" onclick={() => ($activeModal = 4)} class="md:w-fit" name="revoke">Revoke All Sessions</button>
       <ConfirmModal id={4} name="revoke" text="Revoking all sessions" />
     </form>
     <form use:enhance={() => triggerModal(0)} method="POST" action="?/delete">
-      <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+      <InputWithIcon
+        type="password"
+        name="currentPassword"
+        id="current-password-8"
+        placeholder="Current account password"
+        icon={KeyIcon}
+        className={{wrapper: 'w-full'}} />
       <label for="delete">Account Deletion:</label>
       <button onclick={() => ($activeModal = 5)} type="button" class="disable md:w-fit">Delete Account</button>
       <ConfirmModal id={5} name="delete" text="Deleting your account" />
@@ -283,7 +343,13 @@
 
 <Modal id={1}>
   <form class="flex-col! p-8" use:enhance={() => awaitPending(true, 2, true)} method="POST" action="?/access">
-    <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+    <InputWithIcon
+      type="password"
+      name="currentPassword"
+      id="current-password-9"
+      placeholder="Current account password"
+      icon={KeyIcon}
+      className={{wrapper: 'w-full'}} />
     <h1 class="-mb-2!">Enter the email code</h1>
     <p>Enter the eight-digit code sent to your new address. It expires in ten minutes.</p>
     <InputWithIcon {className} type="password" name="access" placeholder="12345678" icon={KeylockIcon} />
@@ -311,7 +377,13 @@
     </form>
   {:else if settings.step === 2}
     <form use:enhance={() => awaitPending(true, 5)} method="POST" action="?/checkOtp">
-      <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+      <InputWithIcon
+        type="password"
+        name="currentPassword"
+        id="current-password-10"
+        placeholder="Current account password"
+        icon={KeyIcon}
+        className={{wrapper: 'w-full'}} />
       <input hidden name="secret" value={settings.secret} />
       <div class="flex flex-col gap-8 xl:m-8">
         <h1 class="-mb-2!">Enter the verification token</h1>
@@ -336,7 +408,13 @@
 
 <Modal id={3}>
   <form class="flex-col! p-8" use:enhance={() => awaitPending(true, 5)} method="POST" action="?/payment">
-    <InputWithIcon type="password" name="currentPassword" placeholder="Current account password" icon={KeyIcon} />
+    <InputWithIcon
+      type="password"
+      name="currentPassword"
+      id="current-password-11"
+      placeholder="Current account password"
+      icon={KeyIcon}
+      className={{wrapper: 'w-full'}} />
     <h1 class="-mb-2!">Enter your credit card details</h1>
     <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
     <div id="payment" class={!stripeLoaded ? 'hidden' : ''}></div>
@@ -352,7 +430,7 @@
   @reference "$style";
 
   #settings {
-    @apply grid h-full min-h-screen w-full pt-20 text-neutral-400 xl:grid-cols-[1fr_3fr];
+    @apply grid h-full min-h-screen w-full pt-20 text-neutral-400 xl:grid-cols-[minmax(0,1fr)_minmax(0,3fr)];
   }
 
   #stripe-link {
@@ -366,7 +444,7 @@
   }
 
   h2 {
-    @apply flex scroll-m-48 items-center gap-2 text-4xl text-neutral-300;
+    @apply flex scroll-m-48 items-center gap-2 text-2xl text-neutral-300 md:text-3xl;
   }
 
   #title {
@@ -387,11 +465,11 @@
   }
 
   ul a span {
-    @apply text-nowrap;
+    @apply whitespace-normal;
   }
 
   form {
-    @apply flex gap-4 max-md:flex-col md:justify-between md:gap-8;
+    @apply flex flex-wrap items-center gap-4 max-md:flex-col;
   }
 
   form > * {
@@ -399,6 +477,6 @@
   }
 
   label {
-    @apply ml-2 text-nowrap text-neutral-300;
+    @apply ml-2 whitespace-normal text-neutral-300;
   }
 </style>

@@ -1,37 +1,28 @@
-import os, requests, json
+import json
+import os
+import urllib.request
 
-api_key = os.environ['API_KEY']
-identity_id = os.environ['IDENTITY_ID']
-api_url = (
-  f"https://shadowself.io/api/account/update-encryption/{identity_id}"
-)
-headers = {
-  'Authorization': f'Bearer {api_key}',
-  'Content-Type': 'application/json'
-}
-
-re_encrypted_pass_1 = "U2FsdGVkX1+NewKeyEncPassDataOne=="
-re_encrypted_totp_1 = "U2FsdGVkX1+NewKeyEncTotpDataOne=="
-re_encrypted_pass_2 = "U2FsdGVkX1+NewKeyEncPassDataTwo=="
-
-payload = {
+payload = json.loads(r'''{
+  "encryptionVersion": 1,
   "accounts": [
-    {"id": 101, "password": re_encrypted_pass_1, "totp": re_encrypted_totp_1},
-    {"id": 102, "password": re_encrypted_pass_2}
-  ]
-}
-
-try:
-  response = requests.put(api_url, headers=headers, json=payload)
-  response.raise_for_status()
-  print(json.dumps(response.json(), indent=2))
-except requests.exceptions.HTTPError as e:
-  error_body = e.response.text
-  try:
-    error_json = e.response.json()
-    error_body = json.dumps(error_json, indent=2)
-  except json.JSONDecodeError:
-    pass
-  print(f"API error: {e.response.status_code}\n{error_body}")
-except requests.exceptions.RequestException as e:
-  print(f"Request failed: {e}")
+    {
+      "id": 101,
+      "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+      "totp": null
+    }
+  ],
+  "blob": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "keys": {
+    "address": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+    "viewKey": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+    "spendKey": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
+  }
+}''')
+request = urllib.request.Request(
+    'https://shadowself.io/api/account/update-encryption/' + os.environ['IDENTITY_ID'],
+    data=json.dumps(payload).encode(),
+    headers={'Authorization': 'Bearer ' + os.environ['API_KEY'], 'Content-Type': 'application/json'},
+    method='PUT',
+)
+with urllib.request.urlopen(request) as response:
+    print(response.read().decode())

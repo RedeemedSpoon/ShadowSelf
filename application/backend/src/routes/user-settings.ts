@@ -127,7 +127,7 @@ export default new Elysia({prefix: '/settings'})
 
     return await billingPortal(email);
   })
-  .post('/email', async ({set, user, jwt, body}) => {
+  .post('/email', async ({set, user, jwt, body, verifiedPassword}) => {
     const {err, email, access} = check(body, ['email', 'access'], true);
     if (err) return error(set, 400, err);
 
@@ -138,13 +138,21 @@ export default new Elysia({prefix: '/settings'})
     const existing = await sql`SELECT email FROM users WHERE email = ${email}`;
     if (existing.length) return error(set, 409, 'Email address is already registered');
 
-    const accounts = await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`;
-    if (accounts[0]?.stripe_customer) await stripe.customers.update(accounts[0].stripe_customer, {email});
-    await sql`UPDATE users SET email = ${email} WHERE email = ${user!.email}`;
+    const accounts = await sql`UPDATE users SET email = ${email}, sessions = ARRAY[${user!.id}]::varchar(64)[]
+      WHERE email = ${user!.email} AND password = ${verifiedPassword} AND ${user!.id} = ANY(sessions) RETURNING stripe_customer`;
+    if (!accounts.length) return error(set, 409, 'Account changed. Sign in and try again');
 
+    let warning;
+    if (accounts[0].stripe_customer) {
+      try {
+        await stripe.customers.update(accounts[0].stripe_customer, {email});
+      } catch {
+        warning = 'Email changed. Billing email will be synchronized when you next open billing settings';
+      }
+    }
     const cookievalue = await jwt.sign({email, id: user!.id});
 
-    return {cookie: cookievalue};
+    return {cookie: cookievalue, warning};
   })
   .put('/email', async ({set, body, user}) => {
     const {err, email} = check(body, ['email']);
@@ -189,7 +197,8 @@ export default new Elysia({prefix: '/settings'})
     const allPurchases = (await sql`SELECT * FROM identities WHERE owner = ${account?.[0].id}`) as QueryIdentity[];
 
     for (const purchase of allPurchases) {
-      if (!(await deleteIdentity(purchase.id, account[0].id))) return error(set, 202, 'Deletion is pending mailbox cleanup. Please retry shortly');
+      if (!(await deleteIdentity(purchase.id, account[0].id)))
+        return error(set, 202, 'Deletion is pending refund or resource cleanup. It will retry automatically');
     }
 
     const customer = await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`;

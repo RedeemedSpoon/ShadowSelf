@@ -5,6 +5,8 @@ import type {TransactionSql} from 'postgres';
 
 export async function processStripeEvent(id: string) {
   await sql.begin(async (transaction) => {
+    const lock = await transaction`SELECT pg_try_advisory_xact_lock(81472632) AS acquired`;
+    if (!lock[0].acquired) return;
     const rows = await transaction`SELECT payload, completed_at FROM stripe_events WHERE id = ${id} FOR UPDATE`;
     if (!rows[0] || rows[0].completed_at) return;
 
@@ -14,15 +16,21 @@ export async function processStripeEvent(id: string) {
 }
 
 export async function repairStripeEvents() {
-  const pending = await sql`SELECT id FROM stripe_events WHERE completed_at IS NULL ORDER BY received_at LIMIT 100`;
-  for (const event of pending) await processStripeEvent(event.id).catch(() => {});
+  let cursor = '';
+  while (true) {
+    const pending = await sql`SELECT id FROM stripe_events WHERE completed_at IS NULL AND id > ${cursor} ORDER BY id LIMIT 100`;
+    for (const event of pending) await processStripeEvent(event.id).catch(() => {});
+    if (pending.length < 100) return;
+
+    cursor = pending[pending.length - 1].id;
+  }
 }
 
 async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql) {
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = await stripe.paymentIntents.retrieve(event.data.object.id, {expand: ['latest_charge']});
     const charge = paymentIntent.latest_charge;
-    if (charge && typeof charge !== 'string' && (charge.refunded || charge.disputed)) return;
+    if (charge && typeof charge !== 'string' && (charge.amount_refunded > 0 || charge.disputed)) return;
 
     if (!paymentIntent.metadata?.invoice && paymentIntent.metadata?.id && paymentIntent.metadata?.type) {
       const customerID = typeof paymentIntent.customer === 'string' ? paymentIntent.customer : paymentIntent.customer?.id;
@@ -34,6 +42,9 @@ async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql
 
       if (customerID) {
         const userQuery = (await transaction`SELECT id FROM users WHERE stripe_customer = ${customerID}`) as QueryUser[];
+        if (!userQuery[0]) return;
+        const deleted = await transaction`SELECT identity_id FROM identity_deletions WHERE identity_id = ${identityID}`;
+        if (deleted.length) return;
         const owner = userQuery[0].id;
 
         const alreadyExists = await transaction`SELECT id FROM identities WHERE id = ${identityID}`;
@@ -45,7 +56,7 @@ async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql
   }
 
   if (event.type === 'invoice.paid') {
-    const invoice = event.data.object;
+    const invoice = await stripe.invoices.retrieve(event.data.object.id);
 
     const isSubscription = invoice.parent?.type === 'subscription_details';
     const subObj = isSubscription ? invoice.parent?.subscription_details?.subscription : null;
@@ -53,11 +64,24 @@ async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql
 
     if (subscriptionID) {
       const current = await stripe.subscriptions.retrieve(subscriptionID);
-      if (!['active', 'trialing'].includes(current.status)) {
+      const latestID = typeof current.latest_invoice === 'string' ? current.latest_invoice : current.latest_invoice?.id;
+      const latest = latestID ? await stripe.invoices.retrieve(latestID) : null;
+      let paid = latest?.status === 'paid';
+      if (paid && latestID) {
+        for await (const entry of stripe.invoicePayments.list({invoice: latestID, limit: 100})) {
+          const reference = entry.payment.payment_intent;
+          const id = typeof reference === 'string' ? reference : reference?.id;
+          if (!id) continue;
+          const payment = await stripe.paymentIntents.retrieve(id, {expand: ['latest_charge']});
+          const charge = payment.latest_charge;
+          if (charge && typeof charge !== 'string' && (charge.amount_refunded > 0 || charge.disputed)) paid = false;
+        }
+      }
+      if (!paid || !['active', 'trialing'].includes(current.status)) {
         await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${subscriptionID} AND status <> 'deleting'`;
         return;
       }
-      if (invoice.billing_reason === 'subscription_create' && invoice.customer) {
+      if (invoice.customer) {
         const customerID = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer.id;
         const date = new Date(invoice.created * 1000);
 
@@ -66,10 +90,16 @@ async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql
         const plan = subscription.metadata!.type;
 
         const userQuery = (await transaction`SELECT id FROM users WHERE stripe_customer = ${customerID}`) as QueryUser[];
+        if (!userQuery[0]) return;
+        const deleted = await transaction`SELECT identity_id FROM identity_deletions WHERE identity_id = ${identityID}`;
+        if (deleted.length) return;
         const owner = userQuery[0].id;
 
         const alreadyExists = await transaction`SELECT id FROM identities WHERE id = ${identityID}`;
-        if (alreadyExists.length) return;
+        if (alreadyExists.length) {
+          await transaction`UPDATE identities SET status = 'active' WHERE id = ${identityID} AND status = 'frozen'`;
+          return;
+        }
 
         await transaction`INSERT INTO identities (id, owner, creation_date, plan, subscription_id) VALUES (${identityID}, ${owner}, ${date}, ${plan}, ${subscriptionID})`;
       } else {
@@ -79,7 +109,7 @@ async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql
   }
 
   if (event.type === 'invoice.payment_failed') {
-    const invoice = event.data.object;
+    const invoice = await stripe.invoices.retrieve(event.data.object.id);
 
     const isSubscription = invoice.parent?.type === 'subscription_details';
     const subObj = isSubscription ? invoice.parent?.subscription_details?.subscription : null;
@@ -134,4 +164,20 @@ async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql
     const exist = await transaction`SELECT id FROM identities WHERE subscription_id = ${subscription.id}`;
     if (exist.length) await transaction`UPDATE identities SET status = 'frozen' WHERE id = ${exist[0].id} AND status <> 'deleting'`;
   }
+}
+
+export async function recoverStripeEvents(since: number) {
+  const types = [
+    'payment_intent.succeeded',
+    'invoice.paid',
+    'invoice.payment_failed',
+    'charge.refunded',
+    'charge.dispute.created',
+    'customer.subscription.deleted',
+  ];
+  for await (const event of stripe.events.list({created: {gte: since}, types, limit: 100})) {
+    await sql`INSERT INTO stripe_events (id, payload) VALUES (${event.id}, ${sql.json(JSON.parse(JSON.stringify(event)))}) ON CONFLICT DO NOTHING`;
+  }
+
+  await repairStripeEvents();
 }

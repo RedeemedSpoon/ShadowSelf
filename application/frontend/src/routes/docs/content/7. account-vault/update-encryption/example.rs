@@ -1,37 +1,31 @@
-use std::{env, error::Error};
-use serde_json::json;
-use reqwest::Client;
+use std::env;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-  let api_key = env::var("API_KEY").unwrap();
-  let identity_id = env::var("IDENTITY_ID").unwrap();
-
-  let api_url = format!(
-    "https://shadowself.io/api/account/update-encryption/{}",
-    identity_id
-  );
-
-  let re_encrypted_pass_1 = "U2FsdGVkX1+NewKeyEncPassDataOne==";
-  let re_encrypted_totp_1 = "U2FsdGVkX1+NewKeyEncTotpDataOne==";
-  let re_encrypted_pass_2 = "U2FsdGVkX1+NewKeyEncPassDataTwo==";
-
-  let payload = json!({
-    "accounts": [
-      { "id": 101, "password": re_encrypted_pass_1, "totp": re_encrypted_totp_1 },
-      { "id": 102, "password": re_encrypted_pass_2 }
-    ]
-  });
-
-  let client = Client::new();
-  let response = client
-    .put(&api_url)
-    .bearer_auth(api_key)
-    .json(&payload)
-    .send().await?
-    .error_for_status()?;
-
-  println!("{}", response.text().await?);
-
-  Ok(())
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let response = reqwest::Client::new()
+        .request(reqwest::Method::PUT, format!("https://shadowself.io/api/account/update-encryption/{}", env::var("IDENTITY_ID")?))
+        .bearer_auth(env::var("API_KEY")?)
+        .header("Content-Type", "application/json")
+        .body(r#"{
+  "encryptionVersion": 1,
+  "accounts": [
+    {
+      "id": 101,
+      "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+      "totp": null
+    }
+  ],
+  "blob": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "keys": {
+    "address": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+    "viewKey": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+    "spendKey": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
+  }
+}"#)
+        .send().await?;
+    let status = response.status();
+    let body = response.text().await?;
+    if !status.is_success() { return Err(format!("{status}: {body}").into()); }
+    println!("{body}");
+    Ok(())
 }

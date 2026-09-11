@@ -1,6 +1,6 @@
 import {allocateInvoiceAddress, quoteXmr} from '@core/wallet-service';
-import {SOCKET_AUTH_INTERVAL} from '@core/constants';
-import {cryptoPrices, invoiceConnections, watchWallet} from '@core/states';
+import {SOCKET_AUTH_INTERVAL, POLL_PRICES_INTERVAL} from '@core/constants';
+import {cryptoPrices, invoiceConnections, watchWallet, billingReadiness} from '@core/states';
 import {CRYPTO_DISCOUNT, PRICING_TIERS, PAYMENT_WINDOW_MIN} from '@core/constants';
 import middlewareBase from '@middlewares/middleware-base';
 import {trocadorApiKey} from '@core/config';
@@ -65,7 +65,8 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
   if (err) return error(set, 400, err);
   const requestID = (body as {requestID?: string})?.requestID;
   if (!/^[a-f0-9-]{36}$/.test(requestID || '')) return error(set, 400, 'A payment request ID is required');
-  if (!watchWallet || !cryptoPrices.xmr?.usdPrice) return error(set, 503, 'Crypto billing is initializing');
+  if (!watchWallet || !cryptoPrices.xmr?.usdPrice || Date.now() - billingReadiness.priceSync > POLL_PRICES_INTERVAL * 3)
+    return error(set, 503, 'Crypto billing is initializing');
 
   const users = await sql`SELECT id FROM users WHERE email = ${email}`;
   const owner = users[0].id;
@@ -79,20 +80,28 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
     ON CONFLICT (owner, request_id) DO NOTHING`;
 
   const connection = await sql.reserve();
+  let locked = false;
   try {
-    await connection`SELECT pg_advisory_lock(hashtextextended(${`${owner}:${requestID}`}, 0))`;
+    const lock = await connection`SELECT pg_try_advisory_lock(hashtextextended(${`${owner}:${requestID}`}, 0)) AS acquired`;
+    locked = lock[0].acquired;
+    if (!locked) return error(set, 503, 'This operation is already running. Retry the same request shortly');
     const invoices = await connection`SELECT * FROM crypto_invoices WHERE owner = ${owner} AND request_id = ${requestID!}`;
     const invoice = invoices[0];
-    if (invoice.plan !== plan || invoice.swap_coin !== swapCoin || (invoice.renewal_id || null) !== (renewal ? identityID : null)) {
+    if (
+      invoice.plan !== plan ||
+      invoice.swap_coin !== swapCoin ||
+      (invoice.refund_address || '') !== (refundAddress || '') ||
+      (invoice.renewal_id || null) !== (renewal ? identityID : null)
+    ) {
       return error(set, 409, 'This payment request has different details. Start a new purchase');
     }
-    if (invoice.response) return invoice.response;
     if (Date.now() >= new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000) return error(set, 410, 'Quote expired. Start a new purchase');
+    if (invoice.response) return invoice.response;
     if (invoice.provider_state === 'requested')
       return error(set, 503, 'Provider request needs reconciliation. Do not send payment or retry with a new purchase');
 
     if (!invoice.xmr_subaddress) {
-      const address = await allocateInvoiceAddress(invoice.id);
+      const address = await allocateInvoiceAddress(invoice.id, connection);
       await connection`UPDATE crypto_invoices SET xmr_subaddress = ${address} WHERE id = ${invoice.id}`;
       invoice.xmr_subaddress = address;
     }
@@ -130,7 +139,10 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
 
     return response;
   } finally {
-    await connection`SELECT pg_advisory_unlock(hashtextextended(${`${owner}:${requestID}`}, 0))`;
-    connection.release();
+    try {
+      if (locked) await connection`SELECT pg_advisory_unlock(hashtextextended(${`${owner}:${requestID}`}, 0))`;
+    } finally {
+      connection.release();
+    }
   }
 }

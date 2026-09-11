@@ -1,11 +1,12 @@
-import {watchWallet, setWatchWallet} from '@core/states';
+import {watchWallet, setWatchWallet, billingReadiness} from '@core/states';
 import {XMR_NODE, RESTORE_HEIGHT} from '@core/constants';
 import {moneroWallet} from '@core/config';
 import {sql} from '@core/services';
 import moneroTs from 'monero-ts';
+import type {ReservedSql, Sql} from 'postgres';
 
-export async function initMoneroWallet() {
-  const cacheQuery = await sql`SELECT keys_data, cache_data FROM wallet_cache WHERE id = 1`;
+export async function initMoneroWallet(connection: Sql | ReservedSql) {
+  const cacheQuery = await connection`SELECT keys_data, cache_data FROM wallet_cache WHERE id = 1`;
 
   if (cacheQuery.length > 0) {
     setWatchWallet(
@@ -30,17 +31,17 @@ export async function initMoneroWallet() {
     );
 
     await watchWallet.sync();
-    await saveWalletState();
+    await saveWalletState(connection);
   }
 }
 
-export async function saveWalletState() {
+export async function saveWalletState(connection: Sql | ReservedSql) {
   if (!watchWallet) return;
   const data = await watchWallet.getData();
   const keysBuffer = Buffer.from(data[0].buffer, data[0].byteOffset, data[0].byteLength);
   const cacheBuffer = Buffer.from(data[1].buffer, data[1].byteOffset, data[1].byteLength);
 
-  await sql`
+  await connection`
     INSERT INTO wallet_cache (id, keys_data, cache_data)
     VALUES (1, ${keysBuffer}, ${cacheBuffer})
     ON CONFLICT (id) DO UPDATE SET
@@ -58,7 +59,10 @@ export function parseXmr(value: string) {
 
 export function quoteXmr(cents: number, discount: number, price: number) {
   if (!Number.isFinite(price) || price <= 0) throw new Error('Invalid Monero price');
+  if (!Number.isSafeInteger(cents) || cents <= 0 || !Number.isSafeInteger(discount) || discount < 0 || discount >= 100)
+    throw new Error('Invalid invoice price');
   const scaledPrice = parseXmr(price.toFixed(12));
+  if (!scaledPrice) throw new Error('Monero price is below supported precision');
   const numerator = BigInt(cents) * BigInt(100 - discount) * 1_000_000_000_000n * 1_000_000_000_000n;
   const denominator = scaledPrice * 10_000n;
   const atoms = (numerator + denominator - 1n) / denominator;
@@ -66,9 +70,9 @@ export function quoteXmr(cents: number, discount: number, price: number) {
   return `${atoms / 1_000_000_000_000n}.${(atoms % 1_000_000_000_000n).toString().padStart(12, '0')}`;
 }
 
-export function invoiceState(total: bigint, unlocked: bigint, required: bigint, expiresAt: number, firstPaymentAt: number | null, now: number) {
+export function invoiceState(total: bigint, unlocked: bigint, required: bigint, expiresAt: number, firstFullPaymentAt: number | null, now: number) {
   if (required <= 0n || total < 0n || unlocked < 0n || unlocked > total) throw new Error('Invalid invoice balance');
-  if (firstPaymentAt !== null && firstPaymentAt > expiresAt) return 'late';
+  if (firstFullPaymentAt !== null && firstFullPaymentAt > expiresAt) return 'late';
   if (unlocked >= required) return 'paid';
   if (total >= required) return 'confirming';
   if (total > 0n) return 'underpaid';
@@ -76,26 +80,41 @@ export function invoiceState(total: bigint, unlocked: bigint, required: bigint, 
   return now >= expiresAt ? 'expired' : 'pending';
 }
 
-export async function withBillingWallet<T>(operation: () => Promise<T>): Promise<T> {
-  const connection = await sql.reserve();
+export async function withBillingWallet<T>(operation: (connection: ReservedSql) => Promise<T>, existing?: ReservedSql): Promise<T> {
+  const connection = existing || (await sql.reserve());
+  let locked = false;
 
   try {
-    await connection`SELECT pg_advisory_lock(81472631)`;
-    if (watchWallet) await watchWallet.close().catch(() => {});
-    await initMoneroWallet();
+    const lock = await connection`SELECT pg_try_advisory_lock(81472631) AS acquired`;
+    locked = lock[0].acquired;
+    if (!locked) throw new Error('Crypto billing is busy. Retry this request shortly');
 
-    return await operation();
+    if (watchWallet) await watchWallet.close();
+    await initMoneroWallet(connection);
+
+    const result = await operation(connection);
+    billingReadiness.available = true;
+
+    return result;
+  } catch (error) {
+    if (locked) billingReadiness.available = false;
+    throw error;
   } finally {
-    await connection`SELECT pg_advisory_unlock(81472631)`;
-    connection.release();
+    try {
+      if (locked) await connection`SELECT pg_advisory_unlock(81472631)`;
+    } finally {
+      if (!existing) connection.release();
+    }
   }
 }
 
-export async function allocateInvoiceAddress(id: string) {
-  return withBillingWallet(async () => {
-    const subaddress = await watchWallet.createSubaddress(0, id);
-    await saveWalletState();
+export async function allocateInvoiceAddress(id: string, connection: ReservedSql) {
+  return withBillingWallet(async (connection) => {
+    const subaddresses = await watchWallet.getSubaddresses(0);
+    const existing = subaddresses.find((address) => address.getLabel() === id);
+    const subaddress = existing || (await watchWallet.createSubaddress(0, id));
+    await saveWalletState(connection);
 
     return subaddress.getAddress();
-  });
+  }, connection);
 }

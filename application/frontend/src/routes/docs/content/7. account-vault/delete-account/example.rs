@@ -1,17 +1,19 @@
 use std::env;
-use reqwest::Client;
-use serde_json::json;
 
 #[tokio::main]
-async fn main() {
-    let url = format!(
-        "https://shadowself.io/api/account/delete-account/{}",
-        env::var("IDENTITY_ID").unwrap()
-    );
-    let response = Client::new()
-        .delete(&url)
-        .bearer_auth(env::var("API_KEY").unwrap())
-        .json(&json!({ "id": 103 }))
-        .send().await.unwrap().text().await.unwrap();
-    println!("{}", response);
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let response = reqwest::Client::new()
+        .request(reqwest::Method::DELETE, format!("https://shadowself.io/api/account/delete-account/{}", env::var("IDENTITY_ID")?))
+        .bearer_auth(env::var("API_KEY")?)
+        .header("Content-Type", "application/json")
+        .body(r#"{
+  "encryptionVersion": 1,
+  "id": 101
+}"#)
+        .send().await?;
+    let status = response.status();
+    let body = response.text().await?;
+    if !status.is_success() { return Err(format!("{status}: {body}").into()); }
+    println!("{body}");
+    Ok(())
 }

@@ -127,14 +127,23 @@ export default new Elysia({prefix: '/email'})
     const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
 
     const fullEmail = await appendToMailbox(true, content);
-    if (draft) await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
+    let warning;
+    let replacedDraft: number | undefined = draft;
+    if (draft) {
+      try {
+        await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
+      } catch {
+        replacedDraft = undefined;
+        warning = 'Draft saved, but the previous draft could not be removed';
+      }
+    }
 
     delete (fullEmail as {password?: string}).password;
     delete (fullEmail as {email?: string}).email;
 
     const {password: _password, email: _email, ...safeContent} = content;
     const savedDraft = {...fullEmail, ...safeContent};
-    return {draft, savedDraft};
+    return {draft: replacedDraft, savedDraft, warning};
   })
   .delete('/delete-email/:id', async ({set, identity, body}) => {
     const {err, mailbox, uid} = await checkAPI(body, ['mailbox', 'uid']);

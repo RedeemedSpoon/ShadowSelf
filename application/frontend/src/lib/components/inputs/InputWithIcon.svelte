@@ -3,6 +3,7 @@
 
   interface Props {
     name: string;
+    id?: string;
     type: string;
     fill?: boolean;
     value?: string;
@@ -13,11 +14,11 @@
     handleInput?: (e: Event) => void;
   }
 
-  let {icon, name, value, type, disabled, fill, placeholder, className, handleInput}: Props = $props();
+  let {icon, name, id = name, value, type, disabled, fill, placeholder, className, handleInput}: Props = $props();
 </script>
 
 <div class="group/input flex flex-initial {className?.wrapper}">
-  <label title={name} for={name} class="{className?.label} {disabled && 'cursor-not-allowed! opacity-50'}">
+  <label title={name} for={id} class="{className?.label} {disabled && 'cursor-not-allowed! opacity-50'}">
     {#if icon}
       {@const SvelteComponent = icon}
       <SvelteComponent
@@ -26,7 +27,7 @@
           'cursor-not-allowed!'}" />
     {/if}
   </label>
-  <input id={name} {name} {disabled} {value} {type} oninput={handleInput} {placeholder} class={className?.input} required />
+  <input {id} {name} {disabled} {value} {type} oninput={handleInput} {placeholder} class={className?.input} required />
 </div>
 
 <style lang="postcss">

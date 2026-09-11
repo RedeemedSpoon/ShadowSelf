@@ -1,34 +1,22 @@
-<p>
-  Updates the encrypted <code>password</code> and/or <code>totp</code> fields for multiple account entries at once. This is primarily for re-encrypting credentials
-  client-side, e.g., after changing a master password.
-</p>
-<br />
-<p>
-  Retrieve all accounts, re-encrypt sensitive fields (password, totp) client-side with the new key/method, then send an array containing objects for each <b
-    >account entry</b>
-  needing update, including its <code>id</code> and the newly encrypted
-  <code>password</code>
-  and/or <code>totp</code>.
-</p>
-
+<p>Changes the encryption of the entire account vault and wallet in one transaction. The separate wallet-encryption endpoint has been removed.</p>
 <h5>Request</h5>
-<p>Requires identity <code>:id</code> path parameter and JSON payload with an array of accounts with newly re-encrypted data.</p>
-<ul>
-  <li>
-    <code>accounts</code> (<span class="array">array</span>): Array of account objects to update. Each object:
-    <ul>
-      <li><code>id</code> (<span class="integer">integer</span>): Unique ID of the account entry.</li>
-      <li><code>password</code> (<span class="string">string</span>): Newly <b>client-side re-encrypted</b> password data.</li>
-      <li>
-        <code>totp</code> (<span class="string">string</span>, <span class="optional">optional</span>): Newly
-        <b>client-side re-encrypted</b> TOTP secret. Include only if the entry has a TOTP secret.
-      </li>
-    </ul>
-  </li>
-</ul>
-
-<h5>Response Body</h5>
-<p>Returns JSON payload confirming the update by echoing back the array of account objects sent. Check HTTP status code for success.</p>
-<ul>
-  <li><code>accounts</code> (<span class="array">array</span>): Array of account update objects sent in the request.</li>
-</ul>
+<p>
+  Retrieve the current accounts and identity, unlock every encrypted field with the current key, and encrypt them using the new key. Send the current <code
+    >encryptionVersion</code
+  >, every account ID with its encrypted <code>password</code> and <code>totp</code>, the encrypted wallet <code>blob</code>, and <code>keys</code> containing
+  encrypted Monero <code>address</code>, <code>viewKey</code> and <code>spendKey</code>. Use explicit null for an absent TOTP secret.
+</p>
+<p>
+  Ciphertext uses <code>v1.</code> followed by canonical base64 of a fresh 12-byte AES-GCM nonce and authenticated ciphertext including its 16-byte tag. Decoded envelopes
+  must contain 29 to 4124 bytes. Encrypt on the client. Never send the master password or plaintext keys. The example ciphertext is illustrative.
+</p>
+<h5>Concurrency and response</h5>
+<p>
+  All account IDs must match the complete current vault. A missing or duplicate account, a concurrent edit, or a stale encryption version returns HTTP 409 and
+  changes nothing. Malformed envelopes return HTTP 400. Successful updates return the saved accounts, wallet blob, Monero keys, and incremented encryption
+  version.
+</p>
+<p>
+  Replace the in-memory key only after success. Remove the old encrypted wallet cache and sync it again. A failed request must leave the current key and cached
+  state available.
+</p>

@@ -5,7 +5,7 @@ import postgres from 'postgres';
 import imap from 'imap-simple';
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(stripeConfig.secretKey, {apiVersion: '2026-08-26.dahlia'});
+export const stripe = new Stripe(stripeConfig.secretKey, {apiVersion: '2026-08-26.dahlia', timeout: 15_000, maxNetworkRetries: 2});
 export const twilio = twilioClient(twilioConfig.sid, twilioConfig.token);
 
 export const sql = postgres({
@@ -57,6 +57,7 @@ export async function billingPortal(email: string) {
   const accounts = await sql`SELECT stripe_customer FROM users WHERE email = ${email}`;
   if (!accounts[0]?.stripe_customer) return {sessionUrl: ''};
 
+  await stripe.customers.update(accounts[0].stripe_customer, {email});
   const session = await stripe.billingPortal.sessions.create({customer: accounts[0].stripe_customer, return_url: `${origin}/settings`});
 
   return {sessionUrl: session.url};

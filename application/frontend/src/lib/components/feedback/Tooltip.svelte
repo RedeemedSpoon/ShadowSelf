@@ -15,7 +15,7 @@
 </script>
 
 <div class="group/tooltip relative w-fit">
-  <span class="{addedClasses} group-hover/tooltip:visible! group-hover/tooltip:opacity-100!">{tip}</span>
+  <span class="{addedClasses} hidden group-focus-within/tooltip:block group-hover/tooltip:block">{tip}</span>
   {@render children?.()}
 </div>
 
@@ -23,7 +23,7 @@
   @reference "$style";
 
   span {
-    @apply invisible absolute z-30 my-2 rounded-xl px-4 py-3 text-sm text-wrap whitespace-pre-line opacity-0;
+    @apply absolute z-30 my-2 rounded-xl px-4 py-3 text-sm text-wrap whitespace-pre-line;
     @apply bg-neutral-950/85 text-neutral-300 shadow-black drop-shadow-2xl transition-all duration-200 ease-in-out;
   }
 
