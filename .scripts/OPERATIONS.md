@@ -59,3 +59,15 @@ Use isolated provider credentials and disposable accounts. Verify desktop/mobile
 ## Proxy accounts
 
 The proxy API requires `SECRET_KEY`. A named `proxy-auth` volume holds bcrypt password hashes and is mounted read-only in Squid. The API serializes changes and replaces the password file atomically. Run one API instance per volume. Include this volume in backups. Fresh deployments start with an empty account file; provisioning writes accounts as identities are created. Verify Squid authentication with the built image before release because bcrypt support depends on its crypt library.
+
+## Focused acceptance check, 2026-09-12
+
+The existing V1 host was checked only for mail and CrowdSec. Its Postfix journal unit is `postfix@-.service`; Dovecot uses `dovecot.service`. Acquisition was corrected on the host, configuration validated, and both inputs produced parsed events. An isolated network namespace verified a temporary CrowdSec decision blocked host SMTP and Docker HTTP, then restored access after removal. The decision and namespace were removed.
+
+Disposable mail accounts verified TLS, authenticated SMTP submission, local mailbox delivery, authenticated IMAP access, sender-impersonation rejection and unauthenticated external-relay rejection. Dovecot backup and reverse restoration preserved the test message, verified through IMAP after restoration. The accounts were removed. This validates the host's existing PAM mail setup, not the fresh SQL mailbox configuration in this repository or delivery to external providers.
+
+For the existing filesystem-layout mailboxes, the backup destination must preserve `:LAYOUT=fs` and its explicit `INBOX` location. Use Dovecot's [backup/reverse-backup commands](https://doc.dovecot.org/2.3/admin_manual/migrating_mailboxes/) rather than copying actively changing index files.
+
+Local fixtures verified Stripe signed raw-body acceptance and rejection of altered, missing and stale signatures. Monero fixtures verified cache persistence before relay, refusal to relay after cache failure, and wallet closure after an uncertain relay. Firefox verified HttpOnly cookie visibility and isolation from private/container cookie jars. Chromium and T3 checked the QR scanner's denied-camera fallback and desktop/mobile layout.
+
+No live Stripe configuration, Trocador trade, Monero transfer or installed-extension proxy connection was exercised. Trocador timeouts and malformed responses now fail explicitly; provider reconciliation after an unknown outcome remains required. Physical-camera scanning and external email delivery remain separate checks.

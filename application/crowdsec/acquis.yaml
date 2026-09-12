@@ -11,7 +11,7 @@ labels:
 ---
 source: journalctl
 journalctl_filter:
-  - _SYSTEMD_UNIT=postfix.service
+  - _SYSTEMD_UNIT=postfix@-.service
 labels:
   type: syslog
 ---

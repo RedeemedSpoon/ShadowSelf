@@ -45,10 +45,12 @@ export default new Elysia({prefix: '/crypto'})
       if (err) return error(set, 400, err);
 
       const params = `?ticker_from=${coinFrom}&ticker_to=${coinTo}&network_from=${net(coinFrom)}&network_to=${net(coinTo)}&amount_from=${amount}`;
-      const response = await fetch('https://api.trocador.app/new_rate' + params, {headers: {'API-Key': trocadorApiKey}});
+      const response = await fetch('https://api.trocador.app/new_rate' + params, {headers: {'API-Key': trocadorApiKey}, signal: AbortSignal.timeout(15_000)});
       if (!response.ok) return error(set, 400, 'Something Went Wrong');
 
       const data = await response.json();
+      if (!data.trade_id || !Array.isArray(data.quotes?.quotes)) return error(set, 502, 'Swap provider returned an invalid quote');
+
       const providers = data.quotes.quotes.map((val: any) => ({
         isFixed: val.fixed === 'True',
         costPercentage: parseFloat(val.USD_total_cost_percentage),
@@ -99,11 +101,16 @@ export default new Elysia({prefix: '/crypto'})
         const response = await fetch(`https://api.trocador.app/new_trade?${params.toString()}`, {
           headers: {'API-Key': trocadorApiKey},
           method: 'GET',
+          signal: AbortSignal.timeout(30_000),
         });
 
         const data = await response.json();
         if (!response.ok || (data as any).error) {
           return error(set, 400, (data as any).error || 'Failed to create trade at provider');
+        }
+
+        if (!data.trade_id || !data.address_provider || !Number.isFinite(Number(data.amount_from)) || Number(data.amount_from) <= 0) {
+          return error(set, 502, 'Trade outcome is uncertain. Check the existing trade before retrying');
         }
 
         return {
@@ -115,7 +122,7 @@ export default new Elysia({prefix: '/crypto'})
           externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
         };
       } catch (_) {
-        return error(set, 502, 'Upstream Service Error');
+        return error(set, 502, 'Trade outcome is uncertain. Check the existing trade before retrying');
       }
     },
     throttle('Swap Trade', 10_000),

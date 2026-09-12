@@ -12,20 +12,39 @@
   let qrCode: Html5Qrcode | null = $state(null);
   let scannerID = 'reader';
 
-  onMount(async () => {
+  let cameraError = $state('');
+  let disposed = false;
+  let starting: Promise<void> | undefined;
+
+  onMount(() => {
     qrCode = new Html5Qrcode(scannerID);
-    await qrCode.start(
-      {facingMode: 'environment'},
-      {fps: 10, qrbox: {width: 250, height: 250}},
-      (decodedText) => (onScan(decodedText), stopCamera()),
-      (_) => {},
-    );
+    starting = qrCode
+      .start(
+        {facingMode: 'environment'},
+        {fps: 10, qrbox: {width: 250, height: 250}},
+        (decodedText) => {
+          if (!disposed) {
+            onScan(decodedText);
+            void stopCamera();
+          }
+        },
+        () => {},
+      )
+      .then(async () => {
+        if (disposed && qrCode?.isScanning) await qrCode.stop();
+      })
+      .catch(() => {
+        if (!disposed) cameraError = 'Camera unavailable or permission denied. Upload a QR image instead.';
+      });
   });
 
   async function stopCamera() {
-    if (qrCode && qrCode.isScanning) {
-      await qrCode.stop();
-      qrCode.clear();
+    disposed = true;
+    try {
+      await starting;
+      if (qrCode?.isScanning) await qrCode.stop();
+      qrCode?.clear();
+    } finally {
       close();
     }
   }
@@ -36,6 +55,9 @@
 
     const imageFile = target.files[0];
 
+    await starting;
+    if (disposed) return;
+
     if (qrCode && qrCode.isScanning) {
       await qrCode.stop();
     }
@@ -44,9 +66,11 @@
     try {
       const decodedText = await fileScanner.scanFileV2(imageFile, true);
       onScan(decodedText.decodedText);
-      close();
+      await stopCamera();
     } catch (_) {
-      close();
+      cameraError = 'No readable QR code found. Try another image.';
+    } finally {
+      fileScanner.clear();
     }
   }
 
@@ -54,10 +78,18 @@
   const explainer = $derived(
     sweepWallet ? 'Point your camera at the Private Key (WIF) QR code to import funds.' : 'Point your camera at a QR code to fill the address automatically.',
   );
-  onDestroy(() => stopCamera());
+  onDestroy(() => {
+    disposed = true;
+    void starting
+      ?.then(async () => {
+        if (qrCode?.isScanning) await qrCode.stop();
+        qrCode?.clear();
+      })
+      .catch(() => {});
+  });
 </script>
 
-<div id="backdrop" onclick={() => stopCamera()} aria-hidden="true" class={qrCode?.isScanning ? 'hidden' : 'no-scroll'}></div>
+<div id="backdrop" onclick={() => stopCamera()} aria-hidden="true" class="no-scroll"></div>
 <div id="scanner">
   <div class="relative w-full overflow-hidden">
     <h3 class="w-full p-4 pt-1 text-center text-2xl font-bold text-neutral-300">{title}</h3>
@@ -65,6 +97,8 @@
     <div id="file-reader-hidden" class="hidden"></div>
     <div class="flex flex-col gap-3 p-4">
       <p class="mb-2 text-center text-xs text-neutral-500">{explainer}</p>
+      {#if cameraError}<p role="alert" class="text-center text-sm text-amber-400">{cameraError}</p>{/if}
+      <button type="button" class="alt" onclick={stopCamera}>Close Scanner</button>
       <div class="relative">
         <button class="w-full py-3 text-lg font-medium">Or Upload Image File</button>
         <input type="file" accept="image/*" class="absolute inset-0 cursor-pointer opacity-0" onchange={handleFileUpload} />

@@ -75,6 +75,8 @@ export async function transferMonero(nodeUrl: string, address: string, amount: s
       await wallet.sync();
       if (get(identity).walletBlob !== account.walletBlob) throw new Error('Wallet encryption changed. Unlock it again');
       const transaction = await wallet.createTx({accountIndex: 0, address, amount: atoms, relay: false, priority});
+      await saveMoneroCache(cacheID, key, await wallet.getData());
+
       try {
         await wallet.relayTx(transaction);
       } catch {
