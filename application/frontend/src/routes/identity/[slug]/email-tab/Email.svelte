@@ -18,7 +18,6 @@
 
   import type {EmailAPI, EditorParams, Email, WebSocketMessage} from '$type';
   import {identity, handleResponse, pendingID, activeModal} from '$store';
-  import {EMAIL_FETCH_LIMIT} from '$constant';
   import {fetchAPI} from '$utils/webfetch';
   import {writable} from 'svelte/store';
   import {notify} from '$utils/shared';
@@ -30,7 +29,6 @@
 
   let label = $state('INBOX') as 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
   let inbox = $state() as EmailAPI;
-  let from = $state(EMAIL_FETCH_LIMIT);
 
   const showActionButtons = $derived(!$target || label === 'Junk');
   const showSpesficAction = $derived(label === 'Drafts' || showActionButtons);
@@ -49,22 +47,22 @@
 
     inbox = await fetchAPI<EmailAPI>('email', 'GET');
     $target = null;
-    from = EMAIL_FETCH_LIMIT;
   }
 
   async function loadMore() {
-    const messageCountString = label.toLowerCase() === 'inbox' ? 'messagesCount' : `${label.toLowerCase()}MessagesCount`;
-    const total = inbox.emails[messageCountString as keyof typeof inbox.emails] as number;
+    const mailbox = label.toLowerCase() as 'inbox';
+    const messages = inbox.emails[mailbox];
+    const since = Math.min(...messages.map((message) => message.uid));
+    if (!Number.isSafeInteger(since) || since <= 1) return;
     $pendingID = 1;
 
-    const response = await fetchAPI<EmailAPI>('email/load-more', 'GET', {mailbox: label, since: total - from});
-    if (response.err) return notify(response.err, 'alert');
-
-    const mailbox = response.mailbox!.toLowerCase() as 'inbox';
-    inbox.emails[mailbox] = [...inbox.emails[mailbox], ...response.nextEmails!];
-
-    $pendingID = 0;
-    from += EMAIL_FETCH_LIMIT;
+    try {
+      const response = await fetchAPI<EmailAPI>('email/load-more', 'GET', {mailbox: label, since});
+      if (response.err) return notify(response.err, 'alert');
+      inbox.emails[mailbox] = [...messages, ...response.nextEmails!];
+    } finally {
+      $pendingID = 0;
+    }
   }
 
   async function fetchReply(uuid?: string) {
@@ -129,8 +127,10 @@
 
       if (response.draft) {
         inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
+        inbox.emails.draftsMessagesCount = Math.max(0, inbox.emails.draftsMessagesCount - 1);
       }
 
+      if (response.warning) notify(response.warning, 'info');
       inbox.emails.drafts.unshift(response.savedDraft!);
       inbox.emails.draftsMessagesCount++;
     } else {
@@ -142,6 +142,7 @@
 
       if (response.draft) {
         inbox.emails.drafts = inbox.emails.drafts.filter((draft) => draft.uid !== response.draft);
+        inbox.emails.draftsMessagesCount = Math.max(0, inbox.emails.draftsMessagesCount - 1);
       }
 
       if (response.warning) notify(response.warning, 'info');
@@ -172,7 +173,6 @@
     inbox.emails = {...inbox.emails};
     $mode = 'browse';
     $target = null;
-    from--;
   }
 
   function reset(mailbox: 'INBOX' | 'Sent' | 'Drafts' | 'Junk') {

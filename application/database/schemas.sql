@@ -140,6 +140,7 @@ CREATE TABLE fiat_intents (
   plan varchar(8) NOT NULL,
   identity_id varchar(12) NOT NULL UNIQUE,
   provider_id text,
+  subscription_id text,
   response jsonb,
   created_at timestamptz NOT NULL DEFAULT NOW(),
   UNIQUE (owner, request_id)

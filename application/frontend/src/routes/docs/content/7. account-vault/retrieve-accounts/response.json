@@ -3,18 +3,19 @@
     {
       "id": 101,
       "username": "service_user_jd",
-      "password": "U2FsdGVkX1+v3Qw8aK9ZgslkdjfgPQ5/7a8s9d0fGHJKl==",
+      "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
       "website": "https://service.example.com",
-      "totp": "U2FsdGVkX1+abcDefGhiJKLmnoPqrStuVwxYz012345=",
+      "totp": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
       "algorithm": "SHA1"
     },
     {
       "id": 102,
       "username": "tester_05",
-      "password": "U2FsdGVkX1+qwertyUIOPasdfghJKLzxcvBNM098765=",
+      "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
       "website": "https://anothersite.net",
       "totp": null,
       "algorithm": null
     }
-  ]
+  ],
+  "encryptionVersion": 1
 }

@@ -12,7 +12,8 @@ export default new Elysia({prefix: '/identity'})
   .use(middlewareApi)
   .get('/:id', async ({identity}) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {email_password, proxy_password, payment_intent, crypto_invoice, subscription_id, owner, status, ...pubInfo} = identity!;
+    const {email_password, proxy_password, payment_intent, crypto_invoice, subscription_id, phone_sid, encryption_version, owner, status, ...pubInfo} =
+      identity!;
     const {creation_date, proxy_server, wallet_keys, wallet_blob, wallet_funds, ...rest} = pubInfo;
     const reformattedData = {
       encryptionVersion: identity!.encryption_version,

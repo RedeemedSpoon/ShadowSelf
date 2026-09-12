@@ -23,7 +23,7 @@ export default new Elysia()
     }
 
     await sql`INSERT INTO stripe_events (id, payload) VALUES (${event.id}, ${sql.json(JSON.parse(JSON.stringify(event)))}) ON CONFLICT DO NOTHING`;
-    await processStripeEvent(event.id);
+    void processStripeEvent(event.id).catch(() => console.error('Stripe event saved for reconciliation'));
 
     return {received: true};
   })

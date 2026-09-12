@@ -1,68 +1,39 @@
 package main
 
 import (
-  "bytes"; "encoding/json"; "fmt"; "io"; "net/http"; "os"
+ "fmt"
+ "io"
+ "net/http"
+ "os"
+ "strings"
 )
 
-type AccountUpdate struct {
-  ID       int    `json:"id"`
-  Password string `json:"password"`
-  Totp     string `json:"totp,omitempty"`
-}
-
-type UpdateEncryptionPayload struct {
-  Accounts []AccountUpdate `json:"accounts"`
-}
-
 func main() {
-  apiKey := os.Getenv("API_KEY")
-  identityID := os.Getenv("IDENTITY_ID")
-  apiURL := fmt.Sprintf(
-    "https://shadowself.io/api/account/update-encryption/%s",
-    identityID,
-  )
-
-  reEncryptedPass1 := "U2FsdGVkX1+NewKeyEncPassDataOne=="
-  reEncryptedTotp1 := "U2FsdGVkX1+NewKeyEncTotpDataOne=="
-  reEncryptedPass2 := "U2FsdGVkX1+NewKeyEncPassDataTwo=="
-
-  payloadData := UpdateEncryptionPayload{
-    Accounts: []AccountUpdate{
-      {ID: 101, Password: reEncryptedPass1, Totp: reEncryptedTotp1},
-      {ID: 102, Password: reEncryptedPass2},
-    },
+ payload := `{
+  "encryptionVersion": 1,
+  "accounts": [
+    {
+      "id": 101,
+      "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+      "totp": null
+    }
+  ],
+  "blob": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "keys": {
+    "address": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+    "viewKey": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+    "spendKey": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
   }
-  payloadBytes, err := json.Marshal(payloadData)
-  if err != nil {
-    fmt.Printf("JSON marshal error: %v\n", err)
-    os.Exit(1)
-  }
-
-  req, err := http.NewRequest("PUT", apiURL, bytes.NewBuffer(payloadBytes))
-  if err != nil {
-    fmt.Printf("Request creation error: %v\n", err)
-    os.Exit(1)
-  }
-  req.Header.Add("Authorization", "Bearer "+apiKey)
-  req.Header.Add("Content-Type", "application/json")
-
-  client := &http.Client{}
-  resp, err := client.Do(req)
-  if err != nil {
-    fmt.Printf("Request execution error: %v\n", err)
-    os.Exit(1)
-  }
-  defer resp.Body.Close()
-
-  body, err := io.ReadAll(resp.Body)
-  if err != nil {
-    fmt.Printf("Response read error: %v\n", err)
-    os.Exit(1)
-  }
-
-  if resp.StatusCode >= 400 {
-    fmt.Printf("API error: %s\n%s\n", resp.Status, string(body))
-    os.Exit(1)
-  }
-  fmt.Println(string(body))
+}`
+ request, err := http.NewRequest("PUT", "https://shadowself.io/api/account/update-encryption/"+os.Getenv("IDENTITY_ID"), strings.NewReader(payload))
+ if err != nil { panic(err) }
+ request.Header.Set("Authorization", "Bearer "+os.Getenv("API_KEY"))
+ request.Header.Set("Content-Type", "application/json")
+ response, err := http.DefaultClient.Do(request)
+ if err != nil { panic(err) }
+ defer response.Body.Close()
+ body, err := io.ReadAll(response.Body)
+ if err != nil { panic(err) }
+ if response.StatusCode != 200 { panic(string(body)) }
+ fmt.Println(string(body))
 }

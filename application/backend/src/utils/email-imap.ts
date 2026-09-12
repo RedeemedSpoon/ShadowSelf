@@ -7,45 +7,70 @@ import type {EmailContent} from '@type';
 import imap from 'imap-simple';
 import {randomUUID} from 'node:crypto';
 
-export async function listenForEmail(user: string, password: string): Promise<imap.ImapSimple | null> {
+export function listenForEmail(user: string, password: string, socketID: string) {
   let connection: imap.ImapSimple | null = null;
+  let reconnect: ReturnType<typeof setTimeout> | undefined;
+  let stopped = false;
+  let lastUID: number | undefined;
+  let uidValidity: number | undefined;
+  let pending = Promise.resolve();
 
-  async function onmail(mail: number) {
-    if (mail < 1 || !connection) return;
+  const queueMail = () => {
+    const active = connection;
+    pending = pending
+      .then(async () => {
+        if (stopped || active !== connection || !active || lastUID === undefined) return;
+        const messages = await active.search([['UID', `${lastUID + 1}:*`]], {bodies: ['']});
+        for (const message of messages) {
+          if (message.attributes.uid <= lastUID) continue;
+          const email = await parseMessage(active, message);
+          const socket = wsConnections.get(socketID);
+          if (stopped || active !== connection || !socket || !(await socket.authorize())) return;
 
-    await connection.openBox('INBOX');
-    const messages = await connection.search([`UNSEEN`], {bodies: ['']});
+          socket.websocket.send(JSON.stringify({type: 'email', email}));
+          lastUID = message.attributes.uid;
+        }
+      })
+      .catch(() => active?.end());
+  };
 
-    for (const message of messages) {
-      const email = await parseMassage(connection, message);
-
-      const sockets = wsConnections.values().filter((ws) => ws.emailAddress === user);
-      for (const ws of sockets) {
-        if (await ws.authorize()) ws.websocket.send(JSON.stringify({type: 'email', email}));
-      }
-    }
-  }
-
-  async function connect(retries = 3) {
-    const sockets = [...wsConnections.values()].filter((ws) => ws.emailAddress === user);
-
-    if (!sockets.length || retries <= 0) return;
-
+  const connect = async () => {
+    if (stopped) return;
     try {
+      const active = await imapConnection(user, password, queueMail);
+      if (stopped) return active.end();
+      connection = active;
+      const schedule = () => {
+        if (connection !== active) return;
+        connection = null;
+        active.end();
+        if (!stopped) reconnect = setTimeout(() => void connect(), 5000);
+      };
+      active.once('end', schedule);
+      active.once('error', schedule);
+      const mailbox = await new Promise<{uidnext: number; uidvalidity: number}>((resolve, reject) => {
+        active.imap.openBox('INBOX', (error, box) => (error ? reject(error) : resolve(box)));
+      });
+      if (lastUID === undefined) lastUID = mailbox.uidnext - 1;
+      else if (uidValidity !== mailbox.uidvalidity) lastUID = 0;
+      uidValidity = mailbox.uidvalidity;
+      queueMail();
+    } catch {
       connection?.end();
-      connection = await imapConnection(user, password, onmail);
-      await connection.openBox('INBOX');
-
-      sockets.forEach((ws) => (ws.imapConnection = connection!));
-
-      connection.on('error', () => {});
-      connection.once('end', () => setTimeout(() => connect(3), 5000));
-    } catch (_) {
-      setTimeout(() => connect(retries - 1), 5000);
+      connection = null;
+      clearTimeout(reconnect);
+      if (!stopped) reconnect = setTimeout(() => void connect(), 5000);
     }
-  }
-  await connect();
-  return connection;
+  };
+
+  void connect();
+
+  return () => {
+    stopped = true;
+    clearTimeout(reconnect);
+    connection?.end();
+    connection = null;
+  };
 }
 
 export async function fetchMoreEmails(user: string, password: string, mailbox: string, since: number) {
@@ -54,9 +79,7 @@ export async function fetchMoreEmails(user: string, password: string, mailbox: s
   let inbox;
 
   try {
-    const start = Math.max(1, since - EMAIL_FETCH_LIMIT);
-    const query = `${start}:${since - 1}`;
-    inbox = await getInbox(mailbox, connection, query);
+    inbox = await getInbox(mailbox, connection, since);
   } finally {
     connection.end();
   }
@@ -100,7 +123,7 @@ export async function fetchEmail(user: string, password: string, isReply: boolea
       const message = await connection.search(query, {bodies: ['']});
 
       if (message.length === 0) continue;
-      reply = await parseMassage(connection, message[0]);
+      reply = await parseMessage(connection, message[0]);
     }
   } finally {
     connection.end();
@@ -149,7 +172,8 @@ export async function deleteEmail(user: string, password: string, mailbox: strin
 
   try {
     await connection.openBox(mailbox);
-    await connection.moveMessage(uid.toString(), 'Junk');
+    if (mailbox === 'Junk') await connection.deleteMessage(uid);
+    else await connection.moveMessage(uid.toString(), 'Junk');
   } finally {
     connection.end();
   }
@@ -164,15 +188,18 @@ async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
   });
 }
 
-async function getInbox(inbox: string, connection: imap.ImapSimple, query?: string) {
-  const messagesCount = await getMessageCount(inbox, connection);
+async function getInbox(inbox: string, connection: imap.ImapSimple, beforeUID?: number) {
+  let messagesCount = await getMessageCount(inbox, connection);
   if (messagesCount === 0) return {messagesCount: 0, emails: []};
 
   await connection.openBox(inbox);
-  const lastMessages = Math.max(1, messagesCount - EMAIL_FETCH_LIMIT + 1);
-  const searchQuery = query ? query : `${lastMessages}:${messagesCount || 1}`;
-
-  const messages = await connection.search([searchQuery], {bodies: ['']});
+  const ids = await new Promise<number[]>((resolve, reject) => {
+    const criteria = beforeUID ? [['UID', `1:${beforeUID - 1}`]] : ['ALL'];
+    connection.imap.search(criteria, (error, ids) => (error ? reject(error) : resolve(ids)));
+  });
+  const selected = ids.filter((id) => !beforeUID || id < beforeUID).slice(-EMAIL_FETCH_LIMIT);
+  if (!selected.length) return {messagesCount, emails: []};
+  const messages = await connection.search([['UID', selected.join(',')]], {bodies: ['']});
 
   const emails: any[] = [];
   for (const message of messages) {
@@ -183,17 +210,18 @@ async function getInbox(inbox: string, connection: imap.ImapSimple, query?: stri
 
       if (internalDate < cutoffDate) {
         await connection.deleteMessage(message.attributes.uid);
+        messagesCount--;
         continue;
       }
     }
 
-    emails.unshift(await parseMassage(connection, message));
+    emails.unshift(await parseMessage(connection, message));
   }
 
   return {messagesCount, emails};
 }
 
-async function parseMassage(connection: imap.ImapSimple, message: imap.Message) {
+async function parseMessage(connection: imap.ImapSimple, message: imap.Message) {
   if (!message.attributes.flags.includes('\\Seen')) {
     await connection.addFlags(message.attributes.uid, ['\\Seen']);
   }

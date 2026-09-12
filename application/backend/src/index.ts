@@ -4,6 +4,8 @@ import {contact} from '@utils/email-smtp';
 import type {ContactDetail} from '@type';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
+import {billingReadiness, cryptoPrices} from '@core/states';
+import {POLL_INVOICES_INTERVAL, POLL_PRICES_INTERVAL} from '@core/constants';
 
 import creationProcess from './routes/creation-process';
 import settings from './routes/user-settings';
@@ -13,13 +15,36 @@ import webhooks from './routes/webhooks';
 import billing from './routes/billing';
 
 const app = new Elysia({serve: {maxRequestBodySize: 20 * 1024 * 1024}})
-  .onError(async ({error}) => {
-    if (error instanceof Error) return {message: error.message};
-    else if (error instanceof Response) return {message: await error.text()};
-    else return {message: error};
+  .onError(async ({code, error, set}) => {
+    if (error instanceof Response) {
+      set.status = error.status;
+      return await error.text();
+    }
+    if (code === 'VALIDATION') {
+      set.status = 400;
+      return 'Invalid request';
+    }
+    if (code === 'NOT_FOUND') {
+      set.status = 404;
+      return 'Route not found';
+    }
+
+    console.error('Request failed', code);
+    set.status = 500;
+    return 'Request failed. Please retry shortly';
   })
   .get('/', () => 'Hello from ShadowSelf!')
   .get('/health/live', () => ({status: 'ok'}))
+  .get('/health/billing', ({set}) => {
+    const ready =
+      billingReadiness.available &&
+      Date.now() - billingReadiness.lastSync < POLL_INVOICES_INTERVAL * 3 &&
+      Date.now() - billingReadiness.priceSync < POLL_PRICES_INTERVAL * 3 &&
+      !!cryptoPrices.xmr?.usdPrice;
+    set.status = ready ? 200 : 503;
+
+    return {status: ready ? 'ready' : 'unavailable'};
+  })
   .post('/contact', async ({body, set}) => {
     const {err} = checkContact(body);
     if (err) return error(set, 400, err);

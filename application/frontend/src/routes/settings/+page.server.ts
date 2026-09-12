@@ -9,12 +9,24 @@ export const load: PageServerLoad = async ({cookies, setHeaders}) => {
   setHeaders({'cache-control': 'no-store'});
 
   const response = await fetchBackend('/settings/', 'GET', undefined, cookies.get('token'));
+  const sessions = await fetchBackend('/settings/sessions', 'GET', undefined, cookies.get('token'));
   const stripeKey = PUBLIC_STRIPE_KEY;
 
-  return {settings: response, stripeKey};
+  return {settings: response, stripeKey, sessions: (sessions.sessions || []) as {id: string; current: boolean}[]};
 };
 
 export const actions: Actions = {
+  revokeSession: async ({request, cookies}) => {
+    const form = await request.formData();
+    const response = await fetchBackend('/settings/revoke', 'POST', {id: form.get('id')}, cookies.get('token'));
+    if (!response.success) return response;
+    if (form.get('current') === 'true') {
+      cookies.delete('token', {path: '/'});
+      redirect(303, '/login');
+    }
+
+    return response;
+  },
   portal: async ({request, cookies}) => {
     const currentPassword = (await request.formData()).get('currentPassword');
 
@@ -39,7 +51,7 @@ export const actions: Actions = {
 
     createCookie(cookies, 'token', response.cookie);
 
-    return {toggleModel: false, message: 'Successfully changed email address', type: 'success'};
+    return {toggleModel: false, message: response.warning || 'Successfully changed email address', type: response.warning ? 'info' : 'success'};
   },
   username: async ({request, cookies}) => {
     const form = await request.formData();

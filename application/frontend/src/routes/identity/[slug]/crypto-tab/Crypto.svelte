@@ -29,11 +29,16 @@
   import {identity, moneroData, masterPassword, activeModal} from '$store';
   import type {Coins, CryptoAPI, MoneroNodeAPI} from '$type';
   import {decrypt} from '$utils/cryptography';
-  import initMoneroScan from '$utils/monero';
+  import initMoneroScan, {idbOperation} from '$utils/monero';
+  import {notify} from '$utils/shared';
   import {fetchAPI} from '$utils/webfetch';
   import {writable} from 'svelte/store';
+  import {onDestroy} from 'svelte';
 
   let crypto = $state({}) as CryptoAPI;
+  let scanController = new AbortController();
+  let resettingCache = $state(false);
+  onDestroy(() => scanController.abort());
   let xmrScanProgress = $state(0);
   let xmrScannedBlocks = $state(0);
   let xmrTotalBlocks = $state(0);
@@ -83,19 +88,42 @@
       balance: 0,
     };
 
-    const initialState = await initMoneroScan(
-      nodeData,
-      (hasCache) => (xmrHasLocalCache = hasCache),
-      (progress, scanned, total) => {
-        xmrScanProgress = progress;
-        xmrScannedBlocks = scanned;
-        xmrTotalBlocks = total;
-        crypto.wallet.xmr.status = 'Scanning...';
-      },
-      (xmrData) => Object.assign(crypto.wallet.xmr, xmrData),
-      () => (crypto.wallet.xmr.status = 'Network Error'),
-    );
-    Object.assign(crypto.wallet.xmr, initialState);
+    try {
+      const initialState = await initMoneroScan(
+        nodeData,
+        (hasCache) => (xmrHasLocalCache = hasCache),
+        (progress, scanned, total) => {
+          xmrScanProgress = progress;
+          xmrScannedBlocks = scanned;
+          xmrTotalBlocks = total;
+          crypto.wallet.xmr.status = 'Scanning...';
+        },
+        (xmrData) => Object.assign(crypto.wallet.xmr, xmrData),
+        () => (crypto.wallet.xmr.status = 'Network Error'),
+        scanController.signal,
+      );
+      Object.assign(crypto.wallet.xmr, initialState);
+    } catch {
+      crypto.wallet.xmr.status = 'Network Error';
+    }
+  }
+
+  async function resetMoneroCache() {
+    resettingCache = true;
+    scanController.abort();
+
+    try {
+      await navigator.locks.request(`shadowself-xmr-${$identity.id}`, async () => {
+        await idbOperation('delete', `${$identity.id}:${$identity.walletBlob}`);
+      });
+      scanController = new AbortController();
+      xmrScanProgress = 0;
+      await fetchWalletData();
+    } catch {
+      notify('Could not reset the wallet cache. Reload and try again', 'alert');
+    } finally {
+      resettingCache = false;
+    }
   }
 
   async function backupKeys() {
@@ -129,6 +157,7 @@ If a hacker finds this file, your money is gone.
     const blob = new Blob([text], {type: 'text/plain'});
     anchor.href = URL.createObjectURL(blob);
     anchor.click();
+    setTimeout(() => URL.revokeObjectURL(anchor.href), 1000);
   }
 </script>
 
@@ -169,7 +198,9 @@ If a hacker finds this file, your money is gone.
 
       {#if $currentCrypto === 'xmr' && xmrScanProgress !== 100}
         <section class="my-12 flex flex-col items-center gap-6">
-          <h3 class="text-4xl font-bold text-neutral-300 md:text-5xl">Syncing Monero Wallet</h3>
+          <h3 class="text-4xl font-bold text-neutral-300 md:text-5xl">
+            {crypto.wallet.xmr.status === 'Network Error' ? 'Monero Sync Unavailable' : 'Syncing Monero Wallet'}
+          </h3>
           <div class="text-center text-sm leading-relaxed text-neutral-400 md:w-2/3">
             To maintain a strict zero-knowledge architecture, your Private View/Spend Key never leaves this device. Instead of trusting our servers, your
             browser is scanning the Monero blockchain locally to cryptographically derive your balance.
@@ -192,9 +223,10 @@ If a hacker finds this file, your money is gone.
               <div class="bg-primary-600 h-full transition-all duration-300 ease-out" style="width: {xmrScanProgress}%"></div>
             </div>
           </div>
-          <div class="text-center text-xs text-neutral-500 md:w-1/3">
-            Do not navigate away from this page or switch tabs. Interrupting the background worker will discard current progress and force a full rescan.
-          </div>
+          <p class="text-center text-xs text-neutral-500 md:w-1/2">Keep this page open during sync. The encrypted cache is saved when sync completes.</p>
+          <button class="alt" disabled={resettingCache} onclick={resetMoneroCache}>
+            {resettingCache ? 'Waiting for wallet to close...' : 'Clear Local Cache and Resync'}
+          </button>
         </section>
       {:else if crypto.wallet[$currentCrypto].history.length === 0}
         <section id="no-funds" style="background-image: url({cart});">

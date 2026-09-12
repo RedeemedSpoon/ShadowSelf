@@ -1,0 +1,22 @@
+filenames:
+  - /var/log/shadowself/nginx/access.log
+labels:
+  type: nginx
+---
+source: journalctl
+journalctl_filter:
+  - _SYSTEMD_UNIT=ssh.service
+labels:
+  type: syslog
+---
+source: journalctl
+journalctl_filter:
+  - _SYSTEMD_UNIT=postfix.service
+labels:
+  type: syslog
+---
+source: journalctl
+journalctl_filter:
+  - _SYSTEMD_UNIT=dovecot.service
+labels:
+  type: syslog

@@ -1,8 +1,9 @@
 {
-  "id": 103,
-  "username": "forum_reader_12",
-  "password": "U2FsdGVkX19abcDefGhiJKLmnoPqrStuVwxYz012345=",
-  "website": "https://communityforum.org",
-  "totp": "U2FsdGVkX1+zxcvBNMqwertyUIOPasdfghJKL098765=",
-  "algorithm": "SHA256"
+  "encryptionVersion": 2,
+  "username": "example",
+  "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "website": "https://example.com",
+  "totp": null,
+  "algorithm": null,
+  "id": 101
 }

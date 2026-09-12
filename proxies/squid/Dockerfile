@@ -12,6 +12,6 @@ RUN squid -z
 
 EXPOSE 3128
 
-VOLUME [ "/etc/squid/passwd" ]
+VOLUME [ "/var/lib/shadowself/proxy-auth" ]
 
 CMD ["squid", "-N"]

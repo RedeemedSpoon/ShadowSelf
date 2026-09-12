@@ -29,7 +29,7 @@ export default new Elysia({prefix: '/billing'})
     if (!identities.length) return error(set, 404, 'Identity not found');
 
     const done = await deleteIdentity(id, accounts[0].id);
-    if (!done) return error(set, 202, 'Deletion is pending mailbox cleanup. Please retry shortly');
+    if (!done) return error(set, 202, 'Deletion is pending refund or resource cleanup. It will retry automatically');
 
     return {success: true};
   });

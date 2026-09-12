@@ -54,7 +54,7 @@ export default (app: Elysia) =>
 
     const result = (await sql`SELECT * FROM identities WHERE id = ${params.id} AND owner = ${givenID}`) as QueryIdentity[];
 
-    if (!result.length) return error(set, 400, 'Identity not found');
+    if (!result.length) return error(set, 404, 'Identity not found');
 
     const identity = result[0];
 
@@ -72,7 +72,7 @@ export default (app: Elysia) =>
         if (plan === 'monthly' && days > 30) isExpired = true;
         if (plan === 'annually' && days > 365) isExpired = true;
 
-        if (isExpired && identity.status !== 'frozen') {
+        if (isExpired && identity.status === 'active') {
           await sql`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
           identity.status = 'frozen';
         }
@@ -80,10 +80,17 @@ export default (app: Elysia) =>
     }
 
     if (identity.status !== 'active') {
-      const details = !identity.crypto_invoice ? `[crypto/${identity.plan}]` : `[fiat/${identity.plan}]`;
+      const details = identity.crypto_invoice ? `[crypto/${identity.plan}]` : `[fiat/${identity.plan}]`;
 
       return error(set, 402, 'Identity is frozen ' + details);
     }
 
-    return {identity, user, authorize};
+    const authorizeIdentity = async () => {
+      if (!(await authorize())) return false;
+      const rows = await sql`SELECT id FROM identities WHERE id = ${identity.id} AND owner = ${givenID} AND status = 'active'`;
+
+      return rows.length > 0;
+    };
+
+    return {identity, user, authorize: authorizeIdentity};
   });

@@ -13,3 +13,14 @@
 <ul>
   <li><code>id</code> (<span class="integer">integer</span>): The ID specified in the request.</li>
 </ul>
+
+<h5>Encryption and concurrent edits</h5>
+<p>
+  Send the current <code>encryptionVersion</code> returned by the account or identity GET request. A successful mutation returns the next version. A stale version
+  returns HTTP 409; reload before retrying. Missing account IDs return HTTP 404.
+</p>
+<p>
+  Passwords and TOTP secrets use <code>v1.</code> followed by canonical base64 encoding of a 12-byte AES-GCM nonce and ciphertext including its 16-byte authentication
+  tag. Each field requires a fresh nonce. The sample ciphertext is illustrative; encrypt your actual values before sending. Optional website and TOTP fields are preserved
+  when omitted and cleared when explicitly null or empty.
+</p>

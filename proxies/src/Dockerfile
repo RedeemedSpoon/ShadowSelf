@@ -1,7 +1,5 @@
 FROM oven/bun:1.4.2
 
-ENV SECRET_KEY "secure-key"
-
 WORKDIR /app
 
 COPY package.json ./
@@ -12,6 +10,6 @@ COPY tsconfig.json index.ts ./
 
 EXPOSE 4000  
 
-VOLUME [ "/etc/squid/passwd" ]
+VOLUME [ "/var/lib/shadowself/proxy-auth" ]
 
 CMD [ "bun", "run", "start" ]

@@ -17,9 +17,9 @@ export default new Elysia()
   .use(middlewareApi)
   .group('/api', (app) => app.use(crypto).use(phone).use(email).use(account).use(information))
   .get('/api/test', () => 'Authentication is working ;)')
-  .get('/api', async ({set, user}) => {
+  .get('/api', async ({user}) => {
     const result = (await sql` SELECT * FROM users u JOIN identities i ON u.id = i.owner WHERE u.email = ${user!.email}`) as QueryIdentity[];
-    if (!result.length) return error(set, 400, 'No identities were found');
+    if (!result.length) return [];
 
     const allIdentitiesPromises = result.map(async (identity) => {
       if (!identity.name) return {id: identity.id};
@@ -41,7 +41,7 @@ export default new Elysia()
     if (!result.length) return error(set, 400, 'User not found');
 
     const {username, id} = result[0];
-    const allIdentities = (await sql`SELECT * FROM identities WHERE owner = ${id}`) as QueryIdentity[];
+    const allIdentities = (await sql`SELECT * FROM identities WHERE owner = ${id} AND status = 'active'`) as QueryIdentity[];
     if (!allIdentities.length) return {username, identities: []};
 
     const identitiesPromises = allIdentities.map(async (identity) => {
@@ -74,7 +74,7 @@ export default new Elysia()
       }, SOCKET_AUTH_INTERVAL);
 
       wsConnections.set(ws.id, {
-        imapConnection: null as any,
+        stopEmail: () => {},
         websocket: ws,
         authorize,
         authTimer,
@@ -82,10 +82,8 @@ export default new Elysia()
         emailAddress: identity!.email,
       });
 
-      const connection = await listenForEmail(identity!.email, identity!.email_password);
       const wsData = wsConnections.get(ws.id);
-      if (wsData) wsData.imapConnection = connection as any;
-      else connection?.end();
+      if (wsData) wsData.stopEmail = listenForEmail(identity!.email, identity!.email_password, ws.id);
     },
 
     async close(ws) {
@@ -93,7 +91,7 @@ export default new Elysia()
       if (!connection) return;
 
       clearInterval(connection.authTimer);
-      connection.imapConnection?.end();
+      connection.stopEmail();
       wsConnections.delete(ws.id);
     },
 

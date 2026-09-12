@@ -10,11 +10,10 @@
   import {decrypt} from '$utils/cryptography';
   import type {Writable} from 'svelte/store';
   import {pendingID, identity} from '$store';
-  import {idbOperation} from '$utils/monero';
+  import {transferMonero} from '$utils/monero';
   import {formatUSD} from '$utils/formating';
   import {fetchAPI} from '$utils/webfetch';
   import {SLEEP_DURATION} from '$constant';
-  import * as monerots from 'monero-ts';
   import {notify} from '$utils/shared';
   import {onMount} from 'svelte';
 
@@ -40,7 +39,7 @@
     if (['btc', 'ltc'].includes($currentCrypto)) {
       const currentSum = selectedUtxos.reduce((acc, u) => acc + u.value, 0);
       const targetSats = amount * 100_000_000;
-      if (selectedUtxos.length > 0 && currentSum >= targetSats) return;
+      if (selectedUtxos.length > 0 && currentSum >= targetSats + Math.ceil(estimatedFee.fee * 100_000_000)) return;
 
       const allUtxos = crypto.wallet[$currentCrypto as 'btc'].utxos;
       selectedUtxos = selectBestUtxos(allUtxos, amount, crypto.fees[$currentCrypto][selectedPriority]);
@@ -48,8 +47,8 @@
   }
 
   function toggleUtxo(givenUtxo: UTXOData[number]) {
-    const isSelected = selectedUtxos.some((utxo) => utxo.txid === givenUtxo.txid);
-    if (isSelected) selectedUtxos = selectedUtxos.filter((utxo) => utxo.txid !== givenUtxo.txid);
+    const isSelected = selectedUtxos.some((utxo) => utxo.txid === givenUtxo.txid && utxo.vout === givenUtxo.vout);
+    if (isSelected) selectedUtxos = selectedUtxos.filter((utxo) => utxo.txid !== givenUtxo.txid || utxo.vout !== givenUtxo.vout);
     else selectedUtxos.push(givenUtxo);
   }
 
@@ -62,67 +61,52 @@
 
   async function sendFunds() {
     const [addr, amt] = [String(destinationAddress).trim(), Math.max(Number(amount), 0)];
+    if (!addr || !Number.isFinite(amt) || amt <= 0) return notify('Enter a valid address and amount', 'alert');
     const successMessage = `Successfully sent ${amt.toFixed(5)} ${$currentCrypto.toUpperCase()}`;
 
     $pendingID = 1;
-    await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
+    try {
+      await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
 
-    if ($currentCrypto === 'xmr') {
-      try {
-        const localData = await idbOperation('readonly', $identity.id);
-        const wallet = await monerots.openWalletFull({
-          networkType: monerots.MoneroNetworkType.MAINNET,
-          server: {uri: crypto.wallet.xmr.nodeUrl},
-          password: 'shadowself_xmr',
-          keysData: localData.keys,
-          cacheData: localData.cache,
-          fs: {promises: {stat: () => Promise.reject(new Error('Memory'))}} as any,
-        });
+      if ($currentCrypto === 'xmr') {
+        try {
+          const warning = await transferMonero(crypto.wallet.xmr.nodeUrl, addr, String(amt), {low: 1, medium: 2, high: 3}[selectedPriority]);
+          if (warning) notify(warning, 'alert');
 
-        await wallet.sync();
-        const priorityMap = {low: 1, medium: 2, high: 3};
+          notify(successMessage, 'success');
+        } catch (e: any) {
+          notify(e.message || 'Failed to send Monero transaction', 'alert');
+        }
 
-        await wallet.createTx({
-          accountIndex: 0,
-          address: addr,
-          amount: BigInt(amt * 1e12),
-          relay: true,
-          priority: priorityMap[selectedPriority],
-        });
-
-        const memoryBuffers = await wallet.getData();
-        await idbOperation('readwrite', $identity.id, {keys: memoryBuffers[0], cache: memoryBuffers[1]});
-        await wallet.close();
-
-        notify(successMessage, 'success');
-      } catch (e: any) {
-        notify(e.message || 'Failed to send Monero transaction', 'alert');
+        $pendingID = 0;
+        return;
       }
 
+      const data: transactionData = {
+        estimatedFee: ['btc', 'ltc'].includes($currentCrypto) ? estimatedFee : crypto.fees[$currentCrypto][selectedPriority],
+        privKeyType: 'mnemonic',
+        wifKey: await decrypt($identity.walletBlob),
+        index: Math.max(0, crypto.wallet[$currentCrypto as 'btc'].nextIndex),
+        xpubKey: $identity.walletKeys[$currentCrypto as 'btc'],
+        utxos: selectedUtxos,
+        nonce: crypto.wallet[$currentCrypto as 'eth'].nonce,
+        balance: crypto.wallet[$currentCrypto as 'eth'].balance,
+      };
+
+      const broadcastPayload = await signTransaction($currentCrypto, addr, amt, data);
+      if (!broadcastPayload) {
+        $pendingID = 0;
+        return;
+      }
+
+      const response = await fetchAPI<CryptoAPI>('crypto/broadcast', 'POST', broadcastPayload!);
+      notify(response.err ? response.err : successMessage, response.type);
       $pendingID = 0;
-      return;
-    }
-
-    const data: transactionData = {
-      estimatedFee: ['btc', 'ltc'].includes($currentCrypto) ? estimatedFee : crypto.fees[$currentCrypto][selectedPriority],
-      privKeyType: 'mnemonic',
-      wifKey: await decrypt($identity.walletBlob),
-      index: Math.max(0, crypto.wallet[$currentCrypto as 'btc'].nextIndex),
-      xpubKey: $identity.walletKeys[$currentCrypto as 'btc'],
-      utxos: crypto.wallet[$currentCrypto as 'btc'].utxos,
-      nonce: crypto.wallet[$currentCrypto as 'eth'].nonce,
-      balance: crypto.wallet[$currentCrypto as 'eth'].balance,
-    };
-
-    const broadcastPayload = await signTransaction($currentCrypto, addr, amt, data);
-    if (!broadcastPayload) {
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Transaction failed', 'alert');
+    } finally {
       $pendingID = 0;
-      return;
     }
-
-    const response = await fetchAPI<CryptoAPI>('crypto/broadcast', 'POST', broadcastPayload!);
-    notify(response.err ? response.err : successMessage, response.type);
-    $pendingID = 0;
   }
 
   onMount(automaticUtxoSelection);
@@ -194,7 +178,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-neutral-800 select-none">
-          {#each crypto.wallet[$currentCrypto as 'btc'].utxos as utxo (utxo.txid)}
+          {#each crypto.wallet[$currentCrypto as 'btc'].utxos as utxo (`${utxo.txid}:${utxo.vout}`)}
             <tr class="cursor-pointer hover:bg-neutral-800/40" onclick={() => toggleUtxo(utxo)}>
               <td class="p-2">
                 <input type="checkbox" checked={selectedUtxos.includes(utxo)} />

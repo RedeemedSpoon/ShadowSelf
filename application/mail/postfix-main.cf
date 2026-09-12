@@ -1,0 +1,25 @@
+myhostname = mail.shadowself.io
+mydomain = shadowself.io
+myorigin = $mydomain
+mydestination = localhost
+inet_interfaces = all
+inet_protocols = all
+mynetworks = 127.0.0.0/8 [::1]/128
+virtual_mailbox_domains = shadowself.io
+virtual_mailbox_maps = pgsql:/etc/postfix/shadowself-mailboxes.cf
+virtual_transport = lmtp:unix:private/dovecot-lmtp
+smtpd_relay_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
+smtpd_recipient_restrictions = reject_non_fqdn_recipient, reject_unknown_recipient_domain, reject_unlisted_recipient
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = no
+smtpd_tls_auth_only = yes
+smtpd_tls_security_level = may
+smtpd_tls_cert_file = SHADOWSELF_TLS_CERT
+smtpd_tls_key_file = SHADOWSELF_TLS_KEY
+smtpd_tls_mandatory_protocols = >=TLSv1.2
+smtp_tls_security_level = encrypt
+smtp_tls_CApath = /etc/ssl/certs
+message_size_limit = 20971520
+mailbox_size_limit = 0
+disable_vrfy_command = yes

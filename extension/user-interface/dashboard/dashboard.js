@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const identities = await initialize();
+  if (!identities) return;
+
   listIdentities(identities);
   addSearch(identities);
 });
@@ -19,7 +21,7 @@ function addSearch(identities) {
 
   searchBox.addEventListener('input', () => {
     const value = searchBox.value.toLowerCase();
-    const foundIdentities = identities.filter((identity) => identity.name.toLowerCase().includes(value));
+    const foundIdentities = identities.filter((identity) => (identity.name || '').toLowerCase().includes(value));
 
     if (foundIdentities.length) {
       notFound.classList.remove('shown');
@@ -27,12 +29,16 @@ function addSearch(identities) {
 
       identities.forEach((identity) => {
         const element = document.getElementById(identity.id);
+        if (!element) return;
+
         element.classList.add('hidden');
         element.classList.remove('last');
       });
 
       foundIdentities.forEach((identity, index) => {
         const element = document.getElementById(identity.id);
+        if (!element) return;
+
         element.classList.remove('hidden');
 
         if (index === foundIdentities.length - 1) {
@@ -77,13 +83,7 @@ async function listIdentities(identities) {
 
     container.appendChild(identityElement);
     identityElement.addEventListener('click', () => {
-      const query = new URLSearchParams({
-        location: identity.location,
-        server: identity.server,
-        domain: identity.domain,
-        username: identity.username,
-        password: identity.password,
-      });
+      const query = new URLSearchParams({identity: identity.id});
 
       window.location.href = `../proxy/proxy.html?${query.toString()}`;
     });
@@ -110,7 +110,7 @@ async function initialize() {
 
     await sleep(750);
     const response = await request(`https://${origin}/api/proxy`, 'GET');
-    if (typeof response !== 'object') {
+    if (!response || !Array.isArray(response.identities)) {
       loadingError.innerText = response + '\nTry logging out and logging back in.';
       clearInterval(loading);
       return;
@@ -124,10 +124,12 @@ async function initialize() {
   }
 
   const username = await read('username');
-  const identities = await read('identities');
+  const identities = (await read('identities')) ?? [];
 
-  if (!identities.length) return (noIdentitiesSection.style.display = 'flex');
-  else identitiesSection.style.display = 'flex';
+  if (!identities.length) {
+    noIdentitiesSection.style.display = 'flex';
+    return [];
+  } else identitiesSection.style.display = 'flex';
 
   const usernameElement = document.getElementById('username');
   usernameElement.innerText = username.length > 6 ? username.slice(0, 6) + '..' : username;

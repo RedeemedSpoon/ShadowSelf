@@ -1,23 +1,24 @@
 use std::env;
-use reqwest::Client;
-use serde_json::json;
 
 #[tokio::main]
-async fn main() {
-    let url = format!(
-        "https://shadowself.io/api/account/edit-account/{}",
-        env::var("IDENTITY_ID").unwrap()
-    );
-    let payload = json!({
-        "id": 101,
-        "username": "jd_service_user_revised",
-        "password": "U2FsdGVkX1+UpdatedPassDataLooksLikeThisMaybe==",
-        "website": "https://service-updated.example.com"
-    });
-    let response = Client::new()
-        .put(&url)
-        .bearer_auth(env::var("API_KEY").unwrap())
-        .json(&payload)
-        .send().await.unwrap().text().await.unwrap();
-    println!("{}", response);
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let response = reqwest::Client::new()
+        .request(reqwest::Method::PUT, format!("https://shadowself.io/api/account/edit-account/{}", env::var("IDENTITY_ID")?))
+        .bearer_auth(env::var("API_KEY")?)
+        .header("Content-Type", "application/json")
+        .body(r#"{
+  "encryptionVersion": 1,
+  "id": 101,
+  "username": "example",
+  "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+  "website": "https://example.com",
+  "totp": null,
+  "algorithm": null
+}"#)
+        .send().await?;
+    let status = response.status();
+    let body = response.text().await?;
+    if !status.is_success() { return Err(format!("{status}: {body}").into()); }
+    println!("{body}");
+    Ok(())
 }

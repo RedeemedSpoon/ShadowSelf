@@ -1,6 +1,6 @@
 import {generateProxyPassword} from '@utils/cryptography';
 import {origin, twilioConfig} from '@core/config';
-import {proxyRequest} from '@utils/utils';
+import {proxyRequest, withReservedTransaction} from '@utils/utils';
 import type {IdentityProvision} from '@type';
 import {LOCATIONS} from '@core/constants';
 import {sql, twilio, stripe} from '@core/services';
@@ -8,9 +8,12 @@ import {randomBytes} from 'node:crypto';
 
 export async function provisionIdentity(id: string, jobID: string, data: IdentityProvision) {
   const connection = await sql.reserve();
+  let locked = false;
 
   try {
-    await connection`SELECT pg_advisory_lock(hashtextextended(${id}, 0))`;
+    const lock = await connection`SELECT pg_try_advisory_lock(hashtextextended(${id}, 0)) AS acquired`;
+    locked = lock[0].acquired;
+    if (!locked) throw new Error('This identity operation is already running');
     const rows = await connection`SELECT * FROM identities WHERE id = ${id}`;
     if (!rows[0]) throw new Error('Identity not found');
     if (rows[0].status === 'active') return;
@@ -32,29 +35,44 @@ export async function provisionIdentity(id: string, jobID: string, data: Identit
 
     await proxyRequest(location.code.toLowerCase(), 'POST', {username: id, password: proxyPassword});
     const phones = await twilio.incomingPhoneNumbers.list({phoneNumber: data.phone, limit: 1});
+    const friendlyName = `shadowself:${id}`;
+    if (phones[0] && phones[0].friendlyName !== friendlyName) throw new Error('This phone number is owned outside this identity');
+
     const phone =
-      phones[0] ?? (await twilio.incomingPhoneNumbers.create({emergencyStatus: 'Inactive', smsUrl: `${origin}/webhook-twilio`, phoneNumber: data.phone}));
+      phones[0] ??
+      (await twilio.incomingPhoneNumbers.create({
+        emergencyStatus: 'Inactive',
+        smsUrl: `${origin}/webhook-twilio`,
+        phoneNumber: data.phone,
+        friendlyName,
+      }));
     await connection`UPDATE identities SET phone_sid = ${phone.sid} WHERE id = ${id}`;
 
     const service = twilio.messaging.v1.services(twilioConfig.messagingService!);
     const members = await service.phoneNumbers.list();
     if (!members.some((member) => member.sid === phone.sid)) await service.phoneNumbers.create({phoneNumberSid: phone.sid});
 
-    await connection.begin(async (transaction) => {
+    await withReservedTransaction(connection, async (transaction) => {
       await transaction`UPDATE identities SET status = 'active' WHERE id = ${id}`;
       await transaction`UPDATE creation_jobs SET status = 'completed', payload = '[]'::jsonb WHERE id = ${jobID}`;
     });
   } finally {
-    await connection`SELECT pg_advisory_unlock(hashtextextended(${id}, 0))`;
-    connection.release();
+    try {
+      if (locked) await connection`SELECT pg_advisory_unlock(hashtextextended(${id}, 0))`;
+    } finally {
+      connection.release();
+    }
   }
 }
 
 export async function deleteIdentity(id: string, owner: number) {
   const connection = await sql.reserve();
+  let locked = false;
 
   try {
-    await connection`SELECT pg_advisory_lock(hashtextextended(${id}, 0))`;
+    const lock = await connection`SELECT pg_try_advisory_lock(hashtextextended(${id}, 0)) AS acquired`;
+    locked = lock[0].acquired;
+    if (!locked) throw new Error('This identity operation is already running');
     const identities = await connection`SELECT * FROM identities WHERE id = ${id} AND owner = ${owner}`;
     const identity = identities[0];
     if (!identity) return true;
@@ -64,19 +82,25 @@ export async function deleteIdentity(id: string, owner: number) {
 
     const jobs = await connection`SELECT * FROM identity_deletions WHERE identity_id = ${id}`;
     if (!jobs[0].billing_done) {
-      await cancelIdentityBilling(identity);
+      if (!(await cancelIdentityBilling(identity))) return false;
       await connection`UPDATE identity_deletions SET billing_done = true WHERE identity_id = ${id}`;
     }
 
     if (identity.phone) {
       const numbers = await twilio.incomingPhoneNumbers.list({phoneNumber: identity.phone, limit: 1});
-      for (const number of numbers) await twilio.incomingPhoneNumbers(number.sid).remove();
+      for (const number of numbers) {
+        if (number.friendlyName !== `shadowself:${id}` || (identity.phone_sid && identity.phone_sid !== number.sid)) {
+          throw new Error('Phone ownership changed; cleanup requires review');
+        }
+
+        await twilio.incomingPhoneNumbers(number.sid).remove();
+      }
     }
 
     if (identity.location) await proxyRequest(identity.location.split(',')[0].toLowerCase(), 'DELETE', {username: id});
     if (identity.email && !jobs[0].mail_done) return false;
 
-    await connection.begin(async (transaction) => {
+    await withReservedTransaction(connection, async (transaction) => {
       await transaction`DELETE FROM accounts WHERE owner = ${id}`;
       await transaction`DELETE FROM identities WHERE id = ${id}`;
       await transaction`UPDATE identity_deletions SET completed_at = NOW(), email = NULL WHERE identity_id = ${id}`;
@@ -84,8 +108,11 @@ export async function deleteIdentity(id: string, owner: number) {
 
     return true;
   } finally {
-    await connection`SELECT pg_advisory_unlock(hashtextextended(${id}, 0))`;
-    connection.release();
+    try {
+      if (locked) await connection`SELECT pg_advisory_unlock(hashtextextended(${id}, 0))`;
+    } finally {
+      connection.release();
+    }
   }
 }
 
@@ -95,7 +122,7 @@ async function cancelIdentityBilling(identity: Record<string, any>) {
     if (subscription.status !== 'canceled') await stripe.subscriptions.cancel(subscription.id, {}, {idempotencyKey: `cancel:${identity.id}`});
   }
 
-  if (Date.now() - new Date(identity.creation_date).getTime() > 14 * 86_400_000) return;
+  if (Date.now() - new Date(identity.creation_date).getTime() > 14 * 86_400_000) return true;
   let intent = identity.payment_intent;
   if (!intent && identity.subscription_id) {
     const invoices = await stripe.invoices.list({subscription: identity.subscription_id, limit: 1});
@@ -106,10 +133,33 @@ async function cancelIdentityBilling(identity: Record<string, any>) {
     }
   }
 
-  if (intent) {
-    const refunds = await stripe.refunds.list({payment_intent: intent, limit: 100});
-    if (!refunds.data.some((refund) => refund.status !== 'failed' && refund.status !== 'canceled')) {
-      await stripe.refunds.create({payment_intent: intent}, {idempotencyKey: `refund:${identity.id}:${intent}`});
+  if (!intent) return true;
+  const payment = await stripe.paymentIntents.retrieve(intent);
+  let refunded = 0;
+  let failed = 0;
+  for await (const refund of stripe.refunds.list({payment_intent: intent, limit: 100})) {
+    if (refund.status === 'pending' || refund.status === 'requires_action') return false;
+    if (refund.status === 'succeeded') refunded += refund.amount;
+    else failed++;
+  }
+  const remaining = payment.amount_received - refunded;
+  if (remaining <= 0) return true;
+
+  const refund = await stripe.refunds.create(
+    {payment_intent: intent, amount: remaining},
+    {idempotencyKey: `refund:${identity.id}:${intent}:${refunded}:${failed}`},
+  );
+
+  return refund.status === 'succeeded';
+}
+
+export async function repairIdentityDeletions() {
+  const jobs = await sql`SELECT identity_id, owner FROM identity_deletions WHERE completed_at IS NULL ORDER BY created_at LIMIT 100`;
+  for (const job of jobs) {
+    try {
+      await deleteIdentity(job.identity_id, job.owner);
+    } catch {
+      console.error('Identity cleanup is pending; ownership records were retained');
     }
   }
 }

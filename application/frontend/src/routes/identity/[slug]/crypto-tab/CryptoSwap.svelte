@@ -8,10 +8,9 @@
   import {decrypt, deriveXPub} from '$utils/cryptography';
   import {pendingID, identity, moneroData} from '$store';
   import {onMount, type Component} from 'svelte';
-  import {idbOperation} from '$utils/monero';
+  import {transferMonero} from '$utils/monero';
   import {formatUSD} from '$utils/formating';
   import {fetchAPI} from '$utils/webfetch';
-  import * as monerots from 'monero-ts';
   import {notify} from '$utils/shared';
 
   interface Props {
@@ -114,32 +113,11 @@
     try {
       const amountToSend = Number(response.depositAmount);
 
+      if (!response.depositAddress) throw new Error('Swap provider did not return a deposit address');
+
       if (payCoin === 'xmr') {
-        const localData = await idbOperation('readonly', $identity.id);
-        if (!localData) notify('Wallet cache not found. Please wait for sync to complete.', 'alert');
-
-        const wallet = await monerots.openWalletFull({
-          networkType: monerots.MoneroNetworkType.MAINNET,
-          server: {uri: crypto.wallet.xmr.nodeUrl},
-          password: 'shadowself_xmr',
-          keysData: localData.keys,
-          cacheData: localData.cache,
-          fs: {promises: {stat: () => Promise.reject(new Error('Memory'))}} as any,
-        });
-
-        await wallet.sync();
-
-        await wallet.createTx({
-          accountIndex: 0,
-          address: response.depositAddress,
-          amount: BigInt(amountToSend * 1e12),
-          relay: true,
-          priority: 2,
-        });
-
-        const memoryBuffers = await wallet.getData();
-        await idbOperation('readwrite', $identity.id, {keys: memoryBuffers[0], cache: memoryBuffers[1]});
-        await wallet.close();
+        const warning = await transferMonero(crypto.wallet.xmr.nodeUrl, response.depositAddress, String(amountToSend), 2);
+        if (warning) notify(warning, 'alert');
 
         notify(`Sent ${amountToSend} XMR`, 'success');
       } else {

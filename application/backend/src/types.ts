@@ -1,4 +1,3 @@
-import type {ImapSimple} from 'imap-simple';
 import type {ElysiaWS} from 'elysia/ws';
 
 export type User = {email: string; id: string} | undefined;
@@ -10,7 +9,7 @@ export type Attachment = {filename: string; data: string};
 export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
 
 export interface WSConnection {
-  imapConnection: ImapSimple;
+  stopEmail: () => void;
   websocket: ElysiaWS;
   authorize: () => Promise<boolean>;
   authTimer: ReturnType<typeof setInterval>;
@@ -110,6 +109,7 @@ export interface QueryIdentity {
   wallet_blob: string;
   wallet_keys: CryptoKeys;
   wallet_funds: number;
+  phone_sid: string | null;
 }
 
 export interface QueryInvoice {

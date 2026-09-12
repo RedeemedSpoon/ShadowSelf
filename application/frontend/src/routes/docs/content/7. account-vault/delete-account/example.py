@@ -1,10 +1,16 @@
+import json
 import os
-import requests
+import urllib.request
 
-url = f"https://shadowself.io/api/account/delete-account/{os.environ['IDENTITY_ID']}"
-response = requests.delete(
-    url,
-    headers={'Authorization': f"Bearer {os.environ['API_KEY']}"},
-    json={'id': 103}
+payload = json.loads(r'''{
+  "encryptionVersion": 1,
+  "id": 101
+}''')
+request = urllib.request.Request(
+    'https://shadowself.io/api/account/delete-account/' + os.environ['IDENTITY_ID'],
+    data=json.dumps(payload).encode(),
+    headers={'Authorization': 'Bearer ' + os.environ['API_KEY'], 'Content-Type': 'application/json'},
+    method='DELETE',
 )
-print(response.text)
+with urllib.request.urlopen(request) as response:
+    print(response.read().decode())

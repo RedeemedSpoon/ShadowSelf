@@ -45,12 +45,11 @@ export async function testProxyConnection() {
     const response = await fetch('https://connectivitycheck.gstatic.com/generate_204', {
       signal: ctrl.signal,
       cache: 'no-store',
-      mode: 'no-cors',
       method: 'GET',
     });
 
     clearTimeout(timerID);
-    if (!response.ok || (response.status <= 200 && response.status > 300)) {
+    if (response.status !== 204) {
       return displayError();
     }
   } catch {
@@ -72,14 +71,14 @@ export function displayError() {
   return true;
 }
 
-export function disableNetworking() {
+export async function disableNetworking() {
   if (isChrome) {
     const singleProxy = {host: '127.0.0.1', port: 9, scheme: 'http'};
     const proxyConfig = {mode: 'fixed_servers', rules: {singleProxy, bypassList: ['shadowself.io']}};
-    chrome.proxy.settings.set({value: proxyConfig, scope: 'regular'});
+    await chrome.proxy.settings.set({value: proxyConfig, scope: 'regular'});
   } else {
     const rules = {ssl: '127.0.0.1:9', http: '127.0.0.1:9'};
     const settings = {proxyDNS: false, proxyType: 'manual', passthrough: 'shadowself.io'};
-    chrome.proxy.settings.set({value: {...settings, ...rules}, scope: 'regular'});
+    await chrome.proxy.settings.set({value: {...settings, ...rules}, scope: 'regular'});
   }
 }
