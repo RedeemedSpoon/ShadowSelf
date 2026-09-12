@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "NODE_ENV=dev bun --env-file=../database/.env --env-file=.env --watch src/index.ts",
     "build": "bun build ./src/index.ts --compile --minify-whitespace --bytecode --outfile server",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "reconcile-billing": "bun src/core/stripe-service.ts"
   },
   "dependencies": {
     "@elysiajs/jwt": "^1.4.2",

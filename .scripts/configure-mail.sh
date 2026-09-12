@@ -16,7 +16,7 @@ project_dir=$(dirname "$(dirname "$(realpath "$0")")")
 stage=$(mktemp -d)
 trap 'rm -rf -- "$stage"' EXIT
 export POSTGRES_DB MAIL_DB_PASSWORD SHADOWSELF_TLS_CERT SHADOWSELF_TLS_KEY
-python3 - "$project_dir/application/mail" "$stage" <<'PY'
+python3 - "$project_dir/application/microservices/mail" "$stage" <<'PY'
 from pathlib import Path
 import os
 import sys

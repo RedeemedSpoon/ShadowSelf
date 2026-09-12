@@ -16,7 +16,7 @@ services:
       - backend
 
   certbot:
-    build: ./certbot
+    build: ./microservices/certbot
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
