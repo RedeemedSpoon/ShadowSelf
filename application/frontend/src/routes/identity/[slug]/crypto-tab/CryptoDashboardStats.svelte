@@ -17,7 +17,7 @@
   import {deriveXPub} from '$utils/cryptography';
   import type {CryptoAPI, Coins} from '$type';
   import {identity, moneroData} from '$store';
-  import {formatUSD} from '$utils/formating';
+  import {formatUSD} from '$utils/formatting';
   import type {Writable} from 'svelte/store';
 
   interface Props {

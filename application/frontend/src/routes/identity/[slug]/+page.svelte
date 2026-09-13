@@ -95,10 +95,11 @@
         const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
         const cacheID = `${$identity.id}:${$identity.walletBlob}`;
         const accounts = await fetchAPI<AccountAPI>('account', 'GET');
-        if (accounts.err || !accounts.accounts) throw new Error(accounts.err || 'Could not load the complete vault');
+        if (!accounts.ok) throw new Error(accounts.error);
+        if (!accounts.data.accounts) throw new Error('Could not load the complete vault');
 
         const updatedAccounts = await Promise.all(
-          accounts.accounts.map(async (account) => {
+          accounts.data.accounts.map(async (account) => {
             const password = account.password ? await decrypt(account.password) : null;
             const totp = account.totp ? await decrypt(account.totp) : null;
             if ((account.password && !password) || (account.totp && !totp)) throw new Error('Could not decrypt the complete vault');
@@ -117,7 +118,7 @@
           address: await encrypt(walletKeys[2], newKey),
         };
         const response = await fetchAPI<CryptoAPI>('account/update-encryption', 'PUT', {accounts: updatedAccounts, blob, keys});
-        if (response.err) throw new Error(response.err);
+        if (!response.ok) throw new Error(response.error);
 
         $identity = {...$identity, walletBlob: blob, walletKeys: {...$identity.walletKeys, xmr: keys}};
         $masterPassword = base64Key;

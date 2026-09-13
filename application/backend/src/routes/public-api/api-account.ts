@@ -10,7 +10,7 @@ export default new Elysia({prefix: '/account'})
   .get('/:id', async ({identity}) => {
     const accounts = await sql`SELECT id, username, password, website, totp, algorithm FROM accounts WHERE owner = ${identity!.id}`;
 
-    return {accounts, encryptionVersion: identity!.encryption_version};
+    return {accounts, vaultRevision: identity!.vault_revision};
   })
   .post('/add-account/:id', async ({set, identity, body}) => {
     const {err, username, password, website, totp, algorithm} = await checkAPI(body, ['username', 'password', '?website', '?totp', '?algorithm']);
@@ -77,18 +77,18 @@ export default new Elysia({prefix: '/account'})
   });
 
 async function mutateVault(id: string, body: unknown, set: Record<string, any>, mutation: VaultMutation['apply']) {
-  const version = (body as VaultMutation)?.encryptionVersion;
-  if (!Number.isSafeInteger(version) || version < 1) return error(set, 400, 'Encryption version is required');
+  const revision = (body as VaultMutation)?.vaultRevision;
+  if (!Number.isSafeInteger(revision) || revision < 1) return error(set, 400, 'Vault revision is required');
 
   return sql.begin(async (transaction) => {
-    const identities = await transaction`SELECT encryption_version FROM identities WHERE id = ${id} AND status = 'active' FOR UPDATE`;
+    const identities = await transaction`SELECT vault_revision FROM identities WHERE id = ${id} AND status = 'active' FOR UPDATE`;
     if (!identities.length) return error(set, 404, 'Identity not found');
-    if (identities[0].encryption_version !== version) return error(set, 409, 'The vault changed. Reload before editing');
+    if (identities[0].vault_revision !== revision) return error(set, 409, 'The vault changed. Reload before editing');
 
     const result = await mutation(transaction);
     if (typeof result === 'string') return result;
-    await transaction`UPDATE identities SET encryption_version = encryption_version + 1 WHERE id = ${id}`;
+    await transaction`UPDATE identities SET vault_revision = vault_revision + 1 WHERE id = ${id}`;
 
-    return {...result, encryptionVersion: version + 1};
+    return {...result, vaultRevision: revision + 1};
   });
 }

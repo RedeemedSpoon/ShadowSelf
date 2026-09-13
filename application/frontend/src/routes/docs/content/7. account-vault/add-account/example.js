@@ -2,7 +2,7 @@ const response = await fetch(`https://shadowself.io/api/account/add-account/${pr
   method: 'POST',
   headers: {Authorization: `Bearer ${process.env.API_KEY}`, 'Content-Type': 'application/json'},
   body: JSON.stringify({
-    encryptionVersion: 1,
+    vaultRevision: 1,
     username: 'example',
     password: 'v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=',
     website: 'https://example.com',

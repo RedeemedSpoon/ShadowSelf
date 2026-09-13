@@ -10,7 +10,7 @@ import (
 
 func main() {
  payload := `{
-  "encryptionVersion": 1,
+  "vaultRevision": 1,
   "accounts": [
     {
       "id": 101,

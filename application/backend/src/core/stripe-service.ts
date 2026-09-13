@@ -1,8 +1,31 @@
+import {origin} from '@core/config';
 import {sql, stripe} from '@core/services';
 import {repairIdentityDeletions} from '@core/identity-service';
 import type {QueryIdentity, QueryUser} from '@type';
 import type Stripe from 'stripe';
 import type {TransactionSql} from 'postgres';
+
+export async function createBillingCustomer(email: string, payment?: string) {
+  const accounts = await sql`SELECT id, stripe_customer FROM users WHERE email = ${email}`;
+  if (!accounts[0]) throw new Error('Account not found');
+  if (accounts[0].stripe_customer) return accounts[0].stripe_customer;
+
+  const params = payment ? {email, payment_method: payment, invoice_settings: {default_payment_method: payment}} : {email};
+  const customer = await stripe.customers.create(params, {idempotencyKey: `customer:${accounts[0].id}`});
+  await sql`UPDATE users SET stripe_customer = ${customer.id} WHERE id = ${accounts[0].id}`;
+
+  return customer.id;
+}
+
+export async function billingPortal(email: string) {
+  const accounts = await sql`SELECT stripe_customer FROM users WHERE email = ${email}`;
+  if (!accounts[0]?.stripe_customer) return {sessionUrl: ''};
+
+  await stripe.customers.update(accounts[0].stripe_customer, {email});
+  const session = await stripe.billingPortal.sessions.create({customer: accounts[0].stripe_customer, return_url: `${origin}/settings`});
+
+  return {sessionUrl: session.url};
+}
 
 export async function processStripeEvent(id: string) {
   await sql.begin(async (transaction) => {

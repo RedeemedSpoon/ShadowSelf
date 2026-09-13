@@ -5,6 +5,7 @@ import {listenForEmail} from '@utils/email-imap';
 import {error, resizeTo256} from '@utils/utils';
 import {wsConnections} from '@core/states';
 import {sql} from '@core/services';
+import {isInitializedIdentity} from '@utils/checks';
 import {Elysia} from 'elysia';
 
 import information from './api-information';
@@ -22,7 +23,7 @@ export default new Elysia()
     if (!result.length) return [];
 
     const allIdentitiesPromises = result.map(async (identity) => {
-      if (!identity.name) return {id: identity.id};
+      if (!isInitializedIdentity(identity)) return {id: identity.id};
       const {id, name, email, phone, wallet_funds: walletFunds, crypto_invoice, plan} = identity;
 
       const country = identity.location.split(',')[0];
@@ -45,7 +46,7 @@ export default new Elysia()
     if (!allIdentities.length) return {username, identities: []};
 
     const identitiesPromises = allIdentities.map(async (identity) => {
-      if (!identity.name) return {id: identity.id};
+      if (!isInitializedIdentity(identity)) return {id: identity.id};
 
       const {id, picture, name, location, proxy_server, proxy_password} = identity;
       return {

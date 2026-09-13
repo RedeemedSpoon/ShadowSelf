@@ -1,3 +1,4 @@
+import {createBillingCustomer} from '@core/stripe-service';
 import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, getRecovery, hashRecoveryCode} from '@utils/cryptography';
 import {issueLoginChallenge, claimLoginChallenge, finishLoginChallenge} from '@core/states';
 import middlewareBase from '@middlewares/middleware-base';
@@ -5,7 +6,7 @@ import {sendVerificationCode} from '@utils/email-smtp';
 import {error} from '@utils/utils';
 import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
-import {sql, createBillingCustomer} from '@core/services';
+import {sql} from '@core/services';
 import {consumeEmailCode, createSignupDraft, getSignupDraft} from '@core/states';
 import {SIGNUP_DRAFT_TTL} from '@core/constants';
 import {Elysia} from 'elysia';

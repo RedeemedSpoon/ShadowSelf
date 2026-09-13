@@ -1,6 +1,7 @@
+import {createBillingCustomer} from '@core/stripe-service';
 import middlewareBase from '@middlewares/middleware-base';
 import {generateIdentityID} from '@utils/cryptography';
-import {createBillingCustomer, sql, stripe} from '@core/services';
+import {sql, stripe} from '@core/services';
 import {stripeConfig, origin} from '@core/config';
 import {PRICING_TIERS} from '@core/constants';
 import {error, toTitleCase} from '@utils/utils';

@@ -74,15 +74,17 @@
     };
 
     const [walletData, nodeData] = await Promise.all([fetchAPI<CryptoAPI>('crypto', 'GET'), fetchAPI<MoneroNodeAPI>('crypto/xmr-node', 'GET')]);
-    if (!walletData.wallet || !walletData.prices || !walletData.fees || !nodeData.nodeUrl || !nodeData.startingDate) {
+    if (!walletData.ok) throw new Error(walletData.error);
+    if (!nodeData.ok) throw new Error(nodeData.error);
+    if (!walletData.data.wallet || !walletData.data.prices || !walletData.data.fees || !nodeData.data.nodeUrl || !nodeData.data.startingDate) {
       throw new Error('Wallet data is unavailable');
     }
 
-    crypto = walletData;
+    crypto = walletData.data;
     crypto.wallet.xmr = {
       status: 'Connecting...',
-      startingDate: new Date(nodeData.startingDate),
-      nodeUrl: nodeData.nodeUrl,
+      startingDate: new Date(nodeData.data.startingDate),
+      nodeUrl: nodeData.data.nodeUrl,
       history: [],
       unlockedBalance: 0,
       balance: 0,
@@ -90,7 +92,7 @@
 
     try {
       const initialState = await initMoneroScan(
-        nodeData,
+        nodeData.data,
         (hasCache) => (xmrHasLocalCache = hasCache),
         (progress, scanned, total) => {
           xmrScanProgress = progress;

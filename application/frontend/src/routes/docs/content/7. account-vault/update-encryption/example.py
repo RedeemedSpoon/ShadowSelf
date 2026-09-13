@@ -3,7 +3,7 @@ import os
 import urllib.request
 
 payload = json.loads(r'''{
-  "encryptionVersion": 1,
+  "vaultRevision": 1,
   "accounts": [
     {
       "id": 101,

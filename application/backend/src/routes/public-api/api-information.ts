@@ -10,29 +10,34 @@ import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/identity'})
   .use(middlewareApi)
-  .get('/:id', async ({identity}) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {email_password, proxy_password, payment_intent, crypto_invoice, subscription_id, phone_sid, encryption_version, owner, status, ...pubInfo} =
-      identity!;
-    const {creation_date, proxy_server, wallet_keys, wallet_blob, wallet_funds, ...rest} = pubInfo;
-    const reformattedData = {
-      encryptionVersion: identity!.encryption_version,
-      creationDate: creation_date,
-      proxyServer: proxy_server,
-      walletFunds: wallet_funds,
-      walletKeys: wallet_keys,
-      walletBlob: wallet_blob,
-    };
-
-    return {...rest, ...reformattedData, paymentMethod: crypto_invoice ? 'crypto' : 'fiat'};
-  })
+  .get('/:id', ({identity}) => ({
+    id: identity!.id,
+    plan: identity!.plan,
+    location: identity!.location,
+    picture: identity!.picture,
+    name: identity!.name,
+    bio: identity!.bio,
+    age: identity!.age,
+    sex: identity!.sex,
+    ethnicity: identity!.ethnicity,
+    email: identity!.email,
+    phone: identity!.phone,
+    vaultRevision: identity!.vault_revision,
+    creationDate: identity!.creation_date,
+    proxyServer: identity!.proxy_server,
+    walletFunds: identity!.wallet_funds,
+    walletKeys: identity!.wallet_keys,
+    walletBlob: identity!.wallet_blob,
+    paymentMethod: identity!.crypto_invoice ? 'crypto' : 'fiat',
+  }))
   .patch(
     '/regenerate-picture/:id',
     async ({set, identity, body}) => {
       const fields = ['?sex', '?age', '?ethnicity', '?bio'];
       const data = {sex: identity!.sex, age: identity!.age, ethnicity: identity!.ethnicity, bio: identity!.bio};
-      const {err, sex, age, ethnicity, bio} = await checkAPI({...data, ...body!}, fields);
-      if (err) return error(set, 400, err);
+      const input = await checkAPI(body === undefined ? {} : body, fields);
+      if (input.err) return error(set, 400, input.err);
+      const {sex, age, ethnicity, bio} = {...data, ...input};
 
       const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
       const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
@@ -41,8 +46,9 @@ export default new Elysia({prefix: '/identity'})
     throttle('Regenerate Picture', 30_000),
   )
   .patch('/regenerate-name/:id', async ({set, identity, body}) => {
-    const {err, sex} = await checkAPI({sex: identity!.sex, ...body!}, ['?sex']);
-    if (err) return error(set, 400, err);
+    const input = await checkAPI(body === undefined ? {} : body, ['?sex']);
+    if (input.err) return error(set, 400, input.err);
+    const sex = input.sex ?? identity!.sex;
 
     const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
     const faker = allFakers[lang?.localization as keyof typeof allFakers];
@@ -59,13 +65,12 @@ export default new Elysia({prefix: '/identity'})
   })
   .put('/update-information/:id', async ({set, identity, body}) => {
     const fields = ['?sex', '?ethnicity', '?age', '?name', '?bio', '?picture'];
-    const data1 = {sex: identity!.sex, ethnicity: identity!.ethnicity, age: identity!.age};
-    const data2 = {name: identity!.name, bio: identity!.bio, picture: identity!.picture};
-    const {err, sex, ethnicity, age, name, bio, picture} = await checkAPI({...data1, ...data2, ...body!}, fields);
-    if (err) return error(set, 400, err);
+    const input = await checkAPI(body, fields);
+    if (input.err) return error(set, 400, input.err);
+    const {sex, ethnicity, age, name, bio, picture} = {...identity!, ...input};
 
-    await sql`UPDATE identities SET sex = ${sex!}, ethnicity = ${ethnicity!}, age = ${age!} WHERE id = ${identity!.id}`;
-    await sql`UPDATE identities SET name = ${name!}, bio = ${bio!}, picture = ${picture!} WHERE id = ${identity!.id}`;
+    await sql`UPDATE identities SET sex = ${sex}, ethnicity = ${ethnicity}, age = ${age},
+      name = ${name}, bio = ${bio}, picture = ${picture} WHERE id = ${identity!.id}`;
 
     return {sex, ethnicity, age, name, bio, picture};
   });

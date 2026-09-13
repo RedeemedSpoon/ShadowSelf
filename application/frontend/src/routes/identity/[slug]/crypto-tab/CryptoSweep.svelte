@@ -47,7 +47,14 @@
     await new Promise((r) => setTimeout(r, Math.random() * 600 + 300));
 
     const info = await fetchAPI<CryptoAPI>('crypto/sweep-info', 'POST', {coin, addresses});
-    if (info.err || Number(info.balance) === 0) return notify('Wallet Empty or Invalid', 'alert');
+    if (!info.ok) {
+      sweepStepMessage = '';
+      return notify(info.error, 'alert');
+    }
+    if (Number(info.data.balance) === 0) {
+      sweepStepMessage = '';
+      return notify('Wallet Empty or Invalid', 'alert');
+    }
 
     sweepStepMessage = 'Calculating Network Fees...';
     await new Promise((r) => setTimeout(r, Math.random() * 200 + 400));
@@ -56,20 +63,20 @@
     let feeParam: number | {fee: number};
 
     if (['btc', 'ltc'].includes(coin)) {
-      const vBytes = info.utxos!.length * 68 + 31 + 10;
+      const vBytes = info.data.utxos!.length * 68 + 31 + 10;
       const feeBtc = (vBytes * crypto.fees[coin].medium) / 100_000_000;
-      amt = info.balance! / 100_000_000 - feeBtc;
+      amt = info.data.balance! / 100_000_000 - feeBtc;
       feeParam = {fee: feeBtc};
     } else {
       const gasPriceGwei = crypto.fees[coin].medium;
       feeParam = gasPriceGwei;
 
       if (coin === 'usdt') {
-        amt = Number(info.balance) / 1_000_000;
+        amt = Number(info.data.balance) / 1_000_000;
       } else {
         const gasLimit = 21000;
         const feeEth = (gasLimit * gasPriceGwei) / 1_000_000_000;
-        amt = Number(info.balance) / 1e18 - feeEth;
+        amt = Number(info.data.balance) / 1e18 - feeEth;
       }
     }
 
@@ -84,9 +91,9 @@
       estimatedFee: feeParam,
       privKeyType: ['btc', 'ltc'].includes(coin) ? 'wif' : 'hex',
       wifKey: result,
-      utxos: info.utxos?.map((u: any) => ({...u, pathIndex: 0})),
-      nonce: info.nonce,
-      balance: info.balance,
+      utxos: info.data.utxos?.map((u: any) => ({...u, pathIndex: 0})),
+      nonce: info.data.nonce,
+      balance: info.data.balance,
     };
 
     const payload = await signTransaction(coin, destAddr, amt, data);
@@ -95,7 +102,7 @@
     await new Promise((r) => setTimeout(r, Math.random() * 600 + 800));
 
     const response = await fetchAPI<CryptoAPI>('crypto/broadcast', 'POST', payload!);
-    notify(response.err || `Swept ${amt.toFixed(6)} ${coin.toUpperCase()}`, response.type);
+    notify(response.ok ? `Swept ${amt.toFixed(6)} ${coin.toUpperCase()}` : response.error, response.ok ? 'success' : 'alert');
     sweepStepMessage = '';
   }
 </script>

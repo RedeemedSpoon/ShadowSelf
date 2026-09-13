@@ -30,7 +30,7 @@
   import {wordlist} from '@scure/bip39/wordlists/english.js';
   import {notify, getCountriesFlags} from '$utils/shared';
   import {ETHNICITIES, SLEEP_DURATION} from '$constant';
-  import {formatPhoneNumber} from '$utils/formating';
+  import {formatPhoneNumber} from '$utils/formatting';
   import {mnemonicToAccount} from 'viem/accounts';
   import type {CreationProcess} from '$type';
   import type {PageData} from './$types';

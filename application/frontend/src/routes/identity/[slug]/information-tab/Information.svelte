@@ -12,7 +12,7 @@
   import CopyIcon from '$icon/actions/Copy.svelte';
   import EditIcon from '$icon/actions/Edit.svelte';
 
-  import {toTitleCase, formatPhoneNumber, formatUSD} from '$utils/formating';
+  import {toTitleCase, formatPhoneNumber, formatUSD} from '$utils/formatting';
   import {base64ToBlob, notify, getCountriesFlags} from '$utils/shared';
   import type {InformationAPI} from '$type';
   import {fetchAPI} from '$utils/webfetch';
@@ -56,9 +56,9 @@
 
       const body = {picture, name, bio, age, ethnicity, sex};
       const response = await fetchAPI<InformationAPI>('identity/update-information', 'PUT', body);
-      if (response.err) return notify(response.err, 'alert');
+      if (!response.ok) return notify(response.error, 'alert');
 
-      $identity = {...$identity, ...response};
+      $identity = {...$identity, ...response.data};
       isEditingMode = false;
       activeStatus = false;
     } else {

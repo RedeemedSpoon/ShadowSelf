@@ -10,7 +10,7 @@ import (
 
 func main() {
  payload := `{
-  "encryptionVersion": 1,
+  "vaultRevision": 1,
   "username": "example",
   "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
   "website": "https://example.com",

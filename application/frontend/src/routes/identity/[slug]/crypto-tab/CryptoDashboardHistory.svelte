@@ -5,7 +5,7 @@
   import BroomIcon from '$icon/misc/Broom.svelte';
 
   import {EXTERNAL_TX_VIEWERS, USD_DUST_THRESHOLD} from '$constant';
-  import {formatDate} from '$utils/formating';
+  import {formatDate} from '$utils/formatting';
   import type {CryptoAPI, Coins} from '$type';
   import type {Writable} from 'svelte/store';
 

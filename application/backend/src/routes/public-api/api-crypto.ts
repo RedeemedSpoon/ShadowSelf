@@ -78,8 +78,7 @@ export default new Elysia({prefix: '/crypto'})
     '/swap-trades/:id',
     async ({body, set}) => {
       const fields = ['tradeID', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider', 'isFixed'];
-      const {err, tradeID, coinTo, coinFrom, amount} = await checkAPI(body, fields);
-      const {destinationAddress, refundAddress, provider, isFixed} = await checkAPI(body, fields);
+      const {err, tradeID, coinTo, coinFrom, amount, destinationAddress, refundAddress, provider, isFixed} = await checkAPI(body, fields);
       if (err) return error(set, 400, err);
 
       const params = new URLSearchParams({

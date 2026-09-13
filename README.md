@@ -55,7 +55,7 @@ Alternatively, if you prefer a non-Docker setup, instructions are provided below
 
 - `bun install` To install all the dependencies
 
-- `psql -U postgres -f tables.sql` To initialize the database
+- From the repository root, export `POSTGRES_DB`, `APP_DB_PASSWORD`, and `MAIL_DB_PASSWORD` from your database configuration. Initialize the empty database with `psql -v ON_ERROR_STOP=1 -U postgres -d "$POSTGRES_DB" -f application/database/schemas.sql -f application/database/roles.sql`. The schema script drops and recreates the application tables; the roles script creates the application and mail roles.
 
 - `bun dev` To start the development backend server
 
@@ -107,7 +107,7 @@ All contributors and agents must fully enforce every rule in [AGENTS.md](AGENTS.
 
 If you'd like to contribute, please [open an issue](https://github.com/RedeemedSpoon/ShadowSelf/issues) or [open a pull request](https://github.com/RedeemedSpoon/ShadowSelf/pulls).
 
-Also checkout the [CONTRIBUTING.md](/CHANGELOG.md) file for more information on how to contribute.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution instructions.
 
 Here is the project system design if that might help you understand the architecture of the project better:
 

@@ -13,7 +13,7 @@
     hyphens, apostrophes.
   </li>
   <li>
-    <code>bio</code> (<span class="string">string</span>, <span class="optional">optional</span>): Must be 10-126 characters long if provided (can be empty
+    <code>bio</code> (<span class="string">string</span>, <span class="optional">optional</span>): Must be 5-126 characters long if provided (can be empty
     string <code>""</code> to clear).
   </li>
   <li><code>sex</code> (<span class="string">string</span>, <span class="optional">optional</span>): Must be 'male' or 'female'.</li>

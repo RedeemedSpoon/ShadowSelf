@@ -49,30 +49,30 @@
 
   async function sendMessage(isReply: boolean, body: {[key: string]: unknown}) {
     const response = await fetchAPI<PhoneAPI>('phone/send-message', 'POST', body);
-    if (response.err) return notify(response.err, 'alert');
+    if (!response.ok) return notify(response.error, 'alert');
 
     $mode = 'read';
-    $discussion = response.messageSent;
-    const addressee = response.addressee;
+    $discussion = response.data.messageSent;
+    const addressee = response.data.addressee;
 
     if (isReply) {
       const index = messages?.messages.findIndex((msg) => msg.from === addressee || msg.to === addressee);
       if (index !== -1) messages?.messages.splice(index!, 1);
 
       if ($fullDiscussion.find((msg) => msg.from === addressee || msg.to === addressee)) {
-        $fullDiscussion = [response.messageSent!, ...$fullDiscussion];
+        $fullDiscussion = [response.data.messageSent!, ...$fullDiscussion];
       } else {
-        $fullDiscussion = [response.messageSent!];
+        $fullDiscussion = [response.data.messageSent!];
 
         setTimeout(async () => {
           const response = await fetchAPI<PhoneAPI>('phone/fetch-conversation', 'POST', {addressee});
-          if (response.err) return notify(response.err, 'alert');
-          $fullDiscussion = response.conversation!;
+          if (!response.ok) return notify(response.error, 'alert');
+          $fullDiscussion = response.data.conversation!;
         }, 300);
       }
     } else $fullDiscussion = [];
 
-    messages?.messages.unshift(response.messageSent!);
+    messages?.messages.unshift(response.data.messageSent!);
   }
 
   function next() {

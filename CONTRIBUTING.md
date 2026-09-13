@@ -17,7 +17,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 - [I Want To Contribute](#i-want-to-contribute)
 - [Reporting Bugs](#reporting-bugs)
 - [Suggesting Enhancements](#suggesting-enhancements)
-- [Style Guides](#styleguides)
+- [Style Guides](#style-guides)
 - [Commit Messages](#commit-messages)
 - [Attribution](#attribution)
 
@@ -38,7 +38,6 @@ We will then take care of the issue as soon as possible.
 > #### Legal Notice
 >
 > When contributing to this project, you must agree that you have authored 100% of the content, that you have the necessary rights to the content and that the content you contribute may be provided under the project licence.
-> Sure! Here's the "I Want To Contribute" section formatted for you:
 
 #### Types of Contributions
 
@@ -61,10 +60,10 @@ To ensure a smooth contribution process, please follow the guidelines below:
    Make the necessary changes in your branch. Be sure to follow the [Style Guides](#style-guides) to keep the codebase consistent.
 
 4. **Test Your Changes**  
-   Run personal tests to make sure everything works as expected and ensure nothing else breaks.
+   Use temporary tests to verify changed behavior, then delete them and any test-only artifacts or commands. Do not commit test files. For frontend changes, inspect every affected route in a browser at desktop and mobile sizes and exercise the changed behavior. Report anything you could not validate.
 
 5. **Run Code Formatter**
-   Use a code formatter or linter to ensure your code is consistent with the project's coding style.
+   Run `bun format` and `bun lint` from the repository root and fix errors. Run `bun check` for TypeScript changes. For critical or broad changes, also run `bun run build` and preview when practical.
 
 6. **Commit your Changes**
    Commit your changes with clear, concise commit messages following the [commit message guidelines](#commit-messages).
@@ -128,16 +127,16 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Redeem
 
 ## Style Guides
 
-Here are some quick guidelines to help you get started:
+Follow every applicable rule in [AGENTS.md](AGENTS.md). It is the source of truth for implementation and validation requirements.
 
-- **Stick to TypeScript Basics**  
-  The code in this repo follows the usual TypeScript practices, so keep it simple. Use camelCase for variables, functions, and method names, UPPER_CASE for constants, and PascalCase for classes and Svelte components. If you’re working with TypeScript, feel free to use interfaces when needed.
-- **Prettier Is Your Friend**  
-  Before you submit your code, run it through **Prettier** to make sure everything’s nicely formatted. We’ve got a `.prettierrc` file set up with our preferences. It’ll save you time and keep things consistent!
-- **Trust Your Instincts**  
-  We keep things pretty flexible, so if you’re not sure about something, just use your best judgment. We'll clean things up during the code review if needed.
-- **No Over-Formatting**  
-  Don’t stress too much about formatting, Prettier will handle that for you. Focus on writing clear, functional code first, and let Prettier do the rest.
+- Match the surrounding syntax, naming, and conventions. Write self-explanatory code without inline comments.
+- Separate logical steps with blank lines. Leave a blank line between exported type aliases and interfaces, including consecutive one-line types.
+- Aim for functions under 60 lines, lines within the configured 160-character Prettier width, nesting below five levels, and components with one clear responsibility. Use these as review thresholds; keep cohesive logic together.
+- Keep constants in the existing constants modules and types in the existing type modules. Use each application's configured aliases. Reuse existing helpers and avoid new utility files unless the existing files are cluttered or the feature needs substantial helper code.
+- Prefer the smallest clear implementation that handles all required states. Remove replaced code; do not retain legacy contracts, old-format fallbacks, or parallel implementations.
+- When changing a request, response, validation rule, or shared concept, inspect and update every frontend and backend consumer together. Keep status codes and error shapes consistent.
+- Outline a plan before work that crosses subsystems or carries meaningful risk. Obtain approval before installing dependencies.
+- Update the fresh database initialization schema directly when persistent data changes. Do not add migrations, backfills, or database fields for transient or derivable state.
 
 # Commit Messages
 

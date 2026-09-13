@@ -2,6 +2,7 @@ import {getBearerToken, verifySessionToken, trustedCookieRequest} from '@middlew
 import type {QueryIdentity, QueryInvoice, QueryUser} from '@type';
 import {jwtSecret} from '@core/config';
 import {sql} from '@core/services';
+import {isInitializedIdentity} from '@utils/checks';
 import {jwt} from '@elysiajs/jwt';
 import {Elysia} from 'elysia';
 
@@ -84,6 +85,8 @@ export default (app: Elysia) =>
 
       return error(set, 402, 'Identity is frozen ' + details);
     }
+
+    if (!isInitializedIdentity(identity)) return error(set, 409, 'Identity setup is incomplete');
 
     const authorizeIdentity = async () => {
       if (!(await authorize())) return false;

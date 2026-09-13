@@ -2,7 +2,7 @@ curl --fail-with-body --request PUT "https://shadowself.io/api/account/update-en
   --header "Authorization: Bearer ${API_KEY}" \
   --header "Content-Type: application/json" \
   --data-binary '{
-  "encryptionVersion": 1,
+  "vaultRevision": 1,
   "accounts": [
     {
       "id": 101,

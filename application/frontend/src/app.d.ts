@@ -1,25 +1,13 @@
-import type {Faq, Settings, Option, Identity, AnimationSelector, FullIdentity, Docs} from '$type';
+export {};
 
 declare global {
   namespace App {
+    interface Locals {
+      user: string;
+    }
+
     interface PageData {
       user: string;
-      subsPlan?: string;
-      isFrozen?: boolean;
-      cryptoUse?: boolean;
-      homepageIds?: string[];
-      contactOptions?: Option[];
-      animations?: AnimationSelector[];
-      recoveryRemaining?: number;
-      searchKeywords?: Option[];
-      identities?: Identity[];
-      identity?: FullIdentity;
-      settings?: Settings;
-      stripeKey?: string;
-      cookie?: string;
-      slug?: string;
-      faqs?: Faq[];
-      docs?: Docs;
     }
   }
 }

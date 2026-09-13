@@ -13,7 +13,7 @@
   import SortIcon from '$icon/actions/Sort.svelte';
 
   import SearchInput from '$component/inputs/SearchInput.svelte';
-  import {formatPhoneNumber, formatUSD} from '$utils/formating';
+  import {formatPhoneNumber, formatUSD} from '$utils/formatting';
   import {getCountriesFlags, notify} from '$utils/shared';
   import worldMap from '$image/patterns/world-map.svg';
   import {onMount, type Component} from 'svelte';

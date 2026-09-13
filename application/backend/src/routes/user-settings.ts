@@ -1,3 +1,4 @@
+import {billingPortal, createBillingCustomer} from '@core/stripe-service';
 import {deleteIdentity} from '@core/identity-service';
 import {consumeEmailCode, claimSensitiveAttempt} from '@core/states';
 import {createTOTP, getSecret, getAPIKey, createHash, getRecovery, hashRecoveryCode, compareHash} from '@utils/cryptography';
@@ -6,7 +7,7 @@ import {sendVerificationCode} from '@utils/email-smtp';
 import type {QueryUser, QueryIdentity} from '@type';
 import {error} from '@utils/utils';
 import {check} from '@utils/checks';
-import {sql, stripe, billingPortal, createBillingCustomer} from '@core/services';
+import {sql, stripe} from '@core/services';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/settings'})

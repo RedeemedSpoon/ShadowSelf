@@ -28,10 +28,16 @@
 
   const mode = writable<'view' | 'add' | 'edit'>('view');
   const target = writable<Account | null>(null);
-  const accounts = writable<AccountAPI>();
+  const accounts = writable<AccountAPI>({accounts: []});
+  let loadError = $state('');
 
   onMount(async () => {
-    $accounts = await fetchAPI<AccountAPI>('account', 'GET');
+    const response = await fetchAPI<AccountAPI>('account', 'GET');
+    if (!response.ok) {
+      loadError = response.error;
+      return;
+    }
+    $accounts = response.data;
     $target = null;
   });
 
@@ -77,12 +83,12 @@
   }
 
   async function deleteAccount() {
-    const response = await fetchAPI<AccountAPI>('account/delete-account', 'DELETE', {id: $target!.id});
-    if (response.err) return notify(response.err, 'alert');
-
-    $accounts.accounts = $accounts.accounts.filter((account) => account.id !== (response.id as unknown));
-    $mode = 'view';
+    const response = await fetchAPI<Pick<Account, 'id'>>('account/delete-account', 'DELETE', {id: $target!.id});
     $pendingID = 0;
+    if (!response.ok) return notify(response.error, 'alert');
+
+    $accounts.accounts = $accounts.accounts.filter((account) => account.id !== response.data.id);
+    $mode = 'view';
     $target = null;
   }
 </script>
@@ -99,7 +105,9 @@
   </div>
 </section>
 
-{#if $mode === 'view' && $accounts?.accounts.length && $masterPassword}
+{#if loadError}
+  <p role="alert" class="my-8 text-center text-red-400">{loadError}</p>
+{:else if $mode === 'view' && $accounts?.accounts.length && $masterPassword}
   {#key $accounts.accounts}
     <section class="min-h-[40vh]">
       {#await decryptAll($accounts) then decryptedAccounts}

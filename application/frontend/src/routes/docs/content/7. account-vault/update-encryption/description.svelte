@@ -2,7 +2,7 @@
 <h5>Request</h5>
 <p>
   Retrieve the current accounts and identity, unlock every encrypted field with the current key, and encrypt them using the new key. Send the current <code
-    >encryptionVersion</code
+    >vaultRevision</code
   >, every account ID with its encrypted <code>password</code> and <code>totp</code>, the encrypted wallet <code>blob</code>, and <code>keys</code> containing
   encrypted Monero <code>address</code>, <code>viewKey</code> and <code>spendKey</code>. Use explicit null for an absent TOTP secret.
 </p>
@@ -12,9 +12,8 @@
 </p>
 <h5>Concurrency and response</h5>
 <p>
-  All account IDs must match the complete current vault. A missing or duplicate account, a concurrent edit, or a stale encryption version returns HTTP 409 and
-  changes nothing. Malformed envelopes return HTTP 400. Successful updates return the saved accounts, wallet blob, Monero keys, and incremented encryption
-  version.
+  All account IDs must match the complete current vault. A missing or duplicate account, a concurrent edit, or a stale vault revision returns HTTP 409 and
+  changes nothing. Malformed envelopes return HTTP 400. Successful updates return the saved accounts, wallet blob, Monero keys, and incremented vault revision.
 </p>
 <p>
   Replace the in-memory key only after success. Remove the old encrypted wallet cache and sync it again. A failed request must leave the current key and cached

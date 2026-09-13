@@ -11,7 +11,7 @@
   import type {Writable} from 'svelte/store';
   import {pendingID, identity} from '$store';
   import {transferMonero} from '$utils/monero';
-  import {formatUSD} from '$utils/formating';
+  import {formatUSD} from '$utils/formatting';
   import {fetchAPI} from '$utils/webfetch';
   import {SLEEP_DURATION} from '$constant';
   import {notify} from '$utils/shared';
@@ -100,7 +100,7 @@
       }
 
       const response = await fetchAPI<CryptoAPI>('crypto/broadcast', 'POST', broadcastPayload!);
-      notify(response.err ? response.err : successMessage, response.type);
+      notify(response.ok ? successMessage : response.error, response.ok ? 'success' : 'alert');
       $pendingID = 0;
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Transaction failed', 'alert');

@@ -8,14 +8,16 @@ const authAndRedirects: Handle = async ({event, resolve}) => {
   const token = event.cookies.get('token');
   const path = event.url.pathname;
   const protectedRoute = ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some((route) => path === route || path.startsWith(route + '/'));
-  let signedIn = false;
+  event.locals.user = '';
 
   if (token) {
     const response = await fetchBackend('/account', 'GET', undefined, token);
     if (response.type === 'alert') error(503, 'Account verification is temporarily unavailable');
-    signedIn = response.type === 'success';
-    if (!signedIn) event.cookies.delete('token', {path: '/'});
+    if (response.type === 'success') event.locals.user = response.message;
+    else event.cookies.delete('token', {path: '/'});
   }
+
+  const signedIn = !!event.locals.user;
 
   if (protectedRoute && !signedIn) redirect(303, '/login');
   if (['/login', '/signup'].some((route) => path === route || path.startsWith(route + '/')) && signedIn) redirect(303, '/dashboard');

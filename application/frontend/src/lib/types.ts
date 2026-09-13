@@ -138,14 +138,14 @@ export interface Identity {
   email: string;
   phone: string;
   accounts: number;
-  walletFunds: number;
+  walletFunds: string | null;
 }
 
 export interface FullIdentity {
-  encryptionVersion: number;
+  vaultRevision: number;
   id: string;
-  creationDate: Date;
-  plan: 'monthly' | 'annually' | 'lifetime';
+  creationDate: string;
+  plan: 'monthly' | 'annually' | 'lifetime' | null;
   paymentMethod: string;
   proxyServer: string;
   location: string;
@@ -158,7 +158,7 @@ export interface FullIdentity {
   email: string;
   phone: string;
   walletKeys: CryptoKeys;
-  walletFunds: number;
+  walletFunds: string | null;
   walletBlob: string;
 }
 
@@ -302,12 +302,9 @@ export interface CryptoWallet {
   };
 }
 
-export interface BaseAPI {
-  err?: string;
-  type: 'success' | 'alert' | 'info';
-}
+export type ApiResult<T> = {ok: true; data: T} | {ok: false; error: string; status: number | null};
 
-export interface InformationAPI extends BaseAPI {
+export interface InformationAPI {
   picture?: string;
   ethnicity?: string;
   name?: string;
@@ -316,7 +313,7 @@ export interface InformationAPI extends BaseAPI {
   bio?: string;
 }
 
-export interface AccountAPI extends BaseAPI {
+export interface AccountAPI {
   accounts: Account[];
   id?: string;
   username?: string;
@@ -326,7 +323,7 @@ export interface AccountAPI extends BaseAPI {
   algorithm?: string;
 }
 
-export interface EmailAPI extends BaseAPI {
+export interface EmailAPI {
   warning?: string;
   emails: Inbox;
   nextEmails?: Email[];
@@ -350,7 +347,7 @@ export interface EmailAPI extends BaseAPI {
   attachments?: Attachment[];
 }
 
-export interface PhoneAPI extends BaseAPI {
+export interface PhoneAPI {
   messages: Message[];
   addressee?: string;
   messageSent?: Message;
@@ -358,12 +355,12 @@ export interface PhoneAPI extends BaseAPI {
   sid?: string;
 }
 
-export interface MoneroNodeAPI extends BaseAPI {
+export interface MoneroNodeAPI {
   nodeUrl: string;
   startingDate: string;
 }
 
-export interface CryptoAPI extends BaseAPI {
+export interface CryptoAPI {
   prices: CryptoPrices;
   fees: CryptoFees;
   wallet: CryptoWallet;

@@ -9,7 +9,7 @@
   import {pendingID, identity, moneroData} from '$store';
   import {onMount, type Component} from 'svelte';
   import {transferMonero} from '$utils/monero';
-  import {formatUSD} from '$utils/formating';
+  import {formatUSD} from '$utils/formatting';
   import {fetchAPI} from '$utils/webfetch';
   import {notify} from '$utils/shared';
 
@@ -56,15 +56,15 @@
       coinTo: receiveCoin,
       amount: swapAmount,
     });
-    if (response.err) {
+    if (!response.ok) {
       $pendingID = 0;
 
-      return notify(response.err, 'alert');
+      return notify(response.error, 'alert');
     }
 
-    tradeID = response.tradeID!;
-    providers = response.providers!;
-    selectedProviderIndex = providers.findIndex((prov) => prov.name === response.bestProvider);
+    tradeID = response.data.tradeID!;
+    providers = response.data.providers!;
+    selectedProviderIndex = providers.findIndex((prov) => prov.name === response.data.bestProvider);
     bestProviderIndex = selectedProviderIndex;
 
     $pendingID = 0;
@@ -104,19 +104,19 @@
     };
 
     const response = await fetchAPI<CryptoAPI>('crypto/swap-trades', 'POST', payload);
-    if (response.err) {
+    if (!response.ok) {
       $pendingID = 0;
 
-      return notify(response.err, 'alert');
+      return notify(response.error, 'alert');
     }
 
     try {
-      const amountToSend = Number(response.depositAmount);
+      const amountToSend = Number(response.data.depositAmount);
 
-      if (!response.depositAddress) throw new Error('Swap provider did not return a deposit address');
+      if (!response.data.depositAddress) throw new Error('Swap provider did not return a deposit address');
 
       if (payCoin === 'xmr') {
-        const warning = await transferMonero(crypto.wallet.xmr.nodeUrl, response.depositAddress, String(amountToSend), 2);
+        const warning = await transferMonero(crypto.wallet.xmr.nodeUrl, response.data.depositAddress, String(amountToSend), 2);
         if (warning) notify(warning, 'alert');
 
         notify(`Sent ${amountToSend} XMR`, 'success');
@@ -148,7 +148,7 @@
           };
         }
 
-        const broadcastPayload = await signTransaction(payCoin as Coins, response.depositAddress!, amountToSend, txData);
+        const broadcastPayload = await signTransaction(payCoin as Coins, response.data.depositAddress!, amountToSend, txData);
 
         if (!broadcastPayload) {
           $pendingID = 0;
@@ -157,7 +157,7 @@
         }
 
         const broadcastRes = await fetchAPI<CryptoAPI>('crypto/broadcast', 'POST', broadcastPayload);
-        if (broadcastRes.err) notify(broadcastRes.err, 'alert');
+        if (!broadcastRes.ok) throw new Error(broadcastRes.error);
 
         notify(`Sent ${amountToSend} ${payCoin.toUpperCase()}`, 'success');
       }
@@ -168,7 +168,7 @@
     }
 
     $pendingID = 0;
-    trackingLink = response.externalLink!;
+    trackingLink = response.data.externalLink!;
     chooseProvider = false;
     swapSuccess = true;
   }

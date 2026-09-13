@@ -68,7 +68,7 @@ CREATE TABLE identities (
   "phone" varchar(15) UNIQUE,
   "phone_sid" varchar(34),
   "wallet_blob" varchar(5503),
-  "encryption_version" integer NOT NULL DEFAULT 1,
+  "vault_revision" integer NOT NULL DEFAULT 1,
   "wallet_keys" jsonb, 
   "wallet_funds" numeric(15, 2) DEFAULT 0.00,
   "status" varchar(8) DEFAULT 'inactive'

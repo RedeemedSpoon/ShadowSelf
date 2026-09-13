@@ -15,7 +15,7 @@
   import CheckmarkIcon from '$icon/status/Checkmark.svelte';
   import CopyIcon from '$icon/actions/Copy.svelte';
 
-  import {formatCasing, formatToMarkdown} from '$utils/formating';
+  import {formatCasing, formatToMarkdown} from '$utils/formatting';
   import type {PageData} from './$types';
   import {page} from '$app/state';
   import {onMount} from 'svelte';

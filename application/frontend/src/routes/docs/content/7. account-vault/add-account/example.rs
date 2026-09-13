@@ -7,7 +7,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .bearer_auth(env::var("API_KEY")?)
         .header("Content-Type", "application/json")
         .body(r#"{
-  "encryptionVersion": 1,
+  "vaultRevision": 1,
   "username": "example",
   "password": "v1.AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
   "website": "https://example.com",

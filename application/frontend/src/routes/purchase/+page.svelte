@@ -13,7 +13,7 @@
   import {notify, awaitPending} from '$utils/shared';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import type {Notification, Billing} from '$type';
-  import {toTitleCase} from '$utils/formating';
+  import {toTitleCase} from '$utils/formatting';
   import type {PageData} from './$types';
   import {fly} from 'svelte/transition';
   import {enhance} from '$app/forms';

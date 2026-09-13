@@ -76,39 +76,39 @@ export interface QueryUser {
   username: string;
   password: string;
   email: string;
-  totp: string;
+  totp: string | null;
   recovery_hashes: string[];
-  stripe_customer: string;
+  stripe_customer: string | null;
   sessions: string[];
-  api_access: boolean;
-  api_key: string;
+  api_access: boolean | null;
+  api_key: string | null;
 }
 
 export interface QueryIdentity {
-  encryption_version: number;
+  vault_revision: number;
   id: string;
   owner: number;
   creation_date: Date;
-  payment_intent: string;
-  subscription_id: string;
-  plan: 'monthly' | 'annually' | 'lifetime';
-  status: 'active' | 'inactive' | 'frozen';
-  proxy_server: string;
-  crypto_invoice: string;
-  proxy_password: string;
-  location: string;
-  picture: string;
-  name: string;
-  bio: string;
-  age: number;
-  sex: string;
-  ethnicity: string;
-  email: string;
-  email_password: string;
-  phone: string;
-  wallet_blob: string;
-  wallet_keys: CryptoKeys;
-  wallet_funds: number;
+  payment_intent: string | null;
+  subscription_id: string | null;
+  plan: 'monthly' | 'annually' | 'lifetime' | null;
+  status: 'active' | 'inactive' | 'frozen' | 'deleting' | null;
+  proxy_server: string | null;
+  crypto_invoice: string | null;
+  proxy_password: string | null;
+  location: string | null;
+  picture: string | null;
+  name: string | null;
+  bio: string | null;
+  age: number | null;
+  sex: string | null;
+  ethnicity: string | null;
+  email: string | null;
+  email_password: string | null;
+  phone: string | null;
+  wallet_blob: string | null;
+  wallet_keys: CryptoKeys | null;
+  wallet_funds: string | null;
   phone_sid: string | null;
 }
 
@@ -123,15 +123,25 @@ export interface QueryInvoice {
   creation_date: Date;
 }
 
-export interface QueryAccount {
-  id: string;
-  owner: string;
-  username: string;
-  password: string;
-  website: string;
-  algorithm: string;
-  totp: string;
-}
+export type InitializedIdentity = QueryIdentity & {
+  [
+    Field in
+      | 'proxy_server'
+      | 'proxy_password'
+      | 'location'
+      | 'picture'
+      | 'name'
+      | 'bio'
+      | 'age'
+      | 'sex'
+      | 'ethnicity'
+      | 'email'
+      | 'email_password'
+      | 'phone'
+      | 'wallet_blob'
+      | 'wallet_keys'
+  ]: NonNullable<QueryIdentity[Field]>;
+};
 
 export interface RegenerateIdentity {
   name: string;
@@ -183,7 +193,7 @@ export interface APIRequest {
   username: string;
   password: string;
   website: string;
-  totp: string;
+  totp: string | null;
   algorithm: string;
   uid: number;
   uuid: string;
@@ -374,7 +384,7 @@ export interface IdentityProvision {
 }
 
 export interface VaultMutation {
-  encryptionVersion: number;
+  vaultRevision: number;
   blob: string;
   keys: CryptoKeys['xmr'];
   accounts: {id: number; password: string; totp: string | null}[];

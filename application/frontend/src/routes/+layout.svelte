@@ -19,12 +19,11 @@
   let {data, children}: Props = $props();
 
   $effect(() => {
-    if (data.user) $user = data.user;
+    $user = data.user;
   });
 
   onMount(() => {
     document.querySelector('#app')?.classList.remove('hidden');
-    document.addEventListener('touchstart', (e) => e.preventDefault(), {passive: true});
   });
 </script>
 

@@ -14,12 +14,12 @@
   import conversation from '$image/empty-states/conversation.svg';
   import type {WebSocketMessage, PhoneAPI, Message} from '$type';
   import {writable, type Writable} from 'svelte/store';
-  import {formatPhoneNumber} from '$utils/formating';
+  import {formatPhoneNumber} from '$utils/formatting';
   import {identity, handleResponse} from '$store';
   import {fetchAPI} from '$utils/webfetch';
   import {notify} from '$utils/shared';
 
-  let messages = $state() as PhoneAPI;
+  let messages = $state<PhoneAPI>({messages: []});
 
   let fullDiscussion: Writable<Message[]> = writable([]);
   const mode: Writable<'browse' | 'read' | 'write' | 'reply'> = writable('browse');
@@ -28,15 +28,17 @@
   async function fetchMessages() {
     await new Promise((resolve) => setTimeout(resolve, 50));
     document.getElementById('hold-load')?.remove();
-    messages = await fetchAPI<PhoneAPI>('phone', 'GET');
+    const response = await fetchAPI<PhoneAPI>('phone', 'GET');
+    if (!response.ok) throw new Error(response.error);
+    messages = response.data;
   }
 
   async function deleteMessage() {
     const addressee = $discussion?.from === $identity.phone ? $discussion?.to : $discussion?.from;
     const response = await fetchAPI<PhoneAPI>('phone/delete-conversation', 'DELETE', {addressee});
-    if (response.err) return notify(response.err, 'alert');
+    if (!response.ok) return notify(response.error, 'alert');
 
-    const index = messages.messages.findIndex((msg) => msg.from === response.addressee || msg.to === response.addressee);
+    const index = messages.messages.findIndex((msg) => msg.from === response.data.addressee || msg.to === response.data.addressee);
     if (index !== -1) messages.messages.splice(index, 1);
 
     $discussion = undefined;
@@ -100,6 +102,8 @@
       </section>
     {/if}
   {/key}
+{:catch error}
+  <p role="alert" class="my-8 text-center text-red-400">{error.message}</p>
 {/await}
 
 {#if $mode === 'write'}

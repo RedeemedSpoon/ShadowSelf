@@ -53,16 +53,6 @@ export function parseMessage(msg: MessageInstance) {
   };
 }
 
-export async function request(url: string, method = 'GET', body?: object) {
-  return fetch('http://localhost:3000' + url, {
-    headers: {'Content-Type': 'application/json'},
-    body: body ? JSON.stringify(body) : undefined,
-    method,
-  })
-    .then((res) => res.json())
-    .catch((err) => err);
-}
-
 export async function proxyRequest(code: string, method = 'GET', body?: object) {
   const response = await fetch(`https://${code}.shadowself.io/`, {
     headers: {'Content-Type': 'application/json', Authorization: `Bearer ${secretProxyKey}`},

@@ -2,7 +2,7 @@
   import ComposeMessage from './ComposeMessage.svelte';
   import MessageComponent from './Message.svelte';
 
-  import {formatPhoneNumber} from '$utils/formating';
+  import {formatPhoneNumber} from '$utils/formatting';
   import type {PhoneAPI, Message} from '$type';
   import type {Writable} from 'svelte/store';
   import {identity} from '$store';

@@ -1,10 +1,9 @@
-import {randomUUID} from 'node:crypto';
 import type {PageServerLoad, Actions} from './$types';
 import {PUBLIC_STRIPE_KEY} from '$env/static/public';
 import {fetchBackend} from '$utils/webfetch';
 
 export const load: PageServerLoad = async () => {
-  return {stripeKey: PUBLIC_STRIPE_KEY, requestID: randomUUID()};
+  return {stripeKey: PUBLIC_STRIPE_KEY, requestID: crypto.randomUUID()};
 };
 
 export const actions = {
@@ -22,7 +21,7 @@ export const actions = {
     const formData = await request.formData();
     const plan = formData.get('plan')?.toString().toLowerCase();
     const swapCoin = formData.get('swapCoin')?.toString().toLowerCase();
-    const refundAddress = formData.get('refundAddress')?.toString();
+    const refundAddress = formData.get('refundAddress')?.toString() || undefined;
 
     return await fetchBackend(
       `/billing/crypto/new-invoice`,
@@ -35,7 +34,7 @@ export const actions = {
     const formData = await request.formData();
     const plan = formData.get('plan')?.toString().toLowerCase();
     const swapCoin = formData.get('swapCoin')?.toString().toLowerCase();
-    const refundAddress = formData.get('refundAddress')?.toString();
+    const refundAddress = formData.get('refundAddress')?.toString() || undefined;
     const identityID = formData.get('identityID')?.toString();
 
     return await fetchBackend(

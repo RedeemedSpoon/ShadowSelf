@@ -1,4 +1,4 @@
-import type {BodyField, ContactDetail, CheckIdentity, APIRequest} from '@type';
+import type {BodyField, ContactDetail, CheckIdentity, APIRequest, QueryIdentity, InitializedIdentity} from '@type';
 import {ETHNICITIES, LOCATIONS} from '@core/constants';
 import {toTitleCase} from '@utils/utils';
 import {$} from 'bun';
@@ -127,8 +127,10 @@ export function checkContact(rawBody: unknown): ContactDetail {
   return body;
 }
 
-export async function checkIdentity(kind: string, body: CheckIdentity): Promise<CheckIdentity> {
-  if (!body) return body;
+export async function checkIdentity(kind: string, rawBody: unknown): Promise<CheckIdentity> {
+  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) return {error: 'Invalid identity data'};
+
+  const body = rawBody as CheckIdentity;
 
   switch (kind) {
     case 'location':
@@ -138,44 +140,14 @@ export async function checkIdentity(kind: string, body: CheckIdentity): Promise<
 
       break;
 
-    case 'identity':
-      if (body.name!.trim().length < 2) {
-        return {error: 'Name must be at least 2 characters long'};
-      }
-
-      if (body.name!.length > 30) {
-        return {error: 'Name is too long (<30 characters)'};
-      }
-
-      if (!/^[\p{L}\s.'-]+$/u.test(body.name!)) {
-        return {error: 'Name contains invalid characters'};
-      }
-
-      if (body.sex !== 'male' && body.sex !== 'female') {
-        return {error: 'Sex must be either "male" or "female"'};
-      }
-
-      if (body.age! < 18 || body.age! > 60) {
-        return {error: 'Age must be between 18 and 60'};
-      }
-
-      if (!ETHNICITIES.includes(body.ethnicity!)) {
-        return {error: 'Ethnicity must be a valid ethnicity'};
-      }
-
-      if (body.bio!.trim().length > 0 && body.bio!.trim().length < 5) {
-        return {error: 'Biography must be at least 5 characters long if provided'};
-      }
-
-      if (body.bio!.length > 126) {
-        return {error: 'Biography is too long (<126 characters)'};
-      }
-
-      if (!/^[A-Za-z0-9+/=]+$/.test(body.picture!)) {
-        return {error: 'Incorrect profile picture format'};
-      }
+    case 'profile':
+    case 'identity': {
+      const fields = ['name', 'sex', 'age', 'ethnicity', 'bio', ...(kind === 'identity' ? ['picture'] : [])];
+      const {err} = await checkAPI(body, fields);
+      if (err) return {error: err};
 
       break;
+    }
 
     case 'email': {
       if (!/^[a-zA-Z0-9_-]+@shadowself\.io$/.test(body.email!)) {
@@ -254,7 +226,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
       return {err: `${toTitleCase(field)} is a required field`} as APIRequest;
     }
 
-    if (isOptional && !body[fieldType as keyof APIRequest]) continue;
+    if (isOptional && !Object.prototype.hasOwnProperty.call(body, fieldType)) continue;
 
     switch (fieldType) {
       case 'name':
@@ -281,8 +253,8 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Biography must be a string'} as APIRequest;
         }
 
-        if (body.bio.trim().length > 0 && body.bio.trim().length < 10) {
-          return {err: 'Biography must be at least 10 characters long if provided'} as APIRequest;
+        if (body.bio.trim().length > 0 && body.bio.trim().length < 5) {
+          return {err: 'Biography must be at least 5 characters long if provided'} as APIRequest;
         }
 
         if (body.bio.length > 126) {
@@ -347,14 +319,14 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Website must be a string'} as APIRequest;
         }
 
-        if (!/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
+        if (body.website !== '' && !/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
           return {err: 'Invalid website address, please try again'} as APIRequest;
         }
 
         break;
 
       case 'totp':
-        if (!validCiphertext(body.totp)) return {err: 'Invalid encrypted authenticator secret'} as APIRequest;
+        if (body.totp !== null && !validCiphertext(body.totp)) return {err: 'Invalid encrypted authenticator secret'} as APIRequest;
         break;
 
       case 'algorithm':
@@ -718,4 +690,25 @@ export function validCiphertext(value: unknown): value is string {
   const decoded = Buffer.from(encoded, 'base64');
 
   return decoded.length >= 29 && decoded.length <= 4124 && decoded.toString('base64') === encoded;
+}
+
+export function isInitializedIdentity(identity: QueryIdentity): identity is InitializedIdentity {
+  const fields = [
+    'proxy_server',
+    'proxy_password',
+    'location',
+    'picture',
+    'name',
+    'bio',
+    'age',
+    'sex',
+    'ethnicity',
+    'email',
+    'email_password',
+    'phone',
+    'wallet_blob',
+    'wallet_keys',
+  ] as const;
+
+  return fields.every((field) => identity[field] !== null);
 }

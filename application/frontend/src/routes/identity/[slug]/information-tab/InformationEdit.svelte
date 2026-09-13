@@ -23,26 +23,27 @@
 
     $pendingID = 1;
     const response = await fetchAPI<InformationAPI>('identity/regenerate-picture', 'PATCH', {sex, age, ethnicity, bio});
-    if (response.err) return notify(response.err, 'alert');
+    $pendingID = 0;
+    if (!response.ok) return notify(response.error, 'alert');
 
     const element = document.querySelector(`#profile`) as HTMLImageElement;
-    element.src = `data:image/png;base64,${response.picture}`;
-    $pendingID = 0;
+    element.src = `data:image/png;base64,${response.data.picture}`;
   }
 
   async function regenerateName() {
     const sex = document.querySelector('.selected')!.id;
     const response = await fetchAPI<InformationAPI>('identity/regenerate-name', 'PATCH', {sex});
-    if (response.err) return notify(response.err, 'alert');
+    if (!response.ok) return notify(response.error, 'alert');
 
     const element = document.querySelector(`input[name="name"]`) as HTMLInputElement;
-    element.value = response.name!;
+    element.value = response.data.name!;
   }
 
   async function regenerateBio() {
     const response = await fetchAPI<InformationAPI>('identity/regenerate-bio', 'PATCH');
+    if (!response.ok) return notify(response.error, 'alert');
     const element = document.querySelector(`textarea`) as HTMLTextAreaElement;
-    element.value = response.bio!;
+    element.value = response.data.bio!;
   }
 
   function changeToMale() {

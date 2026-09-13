@@ -18,8 +18,8 @@
     (check dashboard for the list).
   </li>
   <li>
-    <code>bio</code> (<span class="string">string</span>, <span class="optional">optional</span>): A string used as a prompt hint. Must be between 10 and 126
-    characters if provided.
+    <code>bio</code> (<span class="string">string</span>, <span class="optional">optional</span>): A string used as a prompt hint. Must be between 5 and 126
+    characters if provided, or an empty string.
   </li>
 </ul>
 

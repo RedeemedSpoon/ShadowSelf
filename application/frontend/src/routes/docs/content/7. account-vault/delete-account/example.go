@@ -10,7 +10,7 @@ import (
 
 func main() {
  payload := `{
-  "encryptionVersion": 1,
+  "vaultRevision": 1,
   "id": 101
 }`
  request, err := http.NewRequest("DELETE", "https://shadowself.io/api/account/delete-account/"+os.Getenv("IDENTITY_ID"), strings.NewReader(payload))

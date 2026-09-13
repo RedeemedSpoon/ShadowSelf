@@ -48,31 +48,31 @@
     const algorithm = (document.querySelector('input[name="algorithm"]') as HTMLInputElement)?.value.toUpperCase();
 
     if (!username || !rawPassword) {
-      notify('Username and Password are required', 'alert');
       $pendingID = 0;
+      return notify('Username and Password are required', 'alert');
     }
 
     const password = await encrypt(rawPassword);
     const totp = rawTotp ? await encrypt(rawTotp) : null;
     const id = $mode === 'edit' ? $target!.id : null;
-    const body = {id, username, password, website, totp, algorithm};
+    const body = {id, username, password, website, totp, ...(algorithm ? {algorithm} : {})};
 
     if ($mode === 'add') {
-      const response = await fetchAPI<AccountAPI>('account/add-account', 'POST', body);
-      if (response.err) return notify(response.err, 'alert');
-
-      $accounts.accounts.push(response as unknown as Account);
-      $mode = 'view';
+      const response = await fetchAPI<Account>('account/add-account', 'POST', body);
       $pendingID = 0;
+      if (!response.ok) return notify(response.error, 'alert');
+
+      $accounts.accounts.push(response.data);
+      $mode = 'view';
       $target = null;
     } else {
-      const response = await fetchAPI<AccountAPI>('account/edit-account', 'PUT', body);
-      if (response.err) return notify(response.err, 'alert');
-
-      const otherAccounts = $accounts.accounts.filter((account) => account.id !== (response.id as unknown));
-      $accounts.accounts = [...otherAccounts, response] as unknown as AccountAPI['accounts'];
-      $mode = 'view';
+      const response = await fetchAPI<Account>('account/edit-account', 'PUT', body);
       $pendingID = 0;
+      if (!response.ok) return notify(response.error, 'alert');
+
+      const otherAccounts = $accounts.accounts.filter((account) => account.id !== response.data.id);
+      $accounts.accounts = [...otherAccounts, response.data];
+      $mode = 'view';
       $target = null;
     }
   }

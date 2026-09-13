@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {toTitleCase} from '$utils/formating';
+  import {toTitleCase} from '$utils/formatting';
   import {blur, fly} from 'svelte/transition';
 
   let index = $state(0);

@@ -3,7 +3,7 @@
   import github from '$image/brands/github.svg';
 
   import ChevronIcon from '$icon/navigation/Chevron.svelte';
-  import {toTitleCase} from '$utils/formating';
+  import {toTitleCase} from '$utils/formatting';
   import {EXTENSIONS_INFO} from '$constant';
 
   let {extension}: {extension: 'shadowself' | 'ublock' | 'canvas'} = $props();

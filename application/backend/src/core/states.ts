@@ -101,6 +101,8 @@ export const invoiceConnections = new InvoiceManager();
 const loginChallenges = new Map<string, LoginChallenge>();
 
 export function issueLoginChallenge(user: QueryUser) {
+  if (!user.totp) return undefined;
+
   for (const [key, entry] of loginChallenges) {
     if (entry.expiresAt <= Date.now() || entry.email === user.email) loginChallenges.delete(key);
   }

@@ -113,7 +113,7 @@ export default new Elysia({websocket: {idleTimeout: 300}})
 
             const lang = LOCATIONS.find((location) => location.code === (cookieStore[0] || message.location));
 
-            const profile = (await checkIdentity('identity', message.regenerate)) || {};
+            const profile = message.regenerate === undefined ? {} : await checkIdentity('profile', message.regenerate);
             if (profile.error) return ws.send({error: profile.error});
 
             let {name, age, ethnicity, bio, sex} = profile;

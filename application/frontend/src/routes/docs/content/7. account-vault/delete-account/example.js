@@ -2,7 +2,7 @@ const response = await fetch(`https://shadowself.io/api/account/delete-account/$
   method: 'DELETE',
   headers: {Authorization: `Bearer ${process.env.API_KEY}`, 'Content-Type': 'application/json'},
   body: JSON.stringify({
-    encryptionVersion: 1,
+    vaultRevision: 1,
     id: 101,
   }),
 });
