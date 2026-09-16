@@ -225,19 +225,21 @@
     {/key}
 
     <hr class="mb-8 h-0.5 w-full" />
-    <div class="flex w-full justify-between px-8 max-sm:flex-col-reverse">
+    <div class="flex w-full justify-between gap-4 max-lg:flex-col-reverse sm:px-8">
       <a href="/dashboard">
         <button class="alt border-none">← Back</button>
       </a>
-      <form class="flex flex-wrap items-center justify-center gap-y-3" method="POST">
+      <form class="identity-actions flex flex-nowrap items-center justify-center gap-2" method="POST">
         {#key $masterPassword}
           {#if $masterPassword}
-            <button type="button" onclick={() => ($activeModal = 2)} class="alt w-fit p-0">Change Local Master Password</button>
+            <button type="button" onclick={() => ($activeModal = 2)} class="alt w-fit p-0"
+              ><span class="max-sm:hidden">Change Local Master Password</span><span class="sm:hidden">Change master password</span></button>
           {:else}
-            <button type="button" onclick={() => ($activeModal = 1)} class="alt w-fit p-0">Set Local Master Password</button>
+            <button type="button" onclick={() => ($activeModal = 1)} class="alt w-fit p-0"
+              ><span class="max-sm:hidden">Set Local Master Password</span><span class="sm:hidden">Set master password</span></button>
           {/if}
         {/key}
-        <div class="px-2 font-bold text-neutral-500 select-none">|</div>
+        <div class="font-bold text-neutral-500 select-none" aria-hidden="true">|</div>
         <button type="button" onclick={() => ($activeModal = 3)} class="alt w-fit p-0">Delete Identity</button>
         <input type="hidden" name="id" value={data.identity.id} />
 
@@ -309,6 +311,10 @@
     @apply flex items-center gap-2 border-b bg-none text-neutral-500 shadow-transparent max-md:sm:-mx-3 lg:px-[4vw];
     @apply rounded-none border-b border-neutral-500 transition-colors duration-500 hover:border-neutral-400 hover:text-neutral-400;
     @apply disabled:cursor-pointer disabled:opacity-100 max-md:sm:scale-90;
+  }
+
+  .identity-actions > button {
+    @apply shrink-0 whitespace-nowrap max-sm:text-xs;
   }
 
   .main {

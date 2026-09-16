@@ -63,6 +63,7 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
   const fields = ['plan', 'swapCoin', '?refundAddress', ...(renewal ? ['identityID'] : [])];
   const {err, plan, swapCoin, refundAddress, identityID} = await checkAPI(body, fields);
   if (err) return error(set, 400, err);
+
   const requestID = (body as {requestID?: string})?.requestID;
   if (!/^[a-f0-9-]{36}$/.test(requestID || '')) return error(set, 400, 'A payment request ID is required');
   if (!watchWallet || !cryptoPrices.xmr?.usdPrice || Date.now() - billingReadiness.priceSync > POLL_PRICES_INTERVAL * 3)
@@ -74,6 +75,7 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
     const identities = await sql`SELECT id FROM identities WHERE id = ${identityID} AND owner = ${owner} AND plan = ${plan} AND status <> 'deleting'`;
     if (!identities.length) return error(set, 404, 'Identity not found or plan does not match');
   }
+
   const xmrAmount = quoteXmr(PRICING_TIERS[plan as keyof typeof PRICING_TIERS], CRYPTO_DISCOUNT, cryptoPrices.xmr.usdPrice);
   await sql`INSERT INTO crypto_invoices (owner, plan, xmr_amount, renewal_id, request_id, swap_coin, refund_address)
     VALUES (${owner}, ${plan}, ${xmrAmount}, ${renewal ? identityID : null}, ${requestID!}, ${swapCoin}, ${refundAddress || null})
@@ -81,12 +83,15 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
 
   const connection = await sql.reserve();
   let locked = false;
+
   try {
     const lock = await connection`SELECT pg_try_advisory_lock(hashtextextended(${`${owner}:${requestID}`}, 0)) AS acquired`;
     locked = lock[0].acquired;
+
     if (!locked) return error(set, 503, 'This operation is already running. Retry the same request shortly');
     const invoices = await connection`SELECT * FROM crypto_invoices WHERE owner = ${owner} AND request_id = ${requestID!}`;
     const invoice = invoices[0];
+
     if (
       invoice.plan !== plan ||
       invoice.swap_coin !== swapCoin ||
@@ -95,6 +100,7 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
     ) {
       return error(set, 409, 'This payment request has different details. Start a new purchase');
     }
+
     if (Date.now() >= new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000) return error(set, 410, 'Quote expired. Start a new purchase');
     if (invoice.response) return invoice.response;
     if (invoice.provider_state === 'requested')
@@ -105,6 +111,7 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
       await connection`UPDATE crypto_invoices SET xmr_subaddress = ${address} WHERE id = ${invoice.id}`;
       invoice.xmr_subaddress = address;
     }
+
     let response;
     if (swapCoin === 'xmr') response = {invoiceID: invoice.id, depositAddress: invoice.xmr_subaddress, depositAmount: invoice.xmr_amount, coin: swapCoin};
     else {

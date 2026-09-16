@@ -3,7 +3,6 @@
   import ReactiveButton from '$component/buttons/ReactiveButton.svelte';
   import LoadingButton from '$component/buttons/LoadingButton.svelte';
   import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
-  import ConfirmModal from '$component/special/ConfirmModal.svelte';
   import CopyButton from '$component/buttons/CopyButton.svelte';
   import Modal from '$component/containers/Modal.svelte';
 
@@ -23,7 +22,8 @@
   import {loadStripe} from '@stripe/stripe-js/pure';
   import type {PageData} from './$types';
   import {enhance} from '$app/forms';
-  import {onMount} from 'svelte';
+  import {onMount, onDestroy, tick} from 'svelte';
+  import type {SubmitFunction} from '@sveltejs/kit';
 
   interface Props {
     form: Notification & Settings & SettingsForm;
@@ -40,6 +40,42 @@
   let recoveryCodes = $state<string[]>([]);
   let isStripeLoading = false;
   let stripe = $state() as Stripe;
+
+  let confirmationDialog: HTMLDialogElement;
+  let confirmationTitle = $state('');
+  let confirmationPassword = $state('');
+  let requiresPassword = $state(true);
+  let resolveConfirmation: ((confirmed: boolean) => void) | undefined;
+
+  function closeConfirmation(confirmed = false) {
+    confirmationDialog.close();
+    resolveConfirmation?.(confirmed);
+    resolveConfirmation = undefined;
+  }
+
+  function confirmChange(title: string, passwordField = 'currentPassword', submit?: SubmitFunction): SubmitFunction {
+    return async (input) => {
+      if (resolveConfirmation) return input.cancel();
+
+      confirmationTitle = title;
+      confirmationPassword = '';
+      requiresPassword = Boolean(passwordField);
+      const confirmation = new Promise<boolean>((resolve) => (resolveConfirmation = resolve));
+      await tick();
+      confirmationDialog.showModal();
+
+      if (!(await confirmation)) {
+        confirmationPassword = '';
+        return input.cancel();
+      }
+
+      if (passwordField) input.formData.set(passwordField, confirmationPassword);
+      confirmationPassword = '';
+
+      if (submit) return submit(input);
+      return async ({update}) => update({reset: false});
+    };
+  }
 
   const settings = $state((() => data.settings)());
 
@@ -137,12 +173,17 @@
       const submit = document.querySelector('#submit-payment') as HTMLButtonElement;
 
       input.value = paymentMethod.id;
+      pendingID.set(0);
       submit.click();
     } else {
       notify(error!.message!, 'alert');
       pendingID.set(0);
     }
   }
+
+  onDestroy(() => {
+    resolveConfirmation?.(false);
+  });
 
   onMount(() => {
     handleClick(0);
@@ -170,70 +211,50 @@
     {/each}
   </ul>
 
-  <section class="my-20 flex h-full w-full min-w-0 flex-col gap-8 px-6 xl:px-24">
+  <section class="my-20 flex h-full w-full min-w-0 flex-col gap-8 px-4 md:px-6 xl:px-24">
     <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
     <p class="-mt-6">Change your account settings here and keep yourself secure</p>
 
     <h2 id="credentials"><UserIcon className="h-10! w-10! cursor-default" />Basic Credentials:</h2>
-    <form use:enhance={() => awaitPending(true, 1, true)} method="POST" action="?/email">
-      <InputWithIcon
-        type="password"
-        name="currentPassword"
-        id="current-password-1"
-        placeholder="Current account password"
-        icon={KeyIcon}
-        className={{wrapper: 'w-full'}} />
+    <form use:enhance={confirmChange('Change email', 'currentPassword', () => awaitPending(true, 1, true))} method="POST" action="?/email">
       <label class="md:w-fit!" for="email">Email:</label>
       <InputWithButton value={settings.email} placeholder="New address" type="email" index={1} label="Change Email" name="email" />
     </form>
-    <form use:enhance={() => awaitPending(true, 3)} method="POST" action="?/username">
-      <InputWithIcon
-        type="password"
-        name="currentPassword"
-        id="current-password-2"
-        placeholder="Current account password"
-        icon={KeyIcon}
-        className={{wrapper: 'w-full'}} />
+    <form use:enhance={confirmChange('Change username', 'currentPassword', () => awaitPending(true, 3))} method="POST" action="?/username">
       <label class="md:w-fit!" for="username">Username:</label>
       <InputWithButton placeholder="New username" value={data.user} index={3} label="Change Username" name="username" />
     </form>
-    <form use:enhance={() => awaitPending(true, 4)} method="POST" action="?/password">
-      <InputWithIcon
-        type="password"
-        name="currentPassword"
-        id="current-password-3"
-        placeholder="Current account password"
-        icon={KeyIcon}
-        className={{wrapper: 'w-full'}} />
+    <form use:enhance={confirmChange('Change password and log out', 'currentPassword', () => awaitPending(true, 4))} method="POST" action="?/password">
       <label class="md:w-fit!" for="password">Password:</label>
       <InputWithButton placeholder="New password" type="password" index={4} label="Change Password" name="password" />
     </form>
     <hr />
 
     <h2 id="2fa"><KeylockIcon className="h-10! w-10! cursor-default" fill={true} />Two Factor Authentication:</h2>
-    <form class="gap-4!" use:enhance={({formData}) => triggerModal(2, !formData.has('remove'))} method="POST" action="?/checkOtp">
-      <InputWithIcon
-        type="password"
-        name="currentPassword"
-        id="current-password-4"
-        placeholder="Current account password"
-        icon={KeyIcon}
-        className={{wrapper: 'w-full'}} />
-      <label for="totp">Time-based one-time password:</label>
+    <form
+      class="settings-row"
+      use:enhance={(input) => (input.formData.has('remove') ? confirmChange('Remove 2FA')(input) : triggerModal(2))}
+      method="POST"
+      action="?/checkOtp">
+      <span class="row-label"
+        ><span class="max-[359px]:hidden">Time-based one-time password:</span><abbr class="hidden max-[359px]:inline" title="Time-based one-time password"
+          >TOTP:</abbr
+        ></span>
       {#if settings.OTP}
-        <button formaction="?/generateOtp" type="submit" class="w-fit">Change 2FA</button>
-        <button formaction="?/deleteOtp" type="submit" name="remove" class="disable w-fit">Remove 2FA</button>
+        <button formaction="?/generateOtp" type="submit" class="w-fit"
+          ><span class="max-md:hidden">Change 2FA</span><span class="md:hidden">Change</span></button>
+        <button formaction="?/deleteOtp" type="submit" name="remove" class="disable w-fit"
+          ><span class="max-md:hidden">Remove 2FA</span><span class="md:hidden">Remove</span></button>
       {:else}
         <button formaction="?/generateOtp" type="submit" class="enable w-fit">Add 2FA</button>
       {/if}
     </form>
-    <form class="flex-col" use:enhance method="POST" action="?/recovery">
+    <form class="flex-col" use:enhance={confirmChange('Replace recovery codes', 'password')} method="POST" action="?/recovery">
       <div class="flex justify-between gap-4 max-md:flex-col md:items-center">
         <label for="recovery">Remaining recovery codes: {settings.recoveryRemaining}</label>
         <button disabled={!settings.OTP} type="submit" class="w-fit">Generate New Recovery Codes</button>
       </div>
       <p>New codes replace all previous codes. Save them now; they cannot be shown again.</p>
-      <InputWithIcon type="password" name="password" placeholder="Current account password" icon={KeyIcon} />
     </form>
     {#if settings.OTP}
       <div id="recovery" class="grid-cols-1 xl:grid-cols-2">
@@ -255,14 +276,7 @@
     <hr />
 
     <h2 id="api"><KeyIcon className="h-10! w-10! cursor-default" />API Access & Key:</h2>
-    <form use:enhance method="POST" action="?/toggleApi">
-      <InputWithIcon
-        type="password"
-        name="currentPassword"
-        id="current-password-5"
-        placeholder="Current account password"
-        icon={KeyIcon}
-        className={{wrapper: 'w-full'}} />
+    <form class="settings-row" use:enhance={confirmChange('Change API access', 'currentPassword')} method="POST" action="?/toggleApi">
       <label for="access">API Access:</label>
       {#if settings.API}
         <button name="disable" type="submit" class="disable w-fit">Disable API Access</button>
@@ -270,39 +284,27 @@
         <button name="enable" type="submit" class="enable w-fit">Enable API Access</button>
       {/if}
     </form>
-    <form use:enhance method="POST" action="?/api">
-      <InputWithIcon
-        type="password"
-        name="currentPassword"
-        id="current-password-6"
-        placeholder="Current account password"
-        icon={KeyIcon}
-        className={{wrapper: 'w-full'}} />
-      <div class="flex gap-4 max-md:flex-col md:items-center">
+    <form class="settings-row" use:enhance={confirmChange('Replace API key', 'currentPassword')} method="POST" action="?/api">
+      <div class="api-key">
         <label class="w-fit" for="key">API Key:</label>
         {#if settings.API}
           <CopyButton text={settings.key} className="md:max-lg:max-w-[20vw]" change={false} />
         {/if}
       </div>
-      <button disabled={!settings.API} type="submit" class="w-fit">Generate New API Key</button>
+      <button disabled={!settings.API} type="submit" class="w-fit"
+        ><span class="max-md:hidden">Generate New API Key</span><span class="md:hidden">Regenerate</span></button>
     </form>
     <hr />
 
     <h2 id="billing"><CreditCardIcon fill={true} className="h-10! w-10! cursor-default" />Billing Information:</h2>
-    <form method="POST" action="?/portal" use:enhance>
-      <InputWithIcon
-        type="password"
-        name="currentPassword"
-        id="current-password-7"
-        placeholder="Current account password"
-        icon={KeyIcon}
-        className={{wrapper: 'w-full'}} />
-      <button type="submit">Open Billing Portal</button>
-      <p class="text-xl font-semibold text-neutral-300">Payment Details:</p>
+    <form class="settings-row" method="POST" action="?/portal" use:enhance={confirmChange('Open billing portal', 'currentPassword')}>
+      <span class="row-label">Payment Details:</span>
+      <button type="submit" class="alt"><span class="max-md:hidden">Open Billing Portal</span><span class="md:hidden">Billing portal</span></button>
       {#if settings.sessionUrl}
         <a href={settings.sessionUrl} target="_blank" rel="noopener noreferrer" id="stripe-link">Manage<ExternalLinkIcon /></a>
       {:else}
-        <button class="md:w-fit" type="button" onclick={() => ($activeModal = 3)}>Add Payment Method</button>
+        <button class="md:w-fit" type="button" onclick={() => ($activeModal = 3)}
+          ><span class="max-md:hidden">Add Payment Method</span><span class="md:hidden">Add card</span></button>
       {/if}
     </form>
     <hr />
@@ -310,46 +312,42 @@
     <h2>Active sessions</h2>
     <p>Revoke a session to stop its requests and close its active connections.</p>
     {#each data.sessions as session (session.id)}
-      <form method="POST" action="?/revokeSession" use:enhance class="flex flex-wrap items-center gap-3">
+      <form
+        method="POST"
+        action="?/revokeSession"
+        use:enhance={confirmChange(session.current ? 'Log out of this session' : 'Revoke session', '')}
+        class="settings-row session-row">
         <span>{session.current ? 'This session' : 'Other session'} · {session.id.slice(0, 8)}</span>
         <input type="hidden" name="id" value={session.id} />
         <input type="hidden" name="current" value={String(session.current)} />
-        <button type="submit" class="md:w-fit">{session.current ? 'Log out' : 'Revoke session'}</button>
+        <button type="submit" class="alt">{session.current ? 'Log out' : 'Revoke session'}</button>
       </form>
     {/each}
     <hr />
 
     <h2 id="danger"><InfoIcon fill={true} className="mr-1 h-9! w-9! cursor-default" />Danger Zone:</h2>
-    <form use:enhance={() => triggerModal(0)} method="POST" action="?/session">
+    <form
+      class="settings-row"
+      use:enhance={(input) => confirmChange(input.formData.has('revoke') ? 'Revoke all sessions and log out' : 'Log out', '')(input)}
+      method="POST"
+      action="?/session">
       <label for="logout">Session Management:</label>
-      <button type="submit" name="logout" class="md:-mr-4 md:w-fit">Logout</button>
-      <button type="button" onclick={() => ($activeModal = 4)} class="md:w-fit" name="revoke">Revoke All Sessions</button>
-      <ConfirmModal id={4} name="revoke" text="Revoking all sessions" />
+      <button type="submit" name="logout" class="alt">Logout</button>
+      <button type="submit" class="alt" name="revoke"><span class="max-md:hidden">Revoke All Sessions</span><span class="md:hidden">Revoke all</span></button>
     </form>
-    <form use:enhance={() => triggerModal(0)} method="POST" action="?/delete">
-      <InputWithIcon
-        type="password"
-        name="currentPassword"
-        id="current-password-8"
-        placeholder="Current account password"
-        icon={KeyIcon}
-        className={{wrapper: 'w-full'}} />
+    <form class="settings-row" use:enhance={confirmChange('Permanently delete your account')} method="POST" action="?/delete">
       <label for="delete">Account Deletion:</label>
-      <button onclick={() => ($activeModal = 5)} type="button" class="disable md:w-fit">Delete Account</button>
-      <ConfirmModal id={5} name="delete" text="Deleting your account" />
+      <button type="submit" class="disable md:w-fit">Delete Account</button>
     </form>
   </section>
 </div>
 
 <Modal id={1}>
-  <form class="flex-col! p-8" use:enhance={() => awaitPending(true, 2, true)} method="POST" action="?/access">
-    <InputWithIcon
-      type="password"
-      name="currentPassword"
-      id="current-password-9"
-      placeholder="Current account password"
-      icon={KeyIcon}
-      className={{wrapper: 'w-full'}} />
+  <form
+    class="flex-col! p-8"
+    use:enhance={confirmChange('Confirm email change', 'currentPassword', () => awaitPending(true, 2, true))}
+    method="POST"
+    action="?/access">
     <h1 class="-mb-2!">Enter the email code</h1>
     <p>Enter the eight-digit code sent to your new address. It expires in ten minutes.</p>
     <InputWithIcon {className} type="password" name="access" placeholder="12345678" icon={KeylockIcon} />
@@ -376,14 +374,7 @@
       <button type="submit" class="right-16 bottom-12 w-fit! md:absolute">Next →</button>
     </form>
   {:else if settings.step === 2}
-    <form use:enhance={() => awaitPending(true, 5)} method="POST" action="?/checkOtp">
-      <InputWithIcon
-        type="password"
-        name="currentPassword"
-        id="current-password-10"
-        placeholder="Current account password"
-        icon={KeyIcon}
-        className={{wrapper: 'w-full'}} />
+    <form use:enhance={confirmChange('Enable 2FA', 'currentPassword', () => awaitPending(true, 5))} method="POST" action="?/checkOtp">
       <input hidden name="secret" value={settings.secret} />
       <div class="flex flex-col gap-8 xl:m-8">
         <h1 class="-mb-2!">Enter the verification token</h1>
@@ -407,14 +398,11 @@
 </Modal>
 
 <Modal id={3}>
-  <form class="flex-col! p-8" use:enhance={() => awaitPending(true, 5)} method="POST" action="?/payment">
-    <InputWithIcon
-      type="password"
-      name="currentPassword"
-      id="current-password-11"
-      placeholder="Current account password"
-      icon={KeyIcon}
-      className={{wrapper: 'w-full'}} />
+  <form
+    class="flex-col! p-8"
+    use:enhance={confirmChange('Add payment method', 'currentPassword', () => awaitPending(true, 5))}
+    method="POST"
+    action="?/payment">
     <h1 class="-mb-2!">Enter your credit card details</h1>
     <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
     <div id="payment" class={!stripeLoaded ? 'hidden' : ''}></div>
@@ -425,6 +413,35 @@
     <button hidden type="submit" id="submit-payment">Submit</button>
   </form>
 </Modal>
+
+<dialog
+  bind:this={confirmationDialog}
+  class="confirmation-dialog"
+  aria-labelledby="confirmation-title"
+  aria-describedby="confirmation-description"
+  oncancel={(event) => {
+    event.preventDefault();
+    closeConfirmation();
+  }}>
+  <form
+    onsubmit={(event) => {
+      event.preventDefault();
+      closeConfirmation(true);
+    }}>
+    <h2 id="confirmation-title">{confirmationTitle}</h2>
+    <p id="confirmation-description">
+      {requiresPassword ? 'Enter your current account password to confirm.' : 'Confirm to continue. This will end the selected sessions.'}
+    </p>
+    {#if requiresPassword}
+      <label for="confirmation-password">Current password</label>
+      <input id="confirmation-password" type="password" autocomplete="current-password" bind:value={confirmationPassword} required />
+    {/if}
+    <div class="confirmation-actions">
+      <button type="button" class="alt" onclick={() => closeConfirmation()}>Cancel</button>
+      <button type="submit">Confirm</button>
+    </div>
+  </form>
+</dialog>
 
 <style lang="postcss">
   @reference "$style";
@@ -474,6 +491,77 @@
 
   form > * {
     @apply max-md:w-full max-md:self-center;
+  }
+
+  .row-label {
+    @apply text-xl font-semibold text-neutral-300;
+  }
+
+  .settings-row {
+    @apply flex-row flex-nowrap gap-3;
+  }
+
+  .settings-row > * {
+    @apply w-auto shrink-0;
+  }
+
+  .settings-row > :first-child {
+    @apply mr-auto;
+  }
+
+  .settings-row :global(button),
+  .row-label,
+  .settings-row label {
+    @apply whitespace-nowrap;
+  }
+
+  .api-key {
+    @apply flex min-w-0 shrink! items-center gap-4;
+  }
+
+  .api-key :global(button) {
+    @apply min-w-0 overflow-hidden;
+  }
+
+  .api-key :global(p) {
+    @apply min-w-0 truncate;
+  }
+
+  .session-row {
+    @apply justify-between rounded-xl border border-neutral-800 bg-neutral-800/20 p-4;
+  }
+
+  .confirmation-dialog {
+    @apply m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-neutral-700 bg-neutral-900 p-6 text-neutral-300 shadow-2xl;
+  }
+
+  .confirmation-dialog::backdrop {
+    @apply bg-black/70 backdrop-blur-sm;
+  }
+
+  .confirmation-dialog form {
+    @apply flex-col items-stretch;
+  }
+
+  .confirmation-actions {
+    @apply mt-2 flex justify-end gap-3;
+  }
+
+  @media (max-width: 767px) {
+    .settings-row {
+      @apply gap-2;
+    }
+
+    .settings-row :global(button),
+    .settings-row :global(a) {
+      @apply px-2 py-2 text-xs;
+    }
+
+    .settings-row label,
+    .row-label,
+    .session-row span {
+      @apply ml-0 text-xs;
+    }
   }
 
   label {
