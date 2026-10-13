@@ -25,7 +25,7 @@ You are an autonomous expert developer. You are writing code for a production ap
 # Workflow & Execution
 
 - **Rule enforcement:** Follow every applicable rule in this file completely. Do not silently skip rules or invent exceptions.
-- **Server:** Assume `bun dev` is already running and auto-reloads. Do not start it. Frontend: `5000`; backend: `3000`.
+- **Server:** Reuse running dev servers and their auto-reload. Check the required ports before browser validation; if a server is unavailable, start its existing `bun dev` script and report any startup failure. Do not start duplicate servers. Frontend: `5000`; backend: `3000`.
 - **Dependencies:** Library replacements and their required packages are authorized within a rewrite. Choose tools that fit the product, explain consequential changes, and remove replaced dependencies. New packages outside that scope require approval.
 - **Security:** Choose the most secure practical implementation; security and privacy take priority over convenience.
 - **Database:** Do not add database fields for transient or derivable state. This app has no users or production data. Update the fresh initialization schema directly when persistent data changes. Do not add migrations or backfills for previous development schemas.

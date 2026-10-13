@@ -1,6 +1,7 @@
 export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
 export const ONION_URL = 'http://shadow7sk64geknoyyzsfyjm4rylnknx5pzhfhzkecoggowhitafggqd.onion';
 export const CRYPTO_DISCOUNT = 20;
+export const UTXO_HARD_LIMIT = 120;
 
 export const PRICING_TIERS = {
   monthly: {

@@ -1,11 +1,6 @@
 <script lang="ts">
-  import {untrack} from 'svelte';
+  import {untrack, onDestroy} from 'svelte';
   import {goto, invalidateAll} from '$app/navigation';
-  import {generateMnemonic, mnemonicToSeed} from '@scure/bip39';
-  import {wordlist} from '@scure/bip39/wordlists/english.js';
-  import {HDKey} from '@scure/bip32';
-  import {mnemonicToAccount} from 'viem/accounts';
-  import {deriveMasterKey, encrypt} from '$utils/cryptography';
   import {request} from '$utils/webfetch';
   import {ETHNICITIES} from '$constant';
   import type {CryptoKeys, InformationAPI} from '$type';
@@ -20,6 +15,7 @@
 
   type Wallet = {blob: string; keys: CryptoKeys};
 
+  let generationEpoch = 0;
   let step = $state(1);
   let pending = $state(false);
   let error = $state('');
@@ -39,6 +35,7 @@
   $effect(() => {
     const current = data;
     untrack(() => {
+      generationEpoch++;
       password = '';
       confirmation = '';
       phrase = '';
@@ -60,6 +57,14 @@
       wallet = (draft.wallet as Wallet) || null;
       step = current.creation?.creationStatus === 'provisioning' || wallet ? 6 : phone ? 5 : email ? 4 : profile.name ? 3 : location ? 2 : 1;
     });
+  });
+
+  onDestroy(() => {
+    generationEpoch++;
+    password = '';
+    confirmation = '';
+    phrase = '';
+    wallet = null;
   });
 
   async function save(body: Record<string, unknown>) {
@@ -187,12 +192,23 @@
     pending = true;
     error = '';
 
+    const epoch = generationEpoch;
+    const identityID = data.id;
+    const candidate = password;
+
     try {
-      if (password.length < 12 || password !== confirmation) {
+      if (candidate.length < 12 || candidate !== confirmation) {
         throw new Error('Use at least 12 characters and matching master passwords.');
       }
 
-      const key = await deriveMasterKey(password, data.id);
+      const [{generateMnemonic, mnemonicToSeed}, {wordlist}, {HDKey}, {mnemonicToAccount}, {deriveMasterKey, encrypt}] = await Promise.all([
+        import('@scure/bip39'),
+        import('@scure/bip39/wordlists/english.js'),
+        import('@scure/bip32'),
+        import('viem/accounts'),
+        import('$utils/cryptography'),
+      ]);
+      const key = await deriveMasterKey(candidate, identityID);
 
       const mnemonic = generateMnemonic(wordlist, 256);
       const seed = await mnemonicToSeed(mnemonic);
@@ -215,7 +231,7 @@
       const xmr = await monero.createWalletFull({networkType: monero.MoneroNetworkType.MAINNET, privateSpendKey: spendKey, password: crypto.randomUUID()});
 
       try {
-        wallet = {
+        const generated = {
           blob: await encrypt(mnemonic, key),
           keys: {
             btc: root.derive("m/84'/0'/0'").publicExtendedKey,
@@ -228,15 +244,24 @@
             },
           },
         };
+        if (epoch !== generationEpoch || data.id !== identityID) {
+          return;
+        }
+
+        wallet = generated;
         phrase = mnemonic;
         saved = false;
       } finally {
         await xmr.close();
       }
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : 'Wallet generation failed. Retry without leaving this page.';
+      if (epoch === generationEpoch) {
+        error = cause instanceof Error ? cause.message : 'Wallet generation failed. Retry without leaving this page.';
+      }
     } finally {
-      pending = false;
+      if (epoch === generationEpoch) {
+        pending = false;
+      }
     }
   }
 

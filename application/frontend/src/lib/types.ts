@@ -12,8 +12,6 @@ export type MoneroData = {viewKey: string; spendKey: string; address: string};
 
 export type BtcSigner = {type: 'hd'; root: HDKey} | {type: 'key'; privKey: Uint8Array};
 
-export type FullEmail = Email & {messageID: string; date: Date};
-
 export type Attachment = {filename: string; data: string; cid?: string; contentType?: string};
 
 export interface CryptoKeys {
@@ -28,6 +26,8 @@ export interface CryptoKeys {
 }
 
 export interface transactionData {
+  senderAddress?: string;
+  gasPriceAtoms?: string;
   estimatedFee: number | {fee: number; feeAtoms?: string};
   privKeyType: PrivKeyType;
   wifKey: string;
@@ -35,8 +35,6 @@ export interface transactionData {
   xpubKey?: string;
   utxos?: UTXOData;
   nonce?: number;
-  balance?: number;
-  gasBalance?: number;
   balanceAtoms?: string;
   gasBalanceAtoms?: string;
 }
@@ -56,18 +54,17 @@ export interface Provider {
 export interface Identity {
   status: 'active' | 'inactive' | 'frozen' | 'deleting';
   id: string;
-  picture: string;
-  name: string;
-  country: string;
-  location: string;
-  email: string;
-  phone: string;
+  picture: string | null;
+  name: string | null;
+  country: string | null;
+  location: string | null;
+  email: string | null;
+  phone: string | null;
   accounts: number;
-  walletFunds: string | null;
 }
 
 export interface FullIdentity {
-  status: 'active' | 'inactive' | 'frozen' | 'deleting';
+  status: 'active';
   vaultRevision: number;
   id: string;
   creationDate: string;
@@ -83,9 +80,25 @@ export interface FullIdentity {
   email: string;
   phone: string;
   walletKeys: CryptoKeys;
-  walletFunds: string | null;
   walletBlob: string;
 }
+
+export type IdentityMetadata =
+  | FullIdentity
+  | (Omit<FullIdentity, 'status' | 'location' | 'picture' | 'name' | 'bio' | 'age' | 'sex' | 'ethnicity' | 'email' | 'phone' | 'walletKeys' | 'walletBlob'> & {
+      status: 'inactive' | 'frozen' | 'deleting';
+      location: string | null;
+      picture: string | null;
+      name: string | null;
+      bio: string | null;
+      age: number | null;
+      sex: string | null;
+      ethnicity: string | null;
+      email: string | null;
+      phone: string | null;
+      walletKeys: CryptoKeys | null;
+      walletBlob: string | null;
+    });
 
 export interface Message {
   messageID: string;
@@ -97,16 +110,25 @@ export interface Message {
   to: string;
 }
 
-export interface Email {
-  messageID: string;
+export type Mailbox = 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
+
+export type EmailAttachment = Omit<Attachment, 'data'> & {index: number; data?: string};
+
+export interface EmailSummary {
+  mailbox: Mailbox;
+  messageID: string | null;
   subject: string;
   from: string;
   to: string;
   date: string;
-  references: string[] | null;
-  inReplyTo: string | null;
   uid: number;
-  attachments: Attachment[];
+  read: boolean;
+}
+
+export interface Email extends EmailSummary {
+  references: string[];
+  inReplyTo: string | null;
+  attachments: EmailAttachment[];
   body: string;
   type: 'html' | 'text';
 }
@@ -115,20 +137,9 @@ export interface Account {
   id: number;
   username: string;
   password: string;
-  website: string;
-  totp: string;
-  algorithm: string;
-}
-
-export interface Inbox {
-  messagesCount: number;
-  sentMessagesCount: number;
-  draftsMessagesCount: number;
-  junkMessagesCount: number;
-  sent: Email[];
-  inbox: Email[];
-  junk: Email[];
-  drafts: Email[];
+  website: string | null;
+  totp: string | null;
+  algorithm: string | null;
 }
 
 export type CryptoFees = {
@@ -164,37 +175,46 @@ export type TransactionsHistory = {
   date: Date;
 }[];
 
+export interface UnavailableWallet {
+  status: 'Unavailable';
+  balance: null;
+  history: TransactionsHistory;
+  error: string;
+}
+
+export interface UtxoWallet {
+  status: 'Synced' | 'Incomplete';
+  balance: number;
+  utxos: UTXOData;
+  history: TransactionsHistory;
+  activeCount: number;
+  nextIndex: number | null;
+  scanned: number;
+  scanLimit: number;
+  error?: string;
+}
+
+export interface EvmWallet {
+  status: 'Synced';
+  balance: number;
+  nonce: number;
+  balanceAtoms: string;
+  history: TransactionsHistory;
+}
+
+export interface EvmPreparation {
+  nonce: number;
+  ethBalanceAtoms: string;
+  usdtBalanceAtoms: string;
+  gasPrice: number;
+  gasPriceAtoms: string;
+}
+
 export interface CryptoWallet {
-  btc: {
-    status: string;
-    balance: number;
-    utxos: UTXOData;
-    history: TransactionsHistory;
-    activeCount: number;
-    nextIndex: number;
-  };
-  ltc: {
-    status: string;
-    balance: number;
-    utxos: UTXOData;
-    history: TransactionsHistory;
-    activeCount: number;
-    nextIndex: number;
-  };
-  eth: {
-    status: string;
-    balance: number;
-    nonce: number;
-    balanceAtoms: string;
-    history: TransactionsHistory;
-  };
-  usdt: {
-    status: string;
-    balance: number;
-    nonce: number;
-    balanceAtoms: string;
-    history: TransactionsHistory;
-  };
+  btc: UtxoWallet | UnavailableWallet;
+  ltc: UtxoWallet | UnavailableWallet;
+  eth: EvmWallet | UnavailableWallet;
+  usdt: EvmWallet | UnavailableWallet;
   xmr: {
     status: string;
     startingDate: Date;
@@ -218,44 +238,31 @@ export interface InformationAPI {
 
 export interface AccountAPI {
   accounts: Account[];
-  id?: string;
-  username?: string;
-  password?: string;
-  website?: string;
-  totp?: string;
-  algorithm?: string;
+  vaultRevision: number;
 }
 
-export interface EmailAPI {
+export interface EmailPage {
+  mailbox: Mailbox;
+  messages: EmailSummary[];
+  messagesCount: number;
+  nextCursor: number | null;
+  complete: boolean;
+}
+
+export interface EmailMutation {
   warning?: string;
-  emails: Inbox;
-  nextEmails?: Email[];
-  fetchEmail?: Email;
-  sentEmail?: FullEmail;
-  savedDraft?: FullEmail;
-  forwardEmail?: FullEmail;
-  draft?: number;
-  uid?: number;
-  uuid?: string;
-  mailbox?: string;
-  from?: number;
-  since?: number;
-  subject?: string;
-  body?: string;
-  to?: string;
-  forward?: string;
-  inReplyTo?: string;
-  messageID?: string;
-  date?: Date;
-  attachments?: Attachment[];
 }
 
-export interface PhoneAPI {
+export interface MessagePage {
   messages: Message[];
-  addressee?: string;
-  messageSent?: Message;
-  conversation?: Message[];
-  sid?: string;
+  nextCursor: string | null;
+  complete: boolean;
+}
+
+export interface MessageDeletion {
+  deleted: number;
+  failed: number;
+  complete: boolean;
 }
 
 export interface MoneroNodeAPI {
@@ -263,27 +270,48 @@ export interface MoneroNodeAPI {
   startingDate: string;
 }
 
-export interface CryptoAPI {
-  prices: CryptoPrices;
-  fees: CryptoFees;
+export interface WalletOverviewAPI {
+  prices: Partial<CryptoPrices>;
+  fees: Partial<CryptoFees>;
+  wallet: Omit<CryptoWallet, 'xmr'>;
+}
+
+export interface WalletState extends WalletOverviewAPI {
   wallet: CryptoWallet;
-  txid?: string;
-  utxos?: UTXOData;
-  balance?: number;
-  nonce?: number;
-  tradeID?: string;
+}
+
+export interface SwapQuotes {
+  tradeID: string;
   bestProvider?: string;
-  providers?: Provider[];
-  coinFrom?: Coins;
-  amount?: number;
-  coinTo?: Coins;
-  status?: string;
-  depositAddress?: string;
-  depositAmount?: number;
+  providers: Provider[];
+}
+
+export interface WalletTrade {
+  tradeID: string;
+  coinFrom: Coins;
+  coinTo: Coins;
+  depositAddress: string;
+  depositAmount: number;
   depositMemo?: string;
   providerTradeID?: string;
   externalLink?: string;
-  blob?: string;
+}
+
+export interface WalletSwapRecord {
+  requestID: string;
+  status: 'pending' | 'requested' | 'completed';
+  createdAt: string;
+  request: {
+    coinFrom: Coins;
+    coinTo: Coins;
+    amount: number;
+    tradeID: string;
+    provider: string;
+    destinationAddress: string;
+    refundAddress: string;
+    isFixed: boolean;
+  };
+  response: WalletTrade | null;
 }
 
 export interface CardCheckout {
@@ -294,13 +322,14 @@ export interface CardCheckout {
   last4: number;
 }
 
-export type InvoiceStatus = 'pending' | 'confirming' | 'paid' | 'underpaid' | 'expired' | 'late' | 'refunded';
+export type InvoiceStatus = 'pending' | 'confirming' | 'paid' | 'underpaid' | 'expired' | 'late' | 'refunded' | 'reconciling' | 'reconciliation';
 
 export interface CryptoInvoice {
   invoiceID: string;
-  identityID: string;
-  depositAddress: string;
-  depositAmount: string;
+  identityID: string | null;
+  depositAddress: string | null;
+  depositAmount: string | null;
+  depositMemo?: string;
   coin: string;
   externalLink?: string;
   status: InvoiceStatus;
@@ -335,4 +364,13 @@ export interface ApiDocumentationGroup {
   id: string;
   title: string;
   endpoints: ApiDocumentationEndpoint[];
+}
+
+export interface SignupState {
+  stage: 'account' | 'email' | 'authenticator' | 'recovery' | 'complete';
+  email: string;
+  username: string;
+  secret: string;
+  qr: string;
+  recovery: string[];
 }

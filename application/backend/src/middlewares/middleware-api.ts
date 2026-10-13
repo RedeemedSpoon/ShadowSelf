@@ -19,6 +19,10 @@ export default (app: Elysia) =>
       throw new ApiError(401, 'unauthenticated', 'Sign in to continue');
     }
 
+    if (user.deletingAccount && !['GET', 'HEAD', 'OPTIONS', 'DELETE'].includes(request.method)) {
+      throw new ApiError(409, 'account_deleting', 'Account deletion is in progress');
+    }
+
     const authorize = async () => !!(await authenticate());
 
     if (!params?.id) {

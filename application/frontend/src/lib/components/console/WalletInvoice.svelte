@@ -4,12 +4,12 @@
   import {get} from 'svelte/store';
   import {onDestroy} from 'svelte';
   import {generatePDF} from '$utils/pdf-invoice';
-  import type {FullIdentity, Coins, CryptoAPI} from '$type';
+  import type {FullIdentity, Coins, WalletState} from '$type';
   import QRCode from 'qrcode';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
 
-  let {account, coin, crypto}: {account: FullIdentity; coin: Coins; crypto: CryptoAPI} = $props();
+  let {account, coin, crypto}: {account: FullIdentity; coin: Coins; crypto: WalletState} = $props();
   let client = $state('');
   let email = $state('');
   let invoice = $state('');
@@ -30,15 +30,15 @@
 
     try {
       const key = get(vaultKey);
-      const rate = crypto.prices[coin].usdPrice;
+      const rate = crypto.prices[coin]?.usdPrice;
 
-      if (!Number.isFinite(rate) || rate <= 0) {
+      if (rate === undefined || !Number.isFinite(rate) || rate <= 0) {
         throw new Error('A current exchange rate is required. Refresh wallet prices.');
       }
 
       const address =
         coin === 'btc' || coin === 'ltc'
-          ? deriveXPub(coin, account.walletKeys[coin], crypto.wallet[coin].nextIndex)
+          ? deriveXPub(coin, account.walletKeys[coin], crypto.wallet[coin].status === 'Unavailable' ? 0 : (crypto.wallet[coin].nextIndex ?? 0))
           : coin === 'xmr'
             ? await decrypt(account.walletKeys.xmr.address, key!)
             : account.walletKeys.evm;
@@ -66,6 +66,8 @@
 <section class="panel">
   <h3>Create a payment invoice</h3>
   <p>Download a PDF with your receive address and the current {coin.toUpperCase()} exchange rate.</p>
+  {#if (coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status !== 'Synced'}<Status
+      message="This invoice reuses the first existing address because discovery is unavailable or incomplete. Reusing an address links payments publicly." />{/if}
   <Status message={error} kind="error" />
   <form onsubmit={download} class="invoice-form">
     <div class="form-grid">

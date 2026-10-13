@@ -1,6 +1,16 @@
 import type {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
 import sharp from 'sharp';
 import type {ReservedSql} from 'postgres';
+import {ApiError} from '@core/security';
+
+export function reportFailure(operation: string, failure: unknown) {
+  const details = failure as {code?: unknown; status?: unknown; name?: unknown} | null;
+  const providerCode = typeof details?.code === 'string' && /^(?:[0-9A-Z]{5}|ECONNREFUSED|ECONNRESET|ETIMEDOUT)$/.test(details.code) ? details.code : undefined;
+  const category = failure instanceof ApiError ? failure.code : providerCode || (failure instanceof Error ? failure.name : 'UnknownError');
+  const status = typeof details?.status === 'number' && details.status >= 400 && details.status < 600 ? details.status : undefined;
+
+  console.error('Operation failed', {operation, category, status});
+}
 
 export function error(set: {[key: string]: unknown}, status: number, message: string) {
   set.status = status;
@@ -44,9 +54,9 @@ export function net(coin: string) {
   return isUsdt ? 'ERC20' : 'Mainnet';
 }
 
-export async function resizeTo256(base64: string) {
+export async function normalizePortrait(base64: string) {
   const buffer = Buffer.from(base64, 'base64');
-  const resizedBuffer = await sharp(buffer).resize(256, 256).toBuffer();
+  const resizedBuffer = await sharp(buffer, {limitInputPixels: 16_777_216}).rotate().resize(256, 256).png().toBuffer();
 
   return resizedBuffer.toString('base64');
 }

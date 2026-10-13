@@ -36,10 +36,10 @@ export async function verifySessionToken(token: string | undefined): Promise<Use
     return undefined;
   }
 
-  const rows = await sql`SELECT u.email, u.id AS account_id, s.id FROM sessions s JOIN users u ON u.id = s.owner
+  const rows = await sql`SELECT u.email, u.id AS account_id, s.id, u.deletion_requested_at FROM sessions s JOIN users u ON u.id = s.owner
     WHERE s.token_hash = ${tokenHash(token)} AND s.expires_at > NOW()`;
 
-  return rows[0] ? {email: rows[0].email, id: rows[0].id, accountID: rows[0].account_id} : undefined;
+  return rows[0] ? {email: rows[0].email, id: rows[0].id, accountID: rows[0].account_id, deletingAccount: !!rows[0].deletion_requested_at} : undefined;
 }
 
 export async function verifyApiToken(token: string | undefined): Promise<User> {
@@ -47,9 +47,9 @@ export async function verifyApiToken(token: string | undefined): Promise<User> {
     return undefined;
   }
 
-  const rows = await sql`SELECT id, email FROM users WHERE api_key = ${tokenHash(token)} AND api_access = true`;
+  const rows = await sql`SELECT id, email FROM users WHERE api_key = ${tokenHash(token)} AND api_access = true AND deletion_requested_at IS NULL`;
 
-  return rows[0] ? {email: rows[0].email, id: '', accountID: rows[0].id} : undefined;
+  return rows[0] ? {email: rows[0].email, id: '', accountID: rows[0].id, deletingAccount: false} : undefined;
 }
 
 export function trustedCookieRequest(request: Request) {

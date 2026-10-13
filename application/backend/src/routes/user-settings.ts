@@ -1,12 +1,12 @@
 import {billingPortal, createBillingCustomer} from '@core/stripe-service';
-import {deleteIdentity} from '@core/identity-service';
+import {completeAccountDeletion, withAccountLock} from '@core/identity-service';
 import {consumeEmailCode, claimSensitiveAttempt} from '@core/states';
 import {createTOTP, getSecret, createHash, getRecovery, hashRecoveryCode, compareHash} from '@utils/cryptography';
 import {apiToken, encryptSecret, tokenHash} from '@core/security';
 import {issueSession} from '@middlewares/session-auth';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendVerificationCode} from '@utils/email-smtp';
-import type {QueryUser, QueryIdentity} from '@type';
+import type {QueryUser} from '@type';
 import {error} from '@utils/utils';
 import {check} from '@utils/checks';
 import {sql, stripe} from '@core/services';
@@ -57,11 +57,14 @@ export default new Elysia({prefix: '/api/settings'})
     }
   })
   .get('/', async ({user}) => {
-    const result = (await sql`SELECT email, username, recovery_hashes, totp, api_access FROM users WHERE id = ${user!.accountID}`) as QueryUser[];
+    const result =
+      (await sql`SELECT email, username, recovery_hashes, totp, api_access, deletion_requested_at FROM users WHERE id = ${user!.accountID}`) as (QueryUser & {
+        deletion_requested_at: Date | null;
+      })[];
 
-    const {email, username, recovery_hashes, totp, api_access} = result[0];
+    const {email, username, recovery_hashes, totp, api_access, deletion_requested_at} = result[0];
 
-    return {email, username, recoveryRemaining: recovery_hashes.length, API: api_access, OTP: !!totp};
+    return {email, username, deletionPending: !!deletion_requested_at, recoveryRemaining: recovery_hashes.length, API: api_access, OTP: !!totp};
   })
   .post('/billing-portal', ({user}) => billingPortal(user!.email))
   .get('/totp', async ({user}) => {
@@ -296,23 +299,17 @@ export default new Elysia({prefix: '/api/settings'})
     return {recoveryRemaining: 0};
   })
   .delete('/account', async ({user, set}) => {
-    const purchases = (await sql`SELECT * FROM identities WHERE owner = ${user!.accountID}`) as QueryIdentity[];
+    await withAccountLock(user!.accountID, async (connection) => {
+      await connection`UPDATE users SET deletion_requested_at = COALESCE(deletion_requested_at, NOW()) WHERE id = ${user!.accountID}`;
+    });
 
-    for (const identity of purchases) {
-      if (!(await deleteIdentity(identity.id, user!.accountID))) {
-        set.status = 202;
+    const completed = await completeAccountDeletion(user!.accountID).catch(() => false);
 
-        return {status: 'deleting', message: 'Resource cleanup is pending. Retry account deletion after cleanup completes'};
-      }
+    if (!completed) {
+      set.status = 202;
+
+      return {status: 'deleting', message: 'Account deletion is pending. Cleanup will continue automatically. You can check again here.'};
     }
 
-    const customers = await sql`SELECT stripe_customer FROM users WHERE id = ${user!.accountID}`;
-
-    if (customers[0]?.stripe_customer) {
-      await stripe.customers.del(customers[0].stripe_customer);
-    }
-
-    await sql`DELETE FROM users WHERE id = ${user!.accountID}`;
-
-    return {success: true};
+    return {status: 'deleted', success: true};
   });

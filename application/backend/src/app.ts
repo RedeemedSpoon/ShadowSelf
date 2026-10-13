@@ -1,7 +1,7 @@
 import {checkContact} from '@utils/checks';
 import {contact} from '@utils/email-smtp';
 import type {ContactDetail} from '@type';
-import {error} from '@utils/utils';
+import {error, reportFailure} from '@utils/utils';
 import {ApiError} from '@core/security';
 import {createRequestLimiter, requestClientIP} from '@core/request-limits';
 import {Elysia} from 'elysia';
@@ -39,7 +39,7 @@ export function createApp(providers: {sendVerificationCode?: typeof sendVerifica
         return error(set, 409, 'This resource is already registered');
       }
 
-      console.error('Request failed', code);
+      reportFailure('HTTP request', failure);
 
       return error(set, 500, 'The operation could not complete. Retry shortly');
     })

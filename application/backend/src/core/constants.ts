@@ -2,6 +2,8 @@ export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'e
 export const EMAIL_JUNK_RETENTION_DAYS = 7;
 export const EMAIL_FETCH_LIMIT = 10;
 export const SMS_MAX_LENGTH = 160;
+export const SMS_PAGE_SIZE = 30;
+export const SMS_DELETE_CONCURRENCY = 4;
 
 export const BTC_API = 'https://mempool.space/api';
 export const LTC_API = 'https://litecoinspace.org/api';
@@ -15,8 +17,12 @@ export const POLL_INVOICES_INTERVAL = 15_000;
 export const POLL_PRICES_INTERVAL = 60_000;
 export const POLL_FEES_INTERVAL = 120_000;
 
-export const UTXO_GAP_LIMIT = 5;
+export const UTXO_GAP_LIMIT = 20;
 export const UTXO_HARD_LIMIT = 120;
+export const UTXO_RECOVERY_LIMIT = 1200;
+export const CHAIN_REQUEST_CONCURRENCY = 6;
+export const INVOICE_POLL_BATCH_SIZE = 100;
+export const INVOICE_ACTIVE_MONITOR_MS = 7 * 86_400_000;
 export const RESTORE_HEIGHT = 3_600_000;
 
 export const PAYMENT_WINDOW_MIN = 40;

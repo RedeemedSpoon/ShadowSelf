@@ -1,4 +1,5 @@
 import {createBillingCustomer} from '@core/stripe-service';
+import {withAccountLock} from '@core/identity-service';
 import middlewareBase from '@middlewares/middleware-base';
 import {generateIdentityID} from '@utils/cryptography';
 import {sql, stripe} from '@core/services';
@@ -44,25 +45,19 @@ export async function checkout(set: Record<string, any>, email: string | undefin
     }
   }
 
-  const customerID = await createBillingCustomer(email, undefined, provider);
+  const accounts = await sql`SELECT id FROM users WHERE email = ${email} AND deletion_requested_at IS NULL`;
 
-  const accounts = await sql`SELECT id FROM users WHERE email = ${email}`;
+  if (!accounts.length) {
+    return error(set, 409, 'This account is being deleted');
+  }
 
   const owner = accounts[0].id;
-  await sql`INSERT INTO fiat_intents (request_id, owner, plan, identity_id)
-    VALUES (${input.requestID!}, ${owner}, ${type}, ${generateIdentityID()}) ON CONFLICT (owner, request_id) DO NOTHING`;
 
-  const connection = await sql.reserve();
+  return withAccountLock(owner, async (connection) => {
+    const customerID = await createBillingCustomer(email, undefined, provider, connection);
 
-  let locked = false;
-
-  try {
-    const lock = await connection`SELECT pg_try_advisory_lock(hashtextextended(${`${owner}:${input.requestID}`}, 0)) AS acquired`;
-    locked = lock[0].acquired;
-
-    if (!locked) {
-      return error(set, 503, 'This operation is already running. Retry the same request shortly');
-    }
+    await connection`INSERT INTO fiat_intents (request_id, owner, plan, identity_id)
+      VALUES (${input.requestID!}, ${owner}, ${type}, ${generateIdentityID()}) ON CONFLICT (owner, request_id) DO NOTHING`;
 
     const intents = await connection`SELECT * FROM fiat_intents WHERE owner = ${owner} AND request_id = ${input.requestID!}`;
 
@@ -98,15 +93,7 @@ export async function checkout(set: Record<string, any>, email: string | undefin
     await connection`UPDATE fiat_intents SET response = ${connection.json(response)}, provider_id = ${response.providerID} WHERE id = ${intent.id}`;
 
     return response;
-  } finally {
-    try {
-      if (locked) {
-        await connection`SELECT pg_advisory_unlock(hashtextextended(${`${owner}:${input.requestID}`}, 0))`;
-      }
-    } finally {
-      connection.release();
-    }
-  }
+  });
 }
 
 async function createStripePayment(

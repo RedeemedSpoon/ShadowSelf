@@ -12,6 +12,22 @@ jobs:
   application:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: shadowself_test
+          POSTGRES_PASSWORD: synthetic-test-password
+          POSTGRES_DB: shadowself_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U shadowself_test -d shadowself_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      SHADOWSELF_TEST_DATABASE_URL: postgres://shadowself_test:synthetic-test-password@localhost:5432/shadowself_test
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2

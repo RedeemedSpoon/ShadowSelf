@@ -27,7 +27,8 @@ CREATE TABLE users (
   "recovery_hashes" varchar(64)[] NOT NULL DEFAULT '{}',
   "stripe_customer" varchar(18),
   "api_access" boolean DEFAULT false,
-  "api_key" varchar(64) UNIQUE
+  "api_key" varchar(64) UNIQUE,
+  "deletion_requested_at" timestamptz
 );
 
 CREATE TABLE sessions (
@@ -100,13 +101,14 @@ CREATE TABLE accounts (
   "owner" varchar(12) NOT NULL REFERENCES identities(id),
   "username" varchar(25) NOT NULL,
   "password" varchar(5503) NOT NULL,
-  "website" varchar(48),
+  "website" varchar(2048),
   "algorithm" varchar(6),
   "totp" varchar(5503)
 );
 
 CREATE TABLE wallet_cache (
   "id" integer PRIMARY KEY DEFAULT 1,
+  "revision" bigint NOT NULL DEFAULT 1,
   "keys_data" bytea NOT NULL,
   "cache_data" bytea NOT NULL
 );
@@ -166,3 +168,10 @@ CREATE TABLE fiat_intents (
   created_at timestamptz NOT NULL DEFAULT NOW(),
   UNIQUE (owner, request_id)
 );
+
+CREATE INDEX identities_owner_creation_idx ON identities(owner, creation_date DESC);
+CREATE INDEX accounts_owner_idx ON accounts(owner);
+CREATE INDEX invoice_observations_latest_idx ON invoice_observations(invoice_id, id DESC);
+CREATE INDEX invoice_observations_payment_idx ON invoice_observations(invoice_id, total, observed_at);
+CREATE INDEX crypto_invoices_monitor_idx ON crypto_invoices(id) WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late');
+CREATE INDEX stripe_events_pending_idx ON stripe_events(id) WHERE completed_at IS NULL;

@@ -4,24 +4,29 @@
   import {page} from '$app/state';
   import {get} from 'svelte/store';
   import {identity, vaultKey, moneroData} from '$store';
-  import type {FullIdentity, AccountAPI} from '$type';
+  import type {FullIdentity, IdentityMetadata, AccountAPI} from '$type';
   import {request} from '$utils/webfetch';
-  import {decrypt, deriveMasterKey, encrypt} from '$utils/cryptography';
-  import {idbOperation} from '$utils/monero';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
   import Dialog from '$component/ui/Dialog.svelte';
   import Icon from '$component/ui/Icon.svelte';
-  import Profile from '$component/console/Profile.svelte';
-  import Vault from '$component/console/Vault.svelte';
-  import Mail from '$component/console/Mail.svelte';
-  import Phone from '$component/console/Phone.svelte';
-  import Wallet from '$component/console/Wallet.svelte';
   import type {PageProps} from './$types';
+  import type {Component} from 'svelte';
+
+  type ServiceProps = {account: FullIdentity; onupdate: (patch: Partial<FullIdentity>) => void; onunlock: () => void};
+
+  const panels = {
+    info: () => import('$component/console/Profile.svelte'),
+    account: () => import('$component/console/Vault.svelte'),
+    email: () => import('$component/console/Mail.svelte'),
+    phone: () => import('$component/console/Phone.svelte'),
+    crypto: () => import('$component/console/Wallet.svelte'),
+  };
 
   let {data, form}: PageProps = $props();
-  let account = $derived<FullIdentity | null>(data.identity);
-  let section = $state('info');
+  let account = $derived<IdentityMetadata | null>(data.identity);
+  let section = $state<keyof typeof panels>('info');
+  const panel = $derived(panels[section]().then((module) => module.default as Component<ServiceProps>));
   let unlockOpen = $state(false);
   let rotateOpen = $state(false);
   let deleteOpen = $state(false);
@@ -40,13 +45,14 @@
   ];
 
   function update(patch: Partial<FullIdentity>) {
-    if (account) {
+    if (account?.status === 'active') {
       account = {...account, ...patch};
       identity.set(account);
     }
   }
 
   function closePassword() {
+    keyEpoch++;
     password = '';
     confirmPassword = '';
     message = '';
@@ -64,7 +70,7 @@
   async function unlock(event: SubmitEvent) {
     event.preventDefault();
 
-    if (!account) {
+    if (!account || account.status !== 'active') {
       return;
     }
 
@@ -73,9 +79,11 @@
 
     const epoch = keyEpoch;
     const identityID = account.id;
+    const candidate = password;
 
     try {
-      const key = await deriveMasterKey(password, account.id);
+      const {deriveMasterKey, decrypt} = await import('$utils/cryptography');
+      const key = await deriveMasterKey(candidate, identityID);
 
       if (!(await decrypt(account.walletBlob, key))) {
         throw new Error('This master password could not unlock the identity.');
@@ -98,7 +106,7 @@
   async function rotate(event: SubmitEvent) {
     event.preventDefault();
 
-    if (!account) {
+    if (!account || account.status !== 'active') {
       return;
     }
 
@@ -110,6 +118,9 @@
     const originalAccount = account;
 
     try {
+      const {deriveMasterKey, encrypt} = await import('$utils/cryptography');
+      const {idbOperation} = await import('$utils/monero');
+
       if (!originalKey) {
         throw new Error('Unlock the identity before changing its password.');
       }
@@ -123,7 +134,7 @@
           throw new Error('Wait for the wallet operation to finish, then retry.');
         }
 
-        const result = await request<AccountAPI & {vaultRevision: number}>(`/identities/${originalAccount.id}/vault`);
+        const result = await request<AccountAPI>(`/identities/${originalAccount.id}/vault`);
 
         if (!result.ok) {
           throw new Error(result.error);
@@ -172,6 +183,9 @@
 
         if (epoch === keyEpoch) {
           vaultKey.set(key);
+        } else {
+          vaultKey.set(null);
+          moneroData.set({address: '', viewKey: '', spendKey: ''});
         }
 
         rotateOpen = false;
@@ -186,6 +200,7 @@
   }
 
   async function decrypted(value: string, key: CryptoKey) {
+    const {decrypt} = await import('$utils/cryptography');
     const plain = await decrypt(value, key);
 
     if (!plain) {
@@ -201,14 +216,14 @@
 
   $effect(() => {
     const hash = page.url.hash.slice(1);
-    section = tabs.some((tab) => tab.id === hash) ? hash : 'info';
+    section = tabs.some((tab) => tab.id === hash) ? (hash as keyof typeof panels) : 'info';
   });
 
   $effect(() => {
     const current = data.identity;
     lock();
 
-    if (!current) {
+    if (!current || current.status !== 'active') {
       return;
     }
 
@@ -279,11 +294,11 @@
       <p>{account.location}<span class="badge {account.status} identity-status">{account.status}</span></p>
     </div>
     <div class="button-row">
-      {#if $vaultKey}<Button variant="secondary" icon="lock" onclick={lock}>Lock secrets</Button><Button
-          variant="quiet"
-          icon="key"
-          onclick={() => (rotateOpen = true)}>Change master password</Button
-        >{:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button>{/if}<Button
+      {#if account.status === 'active'}{#if $vaultKey}<Button variant="secondary" icon="lock" onclick={lock}>Lock secrets</Button><Button
+            variant="quiet"
+            icon="key"
+            onclick={() => (rotateOpen = true)}>Change master password</Button
+          >{:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button>{/if}{/if}<Button
         variant="quiet"
         icon="trash"
         aria-label="Delete identity"
@@ -302,13 +317,19 @@
           ><Icon name={tab.icon} size={17} />{tab.label}</button
         >{/each}
     </div>
-    {#key account.id}<div>
-        {#if section === 'info'}<Profile {account} onupdate={update} />{:else if section === 'account'}<Vault
-            {account}
-            onupdate={update}
-            onunlock={() => (unlockOpen = true)} />{:else if section === 'email'}<Mail {account} />{:else if section === 'phone'}<Phone
-            {account} />{:else if section === 'crypto'}<Wallet {account} onunlock={() => (unlockOpen = true)} />{/if}
-      </div>{/key}
+    {#key account.id}
+      <div>
+        {#await panel}
+          <div class="loading-state"><span class="spinner"></span>Loading {tabs.find((tab) => tab.id === section)?.label}</div>
+        {:then Panel}
+          {#if account.status === 'active'}
+            <Panel {account} onupdate={update} onunlock={() => (unlockOpen = true)} />
+          {/if}
+        {:catch}
+          <Status message="This service could not be loaded. Reload the page to retry." kind="error" />
+        {/await}
+      </div>
+    {/key}
     <div class="live-status">{liveStatus}</div>{/if}
 {/if}
 <Dialog bind:open={unlockOpen} title="Unlock identity secrets" onclose={closePassword}

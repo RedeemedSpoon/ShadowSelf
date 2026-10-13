@@ -1,105 +1,122 @@
-import {env} from '$env/dynamic/public';
-import {fetchBackend} from '$lib/backend.server';
+import {backend} from '$lib/backend.server';
 import {createCookie} from '$utils/shared';
-import {redirect} from '@sveltejs/kit';
-import type {Actions} from './$types';
+import {redirect, type Cookies} from '@sveltejs/kit';
+import type {Actions, PageServerLoad} from './$types';
+import type {SignupState} from '$type';
 import QRCode from 'qrcode';
+
+interface SignupResponse {
+  stage?: 'email' | 'authenticator' | 'recovery';
+  ready?: boolean;
+  email?: string;
+  username?: string;
+  secret?: string;
+  uri?: string;
+  recovery?: string[];
+}
+
+async function registrationState(response: SignupResponse): Promise<SignupState> {
+  const qr = response.uri ? await QRCode.toDataURL(response.uri, {margin: 2}) : '';
+
+  return {
+    stage: response.ready ? 'complete' : response.stage || 'account',
+    email: response.email || '',
+    username: response.username || '',
+    secret: response.secret || '',
+    qr,
+    recovery: response.recovery || [],
+  };
+}
+
+async function completeRegistration(cookies: Cookies, savedRecovery = false) {
+  const result = await backend<{token: string}>('/auth/registration/complete', 'POST', {signup: cookies.get('signup'), savedRecovery});
+
+  if (!result.ok) {
+    return {message: result.error};
+  }
+
+  createCookie(cookies, 'token', result.data.token);
+  cookies.delete('signup', {path: '/signup'});
+
+  redirect(303, '/dashboard');
+}
+
+export const load: PageServerLoad = async ({cookies}) => {
+  const signup = cookies.get('signup');
+
+  if (!signup) {
+    return {registration: await registrationState({}), message: ''};
+  }
+
+  const result = await backend<SignupResponse>('/auth/registration/resume', 'POST', {signup});
+
+  if (!result.ok) {
+    if (result.status === 410) {
+      cookies.delete('signup', {path: '/signup'});
+    }
+
+    return {registration: await registrationState({}), message: result.error};
+  }
+
+  return {registration: await registrationState(result.data), message: ''};
+};
 
 export const actions: Actions = {
   init: async ({request, cookies}) => {
     const form = await request.formData();
-
-    const email = form.get('email');
-    const password = form.get('password');
-
-    const response = await fetchBackend('/auth/registration', 'POST', {email, password});
-
-    if (!response.signup) {
-      return response;
-    }
-
-    cookies.set('signup', response.signup, {
-      path: '/signup',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: response.expiresIn,
+    const result = await backend<{signup: string; expiresIn: number}>('/auth/registration', 'POST', {
+      email: form.get('email'),
+      password: form.get('password'),
+      username: form.get('username'),
+      enableTwoFactor: form.has('enableTwoFactor'),
     });
-    cookies.delete('signup-payment', {path: '/signup'});
 
-    return {step: 2, email};
-  },
-  checkEmail: async ({request, cookies}) => {
-    const access = (await request.formData()).get('access');
-
-    const response = await fetchBackend('/auth/registration/email', 'POST', {signup: cookies.get('signup'), access});
-
-    return response.email ? {step: 3} : response;
-  },
-  checkUsername: async ({request, cookies}) => {
-    const username = (await request.formData()).get('username');
-
-    const response = await fetchBackend('/auth/registration/profile', 'PUT', {signup: cookies.get('signup'), username});
-
-    return response.username ? {step: 4, ...response} : response;
-  },
-  askOTP: async ({request, cookies}) => {
-    const enable = (await request.formData()).has('enable');
-
-    const response = await fetchBackend('/auth/registration/totp', 'POST', {signup: cookies.get('signup'), enable});
-
-    if (response.type !== 'success') {
-      return response;
+    if (!result.ok) {
+      return {message: result.error};
     }
 
-    if (!enable) {
-      return {step: 8, secret: ''};
+    cookies.set('signup', result.data.signup, {path: '/signup', httpOnly: true, secure: true, sameSite: 'strict', maxAge: result.data.expiresIn});
+
+    return {registration: await registrationState({stage: 'email', email: String(form.get('email')), username: String(form.get('username'))})};
+  },
+  verifyEmail: async ({request, cookies}) => {
+    const form = await request.formData();
+    const result = await backend<SignupResponse>('/auth/registration/email', 'POST', {signup: cookies.get('signup'), access: form.get('access')});
+
+    if (!result.ok) {
+      return {message: result.error};
     }
 
-    const svg = await QRCode.toString(response.uri, {type: 'svg', margin: 2});
+    if (result.data.ready) {
+      return completeRegistration(cookies);
+    }
 
-    const qr = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
-
-    return {step: 5, secret: response.secret, qr};
+    return {registration: await registrationState(result.data)};
   },
-  showOTP: async () => ({step: 6}),
-  checkOTP: async ({request, cookies}) => {
+  verifyAuthenticator: async ({request, cookies}) => {
     const token = (await request.formData()).get('token');
+    const result = await backend<SignupResponse>('/auth/registration/recovery', 'POST', {signup: cookies.get('signup'), token});
 
-    const response = await fetchBackend('/auth/registration/recovery', 'POST', {signup: cookies.get('signup'), token});
-
-    return response.recovery ? {step: 7, ...response} : response;
-  },
-  showRecovery: async () => ({step: 8}),
-  askBilling: async ({request}) => {
-    const wantBilling = (await request.formData()).has('add');
-
-    return wantBilling ? {step: 9, stripeKey: env.PUBLIC_STRIPE_KEY || ''} : {step: 10, stripeKey: ''};
-  },
-  addBilling: async ({request, cookies}) => {
-    const payment = (await request.formData()).get('paymentID');
-
-    if (typeof payment !== 'string' || !payment) {
-      return {step: 9};
+    if (!result.ok) {
+      return {message: result.error};
     }
 
-    cookies.set('signup-payment', payment, {path: '/signup', httpOnly: true, secure: true, sameSite: 'strict', maxAge: 1800});
-
-    return {step: 10};
+    return {registration: await registrationState({...result.data, stage: 'recovery'})};
   },
-  create: async ({cookies}) => {
-    const body = {signup: cookies.get('signup'), payment: cookies.get('signup-payment')};
+  create: async ({request, cookies}) => completeRegistration(cookies, (await request.formData()).has('savedRecovery')),
+  restart: async ({cookies}) => {
+    const signup = cookies.get('signup');
 
-    const response = await fetchBackend('/auth/registration/complete', 'POST', body);
+    if (signup) {
+      const result = await backend('/auth/registration/cancel', 'POST', {signup});
 
-    if (!response.token) {
-      return response;
+      if (!result.ok) {
+        return {message: result.error};
+      }
     }
 
-    createCookie(cookies, 'token', response.token);
     cookies.delete('signup', {path: '/signup'});
-    cookies.delete('signup-payment', {path: '/signup'});
 
-    redirect(302, '/dashboard');
+    return {registration: await registrationState({})};
   },
 };

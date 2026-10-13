@@ -24,7 +24,7 @@
   let clock = $state(Date.now());
   let edit = $state({id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'});
   let revision = $state(0);
-  const visible = $derived(plain.filter((entry) => `${entry.username} ${entry.website}`.toLowerCase().includes(query.toLowerCase())));
+  const visible = $derived(plain.filter((entry) => `${entry.username} ${entry.website || ''}`.toLowerCase().includes(query.toLowerCase())));
 
   $effect(() => {
     const key = $vaultKey;
@@ -90,7 +90,9 @@
   }
 
   function startEdit(entry?: Account) {
-    edit = entry ? {...entry} : {id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'};
+    edit = entry
+      ? {...entry, website: entry.website || '', totp: entry.totp || '', algorithm: entry.algorithm || 'SHA1'}
+      : {id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'};
     editOpen = true;
     error = '';
   }
@@ -104,7 +106,7 @@
     const time = clock;
 
     try {
-      return entry.totp ? new TOTP({algorithm: entry.algorithm, secret: entry.totp}).generate({timestamp: time}) : '';
+      return entry.totp ? new TOTP({algorithm: entry.algorithm || 'SHA1', secret: entry.totp}).generate({timestamp: time}) : '';
     } catch {
       return 'Invalid TOTP secret';
     }
@@ -250,7 +252,12 @@
       <label for="entry-username">Username</label><input id="entry-username" bind:value={edit.username} maxlength="25" required autocomplete="off" />
     </div>
     <div class="field">
-      <label for="entry-website">Website</label><input id="entry-website" bind:value={edit.website} type="url" placeholder="https://example.com" />
+      <label for="entry-website">Website</label><input
+        id="entry-website"
+        bind:value={edit.website}
+        type="url"
+        maxlength="2048"
+        placeholder="https://example.com" />
     </div>
     <div class="field">
       <label for="entry-password">Password</label><input

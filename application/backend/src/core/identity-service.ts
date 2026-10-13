@@ -12,7 +12,15 @@ import {randomBytes} from 'node:crypto';
 import type Stripe from 'stripe';
 
 export async function withIdentityLock<T>(id: string, operation: (connection: ReservedSql) => Promise<T>) {
-  const connection = await sql.reserve();
+  return withResourceLock(id, operation);
+}
+
+export async function withAccountLock<T>(owner: number, operation: (connection: ReservedSql) => Promise<T>, existing?: ReservedSql) {
+  return withResourceLock(`account:${owner}`, operation, existing);
+}
+
+async function withResourceLock<T>(id: string, operation: (connection: ReservedSql) => Promise<T>, existing?: ReservedSql) {
+  const connection = existing || (await sql.reserve());
 
   let locked = false;
 
@@ -21,7 +29,7 @@ export async function withIdentityLock<T>(id: string, operation: (connection: Re
     locked = lock[0].acquired;
 
     if (!locked) {
-      throw new ApiError(409, 'creation_busy', 'This identity operation is already running');
+      throw new ApiError(409, 'operation_busy', 'This operation is already running. Retry shortly');
     }
 
     return await operation(connection);
@@ -31,74 +39,89 @@ export async function withIdentityLock<T>(id: string, operation: (connection: Re
         await connection`SELECT pg_advisory_unlock(hashtextextended(${id}, 0))`;
       }
     } finally {
-      connection.release();
+      if (!existing) {
+        connection.release();
+      }
     }
   }
 }
 
 export async function provisionIdentity(id: string) {
   return withIdentityLock(id, async (connection) => {
-    const rows = await connection`SELECT * FROM identities WHERE id = ${id}`;
+    const rows = await connection`SELECT i.* FROM identities i JOIN users u ON u.id = i.owner
+      WHERE i.id = ${id} AND u.deletion_requested_at IS NULL`;
 
     if (!rows[0]) {
       throw new ApiError(404, 'identity_not_found', 'Identity not found');
     }
 
-    if (rows[0].status === 'active') {
-      return;
-    }
+    return withAccountLock(
+      rows[0].owner,
+      async () => {
+        const owners = await connection`SELECT id FROM users WHERE id = ${rows[0].owner} AND deletion_requested_at IS NULL`;
 
-    if (rows[0].status !== 'inactive') {
-      throw new ApiError(409, 'creation_unavailable', 'Identity is not available for creation');
-    }
+        if (!owners.length) {
+          throw new ApiError(409, 'account_deleting', 'This account is being deleted');
+        }
 
-    const jobs = await connection`SELECT id, payload FROM creation_jobs WHERE identity_id = ${id}`;
+        if (rows[0].status === 'active') {
+          return;
+        }
 
-    const draft = jobs[0]?.payload as CreationDraft | undefined;
-    const input = {...draft?.profile, location: draft?.location, email: draft?.email, phone: draft?.phone, wallet: draft?.wallet};
-    const validation = await checkIdentity('provision', input);
+        if (rows[0].status !== 'inactive') {
+          throw new ApiError(409, 'creation_unavailable', 'Identity is not available for creation');
+        }
 
-    if (validation.error) {
-      throw new ApiError(400, 'invalid_request', validation.error);
-    }
+        const jobs = await connection`SELECT id, payload FROM creation_jobs WHERE identity_id = ${id}`;
 
-    if (!emailConfig.host) {
-      throw new ApiError(503, 'provider_unavailable', 'Email provisioning is unavailable');
-    }
+        const draft = jobs[0]?.payload as CreationDraft | undefined;
+        const input = {...draft?.profile, location: draft?.location, email: draft?.email, phone: draft?.phone, wallet: draft?.wallet};
+        const validation = await checkIdentity('provision', input);
 
-    const data = input as IdentityProvision;
+        if (validation.error) {
+          throw new ApiError(400, 'invalid_request', validation.error);
+        }
 
-    if (rows[0].phone && rows[0].phone !== data.phone) {
-      throw new Error('Retry with the reserved phone number');
-    }
+        if (!emailConfig.host) {
+          throw new ApiError(503, 'provider_unavailable', 'Email provisioning is unavailable');
+        }
 
-    if (rows[0].email && rows[0].email !== data.email) {
-      throw new Error('Retry with the reserved email address');
-    }
+        const data = input as IdentityProvision;
 
-    const location = LOCATIONS.find((location) => location.code === data.location)!;
-    const emailPassword = rows[0].email_password ? decryptSecret(rows[0].email_password) : randomBytes(24).toString('base64url');
-    const existing = await connection`SELECT id FROM identities WHERE (email = ${data.email} OR phone = ${data.phone}) AND id <> ${id}`;
+        if (rows[0].phone && rows[0].phone !== data.phone) {
+          throw new Error('Retry with the reserved phone number');
+        }
 
-    if (existing.length) {
-      throw new Error('These resources already belong to another identity');
-    }
+        if (rows[0].email && rows[0].email !== data.email) {
+          throw new Error('Retry with the reserved email address');
+        }
 
-    await withReservedTransaction(connection, async (transaction) => {
-      await transaction`UPDATE creation_jobs SET status = 'provisioning' WHERE id = ${jobs[0].id}`;
-      await transaction`UPDATE identities SET location = ${`${location.code}, ${location.city}, ${location.country}`},
+        const location = LOCATIONS.find((location) => location.code === data.location)!;
+        const emailPassword = rows[0].email_password ? decryptSecret(rows[0].email_password) : randomBytes(24).toString('base64url');
+        const existing = await connection`SELECT id FROM identities WHERE (email = ${data.email} OR phone = ${data.phone}) AND id <> ${id}`;
+
+        if (existing.length) {
+          throw new Error('These resources already belong to another identity');
+        }
+
+        await withReservedTransaction(connection, async (transaction) => {
+          await transaction`UPDATE creation_jobs SET status = 'provisioning' WHERE id = ${jobs[0].id}`;
+          await transaction`UPDATE identities SET location = ${`${location.code}, ${location.city}, ${location.country}`},
       email = ${data.email}, email_password = ${encryptSecret(emailPassword)}, email_password_hash = ${createHash('sha256').update(emailPassword).digest('base64')}, phone = ${data.phone},
       picture = ${data.picture}, name = ${data.name}, bio = ${data.bio}, age = ${data.age}, sex = ${data.sex}, ethnicity = ${data.ethnicity},
       wallet_blob = ${data.wallet.blob}, wallet_keys = ${transaction.json({...data.wallet.keys})} WHERE id = ${id}`;
-    });
+        });
 
-    const phoneSID = await phoneProvider.provision(data.phone, id);
-    await connection`UPDATE identities SET phone_sid = ${phoneSID} WHERE id = ${id}`;
+        const phoneSID = await phoneProvider.provision(data.phone, id);
+        await connection`UPDATE identities SET phone_sid = ${phoneSID} WHERE id = ${id}`;
 
-    await withReservedTransaction(connection, async (transaction) => {
-      await transaction`UPDATE identities SET status = 'active' WHERE id = ${id}`;
-      await transaction`UPDATE creation_jobs SET status = 'completed', payload = '{}'::jsonb WHERE id = ${jobs[0].id}`;
-    });
+        await withReservedTransaction(connection, async (transaction) => {
+          await transaction`UPDATE identities SET status = 'active' WHERE id = ${id}`;
+          await transaction`UPDATE creation_jobs SET status = 'completed', payload = '{}'::jsonb WHERE id = ${jobs[0].id}`;
+        });
+      },
+      connection,
+    );
   });
 }
 
@@ -231,6 +254,58 @@ export async function repairIdentityDeletions() {
       await deleteIdentity(job.identity_id, job.owner);
     } catch {
       console.error('Identity cleanup is pending; ownership records were retained');
+    }
+  }
+}
+
+export async function completeAccountDeletion(owner: number, provider: Stripe = stripe, database = sql, removeIdentity = deleteIdentity) {
+  const accounts = await database`SELECT stripe_customer FROM users WHERE id = ${owner} AND deletion_requested_at IS NOT NULL`;
+
+  if (!accounts.length) {
+    return true;
+  }
+
+  const identities = await database`SELECT id FROM identities WHERE owner = ${owner}`;
+  let pending = false;
+
+  for (const identity of identities) {
+    try {
+      if (!(await removeIdentity(identity.id, owner, provider))) {
+        pending = true;
+      }
+    } catch {
+      pending = true;
+    }
+  }
+
+  if (pending) {
+    return false;
+  }
+
+  if (accounts[0].stripe_customer) {
+    try {
+      await provider.customers.del(accounts[0].stripe_customer);
+    } catch (error) {
+      if ((error as {code?: string}).code !== 'resource_missing') {
+        throw error;
+      }
+    }
+  }
+
+  const removed = await database`DELETE FROM users WHERE id = ${owner} AND deletion_requested_at IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM identities WHERE owner = ${owner}) RETURNING id`;
+
+  return removed.length > 0;
+}
+
+export async function repairAccountDeletions() {
+  const accounts = await sql`SELECT id FROM users WHERE deletion_requested_at IS NOT NULL ORDER BY deletion_requested_at LIMIT 100`;
+
+  for (const account of accounts) {
+    try {
+      await completeAccountDeletion(account.id);
+    } catch {
+      console.error('Account cleanup remains pending; the deletion request was retained');
     }
   }
 }

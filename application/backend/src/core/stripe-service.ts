@@ -1,27 +1,39 @@
 import {origin} from '@core/config';
 import {BILLING_CURRENCY, PRICING_TIERS} from '@core/constants';
 import {sql, stripe} from '@core/services';
-import {repairIdentityDeletions} from '@core/identity-service';
+import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/swap-provider';
+import {repairIdentityDeletions, repairAccountDeletions, withAccountLock} from '@core/identity-service';
 import type {QueryIdentity} from '@type';
 import type Stripe from 'stripe';
-import type {TransactionSql} from 'postgres';
+import type {TransactionSql, ReservedSql} from 'postgres';
+import {ApiError} from '@core/security';
 
-export async function createBillingCustomer(email: string, payment?: string, provider: Stripe = stripe) {
+export async function createBillingCustomer(email: string, payment?: string, provider: Stripe = stripe, connection?: ReservedSql) {
   const accounts = await sql`SELECT id, stripe_customer FROM users WHERE email = ${email}`;
 
   if (!accounts[0]) {
     throw new Error('Account not found');
   }
 
-  if (accounts[0].stripe_customer) {
-    return accounts[0].stripe_customer;
-  }
+  const create = async (database: ReservedSql) => {
+    const current = await database`SELECT id, stripe_customer FROM users WHERE id = ${accounts[0].id} AND deletion_requested_at IS NULL`;
 
-  const params = payment ? {email, payment_method: payment, invoice_settings: {default_payment_method: payment}} : {email};
-  const customer = await provider.customers.create(params, {idempotencyKey: `customer:${accounts[0].id}`});
-  await sql`UPDATE users SET stripe_customer = ${customer.id} WHERE id = ${accounts[0].id}`;
+    if (!current.length) {
+      throw new ApiError(409, 'account_deleting', 'This account is being deleted');
+    }
 
-  return customer.id;
+    if (current[0].stripe_customer) {
+      return current[0].stripe_customer;
+    }
+
+    const params = payment ? {email, payment_method: payment, invoice_settings: {default_payment_method: payment}} : {email};
+    const customer = await provider.customers.create(params, {idempotencyKey: `customer:${current[0].id}`});
+    await database`UPDATE users SET stripe_customer = ${customer.id} WHERE id = ${current[0].id}`;
+
+    return customer.id;
+  };
+
+  return connection ? create(connection) : withAccountLock(accounts[0].id, create);
 }
 
 export async function billingPortal(email: string) {
@@ -138,7 +150,7 @@ async function applyLifetimePayment(id: string, transaction: TransactionSql, pro
 
   const purchases = await transaction`SELECT f.identity_id, f.owner FROM fiat_intents f JOIN users u ON u.id = f.owner
     WHERE f.identity_id = ${payment.metadata.id} AND f.plan = 'lifetime' AND u.stripe_customer = ${customer}
-    AND (f.provider_id IS NULL OR f.provider_id = ${payment.id})`;
+    AND u.deletion_requested_at IS NULL AND (f.provider_id IS NULL OR f.provider_id = ${payment.id}) FOR UPDATE OF u`;
 
   if (!purchases[0]) {
     return;
@@ -199,7 +211,7 @@ async function applyPaidInvoice(id: string, transaction: TransactionSql, provide
   const customer = typeof current.customer === 'string' ? current.customer : current.customer.id;
   const purchases = await transaction`SELECT f.identity_id, f.owner, f.plan FROM fiat_intents f JOIN users u ON u.id = f.owner
     WHERE f.identity_id = ${current.metadata.id || ''} AND f.plan = ${current.metadata.type || ''} AND u.stripe_customer = ${customer}
-    AND (f.subscription_id IS NULL OR f.subscription_id = ${subscriptionID})`;
+    AND u.deletion_requested_at IS NULL AND (f.subscription_id IS NULL OR f.subscription_id = ${subscriptionID}) FOR UPDATE OF u`;
 
   const purchase = purchases[0];
 
@@ -319,11 +331,9 @@ async function reconcileBilling() {
     await recoverStripeEvents(Math.floor(since / 1000));
     await repairIdentityDeletions();
 
-    const unresolved = await sql`SELECT id FROM crypto_invoices WHERE provider_state = 'requested' AND response IS NULL`;
-
-    for (const invoice of unresolved) {
-      console.error(`Swap invoice ${invoice.id} requires provider reconciliation before another payment request`);
-    }
+    await repairAccountDeletions();
+    await repairPaymentInvoices();
+    await repairWalletSwapRequests();
   } finally {
     await sql.end({timeout: 5});
   }

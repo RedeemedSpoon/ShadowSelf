@@ -4,7 +4,7 @@
   import Button from '$component/ui/Button.svelte';
   import Icon from '$component/ui/Icon.svelte';
   import Status from '$component/ui/Status.svelte';
-  import {formatPhoneNumber, formatUSD} from '$utils/formatting';
+  import {formatPhoneNumber} from '$utils/formatting';
 
   let {data}: {data: PageData} = $props();
   let query = $state('');
@@ -18,7 +18,7 @@
         [identity.name, identity.id, identity.location, identity.country, identity.email, identity.phone].join(' ').toLowerCase().includes(query.toLowerCase()),
     );
 
-    return sort === 'name' ? found.sort((a, b) => (a.name || '').localeCompare(b.name || '')) : sort === 'oldest' ? found : [...found].reverse();
+    return sort === 'name' ? found.sort((a, b) => (a.name || '').localeCompare(b.name || '')) : sort === 'newest' ? found : [...found].reverse();
   });
 
   async function reload() {
@@ -77,8 +77,7 @@
             ><Icon name="phone" size={16} /><span>{identity.phone ? formatPhoneNumber(identity.phone) : 'Number pending'}</span></span>
         </div>
         <div class="identity-count">
-          <span>{identity.accounts || 0} vault entries</span><span
-            >{identity.walletFunds === null ? 'Balance not loaded' : formatUSD(Number(identity.walletFunds))}</span>
+          <span>{identity.accounts || 0} vault entries</span>
         </div>
         <Icon name="arrow" size={17} /></a
       >{/each}

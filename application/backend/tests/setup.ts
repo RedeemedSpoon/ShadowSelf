@@ -1,0 +1,14 @@
+process.env.NODE_ENV = 'test';
+process.env.SECRET_SAUCE = 'synthetic-test-secret-not-for-deployment';
+process.env.POSTGRES_DB = 'shadowself_test';
+process.env.POSTGRES_HOST = '127.0.0.1';
+process.env.POSTGRES_PORT = '1';
+process.env.APP_DB_PASSWORD = 'synthetic-test-password';
+process.env.APP_ORIGIN = 'http://localhost:5000';
+process.env.STRIPE_SECRET_KEY = '';
+process.env.STRIPE_WEBHOOK_SECRET = '';
+process.env.TWILIO_SID = '';
+process.env.TWILIO_TOKEN = '';
+process.env.MAIL_HOST = '';
+process.env.GEMINI_API_KEY = '';
+process.env.TROCADOR_API_KEY = '';

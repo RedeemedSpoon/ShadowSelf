@@ -55,35 +55,59 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'POST',
         path: '/api/auth/registration',
-        detail: '{email,password} → {signup,email,expiresIn}',
-        request: {email: 'theo@example.com', password: 'Example-Account-Password-2026!'},
-        response: {signup: '<signup from registration response>', email: 'theo@example.com', expiresIn: 1800},
+        detail:
+          'Start a resumable registration draft. Username is 1 to 25 characters; password is 12 to 256. Enable two-factor authentication with enableTwoFactor.',
+        request: {
+          email: 'theo@example.com',
+          username: 'Theo',
+          password: 'Example-Account-Password-2026!',
+          enableTwoFactor: true,
+        },
+        response: {
+          signup: '<private signup reference>',
+          email: 'theo@example.com',
+          expiresIn: 1800,
+        },
+      },
+      {
+        method: 'POST',
+        path: '/api/auth/registration/resume',
+        detail:
+          'Restore a valid registration draft through its private reference. Before email verification, enrollment secrets and recovery codes are excluded. Recovery codes remain retrievable within that verified draft until completion or expiry.',
+        request: {
+          signup: '<signup reference>',
+        },
+      },
+      {
+        method: 'POST',
+        path: '/api/auth/registration/cancel',
+        detail: 'Discard the registration draft.',
+        request: {
+          signup: '<signup reference>',
+        },
       },
       {
         method: 'POST',
         path: '/api/auth/registration/email',
-        detail: '{signup,access}',
-        request: {signup: '<signup from registration response>', access: '12345678'},
-        response: {email: 'theo@example.com'},
+        detail: 'Verify the email code. Two-factor drafts return authenticator enrollment state. Otherwise ready=true permits account completion.',
+        request: {
+          signup: '<signup reference>',
+          access: '12345678',
+        },
+        response: {
+          stage: 'authenticator',
+          email: 'theo@example.com',
+          username: 'Theo',
+          secret: '<base32 secret>',
+          uri: 'otpauth://totp/<enrollment URI>',
+        },
       },
-      {
-        method: 'PUT',
-        path: '/api/auth/registration/profile',
-        detail: '{signup,username}',
-        request: {signup: '<signup from registration response>', username: 'Theo'},
-        response: {username: 'Theo'},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/totp',
-        detail: '{signup,enable} → {secret,uri?}',
-        request: {signup: '<signup from registration response>', enable: true},
-        response: {secret: '<base32 secret>', uri: 'otpauth://totp/<enrollment URI>'},
-      },
+
       {
         method: 'POST',
         path: '/api/auth/registration/recovery',
-        detail: 'Verify the six-digit TOTP code. Returns six recovery codes once; store them before completing registration.',
+        detail:
+          'Verify the six-digit TOTP code. Returns six recovery codes; store them before completing registration. A verified draft can restore these codes until completion or expiry.',
         request: {signup: '<signup from registration response>', token: '123456'},
         response: {recovery: ['<six one-time recovery codes>']},
       },
@@ -91,9 +115,14 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/auth/registration/complete',
         detail:
-          'Create the account after email and profile verification. payment is an optional Stripe payment-method ID. warning may report an unavailable payment setup after successful account creation.',
-        request: {signup: '<signup from registration response>'},
-        response: {token: 'ss_session_<session token>'},
+          'Complete the verified draft. Two-factor enrollment requires a verified authenticator and explicit savedRecovery=true. Optional card setup belongs in account settings or checkout.',
+        request: {
+          signup: '<signup reference>',
+          savedRecovery: true,
+        },
+        response: {
+          token: 'ss_session_<session token>',
+        },
       },
       {
         method: 'GET',
@@ -222,13 +251,13 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'GET',
         path: '/api/identities',
         detail:
-          'Returns {identities:[{id,picture,name,country,location,email,phone,accounts,walletFunds,status,paymentMethod,plan}]}. Profile fields can be null before provisioning. walletFunds is null in the identity summary; use GET /wallet for verified balances; accounts is the vault entry count.',
+          'Returns {identities:[{id,picture,name,country,location,email,phone,accounts,status,paymentMethod,plan}]}. Profile fields can be null before provisioning. Use GET /wallet for verified balances; accounts is the vault entry count.',
       },
       {
         method: 'GET',
         path: '/api/identities/:id',
         detail:
-          'Returns {id,plan,location,picture,name,bio,age,sex,ethnicity,email,phone,vaultRevision,creationDate,status,walletFunds,walletKeys,walletBlob,paymentMethod}. plan is monthly, annually, or lifetime. walletKeys contains public btc/ltc/evm keys and encrypted xmr keys. Provider credentials are excluded.',
+          'Returns {id,plan,location,picture,name,bio,age,sex,ethnicity,email,phone,vaultRevision,creationDate,status,walletKeys,walletBlob,paymentMethod}. plan is monthly, annually, or lifetime. walletKeys contains public btc/ltc/evm keys and encrypted xmr keys. Provider credentials are excluded.',
       },
       {
         method: 'PATCH',
@@ -441,20 +470,35 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'GET',
         path: '/api/identities/:id/mail/messages',
         detail:
-          'Returns {emails:{inbox,sent,drafts,junk,messagesCount,sentMessagesCount,draftsMessagesCount,junkMessagesCount}}. Each mailbox is an array of email records. No query parameters are required.',
-        response: {emails: {inbox: [], sent: [], drafts: [], junk: [], messagesCount: 0, sentMessagesCount: 0, draftsMessagesCount: 0, junkMessagesCount: 0}},
+          'List one mailbox without downloading bodies or attachments or marking messages read. before is an optional positive UID cursor. complete indicates whether earlier messages remain.',
+        query: '?mailbox=INBOX&before=42',
+        response: {
+          mailbox: 'INBOX',
+          messages: [],
+          messagesCount: 0,
+          nextCursor: null,
+          complete: true,
+        },
       },
       {
         method: 'GET',
-        path: '/api/identities/:id/mail/messages/more',
-        detail: 'Query {mailbox,since} → {mailbox,since,nextEmails}',
-        query: '?mailbox=INBOX&since=42',
-        response: {mailbox: 'INBOX', since: '42', nextEmails: []},
+        path: '/api/identities/:id/mail/message',
+        detail:
+          'Open one mailbox-scoped message and explicitly mark it read. Returns {email} with body and indexed attachment metadata, excluding attachment bytes.',
+        query: '?mailbox=INBOX&uid=42',
       },
+      {
+        method: 'GET',
+        path: '/api/identities/:id/mail/attachment',
+        detail:
+          'Download one indexed attachment from exactly that mailbox and UID. Returns {attachment} with base64 data. Missing messages or attachments return 404.',
+        query: '?mailbox=INBOX&uid=42&index=0',
+      },
+
       {
         method: 'GET',
         path: '/api/identities/:id/mail/reply',
-        detail: 'Fetch by Message-ID. Returns {uuid,fetchEmail}; fetchEmail is an email record or null when the referenced message is missing.',
+        detail: 'Find a message by exact Message-ID in Inbox or Sent. Returns {fetchEmail: Email|null} with attachment metadata; preserves read state.',
         query: '?uuid=%3Cmessage%40example.com%3E',
       },
       {
@@ -467,9 +511,12 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'POST',
         path: '/api/identities/:id/mail/forward',
-        detail:
-          'Forward a message by UID. Returns {uid,forward,forwardEmail,warning?}. A warning means forwarding succeeded but saving Sent failed; do not repeat delivery.',
-        request: {uid: 42, forward: 'recipient@example.com'},
+        detail: 'Forward exactly one mailbox-scoped UID, including its attachments. warning means delivery succeeded but saving Sent failed; do not resend.',
+        request: {
+          mailbox: 'INBOX',
+          uid: 42,
+          forward: 'recipient@example.com',
+        },
       },
       {
         method: 'PUT',
@@ -488,15 +535,25 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'GET',
         path: '/api/identities/:id/phone/conversations',
-        detail: '{messages} latest conversation messages',
-        response: {messages: []},
+        detail: 'List a bounded page of contact summaries. Merge contacts across pages using the newest message date. cursor is an opaque continuation token.',
+        query: '?cursor=<opaque cursor>',
+        response: {
+          messages: [],
+          nextCursor: null,
+          complete: true,
+        },
       },
       {
         method: 'GET',
         path: '/api/identities/:id/phone/conversation',
-        detail: '{addressee} query → {addressee,conversation}',
+        detail: 'Read a bounded message page for another E.164 number. Older pages use the opaque nextCursor.',
         query: '?addressee=%2B12025550142',
-        response: {addressee: '+12025550142', conversation: []},
+        response: {
+          addressee: '+12025550142',
+          messages: [],
+          nextCursor: null,
+          complete: true,
+        },
       },
       {
         method: 'POST',
@@ -508,15 +565,41 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'DELETE',
         path: '/api/identities/:id/phone/conversations',
-        detail: '{addressee}',
-        request: {addressee: '+12025550142'},
-        response: {addressee: '+12025550142'},
+        detail:
+          'Delete a bounded batch. Repeat the same request until complete=true. A timeout is unconfirmed; retry removes remaining provider messages. A fresh empty-provider check confirms completion.',
+        request: {
+          addressee: '+12025550142',
+        },
+        response: {
+          addressee: '+12025550142',
+          deleted: 60,
+          failed: 0,
+          complete: false,
+        },
       },
       {
         method: 'GET',
         path: '/api/identities/:id/wallet',
         detail:
-          'Returns {prices,fees,wallet}. prices has btc/ltc/eth/usdt/xmr entries with usdPrice,dailyChange,chart. fees has low,medium,high rates per coin. wallet contains btc/ltc/eth/usdt chain data. Monero balances and history are scanned locally, after GET /wallet/node. Failed or stale provider reads return an error.',
+          'Returns independent coin states, prices, and fees. Unavailable balances are null with status=Unavailable and an error. Missing price/fee entries remain unavailable; receiving public addresses does not require them. BTC/LTC status=Incomplete indicates a bounded scan; nextIndex=null prohibits generating another undiscoverable address.',
+      },
+      {
+        method: 'POST',
+        path: '/api/identities/:id/wallet/prepare',
+        detail:
+          'Read fresh pending EVM nonce and ETH/USDT atomic balances for signing. Returns atomic ETH/USDT balances, pending nonce, gasPrice in gwei, and gasPriceAtoms as an exact wei string. Coordinate outstanding sends per sender address.',
+        request: {
+          coin: 'eth',
+        },
+      },
+      {
+        method: 'POST',
+        path: '/api/identities/:id/wallet/recovery',
+        detail:
+          'Explicitly scan up to 1200 BTC/LTC addresses to find funds beyond the normal gap. Recovered funds can be spent with an existing owned change address; receiving new addresses stays bounded.',
+        request: {
+          coin: 'btc',
+        },
       },
       {
         method: 'GET',
@@ -534,19 +617,30 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'POST',
         path: '/api/identities/:id/wallet/swaps',
-        detail: '{tradeID,coinFrom,coinTo,amount,destinationAddress,refundAddress,provider,isFixed,requestID}; requestID is a UUID',
+        detail:
+          'Create one recoverable swap operation. requestID is a UUID and must be reused for retries. Unresolved operations block new requests; inspect GET /wallet/swaps and reconcile the same reference.',
         request: {
           tradeID: '<tradeID from quote>',
           coinFrom: 'btc',
           coinTo: 'xmr',
           amount: 0.01,
-          destinationAddress: '<destination wallet address>',
-          refundAddress: '<refund wallet address>',
-          provider: '<provider name from quote>',
+          destinationAddress: '<destination address>',
+          refundAddress: '<refund address>',
+          provider: '<provider from quote>',
           isFixed: false,
           requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5',
         },
-        response: {status: 'waiting', depositAddress: '<provider deposit address>', depositAmount: '0.01', externalLink: '<provider tracking URL>'},
+      },
+      {
+        method: 'GET',
+        path: '/api/identities/:id/wallet/swaps',
+        detail: 'List recent persisted trade requests, including incomplete operations and recovered provider responses.',
+      },
+      {
+        method: 'POST',
+        path: '/api/identities/:id/wallet/swaps/:requestID/reconcile',
+        detail:
+          'Look up the existing provider trade without issuing another trade. Persisted addresses, coins, networks and amounts must match. An unconfirmed lookup retains the request for review.',
       },
       {
         method: 'POST',
@@ -603,9 +697,15 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       },
       {
         method: 'GET',
+        path: '/api/billing/crypto/requests/:id',
+        detail:
+          'Recover the persisted invoice ID for the same payment request UUID after an interrupted response. Inspect that invoice instead of issuing another purchase.',
+      },
+      {
+        method: 'GET',
         path: '/api/billing/crypto/invoices/:id',
         detail:
-          'Returns original deposit details plus invoiceID, status, identityID, createdAt, expiresAt, and remainingAmount. Timestamps are ISO strings; remainingAmount is the remaining XMR amount. Status is pending, confirming, paid, underpaid, expired, late, or refunded. A late payment needs reconciliation and does not activate the identity automatically. A paid renewal returns its existing identityID.',
+          'Returns original deposit details, including a required depositMemo when supplied, plus invoiceID, status, identityID, createdAt, expiresAt, and remainingAmount. Timestamps are ISO strings; remainingAmount is the remaining XMR amount. Status is pending, confirming, paid, underpaid, expired, late, reconciliation, or refunded. A late payment needs reconciliation and does not activate the identity automatically. A paid renewal returns its existing identityID.',
       },
       {
         method: 'WS',

@@ -1,50 +1,97 @@
-import {fetchRecentEmails, appendToMailbox, deleteEmail, fetchEmail, fetchMoreEmails} from '@utils/email-imap';
+import {mailReader, appendToMailbox, deleteEmail} from '@utils/email-imap';
 import middlewareApi from '@middlewares/middleware-api';
 import {sendIdentityEmail} from '@utils/email-smtp';
-import type {APIRequest, EmailContent} from '@type';
+import type {APIRequest, EmailContent, Mailbox} from '@type';
 import {checkAPI} from '@utils/checks';
 import {throttle} from '@core/states';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
+function location(value: unknown) {
+  const body = value as Record<string, unknown> | null;
+  const mailbox = body?.mailbox;
+  const uid = typeof body?.uid === 'string' ? Number(body.uid) : body?.uid;
+
+  if (!['INBOX', 'Sent', 'Drafts', 'Junk'].includes(String(mailbox)) || !Number.isSafeInteger(uid) || Number(uid) < 1) {
+    return null;
+  }
+
+  return {mailbox: mailbox as Mailbox, uid: uid as number};
+}
+
+function withoutAttachments(email: NonNullable<Awaited<ReturnType<typeof mailReader.message>>>) {
+  return {...email, attachments: email.attachments.map(({data: _data, ...file}, index) => ({...file, index}))};
+}
+
 export default new Elysia({prefix: '/api/identities/:id/mail'})
   .use(middlewareApi)
   .get(
     '/messages',
-    async ({identity}) => {
-      const emails = await fetchRecentEmails(identity!.email, identity!.email_password);
-
-      return {emails};
-    },
-    throttle('Initial Email Fetch', 3_000),
-  )
-  .get(
-    '/messages/more',
     async ({set, identity, query}) => {
-      const {err, mailbox, since} = await checkAPI(query, ['mailbox', 'since']);
+      const mailbox = query.mailbox;
+      const before = query.before === undefined ? undefined : Number(query.before);
 
-      if (err) {
-        return error(set, 400, err);
+      if (!['INBOX', 'Sent', 'Drafts', 'Junk'].includes(mailbox || '') || (before !== undefined && (!Number.isSafeInteger(before) || before < 1))) {
+        return error(set, 400, 'Invalid mailbox or cursor');
       }
 
-      const nextEmails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, Number(since!));
-
-      return {mailbox, since, nextEmails};
+      return mailReader.list(identity!.email, identity!.email_password, mailbox as Mailbox, before);
     },
-    throttle('More Email Fetch', 3_000),
+    {
+      beforeHandle: ({identity, set, query}) => {
+        return throttle(`Email Fetch ${query.mailbox}:${query.before || ''}`, 3_000).beforeHandle({identity, set});
+      },
+    },
   )
-  .get('/reply', async ({set, identity, query}) => {
-    const {err, uuid} = await checkAPI(query, ['uuid']);
+  .get('/message', async ({set, identity, query}) => {
+    const source = location(query);
 
-    if (err) {
-      return error(set, 400, err);
+    if (!source) {
+      return error(set, 400, 'Invalid mailbox or UID');
     }
 
-    const email = await fetchEmail(identity!.email, identity!.email_password, true, uuid!);
+    const email = await mailReader.message(identity!.email, identity!.email_password, source.mailbox, source.uid);
 
-    return {uuid, fetchEmail: email};
+    if (!email) {
+      return error(set, 404, 'Email not found');
+    }
+
+    return {email: withoutAttachments(email)};
+  })
+  .get('/attachment', async ({set, identity, query}) => {
+    const source = location(query);
+    const index = Number(query.index);
+
+    if (!source || query.index === undefined || !Number.isSafeInteger(index) || index < 0) {
+      return error(set, 400, 'Invalid attachment location');
+    }
+
+    const attachment = await mailReader.attachment(identity!.email, identity!.email_password, source.mailbox, source.uid, index);
+
+    if (!attachment) {
+      return error(set, 404, 'Attachment not found');
+    }
+
+    return {attachment};
+  })
+  .get('/reply', async ({set, identity, query}) => {
+    const uuid = query.uuid;
+
+    if (!uuid || uuid.length > 998 || !/^<[^<>\s]+@[^<>\s]+>$/.test(uuid)) {
+      return error(set, 400, 'Invalid Message-ID');
+    }
+
+    const email = await mailReader.reply(identity!.email, identity!.email_password, uuid);
+
+    return {fetchEmail: email ? withoutAttachments(email) : null};
   })
   .post('/messages', async ({set, identity, body}) => {
+    const requestedDraft = (body as Record<string, unknown>)?.draft;
+
+    if (requestedDraft != null && (!Number.isSafeInteger(requestedDraft) || Number(requestedDraft) < 1)) {
+      return error(set, 400, 'Invalid draft UID');
+    }
+
     const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
     const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
 
@@ -85,16 +132,21 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
     return {draft, sentEmail, warning};
   })
   .post('/forward', async ({set, identity, body}) => {
+    const source = location(body);
     const {err, uid, forward} = await checkAPI(body, ['uid', 'forward']);
 
     if (err) {
       return error(set, 400, err);
     }
 
-    const email = await fetchEmail(identity!.email, identity!.email_password, false, uid!);
+    if (!source) {
+      return error(set, 400, 'Invalid mailbox or UID');
+    }
+
+    const email = await mailReader.message(identity!.email, identity!.email_password, source.mailbox, source.uid, false, true);
 
     if (!email) {
-      return error(set, 400, 'Failed to fetch email');
+      return error(set, 404, 'Email not found');
     }
 
     if (email.type === 'html') {
@@ -106,7 +158,6 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       <p><strong>To:</strong> ${escape(forward)}</p>
       <p><strong>Subject:</strong> ${escape(email.subject)}</p>
       <p><strong>Date:</strong> ${escape(email.date)}</p>
-      <p><strong>Subject:</strong> ${escape(email.subject)}</p>
       <p>${email.body}</p>
     `;
     } else {
@@ -116,13 +167,12 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       To: ${forward}
       Subject: ${email.subject}
       Date: ${email.date}
-      Subject: ${email.subject}
 
       ${email.body}
     `;
     }
 
-    email.subject = email.subject!.toUpperCase().includes('FWD: ') ? email.subject : `FWD: ${email?.subject}`;
+    email.subject = email.subject.toUpperCase().startsWith('FWD: ') ? email.subject : `FWD: ${email?.subject}`;
 
     const forwardContent = {...email, to: forward, email: identity!.email, password: identity!.email_password};
 
@@ -150,6 +200,12 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
     return {uid, forward, forwardEmail, warning};
   })
   .put('/draft', async ({set, identity, body}) => {
+    const requestedDraft = (body as Record<string, unknown>)?.draft;
+
+    if (requestedDraft != null && (!Number.isSafeInteger(requestedDraft) || Number(requestedDraft) < 1)) {
+      return error(set, 400, 'Invalid draft UID');
+    }
+
     const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
     const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
 

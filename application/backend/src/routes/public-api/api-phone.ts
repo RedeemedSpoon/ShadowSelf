@@ -7,7 +7,7 @@ import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/api/identities/:id/phone'})
   .use(middlewareApi)
-  .get('/conversations', async ({identity}) => ({messages: await phoneProvider.conversations(identity!.phone)}))
+  .get('/conversations', async ({identity, query}) => phoneProvider.conversations(identity!.phone, query.cursor))
   .get('/conversation', async ({set, identity, query}) => {
     const {err, addressee} = await checkAPI(query, ['addressee']);
 
@@ -19,7 +19,7 @@ export default new Elysia({prefix: '/api/identities/:id/phone'})
       return error(set, 400, 'Choose another phone number');
     }
 
-    return {addressee, conversation: await phoneProvider.conversation(identity!.phone, addressee)};
+    return {addressee, ...(await phoneProvider.conversation(identity!.phone, addressee, query.cursor))};
   })
   .post('/messages', async ({set, identity, body}) => {
     const {err, addressee, body: text} = await checkAPI(body, ['addressee', 'body']);
@@ -45,7 +45,7 @@ export default new Elysia({prefix: '/api/identities/:id/phone'})
       return error(set, 400, err);
     }
 
-    await phoneProvider.removeConversation(identity!.phone, addressee);
+    const result = await phoneProvider.removeConversation(identity!.phone, addressee);
 
-    return {addressee};
+    return {addressee, ...result};
   });

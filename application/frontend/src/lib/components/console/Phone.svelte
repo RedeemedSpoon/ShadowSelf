@@ -1,7 +1,7 @@
 <script lang="ts">
   import {onMount} from 'svelte';
   import {request} from '$utils/webfetch';
-  import type {FullIdentity, Message, PhoneAPI} from '$type';
+  import type {FullIdentity, Message, MessagePage, MessageDeletion} from '$type';
   import {formatPhoneNumber} from '$utils/formatting';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
@@ -17,18 +17,39 @@
   let pending = $state(false);
   let loaded = $state(false);
   let error = $state('');
+  let notice = $state('');
   let deleteOpen = $state(false);
+  let listCursor = $state<string | null>(null);
+  let conversationCursor = $state<string | null>(null);
+  let generation = 0;
+  let controller: AbortController | undefined;
   const path = $derived(`/identities/${account.id}/phone`);
 
   function partner(message: Message) {
     return message.from === account.phone ? message.to : message.from;
   }
 
-  async function load() {
+  function invalidate() {
+    generation++;
+    controller?.abort();
+    controller = new AbortController();
+    pending = false;
+
+    return generation;
+  }
+
+  async function load(append = false) {
+    const current = invalidate();
+    const cursor = append ? listCursor : undefined;
     pending = true;
     error = '';
 
-    const result = await request<PhoneAPI>(`${path}/conversations`);
+    const result = await request<MessagePage>(`${path}/conversations`, 'GET', {cursor}, controller?.signal);
+
+    if (current !== generation) {
+      return;
+    }
+
     pending = false;
     loaded = true;
 
@@ -38,16 +59,31 @@
       return;
     }
 
-    messages = result.data.messages;
+    const combined = [...(append ? messages : []), ...result.data.messages].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    messages = [...new Map(combined.reverse().map((message) => [partner(message), message])).values()].reverse();
+    listCursor = result.data.nextCursor;
   }
 
-  async function open(message: Message) {
-    recipient = partner(message);
+  async function open(message?: Message, append = false) {
+    const contact = message ? partner(message) : recipient;
+    const cursor = append ? conversationCursor : undefined;
+    const current = invalidate();
+    recipient = contact;
     selected = true;
     pending = true;
     error = '';
 
-    const result = await request<PhoneAPI>(`${path}/conversation`, 'GET', {addressee: recipient});
+    if (!append) {
+      conversation = [];
+      conversationCursor = null;
+    }
+
+    const result = await request<MessagePage>(`${path}/conversation`, 'GET', {addressee: contact, cursor}, controller?.signal);
+
+    if (current !== generation || recipient !== contact) {
+      return;
+    }
+
     pending = false;
 
     if (!result.ok) {
@@ -56,15 +92,24 @@
       return;
     }
 
-    conversation = result.data.conversation || [];
+    conversation = [...new Map([...conversation, ...result.data.messages].map((item) => [item.messageID, item])).values()];
+    conversationCursor = result.data.nextCursor;
   }
 
   async function send(event: SubmitEvent) {
     event.preventDefault();
+    const contact = recipient;
+    const text = body;
+    const current = invalidate();
     pending = true;
     error = '';
 
-    const result = await request<PhoneAPI>(`${path}/messages`, 'POST', {addressee: recipient, body});
+    const result = await request<{messageSent: Message}>(`${path}/messages`, 'POST', {addressee: contact, body: text});
+
+    if (current !== generation || recipient !== contact) {
+      return;
+    }
+
     pending = false;
 
     if (!result.ok) {
@@ -73,30 +118,58 @@
       return;
     }
 
-    if (result.data.messageSent) {
-      conversation = [...conversation, result.data.messageSent];
-    }
-
+    const message = result.data.messageSent;
+    conversation = [...conversation, message];
+    messages = [message, ...messages.filter((item) => partner(item) !== contact)];
     body = '';
-    await load();
   }
 
   async function remove() {
+    const contact = recipient;
+    const current = invalidate();
     pending = true;
+    error = '';
 
-    const result = await request(`${path}/conversations`, 'DELETE', {addressee: recipient});
+    const result = await request<MessageDeletion>(`${path}/conversations`, 'DELETE', {addressee: contact});
+
+    if (current !== generation || recipient !== contact) {
+      return;
+    }
+
     pending = false;
 
     if (!result.ok) {
       error = result.error;
+      notice = 'Deletion was not confirmed. Retry to continue removing remaining messages.';
 
       return;
     }
 
+    notice = `${result.data.deleted} messages removed in this batch.`;
+
+    if (!result.data.complete) {
+      notice += ' Messages remain. Continue deletion to remove the next batch.';
+
+      if (result.data.failed) {
+        error = `${result.data.failed} messages could not be removed. Retry to continue.`;
+      }
+
+      return;
+    }
+
+    notice = 'Conversation deletion confirmed. New incoming messages can still arrive.';
     deleteOpen = false;
-    selected = false;
-    conversation = [];
+    reset();
     await load();
+  }
+
+  function reset(newConversation = false) {
+    invalidate();
+    selected = newConversation;
+    recipient = '';
+    conversation = [];
+    conversationCursor = null;
+    body = '';
   }
 
   onMount(() => {
@@ -105,11 +178,7 @@
     const incoming = (event: Event) => {
       const update = (event as CustomEvent).detail;
 
-      if (update.identityID !== account.id) {
-        return;
-      }
-
-      if (update.type !== 'message') {
+      if (update.identityID !== account.id || update.type !== 'message') {
         return;
       }
 
@@ -122,7 +191,10 @@
     };
     window.addEventListener('identity-update', incoming);
 
-    return () => window.removeEventListener('identity-update', incoming);
+    return () => {
+      invalidate();
+      window.removeEventListener('identity-update', incoming);
+    };
   });
 </script>
 
@@ -132,19 +204,15 @@
     <p>{formatPhoneNumber(account.phone)}</p>
   </div>
   <div class="button-row">
-    <Button variant="quiet" icon="refresh" loading={pending} onclick={load} aria-label="Refresh conversations" /><Button
+    <Button variant="quiet" icon="refresh" loading={pending} onclick={() => load()} aria-label="Refresh conversations" /><Button
       icon="plus"
-      onclick={() => {
-        recipient = '';
-        conversation = [];
-        selected = true;
-      }}>New conversation</Button>
+      onclick={() => reset(true)}>New conversation</Button>
   </div>
 </div>
-<Status message={error} kind="error" />
+<Status message={error} kind="error" /><Status message={notice} />
 {#if selected}<section class="panel">
     <div class="section-heading">
-      <Button variant="quiet" icon="back" onclick={() => (selected = false)}>Conversations</Button>{#if conversation.length}<Button
+      <Button variant="quiet" icon="back" onclick={() => reset()}>Conversations</Button>{#if conversation.length}<Button
           variant="quiet"
           icon="trash"
           onclick={() => (deleteOpen = true)}>Delete conversation</Button
@@ -157,6 +225,7 @@
           <small>{new Date(message.date).toLocaleString()} · {message.status}</small>{#if message.error}<Status message={message.error} kind="error" />{/if}
         </article>{/each}
     </div>
+    {#if conversationCursor}<Button variant="secondary" loading={pending} onclick={() => open(undefined, true)}>Load earlier messages</Button>{/if}
     <form onsubmit={send}>
       <div class="field">
         <label for="sms-recipient">Recipient phone number</label><input
@@ -178,22 +247,29 @@
 {:else if pending && !loaded}<div class="loading-state"><span class="spinner"></span>Loading conversations</div>{:else if error && !messages.length}<Button
     variant="secondary"
     loading={pending}
-    onclick={load}>Retry loading conversations</Button
+    onclick={() => load()}>Retry loading conversations</Button
   >{:else if !messages.length && !error}<div class="empty-state">
     <Icon name="phone" size={40} />
     <h2>No conversations yet</h2>
-    <Button icon="plus" onclick={() => (selected = true)}>Start a conversation</Button>
+    <Button icon="plus" onclick={() => reset(true)}>Start a conversation</Button>
   </div>{:else}<div class="conversation-list">
     {#each messages as message (message.messageID)}<button onclick={() => open(message)}
         ><span><strong>{formatPhoneNumber(partner(message))}</strong><small>{message.body}</small></span><time
           >{new Date(message.date).toLocaleDateString()}</time
         ><Icon name="arrow" size={16} /></button
       >{/each}
-  </div>{/if}
+  </div>
+  {#if listCursor}<div class="delete-buttons">
+      <Button variant="secondary" loading={pending} onclick={() => load(true)}>Load more contacts</Button>
+      <p>Contacts are summarized from loaded message pages. Earlier pages may include more contacts.</p>
+    </div>{/if}{/if}
 <Dialog bind:open={deleteOpen} title="Delete conversation"
-  ><p>All messages with {recipient} will be removed from this identity.</p>
+  ><p>
+    Messages with {recipient} are removed in bounded batches. Continue until deletion is confirmed; closing this dialog leaves any remaining messages available.
+  </p>
   <Status message={error} kind="error" />
-  <div class="delete-buttons"><Button variant="danger" loading={pending} onclick={remove}>Delete messages</Button></div></Dialog>
+  <Status message={notice} />
+  <div class="delete-buttons"><Button variant="danger" loading={pending} onclick={remove}>Delete next batch</Button></div></Dialog>
 
 <style>
   .conversation-list {

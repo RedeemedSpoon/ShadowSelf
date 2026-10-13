@@ -1,7 +1,6 @@
 import {issueSession} from '@middlewares/session-auth';
 import {encryptSecret} from '@core/security';
-import {createBillingCustomer} from '@core/stripe-service';
-import {compareHash, createHash, createTOTP, getSecret, getRecovery, hashRecoveryCode} from '@utils/cryptography';
+import {compareHash, createHash, createTOTP, getRecovery, hashRecoveryCode} from '@utils/cryptography';
 import {issueLoginChallenge, claimLoginChallenge, finishLoginChallenge, claimSensitiveAttempt} from '@core/states';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendVerificationCode} from '@utils/email-smtp';
@@ -9,7 +8,7 @@ import {error} from '@utils/utils';
 import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
 import {sql} from '@core/services';
-import {consumeEmailCode, createSignupDraft, getSignupDraft} from '@core/states';
+import {consumeEmailCode, createSignupDraft, getSignupDraft, signupProgress} from '@core/states';
 import {SIGNUP_DRAFT_TTL} from '@core/constants';
 import {Elysia} from 'elysia';
 
@@ -23,8 +22,8 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
       const signUp = [
         '/registration',
         '/registration/email',
-        '/registration/profile',
-        '/registration/totp',
+        '/registration/resume',
+        '/registration/cancel',
         '/registration/recovery',
         '/registration/complete',
       ];
@@ -138,7 +137,7 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
     .post('/second-factor', ({set, body}) => completeSecondFactor(body, set, false))
     .post('/recovery', ({set, body}) => completeSecondFactor(body, set, true))
     .post('/registration', async ({set, body}) => {
-      const {email, password, err} = check(body, ['email', 'password']);
+      const {email, password, username, err} = check(body, ['email', 'password', 'username']);
 
       if (err) {
         return error(set, 400, err);
@@ -150,7 +149,13 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
         return error(set, 409, 'This email is already taken');
       }
 
-      const signup = createSignupDraft(email, await createHash(password));
+      const enableTwoFactor = (body as {enableTwoFactor?: unknown}).enableTwoFactor;
+
+      if (typeof enableTwoFactor !== 'boolean') {
+        return error(set, 400, 'Choose whether to enable two-factor authentication');
+      }
+
+      const signup = createSignupDraft(email, await createHash(password), username, enableTwoFactor);
 
       if (!signup) {
         return error(set, 503, 'Signup is busy. Please try again later');
@@ -176,45 +181,26 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
 
       draft.verified = true;
 
-      return {email: draft.email};
+      return draft.enableTwoFactor ? signupProgress(input.signup) : {ready: true};
     })
-    .put('/registration/profile', ({set, body}) => {
-      const {username, err} = check(body, ['username']);
-      const draft = getSignupDraft((body as {signup?: string})?.signup);
+    .post('/registration/resume', ({set, body}) => {
+      const signup = (body as {signup?: unknown})?.signup;
+      const draft = getSignupDraft(signup);
 
-      if (!draft?.verified) {
-        return error(set, 401, 'Signup expired. Start again');
+      if (!draft) {
+        return error(set, 410, 'Signup expired. Start again');
       }
 
-      if (err) {
-        return error(set, 400, err);
+      if (draft.verified && !draft.enableTwoFactor) {
+        return {ready: true};
       }
 
-      draft.username = username;
-
-      return {username};
+      return signupProgress(signup);
     })
-    .post('/registration/totp', ({set, body}) => {
-      const input = body as {signup?: string; enable?: boolean};
-      const draft = getSignupDraft(input?.signup);
+    .post('/registration/cancel', ({body}) => {
+      getSignupDraft((body as {signup?: unknown})?.signup, true);
 
-      if (!draft?.verified || !draft.username) {
-        return error(set, 401, 'Signup expired. Start again');
-      }
-
-      if (typeof input.enable !== 'boolean') {
-        return error(set, 400, 'Choose whether to enable two-factor authentication');
-      }
-
-      draft.recoveryHashes = [];
-      draft.totpCounter = undefined;
-      draft.secret = input.enable ? getSecret() : '';
-
-      if (!draft.secret) {
-        return {secret: ''};
-      }
-
-      return {secret: draft.secret, uri: createTOTP(draft.secret, draft.username).toString()};
+      return {success: true};
     })
     .post('/registration/recovery', ({set, body}) => {
       const input = body as {signup?: string; token?: string};
@@ -236,50 +222,39 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
 
       const recovery = getRecovery();
       draft.recoveryHashes = recovery.map(hashRecoveryCode);
+      draft.encryptedRecovery = encryptSecret(JSON.stringify(recovery));
       draft.totpCounter = Math.floor(Date.now() / 30_000) + delta;
 
       return {recovery};
     })
     .post('/registration/complete', async ({set, body}) => {
-      const input = body as {signup?: string; payment?: string};
+      const input = body as {signup?: string; savedRecovery?: boolean};
       const draft = getSignupDraft(input?.signup);
 
-      if (!draft?.verified || !draft.username || (draft.secret && !draft.recoveryHashes.length)) {
-        return error(set, 401, 'Complete signup verification before creating the account');
-      }
-
-      const {err, payment} = check(body, ['?payment']);
-
-      if (err) {
-        return error(set, 400, err);
-      }
-
-      if (!getSignupDraft(input.signup)) {
-        return error(set, 401, 'Signup expired. Start again');
+      if (!draft?.verified || !draft.username || (draft.secret && (!draft.recoveryHashes.length || input.savedRecovery !== true))) {
+        return error(set, 400, 'Complete verification and save the recovery codes before creating the account');
       }
 
       const {email, username, password, secret, recoveryHashes} = draft;
-      const inserted = await sql`INSERT INTO users (email, username, password, totp, totp_counter, recovery_hashes, api_key)
-      VALUES (${email}, ${username}, ${password}, ${secret ? encryptSecret(secret) : null}, ${draft.totpCounter ?? null}, ${recoveryHashes}, ${null})
-      ON CONFLICT (email) DO NOTHING RETURNING email, password, totp`;
+      const token = await sql.begin(async (transaction) => {
+        const inserted = await transaction`INSERT INTO users (email, username, password, totp, totp_counter, recovery_hashes, api_key)
+          VALUES (${email}, ${username}, ${password}, ${secret ? encryptSecret(secret) : null}, ${draft.totpCounter ?? null}, ${recoveryHashes}, ${null})
+          ON CONFLICT (email) DO NOTHING RETURNING email, password, totp`;
 
-      if (!inserted.length) {
+        if (!inserted.length) {
+          return null;
+        }
+
+        return issueSession(inserted[0] as QueryUser, transaction);
+      });
+
+      if (!token) {
         return error(set, 409, 'This email is already taken');
       }
 
       getSignupDraft(input.signup, true);
 
-      let warning;
-
-      if (payment) {
-        try {
-          await createBillingCustomer(email, payment);
-        } catch {
-          warning = 'Account created. Add your payment method in settings when billing is available';
-        }
-      }
-
-      return {token: await issueSession(inserted[0] as QueryUser), warning};
+      return {token};
     });
 }
 

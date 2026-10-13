@@ -4,10 +4,22 @@ import {moneroWallet, cryptoBillingEnabled} from '@core/config';
 import {requireProvider} from '@core/security';
 import {sql} from '@core/services';
 import moneroTs from 'monero-ts';
+import {createHash} from 'node:crypto';
 import type {ReservedSql, Sql} from 'postgres';
 
+let loadedRevision: string | null = null;
+let savedDigest = '';
+
 async function initMoneroWallet(connection: Sql | ReservedSql) {
-  const cacheQuery = await connection`SELECT keys_data, cache_data FROM wallet_cache WHERE id = 1`;
+  const cacheQuery = await connection`SELECT keys_data, cache_data, revision FROM wallet_cache WHERE id = 1`;
+
+  if (watchWallet && cacheQuery[0] && String(cacheQuery[0].revision) === loadedRevision) {
+    return;
+  }
+
+  if (watchWallet) {
+    await watchWallet.close();
+  }
 
   if (cacheQuery.length > 0) {
     setWatchWallet(
@@ -19,6 +31,8 @@ async function initMoneroWallet(connection: Sql | ReservedSql) {
         cacheData: cacheQuery[0].cache_data,
       }),
     );
+    loadedRevision = String(cacheQuery[0].revision);
+    savedDigest = createHash('sha256').update(cacheQuery[0].keys_data).update(cacheQuery[0].cache_data).digest('hex');
   } else {
     setWatchWallet(
       await moneroTs.createWalletFull({
@@ -36,23 +50,34 @@ async function initMoneroWallet(connection: Sql | ReservedSql) {
   }
 }
 
-export async function saveWalletState(connection: Sql | ReservedSql) {
-  if (!watchWallet) {
+export async function saveWalletState(connection: Sql | ReservedSql, wallet = watchWallet) {
+  if (!wallet) {
     return;
   }
 
-  const data = await watchWallet.getData();
+  const data = await wallet.getData();
 
   const keysBuffer = Buffer.from(data[0].buffer, data[0].byteOffset, data[0].byteLength);
   const cacheBuffer = Buffer.from(data[1].buffer, data[1].byteOffset, data[1].byteLength);
 
-  await connection`
+  const digest = createHash('sha256').update(keysBuffer).update(cacheBuffer).digest('hex');
+
+  if (digest === savedDigest) {
+    return;
+  }
+
+  const saved = await connection`
     INSERT INTO wallet_cache (id, keys_data, cache_data)
     VALUES (1, ${keysBuffer}, ${cacheBuffer})
     ON CONFLICT (id) DO UPDATE SET
       keys_data = EXCLUDED.keys_data,
-      cache_data = EXCLUDED.cache_data
+      cache_data = EXCLUDED.cache_data,
+      revision = wallet_cache.revision + 1
+    RETURNING revision
   `;
+
+  loadedRevision = String(saved[0].revision);
+  savedDigest = digest;
 }
 
 export function parseXmr(value: string) {
@@ -126,10 +151,6 @@ export async function withBillingWallet<T>(operation: (connection: ReservedSql) 
       throw new Error('Crypto billing is busy. Retry this request shortly');
     }
 
-    if (watchWallet) {
-      await watchWallet.close();
-    }
-
     await initMoneroWallet(connection);
 
     const result = await operation(connection);
@@ -138,6 +159,7 @@ export async function withBillingWallet<T>(operation: (connection: ReservedSql) 
     return result;
   } catch (error) {
     if (locked) {
+      loadedRevision = null;
       billingReadiness.available = false;
     }
 
@@ -161,7 +183,10 @@ export async function allocateInvoiceAddress(id: string, connection: ReservedSql
 
     const existing = subaddresses.find((address) => address.getLabel() === id);
     const subaddress = existing || (await watchWallet.createSubaddress(0, id));
-    await saveWalletState(connection);
+
+    if (!existing) {
+      await saveWalletState(connection);
+    }
 
     return subaddress.getAddress();
   }, connection);

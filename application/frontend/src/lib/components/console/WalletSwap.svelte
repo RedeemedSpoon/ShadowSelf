@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {untrack} from 'svelte';
+  import {untrack, onMount, onDestroy} from 'svelte';
   import {request} from '$utils/webfetch';
-  import type {FullIdentity, Coins, CryptoAPI, Provider} from '$type';
+  import type {FullIdentity, Coins, WalletTrade, SwapQuotes, WalletSwapRecord, Provider} from '$type';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
   import Copy from '$component/ui/Copy.svelte';
@@ -14,8 +14,68 @@
   let providers = $state<Provider[]>([]);
   let pending = $state(false);
   let error = $state('');
-  let trade = $state<CryptoAPI | null>(null);
-  let requestID = crypto.randomUUID();
+  let trade = $state<WalletTrade | null>(null);
+  let requestID: string = crypto.randomUUID();
+  let swaps = $state<WalletSwapRecord[]>([]);
+  let historyLoaded = $state(false);
+  let active = true;
+  const unresolved = $derived(swaps.find((swap) => swap.status !== 'completed'));
+
+  onDestroy(() => {
+    active = false;
+  });
+  onMount(() => {
+    void loadHistory();
+  });
+
+  async function loadHistory() {
+    const result = await request<{swaps: WalletSwapRecord[]}>(`/identities/${account.id}/wallet/swaps`);
+
+    if (!active) {
+      return;
+    }
+
+    if (!result.ok) {
+      error = result.error;
+      historyLoaded = false;
+      return;
+    }
+
+    swaps = result.data.swaps;
+    historyLoaded = true;
+  }
+
+  async function reconcile(swap: WalletSwapRecord) {
+    pending = true;
+    error = '';
+    const result =
+      swap.status === 'pending'
+        ? await request<{status: string; response?: WalletTrade; message?: string} | WalletTrade>(`/identities/${account.id}/wallet/swaps`, 'POST', {
+            ...swap.request,
+            requestID: swap.requestID,
+          })
+        : await request<{status: string; response?: WalletTrade; message?: string}>(
+            `/identities/${account.id}/wallet/swaps/${swap.requestID}/reconcile`,
+            'POST',
+          );
+
+    if (!active) {
+      return;
+    }
+
+    pending = false;
+
+    if (!result.ok) {
+      error = result.error;
+    } else if ('depositAddress' in result.data) {
+      trade = result.data;
+    } else {
+      trade = result.data.response || null;
+      error = result.data.message || '';
+    }
+
+    await loadHistory();
+  }
   let tradeID = '';
   let quoteInput: {coinFrom: Coins; coinTo: Coins; amount: number};
 
@@ -26,17 +86,26 @@
 
   async function quotes(event: SubmitEvent) {
     event.preventDefault();
+
+    if (!historyLoaded || unresolved) {
+      return;
+    }
+
     pending = true;
     error = '';
     providers = [];
     quoteInput = {coinFrom: coin, coinTo: destinationCoin, amount: Number(amount)};
 
-    const result = await request<CryptoAPI>(`/identities/${account.id}/wallet/swap-quotes`, 'GET', quoteInput);
+    const result = await request<SwapQuotes>(`/identities/${account.id}/wallet/swap-quotes`, 'GET', quoteInput);
     pending = false;
 
     if (!result.ok) {
       error = result.error;
 
+      return;
+    }
+
+    if (!active) {
       return;
     }
 
@@ -46,10 +115,14 @@
   }
 
   async function create(provider: string) {
+    if (!historyLoaded || unresolved) {
+      return;
+    }
+
     pending = true;
     error = '';
 
-    const result = await request<CryptoAPI>(`/identities/${account.id}/wallet/swaps`, 'POST', {
+    const result = await request<WalletTrade>(`/identities/${account.id}/wallet/swaps`, 'POST', {
       ...quoteInput,
       destinationAddress: destination,
       refundAddress: refund,
@@ -62,19 +135,39 @@
 
     if (!result.ok) {
       error = result.error;
+      await loadHistory();
+      return;
+    }
 
+    if (!active) {
       return;
     }
 
     trade = result.data;
+    await loadHistory();
   }
 </script>
 
 <section class="panel">
   <h3>Swap {coin.toUpperCase()}</h3>
   <p>External swap providers quote and process the exchange. Review their requirements before depositing.</p>
-  <Status message={error} kind="error" />{#if trade}<Status
-      message="Swap created. Deposit only the specified amount. Keep the trade reference until completion." />
+  <Status message={error} kind="error" />
+  {#if !historyLoaded}<Button variant="secondary" onclick={loadHistory}>Load swap history</Button>{/if}
+  {#if unresolved}<Status message="An earlier swap request needs reconciliation. New trades are blocked until the provider confirms its outcome." /><Copy
+      value={unresolved.requestID}
+      label="Copy request reference" /><Button loading={pending} onclick={() => reconcile(unresolved)}
+      >{unresolved.status === 'pending' ? 'Resume saved request' : 'Check existing provider trade'}</Button
+    >{/if}
+  {#if swaps.length}<details>
+      <summary>Saved swap requests</summary>
+      {#each swaps as swap (swap.requestID)}<div class="saved-swap">
+          <p>{swap.request.amount} {swap.request.coinFrom.toUpperCase()} → {swap.request.coinTo.toUpperCase()} · {swap.status}</p>
+          <Copy value={swap.requestID} label="Copy reference" />{#if swap.response}<Button variant="quiet" onclick={() => (trade = swap.response)}
+              >View deposit details</Button
+            >{/if}
+        </div>{/each}
+    </details>{/if}
+  {#if trade}<Status message="Swap created. Deposit only the specified amount. Keep the trade reference until completion." />
     <dl class="data-list">
       <div>
         <dt>Trade reference</dt>
@@ -129,7 +222,7 @@
             required />
         </div>
       </div>
-      <Button loading={pending} type="submit">Get provider quotes</Button>
+      <Button loading={pending} disabled={!historyLoaded || !!unresolved} type="submit">Get provider quotes</Button>
     </form>
     {#if providers.length}<div class="quote-list">
         {#each providers as provider (provider.name)}<article>
@@ -138,7 +231,7 @@
               <p>{provider.returnCoin} {destinationCoin.toUpperCase()} · Approx. {provider.eta} minutes</p>
               <small>KYC rating {provider.kycRating} · Logs rating {provider.logPolicy} · Fee {provider.costPercentage}%</small>
             </div>
-            <Button variant="secondary" loading={pending} onclick={() => create(provider.name)}>Create swap</Button>
+            <Button variant="secondary" loading={pending} disabled={!historyLoaded || !!unresolved} onclick={() => create(provider.name)}>Create swap</Button>
           </article>{/each}
       </div>{/if}{/if}
 </section>

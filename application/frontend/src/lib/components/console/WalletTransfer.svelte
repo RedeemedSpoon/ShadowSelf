@@ -1,16 +1,12 @@
 <script lang="ts">
-  import {parseUnits, formatUnits} from 'viem';
-  import {privateKeyToAccount} from 'viem/accounts';
-  import * as bitcoin from '@scure/btc-signer';
-  import {HDKey} from '@scure/bip32';
   import {request} from '$utils/webfetch';
   import {deriveXPub, decrypt} from '$utils/cryptography';
-  import {selectBestUtxos, estimateTransactionFee, signTransaction} from '$utils/wallet';
-  import {prepareMoneroTransaction, broadcastMoneroTransaction} from '$utils/monero';
+  import {selectBestUtxos, estimateTransactionFee, signTransaction, acquireEvmSend, checkPendingEvmSend, recordPendingEvmSend} from '$utils/wallet';
+  import type {prepareMoneroTransaction} from '$utils/monero';
   import {vaultKey} from '$store';
   import {get} from 'svelte/store';
   import {onDestroy} from 'svelte';
-  import type {FullIdentity, Coins, CryptoAPI, UTXOData, Priority, transactionData} from '$type';
+  import type {FullIdentity, Coins, WalletState, UTXOData, Priority, transactionData, EvmPreparation} from '$type';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
   import Dialog from '$component/ui/Dialog.svelte';
@@ -23,7 +19,7 @@
     crypto,
     sweep = false,
     oncomplete,
-  }: {account: FullIdentity; coin: Coins; crypto: CryptoAPI; sweep?: boolean; oncomplete: () => Promise<void>} = $props();
+  }: {account: FullIdentity; coin: Coins; crypto: WalletState; sweep?: boolean; oncomplete: () => Promise<void>} = $props();
   let amount = $state('');
   let destination = $state('');
   let privateKey = $state('');
@@ -38,19 +34,34 @@
   let monero: Awaited<ReturnType<typeof prepareMoneroTransaction>> | undefined;
   let reviewed = $state({amount: '', recipient: '', fee: '', unit: ''});
   let active = true;
+  let releaseSend: (() => void) | undefined;
+  let sendingAddress = '';
+  let preparedNonce: number | undefined;
+
+  function discardPreparation() {
+    payload = undefined;
+    monero = undefined;
+    releaseSend?.();
+    releaseSend = undefined;
+  }
+
+  $effect(() => {
+    if (!review && !pending) {
+      discardPreparation();
+    }
+  });
 
   onDestroy(() => {
     active = false;
     privateKey = '';
-    payload = undefined;
-    monero = undefined;
+    discardPreparation();
   });
 
   let selected = $state<UTXOData>([]);
-  const utxos = $derived(coin === 'btc' || coin === 'ltc' ? crypto.wallet[coin].utxos : []);
+  const utxos = $derived((coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status !== 'Unavailable' ? crypto.wallet[coin].utxos : []);
   const fee = $derived.by(() => {
     try {
-      return estimateTransactionFee(coin, selected, crypto.fees[coin][priority], amount);
+      return estimateTransactionFee(coin, selected, crypto.fees[coin]?.[priority] ?? 0, amount);
     } catch {
       return {fee: 0, unit: coin === 'usdt' ? 'ETH' : coin.toUpperCase()};
     }
@@ -62,7 +73,7 @@
     }
 
     try {
-      selected = selectBestUtxos(utxos, amount, crypto.fees[coin][priority]);
+      selected = selectBestUtxos(utxos, amount, crypto.fees[coin]?.[priority] ?? 0);
     } catch {
       selected = [];
     }
@@ -74,10 +85,11 @@
     error = '';
     success = '';
     txid = '';
-    payload = undefined;
-    monero = undefined;
+    discardPreparation();
 
     const key = get(vaultKey);
+    const requestedAmount = amount;
+    const recipient = destination;
 
     try {
       if (sweep) {
@@ -87,14 +99,15 @@
       }
 
       if (coin === 'xmr') {
-        const prepared = await prepareMoneroTransaction(crypto.wallet.xmr.nodeUrl, destination, amount, {low: 1, medium: 2, high: 3}[priority]);
+        const {prepareMoneroTransaction} = await import('$utils/monero');
+        const prepared = await prepareMoneroTransaction(crypto.wallet.xmr.nodeUrl, recipient, requestedAmount, {low: 1, medium: 2, high: 3}[priority]);
 
         if (!active || get(vaultKey) !== key) {
           return;
         }
 
         monero = prepared;
-        reviewed = {amount, recipient: destination, fee: prepared.fee, unit: 'XMR'};
+        reviewed = {amount: requestedAmount, recipient, fee: prepared.fee, unit: 'XMR'};
         review = true;
 
         return;
@@ -110,20 +123,40 @@
         throw new Error('Could not decrypt the wallet recovery phrase.');
       }
 
-      const wallet = crypto.wallet[coin as 'btc'];
-      const signed = await signTransaction(coin, destination, amount, {
-        estimatedFee:
-          coin === 'btc' || coin === 'ltc' ? estimateTransactionFee(coin, selected, crypto.fees[coin][priority], amount) : crypto.fees[coin][priority],
+      let prepared: EvmPreparation | undefined;
+
+      if (coin === 'eth' || coin === 'usdt') {
+        sendingAddress = account.walletKeys.evm;
+        releaseSend = await acquireEvmSend(sendingAddress);
+
+        if (!active || get(vaultKey) !== key) {
+          return;
+        }
+
+        const response = await request<EvmPreparation>(`/identities/${account.id}/wallet/prepare`, 'POST', {coin});
+
+        if (!response.ok) {
+          throw new Error(response.error);
+        }
+
+        prepared = response.data;
+        checkPendingEvmSend(sendingAddress, prepared.nonce);
+        preparedNonce = prepared.nonce;
+      }
+
+      const wallet = coin === 'btc' || coin === 'ltc' ? crypto.wallet[coin] : undefined;
+      const signed = await signTransaction(coin, recipient, requestedAmount, {
+        senderAddress: prepared ? sendingAddress : undefined,
+        gasPriceAtoms: prepared?.gasPriceAtoms,
+        estimatedFee: prepared ? prepared.gasPrice : estimateTransactionFee(coin, selected, crypto.fees[coin]?.[priority] ?? 0, requestedAmount),
         privKeyType: 'mnemonic',
         wifKey: mnemonic,
-        index: wallet.nextIndex,
-        xpubKey: account.walletKeys[coin as 'btc'],
+        index: wallet && wallet.status !== 'Unavailable' ? (wallet.nextIndex ?? undefined) : undefined,
+        xpubKey: coin === 'btc' || coin === 'ltc' ? account.walletKeys[coin] : undefined,
         utxos: selected,
-        nonce: crypto.wallet[coin as 'eth'].nonce,
-        balance: crypto.wallet[coin].balance,
-        gasBalance: crypto.wallet.eth.balance,
-        balanceAtoms: crypto.wallet[coin as 'eth'].balanceAtoms,
-        gasBalanceAtoms: crypto.wallet.eth.balanceAtoms,
+        nonce: prepared?.nonce,
+        balanceAtoms: coin === 'usdt' ? prepared?.usdtBalanceAtoms : prepared?.ethBalanceAtoms,
+        gasBalanceAtoms: prepared?.ethBalanceAtoms,
       });
 
       if (!active || get(vaultKey) !== key) {
@@ -131,16 +164,27 @@
       }
 
       payload = signed;
-      reviewed = {amount, recipient: destination, fee: signed.fee, unit: signed.feeUnit};
+      reviewed = {amount: requestedAmount, recipient, fee: signed.fee, unit: signed.feeUnit};
       review = true;
     } catch (cause) {
+      discardPreparation();
       error = cause instanceof Error ? cause.message : 'Could not prepare this transaction.';
     } finally {
+      if (!active || get(vaultKey) !== key) {
+        discardPreparation();
+      }
+
       pending = false;
     }
   }
 
   async function prepareSweep() {
+    const [{formatUnits}, {privateKeyToAccount}, bitcoin, {HDKey}] = await Promise.all([
+      import('viem'),
+      import('viem/accounts'),
+      import('@scure/btc-signer'),
+      import('@scure/bip32'),
+    ]);
     const key = get(vaultKey);
     const importedKey = privateKey;
     let addresses: string[];
@@ -155,7 +199,16 @@
       addresses = [privateKeyToAccount((importedKey.startsWith('0x') ? importedKey : `0x${importedKey}`) as `0x${string}`).address];
     }
 
-    const result = await request<{balance: number | string; gasBalance?: string; utxos?: UTXOData; nonce?: number}>(
+    if (coin === 'eth' || coin === 'usdt') {
+      sendingAddress = addresses[0];
+      releaseSend = await acquireEvmSend(sendingAddress);
+
+      if (!active || get(vaultKey) !== key) {
+        return;
+      }
+    }
+
+    const result = await request<{balance: number | string; gasBalance?: string; utxos?: UTXOData; nonce?: number; gasPrice?: number; gasPriceAtoms?: string}>(
       `/identities/${account.id}/wallet/sweep`,
       'POST',
       {coin, addresses},
@@ -166,8 +219,20 @@
     }
 
     const data = result.data;
-    const rate = crypto.fees[coin].medium;
+    const rate = data.gasPrice ?? crypto.fees[coin]?.medium;
+
+    if (!rate || rate <= 0) {
+      throw new Error('Current transaction fees are unavailable.');
+    }
+
+    if (coin === 'eth' || coin === 'usdt') {
+      checkPendingEvmSend(sendingAddress, data.nonce!);
+      preparedNonce = data.nonce;
+    }
+
     let transfer: transactionData = {
+      senderAddress: sendingAddress,
+      gasPriceAtoms: data.gasPriceAtoms,
       estimatedFee: rate,
       privKeyType: 'hex',
       wifKey: importedKey,
@@ -185,10 +250,21 @@
       }
 
       amount = formatUnits(satoshis, 8);
-      destination = deriveXPub(coin, account.walletKeys[coin], crypto.wallet[coin].nextIndex);
-      transfer = {estimatedFee: {fee: minerFee / 1e8}, privKeyType: 'wif', wifKey: importedKey, utxos: data.utxos?.map((item) => ({...item, pathIndex: 0}))};
+      const wallet = crypto.wallet[coin];
+
+      if (wallet.status !== 'Synced' || wallet.nextIndex === null) {
+        throw new Error('A complete discovery scan is required before sweeping to this wallet.');
+      }
+
+      destination = deriveXPub(coin, account.walletKeys[coin], wallet.nextIndex);
+      transfer = {
+        estimatedFee: {fee: minerFee / 1e8, feeAtoms: String(minerFee)},
+        privKeyType: 'wif',
+        wifKey: importedKey,
+        utxos: data.utxos?.map((item) => ({...item, pathIndex: 0})),
+      };
     } else {
-      const gas = 21000n * parseUnits(String(rate), 9);
+      const gas = 21000n * BigInt(data.gasPriceAtoms!);
       const units = coin === 'eth' ? BigInt(data.balance) - gas : BigInt(data.balance);
 
       if (units <= 0n) {
@@ -216,6 +292,13 @@
   }
 
   async function broadcast() {
+    const key = get(vaultKey);
+
+    if (!key || !active) {
+      discardPreparation();
+      return;
+    }
+
     pending = true;
     error = '';
 
@@ -225,12 +308,34 @@
           throw new Error('Prepare the transaction again.');
         }
 
+        const {broadcastMoneroTransaction} = await import('$utils/monero');
         const warning = await broadcastMoneroTransaction(crypto.wallet.xmr.nodeUrl, monero);
         txid = monero.txid;
         success = warning || 'Monero transaction relayed. Sync the wallet to verify its status.';
       } else {
         if (!payload) {
           throw new Error('Prepare the transaction again.');
+        }
+
+        if (coin === 'eth' || coin === 'usdt') {
+          const fresh = await request<EvmPreparation>(`/identities/${account.id}/wallet/prepare`, 'POST', {coin, address: sendingAddress});
+
+          if (!active || get(vaultKey) !== key) {
+            discardPreparation();
+            return;
+          }
+
+          if (!fresh.ok) {
+            throw new Error(fresh.error);
+          }
+
+          if (fresh.data.nonce !== preparedNonce) {
+            discardPreparation();
+            review = false;
+            throw new Error('The pending nonce changed after review. Prepare the transaction again.');
+          }
+
+          recordPendingEvmSend(sendingAddress, preparedNonce!);
         }
 
         const result = await request<{txid: string}>(`/identities/${account.id}/wallet/transactions`, 'POST', {coin: payload.coin, hex: payload.hex});
@@ -243,8 +348,7 @@
         success = 'Transaction submitted to the network. Confirmation may take time.';
       }
 
-      payload = undefined;
-      monero = undefined;
+      discardPreparation();
       review = false;
       amount = '';
       await oncomplete();
@@ -259,6 +363,8 @@
 <section class="panel">
   <h3>{sweep ? 'Sweep a private key' : `Send ${coin.toUpperCase()}`}</h3>
   {#if sweep}<p>Transfers the source balance minus the network fee. The private key stays in your browser.</p>{/if}
+  {#if (coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status === 'Incomplete'}<Status
+      message="Discovery is incomplete. This send uses only verified outputs and returns change to an existing address. Reusing an address links payments publicly." />{/if}
   <Status message={error} kind="error" /><Status message={success} kind="success" />{#if txid}<Copy value={txid} label="Copy transaction ID" />{/if}
   <form onsubmit={prepare} class="transfer-form">
     {#if sweep}<div class="field">
@@ -266,6 +372,7 @@
           id="sweep-key"
           type="password"
           bind:value={privateKey}
+          disabled={pending}
           autocomplete="off"
           required />
       </div>{:else}<div class="form-grid">
@@ -274,16 +381,22 @@
             id="send-amount"
             inputmode="decimal"
             bind:value={amount}
+            disabled={pending}
             onchange={selectCoins}
             pattern="[0-9]+(\.[0-9]+)?"
             required />
         </div>
         <div class="field">
-          <label for="send-priority">Network priority</label><select id="send-priority" bind:value={priority} onchange={selectCoins}
+          <label for="send-priority">Network priority</label><select id="send-priority" bind:value={priority} disabled={pending} onchange={selectCoins}
             ><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
         </div>
         <div class="field wide">
-          <label for="send-destination">Recipient address</label><input id="send-destination" bind:value={destination} autocomplete="off" required />
+          <label for="send-destination">Recipient address</label><input
+            id="send-destination"
+            bind:value={destination}
+            disabled={pending}
+            autocomplete="off"
+            required />
         </div>
       </div>
       {#if coin !== 'xmr'}<p>Estimated network fee · {fee.fee} {fee.unit}</p>{/if}{#if utxos.length}<details class="coin-control">

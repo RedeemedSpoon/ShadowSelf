@@ -1,12 +1,7 @@
-import {createWalletClient, http, parseEther, parseUnits, encodeFunctionData, isAddress, formatUnits} from 'viem';
-import {privateKeyToAccount, mnemonicToAccount, type LocalAccount} from 'viem/accounts';
+import type {LocalAccount} from 'viem/accounts';
 import type {BtcSigner, Coins, PrivKeyType, transactionData, UTXOData} from '$type';
+import {UTXO_HARD_LIMIT} from '$constant';
 import {deriveXPub} from '$utils/cryptography';
-
-import * as btc from '@scure/btc-signer';
-import * as bip39 from '@scure/bip39';
-import {mainnet} from 'viem/chains';
-import {HDKey} from '@scure/bip32';
 
 function parseCoinAmount(coin: Coins, amount: string | number): bigint {
   const decimals = coin === 'eth' ? 18 : coin === 'usdt' ? 6 : coin === 'xmr' ? 12 : 8;
@@ -16,7 +11,8 @@ function parseCoinAmount(coin: Coins, amount: string | number): bigint {
     throw new Error(`Use a positive amount with at most ${decimals} decimal places.`);
   }
 
-  const atoms = parseUnits(value, decimals);
+  const [whole, fraction = ''] = value.split('.');
+  const atoms = BigInt(whole) * 10n ** BigInt(decimals) + BigInt(fraction.padEnd(decimals, '0'));
 
   if (atoms <= 0n) {
     throw new Error('Enter an amount greater than zero.');
@@ -99,6 +95,13 @@ export function estimateTransactionFee(coin: Coins, inputs: UTXOData, feeRate: n
 }
 
 async function parsePrivKey(key: string, type: PrivKeyType, coin: Coins) {
+  const [{privateKeyToAccount, mnemonicToAccount}, btc, bip39, {HDKey}] = await Promise.all([
+    import('viem/accounts'),
+    import('@scure/btc-signer'),
+    import('@scure/bip39'),
+    import('@scure/bip32'),
+  ]);
+
   if (['eth', 'usdt'].includes(coin)) {
     if (type === 'mnemonic') {
       return mnemonicToAccount(key);
@@ -124,6 +127,12 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
     throw new Error('Enter a valid recipient address.');
   }
 
+  const [{createWalletClient, http, parseEther, parseUnits, encodeFunctionData, isAddress, formatUnits}, btc, {HDKey}, {mainnet}] = await Promise.all([
+    import('viem'),
+    import('@scure/btc-signer'),
+    import('@scure/bip32'),
+    import('viem/chains'),
+  ]);
   const amountAtoms = parseCoinAmount(coin, amt);
 
   const broadcastPayload = {coin: coin, hex: '', fee: '', feeUnit: coin === 'usdt' ? 'ETH' : coin.toUpperCase()};
@@ -214,7 +223,15 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
         let returnAddress;
 
         if (data.privKeyType === 'mnemonic') {
-          returnAddress = deriveXPub(coin, data.xpubKey!, data.index!);
+          if (data.index === undefined) {
+            returnAddress = data.utxos[0].address;
+          } else {
+            if (!Number.isSafeInteger(data.index) || data.index < 0 || data.index >= UTXO_HARD_LIMIT) {
+              throw new Error('A discovered change address within the supported range is required.');
+            }
+
+            returnAddress = deriveXPub(coin, data.xpubKey!, data.index);
+          }
         } else {
           const pubKey = new HDKey({
             privateKey: (signer as any).privKey,
@@ -252,22 +269,34 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
 
       const account = (await parsePrivKey(data.wifKey, data.privKeyType, coin)) as LocalAccount;
 
+      if (account.address.toLowerCase() !== data.senderAddress?.toLowerCase()) {
+        throw new Error('The signing key does not match the prepared source address.');
+      }
+
+      if (!Number.isSafeInteger(data.nonce) || data.nonce! < 0 || !/^\d+$/.test(data.balanceAtoms ?? '') || !/^\d+$/.test(data.gasBalanceAtoms ?? '')) {
+        throw new Error('Fresh pending nonce and balances are required. Prepare the transaction again.');
+      }
+
       const client = createWalletClient({account, chain: mainnet, transport: http()});
 
       if (typeof data.estimatedFee !== 'number' || !Number.isFinite(data.estimatedFee) || data.estimatedFee <= 0) {
         throw new Error('A valid gas fee is required.');
       }
 
-      const gasPrice = parseUnits(data.estimatedFee.toString(), 9);
+      if (!/^\d+$/.test(data.gasPriceAtoms ?? '') || BigInt(data.gasPriceAtoms!) <= 0n) {
+        throw new Error('A current gas price in wei is required. Prepare the transaction again.');
+      }
 
-      const ethBalanceWei = data.balanceAtoms !== undefined ? BigInt(data.balanceAtoms) : parseEther(String(data.gasBalance ?? data.balance));
+      const gasPrice = BigInt(data.gasPriceAtoms!);
+
+      const ethBalanceWei = BigInt(data.balanceAtoms!);
       const feeWei = gasPrice * (coin === 'usdt' ? BigInt(65000) : BigInt(21000));
 
       let serializedRequest;
 
       if (coin === 'usdt') {
-        const tokenBalance = data.balanceAtoms !== undefined ? BigInt(data.balanceAtoms) : parseUnits(String(data.balance), 6);
-        const gasBalance = data.gasBalanceAtoms !== undefined ? BigInt(data.gasBalanceAtoms) : parseEther(String(data.gasBalance || 0));
+        const tokenBalance = BigInt(data.balanceAtoms!);
+        const gasBalance = BigInt(data.gasBalanceAtoms!);
 
         if (gasBalance < feeWei) {
           throw new Error('The source wallet needs enough ETH to pay the USDT network fee.');
@@ -332,4 +361,64 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
   }
 
   return broadcastPayload;
+}
+
+export async function acquireEvmSend(address: string): Promise<() => void> {
+  if (!navigator.locks) {
+    throw new Error('This browser cannot coordinate wallet sends across tabs. Use a browser with Web Locks support.');
+  }
+
+  let acquired!: () => void;
+  let denied!: (error: Error) => void;
+  let release!: () => void;
+  const ready = new Promise<void>((resolve, reject) => {
+    acquired = resolve;
+    denied = reject;
+  });
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  void navigator.locks
+    .request(`wallet-send:${address.toLowerCase()}`, {ifAvailable: true}, async (lock) => {
+      if (!lock) {
+        denied(new Error('Another tab is preparing or submitting an ETH or USDT transaction from this address.'));
+        return;
+      }
+
+      acquired();
+      await held;
+    })
+    .catch((cause) => denied(cause instanceof Error ? cause : new Error('Wallet coordination failed.')));
+
+  await ready;
+
+  return release;
+}
+
+export function checkPendingEvmSend(address: string, nonce: number, storage: Storage = localStorage) {
+  const key = `wallet-pending:${address.toLowerCase()}`;
+  const pending = storage.getItem(key);
+
+  if (pending === null) {
+    return;
+  }
+
+  const saved = Number(pending);
+
+  if (!/^\d+$/.test(pending) || !Number.isSafeInteger(saved) || saved < 0 || !Number.isSafeInteger(nonce) || nonce <= saved) {
+    throw new Error(
+      'A previous ETH or USDT broadcast is still unconfirmed by the provider. Retry after it appears in pending transactions; do not create a replacement send.',
+    );
+  }
+
+  storage.removeItem(key);
+}
+
+export function recordPendingEvmSend(address: string, nonce: number, storage: Storage = localStorage) {
+  if (!Number.isSafeInteger(nonce) || nonce < 0) {
+    throw new Error('A valid pending nonce is required. Prepare the transaction again.');
+  }
+
+  storage.setItem(`wallet-pending:${address.toLowerCase()}`, String(nonce));
 }

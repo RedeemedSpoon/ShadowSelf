@@ -3,7 +3,7 @@
   import {SvelteSet} from 'svelte/reactivity';
   import {request} from '$utils/webfetch';
   import {sanitizeEmailHtml, base64ToBlob} from '$utils/shared';
-  import type {FullIdentity, Email, EmailAPI, Inbox} from '$type';
+  import type {FullIdentity, Email, EmailSummary, EmailPage, EmailMutation, Mailbox, Attachment} from '$type';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
   import Icon from '$component/ui/Icon.svelte';
@@ -11,8 +11,8 @@
   import MailComposer from './MailComposer.svelte';
 
   let {account}: {account: FullIdentity} = $props();
-  let inbox = $state<Inbox | null>(null);
-  let mailbox = $state<'inbox' | 'sent' | 'drafts' | 'junk'>('inbox');
+  let page = $state<EmailPage | null>(null);
+  let mailbox = $state<Mailbox>('INBOX');
   let target = $state<Email | null>(null);
   let thread = $state<Email[]>([]);
   let mode = $state<'browse' | 'compose' | 'reply' | 'draft'>('browse');
@@ -22,16 +22,39 @@
   let forwardOpen = $state(false);
   let forwardTo = $state('');
   let deleteOpen = $state(false);
-  let more = $state(true);
-  const names = {inbox: 'INBOX', sent: 'Sent', drafts: 'Drafts', junk: 'Junk'};
-  const messages = $derived(inbox?.[mailbox] || []);
+  let generation = 0;
+  let controller: AbortController | undefined;
+  const names: Mailbox[] = ['INBOX', 'Sent', 'Drafts', 'Junk'];
+  const messages = $derived(page?.messages || []);
   const path = $derived(`/identities/${account.id}/mail`);
 
-  async function load() {
+  function invalidate() {
+    generation++;
+    controller?.abort();
+    controller = new AbortController();
+    pending = false;
+
+    return generation;
+  }
+
+  async function load(append = false) {
+    const box = mailbox;
+    const cursor = append ? page?.nextCursor : undefined;
+
+    if (append && !cursor) {
+      return;
+    }
+
+    const current = invalidate();
     pending = true;
     error = '';
 
-    const result = await request<EmailAPI>(`${path}/messages`);
+    const result = await request<EmailPage>(`${path}/messages`, 'GET', {mailbox: box, before: cursor}, controller?.signal);
+
+    if (current !== generation || mailbox !== box) {
+      return;
+    }
+
     pending = false;
 
     if (!result.ok) {
@@ -40,76 +63,111 @@
       return;
     }
 
-    inbox = result.data.emails;
-    warning = result.data.warning || '';
+    const existing = append ? messages : [];
+    const combined = [...new Map([...existing, ...result.data.messages].map((message) => [message.uid, message])).values()];
+    page = {...result.data, messages: combined.sort((a, b) => b.uid - a.uid)};
   }
 
-  async function loadMore() {
-    const since = Math.min(...messages.map((message) => message.uid));
-
-    if (!Number.isSafeInteger(since) || since <= 1) {
-      more = false;
-
-      return;
-    }
-
+  async function open(message: EmailSummary) {
+    const current = invalidate();
+    const box = mailbox;
     pending = true;
-
-    const result = await request<EmailAPI>(`${path}/messages/more`, 'GET', {mailbox: names[mailbox], since});
-    pending = false;
-
-    if (!result.ok) {
-      error = result.error;
-
-      return;
-    }
-
-    if (inbox) {
-      inbox[mailbox] = [...messages, ...(result.data.nextEmails || [])];
-    }
-
-    more = !!result.data.nextEmails?.length;
-  }
-
-  async function open(message: Email) {
-    target = message;
+    target = null;
     thread = [];
     error = '';
+    warning = '';
 
-    if (mailbox === 'drafts') {
-      mode = 'draft';
+    const result = await request<{email: Email}>(`${path}/message`, 'GET', {mailbox: box, uid: message.uid}, controller?.signal);
+
+    if (current !== generation) {
+      return;
+    }
+
+    if (!result.ok) {
+      pending = false;
+      error = result.error;
 
       return;
     }
 
-    const seen = new SvelteSet<string>();
-    let reference = message.inReplyTo;
+    target = result.data.email;
+    message.read = true;
+
+    if (box === 'Drafts') {
+      for (const file of target.attachments) {
+        const attached = await request<{attachment: Attachment}>(
+          `${path}/attachment`,
+          'GET',
+          {mailbox: box, uid: message.uid, index: file.index},
+          controller?.signal,
+        );
+
+        if (current !== generation) {
+          return;
+        }
+
+        if (!attached.ok) {
+          pending = false;
+          error = 'Draft attachments could not be loaded. Reopen the draft before editing.';
+          target = null;
+
+          return;
+        }
+
+        file.data = attached.data.attachment.data;
+      }
+
+      mode = 'draft';
+      pending = false;
+
+      return;
+    }
+
+    pending = false;
+    const seen = new SvelteSet<string>(target.messageID ? [target.messageID] : []);
+    const locations = new SvelteSet([`${target.mailbox}-${target.uid}`]);
+    let reference = target.inReplyTo;
 
     while (reference && !seen.has(reference) && seen.size < 40) {
       seen.add(reference);
+      const earlier = await request<{fetchEmail: Email | null}>(`${path}/reply`, 'GET', {uuid: reference}, controller?.signal);
 
-      const found = [...(inbox?.inbox || []), ...(inbox?.sent || [])].find((item) => item.messageID.trim() === reference?.trim());
-      const result = found ? {ok: true as const, data: {fetchEmail: found}} : await request<EmailAPI>(`${path}/reply`, 'GET', {uuid: reference});
+      if (current !== generation) {
+        return;
+      }
 
-      if (!result.ok) {
+      if (!earlier.ok) {
         warning = 'Some earlier messages could not be loaded.';
         break;
       }
 
-      if (!result.data.fetchEmail) {
+      if (!earlier.data.fetchEmail) {
         break;
       }
 
-      thread = [...thread, result.data.fetchEmail];
-      reference = result.data.fetchEmail.inReplyTo;
+      const location = `${earlier.data.fetchEmail.mailbox}-${earlier.data.fetchEmail.uid}`;
+
+      if (locations.has(location)) {
+        break;
+      }
+
+      locations.add(location);
+      thread = [...thread, earlier.data.fetchEmail];
+      reference = earlier.data.fetchEmail.inReplyTo;
     }
   }
 
-  async function submit(body: Record<string, unknown>, save: boolean) {
+  async function mutate(endpoint: string, method: string, body: Record<string, unknown>) {
+    const current = invalidate();
     pending = true;
     error = '';
 
-    const result = await request<EmailAPI>(save ? `${path}/draft` : `${path}/messages`, save ? 'PUT' : 'POST', body);
+    const result = await request<EmailMutation>(`${path}/${endpoint}`, method, body);
+
+    if (current !== generation) {
+      return;
+    }
+
     pending = false;
 
     if (!result.ok) {
@@ -121,41 +179,41 @@
     warning = result.data.warning || '';
     mode = 'browse';
     target = null;
+    forwardOpen = false;
+    deleteOpen = false;
     await load();
   }
 
+  async function submit(body: Record<string, unknown>, save: boolean) {
+    await mutate(save ? 'draft' : 'messages', save ? 'PUT' : 'POST', body);
+  }
+
   async function remove() {
-    if (!target) {
-      return;
+    if (target) {
+      await mutate('messages', 'DELETE', {mailbox: target.mailbox, uid: target.uid});
     }
-
-    pending = true;
-
-    const result = await request<EmailAPI>(`${path}/messages`, 'DELETE', {mailbox: names[mailbox], uid: target.uid});
-    pending = false;
-
-    if (!result.ok) {
-      error = result.error;
-
-      return;
-    }
-
-    deleteOpen = false;
-    target = null;
-    await load();
   }
 
   async function forward(event: SubmitEvent) {
     event.preventDefault();
 
-    if (!target) {
+    if (target) {
+      await mutate('forward', 'POST', {forward: forwardTo, mailbox: target.mailbox, uid: target.uid});
+    }
+  }
+
+  async function attachment(message: Email, index: number) {
+    const current = generation;
+    const result = await request<{attachment: Attachment}>(
+      `${path}/attachment`,
+      'GET',
+      {mailbox: message.mailbox, uid: message.uid, index},
+      controller?.signal,
+    );
+
+    if (current !== generation) {
       return;
     }
-
-    pending = true;
-
-    const result = await request<EmailAPI>(`${path}/forward`, 'POST', {forward: forwardTo, uid: target.uid});
-    pending = false;
 
     if (!result.ok) {
       error = result.error;
@@ -163,14 +221,7 @@
       return;
     }
 
-    forwardOpen = false;
-    forwardTo = '';
-    target = null;
-    warning = result.data.warning || '';
-    await load();
-  }
-
-  function attachment(file: Email['attachments'][number]) {
+    const file = result.data.attachment;
     const url = URL.createObjectURL(base64ToBlob(file.data, file.contentType || 'application/octet-stream'));
     const link = document.createElement('a');
     link.href = url;
@@ -179,11 +230,14 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  function reset(box: typeof mailbox) {
+  function reset(box = mailbox) {
+    invalidate();
     mailbox = box;
     target = null;
+    thread = [];
     mode = 'browse';
-    more = true;
+    page = null;
+    void load();
   }
 
   onMount(() => {
@@ -192,18 +246,24 @@
     const incoming = (event: Event) => {
       const update = (event as CustomEvent).detail;
 
-      if (update.identityID !== account.id) {
+      if (update.identityID !== account.id || update.type !== 'email' || mailbox !== 'INBOX' || !page) {
         return;
       }
 
-      if (update.type === 'email' && inbox) {
-        inbox.inbox = [update.email, ...inbox.inbox.filter((message) => message.messageID !== update.email.messageID)];
-        inbox.messagesCount++;
+      const email = update.email as EmailSummary;
+      const existing = page.messages.some((message) => message.uid === email.uid);
+      page.messages = [email, ...page.messages.filter((message) => message.uid !== email.uid)];
+
+      if (!existing) {
+        page.messagesCount++;
       }
     };
     window.addEventListener('identity-update', incoming);
 
-    return () => window.removeEventListener('identity-update', incoming);
+    return () => {
+      invalidate();
+      window.removeEventListener('identity-update', incoming);
+    };
   });
 </script>
 
@@ -213,9 +273,10 @@
     <p>{account.email}</p>
   </div>
   <div class="button-row">
-    <Button variant="quiet" icon="refresh" loading={pending} onclick={load} aria-label="Refresh mailbox" /><Button
+    <Button variant="quiet" icon="refresh" loading={pending} onclick={() => load()} aria-label="Refresh mailbox" /><Button
       icon="plus"
       onclick={() => {
+        invalidate();
         target = null;
         mode = 'compose';
       }}>Compose</Button>
@@ -233,55 +294,58 @@
     }} />
 {:else if target}<section class="panel">
     <div class="section-heading">
-      <Button variant="quiet" icon="back" onclick={() => (target = null)}>Mailbox</Button>
+      <Button variant="quiet" icon="back" onclick={() => reset()}>Mailbox</Button>
       <div class="button-row">
-        {#if mailbox !== 'junk'}<Button variant="secondary" onclick={() => (mode = 'reply')}>Reply</Button><Button
+        {#if mailbox !== 'Junk'}<Button variant="secondary" onclick={() => (mode = 'reply')}>Reply</Button><Button
             variant="quiet"
             onclick={() => (forwardOpen = true)}>Forward</Button
           ><Button variant="quiet" icon="trash" aria-label="Delete email" onclick={() => (deleteOpen = true)} />{/if}
       </div>
     </div>
-    {#each [target, ...thread] as message (message.messageID)}<article class="mail-message">
+    {#each [target, ...thread] as message (`${message.mailbox}-${message.uid}`)}<article class="mail-message">
         <h2>{message.subject || 'No subject'}</h2>
         <p>{message.from} → {message.to}</p>
         <small>{new Date(message.date).toLocaleString()}</small>{#if message.type === 'html'}<iframe
             title="Message body from {message.from}"
-            sandbox=""
+            sandbox="allow-popups allow-popups-to-escape-sandbox"
             referrerpolicy="no-referrer"
-            srcdoc={`<!doctype html><html><head><meta charset='utf-8'><style>body{color:#c6d1e9;font:14px/1.7 sans-serif;overflow-wrap:anywhere}a{color:#aea5ff}img{max-width:100%}</style></head><body>${sanitizeEmailHtml(message.body, message.attachments)}</body></html>`}
-          ></iframe
+            srcdoc={`<!doctype html><html><head><meta charset='utf-8'><meta http-equiv='Content-Security-Policy' content="default-src 'none'; img-src data:; style-src 'unsafe-inline'"><style>body{color:#c6d1e9;font:14px/1.7 sans-serif;overflow-wrap:anywhere}a{color:#aea5ff}img{max-width:100%}</style></head><body>${sanitizeEmailHtml(
+              message.body,
+              message.attachments.filter((file): file is typeof file & Attachment => !!file.data),
+            )}</body></html>`}></iframe
           >{:else}<pre>{message.body}</pre>{/if}
         <div class="button-row">
-          {#each message.attachments as file, index (`${file.filename}-${index}`)}<Button variant="secondary" icon="download" onclick={() => attachment(file)}
-              >{file.filename}</Button
+          {#each message.attachments as file, index (`${file.filename}-${index}`)}<Button
+              variant="secondary"
+              icon="download"
+              onclick={() => attachment(message, file.index)}>{file.filename}</Button
             >{/each}
         </div>
       </article>{/each}
   </section>
 {:else}<div class="tabs" aria-label="Mailboxes">
-    {#each Object.entries(names) as [box, name] (box)}<button class:active={mailbox === box} onclick={() => reset(box as typeof mailbox)}>{name}</button>{/each}
+    {#each names as box (box)}<button class:active={mailbox === box} onclick={() => reset(box as typeof mailbox)}>{box}</button>{/each}
   </div>
-  {#if pending && !inbox}<div class="loading-state"><span class="spinner"></span>Loading mailbox</div>{:else if inbox && !messages.length}<div
+  {#if pending && !page}<div class="loading-state"><span class="spinner"></span>Loading mailbox</div>{:else if page && !messages.length}<div
       class="empty-state">
       <Icon name="mail" size={40} />
-      <h2>No messages in {names[mailbox]}</h2>
-    </div>{:else if inbox}<div class="mail-list">
-      {#each messages as message (message.uid)}<button class="mail-row" onclick={() => open(message)}
-          ><span class="mail-from">{mailbox === 'sent' ? message.to : message.from}</span><span class="mail-subject">{message.subject || 'No subject'}</span
+      <h2>No messages in {mailbox}</h2>
+    </div>{:else if page}<div class="mail-list">
+      {#each messages as message (message.uid)}<button class="mail-row" class:unread={!message.read} onclick={() => open(message)}
+          ><span class="mail-from">{mailbox === 'Sent' ? message.to : message.from}</span><span class="mail-subject">{message.subject || 'No subject'}</span
           ><time>{new Date(message.date).toLocaleDateString()}</time></button
         >{/each}
     </div>
-    {#if more}<div class="more-button"><Button variant="secondary" loading={pending} onclick={loadMore}>Load earlier messages</Button></div>{/if}{:else}<Button
-      variant="secondary"
-      onclick={load}>Retry loading mailbox</Button
-    >{/if}{/if}
+    {#if page?.nextCursor}<div class="more-button">
+        <Button variant="secondary" loading={pending} onclick={() => load(true)}>Load earlier messages</Button>
+      </div>{/if}{:else}<Button variant="secondary" onclick={() => load()}>Retry loading mailbox</Button>{/if}{/if}
 <Dialog bind:open={forwardOpen} title="Forward email"
   ><form onsubmit={forward}>
     <div class="field"><label for="forward-email">Recipient</label><input id="forward-email" type="email" bind:value={forwardTo} required /></div>
     <Status message={error} kind="error" /><Button loading={pending} type="submit">Forward message</Button>
   </form></Dialog>
 <Dialog bind:open={deleteOpen} title="Move message to junk"
-  ><p>The message will leave {names[mailbox]} and move to the junk mailbox.</p>
+  ><p>The message will leave {mailbox} and move to the junk mailbox.</p>
   <Status message={error} kind="error" />
   <div class="more-button"><Button variant="danger" loading={pending} onclick={remove}>Move to junk</Button></div></Dialog>
 
@@ -304,6 +368,10 @@
     padding: 17px 20px;
     color: #b5c2db;
     font-size: 12px;
+  }
+  .mail-row.unread {
+    border-left: 3px solid #8b80ff;
+    font-weight: 600;
   }
   .mail-row:hover {
     background: #172137;

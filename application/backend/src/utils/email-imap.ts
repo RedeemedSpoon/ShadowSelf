@@ -3,7 +3,7 @@ import MailComposer from 'nodemailer/lib/mail-composer';
 import {imapConnection} from '@core/services';
 import {wsConnections} from '@core/states';
 import {simpleParser} from 'mailparser';
-import type {EmailContent} from '@type';
+import type {EmailContent, Mailbox} from '@type';
 import imap from 'imap-simple';
 import {randomUUID} from 'node:crypto';
 
@@ -23,14 +23,17 @@ export function listenForEmail(user: string, password: string, socketID: string)
           return;
         }
 
-        const messages = await active.search([['UID', `${lastUID + 1}:*`]], {bodies: ['']});
+        const messages = await active.search([['UID', `${lastUID + 1}:*`]], {
+          bodies: ['HEADER.FIELDS (MESSAGE-ID SUBJECT FROM TO DATE IN-REPLY-TO REFERENCES)'],
+          markSeen: false,
+        });
 
         for (const message of messages) {
           if (message.attributes.uid <= lastUID) {
             continue;
           }
 
-          const email = await parseMessage(active, message);
+          const email = await parseEnvelope(message, 'INBOX');
 
           const socket = wsConnections.get(socketID);
 
@@ -109,74 +112,80 @@ export function listenForEmail(user: string, password: string, socketID: string)
   };
 }
 
-export async function fetchMoreEmails(user: string, password: string, mailbox: string, since: number) {
-  if (!Number.isInteger(since) || since <= 1) {
-    return [];
-  }
+export function createMailReader(connect = imapConnection) {
+  async function withConnection<T>(user: string, password: string, action: (connection: imap.ImapSimple) => Promise<T>) {
+    const connection = await connect(user, password);
 
-  const connection = await imapConnection(user, password);
-
-  let inbox;
-
-  try {
-    inbox = await getInbox(mailbox, connection, since);
-  } finally {
-    connection.end();
-  }
-
-  return inbox.emails;
-}
-
-export async function fetchRecentEmails(user: string, password: string) {
-  const connection = await imapConnection(user, password);
-
-  let inboxMailbox, sentMailbox, draftsMailbox, junkMailbox;
-
-  try {
-    inboxMailbox = await getInbox('INBOX', connection);
-    sentMailbox = await getInbox('Sent', connection);
-    draftsMailbox = await getInbox('Drafts', connection);
-    junkMailbox = await getInbox('Junk', connection);
-  } finally {
-    connection.end();
+    try {
+      return await action(connection);
+    } finally {
+      connection.end();
+    }
   }
 
   return {
-    messagesCount: inboxMailbox.messagesCount,
-    sentMessagesCount: sentMailbox.messagesCount,
-    draftsMessagesCount: draftsMailbox.messagesCount,
-    junkMessagesCount: junkMailbox.messagesCount,
-    inbox: inboxMailbox.emails,
-    sent: sentMailbox.emails,
-    drafts: draftsMailbox.emails,
-    junk: junkMailbox.emails,
+    list(user: string, password: string, mailbox: Mailbox, before?: number) {
+      return withConnection(user, password, (connection) => listMailbox(connection, mailbox, before));
+    },
+    message(user: string, password: string, mailbox: Mailbox, uid: number, markRead = true, includeAttachments = false) {
+      return withConnection(user, password, async (connection) => {
+        await connection.openBox(mailbox);
+
+        const messages = await connection.search([['UID', uid]], {bodies: ['HEADER'], struct: true, markSeen: false});
+        const message = messages.find((message) => message.attributes.uid === uid);
+
+        if (!message) {
+          return null;
+        }
+
+        const email = await parseMessage(connection, message, mailbox, includeAttachments);
+
+        if (markRead && !email.read) {
+          await connection.addFlags(uid, ['\\Seen']);
+          email.read = true;
+        }
+
+        return email;
+      });
+    },
+    attachment(user: string, password: string, mailbox: Mailbox, uid: number, index: number) {
+      return withConnection(user, password, async (connection) => {
+        await connection.openBox(mailbox);
+
+        const messages = await connection.search([['UID', uid]], {bodies: ['HEADER'], struct: true, markSeen: false});
+        const message = messages.find((message) => message.attributes.uid === uid);
+        const part = message && attachmentParts(message)[index];
+
+        if (!message || !part) {
+          return null;
+        }
+
+        return {...attachmentMetadata(part, index), data: Buffer.from(await connection.getPartData(message, part)).toString('base64')};
+      });
+    },
+    reply(user: string, password: string, messageID: string) {
+      return withConnection(user, password, async (connection) => {
+        for (const mailbox of ['INBOX', 'Sent'] as const) {
+          await connection.openBox(mailbox);
+
+          const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {bodies: ['HEADER'], struct: true, markSeen: false});
+
+          for (const message of messages) {
+            const email = await parseMessage(connection, message, mailbox);
+
+            if (email.messageID === messageID) {
+              return email;
+            }
+          }
+        }
+
+        return null;
+      });
+    },
   };
 }
 
-export async function fetchEmail(user: string, password: string, isReply: boolean, uuid: string | number) {
-  const connection = await imapConnection(user, password);
-
-  let reply = null;
-
-  try {
-    for (const mailbox of ['INBOX', 'Sent']) {
-      await connection.openBox(mailbox);
-
-      const query = isReply ? [['HEADER', 'MESSAGE-ID', uuid]] : [['UID', uuid]];
-      const message = await connection.search(query, {bodies: ['']});
-
-      if (message.length === 0) {
-        continue;
-      }
-
-      reply = await parseMessage(connection, message[0]);
-    }
-  } finally {
-    connection.end();
-  }
-
-  return reply;
-}
+export const mailReader = createMailReader();
 
 export async function appendToMailbox(asDraft: boolean, content: EmailContent & {messageID?: string; date?: Date}) {
   const connection = await imapConnection(content.email, content.password);
@@ -234,105 +243,128 @@ export async function deleteEmail(user: string, password: string, mailbox: strin
   }
 }
 
-async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
-  return new Promise<number>((resolve, reject) => {
-    connection.imap.status(inbox, (err, mes) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(mes.messages.total);
-      }
-    });
-  });
-}
-
-async function getInbox(inbox: string, connection: imap.ImapSimple, beforeUID?: number) {
-  let messagesCount = await getMessageCount(inbox, connection);
-
-  if (messagesCount === 0) {
-    return {messagesCount: 0, emails: []};
-  }
-
-  await connection.openBox(inbox);
-
-  const ids = await new Promise<number[]>((resolve, reject) => {
-    const criteria = beforeUID ? [['UID', `1:${beforeUID - 1}`]] : ['ALL'];
+async function searchIDs(connection: imap.ImapSimple, criteria: any[]) {
+  return new Promise<number[]>((resolve, reject) => {
     connection.imap.search(criteria, (error, ids) => (error ? reject(error) : resolve(ids)));
   });
-
-  const selected = ids.filter((id) => !beforeUID || id < beforeUID).slice(-EMAIL_FETCH_LIMIT);
-
-  if (!selected.length) {
-    return {messagesCount, emails: []};
-  }
-
-  const messages = await connection.search([['UID', selected.join(',')]], {bodies: ['']});
-
-  const emails: any[] = [];
-
-  for (const message of messages) {
-    if (inbox === 'Junk') {
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - EMAIL_JUNK_RETENTION_DAYS);
-
-      const internalDate = new Date(message.attributes.date);
-
-      if (internalDate < cutoffDate) {
-        await connection.deleteMessage(message.attributes.uid);
-        messagesCount--;
-        continue;
-      }
-    }
-
-    emails.unshift(await parseMessage(connection, message));
-  }
-
-  return {messagesCount, emails};
 }
 
-async function parseMessage(connection: imap.ImapSimple, message: imap.Message) {
-  if (!message.attributes.flags.includes('\\Seen')) {
-    await connection.addFlags(message.attributes.uid, ['\\Seen']);
+async function listMailbox(connection: imap.ImapSimple, mailbox: Mailbox, before?: number) {
+  await connection.openBox(mailbox);
+
+  if (mailbox === 'Junk') {
+    const cutoff = new Date(Date.now() - EMAIL_JUNK_RETENTION_DAYS * 86400000);
+    const expired = await searchIDs(connection, [['BEFORE', cutoff]]);
+
+    if (expired.length) {
+      await connection.deleteMessage(expired);
+    }
   }
 
-  const rawEmail = message.parts.find((part) => part.which === '')?.body;
-  const email = await simpleParser(rawEmail);
+  const ids = (await searchIDs(connection, ['ALL'])).sort((a, b) => a - b);
+  const eligible = ids.filter((id) => before === undefined || id < before);
+  const selected = eligible.slice(-EMAIL_FETCH_LIMIT);
 
-  const attachments = email.attachments.map((attachment) => ({
-    filename: attachment.filename || 'attachment',
-    data: attachment.content.toString('base64'),
-    cid: attachment.contentId,
-    contentType: attachment.contentType,
-  }));
-  const uid = message.attributes.uid;
-  const type = typeof email.html === 'string' && email.html ? 'html' : 'text';
-  const body = type === 'html' ? email.html || '' : email.text || '';
+  if (!selected.length) {
+    return {mailbox, messages: [], messagesCount: ids.length, nextCursor: null, complete: true};
+  }
 
-  const to = email.to && Array.isArray(email.to) ? email.to.map((t) => t.text).join(', ') : email.to?.text;
+  const results = await connection.search([['UID', selected.join(',')]], {
+    bodies: ['HEADER.FIELDS (MESSAGE-ID SUBJECT FROM TO DATE IN-REPLY-TO REFERENCES)'],
+    markSeen: false,
+  });
+  const messages = await Promise.all(results.map((message) => parseEnvelope(message, mailbox)));
+  messages.sort((a, b) => b.uid - a.uid);
 
-  let references: string[] | undefined = undefined;
+  return {
+    mailbox,
+    messages,
+    messagesCount: ids.length,
+    nextCursor: eligible.length > selected.length ? selected[0] : null,
+    complete: eligible.length <= selected.length,
+  };
+}
 
-  if (email.references) {
-    if (Array.isArray(email.references)) {
-      references = email.references;
+async function parseEnvelope(message: imap.Message, mailbox: Mailbox) {
+  const part = message.parts.find((part) => part.which.startsWith('HEADER'));
+  const raw =
+    typeof part?.body === 'string'
+      ? part.body
+      : Object.entries(part?.body || {})
+          .map(([key, values]) => `${key}: ${(values as string[]).join(', ')}`)
+          .join('\r\n');
+  const email = await simpleParser(raw);
+  const to = Array.isArray(email.to) ? email.to.map((item) => item.text).join(', ') : email.to?.text;
+
+  return {
+    mailbox,
+    uid: message.attributes.uid,
+    messageID: email.messageId || null,
+    subject: email.subject || '',
+    from: email.from?.text || '',
+    to: to || '',
+    date: email.date || message.attributes.date,
+    read: message.attributes.flags.includes('\\Seen'),
+  };
+}
+
+function attachmentParts(message: imap.Message) {
+  return imap.getParts(message.attributes.struct || []).filter((part) => {
+    return part.disposition?.type?.toUpperCase() === 'ATTACHMENT' || part.disposition?.type?.toUpperCase() === 'INLINE' || part.type !== 'text';
+  });
+}
+
+function attachmentMetadata(part: any, index: number) {
+  return {
+    index,
+    filename: part.disposition?.params?.filename || part.params?.name || 'attachment',
+    cid: part.id || undefined,
+    contentType: `${part.type}/${part.subtype}`,
+  };
+}
+
+async function parseMessage(connection: imap.ImapSimple, message: imap.Message, mailbox: Mailbox, includeAttachments = false) {
+  const summary = await parseEnvelope(message, mailbox);
+  const header = message.parts.find((part) => part.which.startsWith('HEADER'))?.body;
+  const raw =
+    typeof header === 'string'
+      ? header
+      : Object.entries(header || {})
+          .map(([key, values]) => `${key}: ${(values as string[]).join(', ')}`)
+          .join('\r\n');
+  const email = await simpleParser(raw);
+  const parts = imap.getParts(message.attributes.struct || []);
+  const files = attachmentParts(message);
+  const bodyParts = parts.filter((part) => part.type === 'text' && !files.includes(part) && ['html', 'plain'].includes(part.subtype));
+  const htmlParts = bodyParts.filter((part) => part.subtype === 'html');
+  const selected = htmlParts.length ? htmlParts : bodyParts;
+  const bodies: string[] = [];
+
+  for (const part of selected) {
+    const data = await connection.getPartData(message, part);
+
+    if (Buffer.isBuffer(data)) {
+      const content = Buffer.concat([Buffer.from(`Content-Type: text/${part.subtype}; charset=${part.params?.charset || 'utf-8'}\r\n\r\n`), data]);
+      const parsed = await simpleParser(content);
+      bodies.push(part.subtype === 'html' ? parsed.html || '' : parsed.text || '');
     } else {
-      if (typeof email.references === 'string') {
-        references = email.references.split(/\s+/).filter(Boolean);
-      }
+      bodies.push(String(data));
     }
+  }
+
+  const attachments = [];
+
+  for (const [index, part] of files.entries()) {
+    const data = includeAttachments ? Buffer.from(await connection.getPartData(message, part)).toString('base64') : undefined;
+    attachments.push({...attachmentMetadata(part, index), data});
   }
 
   return {
-    messageID: email.messageId,
-    subject: email.subject,
-    from: email.from?.text,
-    date: email.date || message.attributes.date,
-    to: to?.toString(),
-    inReplyTo: email.inReplyTo,
-    references,
+    ...summary,
+    inReplyTo: email.inReplyTo || null,
+    references: typeof email.references === 'string' ? email.references.split(/\s+/).filter(Boolean) : email.references || [],
     attachments,
-    uid,
-    body,
-    type,
+    body: bodies.join('\n'),
+    type: htmlParts.length ? ('html' as const) : ('text' as const),
   };
 }

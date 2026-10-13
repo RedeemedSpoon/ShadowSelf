@@ -2,6 +2,7 @@ import {GoogleGenAI} from '@google/genai';
 import {geminiApiKey} from '@core/config';
 import {ApiError, requireProvider} from '@core/security';
 import type {Location} from '@type';
+import {normalizePortrait} from '@utils/utils';
 
 function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, bio: string): string {
   const subject = `${ethnicity} ${sex}, aged approximately ${age}. Bio for context: "${bio}" (Use the bio to influence the person's style, expression, and surroundings. Do not render or spell out any of this text on the image itself.)`;
@@ -137,7 +138,11 @@ export async function generateProfile(lang: Location, age: number, sex: string, 
     if (part.inlineData) {
       const imageData = part.inlineData.data;
 
-      return imageData!;
+      if (!imageData || imageData.length > 4_000_000) {
+        throw new ApiError(502, 'portrait_unavailable', 'The portrait provider returned an invalid image');
+      }
+
+      return normalizePortrait(imageData);
     }
   }
 

@@ -1,6 +1,6 @@
 import type {ElysiaWS} from 'elysia/ws';
 
-export type User = {email: string; id: string; accountID: number} | undefined;
+export type User = {email: string; id: string; accountID: number; deletingAccount: boolean} | undefined;
 
 export type Attachment = {filename: string; data: string};
 
@@ -106,14 +106,33 @@ export interface QueryIdentity {
   phone_sid: string | null;
 }
 
-export interface QueryInvoice {
+export interface PaymentInvoiceRecovery {
   id: string;
-  owner: number;
-  plan: 'monthly' | 'annually' | 'lifetime';
-  status: 'pending' | 'confirming' | 'paid' | 'underpaid' | 'expired' | 'refunded';
+  provider_reference: string;
+  swap_coin: string;
   xmr_subaddress: string;
   xmr_amount: string;
-  renewal_id: string;
+  response: Record<string, unknown> | null;
+}
+
+export interface SwapReconciliationRequest {
+  tradeID: string;
+  coinFrom: string;
+  coinTo: string;
+  destinationAddress: string;
+  refundAddress?: string;
+  amount?: number;
+  receiveAmount?: string;
+}
+
+export interface QueryInvoice {
+  id: string;
+  owner: number | null;
+  plan: 'monthly' | 'annually' | 'lifetime';
+  status: 'pending' | 'confirming' | 'paid' | 'underpaid' | 'expired' | 'refunded' | 'late' | 'reconciliation';
+  xmr_subaddress: string;
+  xmr_amount: string;
+  renewal_id: string | null;
   creation_date: Date;
 }
 
@@ -197,6 +216,8 @@ export interface APIRequest {
   swapCoin: string;
 }
 
+export type Mailbox = 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
+
 export interface EmailContent {
   email: string;
   password: string;
@@ -218,42 +239,52 @@ export interface Message {
   to: string;
 }
 
+export interface WalletScanOptions {
+  recovery?: boolean;
+  signal?: AbortSignal;
+}
+
+export interface EvmProviderTransaction {
+  hash: string;
+  from: string;
+  to: string | null;
+  value: string;
+  timeStamp: string;
+  isError?: string;
+  txreceipt_status?: string;
+}
+
+export interface UtxoProviderTransaction {
+  txid: string;
+  vin: {prevout?: {scriptpubkey_address: string; value: number}}[];
+  vout: {scriptpubkey_address: string; value: number}[];
+  status: {block_time?: number};
+}
+
+export interface UtxoWalletData {
+  status: 'Synced' | 'Incomplete';
+  balance: number;
+  utxos: UTXOData;
+  history: TransactionsHistory;
+  activeCount: number;
+  nextIndex: number | null;
+  scanned: number;
+  scanLimit: number;
+  error?: string;
+}
+
+export interface WalletOverviewOperation {
+  controller: AbortController;
+  subscribers: number;
+  result: Promise<PromiseSettledResult<CryptoWalletResponse['btc'] | CryptoWalletResponse['eth']>[]>;
+}
+
 export interface CryptoWalletResponse {
-  btc: {
-    status: string;
-    balance: number;
-    utxos: UTXOData;
-    history: TransactionsHistory;
-    activeCount: number;
-    nextIndex: number;
-  };
-  ltc: {
-    status: string;
-    balance: number;
-    utxos: UTXOData;
-    history: TransactionsHistory;
-    activeCount: number;
-    nextIndex: number;
-  };
-  eth: {
-    status: string;
-    balance: number;
-    balanceAtoms: string;
-    nonce: number;
-    history: TransactionsHistory;
-  };
-  usdt: {
-    status: string;
-    balance: number;
-    balanceAtoms: string;
-    nonce: number;
-    history: TransactionsHistory;
-  };
-  xmr: {
-    status: string;
-    startingDate: Date;
-    nodeUrl: string;
-  };
+  btc: UtxoWalletData;
+  ltc: UtxoWalletData;
+  eth: {status: string; balance: number; balanceAtoms: string; nonce: number; history: TransactionsHistory};
+  usdt: {status: string; balance: number; balanceAtoms: string; nonce: number; history: TransactionsHistory};
+  xmr: {status: string; startingDate: Date; nodeUrl: string};
 }
 
 export type CryptoFees = {
@@ -318,9 +349,20 @@ export interface SignupDraft {
   expiresAt: number;
   verified: boolean;
   username: string;
+  enableTwoFactor: boolean;
   secret: string;
   recoveryHashes: string[];
+  encryptedRecovery?: string;
   totpCounter?: number;
+}
+
+export interface SignupProgress {
+  stage: 'email' | 'authenticator' | 'recovery';
+  email: string;
+  username: string;
+  secret?: string;
+  uri?: string;
+  recovery?: string[];
 }
 
 export interface IdentityProvision {

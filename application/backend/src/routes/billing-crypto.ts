@@ -5,15 +5,35 @@ import {CRYPTO_DISCOUNT, PRICING_TIERS, PAYMENT_WINDOW_MIN, UUID_PATTERN} from '
 import middlewareBase from '@middlewares/middleware-base';
 import {trocadorApiKey, cryptoBillingEnabled} from '@core/config';
 import {requireProvider} from '@core/security';
-import {error, net} from '@utils/utils';
+import {error} from '@utils/utils';
+import {swapProvider, reconcilePaymentInvoice} from '@core/swap-provider';
 import {checkAPI} from '@utils/checks';
 import {sql} from '@core/services';
+import {withAccountLock} from '@core/identity-service';
+import type {PaymentInvoiceRecovery} from '@type';
 import {Elysia, t} from 'elysia';
 
 export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeout: 300}})
   .use(middlewareBase)
   .post('/invoices', ({set, user, body}) => createInvoice(set, user?.email, body, false))
   .post('/renewals', ({set, user, body}) => createInvoice(set, user?.email, body, true))
+  .get('/requests/:id', async ({set, user, params}) => {
+    if (!user) {
+      return error(set, 401, 'Sign in to view this payment request');
+    }
+
+    if (!UUID_PATTERN.test(params.id)) {
+      return error(set, 404, 'Payment request not found');
+    }
+
+    const invoices = await sql`SELECT id FROM crypto_invoices WHERE owner = ${user.accountID} AND request_id = ${params.id}`;
+
+    if (!invoices.length) {
+      return error(set, 404, 'Payment request not found');
+    }
+
+    return {invoiceID: invoices[0].id};
+  })
   .get('/invoices/:id', async ({set, user, params}) => {
     if (!user) {
       return error(set, 401, 'Sign in to view this invoice');
@@ -34,14 +54,27 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
       return error(set, 404, 'Invoice not found');
     }
 
+    if (invoice.provider_state === 'requested' && invoice.provider_reference && !invoice.response) {
+      await reconcilePaymentInvoice(invoice as PaymentInvoiceRecovery).catch(() => {});
+    }
+
     const expiresAt = new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000;
     const remaining = parseXmr(invoice.xmr_amount) - BigInt(invoice.observed_total || '0');
     const atoms = remaining > 0n ? remaining : 0n;
 
     return {
-      ...invoice.response,
       invoiceID: invoice.id,
-      status: invoice.status === 'pending' && Date.now() >= expiresAt ? 'expired' : invoice.status,
+      coin: invoice.swap_coin,
+      depositAddress: null,
+      depositAmount: null,
+      ...(invoice.provider_reference ? {externalLink: `https://trocador.app/en/checkout/${encodeURIComponent(invoice.provider_reference)}`} : {}),
+      ...invoice.response,
+      status:
+        !invoice.response && invoice.provider_state === 'requested'
+          ? 'reconciling'
+          : invoice.status === 'pending' && Date.now() >= expiresAt
+            ? 'expired'
+            : invoice.status,
       identityID: invoice.identity_id || invoice.renewal_id || null,
       createdAt: invoice.creation_date,
       expiresAt: new Date(expiresAt).toISOString(),
@@ -119,7 +152,11 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
     return error(set, 503, 'Crypto billing is initializing');
   }
 
-  const users = await sql`SELECT id FROM users WHERE email = ${email}`;
+  const users = await sql`SELECT id FROM users WHERE email = ${email} AND deletion_requested_at IS NULL`;
+
+  if (!users.length) {
+    return error(set, 409, 'This account is being deleted');
+  }
 
   const owner = users[0].id;
 
@@ -132,21 +169,26 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
   }
 
   const xmrAmount = quoteXmr(PRICING_TIERS[plan as keyof typeof PRICING_TIERS], CRYPTO_DISCOUNT, cryptoPrices.xmr.usdPrice);
-  await sql`INSERT INTO crypto_invoices (owner, plan, xmr_amount, renewal_id, request_id, swap_coin, refund_address)
+
+  return withAccountLock(owner, async (connection) => {
+    const owners = await connection`SELECT id FROM users WHERE id = ${owner} AND deletion_requested_at IS NULL`;
+
+    if (!owners.length) {
+      return error(set, 409, 'This account is being deleted');
+    }
+
+    const unresolved =
+      await connection`SELECT id FROM crypto_invoices WHERE owner = ${owner} AND provider_state = 'requested' AND response IS NULL AND request_id <> ${requestID!} LIMIT 1`;
+
+    if (unresolved.length) {
+      set.status = 202;
+
+      return {invoiceID: unresolved[0].id, status: 'reconciling'};
+    }
+
+    await connection`INSERT INTO crypto_invoices (owner, plan, xmr_amount, renewal_id, request_id, swap_coin, refund_address)
     VALUES (${owner}, ${plan}, ${xmrAmount}, ${renewal ? identityID : null}, ${requestID!}, ${swapCoin}, ${refundAddress || null})
     ON CONFLICT (owner, request_id) DO NOTHING`;
-
-  const connection = await sql.reserve();
-
-  let locked = false;
-
-  try {
-    const lock = await connection`SELECT pg_try_advisory_lock(hashtextextended(${`${owner}:${requestID}`}, 0)) AS acquired`;
-    locked = lock[0].acquired;
-
-    if (!locked) {
-      return error(set, 503, 'This operation is already running. Retry the same request shortly');
-    }
 
     const invoices = await connection`SELECT * FROM crypto_invoices WHERE owner = ${owner} AND request_id = ${requestID!}`;
 
@@ -161,16 +203,24 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
       return error(set, 409, 'This payment request has different details. Start a new purchase');
     }
 
-    if (Date.now() >= new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000) {
-      return error(set, 410, 'Quote expired. Start a new purchase');
-    }
-
     if (invoice.response) {
       return invoice.response;
     }
 
     if (invoice.provider_state === 'requested') {
-      return error(set, 503, 'Provider request needs reconciliation. Do not send payment or retry with a new purchase');
+      await reconcilePaymentInvoice(invoice as PaymentInvoiceRecovery).catch(() => {});
+
+      if (invoice.response) {
+        return invoice.response;
+      }
+
+      set.status = 202;
+
+      return {invoiceID: invoice.id, status: 'reconciling'};
+    }
+
+    if (Date.now() >= new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000) {
+      return error(set, 410, 'Quote expired. Start a new purchase');
     }
 
     if (!invoice.xmr_subaddress) {
@@ -185,56 +235,22 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
       response = {invoiceID: invoice.id, depositAddress: invoice.xmr_subaddress, depositAmount: invoice.xmr_amount, coin: swapCoin};
     } else {
       requireProvider(!!trocadorApiKey, 'Crypto exchange');
-      await connection`UPDATE crypto_invoices SET provider_state = 'requested' WHERE id = ${invoice.id}`;
+      const reference = await swapProvider.paymentQuote(swapCoin, invoice.xmr_amount);
+      await connection`UPDATE crypto_invoices SET provider_reference = ${reference}, provider_state = 'requested' WHERE id = ${invoice.id}`;
 
-      const params = new URLSearchParams({
-        ticker_from: swapCoin,
-        ticker_to: 'xmr',
-        network_from: net(swapCoin),
-        network_to: 'Mainnet',
-        amount_to: invoice.xmr_amount,
-        address: invoice.xmr_subaddress,
-        address_memo: '0',
-        refund: refundAddress || '',
-        refund_memo: '0',
-      });
-      const provider = await fetch(`https://api.trocador.app/new_trade?${params}`, {headers: {'API-Key': trocadorApiKey}, signal: AbortSignal.timeout(30_000)});
-
-      const trade = await provider.json();
-
-      if (
-        !provider.ok ||
-        trade.error ||
-        !trade.trade_id ||
-        !trade.address_provider ||
-        !Number.isFinite(Number(trade.amount_from)) ||
-        Number(trade.amount_from) <= 0
-      ) {
-        throw new Error('Provider request needs reconciliation');
-      }
-
-      response = {
-        invoiceID: invoice.id,
-        depositAddress: trade.address_provider,
-        depositAmount: String(trade.amount_from),
-        depositMemo: trade.address_provider_memo,
-        providerTradeID: trade.id_provider,
-        externalLink: `https://trocador.app/en/checkout/${trade.trade_id}`,
+      const trade = await swapProvider.paymentTrade({
+        tradeID: reference,
         coin: swapCoin,
-      };
-      await connection`UPDATE crypto_invoices SET provider_reference = ${trade.trade_id}, provider_state = 'created' WHERE id = ${invoice.id}`;
+        amount: invoice.xmr_amount,
+        address: invoice.xmr_subaddress,
+        refund: refundAddress || '',
+      });
+      response = {...trade, invoiceID: invoice.id, coin: swapCoin};
+      await connection`UPDATE crypto_invoices SET provider_state = 'created', response = ${connection.json(response)} WHERE id = ${invoice.id}`;
     }
 
     await connection`UPDATE crypto_invoices SET response = ${connection.json(response)} WHERE id = ${invoice.id}`;
 
     return response;
-  } finally {
-    try {
-      if (locked) {
-        await connection`SELECT pg_advisory_unlock(hashtextextended(${`${owner}:${requestID}`}, 0))`;
-      }
-    } finally {
-      connection.release();
-    }
-  }
+  });
 }

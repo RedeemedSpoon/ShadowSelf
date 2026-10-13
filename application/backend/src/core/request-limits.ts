@@ -35,14 +35,29 @@ export function requestClientIP(peer: string, forwarded: string | null, trusted:
 
 export function createRequestLimiter(now = Date.now) {
   const windows = new Map<string, {count: number; expiresAt: number}>();
+  let nextCleanup = 0;
+
+  const cleanup = (current: number) => {
+    for (const [key, entry] of windows) {
+      if (entry.expiresAt <= current) {
+        windows.delete(key);
+      }
+    }
+
+    nextCleanup = current + 1000;
+  };
 
   return (key: string, limit: number, duration: number) => {
     const current = now();
 
-    for (const [storedKey, entry] of windows) {
-      if (entry.expiresAt <= current) {
-        windows.delete(storedKey);
-      }
+    if (current >= nextCleanup) {
+      cleanup(current);
+    }
+
+    const previous = windows.get(key);
+
+    if (previous && previous.expiresAt <= current) {
+      windows.delete(key);
     }
 
     const entry = windows.get(key) || {count: 0, expiresAt: current + duration};
@@ -52,7 +67,11 @@ export function createRequestLimiter(now = Date.now) {
     }
 
     if (!windows.has(key) && windows.size >= VERIFICATION_CAPACITY) {
-      throw new ApiError(503, 'capacity_exceeded', 'The service is busy. Retry shortly');
+      cleanup(current);
+
+      if (windows.size >= VERIFICATION_CAPACITY) {
+        throw new ApiError(503, 'capacity_exceeded', 'The service is busy. Retry shortly');
+      }
     }
 
     entry.count++;

@@ -27,6 +27,7 @@ export default defineConfig({
     }),
   ],
   server: {
+    fs: {allow: [path.resolve('tests')]},
     proxy: {'^/api/.*/events': {target: 'http://localhost:3000', ws: true}},
     port: 5000,
     strictPort: true,

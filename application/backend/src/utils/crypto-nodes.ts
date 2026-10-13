@@ -1,158 +1,270 @@
-import {BTC_API, ETH_API, UTXO_GAP_LIMIT, UTXO_HARD_LIMIT, LTC_API, USDT_CONTRACT, XMR_NODE} from '@core/constants';
-import type {CryptoWalletResponse, UTXOData, TransactionsHistory} from '@type';
+import {
+  BTC_API,
+  ETH_API,
+  UTXO_GAP_LIMIT,
+  UTXO_HARD_LIMIT,
+  UTXO_RECOVERY_LIMIT,
+  CHAIN_REQUEST_CONCURRENCY,
+  LTC_API,
+  USDT_CONTRACT,
+  XMR_NODE,
+} from '@core/constants';
+import type {CryptoWalletResponse, UTXOData, TransactionsHistory, UtxoProviderTransaction, EvmProviderTransaction, WalletScanOptions} from '@type';
 import {xpubToAddress} from '@utils/cryptography';
 import {ApiError} from '@core/security';
 
-export async function getUtxoData(coin: 'btc' | 'ltc', xpub: string, fetcher: typeof fetch = fetch): Promise<CryptoWalletResponse['btc']> {
+export async function mapChainRequests<T, R>(items: T[], operation: (item: T, index: number) => Promise<R>, signal?: AbortSignal): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+
+  await Promise.all(
+    Array.from({length: Math.min(CHAIN_REQUEST_CONCURRENCY, items.length)}, async () => {
+      while (next < items.length) {
+        signal?.throwIfAborted();
+        const index = next++;
+        results[index] = await operation(items[index], index);
+      }
+    }),
+  );
+
+  return results;
+}
+
+export function aggregateWalletHistory(transactions: UtxoProviderTransaction[], addresses: Set<string>): TransactionsHistory {
+  const unique = new Map(transactions.map((transaction) => [transaction.txid, transaction]));
+
+  return [...unique.values()]
+    .map((transaction) => {
+      const spent = transaction.vin.reduce((sum, input) => sum + (addresses.has(input.prevout?.scriptpubkey_address || '') ? input.prevout!.value : 0), 0);
+      const received = transaction.vout.reduce((sum, output) => sum + (addresses.has(output.scriptpubkey_address) ? output.value : 0), 0);
+      const external =
+        spent > 0
+          ? transaction.vout.filter((output) => !addresses.has(output.scriptpubkey_address)).map((output) => output.scriptpubkey_address)
+          : transaction.vin
+              .filter((input) => !addresses.has(input.prevout?.scriptpubkey_address || ''))
+              .map((input) => input.prevout?.scriptpubkey_address || 'Unknown');
+      const counterparties = [...new Set(external)];
+
+      return {
+        txid: transaction.txid,
+        type: received > spent ? ('received' as const) : ('sent' as const),
+        amount: Math.abs(received - spent) / 100_000_000,
+        date: new Date(transaction.status.block_time ? transaction.status.block_time * 1000 : Date.now()),
+        counterparty: counterparties.length === 0 ? 'Internal transfer' : counterparties.length === 1 ? counterparties[0] : 'Multiple',
+      };
+    })
+    .sort((left, right) => right.date.getTime() - left.date.getTime());
+}
+
+export async function getUtxoData(
+  coin: 'btc' | 'ltc',
+  xpub: string,
+  fetcher: typeof fetch = fetch,
+  options: WalletScanOptions = {},
+): Promise<CryptoWalletResponse['btc']> {
   const baseUrl = coin === 'btc' ? BTC_API : LTC_API;
-  let totalBalance = 0;
+  const controller = new AbortController();
+  const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(options.recovery ? 120_000 : 25_000), ...(options.signal ? [options.signal] : [])]);
+  const limit = options.recovery ? UTXO_RECOVERY_LIMIT : UTXO_HARD_LIMIT;
+  const addresses = new Set<string>();
+  const utxos: UTXOData = [];
+  const transactions: UtxoProviderTransaction[] = [];
+  let balanceAtoms = 0;
   let activeCount = 0;
+  let scanned = 0;
   let gap = 0;
+  let normalScanEnd: number | undefined;
 
-  let allUtxos: UTXOData = [];
-  let allHistory: TransactionsHistory = [];
+  async function read(path: string) {
+    const response = await fetcher(`${baseUrl}${path}`, {signal});
 
-  try {
-    for (let i = 0; i < UTXO_HARD_LIMIT; i++) {
-      const address = xpubToAddress(coin, xpub, i);
-      const infoRes = await fetcher(`${baseUrl}/address/${address}`, {signal: AbortSignal.timeout(15_000)});
-
-      if (!infoRes.ok) {
-        throw new Error('Address lookup failed');
-      }
-
-      const info = await infoRes.json();
-
-      for (const stats of [info.chain_stats, info.mempool_stats]) {
-        if (!stats || !['tx_count', 'funded_txo_sum', 'spent_txo_sum'].every((key) => Number.isSafeInteger(stats[key]) && stats[key] >= 0)) {
-          throw new Error('Invalid address response');
-        }
-      }
-
-      const txCount = info.chain_stats.tx_count + info.mempool_stats.tx_count;
-
-      if (txCount === 0) {
-        gap++;
-
-        if (gap >= UTXO_GAP_LIMIT) {
-          break;
-        }
-
-        continue;
-      }
-
-      const utxoRes = await fetcher(`${baseUrl}/address/${address}/utxo`, {signal: AbortSignal.timeout(15_000)});
-
-      if (!utxoRes.ok) {
-        throw new Error('Unspent output lookup failed');
-      }
-
-      const utxos = await utxoRes.json();
-
-      if (
-        !Array.isArray(utxos) ||
-        utxos.some(
-          (item) =>
-            !/^[a-f0-9]{64}$/.test(item.txid) || !Number.isSafeInteger(item.vout) || item.vout < 0 || !Number.isSafeInteger(item.value) || item.value < 0,
-        )
-      ) {
-        throw new Error('Invalid unspent outputs');
-      }
-
-      gap = 0;
-      activeCount = i + 1;
-
-      const cs = info.chain_stats;
-      const ms = info.mempool_stats;
-      const addrBalance = (cs.funded_txo_sum - cs.spent_txo_sum + ms.funded_txo_sum - ms.spent_txo_sum) / 100_000_000;
-      totalBalance += addrBalance;
-
-      if (utxos.length > 0) {
-        allUtxos = allUtxos.concat(
-          utxos.map((u: any) => ({
-            txid: u.txid,
-            vout: u.vout,
-            value: u.value,
-            address: address,
-            pathIndex: i,
-          })),
-        );
-      }
-
-      const txsRes = await fetcher(`${baseUrl}/address/${address}/txs`, {signal: AbortSignal.timeout(15_000)});
-
-      if (!txsRes.ok) {
-        throw new Error('Transaction lookup failed');
-      }
-
-      const rawTxs = await txsRes.json();
-
-      if (!Array.isArray(rawTxs)) {
-        throw new Error('Invalid transaction history');
-      }
-
-      const addrHistory = rawTxs.map((tx: any): TransactionsHistory[number] => {
-        let sent = 0;
-        let received = 0;
-        let counterparty = 'Unknown';
-
-        tx.vin.forEach((vin: any) => {
-          if (vin.prevout?.scriptpubkey_address === address) {
-            sent += vin.prevout.value;
-          } else {
-            counterparty = vin.prevout?.scriptpubkey_address;
-          }
-        });
-
-        tx.vout.forEach((vout: any) => {
-          if (vout.scriptpubkey_address === address) {
-            received += vout.value;
-          } else {
-            if (sent > 0) {
-              counterparty = vout.scriptpubkey_address;
-            }
-          }
-        });
-
-        const net = received - sent;
-
-        return {
-          txid: tx.txid,
-          type: net > 0 ? 'received' : 'sent',
-          amount: Math.abs(net) / 100_000_000,
-          date: new Date(tx.status.block_time ? tx.status.block_time * 1000 : Date.now()),
-          counterparty: counterparty || 'Multiple',
-        };
-      });
-
-      allHistory = allHistory.concat(addrHistory);
+    if (!response.ok) {
+      throw new Error('Wallet provider is unavailable');
     }
 
-    allHistory.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return response.json();
+  }
+
+  try {
+    for (let start = 0; start < limit; start += CHAIN_REQUEST_CONCURRENCY) {
+      const indices = Array.from({length: Math.min(CHAIN_REQUEST_CONCURRENCY, limit - start)}, (_, offset) => start + offset);
+      const batch = await mapChainRequests(
+        indices,
+        async (index) => {
+          const address = xpubToAddress(coin, xpub, index);
+          const info = await read(`/address/${address}`);
+
+          for (const stats of [info.chain_stats, info.mempool_stats]) {
+            if (!stats || !['tx_count', 'funded_txo_sum', 'spent_txo_sum'].every((field) => Number.isSafeInteger(stats[field]) && stats[field] >= 0)) {
+              throw new Error('Invalid address response');
+            }
+          }
+
+          return {index, address, info};
+        },
+        signal,
+      );
+
+      for (const {index, address, info} of batch) {
+        addresses.add(address);
+        scanned = index + 1;
+
+        if (info.chain_stats.tx_count + info.mempool_stats.tx_count === 0) {
+          gap++;
+          continue;
+        }
+
+        gap = 0;
+        activeCount = index + 1;
+        balanceAtoms += info.chain_stats.funded_txo_sum - info.chain_stats.spent_txo_sum + info.mempool_stats.funded_txo_sum - info.mempool_stats.spent_txo_sum;
+      }
+
+      const active = batch.filter(({info}) => info.chain_stats.tx_count + info.mempool_stats.tx_count > 0);
+      const details = await mapChainRequests(
+        active.flatMap((entry) => [
+          {...entry, kind: 'utxo'},
+          {...entry, kind: 'txs'},
+        ]),
+        async (entry) => ({...entry, data: await read(`/address/${entry.address}/${entry.kind}`)}),
+        signal,
+      );
+
+      for (const {index, address, kind, data} of details) {
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid wallet response');
+        }
+
+        if (kind === 'utxo') {
+          if (
+            data.some(
+              (item) =>
+                !/^[a-f0-9]{64}$/i.test(item.txid) || !Number.isSafeInteger(item.vout) || item.vout < 0 || !Number.isSafeInteger(item.value) || item.value < 0,
+            )
+          ) {
+            throw new Error('Invalid unspent outputs');
+          }
+
+          utxos.push(...data.map((item) => ({...item, address, pathIndex: index})));
+        } else {
+          if (
+            data.some(
+              (item) =>
+                !/^[a-f0-9]{64}$/i.test(item.txid) ||
+                !Array.isArray(item.vin) ||
+                !Array.isArray(item.vout) ||
+                !item.status ||
+                [...item.vout, ...item.vin.flatMap((input: {prevout?: unknown}) => (input.prevout ? [input.prevout] : []))].some(
+                  (output) => !Number.isSafeInteger(output.value) || output.value < 0,
+                ),
+            )
+          ) {
+            throw new Error('Invalid transaction history');
+          }
+
+          transactions.push(...data);
+        }
+      }
+
+      if (gap >= UTXO_GAP_LIMIT) {
+        normalScanEnd ??= scanned;
+
+        if (!options.recovery) {
+          break;
+        }
+      }
+    }
+
+    if (!Number.isSafeInteger(balanceAtoms) || balanceAtoms < 0) {
+      throw new Error('Invalid wallet balance');
+    }
+
+    const complete = gap >= UTXO_GAP_LIMIT && activeCount < UTXO_HARD_LIMIT && activeCount <= (normalScanEnd ?? scanned);
 
     return {
-      status: 'Synced',
-      balance: totalBalance,
-      utxos: allUtxos,
-      history: allHistory,
-      activeCount: activeCount,
-      nextIndex: activeCount,
+      status: complete ? 'Synced' : 'Incomplete',
+      balance: balanceAtoms / 100_000_000,
+      utxos,
+      history: aggregateWalletHistory(transactions, addresses),
+      activeCount,
+      nextIndex: complete ? activeCount : null,
+      scanned,
+      scanLimit: limit,
+      error: complete
+        ? undefined
+        : 'Address discovery is incomplete or activity extends beyond the normal scan range. The displayed balance may be incomplete. New addresses are disabled.',
     };
-  } catch {
-    throw new Error(`${coin.toUpperCase()} wallet data is unavailable`);
+  } catch (cause) {
+    controller.abort();
+    throw new Error(`${coin.toUpperCase()} wallet data is unavailable`, {cause});
   }
 }
 
-export async function getEvmData(coin: 'eth' | 'usdt', address: string, fetcher: typeof fetch = fetch) {
+export function aggregateEvmHistory(transactions: EvmProviderTransaction[], address: string, decimals: number): TransactionsHistory {
+  const owned = address.toLowerCase();
+  const entries = new Map<string, {transaction: EvmProviderTransaction; net: bigint; counterparties: Set<string>}>();
+
+  for (const transaction of transactions) {
+    if (
+      !/^0x[a-f0-9]{64}$/i.test(transaction.hash) ||
+      !/^0x[a-f0-9]{40}$/i.test(transaction.from) ||
+      (transaction.to !== null && transaction.to !== '' && !/^0x[a-f0-9]{40}$/i.test(transaction.to)) ||
+      !/^\d+$/.test(transaction.value) ||
+      !/^\d+$/.test(transaction.timeStamp)
+    ) {
+      throw new Error('Invalid Ethereum transaction history');
+    }
+
+    if (transaction.isError === '1' || transaction.txreceipt_status === '0') {
+      continue;
+    }
+
+    const entry = entries.get(transaction.hash) ?? {transaction, net: 0n, counterparties: new Set<string>()};
+    const amount = BigInt(transaction.value);
+    const incoming = transaction.to?.toLowerCase() === owned;
+    const outgoing = transaction.from.toLowerCase() === owned;
+    entry.net += (incoming ? amount : 0n) - (outgoing ? amount : 0n);
+
+    if (incoming && !outgoing) {
+      entry.counterparties.add(transaction.from);
+    } else if (outgoing && !incoming) {
+      entry.counterparties.add(transaction.to || 'Contract creation');
+    }
+
+    entries.set(transaction.hash, entry);
+  }
+
+  return [...entries.values()]
+    .map(({transaction, net, counterparties}) => {
+      const amount = Math.abs(Number(net)) / 10 ** decimals;
+      const date = new Date(Number(transaction.timeStamp) * 1000);
+
+      if (!Number.isFinite(amount) || !Number.isFinite(date.getTime())) {
+        throw new Error('Invalid Ethereum transaction values');
+      }
+
+      return {
+        txid: transaction.hash,
+        type: net > 0n ? ('received' as const) : ('sent' as const),
+        amount,
+        date,
+        counterparty: counterparties.size === 0 ? 'Internal transfer' : counterparties.size === 1 ? [...counterparties][0] : 'Multiple',
+      };
+    })
+    .sort((left, right) => right.date.getTime() - left.date.getTime());
+}
+
+export async function getEvmData(coin: 'eth' | 'usdt', address: string, fetcher: typeof fetch = fetch, signal?: AbortSignal) {
   const ethBalanceUrl = `${ETH_API}?module=account&action=balance&address=${address}`;
   const usdtbalanceUrl = `${ETH_API}?module=account&action=tokenbalance&contractaddress=${USDT_CONTRACT}&address=${address}`;
   const balanceUrl = coin === 'eth' ? ethBalanceUrl : usdtbalanceUrl;
 
-  const nonceUrl = `${ETH_API}?module=proxy&action=eth_getTransactionCount&address=${address}&tag=latest`;
-  const historyUrl = `${ETH_API}?module=account&action=${coin === 'eth' ? 'txlist' : 'tokentx'}&address=${address}${coin === 'usdt' ? `&contractaddress=${USDT_CONTRACT}` : ''}`;
+  const nonceUrl = `${ETH_API}?module=proxy&action=eth_getTransactionCount&address=${address}&tag=pending`;
+  const historyUrl = `${ETH_API}?module=account&action=${coin === 'eth' ? 'txlist' : 'tokentx'}&address=${address}${coin === 'usdt' ? `&contractaddress=${USDT_CONTRACT}` : ''}&sort=desc&page=1&offset=50`;
 
   try {
-    const [balRes, nonceRes, histRes] = await Promise.all([balanceUrl, nonceUrl, historyUrl].map((url) => fetcher(url, {signal: AbortSignal.timeout(15_000)})));
+    const [balRes, nonceRes, histRes] = await Promise.all(
+      [balanceUrl, nonceUrl, historyUrl].map((url) => fetcher(url, {signal: AbortSignal.any([AbortSignal.timeout(15_000), ...(signal ? [signal] : [])])})),
+    );
 
     if (![balRes, nonceRes, histRes].every((response) => response.ok)) {
       throw new Error('Wallet provider is unavailable');
@@ -179,17 +291,7 @@ export async function getEvmData(coin: 'eth' | 'usdt', address: string, fetcher:
       throw new Error('Invalid wallet history');
     }
 
-    let history: any[] = [];
-
-    if (histData.status === '1' && Array.isArray(histData.result)) {
-      history = histData.result.slice(0, 50).map((tx: any) => ({
-        txid: tx.hash,
-        type: tx.to.toLowerCase() === address.toLowerCase() ? 'received' : 'sent',
-        counterparty: tx.to.toLowerCase() === address.toLowerCase() ? tx.from : tx.to,
-        amount: parseFloat(tx.value) / (coin === 'usdt' ? 1e6 : 1e18),
-        date: new Date(parseInt(tx.timeStamp) * 1000),
-      }));
-    }
+    const history = aggregateEvmHistory(histData.result, address, coin === 'usdt' ? 6 : 18);
 
     return {status: 'Synced', balance, balanceAtoms: BigInt(balData.result).toString(), nonce, history};
   } catch (cause) {

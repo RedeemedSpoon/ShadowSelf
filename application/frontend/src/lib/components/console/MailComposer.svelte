@@ -20,11 +20,13 @@
   } = $props();
   let to = $state(untrack(() => (reply ? initial?.from.match(/<([^>]+)>/)?.[1] || initial?.from || '' : initial?.to || '')));
   let subject = $state(
-    untrack(() => (reply ? (initial?.subject.toLowerCase().startsWith('re:') ? initial.subject : `Re: ${initial?.subject || ''}`) : initial?.subject || '')),
+    untrack(() => (reply ? (initial?.subject?.toLowerCase().startsWith('re:') ? initial.subject : `Re: ${initial?.subject || ''}`) : initial?.subject || '')),
   );
   let text = $state(untrack(() => (initial && !reply ? initial.body : '')));
   let html = $state(untrack(() => initial?.type === 'html' || !initial));
-  let attachments = $state<Attachment[]>(untrack(() => (initial && !reply ? [...initial.attachments] : [])));
+  let attachments = $state<Attachment[]>(
+    untrack(() => (initial && !reply ? initial.attachments.filter((file): file is typeof file & Attachment => !!file.data) : [])),
+  );
   let error = $state('');
   let container: HTMLDivElement;
   let editor: import('quill').default;

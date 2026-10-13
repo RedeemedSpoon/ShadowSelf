@@ -34,6 +34,10 @@ async function saveDraft(identityID: string, input: CreationDraft) {
     if (validation.error) {
       throw new ApiError(400, 'invalid_request', validation.error);
     }
+
+    if (key === 'profile') {
+      input = {...input, profile: validation as CreationDraft['profile']};
+    }
   }
 
   return withIdentityLock(identityID, async (connection) => {

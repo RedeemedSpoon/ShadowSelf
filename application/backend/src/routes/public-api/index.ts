@@ -2,7 +2,6 @@ import {SOCKET_AUTH_INTERVAL} from '@core/constants';
 import middlewareApi from '@middlewares/middleware-api';
 import type {QueryIdentity} from '@type';
 import {listenForEmail} from '@utils/email-imap';
-import {resizeTo256} from '@utils/utils';
 import {wsConnections} from '@core/states';
 import {sql} from '@core/services';
 import information from './api-information';
@@ -15,7 +14,8 @@ import {Elysia} from 'elysia';
 const network = {status: 'unavailable', reason: 'Network access is unavailable. Self-hosted proxy and VPN services are retired'};
 
 async function listIdentities(owner: number) {
-  const rows = (await sql`SELECT i.*, (SELECT COUNT(*)::integer FROM accounts a WHERE a.owner = i.id) AS accounts
+  const rows =
+    (await sql`SELECT i.id, i.status, i.name, i.email, i.phone, i.location, i.picture, i.crypto_invoice, i.plan, (SELECT COUNT(*)::integer FROM accounts a WHERE a.owner = i.id) AS accounts
     FROM identities i WHERE owner = ${owner} ORDER BY creation_date DESC`) as (QueryIdentity & {accounts: number})[];
 
   return await Promise.all(
@@ -27,9 +27,8 @@ async function listIdentities(owner: number) {
       phone: identity.phone,
       country: identity.location?.split(',')[0] || null,
       location: identity.location?.slice(4).trim() || null,
-      picture: identity.picture ? await resizeTo256(identity.picture).catch(() => null) : null,
+      picture: identity.picture,
       accounts: identity.accounts,
-      walletFunds: null,
       paymentMethod: identity.crypto_invoice ? 'crypto' : 'fiat',
       plan: identity.plan,
     })),

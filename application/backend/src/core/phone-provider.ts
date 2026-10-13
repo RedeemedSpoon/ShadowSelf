@@ -2,26 +2,72 @@ import {getPhoneClient} from '@core/services';
 import {origin, twilioConfig} from '@core/config';
 import {parseMessage} from '@utils/utils';
 import {ApiError} from '@core/security';
-import type {Message} from '@type';
+import {SMS_PAGE_SIZE, SMS_DELETE_CONCURRENCY} from '@core/constants';
 
 type PhoneClient = ReturnType<typeof getPhoneClient>;
 
-function createPhoneProvider(client: () => PhoneClient = getPhoneClient) {
-  async function conversation(phone: string, contact?: string) {
-    const [sent, received] = await Promise.all([
-      client().messages.list({from: phone, ...(contact ? {to: contact} : {}), limit: 1000}),
-      client().messages.list({to: phone, ...(contact ? {from: contact} : {}), limit: 1000}),
-    ]);
+type MessageCursor = {sent: string | null; received: string | null};
 
-    return [...sent, ...received].map(parseMessage).sort((a, b) => b.date.getTime() - a.date.getTime());
+function decodeCursor(cursor?: string): MessageCursor {
+  if (cursor === undefined) {
+    return {sent: '', received: ''};
+  }
+
+  try {
+    if (cursor.length > 8192 || !/^[A-Za-z0-9_-]+$/.test(cursor)) {
+      throw new Error();
+    }
+
+    const value = JSON.parse(Buffer.from(cursor, 'base64url').toString());
+
+    for (const direction of ['sent', 'received']) {
+      if (value[direction] !== null && (typeof value[direction] !== 'string' || value[direction].length > 2048)) {
+        throw new Error();
+      }
+    }
+
+    return {sent: value.sent, received: value.received};
+  } catch {
+    throw new ApiError(400, 'invalid_cursor', 'Invalid message cursor');
+  }
+}
+
+export function createPhoneProvider(client: () => PhoneClient = getPhoneClient) {
+  async function conversation(phone: string, contact?: string, cursor?: string) {
+    const tokens = decodeCursor(cursor);
+    const pages = await Promise.all(
+      ['sent', 'received'].map(async (direction) => {
+        const token = tokens[direction as keyof MessageCursor];
+
+        if (token === null) {
+          return {messages: [], token: null};
+        }
+
+        const filter = direction === 'sent' ? {from: phone, ...(contact ? {to: contact} : {})} : {to: phone, ...(contact ? {from: contact} : {})};
+        const page = await client().messages.page({...filter, pageSize: SMS_PAGE_SIZE, ...(token ? {pageToken: token} : {})});
+        const next = page.nextPageUrl ? new URL(page.nextPageUrl).searchParams.get('PageToken') : null;
+
+        if (page.nextPageUrl && !next) {
+          throw new ApiError(502, 'invalid_provider_page', 'Message provider returned an invalid cursor');
+        }
+
+        return {messages: page.instances.map(parseMessage), token: next};
+      }),
+    );
+    const messages = pages.flatMap((page) => page.messages).sort((a, b) => b.date.getTime() - a.date.getTime());
+    const next = {sent: pages[0].token, received: pages[1].token};
+    const complete = next.sent === null && next.received === null;
+
+    return {messages, complete, nextCursor: complete ? null : Buffer.from(JSON.stringify(next)).toString('base64url')};
   }
 
   return {
     conversation,
-    async conversations(phone: string) {
-      const latest = new Map<string, Message>();
+    async conversations(phone: string, cursor?: string) {
+      const page = await conversation(phone, undefined, cursor);
+      const latest = new Map<string, (typeof page.messages)[number]>();
 
-      for (const message of await conversation(phone)) {
+      for (const message of page.messages) {
         const contact = message.from === phone ? message.to : message.from;
 
         if (!latest.has(contact)) {
@@ -29,7 +75,7 @@ function createPhoneProvider(client: () => PhoneClient = getPhoneClient) {
         }
       }
 
-      return [...latest.values()];
+      return {...page, messages: [...latest.values()]};
     },
     async send(phone: string, to: string, body: string) {
       const message = await client().messages.create({body, messagingServiceSid: twilioConfig.messagingService || undefined, from: phone, to});
@@ -37,11 +83,28 @@ function createPhoneProvider(client: () => PhoneClient = getPhoneClient) {
       return parseMessage(message);
     },
     async removeConversation(phone: string, contact: string) {
-      const messages = await conversation(phone, contact);
+      const page = await conversation(phone, contact);
+      const messages = [...new Map(page.messages.map((message) => [message.messageID, message])).values()];
+      let deleted = 0;
+      let failed = 0;
 
-      for (const message of messages) {
-        await client().messages(message.messageID).remove();
+      for (let offset = 0; offset < messages.length; offset += SMS_DELETE_CONCURRENCY) {
+        const results = await Promise.allSettled(
+          messages.slice(offset, offset + SMS_DELETE_CONCURRENCY).map((message) => client().messages(message.messageID).remove()),
+        );
+
+        for (const result of results) {
+          if (result.status === 'fulfilled' && result.value) {
+            deleted++;
+          } else {
+            failed++;
+          }
+        }
       }
+
+      const remaining = await conversation(phone, contact);
+
+      return {deleted, failed, complete: remaining.complete && remaining.messages.length === 0};
     },
     async available(country: string) {
       const directory = client().availablePhoneNumbers(country);

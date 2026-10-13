@@ -1,10 +1,10 @@
 import type {Actions, PageServerLoad} from './$types';
 import {backend} from '$lib/backend.server';
-import type {FullIdentity} from '$type';
+import type {IdentityMetadata} from '$type';
 import {redirect} from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({params, cookies}) => {
-  const result = await backend<FullIdentity>(`/identities/${params.slug}`, 'GET', undefined, cookies.get('token'));
+  const result = await backend<IdentityMetadata>(`/identities/${params.slug}`, 'GET', undefined, cookies.get('token'));
 
   return {slug: params.slug, identity: result.ok ? result.data : null, loadError: result.ok ? '' : result.error, status: result.ok ? 200 : result.status};
 };

@@ -65,6 +65,7 @@
     };
   };
   const settings = $derived(data.settings);
+  const deletionPending = $derived(!!settings.deletionPending || form?.status === 'deleting');
 
   function close() {
     mode = '';
@@ -80,7 +81,7 @@
     <h1>Account settings</h1>
   </div>
 </div>
-<Status message={form?.message || ''} kind={form?.type === 'success' ? 'success' : 'error'} /><Status
+<Status message={form?.message || ''} kind={form?.status === 'deleting' ? 'info' : form?.type === 'success' ? 'success' : 'error'} /><Status
   message={settings.type === 'alert' ? settings.message : ''}
   kind="error" />
 <div class="settings-grid">
@@ -182,8 +183,9 @@
   <div>
     <h2>Delete account</h2>
     <p>Remove the account and request deletion of every identity. Move wallet funds first.</p>
+    {#if deletionPending}<Status message="Account deletion is pending. Cleanup will continue automatically." />{/if}
   </div>
-  <Button variant="danger" icon="trash" onclick={() => (deleteOpen = true)}>Delete account</Button>
+  <Button variant="danger" icon="trash" onclick={() => (deleteOpen = true)}>{deletionPending ? 'Check deletion status' : 'Delete account'}</Button>
 </section>
 <Dialog
   open={!!mode}
@@ -296,7 +298,7 @@
     <Status message={form?.message || ''} kind="error" /><Button type="submit" disabled={!paymentID} loading={pending === 'payment'}
       >Save payment method</Button>
   </form></Dialog>
-<Dialog bind:open={deleteOpen} title="Delete your account"
+<Dialog bind:open={deleteOpen} title={deletionPending ? 'Check account deletion' : 'Delete your account'}
   ><p>This cancels subscriptions and begins removing account resources. The deletion can remain pending while providers finish cleanup.</p>
   <form method="POST" action="?/delete" use:enhance={submit} data-action="delete">
     <div class="field settings-password">
@@ -307,8 +309,10 @@
         autocomplete="current-password"
         required />
     </div>
-    <Status message={form?.message || ''} kind="error" /><Button type="submit" variant="danger" loading={pending === 'delete'}
-      >Delete account and identities</Button>
+    <Status message={form?.message || ''} kind={form?.status === 'deleting' ? 'info' : 'error'} /><Button
+      type="submit"
+      variant="danger"
+      loading={pending === 'delete'}>{deletionPending ? 'Check deletion status' : 'Delete account and identities'}</Button>
   </form></Dialog>
 
 <style>

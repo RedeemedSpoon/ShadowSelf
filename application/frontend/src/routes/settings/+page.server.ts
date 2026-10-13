@@ -184,7 +184,7 @@ export const actions: Actions = {
 
     const response = await fetchBackend('/settings/account', 'DELETE', {currentPassword}, cookies.get('token'));
 
-    if (response.type !== 'success') {
+    if (response.type !== 'success' || response.status !== 'deleted') {
       return response;
     }
 

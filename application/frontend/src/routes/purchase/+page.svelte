@@ -28,7 +28,7 @@
   let checkout = $state<CardCheckout | null>(null);
   let checkoutOpen = $state(false);
   let cardReady = $state(false);
-  let requestID = $state(untrack(() => data.requestID));
+  let requestID = $state<string>(untrack(() => data.requestID));
   let mountPoint = $state<HTMLDivElement>();
   let stripe: Stripe | null = null;
   let elements: StripeElements;
@@ -38,6 +38,8 @@
   const tier = $derived(PRICING_TIERS[plan]);
   const capabilities = ['Identity profile', 'Dedicated mailbox', 'Phone number', 'Encrypted account vault', 'Client-signed crypto wallet'];
   const invoiceMessages: Record<string, string> = {
+    reconciling: 'The exchange request is being checked. Do not send payment or start another purchase. Refresh to retry reconciliation.',
+    reconciliation: 'Payment needs manual review. Keep this reference and contact support. Do not send another payment.',
     waiting: 'Waiting for payment.',
     pending: 'Waiting for payment.',
     confirming: 'Payment observed. Waiting for confirmations.',
@@ -161,6 +163,8 @@
     pending = true;
     error = '';
 
+    replaceState(`?plan=${plan}&${renewal ? `id=${renewal}&` : ''}request=${requestID}`, page.state);
+
     try {
       const result = await request<CryptoInvoice>(renewal ? '/billing/crypto/renewals' : '/billing/crypto/invoices', 'POST', {
         plan,
@@ -177,6 +181,7 @@
       await showInvoice(result.data);
     } catch (cause) {
       error = cause instanceof Error ? cause.message : 'Could not create an invoice.';
+      await recoverInvoice(requestID);
     } finally {
       pending = false;
     }
@@ -184,9 +189,9 @@
 
   async function showInvoice(value: CryptoInvoice) {
     invoice = value;
-    qr = await QRCode.toDataURL(value.depositAddress, {width: 240, margin: 2});
+    await renderInvoiceQR(value);
     replaceState(`?${renewal ? `id=${renewal}&plan=${plan}&` : ''}invoice=${value.invoiceID}`, page.state);
-    status = 'Waiting for payment.';
+    status = invoiceMessages[value.status] || 'Checking payment status.';
     clearInterval(poll);
     poll = setInterval(() => void refreshInvoice(), 5000);
     await refreshInvoice();
@@ -205,6 +210,8 @@
       return;
     }
 
+    invoice = result.data;
+    await renderInvoiceQR(result.data);
     status = invoiceMessages[result.data.status] || result.data.status;
 
     if (result.data.status === 'underpaid') {
@@ -216,8 +223,34 @@
       await goto(renewal ? `/identity/${renewal}` : `/create?id=${result.data.identityID}`);
     }
 
-    if (['expired', 'late', 'refunded'].includes(result.data.status)) {
+    if (['expired', 'late', 'refunded', 'reconciliation'].includes(result.data.status)) {
       clearInterval(poll);
+    }
+  }
+
+  async function renderInvoiceQR(value: CryptoInvoice) {
+    if (!value.depositAddress || value.depositMemo) {
+      qr = '';
+
+      return;
+    }
+
+    const scheme = {xmr: 'monero', btc: 'bitcoin', ltc: 'litecoin'}[value.coin.toLowerCase()];
+    const amountKey = value.coin.toLowerCase() === 'xmr' ? 'tx_amount' : 'amount';
+    const uri = scheme ? `${scheme}:${value.depositAddress}?${amountKey}=${encodeURIComponent(value.depositAmount || '')}` : value.depositAddress;
+    qr = await QRCode.toDataURL(uri, {width: 240, margin: 2});
+  }
+
+  async function recoverInvoice(reference: string) {
+    const result = await request<{invoiceID: string}>(`/billing/crypto/requests/${reference}`);
+
+    if (result.ok) {
+      const recovered = await request<CryptoInvoice>(`/billing/crypto/invoices/${result.data.invoiceID}`);
+
+      if (recovered.ok) {
+        error = '';
+        await showInvoice(recovered.data);
+      }
     }
   }
 
@@ -226,6 +259,13 @@
 
     if (desired && desired in PRICING_TIERS) {
       plan = desired as typeof plan;
+    }
+
+    const reference = page.url.searchParams.get('request');
+
+    if (reference) {
+      requestID = reference;
+      void recoverInvoice(reference);
     }
 
     const id = page.url.searchParams.get('invoice');
@@ -272,21 +312,26 @@
   </section>
   <section class="panel">
     <h2>{invoice ? 'Payment invoice' : 'Payment method'}</h2>
-    {#if invoice}<img class="qr-image" src={qr} alt="Invoice deposit address QR code" />
+    {#if invoice}{#if qr}<img class="qr-image" src={qr} alt="Invoice payment QR code" />{/if}
       <dl class="data-list">
-        <div>
-          <dt>Send amount</dt>
-          <dd><Copy value={String(invoice.depositAmount)} label="Copy amount" /> {invoice.coin || ticker.toUpperCase()}</dd>
-        </div>
-        <div>
-          <dt>Deposit address</dt>
-          <dd><Copy value={invoice.depositAddress} label="Copy address" /></dd>
-        </div>
+        {#if invoice.depositAddress && invoice.depositAmount}<div>
+            <dt>Send amount</dt>
+            <dd><Copy value={String(invoice.depositAmount)} label="Copy amount" /> {invoice.coin || ticker.toUpperCase()}</dd>
+          </div>
+          <div>
+            <dt>Deposit address</dt>
+            <dd><Copy value={invoice.depositAddress} label="Copy address" /></dd>
+          </div>
+          {#if invoice.depositMemo}<div>
+              <dt>Required memo / destination tag</dt>
+              <dd><Copy value={invoice.depositMemo} label="Copy required memo" /></dd>
+            </div>{/if}{/if}
         <div>
           <dt>Reference</dt>
           <dd>{invoice.invoiceID}</dd>
         </div>
       </dl>
+      {#if invoice.depositMemo}<Status message="Include the exact memo or destination tag with your payment. The address alone is not sufficient." />{/if}
       <Status message={status} />
       <div class="button-row invoice-actions">
         <Button variant="secondary" onclick={refreshInvoice}>Refresh payment status</Button>{#if invoice.externalLink}<a

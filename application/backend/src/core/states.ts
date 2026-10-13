@@ -1,6 +1,8 @@
 import {SENSITIVE_ATTEMPT_WINDOW, SENSITIVE_ATTEMPT_LIMIT} from '@core/constants';
 import type {EmailCodePurpose, EmailCode, EmailDeliveryLimit, SignupDraft} from '@type';
-import {hashVerification} from '@utils/cryptography';
+import {hashVerification, getSecret, createTOTP} from '@utils/cryptography';
+import {decryptSecret} from '@core/security';
+import type {SignupProgress} from '@type';
 import {randomInt, randomBytes} from 'node:crypto';
 import {LOGIN_CHALLENGE_TTL, LOGIN_CHALLENGE_ATTEMPTS, LOGIN_CHALLENGE_CAPACITY} from '@core/constants';
 import type {LoginChallenge, QueryUser} from '@type';
@@ -18,14 +20,13 @@ import {
 
 export const billingReadiness = {lastSync: 0, priceSync: 0, feeSync: 0, available: false};
 
-export const cryptoPrices = {} as CryptoPrices;
-export const cryptoFees = {} as CryptoFees;
+export const cryptoPrices: Partial<CryptoPrices> = {};
+export const cryptoFees: Partial<CryptoFees> = {};
 
 export let watchWallet: moneroTs.MoneroWalletFull;
 export const setWatchWallet = (wallet: moneroTs.MoneroWalletFull) => (watchWallet = wallet);
 
 const rateLimits = new Set<string>();
-const cacheStore = new Map<string, any>();
 
 export const throttle = (action: string, ms: number) => ({
   beforeHandle: ({identity, set}: any) => {
@@ -44,36 +45,10 @@ export const throttle = (action: string, ms: number) => ({
   },
 });
 
-export const useCache = (action: string, ms: number) => ({
-  beforeHandle: ({identity}: any) => {
-    if (!identity) {
-      return;
-    }
+class ConnectionManager<T> {
+  private connections = new Map<string, T>();
 
-    const key = `${identity.id}:${action}`;
-
-    if (cacheStore.has(key)) {
-      return cacheStore.get(key);
-    }
-  },
-  afterHandle: ({identity, response, set}: any) => {
-    if (!identity) {
-      return;
-    }
-
-    const key = `${identity.id}:${action}`;
-
-    if (!cacheStore.has(key) && response && !response.error && (!set.status || Number(set.status) < 400)) {
-      cacheStore.set(key, response);
-      setTimeout(() => cacheStore.delete(key), ms);
-    }
-  },
-});
-
-class WSManager {
-  private connections = new Map<string, WSConnection>();
-
-  set(id: string, connection: WSConnection) {
+  set(id: string, connection: T) {
     this.connections.set(id, connection);
   }
 
@@ -90,28 +65,8 @@ class WSManager {
   }
 }
 
-class InvoiceManager {
-  private connections = new Map<string, InvoiceConnection>();
-
-  set(id: string, connection: InvoiceConnection) {
-    this.connections.set(id, connection);
-  }
-
-  get(id: string) {
-    return this.connections.get(id);
-  }
-
-  delete(id: string) {
-    this.connections.delete(id);
-  }
-
-  values() {
-    return Array.from(this.connections.values());
-  }
-}
-
-export const wsConnections = new WSManager();
-export const invoiceConnections = new InvoiceManager();
+export const wsConnections = new ConnectionManager<WSConnection>();
+export const invoiceConnections = new ConnectionManager<InvoiceConnection>();
 
 const loginChallenges = new Map<string, LoginChallenge>();
 
@@ -249,7 +204,7 @@ export function discardEmailCode(purpose: EmailCodePurpose, email: string, bindi
   }
 }
 
-export function createSignupDraft(email: string, password: string) {
+export function createSignupDraft(email: string, password: string, username: string, enableTwoFactor: boolean) {
   for (const [key, entry] of signupDrafts) {
     if (entry.expiresAt <= Date.now()) {
       signupDrafts.delete(key);
@@ -266,8 +221,9 @@ export function createSignupDraft(email: string, password: string) {
     password,
     expiresAt: Date.now() + SIGNUP_DRAFT_TTL,
     verified: false,
-    username: '',
-    secret: '',
+    username,
+    enableTwoFactor,
+    secret: enableTwoFactor ? getSecret() : '',
     recoveryHashes: [],
   });
 
@@ -286,6 +242,26 @@ export function getSignupDraft(id: unknown, consume = false) {
   }
 
   return entry && entry.expiresAt > Date.now() ? entry : undefined;
+}
+
+export function signupProgress(id: unknown): SignupProgress | undefined {
+  const draft = getSignupDraft(id);
+
+  if (!draft) {
+    return undefined;
+  }
+
+  const profile = {email: draft.email, username: draft.username};
+
+  if (!draft.verified) {
+    return {...profile, stage: 'email'};
+  }
+
+  if (draft.encryptedRecovery && draft.recoveryHashes.length) {
+    return {...profile, stage: 'recovery', recovery: JSON.parse(decryptSecret(draft.encryptedRecovery))};
+  }
+
+  return {...profile, stage: 'authenticator', secret: draft.secret, uri: createTOTP(draft.secret, draft.username).toString()};
 }
 
 const emailCodes = new Map<string, EmailCode>();

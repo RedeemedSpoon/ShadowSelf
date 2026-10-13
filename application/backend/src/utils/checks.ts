@@ -1,7 +1,7 @@
-import sharp from 'sharp';
+import {HDKey} from '@scure/bip32';
 import type {BodyField, ContactDetail, CheckIdentity, APIRequest, QueryIdentity, InitializedIdentity} from '@type';
 import {ETHNICITIES, LOCATIONS} from '@core/constants';
-import {toTitleCase} from '@utils/utils';
+import {toTitleCase, normalizePortrait} from '@utils/utils';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
   if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
@@ -180,13 +180,13 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
     case 'profile':
     case 'identity': {
       const fields = ['name', 'sex', 'age', 'ethnicity', 'bio', ...(kind === 'identity' ? ['picture'] : [])];
-      const {err} = await checkAPI(body, fields);
+      const validated = await checkAPI(body, fields);
 
-      if (err) {
-        return {error: err};
+      if (validated.err) {
+        return {error: validated.err};
       }
 
-      break;
+      return {...body, ...validated};
     }
 
     case 'email': {
@@ -223,11 +223,11 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
         return {error: 'Invalid wallet encryption blob'};
       }
 
-      if (!/^[a-zA-Z0-9]{100,130}$/.test(keys.btc)) {
+      if (!validAccountPublicKey(keys.btc)) {
         return {error: 'Invalid Bitcoin Extended Public Key'};
       }
 
-      if (!/^[a-zA-Z0-9]{100,130}$/.test(keys.ltc)) {
+      if (!validAccountPublicKey(keys.ltc)) {
         return {error: 'Invalid Litecoin Extended Public Key'};
       }
 
@@ -261,7 +261,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
     return {err: 'Invalid request body'} as APIRequest;
   }
 
-  const body = rawBody as APIRequest;
+  const body = {...rawBody} as APIRequest;
 
   for (const field of fields) {
     const isOptional = field.startsWith('?');
@@ -351,7 +351,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
             return {err: 'Invalid profile picture encoding'} as APIRequest;
           }
 
-          await sharp(buffer, {limitInputPixels: 16_777_216}).resize(256, 256).toBuffer();
+          body.picture = await normalizePortrait(body.picture);
         } catch {
           return {err: 'The profile picture could not be decoded'} as APIRequest;
         }
@@ -381,8 +381,19 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Website must be a string'} as APIRequest;
         }
 
+        if (body.website.length > 2048) {
+          return {err: 'Website must be at most 2048 characters'} as APIRequest;
+        }
+
         if (body.website !== '' && !/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
           return {err: 'Invalid website address, please try again'} as APIRequest;
+        }
+
+        break;
+
+      case 'draft':
+        if (body.draft !== null && (!Number.isSafeInteger(body.draft) || body.draft < 1)) {
+          return {err: 'Draft must be a single positive message UID or null'} as APIRequest;
         }
 
         break;
@@ -758,6 +769,20 @@ export function validCiphertext(value: unknown): value is string {
   const decoded = Buffer.from(encoded, 'base64');
 
   return decoded.length >= 29 && decoded.length <= 4124 && decoded.toString('base64') === encoded;
+}
+
+function validAccountPublicKey(value: unknown) {
+  if (typeof value !== 'string' || value.length > 130) {
+    return false;
+  }
+
+  try {
+    const key = HDKey.fromExtendedKey(value);
+
+    return !key.privateKey && !!key.publicKey && key.depth === 3 && key.index >= 0x80000000;
+  } catch {
+    return false;
+  }
 }
 
 export function isInitializedIdentity(identity: QueryIdentity): identity is InitializedIdentity {
