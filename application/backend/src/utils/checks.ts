@@ -1,10 +1,12 @@
+import sharp from 'sharp';
 import type {BodyField, ContactDetail, CheckIdentity, APIRequest, QueryIdentity, InitializedIdentity} from '@type';
 import {ETHNICITIES, LOCATIONS} from '@core/constants';
 import {toTitleCase} from '@utils/utils';
-import {$} from 'bun';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
-  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) return {err: 'Invalid request body'} as BodyField;
+  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
+    return {err: 'Invalid request body'} as BodyField;
+  }
 
   const body = rawBody as BodyField;
 
@@ -16,22 +18,41 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
       return {err: `${toTitleCase(field)} is a required field`} as BodyField;
     }
 
-    if (ignore) continue;
-    if (isOptional && !body[fieldType as keyof BodyField]) continue;
+    if (isOptional && body[fieldType as keyof BodyField] === undefined) {
+      continue;
+    }
+
+    if (typeof body[fieldType as keyof BodyField] !== 'string') {
+      return {err: `${toTitleCase(fieldType)} must be a string`} as BodyField;
+    }
+
+    if ((body[fieldType as keyof BodyField] as string).length > 256) {
+      return {err: `${toTitleCase(fieldType)} is too long`} as BodyField;
+    }
+
+    if (ignore) {
+      continue;
+    }
+
+    if (isOptional && !body[fieldType as keyof BodyField]) {
+      continue;
+    }
 
     switch (fieldType) {
       case 'username':
-        if (!/^[\p{L}\p{N}\s]+$/u.test(body.username)) {
+        if (!body.username.trim() || !/^[\p{L}\p{N}\s]+$/u.test(body.username)) {
           return {err: 'Username can only contain letters, numbers and spaces'} as BodyField;
-        } else if (body.username.length > 25) {
-          return {err: 'Username is too long (<25 characters)'} as BodyField;
+        } else {
+          if (body.username.length > 25) {
+            return {err: 'Username is too long (<25 characters)'} as BodyField;
+          }
         }
 
         break;
 
       case 'password':
-        if (!/^(?=.*?[a-z])(?=.*?[0-9]).{8,}$/.test(body.password)) {
-          return {err: 'Password is too weak. Improve it a bit'} as BodyField;
+        if (body.password.length < 12 || body.password.length > 256) {
+          return {err: 'Use a password between 12 and 256 characters'} as BodyField;
         }
 
         break;
@@ -39,8 +60,10 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
       case 'email':
         if (!/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
           return {err: 'Invalid email address. Please try again'} as BodyField;
-        } else if (body.email.length > 48) {
-          return {err: 'Email is too long (<48 characters)'} as BodyField;
+        } else {
+          if (body.email.length > 48) {
+            return {err: 'Email is too long (<48 characters)'} as BodyField;
+          }
         }
 
         break;
@@ -53,7 +76,7 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         break;
 
       case 'secret':
-        if (body.secret.length > 32 && !/^[A-Z0-9]+$/.test(body.secret)) {
+        if (!/^[A-Z2-7]{32}$/.test(body.secret)) {
           return {err: 'OTP secret is invalid. Get a new one'} as BodyField;
         }
 
@@ -100,7 +123,15 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
 }
 
 export function checkContact(rawBody: unknown): ContactDetail {
+  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
+    return {err: 'Invalid contact request'} as ContactDetail;
+  }
+
   const body = rawBody as ContactDetail;
+
+  if (!['category', 'message', 'subject'].every((key) => typeof (body as unknown as Record<string, unknown>)[key] === 'string')) {
+    return {err: 'Invalid contact request'} as ContactDetail;
+  }
 
   for (const field of ['category', 'message', 'subject']) {
     if (!Object.prototype.hasOwnProperty.call(body, field)) {
@@ -108,12 +139,16 @@ export function checkContact(rawBody: unknown): ContactDetail {
     }
   }
 
-  if (body.subject.length > 120) {
+  if (!body.subject.trim().length || body.subject.length > 120) {
     return {err: 'Subject is too long (<120 characters)'} as ContactDetail;
   }
 
-  if (!body.message.length) {
-    return {err: 'Message is empty'} as ContactDetail;
+  if (!body.message.trim().length || body.message.length > 10000) {
+    return {err: 'Message must contain between 1 and 10000 characters'} as ContactDetail;
+  }
+
+  if (body.email !== undefined && (typeof body.email !== 'string' || body.email.length > 256)) {
+    return {err: 'Invalid reply email'} as ContactDetail;
   }
 
   if (body.email && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
@@ -128,7 +163,9 @@ export function checkContact(rawBody: unknown): ContactDetail {
 }
 
 export async function checkIdentity(kind: string, rawBody: unknown): Promise<CheckIdentity> {
-  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) return {error: 'Invalid identity data'};
+  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
+    return {error: 'Invalid identity data'};
+  }
 
   const body = rawBody as CheckIdentity;
 
@@ -144,7 +181,10 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
     case 'identity': {
       const fields = ['name', 'sex', 'age', 'ethnicity', 'bio', ...(kind === 'identity' ? ['picture'] : [])];
       const {err} = await checkAPI(body, fields);
-      if (err) return {error: err};
+
+      if (err) {
+        return {error: err};
+      }
 
       break;
     }
@@ -158,9 +198,7 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
         return {error: 'Email is too long (<48 characters)'};
       }
 
-      const command = await $`id $EMAIL_ADDRESS`.env({EMAIL_ADDRESS: body.email!}).quiet().nothrow();
-
-      return command.exitCode === 0 ? {error: 'Email address is already registered on our systems'} : body;
+      break;
     }
 
     case 'phone':
@@ -177,7 +215,9 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
 
       const {blob, keys} = body.wallet;
 
-      if (!keys.xmr || ![keys.xmr.address, keys.xmr.viewKey, keys.xmr.spendKey].every(validCiphertext)) return {error: 'Invalid encrypted Monero keys'};
+      if (!keys.xmr || ![keys.xmr.address, keys.xmr.viewKey, keys.xmr.spendKey].every(validCiphertext)) {
+        return {error: 'Invalid encrypted Monero keys'};
+      }
 
       if (!validCiphertext(blob)) {
         return {error: 'Invalid wallet encryption blob'};
@@ -203,7 +243,10 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
 
       for (const validationKind of validationKinds) {
         const {error} = await checkIdentity(validationKind, body);
-        if (error) return {error};
+
+        if (error) {
+          return {error};
+        }
       }
 
       break;
@@ -214,7 +257,9 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
 }
 
 export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIRequest> {
-  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) return {err: 'Invalid request body'} as APIRequest;
+  if (!rawBody || typeof rawBody !== 'object' || Array.isArray(rawBody)) {
+    return {err: 'Invalid request body'} as APIRequest;
+  }
 
   const body = rawBody as APIRequest;
 
@@ -226,7 +271,9 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
       return {err: `${toTitleCase(field)} is a required field`} as APIRequest;
     }
 
-    if (isOptional && !Object.prototype.hasOwnProperty.call(body, fieldType)) continue;
+    if (isOptional && !Object.prototype.hasOwnProperty.call(body, fieldType)) {
+      continue;
+    }
 
     switch (fieldType) {
       case 'name':
@@ -293,8 +340,20 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Picture data must be a string'} as APIRequest;
         }
 
-        if (!/^[A-Za-z0-9+/=]+$/.test(body.picture)) {
+        if (body.picture.length > 4_000_000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(body.picture)) {
           return {err: 'Incorrect profile picture format'} as APIRequest;
+        }
+
+        try {
+          const buffer = Buffer.from(body.picture, 'base64');
+
+          if (buffer.toString('base64') !== body.picture) {
+            return {err: 'Invalid profile picture encoding'} as APIRequest;
+          }
+
+          await sharp(buffer, {limitInputPixels: 16_777_216}).resize(256, 256).toBuffer();
+        } catch {
+          return {err: 'The profile picture could not be decoded'} as APIRequest;
         }
 
         break;
@@ -311,7 +370,10 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'password':
-        if (!validCiphertext(body.password)) return {err: 'Invalid encrypted password'} as APIRequest;
+        if (!validCiphertext(body.password)) {
+          return {err: 'Invalid encrypted password'} as APIRequest;
+        }
+
         break;
 
       case 'website':
@@ -326,7 +388,10 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'totp':
-        if (body.totp !== null && !validCiphertext(body.totp)) return {err: 'Invalid encrypted authenticator secret'} as APIRequest;
+        if (body.totp !== null && !validCiphertext(body.totp)) {
+          return {err: 'Invalid encrypted authenticator secret'} as APIRequest;
+        }
+
         break;
 
       case 'algorithm':
@@ -341,7 +406,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'id':
-        if (typeof body.id !== 'number' || !Number.isInteger(body.id) || body.uid < 1) {
+        if (typeof body.id !== 'number' || !Number.isSafeInteger(body.id) || body.id < 1) {
           return {err: 'Invalid ID, please try again'} as APIRequest;
         }
 
@@ -613,7 +678,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Addresses must be an array'} as APIRequest;
         }
 
-        if (body.addresses.length === 0) {
+        if (body.addresses.length === 0 || body.addresses.length > 120) {
           return {err: 'Addresses array cannot be empty'} as APIRequest;
         }
 
@@ -651,7 +716,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'amount':
-        if (isNaN(Number(body.amount)) || Number(body.amount) <= 0) {
+        if ((typeof body.amount !== 'number' && typeof body.amount !== 'string') || !Number.isFinite(Number(body.amount)) || Number(body.amount) <= 0) {
           return {err: 'Amount must be a positive number'} as APIRequest;
         }
 
@@ -662,7 +727,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Hex must be a string'} as APIRequest;
         }
 
-        if (!/^(0x)?[0-9a-fA-F]+$/.test(body.hex)) {
+        if (body.hex.length > 1_000_000 || !/^(0x)?(?:[0-9a-fA-F]{2})+$/.test(body.hex)) {
           return {err: 'Invalid hexadecimal string'} as APIRequest;
         }
 
@@ -685,7 +750,10 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 }
 
 export function validCiphertext(value: unknown): value is string {
-  if (typeof value !== 'string' || !/^v1\.[A-Za-z0-9+/]+={0,2}$/.test(value) || value.length > 5503) return false;
+  if (typeof value !== 'string' || !/^v1\.[A-Za-z0-9+/]+={0,2}$/.test(value) || value.length > 5503) {
+    return false;
+  }
+
   const encoded = value.slice(3);
   const decoded = Buffer.from(encoded, 'base64');
 
@@ -693,22 +761,7 @@ export function validCiphertext(value: unknown): value is string {
 }
 
 export function isInitializedIdentity(identity: QueryIdentity): identity is InitializedIdentity {
-  const fields = [
-    'proxy_server',
-    'proxy_password',
-    'location',
-    'picture',
-    'name',
-    'bio',
-    'age',
-    'sex',
-    'ethnicity',
-    'email',
-    'email_password',
-    'phone',
-    'wallet_blob',
-    'wallet_keys',
-  ] as const;
+  const fields = ['location', 'picture', 'name', 'bio', 'age', 'sex', 'ethnicity', 'email', 'email_password', 'phone', 'wallet_blob', 'wallet_keys'] as const;
 
   return fields.every((field) => identity[field] !== null);
 }

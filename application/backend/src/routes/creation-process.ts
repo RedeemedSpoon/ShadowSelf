@@ -1,224 +1,156 @@
-import {provisionIdentity} from '@core/identity-service';
-import type {CreationProcess, QueryIdentity, QueryUser, CreationConnection} from '@type';
-import middlewareBase from '@middlewares/middleware-base';
+import {provisionIdentity, withIdentityLock} from '@core/identity-service';
+import middlewareApi from '@middlewares/middleware-api';
 import {ETHNICITIES, LOCATIONS} from '@core/constants';
+import {phoneProvider} from '@core/phone-provider';
 import {generateProfile} from '@utils/prompts';
 import {checkIdentity} from '@utils/checks';
-import {sql, twilio} from '@core/services';
+import type {CreationDraft} from '@type';
+import {ApiError} from '@core/security';
+import {sql} from '@core/services';
 import {allFakers} from '@faker-js/faker';
-import {Elysia, t} from 'elysia';
-import {error} from '@utils/utils';
-import {SOCKET_AUTH_INTERVAL} from '@core/constants';
+import {Elysia} from 'elysia';
 
-export default new Elysia({websocket: {idleTimeout: 300}})
-  .use(middlewareBase)
-  .derive(() => ({creation: {jobID: '', busy: false} as CreationConnection}))
-  .post('/creation-process', async ({set, user, jwt, body}) => {
-    if (!user) return error(set, 401, 'You are not logged in');
-    const id = (body as {id?: unknown})?.id;
-    if (typeof id !== 'string' || !/^[a-f0-9]{12}$/.test(id)) return error(set, 400, 'Invalid identity');
+async function loadDraft(identityID: string) {
+  const rows = await sql`INSERT INTO creation_jobs (identity_id, status) VALUES (${identityID}, 'editing')
+    ON CONFLICT (identity_id) DO UPDATE SET identity_id = EXCLUDED.identity_id RETURNING id, payload, status`;
 
-    const account = (await sql`SELECT id FROM users WHERE email = ${user.email}`) as QueryUser[];
-    const identity = (await sql`SELECT * FROM identities WHERE id = ${id} AND owner = ${account[0].id}`) as QueryIdentity[];
-    if (!identity.length) return error(set, 404, 'Identity not found');
-    if (identity[0].status !== 'inactive') return error(set, 409, 'Identity is already provisioned');
+  return {id: rows[0].id as string, draft: rows[0].payload as CreationDraft, status: rows[0].status as string};
+}
 
-    const jobs = await sql`INSERT INTO creation_jobs (identity_id) VALUES (${id}) RETURNING id`;
-    const cookie = await jwt.sign({
-      purpose: 'creation',
-      job: jobs[0].id,
-      identity: id,
-      email: user.email,
-      session: user.id,
-      exp: Math.floor(Date.now() / 1000) + 300,
-    });
+async function saveDraft(identityID: string, input: CreationDraft) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new ApiError(400, 'invalid_request', 'Invalid creation draft');
+  }
 
-    return {cookie};
+  for (const key of Object.keys(input)) {
+    if (!['location', 'profile', 'email', 'phone', 'wallet'].includes(key)) {
+      throw new ApiError(400, 'invalid_request', 'Unknown creation field');
+    }
+
+    const kind = key === 'profile' ? 'identity' : key;
+    const value = key === 'profile' ? input.profile : {[key]: input[key as keyof CreationDraft]};
+    const validation = await checkIdentity(kind, value);
+
+    if (validation.error) {
+      throw new ApiError(400, 'invalid_request', validation.error);
+    }
+  }
+
+  return withIdentityLock(identityID, async (connection) => {
+    const identities = await connection`SELECT status FROM identities WHERE id = ${identityID}`;
+
+    if (identities[0]?.status !== 'inactive') {
+      throw new ApiError(409, 'creation_unavailable', 'This identity is unavailable for creation');
+    }
+
+    const rows = await connection`INSERT INTO creation_jobs (identity_id, status, payload)
+      VALUES (${identityID}, 'editing', ${connection.json(input as never)})
+      ON CONFLICT (identity_id) DO UPDATE SET payload = creation_jobs.payload || EXCLUDED.payload
+      WHERE creation_jobs.status = 'editing' RETURNING payload`;
+
+    if (!rows.length) {
+      throw new ApiError(409, 'creation_busy', 'Creation has reserved resources. Retry provisioning to finish');
+    }
+
+    return rows[0].payload as CreationDraft;
+  });
+}
+
+export default new Elysia({prefix: '/api/identities/:id/creation'})
+  .use(middlewareApi)
+  .onBeforeHandle(({identity, request}) => {
+    const provisionRetry = request.method === 'POST' && new URL(request.url).pathname.endsWith('/provision');
+
+    if (identity?.status === 'active' && (request.method === 'GET' || provisionRetry)) {
+      return;
+    }
+
+    if (identity?.status !== 'inactive') {
+      throw new ApiError(409, 'creation_unavailable', 'This identity is unavailable for creation');
+    }
   })
-  .ws('/ws-creation-process', {
-    query: t.Object({id: t.String({pattern: '^[a-f0-9]{12}$'})}),
-    async open(ws) {
-      ws.data.creation.ready = (async () => {
-        const user = ws.data.user;
-        const grant = await ws.data.jwt.verify(ws.data.cookie['creation-process']?.value as string);
-        if (
-          !user ||
-          !grant ||
-          grant.purpose !== 'creation' ||
-          grant.email !== user.email ||
-          grant.session !== user.id ||
-          grant.identity !== ws.data.query.id ||
-          typeof grant.job !== 'string'
-        ) {
-          return ws.close(1008, 'Creation authorization is invalid or expired');
-        }
+  .get('/', async ({identity}) => {
+    const job = await loadDraft(identity!.id);
 
-        const claimed = await sql`UPDATE creation_jobs j SET status = 'editing' FROM identities i, users u
-        WHERE j.id = ${grant.job} AND j.identity_id = i.id AND i.owner = u.id AND u.email = ${user.email}
-        AND ${user.id} = ANY(u.sessions) AND i.id = ${ws.data.query.id} AND i.status = 'inactive'
-        AND j.status = 'authorized' AND j.created_at > NOW() - INTERVAL '5 minutes' RETURNING j.id`;
-        if (!claimed.length) return ws.close(1008, 'Creation authorization was already used');
+    return {draft: job.draft, locations: LOCATIONS, status: identity!.status, creationStatus: job.status};
+  })
+  .put('/', async ({identity, body}) => ({draft: await saveDraft(identity!.id, body as CreationDraft)}))
+  .post('/profile', async ({identity, body}) => {
+    const input = body as {location?: string; regenerate?: CreationDraft['profile']; repeat?: {name?: boolean; bio?: boolean; sex?: 'male' | 'female'}};
+    const job = await loadDraft(identity!.id);
 
-        if (ws.raw.readyState !== 1) return;
-        ws.data.creation.jobID = claimed[0].id;
-        ws.data.creation.authTimer = setInterval(async () => {
-          if (!(await ws.data.authorize())) ws.close(1008, 'Session expired');
-        }, SOCKET_AUTH_INTERVAL);
-      })();
-      await ws.data.creation.ready;
-    },
+    const location = input?.location || job.draft.location;
+    const lang = LOCATIONS.find((item) => item.code === location);
 
-    close(ws) {
-      clearInterval(ws.data.creation.authTimer);
-    },
-    async message(ws, message: CreationProcess | 'ping') {
-      await ws.data.creation.ready;
-      if (!(await ws.data.authorize()) || !ws.data.creation.jobID) return ws.close(1008, 'Session expired');
-      if (message === 'ping') return ws.send('pong');
-      if (ws.data.creation.busy) return ws.send({error: 'Wait for the previous step to finish'});
-      ws.data.creation.busy = true;
+    if (!lang) {
+      throw new ApiError(400, 'invalid_request', 'Choose a location first');
+    }
 
-      try {
-        const identityID = ws.data.query.id;
-        const jobs = await sql`SELECT payload FROM creation_jobs WHERE id = ${ws.data.creation.jobID} AND status = 'editing'`;
-        if (!jobs.length) return ws.close(1008, 'Creation is no longer editable');
-        const cookieStore = jobs[0].payload as string[];
-        const stepOffsets: Record<string, number> = {
-          'submit-location/generate-profile': 0,
-          'submit-profile/derive-email': 1,
-          'submit-email/find-phones': 7,
-          'submit-phone': 8,
-          'submit-wallet': 9,
-        };
-        const append = async (...values: string[]) => {
-          const offset = stepOffsets[message.kind];
-          if (offset === undefined || cookieStore.length < offset) throw new Error('Complete the previous steps first');
-          cookieStore.splice(offset, cookieStore.length - offset, ...values);
-          await sql`UPDATE creation_jobs SET payload = ${sql.json(cookieStore)} WHERE id = ${ws.data.creation.jobID}`;
-        };
+    const faker = allFakers[lang.localization as keyof typeof allFakers];
 
-        switch (message.kind) {
-          case 'init/fetch-locations': {
-            ws.send({locations: LOCATIONS});
-            break;
-          }
+    if (input.repeat) {
+      return {
+        repeat: {
+          ...(input.repeat.name ? {name: faker.person.fullName({sex: input.repeat.sex}).slice(0, 30)} : {}),
+          ...(input.repeat.bio ? {bio: faker.person.bio().slice(0, 126)} : {}),
+        },
+      };
+    }
 
-          case 'submit-location/generate-profile': {
-            if (message.location) {
-              const {location, error} = await checkIdentity('location', message);
-              if (error) return ws.send({error});
+    const sex = Math.random() > 0.5 ? 'male' : 'female';
+    const profile = input.regenerate || {
+      name: faker.person.fullName({sex}).slice(0, 30),
+      bio: faker.person.bio().slice(0, 126),
+      sex,
+      ethnicity: ETHNICITIES[Math.floor(Math.random() * ETHNICITIES.length)],
+      age: Math.floor(Math.random() * 42) + 18,
+    };
+    const validation = await checkIdentity('profile', profile);
 
-              await append(location!);
-            }
+    if (validation.error) {
+      throw new ApiError(400, 'invalid_request', validation.error);
+    }
 
-            const lang = LOCATIONS.find((location) => location.code === (cookieStore[0] || message.location));
+    const picture = await generateProfile(lang, profile.age, profile.sex, profile.ethnicity, profile.bio);
+    await saveDraft(identity!.id, {location: lang.code, profile: {...profile, picture}});
 
-            const profile = message.regenerate === undefined ? {} : await checkIdentity('profile', message.regenerate);
-            if (profile.error) return ws.send({error: profile.error});
+    return {identity: {...profile, picture}};
+  })
+  .post('/email', async ({identity, body}) => {
+    const profile = (body as {profile?: CreationDraft['profile']})?.profile;
 
-            let {name, age, ethnicity, bio, sex} = profile;
+    if (!profile) {
+      throw new ApiError(400, 'invalid_request', 'Profile is required');
+    }
 
-            if (!message.regenerate) {
-              const faker = allFakers[lang?.localization as keyof typeof allFakers];
+    await saveDraft(identity!.id, {profile});
 
-              if (message.repeat) {
-                if (message.repeat.name) {
-                  name = faker.person.fullName({sex: message.repeat.sex});
-                  ws.send({repeat: {name}});
-                }
+    const localPart = profile.name
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, 30);
 
-                if (message.repeat.bio) {
-                  bio = faker.person.bio();
-                  ws.send({repeat: {bio}});
-                }
+    return {email: localPart || `identity${identity!.id}`};
+  })
+  .post('/phones', async ({identity, body}) => {
+    const input = body as {email?: string; location?: string};
 
-                break;
-              }
+    if (!input?.email) {
+      throw new ApiError(400, 'invalid_request', 'Email is required');
+    }
 
-              sex = Math.random() > 0.5 ? 'male' : 'female';
-              name = faker.person.fullName({sex: sex as 'male' | 'female'});
-              bio = faker.person.bio();
+    const draft = await saveDraft(identity!.id, {email: input.email, ...(input.location ? {location: input.location} : {})});
 
-              ethnicity = ETHNICITIES[Math.floor(Math.random() * ETHNICITIES.length)];
-              age = Math.floor(Math.random() * 42) + 18;
-            }
+    if (!draft.location) {
+      throw new ApiError(400, 'invalid_request', 'Choose a location first');
+    }
 
-            const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
-            const identity = {picture, name, bio, sex, age, ethnicity};
+    return {phone: await phoneProvider.available(draft.location)};
+  })
+  .post('/provision', async ({identity}) => {
+    await provisionIdentity(identity!.id);
 
-            ws.send({identity});
-            break;
-          }
-
-          case 'submit-profile/derive-email': {
-            const {picture, name, bio, sex, age, ethnicity, error} = await checkIdentity('identity', message.identity);
-            if (error) return ws.send({error});
-
-            await append(picture!, name!, bio!, String(age), sex!, ethnicity!);
-
-            const sanitizedEmail = name!.trim().toLowerCase();
-            const emailUsername = sanitizedEmail.replace(/[^\p{L}\p{N}]/gu, '');
-            ws.send({email: emailUsername});
-            break;
-          }
-
-          case 'submit-email/find-phones': {
-            const {email, error} = await checkIdentity('email', message);
-            if (error) return ws.send({error});
-
-            const sanitizedEmail = email!.trim().toLowerCase();
-            await append(sanitizedEmail);
-
-            const location = cookieStore[0];
-            const phoneType = location === 'GB' ? 'mobile' : 'local';
-
-            const result = await twilio.availablePhoneNumbers(location)[phoneType as 'local'].list({
-              limit: 20,
-              smsEnabled: true,
-            });
-
-            const phone = result.map((phone) => phone.phoneNumber);
-            ws.send({phone});
-            break;
-          }
-
-          case 'submit-phone': {
-            const {phone, error} = await checkIdentity('phone', message);
-            if (error) return ws.send({error});
-
-            await append(phone!);
-            ws.send({_: ''});
-            break;
-          }
-
-          case 'submit-wallet': {
-            const {wallet, error} = await checkIdentity('wallet', message);
-            if (error) return ws.send({error});
-
-            const walletEncoded = btoa(JSON.stringify(wallet));
-            await append(walletEncoded);
-            ws.send({_: ''});
-            break;
-          }
-
-          case 'provision-identity': {
-            const [location, picture, name, bio, age, sex, ethnicity, email, phone, walletEncoded] = cookieStore;
-            const wallet = JSON.parse(atob(walletEncoded));
-
-            const params = {location, picture, name, bio, age: Number(age), sex, ethnicity, email, phone, wallet};
-            const {error} = await checkIdentity('provision', params);
-            if (error) return ws.send({error});
-
-            await provisionIdentity(identityID, ws.data.creation.jobID, params);
-
-            ws.send({done: true});
-            break;
-          }
-        }
-      } catch {
-        ws.send({error: 'Creation failed. Your progress is saved; retry this step.'});
-      } finally {
-        ws.data.creation.busy = false;
-      }
-    },
+    return {success: true, identityID: identity!.id};
   });

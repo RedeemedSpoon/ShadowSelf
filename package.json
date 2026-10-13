@@ -6,22 +6,23 @@
   "scripts": {
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write .",
-    "check": "bun run --cwd application/frontend check && bun run --cwd application/backend check && bun run --cwd proxies/src check",
-    "build": "bun run --cwd application/frontend build && bun run --cwd application/backend build && bun run --cwd proxies/src build"
+    "check": "bun run --cwd application/frontend check && bun run --cwd application/backend check",
+    "build": "bun run --cwd application/frontend build && bun run --cwd application/backend build",
+    "verify": "bun run lint && bun run check && bun run build",
+    "package:extension": "bash .scripts/pack-extension.sh",
+    "audit": "bun audit --audit-level=moderate && (cd application/backend && bun audit --audit-level=moderate) && (cd application/frontend && bun audit --audit-level=moderate)"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/chrome": "^0.2.9",
-    "eslint": "^10.10.0",
+    "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-svelte": "^3.23.0",
-    "globals": "^17.12.0",
-    "prettier": "^3.9.6",
+    "eslint-plugin-svelte": "^3.23.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
     "prettier-plugin-svelte": "^4.1.1",
-    "prettier-plugin-tailwindcss": "^0.8.1",
-    "typescript-eslint": "^8.70.0",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1"
   },
   "type": "module",
-  "packageManager": "bun@1.4.2"
+  "packageManager": "bun@1.4.3"
 }

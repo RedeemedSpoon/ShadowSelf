@@ -1,8 +1,6 @@
 import type {ElysiaWS} from 'elysia/ws';
 
-export type User = {email: string; id: string} | undefined;
-
-export type SessionJwt = {verify: (token?: string) => Promise<unknown>};
+export type User = {email: string; id: string; accountID: number} | undefined;
 
 export type Attachment = {filename: string; data: string};
 
@@ -45,7 +43,6 @@ export interface Location {
   country: string;
   code: string;
   city: string;
-  ip: string;
   map: string;
 }
 
@@ -77,9 +74,9 @@ export interface QueryUser {
   password: string;
   email: string;
   totp: string | null;
+  totp_counter: string | null;
   recovery_hashes: string[];
   stripe_customer: string | null;
-  sessions: string[];
   api_access: boolean | null;
   api_key: string | null;
 }
@@ -93,9 +90,7 @@ export interface QueryIdentity {
   subscription_id: string | null;
   plan: 'monthly' | 'annually' | 'lifetime' | null;
   status: 'active' | 'inactive' | 'frozen' | 'deleting' | null;
-  proxy_server: string | null;
   crypto_invoice: string | null;
-  proxy_password: string | null;
   location: string | null;
   picture: string | null;
   name: string | null;
@@ -108,7 +103,6 @@ export interface QueryIdentity {
   phone: string | null;
   wallet_blob: string | null;
   wallet_keys: CryptoKeys | null;
-  wallet_funds: string | null;
   phone_sid: string | null;
 }
 
@@ -125,46 +119,9 @@ export interface QueryInvoice {
 
 export type InitializedIdentity = QueryIdentity & {
   [
-    Field in
-      | 'proxy_server'
-      | 'proxy_password'
-      | 'location'
-      | 'picture'
-      | 'name'
-      | 'bio'
-      | 'age'
-      | 'sex'
-      | 'ethnicity'
-      | 'email'
-      | 'email_password'
-      | 'phone'
-      | 'wallet_blob'
-      | 'wallet_keys'
+    Field in 'location' | 'picture' | 'name' | 'bio' | 'age' | 'sex' | 'ethnicity' | 'email' | 'email_password' | 'phone' | 'wallet_blob' | 'wallet_keys'
   ]: NonNullable<QueryIdentity[Field]>;
 };
-
-export interface RegenerateIdentity {
-  name: string;
-  bio: string;
-  age: number;
-  sex: string;
-  ethnicity: string;
-}
-
-export interface CreationProcess {
-  kind: string;
-  location: string;
-  email: string;
-  phone: string;
-  crypto: string;
-  regenerate: RegenerateIdentity;
-  identity: RegenerateIdentity & {picture: string};
-  repeat: {
-    sex?: 'male' | 'female';
-    name?: boolean;
-    bio?: boolean;
-  };
-}
 
 export interface CheckIdentity {
   error?: string;
@@ -281,12 +238,14 @@ export interface CryptoWalletResponse {
   eth: {
     status: string;
     balance: number;
+    balanceAtoms: string;
     nonce: number;
     history: TransactionsHistory;
   };
   usdt: {
     status: string;
     balance: number;
+    balanceAtoms: string;
     nonce: number;
     history: TransactionsHistory;
   };
@@ -361,13 +320,7 @@ export interface SignupDraft {
   username: string;
   secret: string;
   recoveryHashes: string[];
-}
-
-export interface CreationConnection {
-  ready?: Promise<void>;
-  jobID: string;
-  busy: boolean;
-  authTimer?: ReturnType<typeof setInterval>;
+  totpCounter?: number;
 }
 
 export interface IdentityProvision {
@@ -383,10 +336,18 @@ export interface IdentityProvision {
   wallet: CryptoWallet;
 }
 
+export interface CreationDraft {
+  location?: string;
+  profile?: Omit<IdentityProvision, 'location' | 'email' | 'phone' | 'wallet'>;
+  email?: string;
+  phone?: string;
+  wallet?: CryptoWallet;
+}
+
 export interface VaultMutation {
   vaultRevision: number;
   blob: string;
   keys: CryptoKeys['xmr'];
   accounts: {id: number; password: string; totp: string | null}[];
-  apply: (transaction: import('postgres').TransactionSql) => Promise<Record<string, unknown> | string>;
+  apply: (transaction: import('postgres').TransactionSql) => Promise<Record<string, unknown>>;
 }

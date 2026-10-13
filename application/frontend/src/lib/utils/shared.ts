@@ -1,53 +1,10 @@
 import DOMPurify from 'dompurify';
-import {NOTIFICATION_DURATION, SLEEP_DURATION} from '$constant';
-import {notification, activeModal, pendingID} from '$store';
 import type {Cookies} from '@sveltejs/kit';
-import type {Notification, Attachment} from '$type';
-import {get} from 'svelte/store';
+import type {Attachment} from '$type';
 
-export function notify(message: string, type: Notification['type'] = 'info') {
-  const id = Math.floor(Math.random() * 10000);
-  notification.set({message, type, id});
-
-  setTimeout(() => {
-    if (get(notification).id === id) {
-      notification.set({id: null, message: '', type: 'info'});
-    }
-  }, NOTIFICATION_DURATION);
-}
-
-export async function awaitPending(shouldWait = false, index = 1, condition = true, allowException = false) {
-  if (condition) pendingID.set(index);
-  if (shouldWait) await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
-
-  return async ({update, result}: {update: any; result: any}) => {
-    pendingID.set(0);
-    if (allowException && result?.data?.type === 'success') update({reset: true});
-    update({reset: false});
-  };
-}
-
-export async function triggerModal(index = 1, condition = true) {
-  if (!condition) activeModal.set(0);
-  else activeModal.set(index);
-
-  return async ({update}: any) => {
-    update({reset: false});
-  };
-}
-
-export function createCookie(cookies: Cookies, name: string, value: string, short: boolean = false) {
-  const ninetyDays = 7_776_000_000;
-  const oneHour = 3_600_000;
-
-  return cookies.set(name, value, {
-    path: '/',
-    secure: true,
-    sameSite: 'strict',
-    expires: new Date(Date.now() + (short ? oneHour : ninetyDays)),
-    httpOnly: true,
-    maxAge: (short ? oneHour : ninetyDays) / 1000,
-  });
+export function createCookie(cookies: Cookies, name: string, value: string, short = false, secure = true) {
+  const maxAge = short ? 3600 : 90 * 24 * 3600;
+  cookies.set(name, value, {path: '/', httpOnly: true, secure, sameSite: 'strict', maxAge});
 }
 
 export function base64ToBlob(base64: string, type = 'image/png') {
@@ -58,6 +15,7 @@ export function base64ToBlob(base64: string, type = 'image/png') {
     const slice = byteCharacters.slice(offset, offset + 512);
 
     const byteNumbers = new Array(slice.length);
+
     for (let i = 0; i < slice.length; i++) {
       byteNumbers[i] = slice.charCodeAt(i);
     }
@@ -67,25 +25,14 @@ export function base64ToBlob(base64: string, type = 'image/png') {
   }
 
   const blob = new Blob(byteArrays, {type});
+
   return blob;
 }
 
-export function getCountriesFlags() {
-  const modules = import.meta.glob('$image/countries/**', {
-    eager: true,
-    import: 'default',
-  });
-
-  return Object.fromEntries(
-    Object.entries(modules).map(([path, url]) => {
-      const countryCode = path.match(/\/([^/]+)\.\w+$/)?.[1] ?? path;
-      return [countryCode, url as string];
-    }),
-  );
-}
-
 export function sanitizeEmailHtml(html: string, attachments: Attachment[] = []) {
-  if (typeof window === 'undefined') return '';
+  if (typeof window === 'undefined') {
+    return '';
+  }
 
   const clean = DOMPurify.sanitize(html, {
     USE_PROFILES: {html: true},
@@ -96,17 +43,29 @@ export function sanitizeEmailHtml(html: string, attachments: Attachment[] = []) 
 
   for (const element of document.querySelectorAll('[src]')) {
     let source = element.getAttribute('src') || '';
+
     if (source.startsWith('cid:')) {
       const attachment = attachments.find((attachment) => attachment.cid?.replace(/[<>]/g, '') === source.slice(4));
-      if (attachment) source = `data:${attachment.contentType};base64,${attachment.data}`;
+
+      if (attachment) {
+        source = `data:${attachment.contentType};base64,${attachment.data}`;
+      }
+
       element.setAttribute('src', source);
     }
-    if (element.tagName !== 'IMG' || !/^data:image\/(png|jpeg|gif|webp);base64,[a-z0-9+/=]+$/i.test(source)) element.removeAttribute('src');
+
+    if (element.tagName !== 'IMG' || !/^data:image\/(png|jpeg|gif|webp);base64,[a-z0-9+/=]+$/i.test(source)) {
+      element.removeAttribute('src');
+    }
   }
 
   for (const link of document.querySelectorAll('a')) {
     const href = link.getAttribute('href') || '';
-    if (!/^(https?:|mailto:)/i.test(href)) link.removeAttribute('href');
+
+    if (!/^(https?:|mailto:)/i.test(href)) {
+      link.removeAttribute('href');
+    }
+
     link.setAttribute('target', '_blank');
     link.setAttribute('rel', 'noopener noreferrer');
   }

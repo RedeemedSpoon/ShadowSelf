@@ -1,176 +1,244 @@
 <script lang="ts">
-  import CommunityIcon from '$icon/communication/Community.svelte';
-  import ChangelogIcon from '$icon/navigation/Changelog.svelte';
-  import ChevronIcon from '$icon/navigation/Chevron.svelte';
-  import MultiUsersIcon from '$icon/user/MultiUsers.svelte';
-  import EmailIcon from '$icon/communication/Email.svelte';
-  import PhoneIcon from '$icon/communication/Phone.svelte';
-  import IssuesIcon from '$icon/navigation/Issues.svelte';
-  import LogoutIcon from '$icon/security/Logout.svelte';
-  import WalletIcon from '$icon/finance/Wallet.svelte';
-  import FilterIcon from '$icon/actions/Filter.svelte';
-  import AddUserIcon from '$icon/user/AddUser.svelte';
-  import SortIcon from '$icon/actions/Sort.svelte';
-
-  import SearchInput from '$component/inputs/SearchInput.svelte';
-  import {formatPhoneNumber, formatUSD} from '$utils/formatting';
-  import {getCountriesFlags, notify} from '$utils/shared';
-  import worldMap from '$image/patterns/world-map.svg';
-  import {onMount, type Component} from 'svelte';
+  import {invalidateAll} from '$app/navigation';
   import type {PageData} from './$types';
-  import {user} from '$store';
+  import Button from '$component/ui/Button.svelte';
+  import Icon from '$component/ui/Icon.svelte';
+  import Status from '$component/ui/Status.svelte';
+  import {formatPhoneNumber, formatUSD} from '$utils/formatting';
 
-  const {data}: {data: PageData} = $props();
+  let {data}: {data: PageData} = $props();
+  let query = $state('');
+  let status = $state('all');
+  let sort = $state('newest');
+  let pending = $state(false);
+  const visible = $derived.by(() => {
+    const found = data.identities.filter(
+      (identity) =>
+        (status === 'all' || identity.status === status) &&
+        [identity.name, identity.id, identity.location, identity.country, identity.email, identity.phone].join(' ').toLowerCase().includes(query.toLowerCase()),
+    );
 
-  let sortAsc = $state(true);
-  let filterOverflow = $state(false);
-
-  let searchResults = $state<string[] | null>(null);
-  const visibleIdentities = $derived.by(() => {
-    const identities = data.identities.filter((identity) => searchResults === null || searchResults.includes(identity.id));
-
-    return sortAsc ? identities : identities.reverse();
+    return sort === 'name' ? found.sort((a, b) => (a.name || '').localeCompare(b.name || '')) : sort === 'oldest' ? found : [...found].reverse();
   });
 
-  let countriesFlags = getCountriesFlags();
+  async function reload() {
+    pending = true;
 
-  const bottomLinks = {
-    Issues: ['https://github.com/RedeemedSpoon/ShadowSelf/issues', IssuesIcon],
-    Changelog: ['https://github.com/RedeemedSpoon/ShadowSelf/blob/master/CHANGELOG.md', ChangelogIcon],
-    Community: ['https://github.com/RedeemedSpoon/ShadowSelf/blob/master/CONTRIBUTING.md', CommunityIcon],
-  };
-
-  function handleSearch(result: string[]) {
-    searchResults = result;
+    try {
+      await invalidateAll();
+    } finally {
+      pending = false;
+    }
   }
-
-  onMount(() => {
-    if (data.recoveryRemaining === 0) notify('You have no recovery codes left. Please generate new ones', 'info');
-  });
 </script>
 
-<svelte:head>
-  <title>ShadowSelf - Dashboard</title>
-  <meta name="description" content="Use our dashboard to control your ShadowSelf identities and manage your online privacy" />
-</svelte:head>
-
-<div id="dashboard">
-  {#if data.identities.length}
-    <div class="my-4 sm:max-md:mx-24 sm:max-md:mt-32 sm:max-md:scale-125 2xl:mx-[5vw]">
-      <div class="flex items-center justify-between gap-4 max-md:flex-col">
-        <h1 class="max-xl:text:3xl text-[2.75rem] text-neutral-300 max-md:text-2xl">
-          Welcome back, <span class="pretty-style">{$user}</span>
-        </h1>
-        <div class="flex items-center max-md:scale-75">
-          <button onclick={() => (filterOverflow = !filterOverflow)} class="px-0">
-            <FilterIcon {filterOverflow} />
-          </button>
-          <button onclick={() => (sortAsc = !sortAsc)}>
-            <SortIcon {sortAsc} />
-          </button>
-          <SearchInput keywords={data.searchKeywords} {handleSearch} />
-        </div>
-      </div>
-      {#if !visibleIdentities.length}<p id="error">No results found.</p>{/if}
-      <section class="mt-10 h-fit min-h-[50vh]" style:max-height={filterOverflow ? '40vh' : 'none'} style:overflow-y={filterOverflow ? 'auto' : 'visible'}>
-        {#each visibleIdentities as identity (identity.id)}
-          {#if !identity.name}
-            <a class="flex! gap-6! max-md:mb-24" href="/create?id={identity.id}">
-              <AddUserIcon />
-              <p class="text-2xl text-neutral-300! max-xl:block!">
-                Continue Creation Process...
-                <span class="mt-1 text-sm text-neutral-500">(ID: {identity.id})</span>
-              </p>
-            </a>
-          {:else}
-            <a href="/identity/{identity.id}" id="identity-{identity.id}">
-              <img loading="lazy" src={`data:image/png;base64,${identity.picture}`} alt="{identity.name}'s picture" />
-              <div class="text-nowrap lg:-ml-6">
-                <p class="text-nowrap text-neutral-300!">{identity.name}</p>
-                <br />
-                <span class="inline-flex gap-2 text-sm text-neutral-500">
-                  <img src={countriesFlags[identity.country.toLowerCase()]} class="w-5" alt="country flag" />
-                  {identity.location}
-                </span>
-              </div>
-              <br />
-              <p class="md:max-lg:flex! lg:max-xl:flex!"><EmailIcon className="h-6! w-6! stroke-primary-600!" />{identity.email}</p>
-              <p class="lg:max-xl:flex!"><PhoneIcon />{formatPhoneNumber(identity.phone)}</p>
-              <p><WalletIcon className="h-6! w-6! stroke-primary-600!" />{formatUSD(Number(identity.walletFunds))}</p>
-              <p><MultiUsersIcon />{identity.accounts}</p>
-            </a>
-          {/if}
-        {/each}
-
-        <a class="flex! gap-6! max-md:mb-24" href="/purchase">
-          <AddUserIcon />
-          <p class="text-2xl text-neutral-300! max-xl:block!">Create a new identity</p>
-        </a>
-      </section>
-    </div>
-    <hr class="max-md:hidden" />
-    <div class="-my-8 flex justify-between max-md:hidden lg:mx-6">
-      <form method="POST" action="/logout"><button><LogoutIcon />Logout</button></form>
-      <div class="flex lg:gap-3">
-        {#each Object.entries(bottomLinks) as [name, [url, Icon]] (name)}
-          {@const SvelteComponent = Icon as Component}
-          <a href={url as string} rel="external">
-            <button><SvelteComponent />{name}</button>
-          </a>
-        {/each}
-      </div>
-    </div>
-  {:else}
-    <div id="empty">
-      <h1 class="basic-style mt-16 max-md:text-5xl md:mt-28">Start by making an identity</h1>
-      <p class="mb-4 w-2/3 text-neutral-300!">
-        You can craft as many identities as you want. They are completely isolated from each other and can be used for a variety of purposes.
-      </p>
-      <img src={worldMap} alt="world map" class="absolute -z-20 w-full max-xl:top-12" />
-      <a href="/purchase">
-        <button id="create-identity" class="flex items-center gap-1">
-          Create an identity <ChevronIcon />
-        </button>
-      </a>
-    </div>
-  {/if}
+<svelte:head><title>Identities | ShadowSelf</title></svelte:head>
+<div class="page-heading">
+  <div>
+    <h1>Identities</h1>
+  </div>
+  <a class="control-button" href="/purchase"><Icon name="plus" size={17} />New identity</a>
 </div>
+{#if data.recoveryRemaining === 0}<Status message="No recovery codes remain. Generate new codes in account settings." />{/if}
+{#if data.loadError}<Status message={data.loadError} kind="error" /><Button variant="secondary" icon="refresh" loading={pending} onclick={reload}
+    >Retry loading identities</Button>
+{:else if !data.identities.length}<div class="empty-state">
+    <Icon name="identities" size={42} />
+    <h2>No identities</h2>
+    <a class="control-button" href="/purchase"><Icon name="plus" size={17} />Create an identity</a>
+  </div>
+{:else}
+  <div class="identity-toolbar">
+    <div class="search-field">
+      <Icon name="search" size={17} /><input type="search" aria-label="Search identities" bind:value={query} placeholder="Search names, emails or locations" />
+    </div>
+    <select bind:value={status} aria-label="Filter identity status"
+      ><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Setup pending</option><option value="frozen"
+        >Frozen</option
+      ><option value="deleting">Deleting</option></select
+    ><select bind:value={sort} aria-label="Sort identities"
+      ><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name">Name</option></select>
+  </div>
+  <div class="identity-list">
+    {#each visible as identity (identity.id)}<a
+        class="identity-card"
+        href={identity.status === 'inactive' ? `/create?id=${identity.id}` : `/identity/${identity.id}`}
+        ><div class="identity-avatar">
+          {#if identity.picture}<img src="data:image/png;base64,{identity.picture}" alt="" />{:else}<Icon name="user" size={25} />{/if}
+        </div>
+        <div class="identity-title">
+          <h2>{identity.name || 'Continue identity setup'}</h2>
+          <small>{identity.location || 'Profile not configured'}</small>
+        </div>
+        <span class="badge {identity.status}">{identity.status === 'inactive' ? 'Setup pending' : identity.status}</span>
+        <div class="identity-contacts">
+          <span class="identity-detail"><Icon name="mail" size={16} /><span>{identity.email || 'Mailbox pending'}</span></span>
+          <span class="identity-detail"
+            ><Icon name="phone" size={16} /><span>{identity.phone ? formatPhoneNumber(identity.phone) : 'Number pending'}</span></span>
+        </div>
+        <div class="identity-count">
+          <span>{identity.accounts || 0} vault entries</span><span
+            >{identity.walletFunds === null ? 'Balance not loaded' : formatUSD(Number(identity.walletFunds))}</span>
+        </div>
+        <Icon name="arrow" size={17} /></a
+      >{/each}
+  </div>
+  {#if !visible.length}<div class="empty-state">
+      <Icon name="search" size={35} />
+      <h2>No matching identities</h2>
+      <Button
+        variant="secondary"
+        onclick={() => {
+          query = '';
+          status = 'all';
+        }}>Clear filters</Button>
+    </div>{/if}
+{/if}
 
-<style lang="postcss">
-  @reference "$style";
-
-  #dashboard {
-    @apply mx-auto mt-40 mb-16 flex h-fit w-5/6 flex-col gap-12;
+<style>
+  .identity-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
   }
-
-  #empty {
-    @apply relative mx-auto mt-8 flex min-h-120 max-w-240 flex-col items-center gap-6 text-center md:min-h-160 lg:w-2/3;
+  .identity-toolbar select {
+    width: auto;
+    min-width: 130px;
   }
-
-  button:not(#create-identity) {
-    @apply alt flex items-center gap-3 text-neutral-400 hover:text-neutral-300;
+  .search-field {
+    position: relative;
+    flex: 1;
   }
-
-  section > a {
-    @apply flex items-center border-t border-neutral-800 first:border-none max-md:gap-6 md:grid md:gap-x-6 lg:gap-x-8;
-    @apply cursor-pointer px-6 py-4 transition-colors duration-300 ease-in-out hover:bg-neutral-800/40;
-    @apply md:grid-cols-[4.5rem_14rem_1fr_16rem] lg:grid-cols-[4.5rem_14rem_1fr_16rem_12rem];
-    @apply xl:grid-cols-[4.5rem_14rem_1fr_16rem_11rem_9rem_4rem] 2xl:grid-cols-[5rem_16rem_1fr_17rem_12rem_10rem_5rem];
+  .search-field > :global(svg) {
+    position: absolute;
+    top: 13px;
+    left: 13px;
+    color: #687792;
   }
-
-  a > img {
-    @apply h-14 rounded-full shadow-inner;
+  .search-field input {
+    padding-left: 39px !important;
   }
-
-  a > p {
-    @apply max-xl:hidden;
+  .identity-list {
+    display: grid;
+    gap: 12px;
   }
-
-  p {
-    @apply inline-flex items-center gap-2 text-neutral-400;
+  .identity-card {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto 20px;
+    align-items: center;
+    gap: 7px 16px;
+    padding: 17px 20px;
+    border: 1px solid #a5b4fc20;
+    border-radius: 7px;
+    background: linear-gradient(110deg, #111a2c, #0d1425);
+    transition: border-color 140ms;
   }
-
-  #error {
-    @apply absolute inset-y-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl text-neutral-500!;
+  .identity-card:hover {
+    border-color: #9384e55a;
+  }
+  .identity-avatar {
+    grid-row: 1/3;
+    width: 42px;
+    height: 42px;
+    background: #6553e316;
+    border: 1px solid #a5b4fc25;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    color: #a69bfc;
+    overflow: hidden;
+  }
+  .identity-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .identity-title h2 {
+    font-size: 16px;
+  }
+  .identity-title small {
+    display: block;
+    margin-top: 4px;
+  }
+  .identity-card > .badge {
+    justify-self: end;
+  }
+  .identity-card > :global(svg) {
+    grid-column: 4;
+    grid-row: 1/3;
+    color: #81749e;
+  }
+  .identity-contacts {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    min-width: 0;
+  }
+  .identity-detail {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    font-size: 12px;
+    color: #a7b3cf;
+    overflow-wrap: anywhere;
+  }
+  .identity-detail :global(svg) {
+    flex-shrink: 0;
+  }
+  .identity-count {
+    grid-column: 3;
+    grid-row: 2;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px 18px;
+    color: #7a89a5;
+    font-size: 11px;
+    max-width: 220px;
+  }
+  @media (max-width: 650px) {
+    .identity-toolbar {
+      flex-wrap: wrap;
+    }
+    .search-field {
+      flex-basis: 100%;
+    }
+    .identity-toolbar select {
+      flex: 1;
+      min-width: 0;
+    }
+    .identity-card {
+      grid-template-columns: 42px 1fr auto;
+      padding: 17px;
+      gap: 9px 12px;
+    }
+    .identity-avatar {
+      width: 42px;
+      height: 42px;
+      grid-row: 1/2;
+    }
+    .identity-card > .badge {
+      font-size: 9px;
+    }
+    .identity-card > :global(svg) {
+      display: none;
+    }
+    .identity-title h2 {
+      font-size: 14px;
+    }
+    .identity-contacts {
+      grid-column: 1/4;
+      grid-row: auto;
+    }
+    .identity-count {
+      grid-column: 1/4;
+      grid-row: auto;
+      justify-content: flex-start;
+      max-width: none;
+      margin-top: 3px;
+    }
   }
 </style>

@@ -1,61 +1,121 @@
-export const origin = chrome.runtime.getManifest().version === '0.0.0' ? 'localhost' : 'shadowself.io';
-export const isChrome = !!chrome.runtime.getManifest().externally_connectable;
+export const ACCOUNT_PATH = '/api/extension';
 
-const accountKeys = new Set(['accountTab', 'username', 'identities']);
-const sessionKeys = new Set(['proxyConfig', 'proxyCredentials', 'isVPNEnabled']);
+export function applicationOrigin(manifest) {
+  return manifest.version === '0.0.0' ? 'http://localhost:5000' : 'https://shadowself.io';
+}
 
-async function storageTarget(key, windowId) {
-  if (accountKeys.has(key)) {
-    const id = windowId ?? (await chrome.windows.getCurrent()).id;
-    if (!Number.isInteger(id) || id < 0) throw new Error('No browser window selected');
-
-    return {area: chrome.storage.session, key: `window:${id}:${key}`};
+export function isAccountTab(tab, windowId, origin) {
+  if (!Number.isInteger(tab?.id) || tab.windowId !== windowId) {
+    return false;
   }
-
-  return {area: sessionKeys.has(key) ? chrome.storage.session : chrome.storage.local, key};
-}
-
-export async function read(key, windowId) {
-  const target = await storageTarget(key, windowId);
-  return (await target.area.get(target.key))[target.key];
-}
-
-export async function store(key, value, windowId) {
-  const target = await storageTarget(key, windowId);
-  await target.area.set({[target.key]: value});
-}
-
-export async function remove(key, windowId) {
-  const target = await storageTarget(key, windowId);
-  await target.area.remove(target.key);
-}
-
-export async function sleep(time) {
-  await new Promise((resolve) => setTimeout(resolve, time));
-}
-
-export async function request(url, method = 'GET', windowId) {
-  if (url !== `https://${origin}/api/proxy` || method !== 'GET') throw new Error('Unsupported extension request');
-
-  const selectedWindow = windowId ?? (await chrome.windows.getCurrent()).id;
-  const tabId = await read('accountTab', selectedWindow);
-  if (!Number.isInteger(tabId)) return 'Select a signed-in ShadowSelf tab first.';
 
   try {
-    const tab = await chrome.tabs.get(tabId);
-    if (tab.windowId !== selectedWindow) return 'The selected tab moved to another window.';
-    if (new URL(tab.url).origin !== `https://${origin}`) return 'The selected tab is no longer on ShadowSelf.';
+    return new URL(tab.url).origin === origin;
+  } catch {
+    return false;
+  }
+}
 
-    const results = await chrome.scripting.executeScript({
-      target: {tabId},
-      func: async () => {
-        const response = await fetch('/api/proxy', {credentials: 'same-origin', cache: 'no-store'});
-        return response.ok ? await response.json() : await response.text();
-      },
+export async function readAccountInTab(expectedOrigin, path) {
+  if (location.origin !== expectedOrigin || path !== '/api/extension') {
+    return {error: {message: 'The selected tab is no longer on ShadowSelf.'}};
+  }
+
+  try {
+    const response = await fetch(path, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      redirect: 'error',
+      signal: AbortSignal.timeout(10_000),
+      headers: {Accept: 'application/json'},
     });
 
-    return results[0]?.result ?? 'Could not read this account. Sign in and try again.';
+    const data = await response.json();
+
+    if (!response.ok) {
+      return {error: {message: data.error?.message || 'Sign in to the selected tab and retry.'}};
+    }
+
+    return data;
   } catch {
-    return 'The selected ShadowSelf tab is unavailable. Synchronize again.';
+    return {error: {message: 'Could not reach your account. Check the selected tab and retry.'}};
   }
+}
+
+export function createAccountBridge(browser, origin) {
+  const key = (windowId) => {
+    if (!Number.isInteger(windowId) || windowId < 0) {
+      throw new Error('No browser window selected.');
+    }
+
+    return `window:${windowId}:accountTab`;
+  };
+
+  async function readAccount(tabId, windowId) {
+    const tab = await browser.tabs.get(tabId);
+
+    if (!isAccountTab(tab, windowId, origin)) {
+      throw new Error('Select a ShadowSelf tab in this browser window.');
+    }
+
+    const results = await browser.scripting.executeScript({
+      target: {tabId, frameIds: [0]},
+      func: readAccountInTab,
+      args: [origin, ACCOUNT_PATH],
+    });
+
+    const data = results[0]?.result;
+
+    if (data?.error) {
+      throw new Error(data.error.message || 'Could not read your account.');
+    }
+
+    if (typeof data?.username !== 'string' || !Array.isArray(data.identities)) {
+      throw new Error('Unexpected account response. Retry shortly.');
+    }
+
+    if (!data.identities.every((identity) => typeof identity.id === 'string' && typeof identity.name === 'string')) {
+      throw new Error('Unexpected identity response. Retry shortly.');
+    }
+
+    const currentTab = await browser.tabs.get(tabId);
+
+    if (!isAccountTab(currentTab, windowId, origin)) {
+      throw new Error('The selected tab moved or closed. Select it again.');
+    }
+
+    return data;
+  }
+
+  return {
+    async tabs(windowId) {
+      key(windowId);
+
+      const tabs = await browser.tabs.query({windowId, url: `${origin}/*`});
+
+      return tabs.filter((tab) => isAccountTab(tab, windowId, origin));
+    },
+    async bind(tabId, windowId) {
+      const storageKey = key(windowId);
+      const account = await readAccount(tabId, windowId);
+      await browser.storage.session.set({[storageKey]: tabId});
+
+      return account;
+    },
+    async account(windowId) {
+      const storageKey = key(windowId);
+      const stored = await browser.storage.session.get(storageKey);
+
+      const tabId = stored[storageKey];
+
+      if (!Number.isInteger(tabId)) {
+        return null;
+      }
+
+      return readAccount(tabId, windowId);
+    },
+    async disconnect(windowId) {
+      await browser.storage.session.remove(key(windowId));
+    },
+  };
 }

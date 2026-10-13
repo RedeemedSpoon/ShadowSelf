@@ -1,6 +1,6 @@
 import {issueEmailCode, discardEmailCode} from '@core/states';
 import type {EmailCodePurpose} from '@type';
-import {contactTransporter, smtpTransporter, verificationTransporter} from '@core/services';
+import {contactTransporter, identitySmtpTransporter, verificationTransporter} from '@core/services';
 import type {ContactDetail, EmailContent} from '@type';
 import {EMAIL_TEMPLATES} from '@core/constants';
 
@@ -21,7 +21,7 @@ export async function contact(body: ContactDetail) {
   }
 }
 
-export async function sendOfficialEmail(email: string, token: string, reason: keyof typeof EMAIL_TEMPLATES) {
+async function sendOfficialEmail(email: string, token: string, reason: keyof typeof EMAIL_TEMPLATES) {
   const mailOptions = {
     from: 'verification@shadowself.io',
     to: email,
@@ -40,7 +40,7 @@ export async function sendOfficialEmail(email: string, token: string, reason: ke
 
 export async function sendIdentityEmail(emailContent: EmailContent) {
   const {email, password, to, subject, body, attachments, inReplyTo, references} = emailContent;
-  const transporter = smtpTransporter(email, password);
+  const transporter = identitySmtpTransporter(email, password);
 
   const isHtml = /<[a-z][^>]*>/i.test(body);
   const date = new Date();
@@ -65,7 +65,7 @@ export async function sendIdentityEmail(emailContent: EmailContent) {
     date,
   };
 
-  const message = await transporter.sendMail(mailOptions).catch(() => {});
+  const message = await transporter.sendMail(mailOptions);
 
   return {messageID: message?.messageId, date, type: isHtml ? 'html' : 'text'};
 }
@@ -106,13 +106,22 @@ function getEmailTemplate(token: string, reason: keyof typeof EMAIL_TEMPLATES): 
 
 export async function sendVerificationCode(purpose: EmailCodePurpose, email: string, binding: string) {
   const issued = issueEmailCode(purpose, email, binding);
-  if (issued.status === 429) return {status: 429, message: 'Too many email requests. Wait before trying again'};
-  if (issued.status !== 200) return {status: 503, message: 'Verification is busy. Please try again later'};
+
+  if (issued.status === 429) {
+    return {status: 429, message: 'Too many email requests. Wait before trying again'};
+  }
+
+  if (issued.status !== 200) {
+    return {status: 503, message: 'Verification is busy. Please try again later'};
+  }
 
   const response = await sendOfficialEmail(email, issued.code, purpose);
-  if (!response.err) return {status: 200, message: ''};
+
+  if (!response.err) {
+    return {status: 200, message: ''};
+  }
 
   discardEmailCode(purpose, email, binding, issued.code);
 
-  return {status: 500, message: 'Failed to send verification email. Try later'};
+  return {status: 503, message: 'Verification email delivery is unavailable. Try again later'};
 }

@@ -1,5 +1,6 @@
 import {GoogleGenAI} from '@google/genai';
 import {geminiApiKey} from '@core/config';
+import {ApiError, requireProvider} from '@core/security';
 import type {Location} from '@type';
 
 function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, bio: string): string {
@@ -117,24 +118,28 @@ function getPrompt(lang: Location, ethnicity: string, age: number, sex: string, 
   ];
 
   const chosenScene = scenes[Math.floor(Math.random() * scenes.length)];
+
   return `A stunning, highly detailed, photorealistic ${chosenScene.shotType} of a ${subject}. They are ${chosenScene.action}, set in ${chosenScene.environment}. The scene is illuminated by ${chosenScene.lighting}, creating a ${chosenScene.mood} atmosphere. Captured with ${chosenScene.cameraDetails}, emphasizing ${chosenScene.details}. The image should be perfectly framed in a 1:1 aspect ratio, styled like a high-quality, popular social media profile picture.`;
 }
 
 export async function generateProfile(lang: Location, age: number, sex: string, ethnicity: string, bio: string): Promise<string> {
+  requireProvider(!!geminiApiKey, 'Portrait generation');
+
   const prompt = getPrompt(lang, ethnicity, age, sex, bio);
   const ai = new GoogleGenAI({apiKey: geminiApiKey});
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-image-preview',
+    model: process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image',
     contents: prompt,
   });
 
-  for (const part of response.candidates![0]!.content!.parts!) {
+  for (const part of response.candidates?.[0]?.content?.parts || []) {
     if (part.inlineData) {
       const imageData = part.inlineData.data;
+
       return imageData!;
     }
   }
 
-  return '';
+  throw new ApiError(502, 'portrait_unavailable', 'The portrait provider did not return an image');
 }

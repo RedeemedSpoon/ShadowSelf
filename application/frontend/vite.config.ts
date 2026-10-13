@@ -1,6 +1,5 @@
 import {nodePolyfills} from 'vite-plugin-node-polyfills';
 import {sveltekit} from '@sveltejs/kit/vite';
-import tailwindcss from '@tailwindcss/vite';
 import {defineConfig} from 'vite';
 import path from 'path';
 import fs from 'fs';
@@ -17,7 +16,6 @@ export default defineConfig({
     },
   },
   plugins: [
-    tailwindcss(),
     sveltekit(),
     nodePolyfills({
       include: ['buffer', 'crypto', 'stream', 'util', 'http', 'https', 'fs', 'path', 'url'],
@@ -29,6 +27,7 @@ export default defineConfig({
     }),
   ],
   server: {
+    proxy: {'^/api/.*/events': {target: 'http://localhost:3000', ws: true}},
     port: 5000,
     strictPort: true,
     hmr: {

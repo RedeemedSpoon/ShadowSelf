@@ -1,99 +1,63 @@
-import {getBearerToken, verifySessionToken, trustedCookieRequest} from '@middlewares/session-auth';
-import type {QueryIdentity, QueryInvoice, QueryUser} from '@type';
-import {jwtSecret} from '@core/config';
+import {getBearerToken, verifySessionToken, verifyApiToken, trustedCookieRequest} from '@middlewares/session-auth';
+import {ApiError} from '@core/security';
 import {sql} from '@core/services';
 import {isInitializedIdentity} from '@utils/checks';
-import {jwt} from '@elysiajs/jwt';
+import type {QueryIdentity, InitializedIdentity} from '@type';
 import {Elysia} from 'elysia';
 
-const error = (set: {[key: string]: unknown}, status: number, message: string) => {
-  set.status = status;
-  throw new Response(message, {
-    headers: {'Content-Type': 'text/plain'},
-    status: status,
-  });
-};
-
 export default (app: Elysia) =>
-  app.use(jwt({name: 'jwt', secret: jwtSecret, exp: '90d'})).derive(async ({headers, jwt, params, path, cookie, set, request}) => {
-    if (cookie.token?.value && !trustedCookieRequest(request)) return error(set, 403, 'Untrusted request origin');
-
-    const token = getBearerToken(headers.authorization) ?? (cookie['token']?.value as string);
-
-    if (!token) return error(set, 401, 'You are not authenticated correctly');
-
-    let user;
-
-    if (token.length === 32) {
-      const apiKey = (await sql`SELECT email, api_key, api_access FROM users WHERE api_key = ${token}`) as QueryUser[];
-      if (!apiKey.length) return error(set, 401, 'You are not authenticated correctly');
-      if (!apiKey[0].api_access) return error(set, 401, 'You disabled API access');
-
-      user = {email: apiKey[0].email};
+  app.derive(async ({headers, params, path, cookie, request}) => {
+    if (cookie.token?.value && !trustedCookieRequest(request)) {
+      throw new ApiError(403, 'untrusted_origin', 'Untrusted request origin');
     }
 
-    if (!user) user = await verifySessionToken(token, jwt);
-    if (!user) return error(set, 401, 'You are not authenticated correctly');
+    const token = getBearerToken(headers.authorization) ?? (cookie.token?.value as string);
+    const authenticate = () => (token?.startsWith('ss_api_') ? verifyApiToken(token) : verifySessionToken(token));
+    const user = await authenticate();
 
-    const authorize = async () => {
-      try {
-        if (token.length === 32) {
-          const accounts = await sql`SELECT email FROM users WHERE api_key = ${token} AND api_access = true`;
-          return accounts[0]?.email === user.email;
-        }
+    if (!user) {
+      throw new ApiError(401, 'unauthenticated', 'Sign in to continue');
+    }
 
-        return !!(await verifySessionToken(token, jwt));
-      } catch {
-        return false;
+    const authorize = async () => !!(await authenticate());
+
+    if (!params?.id) {
+      return {user, authorize};
+    }
+
+    if (!/^[a-f0-9]{12}$/.test(params.id)) {
+      throw new ApiError(404, 'identity_not_found', 'Identity not found');
+    }
+
+    const rows = (await sql`SELECT * FROM identities WHERE id = ${params.id} AND owner = ${user.accountID}`) as QueryIdentity[];
+
+    const identity = rows[0];
+
+    if (!identity) {
+      throw new ApiError(404, 'identity_not_found', 'Identity not found');
+    }
+
+    const metadataRequest = path === `/api/identities/${identity.id}` || path.includes('/creation');
+
+    if (!metadataRequest) {
+      if (identity.status === 'frozen') {
+        throw new ApiError(402, 'identity_frozen', 'Renew this identity to restore access');
       }
-    };
 
-    const excludedPaths = /(?:\/api\/proxy|\/api)\/?$|\/api\/test$/;
-    if (excludedPaths.test(path)) return {user, authorize};
-
-    const givenID = (await sql`SELECT * FROM users WHERE email = ${user.email}`)[0]?.id;
-
-    const result = (await sql`SELECT * FROM identities WHERE id = ${params.id} AND owner = ${givenID}`) as QueryIdentity[];
-
-    if (!result.length) return error(set, 404, 'Identity not found');
-
-    const identity = result[0];
-
-    if (identity.crypto_invoice) {
-      const invoice = (await sql`SELECT creation_date, plan FROM crypto_invoices WHERE id = ${identity.crypto_invoice}`) as QueryInvoice[];
-
-      if (invoice.length) {
-        const {creation_date, plan} = invoice[0];
-
-        const now = new Date().getTime();
-        const creation = new Date(creation_date).getTime();
-        const days = (now - creation) / (1000 * 60 * 60 * 24);
-
-        let isExpired = false;
-        if (plan === 'monthly' && days > 30) isExpired = true;
-        if (plan === 'annually' && days > 365) isExpired = true;
-
-        if (isExpired && identity.status === 'active') {
-          await sql`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
-          identity.status = 'frozen';
-        }
+      if (identity.status !== 'active' || !isInitializedIdentity(identity)) {
+        throw new ApiError(409, 'identity_incomplete', 'Complete identity setup to continue');
       }
     }
-
-    if (identity.status !== 'active') {
-      const details = identity.crypto_invoice ? `[crypto/${identity.plan}]` : `[fiat/${identity.plan}]`;
-
-      return error(set, 402, 'Identity is frozen ' + details);
-    }
-
-    if (!isInitializedIdentity(identity)) return error(set, 409, 'Identity setup is incomplete');
 
     const authorizeIdentity = async () => {
-      if (!(await authorize())) return false;
-      const rows = await sql`SELECT id FROM identities WHERE id = ${identity.id} AND owner = ${givenID} AND status = 'active'`;
+      if (!(await authorize())) {
+        return false;
+      }
 
-      return rows.length > 0;
+      const current = await sql`SELECT id FROM identities WHERE id = ${identity.id} AND owner = ${user.accountID} AND status = 'active'`;
+
+      return current.length > 0;
     };
 
-    return {identity, user, authorize: authorizeIdentity};
+    return {identity: identity as InitializedIdentity, user, authorize: authorizeIdentity};
   });

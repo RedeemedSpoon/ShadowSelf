@@ -10,10 +10,10 @@ export const XMR_NODE = 'https://xmr-node.cakewallet.com:18081/json_rpc';
 export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 export const COINGECKO_URL = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
 
-export const POLL_CLEANUP_INTERVAL = 3_600_000; // every 1 hour
-export const POLL_INVOICES_INTERVAL = 15_000; // every 15 seconds
-export const POLL_PRICES_INTERVAL = 60_000; // every 60 seconds
-export const POLL_FEES_INTERVAL = 120_000; // every 2 minutes
+export const POLL_CLEANUP_INTERVAL = 3_600_000;
+export const POLL_INVOICES_INTERVAL = 15_000;
+export const POLL_PRICES_INTERVAL = 60_000;
+export const POLL_FEES_INTERVAL = 120_000;
 
 export const UTXO_GAP_LIMIT = 5;
 export const UTXO_HARD_LIMIT = 120;
@@ -21,10 +21,12 @@ export const RESTORE_HEIGHT = 3_600_000;
 
 export const PAYMENT_WINDOW_MIN = 40;
 export const CRYPTO_DISCOUNT = 20;
+export const BILLING_CURRENCY = 'usd';
+export const UUID_PATTERN = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 export const PRICING_TIERS = {
-  monthly: 500,
-  annually: 5000,
-  lifetime: 20000,
+  monthly: 499,
+  annually: 4999,
+  lifetime: 19999,
 };
 
 export const EMAIL_TEMPLATES = {
@@ -54,7 +56,6 @@ export const LOCATIONS = [
     code: 'US',
     city: 'Seattle',
     localization: 'en_US',
-    ip: '91.240.75.212',
     map: 'https://osm.org/go/WIXvEZp-',
   },
   {
@@ -62,7 +63,6 @@ export const LOCATIONS = [
     code: 'CA',
     city: 'Toronto',
     localization: 'en_CA',
-    ip: '24.68.162.126',
     map: 'https://osm.org/go/ZX6E86v-',
   },
   {
@@ -70,7 +70,6 @@ export const LOCATIONS = [
     code: 'GB',
     city: 'London',
     localization: 'en_GB',
-    ip: '153.869.12.56',
     map: 'https://osm.org/go/euunRP',
   },
 ];

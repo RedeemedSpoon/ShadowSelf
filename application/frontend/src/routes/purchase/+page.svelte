@@ -1,415 +1,415 @@
 <script lang="ts">
-  import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import CopyButton from '$component/buttons/CopyButton.svelte';
-  import Modal from '$component/containers/Modal.svelte';
-
-  import CreditCardIcon from '$icon/finance/CreditCard.svelte';
-  import CheckmarkIcon from '$icon/status/Checkmark.svelte';
-  import WalletIcon from '$icon/finance/Wallet.svelte';
-
-  import type {Appearance, Stripe, StripeElements, StripePaymentElement} from '@stripe/stripe-js';
-  import {CRYPTO_DISCOUNT, FEATURES, PRICING_TIERS} from '$constant';
-  import {pricingModel, activeModal, pendingID} from '$store';
-  import {notify, awaitPending} from '$utils/shared';
-  import {loadStripe} from '@stripe/stripe-js/pure';
-  import type {Notification, Billing} from '$type';
-  import {toTitleCase} from '$utils/formatting';
-  import type {PageData} from './$types';
-  import {fly} from 'svelte/transition';
-  import {enhance} from '$app/forms';
+  import {onMount, tick, untrack} from 'svelte';
   import {page} from '$app/state';
-  import {untrack} from 'svelte';
+  import {goto, replaceState} from '$app/navigation';
+  import {request} from '$utils/webfetch';
+  import {PRICING_TIERS, CRYPTO_DISCOUNT} from '$constant';
+  import {loadStripe} from '@stripe/stripe-js/pure';
+  import type {Stripe, StripeElements, StripePaymentElement} from '@stripe/stripe-js';
+  import type {CardCheckout, CryptoInvoice} from '$type';
+  import type {PageData} from './$types';
   import QRCode from 'qrcode';
+  import Button from '$component/ui/Button.svelte';
+  import Status from '$component/ui/Status.svelte';
+  import Dialog from '$component/ui/Dialog.svelte';
+  import Copy from '$component/ui/Copy.svelte';
+  import Icon from '$component/ui/Icon.svelte';
 
-  interface Props {
-    data: PageData;
-    form: Notification & Billing;
+  let {data}: {data: PageData} = $props();
+  let plan = $state<keyof typeof PRICING_TIERS>('monthly');
+  let pending = $state(false);
+  let error = $state('');
+  let method = $state<'card' | 'crypto'>('card');
+  let ticker = $state('XMR');
+  let refund = $state('');
+  let invoice = $state<CryptoInvoice | null>(null);
+  let status = $state('');
+  let qr = $state('');
+  let checkout = $state<CardCheckout | null>(null);
+  let checkoutOpen = $state(false);
+  let cardReady = $state(false);
+  let requestID = $state(untrack(() => data.requestID));
+  let mountPoint = $state<HTMLDivElement>();
+  let stripe: Stripe | null = null;
+  let elements: StripeElements;
+  let payment: StripePaymentElement;
+  let poll: ReturnType<typeof setInterval>;
+  const renewal = $derived(page.url.searchParams.get('id'));
+  const tier = $derived(PRICING_TIERS[plan]);
+  const capabilities = ['Identity profile', 'Dedicated mailbox', 'Phone number', 'Encrypted account vault', 'Client-signed crypto wallet'];
+  const invoiceMessages: Record<string, string> = {
+    waiting: 'Waiting for payment.',
+    pending: 'Waiting for payment.',
+    confirming: 'Payment observed. Waiting for confirmations.',
+    paid: 'Payment confirmed.',
+    refunded: 'This payment was refunded. Check the refund address and provider transaction.',
+    late: 'Payment arrived after expiry. Reconciliation is required. Do not send another payment.',
+    underpaid: 'Payment is below the required amount. Review the remaining balance before sending more.',
+    expired: 'This invoice has expired. Check payment history before creating another invoice.',
+  };
+
+  function choose(value: keyof typeof PRICING_TIERS) {
+    if (pending || invoice || checkout) {
+      return;
+    }
+
+    plan = value;
+    requestID = crypto.randomUUID();
+    error = '';
   }
 
-  let {data, form}: Props = $props();
+  async function payCard(confirm = false) {
+    pending = true;
+    error = '';
 
-  let paymentElement = $state() as StripePaymentElement;
-  let elements = $state() as StripeElements;
-  let stripe = $state() as Stripe;
+    try {
+      const result = await request<CardCheckout>(confirm ? '/billing/checkout/confirm' : '/billing/checkout', 'POST', {plan, requestID});
 
-  let clientSecret = $state() as Billing['clientSecret'];
-  let identityID = $state() as Billing['identityID'];
-  let cardName = $state() as Billing['cardName'];
-  let last4 = $state() as Billing['last4'];
-  let step = $state() as Billing['step'];
-  let stripeLoaded = $state(false);
-  let isStripeLoading = false;
+      if (!result.ok) {
+        throw new Error(result.error);
+      }
 
-  let ws: WebSocket | null = null;
-  let initialModalOpened = false;
-  let currentInvoiceID = '';
+      checkout = result.data;
 
-  let qrImage = $state('');
-  let cryptoChoice = $state('XMR');
-  let cryptoInvoice = $state<Billing | null>(null);
-  let invoiceStatus = $state({message: 'Waiting for payment...', color: 'text-neutral-500'});
+      if (result.data.step === 'finish') {
+        await goto(`/create?id=${result.data.identityID}`);
 
-  let renewID = $state(page.url.searchParams.get('id'));
-  let plan = $state(page.url.searchParams.get('plan'));
-  let isRenewing = $derived(plan && renewID);
+        return;
+      }
 
-  $effect(() => {
-    if (isRenewing && $activeModal === 0 && !initialModalOpened) {
-      $pricingModel = {name: plan!, ...PRICING_TIERS[plan as 'monthly']};
-      initialModalOpened = true;
-      $activeModal = 3;
+      checkoutOpen = true;
+
+      if (result.data.step === 'create' || result.data.step === 'auth') {
+        await mountCard(result.data);
+      }
+    } catch (cause) {
+      error = cause instanceof Error ? cause.message : 'Could not start checkout.';
+    } finally {
+      pending = false;
+    }
+  }
+
+  async function mountCard(details: CardCheckout) {
+    if (!data.stripeKey) {
+      throw new Error('Card payments are unavailable.');
     }
 
-    if ($activeModal === 1 && !stripeLoaded && !isStripeLoading) {
-      isStripeLoading = true;
-      initStripe();
+    loadStripe.setLoadParameters({advancedFraudSignals: false});
+    stripe = await loadStripe(data.stripeKey);
+
+    if (!stripe) {
+      throw new Error('Stripe could not be loaded.');
     }
 
-    if (form?.message) notify(form.message, form.type);
-    if (form?.clientSecret) clientSecret = form.clientSecret;
-    if (form?.identityID) identityID = form.identityID;
-    if (form?.cardName) cardName = form.cardName;
-    if (form?.last4) last4 = form.last4;
-    if (form?.step) {
-      step = form.step;
-      form.step = '' as Billing['step'];
-      handleCheckout();
+    if (details.step === 'auth') {
+      const result = await stripe.confirmCardPayment(details.clientSecret);
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      await goto(`/create?id=${details.identityID}`);
+
+      return;
     }
 
-    if (form?.invoiceID && form.invoiceID !== currentInvoiceID) {
-      untrack(() => {
-        currentInvoiceID = form.invoiceID;
-        cryptoInvoice = form;
-        generateQR();
-        connectWS();
+    await tick();
+    payment?.destroy();
+    elements = stripe.elements({
+      clientSecret: details.clientSecret,
+      appearance: {theme: 'night', variables: {colorPrimary: '#8d7cf2', colorBackground: '#10192c', colorText: '#e6ebff', borderRadius: '5px'}},
+    });
+    payment = elements.create('payment');
+    payment.on('ready', () => (cardReady = true));
+
+    if (!mountPoint) {
+      throw new Error('Payment form could not be displayed. Close checkout and retry.');
+    }
+
+    payment.mount(mountPoint);
+  }
+
+  async function confirmCard() {
+    if (!stripe || !elements || !checkout) {
+      return;
+    }
+
+    pending = true;
+    error = '';
+
+    try {
+      const result = await stripe.confirmPayment({
+        elements,
+        confirmParams: {return_url: `${page.url.origin}/create?id=${checkout.identityID}`},
+        redirect: 'if_required',
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      await goto(`/create?id=${checkout.identityID}`);
+    } catch (cause) {
+      error = cause instanceof Error ? cause.message : 'Payment could not be confirmed. Retry this checkout.';
+    } finally {
+      pending = false;
+    }
+  }
+
+  async function newInvoice(event: SubmitEvent) {
+    event.preventDefault();
+    pending = true;
+    error = '';
+
+    try {
+      const result = await request<CryptoInvoice>(renewal ? '/billing/crypto/renewals' : '/billing/crypto/invoices', 'POST', {
+        plan,
+        requestID,
+        swapCoin: ticker.toLowerCase(),
+        refundAddress: refund || undefined,
+        ...(renewal ? {identityID: renewal} : {}),
+      });
+
+      if (!result.ok) {
+        throw new Error(result.error);
+      }
+
+      await showInvoice(result.data);
+    } catch (cause) {
+      error = cause instanceof Error ? cause.message : 'Could not create an invoice.';
+    } finally {
+      pending = false;
+    }
+  }
+
+  async function showInvoice(value: CryptoInvoice) {
+    invoice = value;
+    qr = await QRCode.toDataURL(value.depositAddress, {width: 240, margin: 2});
+    replaceState(`?${renewal ? `id=${renewal}&plan=${plan}&` : ''}invoice=${value.invoiceID}`, page.state);
+    status = 'Waiting for payment.';
+    clearInterval(poll);
+    poll = setInterval(() => void refreshInvoice(), 5000);
+    await refreshInvoice();
+  }
+
+  async function refreshInvoice() {
+    if (!invoice) {
+      return;
+    }
+
+    const result = await request<CryptoInvoice>(`/billing/crypto/invoices/${invoice.invoiceID}`);
+
+    if (!result.ok) {
+      status = `${result.error} Keep this invoice open and retry.`;
+
+      return;
+    }
+
+    status = invoiceMessages[result.data.status] || result.data.status;
+
+    if (result.data.status === 'underpaid') {
+      status += ` Remaining ${result.data.remainingAmount} XMR.`;
+    }
+
+    if (result.data.status === 'paid') {
+      clearInterval(poll);
+      await goto(renewal ? `/identity/${renewal}` : `/create?id=${result.data.identityID}`);
+    }
+
+    if (['expired', 'late', 'refunded'].includes(result.data.status)) {
+      clearInterval(poll);
+    }
+  }
+
+  onMount(() => {
+    const desired = page.url.searchParams.get('plan');
+
+    if (desired && desired in PRICING_TIERS) {
+      plan = desired as typeof plan;
+    }
+
+    const id = page.url.searchParams.get('invoice');
+
+    if (id) {
+      void request<CryptoInvoice>(`/billing/crypto/invoices/${id}`).then(async (result) => {
+        if (result.ok) {
+          await showInvoice(result.data);
+        } else {
+          error = result.error;
+        }
       });
     }
+
+    return () => {
+      clearInterval(poll);
+      payment?.destroy();
+    };
   });
-
-  async function generateQR() {
-    const svg = await QRCode.toString(cryptoInvoice!.depositAddress, {type: 'svg', margin: 2});
-    qrImage = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
-  }
-
-  function connectWS() {
-    if (ws) ws.close();
-
-    invoiceStatus = {message: 'Connecting to server...', color: 'text-yellow-500'};
-    ws = new WebSocket(`${page.url.protocol === 'https:' ? 'wss:' : 'ws:'}//${page.url.host}/billing/crypto/track-invoice/${cryptoInvoice?.invoiceID}`);
-
-    const handleConnectionClose = () => {
-      if (!invoiceStatus.message.includes('expired')) {
-        invoiceStatus = {message: 'Connection lost. Please refresh.', color: 'text-red-500'};
-      }
-    };
-
-    ws.onopen = () => (invoiceStatus = {message: 'Connected. Waiting for payment.', color: 'text-green-500'});
-    ws.onclose = handleConnectionClose;
-    ws.onerror = handleConnectionClose;
-
-    ws.onmessage = async (event) => {
-      const data = JSON.parse(event.data);
-      if (data.status === 'paid') {
-        notify('Payment received!', 'success');
-        await await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        if (isRenewing) window.location.href = '/dashboard';
-        else window.location.href = '/create?id=' + data.identityID;
-      }
-
-      if (data.status === 'confirming') invoiceStatus = {message: 'Payment observed. Waiting for confirmations.', color: 'text-yellow-500'};
-      if (data.status === 'late')
-        invoiceStatus = {message: 'Payment arrived after expiry and needs reconciliation. Do not send again.', color: 'text-yellow-500'};
-
-      if (data.status === 'underpaid') {
-        const message = `Underpaid! Please send ${data.remainingAmount} more XMR to the invoice Monero address`;
-        invoiceStatus = {message, color: 'text-yellow-500'};
-        notify(message, 'info');
-      }
-
-      if (data.status === 'expired') {
-        const message = 'Invoice expired. Please generate a new one.';
-        invoiceStatus = {message, color: 'text-red-500'};
-        notify(message, 'alert');
-
-        setTimeout(() => {
-          $activeModal = 0;
-          cryptoInvoice = null;
-          currentInvoiceID = '';
-        }, 3000);
-      }
-    };
-  }
-
-  function changeModel(model: string) {
-    const chosenModel = model.toLowerCase() as keyof typeof PRICING_TIERS;
-    $pricingModel = {name: model, ...PRICING_TIERS[chosenModel]};
-  }
-
-  async function handleCheckout() {
-    switch (step) {
-      case 'create': {
-        if (!clientSecret) return setTimeout(() => handleCheckout(), 100);
-        if (paymentElement) {
-          paymentElement.unmount();
-          paymentElement.destroy();
-        }
-
-        stripeLoaded = false;
-        isStripeLoading = false;
-
-        $activeModal = 1;
-        break;
-      }
-
-      case 'auth': {
-        stripe.confirmCardPayment(clientSecret).then((result) => {
-          if (result.error) return notify(result.error.message!, 'alert');
-          else window.location.href = '/create?id=' + identityID;
-        });
-        break;
-      }
-
-      case 'confirm':
-        $activeModal = 2;
-        break;
-
-      case 'finish':
-        window.location.href = '/create?id=' + identityID;
-        break;
-    }
-  }
-
-  async function initStripe() {
-    $pendingID = 2;
-    loadStripe.setLoadParameters({advancedFraudSignals: false});
-    stripe = (await loadStripe(data.stripeKey)) as Stripe;
-
-    const appearance = {
-      theme: 'flat',
-      variables: {
-        colorPrimary: '#4338ca',
-        colorBackground: '#1e293b',
-        colorText: '#cbd5e1',
-        colorDanger: '#ef4444',
-        fontFamily: 'Inter, sans-serif',
-        borderRadius: '8px',
-      },
-      rules: {
-        '.Input': {border: '2px solid #374151', backgroundColor: '#131c2e', color: '#cbd5e1'},
-        '.Input:focus': {borderColor: '#4f46e5', boxShadow: '0 0 0 1px #4f46e5'},
-      },
-    } as Appearance;
-
-    elements = stripe.elements({clientSecret, appearance});
-    paymentElement = elements.create('payment', {layout: 'tabs'});
-
-    setTimeout(() => {
-      const mountPoint = document.getElementById('payment-element');
-      paymentElement.mount(mountPoint!);
-      stripeLoaded = true;
-      $pendingID = 0;
-    }, 300);
-  }
-
-  async function completePayment() {
-    $pendingID = 2;
-    const returnUrl = page.url.origin + '/create?id=' + identityID;
-    const result = await stripe.confirmPayment({elements, confirmParams: {return_url: returnUrl}});
-
-    if (result.error) {
-      notify(result.error.message!, 'alert');
-      $pendingID = 0;
-    }
-  }
 </script>
 
-<svelte:head>
-  <title>ShadowSelf - Purchase</title>
-  <meta name="description" content="Purchase an affordable identity to protect your privacy and safeguard your data." />
-  <meta name="referrer" content="strict-origin-when-cross-origin" />
-</svelte:head>
-
-<div id="purchase">
-  <section id="top-text">
-    <h1 class="text-4xl font-bold text-neutral-300 sm:text-6xl">
-      {isRenewing ? 'Renew your plan' : 'Choose your plan'}
-    </h1>
-    <p class="text-center text-neutral-400">
-      {#if isRenewing}
-        You are renewing your existing identity. Your data and settings will be preserved.
-      {:else}
-        All plans include a 14-day refund, 24/7 support and the same level of security.
-      {/if}
-      <br />Buying with crypto gives a <b class="text-primary-600">{CRYPTO_DISCOUNT}% discount</b> across the board
-    </p>
-  </section>
-  <div id="purchase-box">
-    {#if !isRenewing}
-      <section id="plans" class="flex-row! gap-0!">
-        {#each ['Monthly', 'Annually', 'Lifetime'] as model (model)}
-          <button class:active={$pricingModel.name === model} type="button" onclick={() => changeModel(model)}>{model}</button>
-        {/each}
-      </section>
-    {/if}
-
-    <section id="tier-table">
-      <h2 class="mt-10 text-3xl font-bold text-neutral-300 md:text-5xl">
-        {isRenewing ? `Identity ${toTitleCase(plan!).slice(0, -2)} Renewal` : 'Complete Identity'}
-      </h2>
-      {#key $pricingModel.price}
-        <div in:fly={{x: -30, duration: 1000, opacity: 0}} class="my-1 flex flex-col items-center">
-          <h1 class="text-primary-600 flex items-start gap-1 text-6xl">
-            <span class="mt-6 text-3xl sm:text-4xl">$</span>{$pricingModel.price}
-          </h1>
-          <p class="text-xl text-neutral-400">{$pricingModel.description}</p>
-        </div>
-      {/key}
-      <ul class="mt-4 grid gap-x-12 gap-y-4 text-center sm:grid-cols-2">
-        {#each FEATURES as feature, id (id)}
-          <li><CheckmarkIcon className="cursor-auto fill-green-500! w-6! h-6!" />{feature}</li>
-        {/each}
-      </ul>
-    </section>
-
-    <section id="payment-methods" class="my-10">
-      <div class="payment-buttons flex gap-6 px-8 max-sm:flex-col">
-        {#if !isRenewing}
-          <form action="?/fiatInit" method="POST" use:enhance={() => awaitPending(true, 1)}>
-            <input type="hidden" name="requestID" value={data.requestID} />
-            <input hidden value={$pricingModel.name} name="type" type="hidden" />
-            <LoadingButton className="px-10 py-6 font-semibold"><CreditCardIcon className="w-8! h-8!" />Pay With Card</LoadingButton>
-          </form>
-        {/if}
-        <LoadingButton index={2} type="button" onclick={() => ($activeModal = 3)} className="px-10 py-6 font-semibold">
-          <WalletIcon className="w-8! h-8!" />{isRenewing ? 'Extend Crypto Subscription' : 'Pay With Crypto'}
-        </LoadingButton>
-      </div>
-    </section>
+<svelte:head><title>{renewal ? 'Renew identity' : 'Choose an identity plan'} | ShadowSelf</title></svelte:head>
+<div class="page-heading">
+  <div>
+    <h1>{renewal ? 'Renew identity' : 'New identity'}</h1>
   </div>
 </div>
-
-<Modal id={1}>
-  <div class="m-4 flex flex-col gap-8">
-    <h3 class="text-center text-4xl font-bold text-neutral-300">Checkout</h3>
-    <div id="payment-element" class="min-h-80 min-w-96 {!stripeLoaded ? 'hidden' : ''}"></div>
-    {#if stripeLoaded}
-      <LoadingButton name="pay" index={2} onclick={completePayment}>Pay ${$pricingModel.price}</LoadingButton>
-    {/if}
-  </div>
-</Modal>
-
-<Modal id={2}>
-  <form method="POST" action="?/fiatConfirm" use:enhance={() => awaitPending(true, 2)} class="m-6 mb-2 flex flex-col gap-8">
-    <input type="hidden" name="requestID" value={data.requestID} />
-    <h3 class="text-4xl font-bold text-neutral-300">Confirm Payment</h3>
-    <p class="w-140 max-w-[80vw]">
-      Are you sure you want to pay ${$pricingModel.price} for an identity with your {cardName} credits card ending with ****{last4}?
-    </p>
-    <input hidden value={$pricingModel.name} name="type" type="hidden" />
-    <LoadingButton index={2} type="submit" disabled={step === 'auth' || step === 'finish'}>
-      {$pricingModel.name === 'Lifetime' ? 'Pay' : 'Subscribe for'} ${$pricingModel.price}
-    </LoadingButton>
-    {#key step}
-      {#if step === 'auth'}
-        <p class="text-center text-sm text-neutral-500">Wait a moment. You might have to authenticate your card.</p>
-      {:else}
-        <br />
-      {/if}
-    {/key}
-  </form>
-</Modal>
-
-<Modal id={3}>
-  <div class="m-4 flex flex-col gap-8" id="crypto-modal">
-    <h3 class="text-center text-4xl font-bold text-neutral-300">Crypto Checkout</h3>
-    {#if !cryptoInvoice}
-      <form method="POST" action={isRenewing ? '?/cryptoRenew' : '?/cryptoInit'} use:enhance={() => awaitPending(true, 3)} class="flex flex-col gap-6">
-        <input type="hidden" name="requestID" value={data.requestID} />
-        <input hidden value={$pricingModel.name} name="plan" type="hidden" />
-        <input hidden value={cryptoChoice} name="swapCoin" type="hidden" />
-        <input hidden value={renewID || 0} name="identityID" type="hidden" />
-
-        <div class="flex flex-col gap-2">
-          <label for="cryptoChoice" class="text-sm text-neutral-500">Enter Coin Ticker (BTC, DOGE, SOL etc.)</label>
-          <input type="text" id="cryptoChoice" bind:value={cryptoChoice} required placeholder="XMR" />
+<Status message={error} kind="error" />
+<div class="purchase-grid">
+  <section class="panel">
+    <div class="plan-switch" aria-label="Billing plan">
+      {#each Object.keys(PRICING_TIERS) as choice (choice)}<button
+          class:active={plan === choice}
+          disabled={!!checkout || !!invoice || pending || !!renewal}
+          onclick={() => choose(choice as typeof plan)}>{choice === 'annually' ? 'Annual' : choice === 'lifetime' ? 'Lifetime' : 'Monthly'}</button
+        >{/each}
+    </div>
+    <div class="plan-price"><span>${tier.price.toFixed(2)}</span><small>{tier.description}</small></div>
+    <h2>Included services</h2>
+    <ul class="included-capabilities">
+      {#each capabilities as capability (capability)}<li><Icon name="check" size={16} />{capability}</li>{/each}
+    </ul>
+    <small>{CRYPTO_DISCOUNT}% discount with crypto.</small>
+  </section>
+  <section class="panel">
+    <h2>{invoice ? 'Payment invoice' : 'Payment method'}</h2>
+    {#if invoice}<img class="qr-image" src={qr} alt="Invoice deposit address QR code" />
+      <dl class="data-list">
+        <div>
+          <dt>Send amount</dt>
+          <dd><Copy value={String(invoice.depositAmount)} label="Copy amount" /> {invoice.coin || ticker.toUpperCase()}</dd>
         </div>
-
-        <div class="flex flex-col gap-2">
-          <label for="refundAddress" class="text-sm text-neutral-500">
-            Refund Address (Optional, for {cryptoChoice.toUpperCase()})
-          </label>
-          <input type="text" id="refundAddress" name="refundAddress" placeholder="{cryptoChoice.toUpperCase()} refund address" />
+        <div>
+          <dt>Deposit address</dt>
+          <dd><Copy value={invoice.depositAddress} label="Copy address" /></dd>
         </div>
-
-        <LoadingButton index={3} type="submit">Generate Invoice</LoadingButton>
-      </form>
-    {:else}
-      <div class="flex w-full max-w-2xl flex-col items-center gap-6">
-        <div class="rounded-xl bg-white p-4">
-          <img src={qrImage} alt="Deposit QR Code" class="h-64 w-64 object-contain" />
+        <div>
+          <dt>Reference</dt>
+          <dd>{invoice.invoiceID}</dd>
         </div>
-
-        <footer class="text-xs font-medium tracking-widest text-neutral-500 uppercase">Scan with Camera or copy the address below</footer>
-
-        <div class="flex w-full flex-col gap-4 rounded-xl border-2 border-neutral-600 bg-neutral-800/50 p-6">
-          <div class="flex flex-col gap-1">
-            <span class="text-sm text-neutral-500">Amount to send (in {cryptoChoice.trim().toUpperCase()})</span>
-            <CopyButton className="truncate w-96 text-left" text={cryptoInvoice.depositAmount.toString()} />
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <span class="text-sm text-neutral-500">Deposit Address</span>
-            <CopyButton className="truncate w-96 text-left" text={cryptoInvoice.depositAddress} />
-          </div>
-
-          {#if cryptoInvoice.externalLink}
-            <a href={cryptoInvoice.externalLink} target="_blank" rel="noopener noreferrer" class="mt-2"> Track swap on Trocador </a>
-          {/if}
-        </div>
-
-        <div class="mt-2 flex items-center justify-center gap-2 text-sm">
-          <p class="text-center text-sm {invoiceStatus.color}">{invoiceStatus.message}</p>
-        </div>
+      </dl>
+      <Status message={status} />
+      <div class="button-row invoice-actions">
+        <Button variant="secondary" onclick={refreshInvoice}>Refresh payment status</Button>{#if invoice.externalLink}<a
+            class="control-button quiet"
+            href={invoice.externalLink}
+            target="_blank"
+            rel="noopener noreferrer">Track swap</a
+          >{/if}
       </div>
-    {/if}
-  </div>
-</Modal>
+      <small>Keep this invoice reference. An interrupted connection does not cancel a payment.</small>
+    {:else}<div class="tabs payment-tabs">
+        {#if !renewal}<button class:active={method === 'card'} onclick={() => (method = 'card')}><Icon name="card" size={16} />Card</button>{/if}<button
+          class:active={method === 'crypto' || !!renewal}
+          onclick={() => (method = 'crypto')}><Icon name="wallet" size={16} />Crypto</button>
+      </div>
+      {#if method === 'card' && !renewal}<p>Stripe handles card details and subscription payments.</p>
+        <div class="checkout-actions"><Button icon="card" loading={pending} onclick={() => payCard()}>Continue with card</Button></div>{:else}<form
+          onsubmit={newInvoice}>
+          <div class="field">
+            <label for="billing-coin">Payment coin</label><input
+              id="billing-coin"
+              bind:value={ticker}
+              required
+              pattern={'[A-Za-z0-9]{2,12}'}
+              maxlength="12" /><small>XMR invoices are direct. Other coins use an external swap provider.</small>
+          </div>
+          <div class="field">
+            <label for="billing-refund">Refund address</label><input
+              id="billing-refund"
+              bind:value={refund}
+              placeholder="Optional address for {ticker.toUpperCase()}" />
+          </div>
+          <Button type="submit" icon="wallet" loading={pending}>Create payment invoice</Button>
+        </form>{/if}{/if}
+  </section>
+</div>
+<Dialog bind:open={checkoutOpen} title="Card checkout"
+  ><Status message={error} kind="error" />{#if checkout?.step === 'confirm'}<p>
+      Pay ${tier.price.toFixed(2)} using your saved {checkout.cardName} card ending {checkout.last4}.
+    </p>
+    <div class="checkout-actions"><Button loading={pending} onclick={() => payCard(true)}>Confirm purchase</Button></div>{:else}<div
+      class="stripe-mount"
+      bind:this={mountPoint}>
+    </div>
+    <div class="checkout-actions">
+      <Button disabled={!cardReady} loading={pending} onclick={confirmCard}>Pay ${tier.price.toFixed(2)}</Button>
+    </div>{/if}</Dialog>
 
-<style lang="postcss">
-  @reference "$style";
-
-  #purchase {
-    @apply mx-auto my-36 flex h-fit w-fit flex-col gap-16;
+<style>
+  .purchase-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 1050px;
   }
-
-  #purchase-box {
-    @apply rounded-3xl border-2 border-neutral-400 bg-[#070d1f];
+  .purchase-grid > .panel {
+    margin: 0;
   }
-
-  section {
-    @apply flex flex-col items-center justify-center gap-4 px-4 py-4 md:px-8;
+  .plan-switch {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid #a5b4fc20;
+    border-radius: 6px;
+    background: #070e1c;
   }
-
-  #plans button {
-    @apply alt bg-[#070d1f] text-neutral-400 shadow-none hover:bg-[#2b3446] hover:text-neutral-300;
-    @apply border-2 border-neutral-400 first:rounded-l-full last:rounded-r-full;
-    @apply z-20 -mt-14 rounded-none px-4 py-5 text-sm font-semibold even:-mx-1 sm:px-8 sm:text-2xl;
+  .plan-switch button {
+    flex: 1;
+    padding: 10px 6px;
+    background: none;
+    border: 0;
+    border-radius: 4px;
+    color: #8493af;
+    font-size: 11px;
   }
-
-  .active {
-    @apply bg-neutral-400! text-neutral-950! hover:text-neutral-950!;
+  .plan-switch button.active {
+    background: #6253ec24;
+    color: #c5bbff;
   }
-
-  li {
-    @apply flex items-center gap-4;
+  .plan-price {
+    margin: 28px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
   }
-
-  #crypto-modal input {
-    @apply border-neutral-700! bg-neutral-900/50! placeholder-neutral-700;
+  .plan-price span {
+    font-size: 48px;
+    letter-spacing: -2px;
+    font-weight: 550;
   }
-
-  .payment-buttons > * {
-    @apply w-auto!;
+  .included-capabilities {
+    padding: 0;
+    margin: 24px 0;
+    list-style: none;
+    display: grid;
+    gap: 15px;
+  }
+  .included-capabilities li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #b7c3dc;
+    font-size: 12px;
+  }
+  .included-capabilities :global(svg) {
+    color: #8cbaab;
+  }
+  .payment-tabs {
+    margin-top: 17px;
+  }
+  .checkout-actions,
+  .invoice-actions {
+    margin: 24px 0;
+  }
+  .stripe-mount {
+    min-height: 230px;
+  }
+  @media (max-width: 900px) {
+    .purchase-grid {
+      grid-template-columns: 1fr;
+    }
+    .plan-price span {
+      font-size: 42px;
+    }
   }
 </style>

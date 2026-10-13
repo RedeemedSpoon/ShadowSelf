@@ -1,67 +1,81 @@
 <script lang="ts">
-  import systemDesign from '$image/visuals/system-design.webp';
+  import PublicPage from '$component/public/PublicPage.svelte';
+  import logo from '$image/brands/shadowself/icon.svg';
 </script>
 
-<svelte:head>
-  <title>ShadowSelf - About</title>
-  <meta name="description" content="Learn more about us, ShadowSelf and our mission." />
-</svelte:head>
+<svelte:head
+  ><title>About | ShadowSelf</title><meta
+    name="description"
+    content="Why ShadowSelf groups profiles, credentials, messages, and cryptocurrency wallets around separate online identities." /></svelte:head>
 
-<div>
-  <h1>Who We Are</h1>
+<PublicPage
+  eyebrow="The project"
+  title="A workspace for separate identities."
+  description="ShadowSelf gives each online identity its own profile, contact details, credentials, and wallets.">
+  <div class="project-record">
+    <img src={logo} alt="" width="52" height="52" />
+    <div><span>ShadowSelf</span><small>Open-source identity management</small></div>
+    <a href="https://github.com/RedeemedSpoon/ShadowSelf" rel="noreferrer">View source <span aria-hidden="true">↗</span></a>
+  </div>
+  <h2>Why build around an identity?</h2>
   <p>
-    We're not a faceless corporation or a team funded by venture capitalists. ShadowSelf is a privacy tool built and maintained by a single developer, but we
-    welcome contributions from anyone who can offer their skills and knowledge. To keep this project running smoothly, we rely on monetary transactions to cover
-    essential costs like server maintenance and API usage.
+    Maintaining a pseudonym usually means managing a mailbox, a phone number, credentials, and wallets separately. ShadowSelf uses the identity to organize
+    those resources, so they stay together as its accounts accumulate.
   </p>
-  <img loading="lazy" class="mx-auto mt-8 w-[75%]" src={systemDesign} alt="System Design" />
-  <small class="mb-4 text-center text-neutral-400">System Design for <a href="/" rel="external">ShadowSelf</a></small>
-  <h1>Our Mission</h1>
+  <h2>Encryption in your browser</h2>
   <p>
-    We're here to revolutionize online privacy and anonymity. We believe that everyone deserves the right to a digital life free from surveillance and
-    intrusion. With ShadowSelf, you can reclaim your online freedom and protect your identity from prying eyes.
-  </p>
-  <h1>How We Do It</h1>
-  <p>ShadowSelf offers a comprehensive suite of tools to help you create and manage synthetic identities. These digital aliases can be used to:</p>
-  <ul>
-    <li>
-      <b>Protect Your True Identity:</b> Shield your personal information from prying eyes, reducing your vulnerability to cyber threats.
-    </li>
-    <li>
-      <b>Enhance Online Security:</b> Create multiple layers of defense, making it significantly harder for malicious actors to compromise your security.
-    </li>
-    <li>
-      <b>Experience Digital Freedom:</b> Explore the internet without limitations, unburdened by the fear of being tracked or profiled.
-    </li>
-  </ul>
-  <h1>Our Commitment</h1>
-  <p>
-    We're committed to protecting your privacy and anonymity online. We employ state-of-the-art security measures to safeguard your data and ensure that your
-    synthetic identities remain secure. Your trust is our priority.
-  </p>
-  <h1>Join the Movement</h1>
-  <p>
-    Join a growing community that values digital privacy and anonymity. With ShadowSelf, you can take control of your online identity and experience the
-    internet on your terms.
+    Your browser encrypts vault passwords, TOTP secrets, and wallet signing material with your identity's master password before storage. The master password
+    stays in your browser.
   </p>
   <p>
-    Make sure to star us on <a href="https://github.com/RedeemedSpoon/ShadowSelf" rel="external">GitHub</a> and follow us on
-    <a href="https://mastodon.social/@shadow_self" rel="external">Mastodon</a>
+    Profiles, account metadata, email, SMS, and billing records are outside vault encryption. The <a href="/privacy-policy">privacy policy</a> describes how we store
+    and process them.
   </p>
-</div>
+  <h2>Built in the open</h2>
+  <p>
+    The frontend, backend, and extension share an AGPL-3.0 repository. A <a href="/docs">versioned API</a> supports custom clients and automation. Paid identities
+    fund phone numbers, mail delivery, hosting, and development.
+  </p>
+  <h2>Planned next</h2>
+  <p>V2 plans include residential routing, email aliases, and PGP support. Virtual cards and cloud storage are planned for V3.</p>
+</PublicPage>
 
-<style lang="postcss">
-  @reference "$style";
-
-  div {
-    @apply mx-auto my-40 flex h-fit w-11/12 flex-col gap-6 md:w-3/4 xl:w-1/2;
+<style>
+  .project-record {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    padding: 24px;
+    border: 1px solid #a5b4fc25;
+    border-radius: 10px;
+    background: linear-gradient(130deg, #1a203b, #10172a);
   }
-
-  h1 {
-    @apply basic-style text-4xl md:text-5xl;
+  .project-record > div {
+    display: grid;
+    gap: 7px;
   }
-
-  li {
-    @apply mb-3 ml-6 list-disc;
+  .project-record div > span {
+    color: #e0e7ff;
+    font-size: 19px;
+  }
+  .project-record small {
+    color: #9eabcd;
+    font-size: 12px;
+  }
+  .project-record > a {
+    margin-left: auto;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  @media (max-width: 500px) {
+    .project-record {
+      flex-wrap: wrap;
+      padding: 20px;
+      gap: 16px;
+    }
+    .project-record > a {
+      margin-left: 0;
+      width: 100%;
+    }
   }
 </style>

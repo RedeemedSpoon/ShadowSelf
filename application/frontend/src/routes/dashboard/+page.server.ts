@@ -1,31 +1,17 @@
 import type {PageServerLoad} from './$types';
-import {fetchBackend} from '$utils/webfetch';
-import type {Identity, Option} from '$type';
+import {backend} from '$lib/backend.server';
+import type {Identity} from '$type';
 
 export const load: PageServerLoad = async ({cookies}) => {
-  const remains = await fetchBackend('/account/recovery-remaining', 'GET', undefined, cookies.get('token'));
-  const response = await fetchBackend('/api', 'GET', undefined, cookies.get('token'));
-
-  if (response.type === 'alert')
-    return {
-      recoveryRemaining: remains.message,
-      searchKeywords: [],
-      identities: [],
-    };
-
-  const searchKeywords: Option[] = [];
-  const identities = Object.values(response) as Identity[];
-
-  identities.pop();
-  identities.forEach((identity) => {
-    if (!identity.name) return;
-    const concat = `${identity.name} ${identity.country} ${identity.location} ${identity.id} ${identity.email} ${identity.phone} ${identity.accounts} ${identity.walletFunds}`;
-    searchKeywords.push({label: identity.id, value: concat.toLowerCase()});
-  });
+  const token = cookies.get('token');
+  const [identities, recovery] = await Promise.all([
+    backend<{identities: Identity[]}>('/identities', 'GET', undefined, token),
+    backend<{recoveryRemaining: number}>('/auth/recovery-remaining', 'GET', undefined, token),
+  ]);
 
   return {
-    recoveryRemaining: remains.message,
-    searchKeywords,
-    identities,
+    identities: identities.ok ? identities.data.identities : [],
+    loadError: identities.ok ? '' : identities.error,
+    recoveryRemaining: recovery.ok ? recovery.data.recoveryRemaining : null,
   };
 };

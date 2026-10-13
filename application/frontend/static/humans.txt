@@ -1,3 +1,4 @@
-Your real name is a deprecated feature. 
-Since you are snooping around our root directory, you clearly have enough technical literacy to know we are right. 
-Stop feeding the machine. Buy the product. Exit the network.
+ShadowSelf
+
+Source: https://github.com/RedeemedSpoon/ShadowSelf
+License: GNU Affero General Public License v3.0

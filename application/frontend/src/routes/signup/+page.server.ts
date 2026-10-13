@@ -1,5 +1,5 @@
-import {PUBLIC_STRIPE_KEY} from '$env/static/public';
-import {fetchBackend} from '$utils/webfetch';
+import {env} from '$env/dynamic/public';
+import {fetchBackend} from '$lib/backend.server';
 import {createCookie} from '$utils/shared';
 import {redirect} from '@sveltejs/kit';
 import type {Actions} from './$types';
@@ -8,11 +8,15 @@ import QRCode from 'qrcode';
 export const actions: Actions = {
   init: async ({request, cookies}) => {
     const form = await request.formData();
+
     const email = form.get('email');
     const password = form.get('password');
 
-    const response = await fetchBackend('/account/signup', 'POST', {email, password});
-    if (!response.signup) return response;
+    const response = await fetchBackend('/auth/registration', 'POST', {email, password});
+
+    if (!response.signup) {
+      return response;
+    }
 
     cookies.set('signup', response.signup, {
       path: '/signup',
@@ -28,25 +32,32 @@ export const actions: Actions = {
   checkEmail: async ({request, cookies}) => {
     const access = (await request.formData()).get('access');
 
-    const response = await fetchBackend('/account/signup-email', 'POST', {signup: cookies.get('signup'), access});
+    const response = await fetchBackend('/auth/registration/email', 'POST', {signup: cookies.get('signup'), access});
 
     return response.email ? {step: 3} : response;
   },
   checkUsername: async ({request, cookies}) => {
     const username = (await request.formData()).get('username');
 
-    const response = await fetchBackend('/account/signup-username', 'POST', {signup: cookies.get('signup'), username});
+    const response = await fetchBackend('/auth/registration/profile', 'PUT', {signup: cookies.get('signup'), username});
 
     return response.username ? {step: 4, ...response} : response;
   },
   askOTP: async ({request, cookies}) => {
     const enable = (await request.formData()).has('enable');
 
-    const response = await fetchBackend('/account/signup-otp', 'POST', {signup: cookies.get('signup'), enable});
-    if (response.type !== 'success') return response;
-    if (!enable) return {step: 8, secret: ''};
+    const response = await fetchBackend('/auth/registration/totp', 'POST', {signup: cookies.get('signup'), enable});
+
+    if (response.type !== 'success') {
+      return response;
+    }
+
+    if (!enable) {
+      return {step: 8, secret: ''};
+    }
 
     const svg = await QRCode.toString(response.uri, {type: 'svg', margin: 2});
+
     const qr = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 
     return {step: 5, secret: response.secret, qr};
@@ -55,7 +66,7 @@ export const actions: Actions = {
   checkOTP: async ({request, cookies}) => {
     const token = (await request.formData()).get('token');
 
-    const response = await fetchBackend('/account/signup-recovery', 'POST', {signup: cookies.get('signup'), token});
+    const response = await fetchBackend('/auth/registration/recovery', 'POST', {signup: cookies.get('signup'), token});
 
     return response.recovery ? {step: 7, ...response} : response;
   },
@@ -63,11 +74,14 @@ export const actions: Actions = {
   askBilling: async ({request}) => {
     const wantBilling = (await request.formData()).has('add');
 
-    return wantBilling ? {step: 9, stripeKey: PUBLIC_STRIPE_KEY} : {step: 10, stripeKey: ''};
+    return wantBilling ? {step: 9, stripeKey: env.PUBLIC_STRIPE_KEY || ''} : {step: 10, stripeKey: ''};
   },
   addBilling: async ({request, cookies}) => {
     const payment = (await request.formData()).get('paymentID');
-    if (typeof payment !== 'string' || !payment) return {step: 9};
+
+    if (typeof payment !== 'string' || !payment) {
+      return {step: 9};
+    }
 
     cookies.set('signup-payment', payment, {path: '/signup', httpOnly: true, secure: true, sameSite: 'strict', maxAge: 1800});
 
@@ -76,10 +90,13 @@ export const actions: Actions = {
   create: async ({cookies}) => {
     const body = {signup: cookies.get('signup'), payment: cookies.get('signup-payment')};
 
-    const response = await fetchBackend('/account/signup-create', 'POST', body);
-    if (!response.cookie) return response;
+    const response = await fetchBackend('/auth/registration/complete', 'POST', body);
 
-    createCookie(cookies, 'token', response.cookie);
+    if (!response.token) {
+      return response;
+    }
+
+    createCookie(cookies, 'token', response.token);
     cookies.delete('signup', {path: '/signup'});
     cookies.delete('signup-payment', {path: '/signup'});
 

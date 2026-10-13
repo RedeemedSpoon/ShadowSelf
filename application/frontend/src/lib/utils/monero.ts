@@ -26,13 +26,21 @@ export function idbOperation(mode: 'readonly' | 'readwrite' | 'delete', id: stri
   });
 }
 
-export async function readMoneroCache(id: string, key: CryptoKey) {
+async function readMoneroCache(id: string, key: CryptoKey) {
   const saved = await idbOperation('readonly', id);
-  if (!saved) return null;
+
+  if (!saved) {
+    return null;
+  }
 
   const plaintext = await decrypt(saved, key);
-  if (!plaintext) throw new Error('Wallet cache cannot be unlocked. Clear the cache and sync again');
+
+  if (!plaintext) {
+    throw new Error('Wallet cache cannot be unlocked. Clear the cache and sync again');
+  }
+
   const data = JSON.parse(plaintext);
+
   for (const bytes of [data.keys, data.cache]) {
     if (!Array.isArray(bytes) || !bytes.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)) {
       throw new Error('Wallet cache is invalid. Clear the cache and sync again');
@@ -42,27 +50,42 @@ export async function readMoneroCache(id: string, key: CryptoKey) {
   return {keys: Uint8Array.from(data.keys), cache: Uint8Array.from(data.cache)};
 }
 
-export async function saveMoneroCache(id: string, key: CryptoKey, buffers: DataView[]) {
+async function saveMoneroCache(id: string, key: CryptoKey, buffers: DataView[]) {
   const bytes = buffers.map((buffer) => Array.from(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)));
   await idbOperation('readwrite', id, await encrypt(JSON.stringify({keys: bytes[0], cache: bytes[1]}), key));
 }
 
-export async function transferMonero(nodeUrl: string, address: string, amount: string, priority: number) {
-  if (!/^\d+(?:\.\d{1,12})?$/.test(amount)) throw new Error('Enter a Monero amount with at most 12 decimal places');
+export async function prepareMoneroTransaction(nodeUrl: string, address: string, amount: string, priority: number) {
+  if (!/^\d+(?:\.\d{1,12})?$/.test(amount)) {
+    throw new Error('Enter a Monero amount with at most 12 decimal places');
+  }
+
   const [whole, fraction = ''] = amount.split('.');
   const atoms = BigInt(whole) * 1_000_000_000_000n + BigInt(fraction.padEnd(12, '0'));
-  if (atoms <= 0n) throw new Error('Enter an amount greater than zero');
+
+  if (atoms <= 0n) {
+    throw new Error('Enter an amount greater than zero');
+  }
 
   const account = get(identity);
-  const cacheID = `${account.id}:${account.walletBlob}`;
   const key = await getMasterKey();
 
+  const cacheID = `${account.id}:${account.walletBlob}`;
+
   return navigator.locks.request(`shadowself-xmr-${account.id}`, {ifAvailable: true}, async (lock) => {
-    if (!lock) throw new Error('Wallet sync or another transaction is running. Wait for it to finish');
+    if (!lock) {
+      throw new Error('Wallet sync or another transaction is running. Wait for it to finish');
+    }
+
     const data = await readMoneroCache(cacheID, key);
-    if (!data) throw new Error('Sync the Monero wallet before sending');
+
+    if (!data) {
+      throw new Error('Sync the Monero wallet before sending');
+    }
+
     const monerots = await import('monero-ts');
     monerots.LibraryUtils.setWorkerDistPath(new URL('/monero.worker.js', location.origin).href);
+
     const wallet = await monerots.openWalletFull({
       networkType: monerots.MoneroNetworkType.MAINNET,
       server: {uri: nodeUrl},
@@ -73,12 +96,67 @@ export async function transferMonero(nodeUrl: string, address: string, amount: s
 
     try {
       await wallet.sync();
-      if (get(identity).walletBlob !== account.walletBlob) throw new Error('Wallet encryption changed. Unlock it again');
+
+      if (get(identity).walletBlob !== account.walletBlob || (await getMasterKey()) !== key) {
+        throw new Error('Wallet encryption changed or the vault was locked. Unlock it again');
+      }
+
       const transaction = await wallet.createTx({accountIndex: 0, address, amount: atoms, relay: false, priority});
       await saveMoneroCache(cacheID, key, await wallet.getData());
 
+      const fee = transaction.getFee();
+
+      return {
+        metadata: transaction.getMetadata(),
+        txid: transaction.getHash(),
+        fee: `${fee / 1_000_000_000_000n}.${(fee % 1_000_000_000_000n).toString().padStart(12, '0')}`,
+        walletBlob: account.walletBlob,
+      };
+    } finally {
+      await wallet.close().catch(() => {});
+    }
+  });
+}
+
+export async function broadcastMoneroTransaction(nodeUrl: string, prepared: Awaited<ReturnType<typeof prepareMoneroTransaction>>) {
+  const account = get(identity);
+  const key = await getMasterKey();
+
+  if (account.walletBlob !== prepared.walletBlob) {
+    throw new Error('Wallet encryption changed. Prepare the transaction again');
+  }
+
+  const cacheID = `${account.id}:${account.walletBlob}`;
+
+  return navigator.locks.request(`shadowself-xmr-${account.id}`, {ifAvailable: true}, async (lock) => {
+    if (!lock) {
+      throw new Error('Wallet sync or another transaction is running. Wait for it to finish');
+    }
+
+    const data = await readMoneroCache(cacheID, key);
+
+    if (!data) {
+      throw new Error('Sync the Monero wallet before sending');
+    }
+
+    const monerots = await import('monero-ts');
+    monerots.LibraryUtils.setWorkerDistPath(new URL('/monero.worker.js', location.origin).href);
+
+    const wallet = await monerots.openWalletFull({
+      networkType: monerots.MoneroNetworkType.MAINNET,
+      server: {uri: nodeUrl},
+      password: 'shadowself_xmr',
+      keysData: data.keys,
+      cacheData: data.cache,
+    });
+
+    try {
+      if ((await getMasterKey()) !== key) {
+        throw new Error('The wallet was locked. Unlock it before broadcasting');
+      }
+
       try {
-        await wallet.relayTx(transaction);
+        await wallet.relayTx(prepared.metadata);
       } catch {
         throw new Error('Broadcast could not be confirmed. Sync and check transaction history before sending again');
       }
@@ -102,12 +180,14 @@ export default async function initMoneroScan(
   onError: () => void,
   signal?: AbortSignal,
 ) {
+  const account = get(identity);
+  const encryptionKey = await getMasterKey();
+
   const monerots = await import('monero-ts');
   monerots.LibraryUtils.setWorkerDistPath(new URL('/monero.worker.js', location.origin).href);
-  const account = get(identity);
+
   const identityID = account.id;
   const cacheID = `${identityID}:${account.walletBlob}`;
-  const encryptionKey = await getMasterKey();
   const res = await fetch(nodeData.nodeUrl, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -115,9 +195,16 @@ export default async function initMoneroScan(
     signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15_000)]) : AbortSignal.timeout(15_000),
   });
 
-  if (!res.ok) throw new Error('Monero node is unavailable');
+  if (!res.ok) {
+    throw new Error('Monero node is unavailable');
+  }
+
   const currentHeight = (await res.json()).result?.height;
-  if (!Number.isSafeInteger(currentHeight) || currentHeight <= 0) throw new Error('Invalid Monero node response');
+
+  if (!Number.isSafeInteger(currentHeight) || currentHeight <= 0) {
+    throw new Error('Invalid Monero node response');
+  }
+
   const msAgo = Date.now() - new Date(nodeData.startingDate).getTime();
   const restoreHeight = Math.max(0, currentHeight - Math.floor(msAgo / 120000) - 1000);
 
@@ -137,8 +224,12 @@ export default async function initMoneroScan(
       void wallet?.stopSyncing().catch(() => {});
     };
     signal?.addEventListener('abort', stop, {once: true});
+
     try {
-      if (signal?.aborted) return;
+      if (signal?.aborted) {
+        return;
+      }
+
       const localData = await readMoneroCache(cacheID, encryptionKey);
 
       if (localData) {
@@ -164,17 +255,25 @@ export default async function initMoneroScan(
         });
       }
 
-      if (signal?.aborted) return;
+      if (signal?.aborted) {
+        return;
+      }
+
       const daemonHeight = await wallet.getDaemonHeight();
+
       const totalBlocks = daemonHeight - restoreHeight;
 
       progressTracker = setInterval(async () => {
         try {
-          if (signal?.aborted) return;
+          if (signal?.aborted) {
+            return;
+          }
+
           const currentHeight = await wallet!.getHeight();
 
           let percent = 0;
           let scanned = 0;
+
           if (currentHeight >= restoreHeight && totalBlocks > 0) {
             scanned = currentHeight - restoreHeight;
             percent = (scanned / totalBlocks) * 100;
@@ -188,8 +287,12 @@ export default async function initMoneroScan(
       await wallet.sync(undefined, undefined, true);
       clearInterval(progressTracker);
 
-      if (signal?.aborted || get(identity).walletBlob !== account.walletBlob) return;
+      if (signal?.aborted || get(identity).id !== identityID || get(identity).walletBlob !== account.walletBlob || (await getMasterKey()) !== encryptionKey) {
+        return;
+      }
+
       await saveMoneroCache(cacheID, encryptionKey, await wallet.getData());
+
       const [balance, unlocked, txs] = await Promise.all([wallet.getBalance(), wallet.getUnlockedBalance(), wallet.getTxs()]);
 
       const history = txs
@@ -210,6 +313,10 @@ export default async function initMoneroScan(
         })
         .sort((a: any, b: any) => b.date.getTime() - a.date.getTime());
 
+      if (signal?.aborted || get(identity).id !== identityID || (await getMasterKey()) !== encryptionKey) {
+        return;
+      }
+
       onProgress(100, totalBlocks, totalBlocks);
       onSuccess({
         balance: Number(balance) / 1e12,
@@ -218,7 +325,9 @@ export default async function initMoneroScan(
         status: 'Synced',
       });
     } catch (_) {
-      if (!signal?.aborted) onError();
+      if (!signal?.aborted) {
+        onError();
+      }
     } finally {
       signal?.removeEventListener('abort', stop);
       clearInterval(progressTracker);
@@ -228,9 +337,13 @@ export default async function initMoneroScan(
 
   void navigator.locks
     .request(`shadowself-xmr-${identityID}`, {ifAvailable: true}, async (lock) => {
-      if (!lock) return onError();
+      if (!lock) {
+        return onError();
+      }
+
       await processBlockchain();
     })
     .catch(onError);
+
   return initialState;
 }

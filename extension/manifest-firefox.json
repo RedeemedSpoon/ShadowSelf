@@ -3,8 +3,8 @@
   "short_name": "ShadowSelf",
   "homepage_url": "https://shadowself.io",
   "author": "RedeemedSpoon (contact@shadowself.io)",
-  "description": "Safeguard your privacy with synthetic identities and take control of your digital life.",
-  "version": "1.1.0",
+  "description": "Open your ShadowSelf identities from a signed-in tab in this browser window. Network routing is unavailable.",
+  "version": "2.0.0",
   "manifest_version": 3,
   "incognito": "spanning",
   "icons": {
@@ -17,7 +17,6 @@
   "action": {
     "default_title": "ShadowSelf",
     "default_popup": "user-interface/dashboard/dashboard.html",
-    "default_area": "navbar",
     "default_icon": {
       "16": "assets/icons/icon-16x16.png",
       "32": "assets/icons/icon-32x32.png",
@@ -34,6 +33,6 @@
     "scripts": ["background/background.js"],
     "type": "module"
   },
-  "host_permissions": ["<all_urls>"],
-  "permissions": ["webRequest", "webRequestAuthProvider", "declarativeNetRequestWithHostAccess", "notifications", "storage", "proxy", "tabs", "scripting"]
+  "host_permissions": ["https://shadowself.io/*"],
+  "permissions": ["storage", "scripting"]
 }

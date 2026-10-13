@@ -1,35 +1,63 @@
 import {origin} from '@core/config';
-import type {QueryUser, SessionJwt, User} from '@type';
+import {ApiError, sessionToken, tokenHash} from '@core/security';
 import {sql} from '@core/services';
+import type {QueryUser, User} from '@type';
+import type {TransactionSql} from 'postgres';
 
 export function getBearerToken(authorization: string | undefined) {
-  return authorization?.toLowerCase().startsWith('bearer ') ? authorization.slice(7) : undefined;
+  const match = authorization?.match(/^Bearer ([^\s]+)$/i);
+
+  return match?.[1];
 }
 
-export async function verifySessionToken(token: string | undefined, jwt: SessionJwt): Promise<User> {
-  if (!token) return undefined;
+export async function issueSession(account: string | Pick<QueryUser, 'email' | 'password' | 'totp'>, transaction?: TransactionSql) {
+  const create = async (connection: TransactionSql) => {
+    const email = typeof account === 'string' ? account : account.email;
+    const users = await connection`SELECT id, password, totp FROM users WHERE email = ${email} FOR SHARE`;
 
-  try {
-    const claims = await jwt.verify(token);
-    if (!claims || typeof claims !== 'object' || !('email' in claims) || !('id' in claims) || !('exp' in claims)) return undefined;
+    const current = users[0];
 
-    const {email, id, exp} = claims;
-    if (typeof exp !== 'number' || !Number.isFinite(exp) || exp <= Date.now() / 1000) return undefined;
-    if (typeof email !== 'string' || typeof id !== 'string' || !email || !id) return undefined;
+    if (!current || (typeof account !== 'string' && (current.password !== account.password || current.totp !== account.totp))) {
+      throw new ApiError(401, 'unauthenticated', 'Account changed. Sign in again');
+    }
 
-    const accounts = (await sql`SELECT sessions FROM users WHERE email = ${email}`) as QueryUser[];
-    if (!accounts[0]?.sessions?.includes(id)) return undefined;
+    const token = sessionToken();
+    await connection`INSERT INTO sessions (owner, token_hash, expires_at)
+      VALUES (${current.id}, ${tokenHash(token)}, NOW() + INTERVAL '90 days')`;
 
-    return {email, id};
-  } catch {
+    return token;
+  };
+
+  return transaction ? create(transaction) : sql.begin(create);
+}
+
+export async function verifySessionToken(token: string | undefined): Promise<User> {
+  if (!token?.startsWith('ss_session_')) {
     return undefined;
   }
+
+  const rows = await sql`SELECT u.email, u.id AS account_id, s.id FROM sessions s JOIN users u ON u.id = s.owner
+    WHERE s.token_hash = ${tokenHash(token)} AND s.expires_at > NOW()`;
+
+  return rows[0] ? {email: rows[0].email, id: rows[0].id, accountID: rows[0].account_id} : undefined;
+}
+
+export async function verifyApiToken(token: string | undefined): Promise<User> {
+  if (!token?.startsWith('ss_api_')) {
+    return undefined;
+  }
+
+  const rows = await sql`SELECT id, email FROM users WHERE api_key = ${tokenHash(token)} AND api_access = true`;
+
+  return rows[0] ? {email: rows[0].email, id: '', accountID: rows[0].id} : undefined;
 }
 
 export function trustedCookieRequest(request: Request) {
   const safe = ['GET', 'HEAD', 'OPTIONS'].includes(request.method) && request.headers.get('upgrade')?.toLowerCase() !== 'websocket';
-  if (safe || getBearerToken(request.headers.get('authorization') || undefined)) return true;
 
-  const allowed = [origin, 'http://shadow7sk64geknoyyzsfyjm4rylnknx5pzhfhzkecoggowhitafggqd.onion'];
-  return allowed.includes(request.headers.get('origin') || '');
+  if (safe || getBearerToken(request.headers.get('authorization') || undefined)) {
+    return true;
+  }
+
+  return [origin, 'http://shadow7sk64geknoyyzsfyjm4rylnknx5pzhfhzkecoggowhitafggqd.onion'].includes(request.headers.get('origin') || '');
 }

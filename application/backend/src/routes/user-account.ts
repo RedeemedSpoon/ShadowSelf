@@ -1,6 +1,8 @@
+import {issueSession} from '@middlewares/session-auth';
+import {encryptSecret} from '@core/security';
 import {createBillingCustomer} from '@core/stripe-service';
-import {compareHash, createHash, generateID, createTOTP, getAPIKey, getSecret, getRecovery, hashRecoveryCode} from '@utils/cryptography';
-import {issueLoginChallenge, claimLoginChallenge, finishLoginChallenge} from '@core/states';
+import {compareHash, createHash, createTOTP, getSecret, getRecovery, hashRecoveryCode} from '@utils/cryptography';
+import {issueLoginChallenge, claimLoginChallenge, finishLoginChallenge, claimSensitiveAttempt} from '@core/states';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendVerificationCode} from '@utils/email-smtp';
 import {error} from '@utils/utils';
@@ -11,220 +13,326 @@ import {consumeEmailCode, createSignupDraft, getSignupDraft} from '@core/states'
 import {SIGNUP_DRAFT_TTL} from '@core/constants';
 import {Elysia} from 'elysia';
 
-export default new Elysia({prefix: '/account'})
-  .use(middlewareBase)
-  .onBeforeHandle(({set, user, path}) => {
-    set.headers['cache-control'] = 'no-store';
-    const relativePath = path.slice(8);
-    const signUp = ['/signup', 'signup-email', '/signup-username', '/signup-otp', '/signup-recovery', '/signup-create'];
-    const otherPaths = ['/login', '/login-email', '/login-otp', '/login-recovery', '/login-access'];
-    const mustNotLogIn = [...signUp, ...otherPaths];
+export function createAccountRoutes(sendCode = sendVerificationCode) {
+  return new Elysia({prefix: '/api/auth'})
+    .use(middlewareBase)
+    .onBeforeHandle(({set, user, path}) => {
+      set.headers['cache-control'] = 'no-store';
 
-    if (mustNotLogIn.some((p) => relativePath === p || relativePath === p + '/') && user) {
-      return error(set, 401, 'You are already logged in');
-    }
-  })
-  .get('/', async ({set, user}) => {
-    if (!user) return error(set, 401, 'You are not logged in');
+      const relativePath = path.slice('/api/auth'.length);
+      const signUp = [
+        '/registration',
+        '/registration/email',
+        '/registration/profile',
+        '/registration/totp',
+        '/registration/recovery',
+        '/registration/complete',
+      ];
+      const otherPaths = ['/password', '/email', '/second-factor', '/recovery', '/email/verify'];
+      const mustNotLogIn = [...signUp, ...otherPaths];
 
-    const result = (await sql`SELECT sessions, username FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    if (!result[0].sessions.includes(user!.id)) return error(set, 401, 'Not authorized');
+      if (mustNotLogIn.some((p) => relativePath === p || relativePath === p + '/') && user) {
+        return error(set, 401, 'You are already logged in');
+      }
+    })
+    .get('/session', async ({set, user}) => {
+      if (!user) {
+        return error(set, 401, 'You are not logged in');
+      }
 
-    return result[0].username;
-  })
-  .get('/recovery-remaining', async ({user, set}) => {
-    if (!user) return error(set, 401, 'You are not logged in');
+      const result = (await sql`SELECT username, email FROM users WHERE email = ${user!.email}`) as QueryUser[];
 
-    const result = (await sql`SELECT recovery_hashes FROM users WHERE email = ${user.email}`) as QueryUser[];
+      return {username: result[0].username, email: result[0].email};
+    })
+    .get('/recovery-remaining', async ({user, set}) => {
+      if (!user) {
+        return error(set, 401, 'You are not logged in');
+      }
 
-    return result[0]?.recovery_hashes.length ?? 0;
-  })
-  .post('/login', async ({set, jwt, body}) => {
-    const {password, email, err} = check(body, ['password', 'email'], true);
-    if (err) return error(set, 400, err);
+      const result = (await sql`SELECT recovery_hashes FROM users WHERE email = ${user.email}`) as QueryUser[];
 
-    const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
-    if (!result.length) return error(set, 400, 'Invalid credentials. Please try again');
+      return {recoveryRemaining: result[0]?.recovery_hashes.length ?? 0};
+    })
+    .post('/password', async ({set, body}) => {
+      const {password, email, err} = check(body, ['password', 'email'], true);
 
-    const hashedPassword = result[0].password;
-    const isPasswordCorrect = await compareHash(password, hashedPassword);
-    if (!isPasswordCorrect) return error(set, 400, 'Invalid credentials. Please try again');
+      if (err) {
+        return error(set, 400, err);
+      }
 
-    const has2fa = result[0].totp;
-    if (has2fa) return issueLoginChallenge(result[0]) || error(set, 503, 'Login is busy. Please try again later');
+      if (!claimSensitiveAttempt(email)) {
+        return error(set, 429, 'Too many sign-in attempts. Wait five minutes');
+      }
 
-    const id = generateID();
-    await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
+      const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
 
-    const cookieValue = await jwt.sign({email, id});
+      if (!result.length) {
+        return error(set, 401, 'Invalid credentials');
+      }
 
-    return {cookie: cookieValue};
-  })
-  .post('/login-email', async ({set, body}) => {
-    const {email, err} = check(body, ['email']);
-    if (err) return error(set, 400, err);
+      const hashedPassword = result[0].password;
+      const isPasswordCorrect = await compareHash(password, hashedPassword);
 
-    const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
-    if (!result.length) return error(set, 400, 'Email address is not registered on our systems');
+      if (!isPasswordCorrect) {
+        return error(set, 401, 'Invalid credentials');
+      }
 
-    const response = await sendVerificationCode('recover', email, result[0].password);
-    if (response.status !== 200) return error(set, response.status, response.message);
+      const has2fa = result[0].totp;
 
-    return {email};
-  })
-  .post('/login-access', async ({set, body, jwt}) => {
-    const {email, access, err} = check(body, ['email', 'access'], true);
-    if (err) return error(set, 400, err);
+      if (has2fa) {
+        return issueLoginChallenge(result[0]) || error(set, 503, 'Login is busy. Please try again later');
+      }
 
-    const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
-    if (!result.length) return error(set, 400, 'Email address is not registered on our systems');
+      const token = await issueSession(result[0]);
 
-    if (!consumeEmailCode('recover', email, result[0].password, access)) {
-      return error(set, 400, 'Invalid or expired email code. Request a new code if needed');
-    }
+      return {token};
+    })
+    .post('/email', async ({set, body}) => {
+      const {email, err} = check(body, ['email']);
 
-    const has2fa = result[0].totp;
-    if (has2fa) return issueLoginChallenge(result[0]) || error(set, 503, 'Login is busy. Please try again later');
+      if (err) {
+        return error(set, 400, err);
+      }
 
-    const id = generateID();
-    await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id}) WHERE email = ${email}`;
+      const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
 
-    const cookievalue = await jwt.sign({email, id});
+      if (!result.length) {
+        return {email};
+      }
 
-    return {cookie: cookievalue};
-  })
-  .post('/login-otp', ({set, body, jwt}) => completeSecondFactor(body, set, jwt, false))
-  .post('/login-recovery', ({set, body, jwt}) => completeSecondFactor(body, set, jwt, true))
-  .post('/signup', async ({set, body}) => {
-    const {email, password, err} = check(body, ['email', 'password']);
-    if (err) return error(set, 400, err);
+      const response = await sendCode('recover', email, result[0].password);
 
-    const isTaken = await sql`SELECT email FROM users WHERE email = ${email}`;
-    if (isTaken.length) return error(set, 409, 'This email is already taken');
+      if (response.status !== 200) {
+        return error(set, response.status, response.message);
+      }
 
-    const signup = createSignupDraft(email, await createHash(password));
-    if (!signup) return error(set, 503, 'Signup is busy. Please try again later');
+      return {email};
+    })
+    .post('/email/verify', async ({set, body}) => {
+      const {email, access, err} = check(body, ['email', 'access'], true);
 
-    const response = await sendVerificationCode('confirm', email, signup);
-    if (response.status !== 200) {
-      getSignupDraft(signup, true);
+      if (err) {
+        return error(set, 400, err);
+      }
 
-      return error(set, response.status, response.message);
-    }
+      const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
 
-    return {signup, email, expiresIn: SIGNUP_DRAFT_TTL / 1000};
-  })
-  .post('/signup-email', ({set, body}) => {
-    const input = body as {signup?: string; access?: unknown};
-    const draft = getSignupDraft(input?.signup);
-    if (!draft || draft.verified || !consumeEmailCode('confirm', draft.email, input.signup!, input.access)) {
-      return error(set, 400, 'Invalid or expired email code. Start signup again if needed');
-    }
+      if (!result.length) {
+        return error(set, 401, 'Invalid or expired email code');
+      }
 
-    draft.verified = true;
+      if (!consumeEmailCode('recover', email, result[0].password, access)) {
+        return error(set, 400, 'Invalid or expired email code. Request a new code if needed');
+      }
 
-    return {email: draft.email};
-  })
-  .post('/signup-username', ({set, body}) => {
-    const {username, err} = check(body, ['username']);
-    const draft = getSignupDraft((body as {signup?: string})?.signup);
-    if (!draft?.verified) return error(set, 401, 'Signup expired. Start again');
-    if (err) return error(set, 400, err);
+      const has2fa = result[0].totp;
 
-    draft.username = username;
+      if (has2fa) {
+        return issueLoginChallenge(result[0]) || error(set, 503, 'Login is busy. Please try again later');
+      }
 
-    return {username};
-  })
-  .post('/signup-otp', ({set, body}) => {
-    const input = body as {signup?: string; enable?: boolean};
-    const draft = getSignupDraft(input?.signup);
-    if (!draft?.verified || !draft.username) return error(set, 401, 'Signup expired. Start again');
+      const token = await issueSession(result[0]);
 
-    draft.recoveryHashes = [];
-    draft.secret = input.enable ? getSecret() : '';
-    if (!draft.secret) return {secret: ''};
+      return {token};
+    })
+    .post('/second-factor', ({set, body}) => completeSecondFactor(body, set, false))
+    .post('/recovery', ({set, body}) => completeSecondFactor(body, set, true))
+    .post('/registration', async ({set, body}) => {
+      const {email, password, err} = check(body, ['email', 'password']);
 
-    return {secret: draft.secret, uri: createTOTP(draft.secret, draft.username).toString()};
-  })
-  .post('/signup-recovery', ({set, body}) => {
-    const input = body as {signup?: string; token?: string};
-    const draft = getSignupDraft(input?.signup);
-    if (!draft?.verified || !draft.secret) return error(set, 401, 'Signup expired. Start again');
-    if (draft.recoveryHashes.length) return error(set, 409, 'Recovery codes were already issued');
-    if (typeof input.token !== 'string' || createTOTP(draft.secret, 'temporarily').generate() !== input.token) {
-      return error(set, 400, 'Incorrect verification code. Please try again');
-    }
+      if (err) {
+        return error(set, 400, err);
+      }
 
-    const recovery = getRecovery();
-    draft.recoveryHashes = recovery.map(hashRecoveryCode);
+      const isTaken = await sql`SELECT email FROM users WHERE email = ${email}`;
 
-    return {recovery};
-  })
-  .post('/signup-create', async ({set, jwt, body}) => {
-    const input = body as {signup?: string; payment?: string};
-    const draft = getSignupDraft(input?.signup);
-    if (!draft?.verified || !draft.username || (draft.secret && !draft.recoveryHashes.length)) {
-      return error(set, 401, 'Complete signup verification before creating the account');
-    }
+      if (isTaken.length) {
+        return error(set, 409, 'This email is already taken');
+      }
 
-    const {err, payment} = check(body, ['?payment']);
-    if (err) return error(set, 400, err);
-    if (!getSignupDraft(input.signup, true)) return error(set, 401, 'Signup expired. Start again');
+      const signup = createSignupDraft(email, await createHash(password));
 
-    const {email, username, password, secret, recoveryHashes} = draft;
-    const id = generateID();
-    const inserted = await sql`INSERT INTO users (email, username, password, totp, recovery_hashes, sessions, api_key)
-      VALUES (${email}, ${username}, ${password}, ${secret || null}, ${recoveryHashes}, ${[id]}, ${getAPIKey()})
-      ON CONFLICT (email) DO NOTHING RETURNING email`;
-    if (!inserted.length) return error(set, 409, 'This email is already taken');
+      if (!signup) {
+        return error(set, 503, 'Signup is busy. Please try again later');
+      }
 
-    await createBillingCustomer(email, payment);
+      const response = await sendCode('confirm', email, signup);
 
-    return {cookie: await jwt.sign({email, id})};
-  });
+      if (response.status !== 200) {
+        getSignupDraft(signup, true);
 
-async function completeSecondFactor(
-  body: unknown,
-  set: Parameters<typeof error>[0],
-  jwt: {sign: (payload: {email: string; id: string}) => Promise<string>},
-  recovery: boolean,
-) {
+        return error(set, response.status, response.message);
+      }
+
+      return {signup, email, expiresIn: SIGNUP_DRAFT_TTL / 1000};
+    })
+    .post('/registration/email', ({set, body}) => {
+      const input = body as {signup?: string; access?: unknown};
+      const draft = getSignupDraft(input?.signup);
+
+      if (!draft || draft.verified || !consumeEmailCode('confirm', draft.email, input.signup!, input.access)) {
+        return error(set, 400, 'Invalid or expired email code. Start signup again if needed');
+      }
+
+      draft.verified = true;
+
+      return {email: draft.email};
+    })
+    .put('/registration/profile', ({set, body}) => {
+      const {username, err} = check(body, ['username']);
+      const draft = getSignupDraft((body as {signup?: string})?.signup);
+
+      if (!draft?.verified) {
+        return error(set, 401, 'Signup expired. Start again');
+      }
+
+      if (err) {
+        return error(set, 400, err);
+      }
+
+      draft.username = username;
+
+      return {username};
+    })
+    .post('/registration/totp', ({set, body}) => {
+      const input = body as {signup?: string; enable?: boolean};
+      const draft = getSignupDraft(input?.signup);
+
+      if (!draft?.verified || !draft.username) {
+        return error(set, 401, 'Signup expired. Start again');
+      }
+
+      if (typeof input.enable !== 'boolean') {
+        return error(set, 400, 'Choose whether to enable two-factor authentication');
+      }
+
+      draft.recoveryHashes = [];
+      draft.totpCounter = undefined;
+      draft.secret = input.enable ? getSecret() : '';
+
+      if (!draft.secret) {
+        return {secret: ''};
+      }
+
+      return {secret: draft.secret, uri: createTOTP(draft.secret, draft.username).toString()};
+    })
+    .post('/registration/recovery', ({set, body}) => {
+      const input = body as {signup?: string; token?: string};
+      const draft = getSignupDraft(input?.signup);
+
+      if (!draft?.verified || !draft.secret) {
+        return error(set, 401, 'Signup expired. Start again');
+      }
+
+      if (draft.recoveryHashes.length) {
+        return error(set, 409, 'Recovery codes were already issued');
+      }
+
+      const delta = typeof input.token === 'string' ? createTOTP(draft.secret, 'temporary').validate({token: input.token, window: 1}) : null;
+
+      if (delta === null) {
+        return error(set, 400, 'Incorrect verification code. Please try again');
+      }
+
+      const recovery = getRecovery();
+      draft.recoveryHashes = recovery.map(hashRecoveryCode);
+      draft.totpCounter = Math.floor(Date.now() / 30_000) + delta;
+
+      return {recovery};
+    })
+    .post('/registration/complete', async ({set, body}) => {
+      const input = body as {signup?: string; payment?: string};
+      const draft = getSignupDraft(input?.signup);
+
+      if (!draft?.verified || !draft.username || (draft.secret && !draft.recoveryHashes.length)) {
+        return error(set, 401, 'Complete signup verification before creating the account');
+      }
+
+      const {err, payment} = check(body, ['?payment']);
+
+      if (err) {
+        return error(set, 400, err);
+      }
+
+      if (!getSignupDraft(input.signup)) {
+        return error(set, 401, 'Signup expired. Start again');
+      }
+
+      const {email, username, password, secret, recoveryHashes} = draft;
+      const inserted = await sql`INSERT INTO users (email, username, password, totp, totp_counter, recovery_hashes, api_key)
+      VALUES (${email}, ${username}, ${password}, ${secret ? encryptSecret(secret) : null}, ${draft.totpCounter ?? null}, ${recoveryHashes}, ${null})
+      ON CONFLICT (email) DO NOTHING RETURNING email, password, totp`;
+
+      if (!inserted.length) {
+        return error(set, 409, 'This email is already taken');
+      }
+
+      getSignupDraft(input.signup, true);
+
+      let warning;
+
+      if (payment) {
+        try {
+          await createBillingCustomer(email, payment);
+        } catch {
+          warning = 'Account created. Add your payment method in settings when billing is available';
+        }
+      }
+
+      return {token: await issueSession(inserted[0] as QueryUser), warning};
+    });
+}
+
+async function completeSecondFactor(body: unknown, set: Parameters<typeof error>[0], recovery: boolean) {
   const input = body as {challenge?: unknown; token?: unknown; code?: unknown} | null;
   const challenge = input?.challenge;
   const entry = claimLoginChallenge(challenge);
-  if (!entry) return error(set, 401, 'Login expired or unavailable. Start again');
+
+  if (!entry) {
+    return error(set, 401, 'Login expired or unavailable. Start again');
+  }
 
   try {
     const value = recovery ? input?.code : input?.token;
+
     if (typeof value !== 'string' || !(recovery ? /^[a-fA-F0-9]{6}(-[a-fA-F0-9]{6}){3}$/ : /^\d{6}$/).test(value)) {
       return error(set, 400, 'Incorrect verification code. Please try again');
     }
 
-    const users = (await sql`SELECT * FROM users WHERE email = ${entry.email}`) as QueryUser[];
-    const account = users[0];
-    if (!account?.totp || account.password !== entry.password || account.totp !== entry.totp) {
-      finishLoginChallenge(challenge as string, entry, true);
+    return await sql.begin(async (transaction) => {
+      const users = (await transaction`SELECT * FROM users WHERE email = ${entry.email} FOR UPDATE`) as QueryUser[];
 
-      return error(set, 401, 'Login expired or unavailable. Start again');
-    }
+      const account = users[0];
 
-    const recoveryHash = recovery ? hashRecoveryCode(value) : '';
-    const valid = recovery ? account.recovery_hashes?.includes(recoveryHash) : createTOTP(account.totp, 'temporarily').generate() === value;
-    if (!valid) return error(set, 400, 'Incorrect verification code. Please try again');
-    if (!finishLoginChallenge(challenge as string, entry, true)) {
-      return error(set, 401, 'Login expired or unavailable. Start again');
-    }
+      if (!account?.totp || account.password !== entry.password || account.totp !== entry.totp) {
+        finishLoginChallenge(challenge as string, entry, true);
 
-    const id = generateID();
-    const updated = recovery
-      ? await sql`UPDATE users SET recovery_hashes = ARRAY_REMOVE(recovery_hashes, ${recoveryHash}), sessions = ARRAY_APPEND(sessions, ${id})
-          WHERE email = ${entry.email} AND password = ${entry.password} AND totp = ${entry.totp}
-          AND ${recoveryHash} = ANY(recovery_hashes) RETURNING email`
-      : await sql`UPDATE users SET sessions = ARRAY_APPEND(sessions, ${id})
-          WHERE email = ${entry.email} AND password = ${entry.password} AND totp = ${entry.totp} RETURNING email`;
-    if (!updated.length) return error(set, 401, 'Login expired or unavailable. Start again');
+        return error(set, 401, 'Login expired or unavailable. Start again');
+      }
 
-    return {cookie: await jwt.sign({email: entry.email, id})};
+      const recoveryHash = recovery ? hashRecoveryCode(value) : '';
+      const delta = recovery ? null : createTOTP(account.totp, 'temporary').validate({token: value, window: 1});
+      const counter = delta === null ? null : Math.floor(Date.now() / 30_000) + delta;
+      const valid = recovery
+        ? account.recovery_hashes.includes(recoveryHash)
+        : counter !== null && (account.totp_counter === null || counter > Number(account.totp_counter));
+
+      if (!valid) {
+        return error(set, 400, 'Incorrect or already used verification code. Please try again');
+      }
+
+      if (!finishLoginChallenge(challenge as string, entry, true)) {
+        return error(set, 401, 'Login expired or unavailable. Start again');
+      }
+
+      if (recovery) {
+        await transaction`UPDATE users SET recovery_hashes = ARRAY_REMOVE(recovery_hashes, ${recoveryHash}) WHERE id = ${account.id}`;
+      } else {
+        await transaction`UPDATE users SET totp_counter = ${counter} WHERE id = ${account.id}`;
+      }
+
+      return {token: await issueSession(account, transaction)};
+    });
   } finally {
     finishLoginChallenge(challenge as string, entry, false);
   }

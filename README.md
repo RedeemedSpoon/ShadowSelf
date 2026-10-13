@@ -1,118 +1,71 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./application/frontend/src/lib/images/brands/shadowself/logo-white-text.svg">
-    <img alt="ShadowSelf" src="./application/frontend/src/lib/images/brands/shadowself/logo-black-text.svg" width="60%">
+    <img alt="ShadowSelf" src="./application/frontend/src/lib/images/brands/shadowself/logo-dark-text.svg" width="60%">
   </picture>
 </p>
 
-## ShadowSelf Overview
+ShadowSelf keeps synthetic identity profiles, email, phone conversations, encrypted account credentials and cryptocurrency wallets in one workspace. Vault encryption and wallet signing run in the browser. Email, phone, billing and chain queries rely on configured external services.
 
-[ShadowSelf](https://shadowself.io) is a web application that allows any individual to safeguard their privacy and anonymity in the digital age. With it, you can generate synthetic identities, complete with functional phone numbers, crypto wallets, email addresses, proxies and even more personalizable attributes.
+The public API uses `/api`. The `/docs` page documents authentication, endpoints and error responses.
 
-By utilizing such fabricated identities, you can register for online services while concealing you true identity, offering a significant step toward protecting you privacy & right to remain anonymous online.
+## Local development
 
-## Quick Headup
+Use Bun 1.4.3 and PostgreSQL. Install dependencies from the repository root and each application directory:
 
-We encourage you to explore the codebase and contribute to areas you're comfortable with, especially if you have the skills to improve upon existing features or address bugs.
+```sh
+bun install --frozen-lockfile
+cd application/backend
+bun install --frozen-lockfile
+cd ../frontend
+bun install --frozen-lockfile
+```
 
-However, please be aware that certain core components and administrative modules are primarily intended for setup and ongoing management only by the project maintainer. These sections are integral, complex and are generally not designed for modification by all contributors.
+Create local `.env` files in `application/backend`, `application/frontend` and `application/database`. The backend configuration in `application/backend/src/core/config.ts` lists required application secrets and optional provider settings. Never commit credentials. Missing providers report unavailable service states.
 
-If you're looking for areas to contribute, focusing on other parts of the application would be most beneficial.
+Initialize a fresh development database with `application/database/schemas.sql`, then apply `application/database/roles.sql` with `APP_DB_PASSWORD`, `MAIL_DB_PASSWORD` and `POSTGRES_DB` in the environment. The schema replaces the database tables. Use a disposable database; do not run initialization against a database you want to preserve.
 
-## Running Locally
+Run `bun dev` in `application/backend` for port 3000 and in `application/frontend` for port 5000. The frontend routes browser API requests to the backend on the same origin. `.scripts/tmux-session.sh` starts both in separate panes.
 
-### Requirements
+## Verification
 
-- `Bun` : Serves as the JavaScript runtime, dependency manager, and bundler for the web servers.
+From the repository root:
 
-- `Nginx` : Employed as a reverse proxy for efficient request routing.
+```sh
+bun format
+bun lint
+bun check
+bun run build
+```
 
-- `PostgreSQL` : Utilized as the primary database, configured to support backend operations.
+`bun run verify` runs lint, type checks and builds. Inspect affected routes in the T3 integrated browser at desktop and mobile sizes.
 
-- `OpenVPN` : Functions as the proxy node for secure outbound connections.
+CI uses frozen lockfiles and rejects moderate-or-higher dependency advisories with `bun run audit`. Review low-severity findings separately. Commit dependency manifests and their `bun.lock` together. Generated reports, downloaded workers, build output and credentials stay out of source control.
 
-- `Squid` : Acts as the HTTPS proxy server, providing access to the OpenVPN network.
+## Browser extension
 
-### Application
+The companion connects to an explicitly selected signed-in ShadowSelf tab in the current browser window. It lists identities and opens their workspace. It does not read authentication cookies or store account data in persistent extension storage.
 
-To run the application locally with Docker, execute `docker-compose up --build`. Note that this requires all necessary configuration files and environment variables to be correctly set up beforehand.
+Network routing is unavailable. The self-hosted Squid/OpenVPN service and its browser controls have been retired. No replacement network provider is included.
 
-Alternatively, if you prefer a non-Docker setup, instructions are provided below.
+Build production packages with:
 
-#### Frontend
+```sh
+bun run package:extension
+```
 
-- `bun install` To install all the dependencies
+For local development, run `bash .scripts/pack-extension.sh /tmp/shadowself-extensions --development`. Extract the appropriate archive and load its directory as an unpacked extension. Development packages only request access to `http://localhost:5000`; production packages only request access to `https://shadowself.io`.
 
-- `bun dev` To start the development server
+## Deployment
 
-- `bun run build` To build the project
+`application/compose.yaml` defines the website, backend, database and TLS services. Configure provider callback URLs under `/api/webhooks/stripe` and `/api/webhooks/twilio`. HTTPS and onion listeners route the same `/api` contract, including events.
 
-- `bun preview` To preview the project locally
+Set production `APP_ORIGIN` to the public HTTPS origin. Compose clears frontend `ORIGIN` and reads the host and protocol headers supplied by Nginx so HTTPS and onion requests retain their own origins. Use `POSTGRES_HOST=postgres` for Compose and clear development `TRUSTED_PROXY_IPS`; Compose resolves the trusted frontend and Nginx service hosts. Enable cryptocurrency billing only after configuring and validating the Monero wallet.
 
-- `bun start` To start a production-ready server
+The operations scripts use explicit targets. Set `SHADOWSELF_SSH_TARGET` and `SHADOWSELF_DB_CONTAINER` for `.scripts/backup-database.sh` and `.scripts/query-database.sh`. `.scripts/maintenance.sh` updates host packages and reasserts Compose services; schedule it through your host scheduler. `.scripts/check-crowdsec.sh` checks the host services, collections, acquisition metrics and decisions.
 
-#### Backend
+## Contributing
 
-- `bun install` To install all the dependencies
+Follow [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md). The application has no production users or data to migrate. Change the fresh schema and update every consumer when a contract changes. Do not retain compatibility routes or old-format fallbacks.
 
-- From the repository root, export `POSTGRES_DB`, `APP_DB_PASSWORD`, and `MAIL_DB_PASSWORD` from your database configuration. Initialize the empty database with `psql -v ON_ERROR_STOP=1 -U postgres -d "$POSTGRES_DB" -f application/database/schemas.sql -f application/database/roles.sql`. The schema script drops and recreates the application tables; the roles script creates the application and mail roles.
-
-- `bun dev` To start the development backend server
-
-- `bun run build` To build and compile the project
-
-- `./server` To start a production-ready server
-
-### Proxy Node
-
-The proxy services can be orchestrated using `docker-compose up --build`. however, this method requires that all necessary environment variables and specific configurations are correctly in place for proper functionality.
-
-For direct development or setup of individual components, please refer to the manual instructions below.
-
-- `bun install` To install all necessary dependencies.
-
-- `bun dev` To start the development server.
-
-- `bun run build` To build the project for production.
-
-- `./proxy` To start the production-ready server.
-
-- `squid -f squid.conf` To start the Squid proxy server using the squid.conf configuration file.
-
-- `openvpn --config server.conf` To start the OpenVPN server and associated PKI infrastructure.
-
-### Browser Extension
-
-To set up the browser extension, navigate to its directory. Based on your browser, rename the appropriate manifest file to manifest.json. Then, go to your browser's extension settings, enable developer mode, and use the "load unpacked" option to select the extension's directory.
-
-### Linting/Formatting
-
-- `bun install` To install both eslint and prettier (project root)
-
-- `bun lint` To run the linter on the project
-
-- `bun format` To run the code formatter
-
-### Quick Tmux Session
-
-To quickly spawn a `tmux` session with all servers running and other relevant processes, follow these steps:
-
-- `cd .scripts` To navigate to the scripts directory.
-- `chmod +x tmux-session.sh` To make the `tmux-session` script executable.
-- `bash tmux-session.sh` To run the script and start the `tmux-session` session.
-
-## Contribution
-
-All contributors and agents must fully enforce every rule in [AGENTS.md](AGENTS.md). This app has no users or production data. Use the fresh schema directly. Do not add legacy compatibility code, old-format fallbacks, backfills, or migration scripts for previous development schemas.
-
-If you'd like to contribute, please [open an issue](https://github.com/RedeemedSpoon/ShadowSelf/issues) or [open a pull request](https://github.com/RedeemedSpoon/ShadowSelf/pulls).
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution instructions.
-
-Here is the project system design if that might help you understand the architecture of the project better:
-
-<img src="./application/frontend/src/lib/images/system-design.webp" width="100%">
-
-## License
-
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). This license allows you to use, modify, and distribute this project under its terms. To view a copy of this license, visit [https://www.gnu.org/licenses/agpl-3.0.html](https://www.gnu.org/licenses/agpl-3.0.html).
+Licensed under [AGPL-3.0](COPYING).

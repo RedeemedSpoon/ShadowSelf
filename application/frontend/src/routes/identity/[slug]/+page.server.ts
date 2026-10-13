@@ -1,32 +1,24 @@
 import type {Actions, PageServerLoad} from './$types';
-import {fetchBackend} from '$utils/webfetch';
+import {backend} from '$lib/backend.server';
 import type {FullIdentity} from '$type';
 import {redirect} from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({params, cookies}) => {
-  const response = (await fetchBackend('/api/identity/' + params.slug, 'GET', undefined, cookies.get('token'))) as FullIdentity;
+  const result = await backend<FullIdentity>(`/identities/${params.slug}`, 'GET', undefined, cookies.get('token'));
 
-  const slug = params.slug;
-  const message = (response as any)?.message as string | undefined;
-
-  if (message?.startsWith('Identity is frozen')) {
-    const subsPlan = message.includes('monthly') ? 'monthly' : 'annually';
-    const cryptoUse = message.includes('crypto') ? true : false;
-    return {slug, identity: null, isFrozen: true, subsPlan, cryptoUse};
-  }
-
-  if (!response.id) return {slug, isFrozen: false, identity: null};
-  else return {slug, identity: response, isFrozen: false};
+  return {slug: params.slug, identity: result.ok ? result.data : null, loadError: result.ok ? '' : result.error, status: result.ok ? 200 : result.status};
 };
 
 export const actions: Actions = {
-  default: async ({request, cookies}) => {
-    const data = await request.formData();
-    if (!data.has('delete')) return;
+  delete: async ({request, cookies, params}) => {
+    const currentPassword = (await request.formData()).get('currentPassword');
 
-    const response = await fetchBackend('/billing/cancel', 'DELETE', {id: data.get('id'), currentPassword: data.get('currentPassword')}, cookies.get('token'));
-    if (!response.success) return response;
+    const result = await backend(`/identities/${params.slug}`, 'DELETE', {currentPassword}, cookies.get('token'));
 
-    redirect(302, '/dashboard');
+    if (!result.ok) {
+      return {message: result.error};
+    }
+
+    redirect(303, '/dashboard');
   },
 };

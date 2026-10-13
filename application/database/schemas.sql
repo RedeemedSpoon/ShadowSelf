@@ -12,20 +12,43 @@ DROP TABLE IF EXISTS accounts;
 DROP TABLE IF EXISTS wallet_cache;
 DROP TABLE IF EXISTS identities;
 DROP TABLE IF EXISTS crypto_invoices;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS wallet_swaps;
 DROP TABLE IF EXISTS users;
 
 -- Create Tables
 CREATE TABLE users (
   "id" SERIAL PRIMARY KEY,
   "username" varchar(25) NOT NULL,
-  "password" varchar(60) NOT NULL,
+  "password" text NOT NULL,
   "email" varchar(48) UNIQUE NOT NULL,
-  "totp" varchar(32),
+  "totp" text,
+  "totp_counter" bigint,
   "recovery_hashes" varchar(64)[] NOT NULL DEFAULT '{}',
   "stripe_customer" varchar(18),
-  "sessions" varchar(64)[] NOT NULL DEFAULT '{}',
   "api_access" boolean DEFAULT false,
-  "api_key" varchar(32)
+  "api_key" varchar(64) UNIQUE
+);
+
+CREATE TABLE sessions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash varchar(64) NOT NULL UNIQUE,
+  created_at timestamptz NOT NULL DEFAULT NOW(),
+  expires_at timestamptz NOT NULL
+);
+CREATE INDEX sessions_owner_idx ON sessions(owner);
+
+CREATE TABLE wallet_swaps (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  request_id uuid NOT NULL,
+  identity_id varchar(12) NOT NULL,
+  request jsonb NOT NULL,
+  response jsonb,
+  status text NOT NULL DEFAULT 'pending',
+  created_at timestamptz NOT NULL DEFAULT NOW(),
+  UNIQUE(owner, request_id)
 );
 
 CREATE TABLE crypto_invoices (
@@ -54,8 +77,6 @@ CREATE TABLE identities (
   "subscription_id" varchar(28),
   "crypto_invoice" uuid REFERENCES crypto_invoices(id),
   "plan" varchar(8),
-  "proxy_server" cidr,
-  "proxy_password" varchar(32),
   "location" text,
   "picture" text,
   "name" varchar(30),
@@ -64,13 +85,13 @@ CREATE TABLE identities (
   "age" integer,
   "ethnicity" varchar(12),
   "email" varchar(48) UNIQUE,
-  "email_password" varchar(33),
+  "email_password" text,
+  "email_password_hash" varchar(44),
   "phone" varchar(15) UNIQUE,
   "phone_sid" varchar(34),
   "wallet_blob" varchar(5503),
   "vault_revision" integer NOT NULL DEFAULT 1,
   "wallet_keys" jsonb, 
-  "wallet_funds" numeric(15, 2) DEFAULT 0.00,
   "status" varchar(8) DEFAULT 'inactive'
 );
 
@@ -92,9 +113,9 @@ CREATE TABLE wallet_cache (
 
 CREATE TABLE creation_jobs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  identity_id varchar(12) NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
-  status text NOT NULL DEFAULT 'authorized',
-  payload jsonb NOT NULL DEFAULT '[]',
+  identity_id varchar(12) NOT NULL UNIQUE REFERENCES identities(id) ON DELETE CASCADE,
+  status text NOT NULL DEFAULT 'editing',
+  payload jsonb NOT NULL DEFAULT '{}',
   created_at timestamptz NOT NULL DEFAULT NOW()
 );
 
@@ -114,7 +135,7 @@ CREATE TABLE service_mailboxes (
 );
 
 CREATE VIEW mailboxes AS
-  SELECT email, encode(sha256(convert_to(email_password, 'UTF8')), 'base64') AS password
+  SELECT email, email_password_hash AS password
   FROM identities WHERE status = 'active' AND email IS NOT NULL
   UNION ALL SELECT email, password FROM service_mailboxes;
 

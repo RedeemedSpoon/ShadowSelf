@@ -1,323 +1,370 @@
 <script lang="ts">
-  import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
-  import Modal from '$component/containers/Modal.svelte';
-
-  import MultiUsersIcon from '$icon/user/MultiUsers.svelte';
-  import ChevronIcon from '$icon/navigation/Chevron.svelte';
-  import EmailIcon from '$icon/communication/Email.svelte';
-  import PhoneIcon from '$icon/communication/Phone.svelte';
-  import WalletIcon from '$icon/finance/Wallet.svelte';
-  import InfoIcon from '$icon/status/Info.svelte';
-  import KeyIcon from '$icon/security/Key.svelte';
-
-  import IdentityInformation from './information-tab/Information.svelte';
-  import IdentityAccount from './account-tab/Account.svelte';
-  import IdentityCrypto from './crypto-tab/Crypto.svelte';
-  import IdentityPhone from './phone-tab/Phone.svelte';
-  import IdentityEmail from './email-tab/Email.svelte';
-
-  import {pendingID, handleResponse, identity, activeModal, masterPassword} from '$store';
-  import {DEFAULT_MASTER_PASSWORD, SECTIONS_ORDER, SLEEP_DURATION} from '$constant';
-  import type {AccountAPI, CryptoAPI, Sections, WebSocketMessage} from '$type';
-  import {decrypt, deriveMasterKey, encrypt} from '$utils/cryptography';
-  import {browser} from '$app/environment';
-  import {fetchAPI} from '$utils/webfetch';
-  import {idbOperation} from '$utils/monero';
-  import type {PageProps} from './$types';
-  import {slide} from 'svelte/transition';
-  import {notify} from '$utils/shared';
+  import {enhance} from '$app/forms';
+  import {goto, invalidateAll} from '$app/navigation';
   import {page} from '$app/state';
-  import {onMount} from 'svelte';
+  import {get} from 'svelte/store';
+  import {identity, vaultKey, moneroData} from '$store';
+  import type {FullIdentity, AccountAPI} from '$type';
+  import {request} from '$utils/webfetch';
+  import {decrypt, deriveMasterKey, encrypt} from '$utils/cryptography';
+  import {idbOperation} from '$utils/monero';
+  import Button from '$component/ui/Button.svelte';
+  import Status from '$component/ui/Status.svelte';
+  import Dialog from '$component/ui/Dialog.svelte';
+  import Icon from '$component/ui/Icon.svelte';
+  import Profile from '$component/console/Profile.svelte';
+  import Vault from '$component/console/Vault.svelte';
+  import Mail from '$component/console/Mail.svelte';
+  import Phone from '$component/console/Phone.svelte';
+  import Wallet from '$component/console/Wallet.svelte';
+  import type {PageProps} from './$types';
 
-  let {data}: PageProps = $props();
+  let {data, form}: PageProps = $props();
+  let account = $derived<FullIdentity | null>(data.identity);
+  let section = $state('info');
+  let unlockOpen = $state(false);
+  let rotateOpen = $state(false);
+  let deleteOpen = $state(false);
+  let password = $state('');
+  let confirmPassword = $state('');
+  let pending = $state(false);
+  let message = $state('');
+  let liveStatus = $state('Connecting');
+  let keyEpoch = 0;
+  const tabs = [
+    {id: 'info', label: 'Information', icon: 'user'},
+    {id: 'account', label: 'Account vault', icon: 'lock'},
+    {id: 'email', label: 'Email', icon: 'mail'},
+    {id: 'phone', label: 'Phone', icon: 'phone'},
+    {id: 'crypto', label: 'Crypto wallet', icon: 'wallet'},
+  ];
 
-  let currentSection = $state((SECTIONS_ORDER.includes(page.url.hash.slice(1)) ? page.url.hash.slice(1) : 'info') as Sections);
-  let buttonWrapper = $state() as HTMLDivElement;
-  let ws = $state() as WebSocket;
-
-  $identity = (() => data.identity)()!;
-
-  const className = {
-    label: 'bg-neutral-900/50! border-neutral-700!',
-    icon: 'fill-neutral-700 stroke-neutral-700',
-    input: 'placeholder-neutral-700 bg-neutral-900/50! border-neutral-700!',
-    wrapper: 'w-2/3',
-  };
-
-  const sectionData = {
-    info: {name: 'Information', icon: InfoIcon, component: IdentityInformation},
-    email: {name: 'Email', icon: EmailIcon, component: IdentityEmail},
-    phone: {name: 'Phone', icon: PhoneIcon, component: IdentityPhone},
-    crypto: {name: 'Crypto', icon: WalletIcon, component: IdentityCrypto},
-    account: {name: 'Accounts', icon: MultiUsersIcon, component: IdentityAccount},
-  };
-
-  function handleClick(section: Sections) {
-    if (section) window.location.hash = section;
-    currentSection = section;
-
-    buttonWrapper.childNodes.forEach((node: any) => {
-      node.disabled = true;
-      setTimeout(() => (node.disabled = false), 500);
-    });
+  function update(patch: Partial<FullIdentity>) {
+    if (account) {
+      account = {...account, ...patch};
+      identity.set(account);
+    }
   }
 
-  async function setMasterPassword() {
-    $pendingID = 1;
-    await new Promise((resolve) => setTimeout(resolve, SLEEP_DURATION));
+  function closePassword() {
+    password = '';
+    confirmPassword = '';
+    message = '';
+  }
 
-    const inputElement = document.querySelector('input#set-master') as HTMLInputElement;
-    const password = inputElement.value || DEFAULT_MASTER_PASSWORD;
+  function lock() {
+    keyEpoch++;
+    vaultKey.set(null);
+    moneroData.set({address: '', viewKey: '', spendKey: ''});
+    unlockOpen = false;
+    rotateOpen = false;
+    closePassword();
+  }
 
-    const newKey = await deriveMasterKey(password, $identity.id);
-    if (!(await decrypt($identity.walletBlob, newKey))) {
-      $pendingID = 0;
-      return notify('Incorrect master password', 'alert');
+  async function unlock(event: SubmitEvent) {
+    event.preventDefault();
+
+    if (!account) {
+      return;
     }
 
-    const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
-    const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
+    pending = true;
+    message = '';
 
-    $masterPassword = base64Key;
-    $activeModal = 0;
-    $pendingID = 0;
+    const epoch = keyEpoch;
+    const identityID = account.id;
+
+    try {
+      const key = await deriveMasterKey(password, account.id);
+
+      if (!(await decrypt(account.walletBlob, key))) {
+        throw new Error('This master password could not unlock the identity.');
+      }
+
+      if (epoch !== keyEpoch || account.id !== identityID) {
+        return;
+      }
+
+      vaultKey.set(key);
+      unlockOpen = false;
+      closePassword();
+    } catch (error) {
+      message = error instanceof Error ? error.message : 'Could not unlock this identity.';
+    } finally {
+      pending = false;
+    }
   }
 
-  async function changeMasterPassword() {
-    $pendingID = 1;
+  async function rotate(event: SubmitEvent) {
+    event.preventDefault();
+
+    if (!account) {
+      return;
+    }
+
+    pending = true;
+    message = '';
+
+    const originalKey = get(vaultKey);
+    const epoch = keyEpoch;
+    const originalAccount = account;
+
     try {
-      await navigator.locks.request(`shadowself-xmr-${$identity.id}`, {ifAvailable: true}, async (lock) => {
-        if (!lock) throw new Error('Wait for the wallet operation to finish before changing its password');
-        const input = document.querySelector('input#change-master') as HTMLInputElement;
-        const newKey = await deriveMasterKey(input.value || DEFAULT_MASTER_PASSWORD, $identity.id);
-        const keyBuffer = await crypto.subtle.exportKey('raw', newKey);
-        const base64Key = btoa(String.fromCharCode(...new Uint8Array(keyBuffer)));
-        const cacheID = `${$identity.id}:${$identity.walletBlob}`;
-        const accounts = await fetchAPI<AccountAPI>('account', 'GET');
-        if (!accounts.ok) throw new Error(accounts.error);
-        if (!accounts.data.accounts) throw new Error('Could not load the complete vault');
+      if (!originalKey) {
+        throw new Error('Unlock the identity before changing its password.');
+      }
 
-        const updatedAccounts = await Promise.all(
-          accounts.data.accounts.map(async (account) => {
-            const password = account.password ? await decrypt(account.password) : null;
-            const totp = account.totp ? await decrypt(account.totp) : null;
-            if ((account.password && !password) || (account.totp && !totp)) throw new Error('Could not decrypt the complete vault');
+      if (password.length < 12 || password !== confirmPassword) {
+        throw new Error('Use at least 12 characters and matching passwords.');
+      }
 
-            return {id: account.id, password: password ? await encrypt(password, newKey) : null, totp: totp ? await encrypt(totp, newKey) : null};
-          }),
+      await navigator.locks.request(`shadowself-xmr-${originalAccount.id}`, {ifAvailable: true}, async (lock) => {
+        if (!lock || !originalAccount) {
+          throw new Error('Wait for the wallet operation to finish, then retry.');
+        }
+
+        const result = await request<AccountAPI & {vaultRevision: number}>(`/identities/${originalAccount.id}/vault`);
+
+        if (!result.ok) {
+          throw new Error(result.error);
+        }
+
+        const key = await deriveMasterKey(password, originalAccount.id);
+
+        const entries = await Promise.all(
+          result.data.accounts.map(async (entry) => ({
+            ...entry,
+            password: entry.password ? await encrypt(await decrypted(entry.password, originalKey), key) : '',
+            totp: entry.totp ? await encrypt(await decrypted(entry.totp, originalKey), key) : null,
+          })),
         );
-        const mnemonic = await decrypt($identity.walletBlob);
-        const walletKeys = await Promise.all(['viewKey', 'spendKey', 'address'].map((name) => decrypt($identity.walletKeys.xmr[name as 'viewKey'])));
-        if (!mnemonic || walletKeys.some((value) => !value)) throw new Error('Could not decrypt the complete wallet');
 
-        const blob = await encrypt(mnemonic, newKey);
+        const blob = await encrypt(await decrypted(originalAccount.walletBlob, originalKey), key);
+
         const keys = {
-          viewKey: await encrypt(walletKeys[0], newKey),
-          spendKey: await encrypt(walletKeys[1], newKey),
-          address: await encrypt(walletKeys[2], newKey),
+          address: await encrypt(await decrypted(originalAccount.walletKeys.xmr.address, originalKey), key),
+          viewKey: await encrypt(await decrypted(originalAccount.walletKeys.xmr.viewKey, originalKey), key),
+          spendKey: await encrypt(await decrypted(originalAccount.walletKeys.xmr.spendKey, originalKey), key),
         };
-        const response = await fetchAPI<CryptoAPI>('account/update-encryption', 'PUT', {accounts: updatedAccounts, blob, keys});
-        if (!response.ok) throw new Error(response.error);
 
-        $identity = {...$identity, walletBlob: blob, walletKeys: {...$identity.walletKeys, xmr: keys}};
-        $masterPassword = base64Key;
-        $activeModal = 0;
-        await idbOperation('delete', cacheID).catch(() => notify('Password changed. The old encrypted wallet cache could not be removed', 'alert'));
+        if (epoch !== keyEpoch || account?.id !== originalAccount.id || get(vaultKey) !== originalKey) {
+          throw new Error('The identity was locked. Unlock it before changing the password.');
+        }
+
+        const rotated = await request<{vaultRevision: number}>(`/identities/${originalAccount.id}/vault/encryption`, 'PUT', {
+          accounts: entries,
+          blob,
+          keys,
+          vaultRevision: result.data.vaultRevision,
+        });
+
+        if (!rotated.ok) {
+          throw new Error(rotated.error);
+        }
+
+        const oldCache = `${originalAccount.id}:${originalAccount.walletBlob}`;
+
+        if (account?.id !== originalAccount.id) {
+          return;
+        }
+
+        update({walletBlob: blob, walletKeys: {...originalAccount.walletKeys, xmr: keys}, vaultRevision: rotated.data.vaultRevision});
+
+        if (epoch === keyEpoch) {
+          vaultKey.set(key);
+        }
+
+        rotateOpen = false;
+        closePassword();
+        await idbOperation('delete', oldCache).catch(() => {});
       });
     } catch (error) {
-      notify(error instanceof Error ? error.message : 'Could not change the master password', 'alert');
+      message = error instanceof Error ? error.message : 'Could not change the master password.';
     } finally {
-      $pendingID = 0;
+      pending = false;
     }
   }
 
-  onMount(() => {
-    $masterPassword = '';
-    localStorage.removeItem('key-' + data.slug);
-    if ($identity?.id) {
-      let pingInterval: unknown;
-      ws = new WebSocket(`${page.url.protocol === 'https:' ? 'wss:' : 'ws:'}//${page.url.host}/ws-api/${data.identity?.id}`);
+  async function decrypted(value: string, key: CryptoKey) {
+    const plain = await decrypt(value, key);
 
-      ws.onopen = () => {
-        pingInterval = setInterval(() => ws?.send('ping'), 5000);
-      };
-
-      ws.onerror = () => {
-        notify('Something went horribly wrong. Try reloading the page.', 'alert');
-      };
-
-      ws.onclose = (ws) => {
-        clearInterval(pingInterval as number);
-        if (ws.code === 1014) notify(ws.reason, 'alert');
-      };
-
-      ws.onmessage = (event) => {
-        if (Number(event.data) == event.data) return;
-        if (event.data === 'pong') return;
-
-        const response = JSON.parse(event.data) as WebSocketMessage;
-        $handleResponse(response);
-      };
-
-      return () => {
-        clearInterval(pingInterval as number);
-        ws.close();
-        $masterPassword = '';
-      };
+    if (!plain) {
+      throw new Error('Could not decrypt all identity secrets. Nothing was changed.');
     }
+
+    return plain;
+  }
+
+  function select(id: string) {
+    void goto(`#${id}`, {replaceState: true, noScroll: true, keepFocus: true});
+  }
+
+  $effect(() => {
+    const hash = page.url.hash.slice(1);
+    section = tabs.some((tab) => tab.id === hash) ? hash : 'info';
+  });
+
+  $effect(() => {
+    const current = data.identity;
+    lock();
+
+    if (!current) {
+      return;
+    }
+
+    identity.set(current);
+
+    let active = true;
+    liveStatus = 'Connecting';
+
+    const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/identities/${current.id}/events`);
+    socket.onopen = () => {
+      if (active) {
+        liveStatus = 'Live updates connected';
+      }
+    };
+    socket.onclose = () => {
+      if (active) {
+        liveStatus = 'Live updates disconnected. Refresh to load new messages.';
+      }
+    };
+    socket.onerror = () => {
+      if (active) {
+        liveStatus = 'Live updates unavailable. Refresh to load new messages.';
+      }
+    };
+    socket.onmessage = (event) => {
+      if (!active || event.data === 'pong') {
+        return;
+      }
+
+      try {
+        const payload = JSON.parse(event.data);
+        window.dispatchEvent(new CustomEvent('identity-update', {detail: {...payload, identityID: current.id}}));
+      } catch {
+        liveStatus = 'Invalid live update received. Refresh to reload.';
+      }
+    };
+
+    const ping = setInterval(() => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send('ping');
+      }
+    }, 20000);
+
+    return () => {
+      active = false;
+      clearInterval(ping);
+      socket.close();
+      lock();
+    };
   });
 </script>
 
-<svelte:head>
-  <title>ShadowSelf - {data.identity?.name}'s Identity</title>
-  <meta name="description" content="{data.identity?.name}'s ShadowSelf Identity, use it to protect yourself and your data." />
-</svelte:head>
-
-<div id="identity">
-  {#if data.isFrozen}
-    <div class="flex min-h-[50vh] flex-col items-center justify-center gap-8">
-      <h1>Identity Frozen</h1>
-
-      {#if data.cryptoUse}
-        <p class="text-center">
-          This identity has been temporarily frozen because your subscription has expired.
-          <br class="max-lg:hidden" /> Please renew your subscription to restore access.
-          <br class="max-lg:hidden" /> If the subscription is not renewed within 7 days, this identity will be
-          <b>permanently deleted</b>.
-        </p>
-      {:else}
-        <p class="text-center">
-          This identity has been temporarily frozen due to a failed subscription payment.
-          <br class="max-lg:hidden" /> Please update your payment method in the billing portal to restore access.
-          <br class="max-lg:hidden" /> If the payment issue is not resolved within 7 days, this identity will be
-          <b>permanently deleted</b>.
-        </p>
-      {/if}
-
-      <div class="mt-8 flex justify-evenly gap-4">
-        <a href="/dashboard">
-          <button class="flex items-center gap-1 {data.cryptoUse && 'alt'}">← Back to Dashboard</button>
-        </a>
-        {#if data.cryptoUse}
-          <a href="/purchase?id={data.slug}&plan={data.subsPlan}">
-            <button>Renew Subscription</button>
-          </a>
-        {/if}
-      </div>
+<svelte:head><title>{account?.name || 'Identity'} | ShadowSelf</title></svelte:head>
+{#if !account}<div class="empty-state">
+    <Icon name="warning" size={36} />
+    <h1>{data.status === 404 ? 'Identity not found' : 'Identity could not be loaded'}</h1>
+    <p>{data.loadError}</p>
+    <div class="button-row">
+      <Button variant="secondary" icon="refresh" onclick={() => invalidateAll()}>Retry</Button><a class="control-button quiet" href="/dashboard"
+        >Back to identities</a>
     </div>
-  {:else if data.identity && browser}
-    <div id="button-wrapper" bind:this={buttonWrapper} class="flex h-16">
-      {#each SECTIONS_ORDER as section (section)}
-        {@const {icon: Icon, name} = sectionData[section as 'info']}
-        <button aria-label={name} class:main={section === currentSection} onclick={() => handleClick(section as Sections)}>
-          <Icon className="h-6 w-6" />
-          <span class="max-sm:hidden">{name}</span>
-        </button>
-      {/each}
+  </div>
+{:else}
+  <div class="page-heading">
+    <div>
+      <div class="eyebrow">IDENTITY / {account.id.slice(0, 8)}</div>
+      <h1>{account.name || 'Identity setup'}</h1>
+      <p>{account.location}<span class="badge {account.status} identity-status">{account.status}</span></p>
     </div>
-
-    {#key currentSection}
-      {@const SvelteComponent = sectionData[currentSection].component}
-      <div class="mt-8 mb-12 w-full md:px-8" in:slide={{delay: 400, duration: 350}} out:slide={{duration: 350}}>
-        <SvelteComponent />
-      </div>
-    {/key}
-
-    <hr class="mb-8 h-0.5 w-full" />
-    <div class="flex w-full justify-between gap-4 max-lg:flex-col-reverse sm:px-8">
-      <a href="/dashboard">
-        <button class="alt border-none">← Back</button>
-      </a>
-      <form class="identity-actions flex flex-nowrap items-center justify-center gap-2" method="POST">
-        {#key $masterPassword}
-          {#if $masterPassword}
-            <button type="button" onclick={() => ($activeModal = 2)} class="alt w-fit p-0"
-              ><span class="max-sm:hidden">Change Local Master Password</span><span class="sm:hidden">Change master password</span></button>
-          {:else}
-            <button type="button" onclick={() => ($activeModal = 1)} class="alt w-fit p-0"
-              ><span class="max-sm:hidden">Set Local Master Password</span><span class="sm:hidden">Set master password</span></button>
-          {/if}
-        {/key}
-        <div class="font-bold text-neutral-500 select-none" aria-hidden="true">|</div>
-        <button type="button" onclick={() => ($activeModal = 3)} class="alt w-fit p-0">Delete Identity</button>
-        <input type="hidden" name="id" value={data.identity.id} />
-
-        <Modal id={3}>
-          <div class="flex flex-col gap-4 p-6">
-            <h3 class="text-3xl font-semibold text-neutral-300">Delete Identity</h3>
-            <p>This permanently deletes the identity and its resources. Enter your account password to confirm.</p>
-            <input type="password" name="currentPassword" placeholder="Current account password" autocomplete="current-password" required />
-            <div class="flex justify-end gap-4">
-              <button class="alt" type="button" onclick={() => ($activeModal = 0)}>Cancel</button>
-              <button name="delete" type="submit">Delete Identity</button>
-            </div>
-          </div>
-        </Modal>
-
-        <Modal id={1}>
-          <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
-            <h3 class="w-full text-3xl! font-semibold text-neutral-300 md:text-5xl!">Restore Master Password</h3>
-            <p class="md:w-[40vw]">
-              Enter the Master Password previously set for this identity to decrypt your account vault and crypto wallet on this device.
-              <br /><b>Without this specific password, your encrypted data cannot be retrieved.</b>
-            </p>
-            <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="set-master" />
-            <LoadingButton type="button" className="w-2/3" onclick={setMasterPassword}>Change Password</LoadingButton>
-          </div>
-        </Modal>
-
-        <Modal id={2}>
-          <div class="flex flex-col items-center gap-8 p-4 sm:p-8">
-            <h3 class="w-full text-3xl! font-semibold text-neutral-300 md:text-5xl!">Change Master Password</h3>
-            <p class="md:w-[40vw]">
-              Immediately re-encrypt your accounts vault and crypto wallet with a new password. You will need it to access your data on a new device or browser.<br /><b
-                >Irreversible: Forgotten passwords mean total data loss.</b>
-            </p>
-            <InputWithIcon {className} icon={KeyIcon} type="password" placeholder="Password" name="change-master" />
-            <LoadingButton type="button" className="w-2/3" onclick={changeMasterPassword}>Change Password</LoadingButton>
-          </div>
-        </Modal>
-      </form>
+    <div class="button-row">
+      {#if $vaultKey}<Button variant="secondary" icon="lock" onclick={lock}>Lock secrets</Button><Button
+          variant="quiet"
+          icon="key"
+          onclick={() => (rotateOpen = true)}>Change master password</Button
+        >{:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button>{/if}<Button
+        variant="quiet"
+        icon="trash"
+        aria-label="Delete identity"
+        onclick={() => (deleteOpen = true)} />
     </div>
-  {:else}
-    <div class="flex min-h-[50vh] flex-col items-center justify-center gap-8">
-      <h1>Identity Not Found</h1>
-      <p class="text-center">
-        The identity you're looking for doesn't exist, or your account isn't the owner of the identity.
-        <br class="max-lg:hidden" /> Please verify the URL and try again.
-      </p>
-      <a href="/dashboard">
-        <button class="flex items-center gap-1">
-          Dashboard<ChevronIcon />
-        </button>
-      </a>
+  </div>
+  {#if account.status === 'frozen'}<Status message="This identity's subscription has expired. Renew it to restore access to its services." /><a
+      class="control-button"
+      href="/purchase?id={account.id}&plan={account.plan}">Renew identity</a
+    >{:else if account.status === 'inactive'}<Status message="Setup is not complete. Continue provisioning this identity." /><a
+      class="control-button"
+      href="/create?id={account.id}">Continue setup</a
+    >{:else if account.status === 'deleting'}<Status message="Identity deletion is in progress. Provider resources are being cleaned up." />{:else}
+    <div class="tabs" aria-label="Identity services">
+      {#each tabs as tab (tab.id)}<button aria-pressed={section === tab.id} class:active={section === tab.id} onclick={() => select(tab.id)}
+          ><Icon name={tab.icon} size={17} />{tab.label}</button
+        >{/each}
     </div>
-  {/if}
-</div>
+    {#key account.id}<div>
+        {#if section === 'info'}<Profile {account} onupdate={update} />{:else if section === 'account'}<Vault
+            {account}
+            onupdate={update}
+            onunlock={() => (unlockOpen = true)} />{:else if section === 'email'}<Mail {account} />{:else if section === 'phone'}<Phone
+            {account} />{:else if section === 'crypto'}<Wallet {account} onunlock={() => (unlockOpen = true)} />{/if}
+      </div>{/key}
+    <div class="live-status">{liveStatus}</div>{/if}
+{/if}
+<Dialog bind:open={unlockOpen} title="Unlock identity secrets" onclose={closePassword}
+  ><p>Enter the master password for this identity. The key stays in memory until you lock it or leave this page.</p>
+  <form onsubmit={unlock}>
+    <div class="field password-field">
+      <label for="unlock-password">Master password</label><input id="unlock-password" type="password" autocomplete="off" bind:value={password} required />
+    </div>
+    <Status {message} kind="error" /><Button type="submit" loading={pending} icon="key">Unlock vault and wallet</Button>
+  </form></Dialog>
+<Dialog bind:open={rotateOpen} title="Change master password" onclose={closePassword}
+  ><p>This re-encrypts every vault secret and the wallet atomically. Keep the new password safe. Forgotten passwords cannot be recovered.</p>
+  <form onsubmit={rotate}>
+    <div class="field password-field">
+      <label for="new-master">New master password</label><input
+        id="new-master"
+        type="password"
+        minlength="12"
+        bind:value={password}
+        autocomplete="new-password"
+        required />
+    </div>
+    <div class="field">
+      <label for="confirm-master">Confirm new password</label><input
+        id="confirm-master"
+        type="password"
+        bind:value={confirmPassword}
+        autocomplete="new-password"
+        required />
+    </div>
+    <Status {message} kind="error" /><Button type="submit" loading={pending}>Re-encrypt identity</Button>
+  </form></Dialog>
+<Dialog bind:open={deleteOpen} title="Delete this identity"
+  ><p>Deletion cancels its subscription and removes its profile, vault and messaging resources. Move any wallet funds before proceeding.</p>
+  <form method="POST" action="?/delete" use:enhance>
+    <div class="field password-field">
+      <label for="delete-password">Account password</label><input
+        id="delete-password"
+        name="currentPassword"
+        type="password"
+        autocomplete="current-password"
+        required />
+    </div>
+    <Status message={form?.message || ''} kind="error" /><Button variant="danger" type="submit" icon="trash">Delete identity</Button>
+  </form></Dialog>
 
-<style lang="postcss">
-  @reference "$style";
-
-  #identity {
-    @apply mx-auto my-40 flex w-3/4 flex-col items-center text-neutral-400 sm:w-5/6 xl:w-2/3;
+<style>
+  .identity-status {
+    margin-left: 10px;
   }
-
-  h1 {
-    @apply flex items-center gap-2 text-center text-6xl font-bold text-neutral-300 max-sm:scale-75;
+  .password-field {
+    margin-top: 20px;
   }
-
-  #button-wrapper button {
-    @apply flex items-center gap-2 border-b bg-none text-neutral-500 shadow-transparent max-md:sm:-mx-3 lg:px-[4vw];
-    @apply rounded-none border-b border-neutral-500 transition-colors duration-500 hover:border-neutral-400 hover:text-neutral-400;
-    @apply disabled:cursor-pointer disabled:opacity-100 max-md:sm:scale-90;
-  }
-
-  .identity-actions > button {
-    @apply shrink-0 whitespace-nowrap max-sm:text-xs;
-  }
-
-  .main {
-    @apply border-b-[3px]! border-neutral-300! text-neutral-300!;
+  .live-status {
+    margin-top: 30px;
+    font-size: 10px;
+    color: #62728e;
   }
 </style>

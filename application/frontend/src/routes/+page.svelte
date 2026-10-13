@@ -1,169 +1,237 @@
 <script lang="ts">
-  import GridAndDotBackgrounds from '$component/aceternity/GridAndDotBackgrounds.svelte';
-  import BackgroundBeams from '$component/aceternity/BackgroundBeams.svelte';
-  import InteractiveCard from '$component/homepage/InteractiveCard.svelte';
-  import FloatingAvatars from '$component/homepage/FloatingAvatars.svelte';
-  import ServicesList from '$component/homepage/ServicesList.svelte';
-  import FeatureGrid from '$component/homepage/FeatureGrid.svelte';
-  import WordFlip from '$component/homepage/WordFlip.svelte';
-  import Billing from '$component/homepage/Billing.svelte';
-  import Sparkle from '$component/feedback/Sparkle.svelte';
-  import Slogan from '$component/homepage/Slogan.svelte';
+  import HomepageHero from '$component/homepage/HomepageHero.svelte';
+  import HomepageFeatures from '$component/homepage/HomepageFeatures.svelte';
+  import HomepageLifecycle from '$component/homepage/HomepageLifecycle.svelte';
+  import HomepageIdentities from '$component/homepage/HomepageIdentities.svelte';
+  import HomepagePurpose from '$component/homepage/HomepagePurpose.svelte';
+  import HomepagePromise from '$component/homepage/HomepagePromise.svelte';
+  import HomepageAccess from '$component/homepage/HomepageAccess.svelte';
+  import HomepagePrivacy from '$component/homepage/HomepagePrivacy.svelte';
+  import HomepagePricing from '$component/homepage/HomepagePricing.svelte';
+  import HomepageClosing from '$component/homepage/HomepageClosing.svelte';
 
-  import registration from '$image/homepage/usecases/registration.svg';
-  import management from '$image/homepage/usecases/management.svg';
+  function revealChapters(node: HTMLElement) {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  import {addAnimation, addTabScrollEvent} from '$utils/motion';
-  import ChevronIcon from '$icon/navigation/Chevron.svelte';
-  import type {PageData} from './$types';
-  import {goto} from '$app/navigation';
-  import {onMount} from 'svelte';
-  import {user} from '$store';
+    if (preference.matches) {
+      return;
+    }
 
-  let {data}: {data: PageData} = $props();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) {
+            continue;
+          }
 
-  let isReady = $state(false);
+          (entry.target as HTMLElement).dataset.revealed = 'true';
+          observer.unobserve(entry.target);
+        }
+      },
+      {threshold: 0.1},
+    );
 
-  onMount(() => {
-    if (window.location.hash) goto(window.location.hash);
-    addTabScrollEvent(data.homepageIds);
-    isReady = true;
+    node.dataset.motion = 'enabled';
+    node.querySelectorAll('[data-reveal]').forEach((section) => observer.observe(section));
 
-    const disconnect = addAnimation(data.animations);
-    return () => disconnect();
-  });
+    const stopMotion = () => {
+      if (!preference.matches) {
+        return;
+      }
+
+      delete node.dataset.motion;
+      observer.disconnect();
+    };
+
+    preference.addEventListener('change', stopMotion);
+
+    return {
+      destroy() {
+        observer.disconnect();
+        preference.removeEventListener('change', stopMotion);
+      },
+    };
+  }
 </script>
 
 <svelte:head>
-  <title>ShadowSelf - Create & Manage Fake Identities</title>
+  <title>ShadowSelf | Create and manage separate online identities</title>
   <meta
     name="description"
-    content="ShadowSelf is a platform that safeguard you and your sensitive data by creating synthetic identities that can be used to register and authenticate while concealing your actual identity from being at risk of misuse, breach, theft, or fraud." />
+    content="Create synthetic identities with their own profiles, account vaults, email, phone, and crypto wallets. Explore ShadowSelf's open-source identity tools." />
 </svelte:head>
 
-<section id={data.homepageIds[0]} class="h-screen! p-8!">
-  {#if isReady}
-    <Slogan />
-  {/if}
-  <p class="my-4 w-3/4 text-center text-balance max-sm:w-full lg:w-1/2">
-    Step into the shadows. Emerge as someone new. Our platform lets you create synthetic identities, ensuring your personal information remains hidden, far away
-    from malicious threats. Experience the freedom of online interactions without the fear of compromise.
-  </p>
-  <div class="flex gap-16 max-sm:flex-col-reverse max-sm:items-center max-sm:gap-8">
-    <a href={'#' + data.homepageIds[1]} class="no-underline">
-      <button class="alt group flex items-center gap-1">
-        Learn More<ChevronIcon className="group-hover:rotate-90" />
-      </button>
-    </a>
-    <a href={$user ? '/dashboard' : '/signup'}><button>Get Started!</button></a>
-  </div>
-</section>
+<a class="homepage-skip" href="#overview">Skip to homepage content</a>
+<div class="homepage" use:revealChapters>
+  <HomepageHero />
+  <HomepagePurpose />
+  <HomepageFeatures />
+  <HomepageLifecycle />
+  <HomepageAccess />
+  <HomepageIdentities />
+  <HomepagePricing />
+  <HomepagePrivacy />
+  <HomepagePromise />
+  <HomepageClosing />
+</div>
 
-{#if isReady}
-  <section id={data.homepageIds[1]} class="flex-col-reverse! px-[15vw]! 2xl:flex-row!">
-    <InteractiveCard />
-    <div class="flex flex-col items-start gap-6 max-2xl:mt-48 max-md:mt-20">
-      <h6 class="-mb-4 ml-2 text-lg text-neutral-500 max-sm:text-sm">The Most Advanced Identity Masking Tool</h6>
-      <h1 class="text-3xl text-neutral-300 sm:text-4xl md:text-5xl">
-        <span class="pretty-style text-5xl text-nowrap sm:text-6xl md:text-8xl">Reclaim Back</span>
-        <br />Control of Your Data.
-      </h1>
-      <p>
-        Unlike profit-hungry conglomerates, we’re a open-source project dedicated to fighting back. We’ve developed a platform that allow individuals to create
-        synthetic identities, effectively confusing trackers and protecting your personal information from misuse, fraud, or theft.
-      </p>
-    </div>
-  </section>
-
-  <section id={data.homepageIds[2]} class="relative sm:h-screen!">
-    <ServicesList />
-  </section>
-
-  <section id={data.homepageIds[3]}>
-    <GridAndDotBackgrounds>
-      <h1 class="text-center text-4xl md:text-6xl lg:mt-32">Less Burdens, Less Expenses.</h1>
-      <div id="account" class="mt-6 flex items-center justify-center gap-16 text-center text-balance max-lg:flex-col xl:gap-32">
-        <div class="flex flex-col items-center gap-8 sm:w-120">
-          <img src={registration} width="200" alt="Account Registration" class="max-sm:w-37.5" />
-          <h2 style="background-image: linear-gradient(to bottom, #ef4444, #e11d48);" class="text-3xl font-bold sm:text-4xl">Account Registration</h2>
-          <p class="max-sm:px-8">
-            Use our service to create untrackable accounts and register for services while still concealing your actual identity from being at risk.
-          </p>
-        </div>
-        <div class="flex flex-col items-center gap-8 sm:w-120">
-          <img src={management} width="200" alt="Account Managenent" class="max-sm:w-37.5" />
-          <h2 style="background-image: linear-gradient(to bottom, #22c55e, #059669);" class="text-3xl font-bold sm:text-4xl">Account Managenent</h2>
-          <p class="max-sm:px-8">
-            Add, delete, and update entries to manage your online accounts. Create, generate and store passwords/usernames, implement TOTP, etc.
-          </p>
-        </div>
-      </div>
-    </GridAndDotBackgrounds>
-  </section>
-
-  <section id={data.homepageIds[4]}>
-    <FeatureGrid />
-  </section>
-
-  <section id={data.homepageIds[5]}>
-    <Billing />
-  </section>
-
-  <section id={data.homepageIds[6]} class="xl:flex-row! xl:gap-x-16">
-    <div class="flex flex-col items-start gap-8">
-      <WordFlip />
-      <p class="mb-24 w-5/6">
-        We offers a holistic approach to your digital life, ensuring top-tier privacy doesn't break the bank. Forget juggling multiple services or settling for
-        less, our platform provides the well-rounded protection you need in one place. Get serious security that respects both your privacy needs and your
-        budget.
-      </p>
-    </div>
-    <FloatingAvatars />
-  </section>
-
-  <section id={data.homepageIds[7]} class="relative mt-0! h-screen! overflow-hidden">
-    <h1 class="text-center text-4xl text-wrap text-neutral-300 md:text-7xl">
-      <div class="relative">
-        <Sparkle className="-top-4 right-72" size="w-9 h-9" delay={26} />
-        <Sparkle className="-top-6 right-96" size="w-7 h-7" delay={45} />
-        <Sparkle className="-bottom-24 right-96" delay={12} />
-      </div>
-      Unlock<span class="pretty-style mx-3 italic">True</span>Privacy
-    </h1>
-    <p class="z-10 w-3/5 text-center lg:w-1/2 xl:w-1/3">
-      Don't leave your online privacy to chance. ShadowSelf delivers the critical advantage you need, regardless of your current expertise. Gain the control and
-      security essential for navigating the modern web. It's time to step up.
-    </p>
-    <a class="z-10 mt-8" href={$user ? '/dashboard' : '/signup'}>
-      <button id="action">Take Control Now!</button>
-    </a>
-    <BackgroundBeams />
-  </section>
-{/if}
-
-<style lang="postcss">
-  @reference "$style";
-
-  section {
-    @apply h-fit min-h-200 w-full transition-all duration-1500 ease-in-out last:mb-0;
-    @apply flex flex-col items-center justify-center gap-6 sm:py-16 2xl:py-32;
-
-    &:nth-child(2),
-    &:nth-child(6),
-    &:nth-child(7) {
-      @apply px-[10vw] xl:gap-x-16 2xl:gap-x-32;
+<style>
+  .homepage {
+    background: #090f20;
+    color: #e6ebff;
+    font-family: 'Inter Variable', sans-serif;
+    overflow: clip;
+  }
+  :global(:where(.homepage) *) {
+    box-sizing: border-box;
+  }
+  :global(:where(.homepage) h1),
+  :global(:where(.homepage) h2) {
+    background: none;
+    color: #e7eaf9;
+    -webkit-text-fill-color: currentColor;
+    font-weight: 500;
+    margin: 0;
+  }
+  :global(:where(.homepage) p) {
+    font-size: 15px;
+    line-height: 1.9;
+    color: #aab6d1;
+    margin: 0;
+    text-wrap: pretty;
+  }
+  :global(:where(.homepage) a) {
+    text-decoration: none;
+  }
+  :global(:where(.homepage) button) {
+    font-family: inherit;
+    transition:
+      background 200ms ease,
+      border-color 200ms ease,
+      color 200ms ease;
+  }
+  :global(.homepage .chapter-width) {
+    width: min(1160px, calc(100% - 100px));
+    margin-inline: auto;
+  }
+  :global(.homepage .primary-action) {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 52px;
+    padding: 15px 25px;
+    border: 1px solid #a298ff70;
+    border-radius: 7px;
+    background: linear-gradient(135deg, #6253ec, #4938c9);
+    box-shadow:
+      0 8px 28px #4235b02e,
+      inset 0 1px #ffffff15;
+    color: #f3f0ff;
+    font-size: 14px;
+    font-weight: 550;
+    transition:
+      transform 200ms ease,
+      box-shadow 200ms ease;
+    white-space: nowrap;
+  }
+  :global(.homepage .primary-action:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px #6551d54f;
+  }
+  :global(.homepage .secondary-action) {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    color: #c2bde9;
+    font-size: 13px;
+    padding-block: 14px;
+  }
+  :global(.homepage .secondary-action:hover) {
+    color: #fff;
+  }
+  :global(.homepage .inline-link) {
+    display: inline-block;
+    font-size: 12px;
+    color: #b0a2f6;
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-color: #a291e74d;
+  }
+  :global(.homepage .inline-link:hover) {
+    color: #e5dcff;
+  }
+  :global(.homepage a:focus-visible),
+  :global(.homepage button:focus-visible),
+  :global(.homepage summary:focus-visible) {
+    outline: 2px solid #b7a9ff;
+    outline-offset: 5px;
+  }
+  :global(.homepage section[id]),
+  :global(.homepage div[id]) {
+    scroll-margin-top: 100px;
+  }
+  :global(.homepage[data-motion='enabled'] [data-reveal]) {
+    opacity: 0;
+    transform: translateY(30px);
+    transition:
+      opacity 800ms ease,
+      transform 800ms cubic-bezier(0.2, 0.65, 0.3, 1);
+  }
+  :global(.homepage[data-motion='enabled'] [data-reveal][data-revealed='true']) {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .homepage-skip {
+    position: fixed;
+    left: 20px;
+    top: -90px;
+    z-index: 100;
+    padding: 14px;
+    background: #282040;
+    color: white;
+    border-radius: 5px;
+  }
+  .homepage-skip:focus {
+    top: 15px;
+  }
+  @layer base {
+    :global(.homepage h1),
+    :global(.homepage h2) {
+      line-height: 1.13 !important;
     }
-
-    &:nth-child(7) {
-      @apply mb-0! bg-linear-to-b from-neutral-900 from-25% to-neutral-950/25;
+  }
+  @media (max-width: 900px) {
+    :global(.homepage .chapter-width) {
+      width: calc(100% - 60px);
     }
-
-    &:nth-child(6) {
-      @apply max-lg:my-0! min-[1536px]:max-[1720px]:flex-col! 2xl:flex-row!;
+  }
+  @media (max-width: 600px) {
+    :global(.homepage .chapter-width) {
+      width: calc(100% - 40px);
     }
-
-    #action {
-      @apply hover-gradient-small bg-linear-to-r from-blue-500 via-indigo-600 to-purple-700 sm:px-12 sm:py-8 sm:text-3xl;
+    :global(.homepage .primary-action) {
+      font-size: 12px;
+      min-height: 48px;
+      padding: 13px 21px;
+    }
+    :global(.homepage .secondary-action) {
+      font-size: 12px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(html:has(.homepage)) {
+      scroll-behavior: auto;
+    }
+    :global(.homepage *),
+    :global(.homepage *::before),
+    :global(.homepage *::after) {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+    :global(.homepage [data-reveal]) {
+      opacity: 1 !important;
+      transform: none !important;
     }
   }
 </style>

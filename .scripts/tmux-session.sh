@@ -1,39 +1,39 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-session="ShadowSelf"
+session=ShadowSelf
+scripts_dir=$(dirname "$(realpath "$0")")
+project_dir=$(dirname "$scripts_dir")
 
-SHADOWSELF_PATH=$(dirname "$(dirname "$(realpath "$0")")")
-DB_USER=$(grep POSTGRES_USER "${SHADOWSELF_PATH}/application/database/.env" | cut -d '=' -f2)
-DB_PASSWORD=$(grep POSTGRES_PASSWORD "${SHADOWSELF_PATH}/application/database/.env" | cut -d '=' -f2)
-DB_NAME=$(grep POSTGRES_DB "${SHADOWSELF_PATH}/application/database/.env" | cut -d '=' -f2)
+if tmux has-session -t "$session" 2>/dev/null; then
+  exec tmux attach-session -t "$session"
+fi
 
-window=1
-tmux new-session -d -s "$session" -n 'Servers'
-tmux send-keys -t "$session:$window" "cd $SHADOWSELF_PATH/application/frontend" C-m
-tmux send-keys -t "$session:$window" "clear" C-m
-tmux send-keys -t "$session:$window" "bun dev" C-m
+frontend_pane=$(
+  tmux new-session \
+    -d \
+    -P \
+    -F '#{pane_id}' \
+    -s "$session" \
+    -n Servers \
+    -c "$project_dir/application/frontend"
+)
 
-tmux split-window -t "$session" -h
-tmux send-keys -t "$session:$window" "cd $SHADOWSELF_PATH/application/backend" C-m
-tmux send-keys -t "$session:$window" "clear" C-m
-tmux send-keys -t "$session:$window" "bun dev" C-m
+backend_pane=$(
+  tmux split-window \
+    -P \
+    -F '#{pane_id}' \
+    -t "$frontend_pane" \
+    -h \
+    -c "$project_dir/application/backend"
+)
 
-window=2
-tmux new-window -t "$session:$window" -n 'Webhooks'
-tmux send-keys -t "$session:$window" "clear" C-m
-tmux send-keys -t "$session:$window" "stripe listen --forward-to localhost/webhook-stripe" C-m
+tmux new-window \
+  -t "$session" \
+  -n Workplace \
+  -c "$project_dir"
 
-window=3
-tmux new-window -t "$session:$window" -n 'Database'
-tmux send-keys -t "$session:$window" "cd $SHADOWSELF_PATH/application/database" C-m
-tmux send-keys -t "$session:$window" "clear" C-m
-tmux send-keys -t "$session:$window" "psql postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}" C-m
+tmux send-keys -t "$frontend_pane" 'bun dev' Enter
+tmux send-keys -t "$backend_pane" 'bun dev' Enter
 
-window=4
-tmux new-window -t "$session:$window" -n 'Workplace'
-tmux send-keys -t "$session:$window" "cd $SHADOWSELF_PATH" C-m
-tmux send-keys -t "$session:$window" "clear" C-m
-tmux send-keys -t "$session:$window" "onefetch" C-m
-
-sleep 0.5
 tmux attach-session -t "$session"

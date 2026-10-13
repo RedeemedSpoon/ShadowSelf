@@ -1,15 +1,24 @@
-import type {PageServerLoad} from './$types';
-import {fetchBackend} from '$utils/webfetch';
-import {createCookie} from '$utils/shared';
+import {backend} from '$lib/backend.server';
 import {redirect} from '@sveltejs/kit';
+import type {PageServerLoad} from './$types';
 
-export const load: PageServerLoad = async (event) => {
-  const id = event.url.searchParams.get('id') || '';
-  if (!id) redirect(302, '/dashboard');
+export const load: PageServerLoad = async ({url, cookies}) => {
+  const id = url.searchParams.get('id');
 
-  const response = await fetchBackend('/creation-process', 'POST', {id}, event.cookies.get('token'));
-  if (response.type !== 'success') redirect(303, '/dashboard');
-  createCookie(event.cookies, 'creation-process', response.cookie, true);
+  if (!id) {
+    redirect(303, '/dashboard');
+  }
 
-  return {creationReady: true};
+  const result = await backend<{
+    draft: Record<string, unknown>;
+    locations: {code: string; country: string; city: string; localization: string}[];
+    status: string;
+    creationStatus: 'editing' | 'provisioning' | 'completed';
+  }>(`/identities/${id}/creation`, 'GET', undefined, cookies.get('token'));
+
+  if (result.ok && result.data.creationStatus === 'completed') {
+    redirect(303, `/identity/${id}`);
+  }
+
+  return {id, creation: result.ok ? result.data : null, loadError: result.ok ? '' : result.error};
 };

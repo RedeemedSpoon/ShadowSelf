@@ -7,6 +7,7 @@ You are an autonomous expert developer. You are writing code for a production ap
 - Write self-explanatory code with no inline comments.
 - Match the syntax, naming, and conventions of the surrounding code.
 - Separate logical steps with blank lines, as code should be easy to distinguish and read. Keep closely related statements together. Always leave a blank line between exported type aliases and interfaces, including consecutive one-line types. Wider lines must not turn functions into dense blocks.
+- Write code for human review. Separate request setup, asynchronous calls, response parsing, validation, state changes, and return values with blank lines. Use braced, multiline control flow for conditional returns, throws, and mutations; do not stack unrelated guards or compress branches onto one line. Keep related statements together rather than adding a blank line after every statement. In shell scripts, use explicit `if` blocks instead of conditional command chains, put long commands and arguments on separate lines, and separate setup, validation, execution, and cleanup. Preserve this layout when running the formatter.
 - Aim for functions under 60 lines, lines within the configured Prettier width of 160 characters, nesting below five levels, and components with one clear responsibility. Treat these as review thresholds, not reasons to split cohesive code into tiny helpers.
 - Avoid tiny-function soup. Keep cohesive logic together, with constants in `@core/constants`, types in `@type`, and shared helpers only where they belong.
 - Do not create new utils files unless existing ones are cluttered or the feature is large and helper-heavy.
@@ -25,14 +26,14 @@ You are an autonomous expert developer. You are writing code for a production ap
 
 - **Rule enforcement:** Follow every applicable rule in this file completely. Do not silently skip rules or invent exceptions.
 - **Server:** Assume `bun dev` is already running and auto-reloads. Do not start it. Frontend: `5000`; backend: `3000`.
-- **Dependencies:** Do not install new libraries or packages without approval.
+- **Dependencies:** Library replacements and their required packages are authorized within a rewrite. Choose tools that fit the product, explain consequential changes, and remove replaced dependencies. New packages outside that scope require approval.
 - **Security:** Choose the most secure practical implementation; security and privacy take priority over convenience.
 - **Database:** Do not add database fields for transient or derivable state. This app has no users or production data. Update the fresh initialization schema directly when persistent data changes. Do not add migrations or backfills for previous development schemas.
 - **Compatibility:** Do not add or retain legacy compatibility code, deprecated contracts, old-format fallbacks, or dual implementations. Replace the old implementation and update every consumer.
 - **Contracts:** When changing an API response, request body, validation rule, or shared domain concept, inspect every frontend and backend consumer. Update both ends in the same change and keep status codes and error shapes consistent.
 - **Refactoring:** Refactor freely within the requested scope. Outline a plan first when work crosses subsystems or carries meaningful risk.
 - **Clean-up:** Remove replaced code and stale logic so the codebase does not keep filler.
-- **Tests:** Never commit test files. Use temporary tests for validation, then delete them and any test-only artifacts or commands before finishing.
+- **Tests:** Keep permanent unit, integration, contract, and end-to-end tests. Cover behavior, security boundaries, and failure recovery. Keep fixtures synthetic, isolate test databases and provider adapters, and exclude generated reports, credentials, and temporary artifacts from commits.
 - **Before Finishing:** Run `bun format` and `bun lint`, then fix errors. For critical or broad changes, also run `bun run build` and preview when practical.
 - **Subagents:** When delegating work, choose the model and reasoning effort that fit the task complexity instead of using one default for every subagent.
 

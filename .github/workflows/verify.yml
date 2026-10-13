@@ -1,0 +1,27 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [V2, main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
+      - run: bun install --frozen-lockfile
+        working-directory: application/backend
+      - run: bun install --frozen-lockfile
+        working-directory: application/frontend
+      - run: bun run audit
+      - run: bun run verify
+      - run: bash .scripts/pack-extension.sh "$RUNNER_TEMP/extensions"

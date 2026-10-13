@@ -1,15 +1,10 @@
-FROM oven/bun:1.4.2
-
-ARG PUBLIC_STRIPE_KEY
-ENV PUBLIC_STRIPE_KEY=$PUBLIC_STRIPE_KEY
-ENV PUBLIC_NODE_ENV="prod"
-ARG PUBLIC_NODE_ENV="prod"
+FROM oven/bun:1.4.3
 
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json bun.lock ./
 
-RUN bun install
+RUN bun install --frozen-lockfile
 
 COPY . .
 
@@ -17,4 +12,4 @@ RUN bun run build
 
 EXPOSE 5000
 
-CMD [ "bun", "run", "start" ]
+CMD ["bun", "run", "start"]

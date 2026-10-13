@@ -1,15 +1,15 @@
-server
-proxy
+/application/backend/server
 bun.lockb
 package-lock.json
 monero.worker.js
 pnpm-lock.yaml
-*.lock
 
 ShadowSelf-Chromium.zip
 ShadowSelf-Firefox.zip
 db_backup.sql.gz
 db_backup.sql
+db_backup.dump
+db_backup.dump.*
 
 Thumbs.db
 .DS_Store
@@ -24,3 +24,5 @@ node_modules
 .easy-pki
 .certs
 .env
+
+*.temporary.*

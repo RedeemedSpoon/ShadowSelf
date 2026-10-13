@@ -1,97 +1,94 @@
 <script lang="ts">
-  import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
-  import StepsItem from '$component/containers/StepsItem.svelte';
-  import Steps from '$component/containers/Steps.svelte';
+  import {untrack} from 'svelte';
+  import {enhance} from '$app/forms';
+  import Button from '$component/ui/Button.svelte';
+  import Status from '$component/ui/Status.svelte';
+  import type {ActionData} from './$types';
 
-  import RecoveryIcon from '$icon/security/Recovery.svelte';
-  import EmailIcon from '$icon/communication/Email.svelte';
-  import KeylockIcon from '$icon/security/Keylock.svelte';
-  import KeyIcon from '$icon/security/Key.svelte';
-
-  import type {Notification} from '$type';
-  import {notify} from '$utils/shared';
-  import {currentStep} from '$store';
-
-  const {form}: {form: Notification & {step?: number}} = $props();
+  let {form}: {form: ActionData} = $props();
+  let step = $state(untrack(() => Number(form?.step) || 1));
+  let pending = $state(false);
+  let message = $state(untrack(() => form?.message || ''));
 
   $effect(() => {
-    if (form?.message) notify(form.message, form.type);
-    if (form?.step) $currentStep = Number(form.step);
+    if (form?.step) {
+      step = Number(form.step);
+    }
+
+    message = form?.message || '';
   });
 
-  function backStep() {
-    let step = $currentStep - 1;
-    step = step === 3 ? 1 : step;
-    $currentStep = step;
+  function submit() {
+    pending = true;
+    message = '';
+
+    return async ({update}: {update: (options: {reset: boolean}) => Promise<void>}) => {
+      try {
+        await update({reset: false});
+      } finally {
+        pending = false;
+      }
+    };
   }
+
+  function switchStep(next: number) {
+    step = next;
+    message = '';
+  }
+
+  const titles: Record<number, string> = {1: 'Sign in', 2: 'Email access', 3: 'Email verification', 4: 'Two-factor authentication', 5: 'Use a recovery code'};
+  const actions: Record<number, string> = {1: 'checkCredentials', 2: 'checkEmail', 3: 'checkAccess', 4: 'checkOTP', 5: 'checkRecovery'};
 </script>
 
-<svelte:head>
-  <title>ShadowSelf - Log in</title>
-  <meta name="description" content="Log in to your account to make the most of ShadowSelf" />
-</svelte:head>
-
-<Steps>
-  <StepsItem shouldWait={true} {backStep} index={1} action="checkCredentials">
-    <h1>Login to your account</h1>
-    <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
-      <label for="email">Email</label>
-      <InputWithIcon type="email" fill={true} icon={EmailIcon} name="email" placeholder="example@domain.tld" />
+<svelte:head><title>Sign in | ShadowSelf</title><meta name="description" content="Sign in to your ShadowSelf identity console." /></svelte:head>
+<div class="access">
+  <section class="panel">
+    <h1>{titles[step]}</h1>
+    {#if step > 1}<p>
+        {step === 2
+          ? 'Email access still requires two-factor authentication when enabled.'
+          : step === 3
+            ? 'The eight-digit email code expires in ten minutes.'
+            : step === 4
+              ? 'Enter the six-digit authenticator code.'
+              : 'Recovery codes are single-use.'}
+      </p>{/if}
+    <Status {message} kind="error" />
+    <form method="POST" action="?/{actions[step]}" use:enhance={submit}>
+      {#if step === 1 || step === 2}<div class="field">
+          <label for="login-email">Email address</label><input
+            id="login-email"
+            name="email"
+            type="email"
+            autocomplete="username"
+            placeholder="you@example.com"
+            required />
+        </div>{/if}
+      {#if step === 1}<div class="field">
+          <label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required />
+        </div>{/if}
+      {#if step === 3 || step === 4}<div class="field">
+          <label for="login-code">Verification code</label><input
+            id="login-code"
+            name={step === 3 ? 'access' : 'token'}
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            pattern={step === 3 ? '[0-9]{8}' : '[0-9]{6}'}
+            maxlength={step === 3 ? 8 : 6}
+            placeholder={step === 3 ? '00000000' : '000000'}
+            required />
+        </div>{/if}
+      {#if step === 5}<div class="field">
+          <label for="login-recovery">Recovery code</label><input id="login-recovery" name="code" autocomplete="off" required />
+        </div>{/if}
+      <Button type="submit" loading={pending} icon="arrow">{step === 1 ? 'Sign in' : step === 2 ? 'Send access code' : 'Verify'}</Button>
+    </form>
+    <div class="access-links">
+      {#if step === 1}<a href="/signup">Create an account</a><button onclick={() => switchStep(2)}>Use email access</button>{:else}<button
+          onclick={() => switchStep(1)}>Back to sign-in</button
+        >{#if step === 4}<button onclick={() => switchStep(5)}>Use recovery code</button>{:else if step === 5}<button onclick={() => switchStep(4)}
+            >Use authenticator</button
+          >{/if}{/if}
     </div>
-    <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
-      <label for="password">Password</label>
-      <InputWithIcon type="password" icon={KeyIcon} name="password" placeholder="correct horse battery staple" />
-    </div>
-
-    <div class="mt-4 -mb-2 flex justify-between px-3 text-nowrap max-md:flex-col md:items-center">
-      <a class="text-md max-md:text-sm" href="/signup">Don't have an account?</a>
-      <span aria-hidden="true" class="text-md max-md:text-sm" onclick={() => ($currentStep = 2)}>Forgot Password?</span>
-    </div>
-    <LoadingButton>Next</LoadingButton>
-  </StepsItem>
-
-  <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
-    <h1 class="-mb-2!">Give us your email</h1>
-    <p>Write below the account's email address and we will send a reset token to get access back</p>
-    <InputWithIcon type="email" name="email" placeholder="example@domain.tld" fill={true} icon={EmailIcon} />
-    <LoadingButton className="mt-2">Continue</LoadingButton>
-  </StepsItem>
-
-  <StepsItem shouldWait={true} {backStep} index={3} action="checkAccess">
-    <h1 class="-mb-2!">Enter the recovery token</h1>
-    <p>Enter the eight-digit email code. It expires in ten minutes.</p>
-    <InputWithIcon type="password" name="access" placeholder="12345678" icon={KeylockIcon} />
-    <LoadingButton className="mt-2">Continue</LoadingButton>
-  </StepsItem>
-
-  <StepsItem shouldWait={true} {backStep} index={4} action="checkOTP">
-    <h1 class="-mb-2!">Enter the verification token</h1>
-    <p>Open your two-factor authentication app to view your verification token and verify your identity</p>
-    <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
-    <p class="-mt-4 max-md:text-sm">
-      Lost your 2FA method?
-      <span aria-hidden="true" onclick={() => ($currentStep = 5)}>Switch to recovery codes</span>
-    </p>
-    <LoadingButton className="mt-2">Verify</LoadingButton>
-  </StepsItem>
-
-  <StepsItem shouldWait={true} {backStep} index={5} action="checkRecovery">
-    <h1 class="-mb-2!">Enter one of your recovery codes</h1>
-    <p>Use one of the recovery tokens we gave when you first created your account to verify your authenticity</p>
-    <InputWithIcon type="text" name="code" icon={RecoveryIcon} placeholder="abcdef-123456-abcdef-123456" />
-    <LoadingButton className="mt-2">Check</LoadingButton>
-  </StepsItem>
-</Steps>
-
-<style lang="postcss">
-  @reference "$style";
-
-  h1 {
-    @apply -mt-4 mb-4 text-4xl font-bold text-neutral-300 max-md:text-2xl md:text-nowrap;
-  }
-
-  span {
-    @apply text-primary-600 hover:text-primary-700 cursor-pointer transition-colors duration-300;
-  }
-</style>
+  </section>
+</div>

@@ -1,17 +1,10 @@
 import type {HDKey} from '@scure/bip32';
-import type {Component} from 'svelte';
 
 export type Priority = 'low' | 'medium' | 'high';
 
 export type PrivKeyType = 'mnemonic' | 'wif' | 'hex';
 
 export type Coins = 'xmr' | 'eth' | 'btc' | 'ltc' | 'usdt';
-
-export type Sections = 'info' | 'email' | 'phone' | 'crypto' | 'account';
-
-export type Languages = 'curl' | 'python' | 'javascript' | 'go' | 'rust';
-
-export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export type BillingSteps = 'create' | 'confirm' | 'auth' | 'finish';
 
@@ -22,78 +15,6 @@ export type BtcSigner = {type: 'hd'; root: HDKey} | {type: 'key'; privKey: Uint8
 export type FullEmail = Email & {messageID: string; date: Date};
 
 export type Attachment = {filename: string; data: string; cid?: string; contentType?: string};
-
-export interface Notification {
-  id: number | null;
-  message: string;
-  type: 'success' | 'alert' | 'info';
-}
-
-export interface Faq {
-  question: string;
-  answer: string;
-}
-
-export interface Option {
-  label: string;
-  value: string;
-}
-
-export interface Settings {
-  OTP: boolean;
-  API: boolean;
-  key: string;
-  username: string;
-  sessionUrl: string;
-  recoveryRemaining: number;
-  email: string;
-}
-
-export interface SettingsForm {
-  recovery: string[];
-  toggleModel: boolean;
-  message: string;
-  secret: string;
-  step: number;
-  qr: string;
-}
-
-export interface Registration {
-  step: string;
-  email: string;
-  username: string;
-  recovery: string[];
-  secret: string;
-  qr: string;
-}
-
-export interface ServicesContent {
-  title: string;
-  description: string;
-  style: string;
-  images: string;
-}
-
-export interface AnimationNode {
-  type: 'left' | 'right' | 'bottom';
-  node: HTMLElement;
-  delay: number;
-}
-
-export interface AnimationSelector {
-  type: 'left' | 'right' | 'bottom';
-  selector: string;
-  delay?: number;
-}
-
-export interface EditorParams {
-  subject: string;
-  body: string;
-  attachments: {
-    filename: string;
-    data: string;
-  }[];
-}
 
 export interface CryptoKeys {
   btc: string;
@@ -107,7 +28,7 @@ export interface CryptoKeys {
 }
 
 export interface transactionData {
-  estimatedFee: any;
+  estimatedFee: number | {fee: number; feeAtoms?: string};
   privKeyType: PrivKeyType;
   wifKey: string;
   index?: number;
@@ -115,6 +36,9 @@ export interface transactionData {
   utxos?: UTXOData;
   nonce?: number;
   balance?: number;
+  gasBalance?: number;
+  balanceAtoms?: string;
+  gasBalanceAtoms?: string;
 }
 
 export interface Provider {
@@ -130,6 +54,7 @@ export interface Provider {
 }
 
 export interface Identity {
+  status: 'active' | 'inactive' | 'frozen' | 'deleting';
   id: string;
   picture: string;
   name: string;
@@ -142,12 +67,12 @@ export interface Identity {
 }
 
 export interface FullIdentity {
+  status: 'active' | 'inactive' | 'frozen' | 'deleting';
   vaultRevision: number;
   id: string;
   creationDate: string;
   plan: 'monthly' | 'annually' | 'lifetime' | null;
   paymentMethod: string;
-  proxyServer: string;
   location: string;
   picture: string;
   name: string;
@@ -160,31 +85,6 @@ export interface FullIdentity {
   walletKeys: CryptoKeys;
   walletFunds: string | null;
   walletBlob: string;
-}
-
-export interface CreationProcess {
-  error: string;
-  locations: {
-    country: string;
-    code: string;
-    city: string;
-    ip: string;
-    map: string;
-    localization: string;
-  }[];
-  identity: {
-    picture: string;
-    name: string;
-    bio: string;
-    age: number;
-    sex: 'male' | 'female';
-    ethnicity: string;
-  };
-  repeat: {name: string; bio: string};
-  phone: string[];
-  email: string;
-  crypto: string;
-  done: boolean;
 }
 
 export interface Message {
@@ -252,6 +152,7 @@ export type UTXOData = {
   vout: number;
   address: string;
   pathIndex: number;
+  rawTx?: string;
   value: number;
 }[];
 
@@ -284,12 +185,14 @@ export interface CryptoWallet {
     status: string;
     balance: number;
     nonce: number;
+    balanceAtoms: string;
     history: TransactionsHistory;
   };
   usdt: {
     status: string;
     balance: number;
     nonce: number;
+    balanceAtoms: string;
     history: TransactionsHistory;
   };
   xmr: {
@@ -302,7 +205,7 @@ export interface CryptoWallet {
   };
 }
 
-export type ApiResult<T> = {ok: true; data: T} | {ok: false; error: string; status: number | null};
+export type ApiResult<T> = {ok: true; data: T} | {ok: false; error: string; code: string; status: number | null};
 
 export interface InformationAPI {
   picture?: string;
@@ -383,56 +286,53 @@ export interface CryptoAPI {
   blob?: string;
 }
 
-export type APIResponse = InformationAPI | AccountAPI | EmailAPI | PhoneAPI | CryptoAPI;
-
-export interface WebSocketMessage {
-  type: 'email' | 'message';
-  message: Message;
-  email: Email;
-}
-
-export interface Docs {
-  sections: {
-    title: string;
-    icon: Component;
-    more: {
-      title: string;
-      method?: Method;
-    }[];
-  }[];
-  content: {
-    title: string;
-    icon: Component;
-    description: Component | string;
-    routes?: Route[];
-  }[];
-}
-
-export interface Route {
-  title: string;
-  description: Component;
-  method: Method;
-  url: string;
-  response: APIResponse;
-  code: {[key in Languages]: string};
-}
-
-export interface Billing {
+export interface CardCheckout {
   step: BillingSteps;
   clientSecret: string;
   identityID: string;
   cardName: string;
   last4: number;
-  invoiceID: string;
-  depositAddress: string;
-  depositAmount: number;
-  coin: string;
-  externalLink: string;
 }
 
-export interface PricingModel {
-  name: string;
+export type InvoiceStatus = 'pending' | 'confirming' | 'paid' | 'underpaid' | 'expired' | 'late' | 'refunded';
+
+export interface CryptoInvoice {
+  invoiceID: string;
+  identityID: string;
+  depositAddress: string;
+  depositAmount: string;
+  coin: string;
+  externalLink?: string;
+  status: InvoiceStatus;
+  remainingAmount: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface CreationData {
+  id: string;
+  creation: {
+    draft: Record<string, unknown>;
+    locations: {code: string; country: string; city: string; localization: string}[];
+    status: string;
+    creationStatus: 'editing' | 'provisioning' | 'completed';
+  } | null;
+  loadError: string;
+}
+
+export type HomepageServiceId = 'identity' | 'vault' | 'email' | 'phone' | 'wallet';
+
+export interface ApiDocumentationEndpoint {
+  method: string;
+  path: string;
+  detail: string;
+  request?: Record<string, unknown>;
+  response?: Record<string, unknown>;
+  query?: string;
+}
+
+export interface ApiDocumentationGroup {
+  id: string;
   title: string;
-  price: number;
-  description: string;
+  endpoints: ApiDocumentationEndpoint[];
 }

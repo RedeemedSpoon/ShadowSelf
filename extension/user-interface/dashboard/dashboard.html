@@ -1,55 +1,57 @@
 <!doctype html>
-<html lang="en-US">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="description" content="Safeguard your privacy with synthetic identities and take control of your digital life." />
-    <title>ShadowSelf - Synthetic Identities</title>
+    <title>ShadowSelf identities</title>
     <link rel="icon" href="../../assets/favicon.ico" />
-    <link rel="stylesheet" href="../global.css" media="all" />
-    <link rel="stylesheet" href="./dashboard.css" media="all" />
+    <link rel="stylesheet" href="../global.css" />
+    <link rel="stylesheet" href="./dashboard.css" />
   </head>
-
   <body>
     <header>
-      <a href="https://shadowself.io">
-        <img src="../../assets/logo-beside.svg" alt="ShadowSelf" />
-      </a>
+      <img src="../../assets/logo-beside.svg" alt="ShadowSelf" width="150" />
+      <span class="eyebrow">Browser companion</span>
     </header>
     <main>
-      <section id="loading">
-        <h3 id="loading-button">Loading</h3>
-        <small id="loading-error"></small>
+      <section aria-labelledby="connection-title" id="connection">
+        <p class="eyebrow">Account connection</p>
+        <h1 id="connection-title">Choose your signed-in tab</h1>
+        <p>Connect this window to an account using its existing tab session.</p>
+        <label for="account-tab">ShadowSelf tab</label>
+        <select id="account-tab">
+          <option value="">Finding tabs…</option>
+        </select>
+        <div class="actions">
+          <button id="connect" type="button">Connect account</button>
+          <button id="open-dashboard" type="button" class="secondary">Open ShadowSelf</button>
+        </div>
       </section>
-      <section id="list-identities">
-        <div>
-          <h2>Hello, <span id="username"></span></h2>
-          <div id="search-box">
-            <label for="search"></label>
-            <input type="search" id="search" placeholder="Search" name="search" />
+      <section aria-labelledby="account-title" id="account" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Connected account</p>
+            <h1 id="account-title"></h1>
           </div>
+          <button id="disconnect" type="button" class="secondary">Disconnect</button>
         </div>
-        <div id="container">
-          <p id="not-found">No identities found</p>
+        <label for="search">Find an identity</label>
+        <input type="search" id="search" placeholder="Name or location" autocomplete="off" />
+        <div id="identities" class="identities"></div>
+        <p id="empty" hidden>No identities yet.</p>
+        <button id="refresh" type="button" class="secondary">Refresh identities</button>
+      </section>
+      <p id="status" role="status" aria-live="polite"></p>
+      <aside aria-labelledby="network-title">
+        <span class="status-dot"></span>
+        <div>
+          <h2 id="network-title">Residential routing <span class="planned">Planned</span></h2>
+          <p>The current version uses your browser's network connection.</p>
         </div>
-      </section>
-      <section id="no-identities">
-        <h1>No identities yet</h1>
-        <p>Use numerous distinct personas, each operating independently to serving various needs or objectives.</p>
-        <a href="https://shadowself.io/purchase">
-          <button type="button">Purchase one</button>
-        </a>
-      </section>
+      </aside>
     </main>
-    <hr />
     <footer>
-      <div>
-        <a href="https://github.com/RedeemedSpoon/ShadowSelf"><span id="github"></span>GitHub</a>
-        <a href="https://mastodon.social/@shadow_self"><span id="mastodon"></span>Mastodon</a>
-        <a href="https://www.torproject.org/download"><span id="tor"></span>Tor</a>
-      </div>
-      <a href="../welcome/welcome.html?delete=true"><span id="logout"></span>logout</a>
+      <a id="website" href="https://shadowself.io/dashboard" target="_blank" rel="noreferrer">Dashboard ↗</a>
     </footer>
     <script type="module" src="./dashboard.js"></script>
   </body>

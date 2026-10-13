@@ -1,63 +1,33 @@
-import {connect, disconnect, toggleKillSwitch} from './proxy.js';
-import {updateIcon} from './utils.js';
-import {spoofUserAgent} from './user-agent.js';
+import {applicationOrigin, isAccountTab} from '../shared.js';
 
-chrome.runtime.onInstalled.addListener(async () => {
-  await chrome.storage.local.remove(['cookie', 'accountTab', 'username', 'identities', 'proxyCredentials', 'proxyConfig', 'isVPNEnabled']);
-  await disconnect();
-  await spoofUserAgent();
-});
+const origin = applicationOrigin(chrome.runtime.getManifest());
 
-let pendingChange = Promise.resolve();
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL('user-interface/'))) return false;
-  pendingChange = pendingChange
-    .then(async () => {
-      let error;
-
-      switch (request.type) {
-        case 'connect':
-          error = await connect(request);
-          await updateIcon();
-          break;
-
-        case 'disconnect':
-          error = await disconnect(request);
-          await updateIcon();
-          break;
-
-        case 'killSwitch':
-          await toggleKillSwitch(request.enabled);
-          break;
-
-        case 'userAgent':
-          await spoofUserAgent();
-          break;
-      }
-
-      sendResponse(error);
-    })
-    .catch(async () => {
-      await disconnect().catch(() => {});
-      sendResponse(true);
-    });
-
-  return true;
-});
-
-chrome.runtime.onStartup.addListener(async () => {
-  await disconnect();
-  await updateIcon();
-});
-
-chrome.windows.onRemoved.addListener(async (windowId) => {
+async function clearBindings(matches) {
   const values = await chrome.storage.session.get(null);
-  const keys = Object.keys(values).filter((key) => key.startsWith(`window:${windowId}:`));
-  await chrome.storage.session.remove(keys);
 
-  if (values.proxyConfig?.windowId === windowId) {
-    await disconnect();
-    await updateIcon();
+  const keys = Object.entries(values)
+    .filter(([key, tabId]) => key.startsWith('window:') && key.endsWith(':accountTab') && matches(key, tabId))
+    .map(([key]) => key);
+
+  if (keys.length) {
+    await chrome.storage.session.remove(keys);
+  }
+}
+
+chrome.windows.onRemoved.addListener((windowId) => {
+  void clearBindings((key) => key === `window:${windowId}:accountTab`);
+});
+
+chrome.tabs.onRemoved.addListener((removedTab) => {
+  void clearBindings((_key, tabId) => tabId === removedTab);
+});
+
+chrome.tabs.onDetached.addListener((detachedTab) => {
+  void clearBindings((_key, tabId) => tabId === detachedTab);
+});
+
+chrome.tabs.onUpdated.addListener((updatedTab, change, tab) => {
+  if (change.url && !isAccountTab(tab, tab.windowId, origin)) {
+    void clearBindings((_key, tabId) => tabId === updatedTab);
   }
 });

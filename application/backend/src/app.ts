@@ -1,0 +1,101 @@
+import {checkContact} from '@utils/checks';
+import {contact} from '@utils/email-smtp';
+import type {ContactDetail} from '@type';
+import {error} from '@utils/utils';
+import {ApiError} from '@core/security';
+import {createRequestLimiter, requestClientIP} from '@core/request-limits';
+import {Elysia} from 'elysia';
+import {billingReadiness, cryptoPrices} from '@core/states';
+import {POLL_INVOICES_INTERVAL, POLL_PRICES_INTERVAL} from '@core/constants';
+import {cryptoBillingEnabled, trustedProxyIPs} from '@core/config';
+import creation from './routes/creation-process';
+import settings from './routes/user-settings';
+import api from './routes/public-api/index';
+import {createAccountRoutes} from './routes/user-account';
+import type {sendVerificationCode} from '@utils/email-smtp';
+import webhooks from './routes/webhooks';
+import billing from './routes/billing';
+
+export function createApp(providers: {sendVerificationCode?: typeof sendVerificationCode} = {}) {
+  const limit = createRequestLimiter();
+
+  return new Elysia({serve: {maxRequestBodySize: 20 * 1024 * 1024}})
+    .onError(({code, error: failure, set}) => {
+      if (failure instanceof ApiError) {
+        set.status = failure.status;
+
+        return {error: {code: failure.code, message: failure.message}};
+      }
+
+      if (code === 'VALIDATION' || code === 'PARSE') {
+        return error(set, 400, 'Invalid request');
+      }
+
+      if (code === 'NOT_FOUND') {
+        return error(set, 404, 'Route not found');
+      }
+
+      if ((failure as {code?: string}).code === '23505') {
+        return error(set, 409, 'This resource is already registered');
+      }
+
+      console.error('Request failed', code);
+
+      return error(set, 500, 'The operation could not complete. Retry shortly');
+    })
+    .onRequest(({request, server, set}) => {
+      set.headers['cache-control'] = 'no-store';
+      set.headers['x-content-type-options'] = 'nosniff';
+
+      const path = new URL(request.url).pathname;
+
+      if (path.startsWith('/health/') || path.startsWith('/api/webhooks/')) {
+        return;
+      }
+
+      const peer = server?.requestIP(request)?.address || 'local';
+      const ip = requestClientIP(peer, request.headers.get('x-forwarded-for'), trustedProxyIPs);
+      limit(`requests:${ip}`, 240, 60_000);
+
+      if (request.method !== 'GET' && path.startsWith('/api/auth/')) {
+        limit(`authentication:${ip}`, 30, 300_000);
+      }
+
+      if (path === '/api/contact') {
+        limit(`contact:${ip}`, 5, 3_600_000);
+      }
+    })
+    .get('/health/live', () => ({status: 'ok'}))
+    .get('/health/billing', ({set}) => {
+      const ready =
+        cryptoBillingEnabled &&
+        billingReadiness.available &&
+        Date.now() - billingReadiness.lastSync < POLL_INVOICES_INTERVAL * 3 &&
+        Date.now() - billingReadiness.priceSync < POLL_PRICES_INTERVAL * 3 &&
+        !!cryptoPrices.xmr?.usdPrice;
+      set.status = ready ? 200 : 503;
+
+      return {status: ready ? 'ready' : 'unavailable'};
+    })
+    .post('/api/contact', async ({body, set}) => {
+      const {err} = checkContact(body);
+
+      if (err) {
+        return error(set, 400, err);
+      }
+
+      const result = await contact(body as ContactDetail);
+
+      if (result.err) {
+        return error(set, 503, result.err);
+      }
+
+      return {message: result.message};
+    })
+    .use(api)
+    .use(webhooks)
+    .use(creation)
+    .use(settings)
+    .use(createAccountRoutes(providers.sendVerificationCode))
+    .use(billing);
+}

@@ -1,23 +1,26 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-if [ -z "$1" ]; then
-  echo "No SQL command provided"
+remote=${SHADOWSELF_SSH_TARGET:?Set SHADOWSELF_SSH_TARGET}
+container=${SHADOWSELF_DB_CONTAINER:?Set SHADOWSELF_DB_CONTAINER}
+
+if [[ "$remote" == -* || ! "$container" =~ ^[a-zA-Z0-9_-]+$ ]]; then
   exit 1
 fi
 
-REMOTE_USER="root"
-REMOTE_HOST="shadowself.io"
-SHADOWSELF_PATH=$(dirname "$(dirname "$(realpath "$0")")")
-SAFE_SQL_COMMAND=$(printf "%q" "$1")
+if [[ $# -ne 1 || -z "$1" ]]; then
+  echo 'Usage: query-database.sh SQL' >&2
+  exit 1
+fi
 
-DB_USER=$(grep POSTGRES_USER ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
-DB_PASSWORD=$(grep POSTGRES_PASSWORD ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
-DB_NAME=$(grep POSTGRES_DB ${SHADOWSELF_PATH}/application/database/.env | cut -d '=' -f2)
+ssh_options=(-o BatchMode=yes)
 
-ssh -i "$SSH_KEY" ${REMOTE_USER}@${REMOTE_HOST} "
-  set -e
-  CONTAINER_ID=\$(docker ps -q --filter \"ancestor=shadowself-core-postgres\")
-  docker exec -e PGPASSWORD=${DB_PASSWORD} \$CONTAINER_ID \
-    psql -U ${DB_USER} -d ${DB_NAME} -c ${SAFE_SQL_COMMAND}
-"
+if [[ -n "${SSH_KEY:-}" ]]; then
+  ssh_options+=(-i "$SSH_KEY")
+fi
+
+printf -v remote_command 'docker exec -i %s sh -c %q' \
+  "$container" \
+  'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+
+printf '%s\n' "$1" | ssh "${ssh_options[@]}" "$remote" "$remote_command"

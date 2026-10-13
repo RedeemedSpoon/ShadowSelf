@@ -10,7 +10,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setFont('helvetica');
   doc.setTextColor(colorText);
 
-  // --- HEADER ---
   const startY = 20;
 
   if (identityData.logo) {
@@ -31,7 +30,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.text(`Issued: ${identityData.date}`, 190, startY + 15, {align: 'right'});
   doc.text(`Due: ${identityData.dateDue}`, 190, startY + 20, {align: 'right'});
 
-  // --- ADDRESSES ---
   const addrY = startY + 30;
   doc.setTextColor(colorText);
 
@@ -49,9 +47,11 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(colorSub);
   doc.text(clientData.clientName || 'Valued Client', 100, addrY + 5);
-  if (clientData.clientEmail) doc.text(clientData.clientEmail, 100, addrY + 10);
 
-  // --- BIG TOTAL ---
+  if (clientData.clientEmail) {
+    doc.text(clientData.clientEmail, 100, addrY + 10);
+  }
+
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(colorText);
@@ -62,7 +62,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setTextColor(colorSub);
   doc.text('USD due', 190, addrY + 18, {align: 'right'});
 
-  // --- TABLE ---
   const bodyData = tableData.tableRows.map((row: any) => [row.description, row.quantity, `$${row.price.toFixed(2)}`, `$${row.total.toFixed(2)}`]);
 
   autoTable(doc, {
@@ -96,9 +95,8 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
     },
   });
 
-  // --- CRYPTO PAYMENT SECTION ---
-  // @ts-expect-error Shenanigans
-  let finalY = doc.lastAutoTable.finalY + 15;
+  let finalY = ((doc as jsPDF & {lastAutoTable: {finalY: number}}).lastAutoTable.finalY || 100) + 15;
+
   if (finalY > 230) {
     doc.addPage();
     finalY = 20;
@@ -142,7 +140,6 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
     doc.text('Scan to Pay', 167.5, payY + 40, {align: 'center'});
   }
 
-  // --- FOOTER ---
   doc.setFontSize(8);
   doc.setTextColor(200, 200, 200);
   doc.text(`Generated via ShadowSelf.io | Invoice #${identityData.invoice}`, 105, 290, {align: 'center'});

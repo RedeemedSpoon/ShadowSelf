@@ -1,570 +1,365 @@
 <script lang="ts">
-  import InputWithButton from '$component/inputs/InputWithButton.svelte';
-  import ReactiveButton from '$component/buttons/ReactiveButton.svelte';
-  import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
-  import CopyButton from '$component/buttons/CopyButton.svelte';
-  import Modal from '$component/containers/Modal.svelte';
-
-  import ExternalLinkIcon from '$icon/navigation/ExternalLink.svelte';
-  import CreditCardIcon from '$icon/finance/CreditCard.svelte';
-  import DownloadIcon from '$icon/actions/Download.svelte';
-  import KeylockIcon from '$icon/security/Keylock.svelte';
-  import CopyIcon from '$icon/actions/Copy.svelte';
-  import KeyIcon from '$icon/security/Key.svelte';
-  import InfoIcon from '$icon/status/Info.svelte';
-  import UserIcon from '$icon/user/User.svelte';
-
-  import {notify, awaitPending, triggerModal} from '$utils/shared';
-  import type {Stripe, StripeCardElement} from '@stripe/stripe-js';
-  import type {Notification, Settings, SettingsForm} from '$type';
-  import {activeModal, pendingID, user} from '$store';
-  import {loadStripe} from '@stripe/stripe-js/pure';
-  import type {PageData} from './$types';
   import {enhance} from '$app/forms';
-  import {onMount, onDestroy, tick} from 'svelte';
   import type {SubmitFunction} from '@sveltejs/kit';
+  import type {PageProps} from './$types';
+  import Button from '$component/ui/Button.svelte';
+  import Status from '$component/ui/Status.svelte';
+  import Dialog from '$component/ui/Dialog.svelte';
+  import Copy from '$component/ui/Copy.svelte';
+  import PaymentMethod from '$component/console/PaymentMethod.svelte';
 
-  interface Props {
-    form: Notification & Settings & SettingsForm;
-    data: PageData;
-  }
-
-  let {data, form}: Props = $props();
-
-  let list = $state() as HTMLElement;
-  let anchor = $state() as HTMLAnchorElement;
-  let card = $state() as StripeCardElement;
-  let newEmailValue = $state() as string;
-  let stripeLoaded = $state(false);
-  let recoveryCodes = $state<string[]>([]);
-  let isStripeLoading = false;
-  let stripe = $state() as Stripe;
-
-  let confirmationDialog: HTMLDialogElement;
-  let confirmationTitle = $state('');
-  let confirmationPassword = $state('');
-  let requiresPassword = $state(true);
-  let resolveConfirmation: ((confirmed: boolean) => void) | undefined;
-
-  function closeConfirmation(confirmed = false) {
-    confirmationDialog.close();
-    resolveConfirmation?.(confirmed);
-    resolveConfirmation = undefined;
-  }
-
-  function confirmChange(title: string, passwordField = 'currentPassword', submit?: SubmitFunction): SubmitFunction {
-    return async (input) => {
-      if (resolveConfirmation) return input.cancel();
-
-      confirmationTitle = title;
-      confirmationPassword = '';
-      requiresPassword = Boolean(passwordField);
-      const confirmation = new Promise<boolean>((resolve) => (resolveConfirmation = resolve));
-      await tick();
-      confirmationDialog.showModal();
-
-      if (!(await confirmation)) {
-        confirmationPassword = '';
-        return input.cancel();
-      }
-
-      if (passwordField) input.formData.set(passwordField, confirmationPassword);
-      confirmationPassword = '';
-
-      if (submit) return submit(input);
-      return async ({update}) => update({reset: false});
-    };
-  }
-
-  const settings = $state((() => data.settings)());
-
-  const className = {
-    label: 'bg-neutral-900/50! border-neutral-700!',
-    icon: 'fill-neutral-700 stroke-neutral-700',
-    input: 'placeholder-neutral-700 bg-neutral-900/50! border-neutral-700!',
-  };
-
-  const sections = [
-    {id: 'credentials', title: 'Basic Credentials', icon: UserIcon},
-    {id: '2fa', title: 'Two Factor Authentication', icon: KeylockIcon},
-    {id: 'api', title: 'API Access & Key', icon: KeyIcon},
-    {id: 'billing', title: 'Billing Information', icon: CreditCardIcon},
-    {id: 'danger', title: 'Danger Zone', icon: InfoIcon},
-  ];
+  let {data, form}: PageProps = $props();
+  let pending = $state('');
+  let mode = $state('');
+  let email = $state('');
+  let totp = $state({secret: '', qr: '', step: 0});
+  let recovery = $state<string[]>([]);
+  let key = $state('');
+  let paymentID = $state('');
+  let paymentOpen = $state(false);
+  let deleteOpen = $state(false);
 
   $effect(() => {
-    if ($activeModal === 3 && !stripeLoaded && !isStripeLoading && data.stripeKey) {
-      isStripeLoading = true;
-      initStripe(data.stripeKey);
+    if (!form) {
+      return;
     }
 
-    if (form?.message) notify(form.message, form.type);
-    if (settings?.message) notify(settings.message, settings.type);
-
-    if (form && Object.hasOwn(form, 'toggleModel')) {
-      if (form.toggleModel) $activeModal = 1;
-      else $activeModal = 0;
+    if (form.toggleModel) {
+      mode = 'emailVerify';
     }
 
-    if (form?.sessionUrl) {
-      settings.sessionUrl = form.sessionUrl;
-      $activeModal = 0;
+    if (form.toggleModel === false) {
+      mode = '';
     }
 
-    if (form && Object.hasOwn(form, 'OTP')) settings.OTP = form.OTP;
-    if (form && Object.hasOwn(form, 'API')) settings.API = form.API;
+    if (form.secret || form.qr) {
+      totp = {secret: form.secret || totp.secret, qr: form.qr || totp.qr, step: Number(form.step || 1)};
+    }
 
-    if (form?.username) $user = form.username;
-    if (form?.recovery) recoveryCodes = form.recovery;
-    if (form && Object.hasOwn(form, 'recoveryRemaining')) settings.recoveryRemaining = form.recoveryRemaining;
-    if (form?.OTP === false) recoveryCodes = [];
-    if (form?.secret) settings.secret = form.secret;
-    if (form?.email) newEmailValue = form.email;
-    if (form?.step) settings.step = form.step;
-    if (form?.key) settings.key = form.key;
-    if (form?.qr) settings.qr = form.qr;
+    if (form.recovery) {
+      recovery = form.recovery;
+    }
+
+    if (form.key) {
+      key = form.key;
+    }
+
+    if (form.sessionUrl && pending === 'portal') {
+      window.location.assign(form.sessionUrl);
+    }
   });
 
-  function handleClick(index: number) {
-    const array = Array.from(list.children);
-    array.forEach((item) => item.classList.remove('bg-neutral-300/10!', 'border-l-4', '2xl:pl-24!'));
-    array[index + 1].classList.add('bg-neutral-300/10!', 'border-l-4', '2xl:pl-24!');
-  }
+  const submit: SubmitFunction = ({formElement}) => {
+    pending = formElement.dataset.action || 'action';
 
-  const copyRecovery = () => navigator.clipboard.writeText(recoveryCodes.join('\n'));
-  const downloadRecovery = () => {
-    const text = recoveryCodes.join('\n');
-    const blob = new Blob([text], {type: 'text/plain'});
-    anchor.href = URL.createObjectURL(blob);
-    anchor.click();
+    return async ({update, result}) => {
+      try {
+        if (result.type === 'success' && result.data?.sessionUrl && pending === 'portal') {
+          window.location.assign(result.data.sessionUrl);
+        }
+
+        await update({reset: false});
+      } finally {
+        pending = '';
+      }
+    };
   };
+  const settings = $derived(data.settings);
 
-  async function initStripe(stripeKey: string) {
-    pendingID.set(5);
-    loadStripe.setLoadParameters({advancedFraudSignals: false});
-    stripe = (await loadStripe(stripeKey)) as Stripe;
-
-    card = stripe!.elements().create('card', {
-      classes: {
-        base: 'rounded-xl border p-4 transition-all duration-300 border-neutral-800 bg-neutral-800/30',
-        focus: 'ring-2 ring-primary-700',
-      },
-      style: {
-        base: {color: '#cbd5e1', iconColor: '#94a3b8', '::placeholder': {color: '#94a3b8'}},
-      },
-    });
-
-    setTimeout(() => {
-      card.mount('#payment');
-      stripeLoaded = true;
-      pendingID.set(0);
-    }, 300);
-
-    return 9;
+  function close() {
+    mode = '';
+    totp = {secret: '', qr: '', step: 0};
+    key = '';
+    recovery = [];
   }
-
-  async function submitPayment() {
-    pendingID.set(5);
-
-    const {paymentMethod, error} = await stripe!.createPaymentMethod({type: 'card', card});
-    if (paymentMethod) {
-      const input = document.querySelector('input[name="paymentID"]') as HTMLInputElement;
-      const submit = document.querySelector('#submit-payment') as HTMLButtonElement;
-
-      input.value = paymentMethod.id;
-      pendingID.set(0);
-      submit.click();
-    } else {
-      notify(error!.message!, 'alert');
-      pendingID.set(0);
-    }
-  }
-
-  onDestroy(() => {
-    resolveConfirmation?.(false);
-  });
-
-  onMount(() => {
-    handleClick(0);
-    $activeModal = 0;
-    settings.step = 1;
-  });
 </script>
 
-<svelte:head>
-  <title>ShadowSelf - Settings</title>
-  <meta name="description" content="Change your account settings here and keep yourself secure" />
-  <meta name="referrer" content="strict-origin-when-cross-origin" />
-</svelte:head>
-
-<div id="settings">
-  <ul bind:this={list} class="flex flex-col bg-neutral-800/40 pt-24 max-xl:hidden">
-    <li id="title">Sections</li>
-    {#each sections as section, i (section.id)}
-      {@const SvelteComponent = section.icon}
-      <a onclick={() => handleClick(i)} href="#{section.id}" style="top: {(i + 3.25) * 4}rem">
-        <li class="flex items-center gap-2">
-          <SvelteComponent fill={true} className="h-8 w-8" /><span>{section.title}</span>
-        </li>
-      </a>
-    {/each}
-  </ul>
-
-  <section class="my-20 flex h-full w-full min-w-0 flex-col gap-8 px-4 md:px-6 xl:px-24">
-    <h1 class="basic-style text-5xl font-bold">Account Settings</h1>
-    <p class="-mt-6">Change your account settings here and keep yourself secure</p>
-
-    <h2 id="credentials"><UserIcon className="h-10! w-10! cursor-default" />Basic Credentials:</h2>
-    <form use:enhance={confirmChange('Change email', 'currentPassword', () => awaitPending(true, 1, true))} method="POST" action="?/email">
-      <label class="md:w-fit!" for="email">Email:</label>
-      <InputWithButton value={settings.email} placeholder="New address" type="email" index={1} label="Change Email" name="email" />
-    </form>
-    <form use:enhance={confirmChange('Change username', 'currentPassword', () => awaitPending(true, 3))} method="POST" action="?/username">
-      <label class="md:w-fit!" for="username">Username:</label>
-      <InputWithButton placeholder="New username" value={data.user} index={3} label="Change Username" name="username" />
-    </form>
-    <form use:enhance={confirmChange('Change password and log out', 'currentPassword', () => awaitPending(true, 4))} method="POST" action="?/password">
-      <label class="md:w-fit!" for="password">Password:</label>
-      <InputWithButton placeholder="New password" type="password" index={4} label="Change Password" name="password" />
-    </form>
-    <hr />
-
-    <h2 id="2fa"><KeylockIcon className="h-10! w-10! cursor-default" fill={true} />Two Factor Authentication:</h2>
-    <form
-      class="settings-row"
-      use:enhance={(input) => (input.formData.has('remove') ? confirmChange('Remove 2FA')(input) : triggerModal(2))}
-      method="POST"
-      action="?/checkOtp">
-      <span class="row-label"
-        ><span class="max-[359px]:hidden">Time-based one-time password:</span><abbr class="hidden max-[359px]:inline" title="Time-based one-time password"
-          >TOTP:</abbr
-        ></span>
-      {#if settings.OTP}
-        <button formaction="?/generateOtp" type="submit" class="w-fit"
-          ><span class="max-md:hidden">Change 2FA</span><span class="md:hidden">Change</span></button>
-        <button formaction="?/deleteOtp" type="submit" name="remove" class="disable w-fit"
-          ><span class="max-md:hidden">Remove 2FA</span><span class="md:hidden">Remove</span></button>
-      {:else}
-        <button formaction="?/generateOtp" type="submit" class="enable w-fit">Add 2FA</button>
-      {/if}
-    </form>
-    <form class="flex-col" use:enhance={confirmChange('Replace recovery codes', 'password')} method="POST" action="?/recovery">
-      <div class="flex justify-between gap-4 max-md:flex-col md:items-center">
-        <label for="recovery">Remaining recovery codes: {settings.recoveryRemaining}</label>
-        <button disabled={!settings.OTP} type="submit" class="w-fit">Generate New Recovery Codes</button>
+<svelte:head><title>Account settings | ShadowSelf</title></svelte:head>
+<div class="page-heading">
+  <div>
+    <h1>Account settings</h1>
+  </div>
+</div>
+<Status message={form?.message || ''} kind={form?.type === 'success' ? 'success' : 'error'} /><Status
+  message={settings.type === 'alert' ? settings.message : ''}
+  kind="error" />
+<div class="settings-grid">
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <h2>Account details</h2>
       </div>
-      <p>New codes replace all previous codes. Save them now; they cannot be shown again.</p>
-    </form>
-    {#if settings.OTP}
-      <div id="recovery" class="grid-cols-1 xl:grid-cols-2">
-        {#each recoveryCodes as code, id (id)}
-          <p class="font-mono text-sm">{code}</p>
-        {:else}
-          <p>Saved codes are hidden. Generate replacements if you lost them.</p>
-        {/each}
+    </div>
+    <dl class="data-list">
+      <div>
+        <dt>Username</dt>
+        <dd>{settings.username}</dd>
       </div>
-      {#if recoveryCodes.length}
-        <button type="button" class="alt" onclick={() => (recoveryCodes = [])}>I saved these codes. Hide them</button>
-        <div class="flex justify-evenly max-md:flex-col max-md:items-center">
-          <ReactiveButton icon={CopyIcon} text="Copy to clipboard" newText="Copied!" callback={copyRecovery} />
-          <ReactiveButton icon={DownloadIcon} text="Download as .txt" newText="Downloaded!" callback={downloadRecovery} />
-          <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
-        </div>
-      {/if}
-    {/if}
-    <hr />
-
-    <h2 id="api"><KeyIcon className="h-10! w-10! cursor-default" />API Access & Key:</h2>
-    <form class="settings-row" use:enhance={confirmChange('Change API access', 'currentPassword')} method="POST" action="?/toggleApi">
-      <label for="access">API Access:</label>
-      {#if settings.API}
-        <button name="disable" type="submit" class="disable w-fit">Disable API Access</button>
-      {:else}
-        <button name="enable" type="submit" class="enable w-fit">Enable API Access</button>
-      {/if}
-    </form>
-    <form class="settings-row" use:enhance={confirmChange('Replace API key', 'currentPassword')} method="POST" action="?/api">
-      <div class="api-key">
-        <label class="w-fit" for="key">API Key:</label>
-        {#if settings.API}
-          <CopyButton text={settings.key} className="md:max-lg:max-w-[20vw]" change={false} />
-        {/if}
+      <div>
+        <dt>Email</dt>
+        <dd>{settings.email}</dd>
       </div>
-      <button disabled={!settings.API} type="submit" class="w-fit"
-        ><span class="max-md:hidden">Generate New API Key</span><span class="md:hidden">Regenerate</span></button>
-    </form>
-    <hr />
-
-    <h2 id="billing"><CreditCardIcon fill={true} className="h-10! w-10! cursor-default" />Billing Information:</h2>
-    <form class="settings-row" method="POST" action="?/portal" use:enhance={confirmChange('Open billing portal', 'currentPassword')}>
-      <span class="row-label">Payment Details:</span>
-      <button type="submit" class="alt"><span class="max-md:hidden">Open Billing Portal</span><span class="md:hidden">Billing portal</span></button>
-      {#if settings.sessionUrl}
-        <a href={settings.sessionUrl} target="_blank" rel="noopener noreferrer" id="stripe-link">Manage<ExternalLinkIcon /></a>
-      {:else}
-        <button class="md:w-fit" type="button" onclick={() => ($activeModal = 3)}
-          ><span class="max-md:hidden">Add Payment Method</span><span class="md:hidden">Add card</span></button>
-      {/if}
-    </form>
-    <hr />
-
-    <h2>Active sessions</h2>
-    <p>Revoke a session to stop its requests and close its active connections.</p>
-    {#each data.sessions as session (session.id)}
-      <form
-        method="POST"
-        action="?/revokeSession"
-        use:enhance={confirmChange(session.current ? 'Log out of this session' : 'Revoke session', '')}
-        class="settings-row session-row">
-        <span>{session.current ? 'This session' : 'Other session'} · {session.id.slice(0, 8)}</span>
-        <input type="hidden" name="id" value={session.id} />
-        <input type="hidden" name="current" value={String(session.current)} />
-        <button type="submit" class="alt">{session.current ? 'Log out' : 'Revoke session'}</button>
-      </form>
-    {/each}
-    <hr />
-
-    <h2 id="danger"><InfoIcon fill={true} className="mr-1 h-9! w-9! cursor-default" />Danger Zone:</h2>
-    <form
-      class="settings-row"
-      use:enhance={(input) => confirmChange(input.formData.has('revoke') ? 'Revoke all sessions and log out' : 'Log out', '')(input)}
-      method="POST"
-      action="?/session">
-      <label for="logout">Session Management:</label>
-      <button type="submit" name="logout" class="alt">Logout</button>
-      <button type="submit" class="alt" name="revoke"><span class="max-md:hidden">Revoke All Sessions</span><span class="md:hidden">Revoke all</span></button>
-    </form>
-    <form class="settings-row" use:enhance={confirmChange('Permanently delete your account')} method="POST" action="?/delete">
-      <label for="delete">Account Deletion:</label>
-      <button type="submit" class="disable md:w-fit">Delete Account</button>
-    </form>
+    </dl>
+    <div class="button-row settings-actions">
+      <Button variant="secondary" onclick={() => (mode = 'username')}>Change username</Button><Button
+        variant="secondary"
+        onclick={() => {
+          email = settings.email || '';
+          mode = 'email';
+        }}>Change email</Button
+      ><Button variant="quiet" icon="key" onclick={() => (mode = 'password')}>Change password</Button>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <h2>Sign-in security</h2>
+      </div>
+      <span class="badge {settings.OTP ? 'active' : ''}">{settings.OTP ? '2FA enabled' : '2FA off'}</span>
+    </div>
+    <p>{settings.recoveryRemaining ?? 0} recovery codes remain. Each code is valid once.</p>
+    <div class="button-row settings-actions">
+      {#if settings.OTP}<Button variant="secondary" onclick={() => (mode = 'deleteOtp')}>Disable authenticator</Button>{:else}<form
+          action="?/generateOtp"
+          method="POST"
+          use:enhance={submit}
+          data-action="generateOtp">
+          <Button variant="secondary" loading={pending === 'generateOtp'} type="submit" onclick={() => (mode = 'totp')}>Set up authenticator</Button>
+        </form>{/if}<Button variant="quiet" onclick={() => (mode = 'recovery')}>Replace recovery codes</Button>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <h2>API access</h2>
+      </div>
+      <span class="badge {settings.API ? 'active' : ''}">{settings.API ? 'Enabled' : 'Disabled'}</span>
+    </div>
+    <p>New API keys are shown once. Generating a key replaces the existing one.</p>
+    <div class="button-row settings-actions">
+      <Button variant="secondary" onclick={() => (mode = 'toggleApi')}>{settings.API ? 'Disable API access' : 'Enable API access'}</Button><Button
+        variant="quiet"
+        disabled={!settings.API}
+        onclick={() => (mode = 'api')}>Generate new key</Button>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <h2>Billing</h2>
+      </div>
+    </div>
+    <p>Identity subscriptions use Stripe.</p>
+    <div class="button-row settings-actions">
+      <Button variant="secondary" icon="card" onclick={() => (paymentOpen = true)}>Add payment card</Button><Button
+        variant="quiet"
+        onclick={() => (mode = 'portal')}>Open billing portal</Button>
+    </div>
   </section>
 </div>
-
-<Modal id={1}>
-  <form
-    class="flex-col! p-8"
-    use:enhance={confirmChange('Confirm email change', 'currentPassword', () => awaitPending(true, 2, true))}
-    method="POST"
-    action="?/access">
-    <h1 class="-mb-2!">Enter the email code</h1>
-    <p>Enter the eight-digit code sent to your new address. It expires in ten minutes.</p>
-    <InputWithIcon {className} type="password" name="access" placeholder="12345678" icon={KeylockIcon} />
-    <LoadingButton index={2} className="mt-2">Confirm</LoadingButton>
-    <input hidden value={newEmailValue} name="email" />
-  </form>
-</Modal>
-
-<Modal id={2}>
-  {#if settings.step === 1}
-    <form use:enhance method="POST" action="?/nextOtp">
-      <div class="flex items-center gap-8 max-md:flex-col xl:m-8 xl:gap-16">
-        <div class="flex flex-col items-center gap-6">
-          <h1>Scan the QR code</h1>
-          <img src={settings.qr} alt="QR Code" width="200" class="w-5/6 shadow-xl shadow-white/15" />
-        </div>
-        <div class="flex flex-col gap-2">
-          <h1>Or enter the secret key</h1>
-          <p class="mb-2">Alternatively, you can paste this secret key into your auth app:</p>
-          <CopyButton text={settings.secret} className="md:max-lg:max-w-[30vw]" change={false} />
-          <p class="mt-2 ml-1 text-sm text-red-500">Use SHA-1, six digits and a 30-second period.</p>
-        </div>
-      </div>
-      <button type="submit" class="right-16 bottom-12 w-fit! md:absolute">Next →</button>
-    </form>
-  {:else if settings.step === 2}
-    <form use:enhance={confirmChange('Enable 2FA', 'currentPassword', () => awaitPending(true, 5))} method="POST" action="?/checkOtp">
-      <input hidden name="secret" value={settings.secret} />
-      <div class="flex flex-col gap-8 xl:m-8">
-        <h1 class="-mb-2!">Enter the verification token</h1>
-        <p>Enter the verification token generated by your authenticator app</p>
-        <InputWithIcon type="number" name="token" {className} icon={KeylockIcon} placeholder="123456" />
-        <LoadingButton index={5} className="mt-2">Verify</LoadingButton>
-      </div>
-    </form>
-  {:else}
-    <form use:enhance={() => triggerModal(0)} method="POST" action="?/otp">
-      <input hidden name="secret" value={settings.secret} />
-      <div class="flex flex-col gap-4 xl:m-8">
-        <h1>2FA Setup Complete!</h1>
-        <p class="md:w-[40vw]">You can now use 2FA to log into your account. We gave you the recovery codes below, please keep them safe</p>
-        <div class="mx-8 mt-12 flex justify-between gap-4">
-          <button type="submit" name="finish">Finish →</button>
-        </div>
-      </div>
-    </form>
-  {/if}
-</Modal>
-
-<Modal id={3}>
-  <form
-    class="flex-col! p-8"
-    use:enhance={confirmChange('Add payment method', 'currentPassword', () => awaitPending(true, 5))}
-    method="POST"
-    action="?/payment">
-    <h1 class="-mb-2!">Enter your credit card details</h1>
-    <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
-    <div id="payment" class={!stripeLoaded ? 'hidden' : ''}></div>
-    <input hidden name="paymentID" />
-    {#if stripeLoaded}
-      <LoadingButton type="button" onclick={submitPayment} index={5}>Add Payment Method</LoadingButton>
-    {/if}
-    <button hidden type="submit" id="submit-payment">Submit</button>
-  </form>
-</Modal>
-
-<dialog
-  bind:this={confirmationDialog}
-  class="confirmation-dialog"
-  aria-labelledby="confirmation-title"
-  aria-describedby="confirmation-description"
-  oncancel={(event) => {
-    event.preventDefault();
-    closeConfirmation();
-  }}>
-  <form
-    onsubmit={(event) => {
-      event.preventDefault();
-      closeConfirmation(true);
-    }}>
-    <h2 id="confirmation-title">{confirmationTitle}</h2>
-    <p id="confirmation-description">
-      {requiresPassword ? 'Enter your current account password to confirm.' : 'Confirm to continue. This will end the selected sessions.'}
-    </p>
-    {#if requiresPassword}
-      <label for="confirmation-password">Current password</label>
-      <input id="confirmation-password" type="password" autocomplete="current-password" bind:value={confirmationPassword} required />
-    {/if}
-    <div class="confirmation-actions">
-      <button type="button" class="alt" onclick={() => closeConfirmation()}>Cancel</button>
-      <button type="submit">Confirm</button>
+<section class="panel sessions-panel">
+  <div class="section-heading">
+    <div>
+      <h2>Active sessions</h2>
     </div>
+  </div>
+  {#if !data.sessions.length}<p>No sessions could be loaded.</p>{:else}<div class="sessions-list">
+      {#each data.sessions as session (session.id)}<div>
+          <span class="session-title">{session.current ? 'This browser' : 'Signed-in browser'}<code>{session.id.slice(0, 12)}…</code></span>
+          <form method="POST" action="?/revokeSession" use:enhance={submit} data-action={session.id}>
+            <input type="hidden" name="id" value={session.id} /><input type="hidden" name="current" value={String(session.current)} /><Button
+              type="submit"
+              variant="secondary"
+              loading={pending === session.id}>Revoke session</Button>
+          </form>
+        </div>{/each}
+    </div>{/if}
+  <form method="POST" action="?/session" use:enhance={submit} data-action="sessions">
+    <input type="hidden" name="revoke" value="true" /><Button type="submit" variant="quiet" loading={pending === 'sessions'}>Sign out all sessions</Button>
   </form>
-</dialog>
+</section>
+<section class="panel danger-panel">
+  <div>
+    <h2>Delete account</h2>
+    <p>Remove the account and request deletion of every identity. Move wallet funds first.</p>
+  </div>
+  <Button variant="danger" icon="trash" onclick={() => (deleteOpen = true)}>Delete account</Button>
+</section>
+<Dialog
+  open={!!mode}
+  title={mode === 'totp'
+    ? 'Set up authenticator'
+    : mode === 'emailVerify'
+      ? 'Verify new email'
+      : mode === 'toggleApi'
+        ? 'Change API access'
+        : mode === 'deleteOtp'
+          ? 'Disable authenticator'
+          : mode === 'portal'
+            ? 'Open billing portal'
+            : mode === 'api'
+              ? 'Generate API key'
+              : mode === 'recovery'
+                ? 'Replace recovery codes'
+                : `Change ${mode}`}
+  onclose={close}>
+  {#if key}<Status message="Store this key now. It will not be shown again." /><Copy value={key} label="Copy API key" />{:else if recovery.length}<Status
+      message="The previous recovery codes no longer work. Save these replacement codes now." />
+    <div class="recovery-codes">
+      {#each recovery as code (code)}<span>{code}</span>{/each}
+    </div>
+    <Copy value={recovery.join('\n')} label="Copy codes" />
+  {:else if mode === 'totp'}{#if totp.qr}<img class="qr-image" src={totp.qr} alt="Authenticator enrollment QR code" /><Copy
+        value={totp.secret}
+        label="Copy secret" />
+      <form method="POST" action="?/checkOtp" use:enhance={submit} data-action="checkOtp">
+        <input type="hidden" name="secret" value={totp.secret} />
+        <div class="field">
+          <label for="settings-token">Authenticator code</label><input
+            id="settings-token"
+            name="token"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            pattern="[0-9]{6}"
+            required />
+        </div>
+        <div class="field">
+          <label for="totp-password">Account password</label><input
+            id="totp-password"
+            name="currentPassword"
+            type="password"
+            autocomplete="current-password"
+            required />
+        </div>
+        <Button type="submit" loading={pending === 'checkOtp'}>Enable authenticator</Button>
+      </form>{:else}<Status message="Request an enrollment code to connect your authenticator." />
+      <form method="POST" action="?/generateOtp" use:enhance={submit} data-action="generateOtp">
+        <Button type="submit" loading={pending === 'generateOtp'}>Load enrollment code</Button>
+      </form>{/if}
+  {:else}<form method="POST" action="?/{mode === 'emailVerify' ? 'access' : mode}" use:enhance={submit} data-action={mode}>
+      {#if mode === 'username'}<div class="field">
+          <label for="settings-username">New username</label><input id="settings-username" name="username" value={settings.username} required maxlength="32" />
+        </div>{/if}{#if mode === 'email'}<div class="field">
+          <label for="settings-email">New email address</label><input id="settings-email" name="email" type="email" bind:value={email} required />
+        </div>{/if}{#if mode === 'emailVerify'}<input type="hidden" name="email" value={email} />
+        <div class="field">
+          <label for="settings-email-code">Code sent to {email}</label><input
+            id="settings-email-code"
+            name="access"
+            inputmode="numeric"
+            pattern="[0-9]{8}"
+            required />
+        </div>{/if}{#if mode === 'password'}<Status message="Changing the account password signs out all sessions and revokes the API key." />
+        <div class="field">
+          <label for="settings-new-password">New account password</label><input
+            id="settings-new-password"
+            name="password"
+            type="password"
+            minlength="12"
+            autocomplete="new-password"
+            required />
+        </div>{/if}{#if mode === 'toggleApi'}<input type="hidden" name="enabled" value={String(!settings.API)} />{/if}{#if mode === 'deleteOtp'}<p>
+          This removes the authenticator requirement from future sign-ins.
+        </p>{/if}
+      <div class="field settings-password">
+        <label for="settings-current-password">Current account password</label><input
+          id="settings-current-password"
+          name={mode === 'recovery' ? 'password' : 'currentPassword'}
+          type="password"
+          autocomplete="current-password"
+          required />
+      </div>
+      <Status message={form?.message || ''} kind="error" /><Button type="submit" loading={pending === mode}
+        >{mode === 'portal'
+          ? 'Open Stripe portal'
+          : mode === 'api'
+            ? 'Generate key'
+            : mode === 'recovery'
+              ? 'Generate replacement codes'
+              : mode === 'email'
+                ? 'Send verification code'
+                : 'Confirm change'}</Button>
+    </form>{/if}
+</Dialog>
+<Dialog bind:open={paymentOpen} title="Add payment card"
+  ><PaymentMethod stripeKey={data.stripeKey} onready={(id) => (paymentID = id)} />
+  <form method="POST" action="?/payment" use:enhance={submit} data-action="payment">
+    <input type="hidden" name="paymentID" value={paymentID} />
+    <div class="field">
+      <label for="payment-password">Account password</label><input
+        id="payment-password"
+        name="currentPassword"
+        type="password"
+        autocomplete="current-password"
+        required />
+    </div>
+    <Status message={form?.message || ''} kind="error" /><Button type="submit" disabled={!paymentID} loading={pending === 'payment'}
+      >Save payment method</Button>
+  </form></Dialog>
+<Dialog bind:open={deleteOpen} title="Delete your account"
+  ><p>This cancels subscriptions and begins removing account resources. The deletion can remain pending while providers finish cleanup.</p>
+  <form method="POST" action="?/delete" use:enhance={submit} data-action="delete">
+    <div class="field settings-password">
+      <label for="account-delete-password">Account password</label><input
+        id="account-delete-password"
+        name="currentPassword"
+        type="password"
+        autocomplete="current-password"
+        required />
+    </div>
+    <Status message={form?.message || ''} kind="error" /><Button type="submit" variant="danger" loading={pending === 'delete'}
+      >Delete account and identities</Button>
+  </form></Dialog>
 
-<style lang="postcss">
-  @reference "$style";
-
-  #settings {
-    @apply grid h-full min-h-screen w-full pt-20 text-neutral-400 xl:grid-cols-[minmax(0,1fr)_minmax(0,3fr)];
+<style>
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
   }
-
-  #stripe-link {
-    @apply shadow-primary-900 hover:shadow-primary-950 shadow-lg transition-all duration-300;
-    @apply flex justify-center gap-1 rounded-md px-6 py-4 text-xl text-neutral-300 transition-all md:w-fit;
-    @apply hover-gradient-large from-primary-800 to-primary-600 bg-linear-to-t;
+  .settings-grid > .panel {
+    margin: 0;
   }
-
-  h1:not(.basic-style) {
-    @apply text-3xl text-neutral-300 lg:text-[2.5rem];
+  .settings-actions {
+    margin-top: 22px;
   }
-
-  h2 {
-    @apply flex scroll-m-48 items-center gap-2 text-2xl text-neutral-300 md:text-3xl;
+  .sessions-panel {
+    margin-top: 18px;
   }
-
-  #title {
-    @apply sticky top-28 py-4 pl-16 text-4xl font-semibold text-neutral-100;
+  .sessions-list > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 15px 0;
+    border-top: 1px solid #a5b4fc20;
   }
-
-  #recovery {
-    @apply grid place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8;
+  .session-title {
+    font-size: 12px;
   }
-
-  #recovery > * {
-    @apply font-mono font-medium tracking-wider text-neutral-300;
+  .session-title code {
+    display: block;
+    color: #71839f;
+    font-size: 10px;
+    margin-top: 5px;
   }
-
-  ul a {
-    @apply border-primary-700 sticky py-3 pl-10 text-neutral-300 2xl:pl-20;
-    @apply transition-all duration-200 ease-in-out hover:bg-neutral-300/5;
+  .danger-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    margin-top: 25px;
+    border-color: #e6829128;
   }
-
-  ul a span {
-    @apply whitespace-normal;
+  .settings-password {
+    margin-top: 20px;
   }
-
-  form {
-    @apply flex flex-wrap items-center gap-4 max-md:flex-col;
-  }
-
-  form > * {
-    @apply max-md:w-full max-md:self-center;
-  }
-
-  .row-label {
-    @apply text-xl font-semibold text-neutral-300;
-  }
-
-  .settings-row {
-    @apply flex-row flex-nowrap gap-3;
-  }
-
-  .settings-row > * {
-    @apply w-auto shrink-0;
-  }
-
-  .settings-row > :first-child {
-    @apply mr-auto;
-  }
-
-  .settings-row :global(button),
-  .row-label,
-  .settings-row label {
-    @apply whitespace-nowrap;
-  }
-
-  .api-key {
-    @apply flex min-w-0 shrink! items-center gap-4;
-  }
-
-  .api-key :global(button) {
-    @apply min-w-0 overflow-hidden;
-  }
-
-  .api-key :global(p) {
-    @apply min-w-0 truncate;
-  }
-
-  .session-row {
-    @apply justify-between rounded-xl border border-neutral-800 bg-neutral-800/20 p-4;
-  }
-
-  .confirmation-dialog {
-    @apply m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-neutral-700 bg-neutral-900 p-6 text-neutral-300 shadow-2xl;
-  }
-
-  .confirmation-dialog::backdrop {
-    @apply bg-black/70 backdrop-blur-sm;
-  }
-
-  .confirmation-dialog form {
-    @apply flex-col items-stretch;
-  }
-
-  .confirmation-actions {
-    @apply mt-2 flex justify-end gap-3;
-  }
-
-  @media (max-width: 767px) {
-    .settings-row {
-      @apply gap-2;
+  @media (max-width: 950px) {
+    .settings-grid {
+      grid-template-columns: 1fr;
     }
-
-    .settings-row :global(button),
-    .settings-row :global(a) {
-      @apply px-2 py-2 text-xs;
+    .danger-panel {
+      flex-wrap: wrap;
     }
-
-    .settings-row label,
-    .row-label,
-    .session-row span {
-      @apply ml-0 text-xs;
-    }
-  }
-
-  label {
-    @apply ml-2 whitespace-normal text-neutral-300;
   }
 </style>

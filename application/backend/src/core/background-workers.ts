@@ -7,44 +7,62 @@ import {BTC_API, ETH_API, LTC_API, XMR_NODE, COINGECKO_URL} from '@core/constant
 import {PAYMENT_WINDOW_MIN} from '@core/constants';
 import type {CryptoCurrencies, QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
-import {safeFetch, withReservedTransaction} from '@utils/utils';
+import {providerJson, withReservedTransaction} from '@utils/utils';
 import {sql} from '@core/services';
+import {cryptoBillingEnabled, stripeConfig, moneroWallet} from '@core/config';
 import type {ReservedSql} from 'postgres';
 
 async function pollInvoices(sql: ReservedSql) {
-  if (!watchWallet) return;
+  if (!watchWallet) {
+    return;
+  }
 
   await watchWallet.sync();
   billingReadiness.lastSync = Date.now();
+
   const invoices =
     (await sql`SELECT * FROM crypto_invoices WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late') AND xmr_subaddress IS NOT NULL`) as QueryInvoice[];
+
   let stateChanged = false;
 
   for (const invoice of invoices) {
     const subaddress = await watchWallet.getAddressIndex(invoice.xmr_subaddress);
+
     const balance = await watchWallet.getBalance(subaddress.getAccountIndex(), subaddress.getIndex());
+
     const unlocked = await watchWallet.getUnlockedBalance(subaddress.getAccountIndex(), subaddress.getIndex());
+
     const xmrAmount = parseXmr(invoice.xmr_amount);
     await sql`INSERT INTO invoice_observations (invoice_id, total, unlocked)
       SELECT ${invoice.id}, ${balance.toString()}, ${unlocked.toString()}
       WHERE NOT EXISTS (SELECT 1 FROM (SELECT total, unlocked FROM invoice_observations WHERE invoice_id = ${invoice.id} ORDER BY id DESC LIMIT 1) latest
         WHERE total = ${balance.toString()} AND unlocked = ${unlocked.toString()})`;
+
     const first =
       await sql`SELECT MIN(observed_at) AS first_payment FROM invoice_observations WHERE invoice_id = ${invoice.id} AND total >= ${xmrAmount.toString()}`;
+
     const expiry = new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000;
     const state = invoiceState(balance, unlocked, xmrAmount, expiry, first[0].first_payment ? new Date(first[0].first_payment).getTime() : null, Date.now());
 
     if (state === 'paid') {
       stateChanged = true;
+
       const identityID = invoice.renewal_id || generateIdentityID();
       const activated = await withReservedTransaction(sql, async (transaction) => {
         const claimed = await transaction`UPDATE crypto_invoices SET status = 'paid' WHERE id = ${invoice.id} AND status <> 'paid' RETURNING id`;
-        if (!claimed.length) return false;
+
+        if (!claimed.length) {
+          return false;
+        }
 
         if (invoice.renewal_id) {
-          const renewed =
-            await transaction`UPDATE identities SET crypto_invoice = ${invoice.id}, status = 'active' WHERE id = ${identityID} AND owner = ${invoice.owner} AND status <> 'deleting' RETURNING id`;
-          if (!renewed.length) throw new Error('Renewal needs reconciliation; identity is unavailable');
+          const renewed = await transaction`UPDATE identities SET crypto_invoice = ${invoice.id},
+              status = CASE WHEN EXISTS (SELECT 1 FROM creation_jobs WHERE identity_id = ${identityID} AND status = 'completed') THEN 'active' ELSE 'inactive' END
+              WHERE id = ${identityID} AND owner = ${invoice.owner} AND status <> 'deleting' RETURNING id`;
+
+          if (!renewed.length) {
+            throw new Error('Renewal needs reconciliation; identity is unavailable');
+          }
         } else {
           await transaction`INSERT INTO identities (id, owner, creation_date, plan, crypto_invoice)
             VALUES (${identityID}, ${invoice.owner}, ${new Date()}, ${invoice.plan}, ${invoice.id})`;
@@ -52,27 +70,44 @@ async function pollInvoices(sql: ReservedSql) {
 
         return true;
       });
-      if (!activated) continue;
+
+      if (!activated) {
+        continue;
+      }
 
       const sockets = invoiceConnections.values().filter((ws) => ws.invoiceID === invoice.id);
+
       for (const ws of sockets) {
-        if (await ws.authorize()) ws.websocket.send(JSON.stringify({status: 'paid', identityID}));
-      }
-    } else if (state === 'underpaid') {
-      if (invoice.status !== 'underpaid') {
-        stateChanged = true;
-        await sql`UPDATE crypto_invoices SET status = 'underpaid' WHERE id = ${invoice.id}`;
-      }
-      const remainingAmount = Number(xmrAmount - balance) / 1e12;
-      const sockets = invoiceConnections.values().filter((ws) => ws.invoiceID === invoice.id);
-      for (const ws of sockets) {
-        if (await ws.authorize()) ws.websocket.send(JSON.stringify({status: 'underpaid', remainingAmount}));
+        if (await ws.authorize()) {
+          ws.websocket.send(JSON.stringify({status: 'paid', identityID}));
+        }
       }
     } else {
-      await sql`UPDATE crypto_invoices SET status = ${state} WHERE id = ${invoice.id} AND status <> 'paid'`;
-      const sockets = invoiceConnections.values().filter((ws) => ws.invoiceID === invoice.id);
-      for (const ws of sockets) {
-        if (await ws.authorize()) ws.websocket.send(JSON.stringify({status: state}));
+      if (state === 'underpaid') {
+        if (invoice.status !== 'underpaid') {
+          stateChanged = true;
+          await sql`UPDATE crypto_invoices SET status = 'underpaid' WHERE id = ${invoice.id}`;
+        }
+
+        const atoms = xmrAmount - balance;
+        const remainingAmount = `${atoms / 1_000_000_000_000n}.${(atoms % 1_000_000_000_000n).toString().padStart(12, '0')}`;
+        const sockets = invoiceConnections.values().filter((ws) => ws.invoiceID === invoice.id);
+
+        for (const ws of sockets) {
+          if (await ws.authorize()) {
+            ws.websocket.send(JSON.stringify({status: 'underpaid', remainingAmount}));
+          }
+        }
+      } else {
+        await sql`UPDATE crypto_invoices SET status = ${state} WHERE id = ${invoice.id} AND status <> 'paid'`;
+
+        const sockets = invoiceConnections.values().filter((ws) => ws.invoiceID === invoice.id);
+
+        for (const ws of sockets) {
+          if (await ws.authorize()) {
+            ws.websocket.send(JSON.stringify({status: state}));
+          }
+        }
       }
     }
   }
@@ -83,43 +118,60 @@ async function pollInvoices(sql: ReservedSql) {
 }
 
 async function pollFees() {
-  const btcFB = {hourFee: 0, halfHourFee: 0, fastestFee: 0};
-  const ethFB = {gas_prices: {slow: 0, average: 0, fast: 0}};
-  const xmrFB = {result: {fee: 0}};
-
-  const [btc, ltc, eth] = await Promise.all([
-    safeFetch(`${BTC_API}/v1/fees/recommended`, btcFB),
-    safeFetch(`${LTC_API}/v1/fees/recommended`, btcFB),
-    safeFetch(`${ETH_API}/v2/stats`, ethFB),
+  const [btc, ltc, eth, xmr] = await Promise.all([
+    providerJson(`${BTC_API}/v1/fees/recommended`),
+    providerJson(`${LTC_API}/v1/fees/recommended`),
+    providerJson(`${ETH_API}/v2/stats`),
+    providerJson(XMR_NODE, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({jsonrpc: '2.0', id: '0', method: 'get_fee_estimate'}),
+    }),
   ]);
 
-  const xmr = await safeFetch(XMR_NODE, xmrFB, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({jsonrpc: '2.0', id: '0', method: 'get_fee_estimate'}),
-  });
+  const values = [
+    btc.hourFee,
+    btc.halfHourFee,
+    btc.fastestFee,
+    ltc.hourFee,
+    ltc.halfHourFee,
+    ltc.fastestFee,
+    eth.gas_prices?.slow,
+    eth.gas_prices?.average,
+    eth.gas_prices?.fast,
+    xmr.result?.fee,
+  ];
+
+  if (!values.every((value) => Number.isFinite(value) && value > 0)) {
+    throw new Error('Fee provider returned invalid data');
+  }
 
   cryptoFees.btc = {low: btc.hourFee, medium: btc.halfHourFee, high: btc.fastestFee};
   cryptoFees.ltc = {low: ltc.hourFee, medium: ltc.halfHourFee, high: ltc.fastestFee};
-
-  const eGas = eth.gas_prices || {};
-  const eBase = eGas.average || 0;
-  cryptoFees.eth = {low: eGas.slow || eBase, medium: eBase, high: eGas.fast || eBase};
+  cryptoFees.eth = {low: eth.gas_prices.slow, medium: eth.gas_prices.average, high: eth.gas_prices.fast};
   cryptoFees.usdt = cryptoFees.eth;
-
-  const xFee = xmr.result?.fee || 0;
-  cryptoFees.xmr = {low: xFee, medium: xFee, high: xFee};
+  cryptoFees.xmr = {low: xmr.result.fee, medium: xmr.result.fee, high: xmr.result.fee};
+  billingReadiness.feeSync = Date.now();
 }
 
 async function pollPrices() {
   const response = await fetch(COINGECKO_URL, {signal: AbortSignal.timeout(15_000)});
-  if (!response.ok) return;
+
+  if (!response.ok) {
+    return;
+  }
 
   const data = await response.json();
-  if (!Array.isArray(data) || !data.some((element) => element.symbol === 'xmr' && Number.isFinite(element.current_price) && element.current_price > 0)) return;
+
+  if (!Array.isArray(data) || !data.some((element) => element.symbol === 'xmr' && Number.isFinite(element.current_price) && element.current_price > 0)) {
+    return;
+  }
 
   data.forEach((element: any) => {
-    if (!Number.isFinite(element.current_price) || element.current_price <= 0) return;
+    if (!Number.isFinite(element.current_price) || element.current_price <= 0) {
+      return;
+    }
+
     cryptoPrices[element.symbol as CryptoCurrencies] = {
       dailyChange: element.price_change_percentage_24h,
       usdPrice: element.current_price,
@@ -169,6 +221,12 @@ export function initBackgroundWorkers() {
   void runWorker('Price polling', pollPrices, POLL_PRICES_INTERVAL);
   void runWorker('Identity expiry', cleanupWorkers, POLL_CLEANUP_INTERVAL);
   void runWorker('Identity deletion', repairIdentityDeletions, POLL_CLEANUP_INTERVAL);
-  void runWorker('Stripe reconciliation', repairStripeEvents, POLL_INVOICES_INTERVAL);
-  void runWorker('Invoice polling', () => withBillingWallet(pollInvoices), POLL_INVOICES_INTERVAL);
+
+  if (stripeConfig.secretKey) {
+    void runWorker('Stripe reconciliation', repairStripeEvents, POLL_INVOICES_INTERVAL);
+  }
+
+  if (cryptoBillingEnabled && moneroWallet.address && moneroWallet.viewKey && moneroWallet.password) {
+    void runWorker('Invoice polling', () => withBillingWallet(pollInvoices), POLL_INVOICES_INTERVAL);
+  }
 }

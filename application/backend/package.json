@@ -10,7 +10,6 @@
     "reconcile-billing": "bun src/core/stripe-service.ts"
   },
   "dependencies": {
-    "@elysiajs/jwt": "^1.4.2",
     "@faker-js/faker": "^10.6.0",
     "@google/genai": "^2.21.0",
     "@scure/bip32": "^2.4.0",
@@ -18,23 +17,25 @@
     "@types/bun": "^1.4.2",
     "@types/imap-simple": "^4.2.10",
     "@types/mailparser": "^3.4.6",
-    "bcryptjs": "^3.0.3",
     "elysia": "^1.4.30",
     "imap-simple": "^5.1.0",
     "mailparser": "^3.9.24",
     "monero-ts": "^0.11.15",
-    "nodemailer": "^10.0.3",
+    "nodemailer": "^10.0.9",
     "otpauth": "^9.5.2",
     "postgres": "^3.4.9",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "stripe": "^22.6.2",
     "twilio": "^6.1.1"
   },
   "type": "module",
   "module": "src/index.ts",
   "overrides": {
-    "serialize-javascript": "^7.0.3",
+    "serialize-javascript": "^7.1.2",
     "semver": "^7.8.5",
-    "cookie": "^0.7.2"
+    "cookie": "^0.7.2",
+    "nodemailer": "^10.0.9",
+    "ip-address": "^10.7.1",
+    "uuid": "^11.1.1"
   }
 }

@@ -1,0 +1,161 @@
+<script lang="ts">
+  import {PRICING_TIERS} from '$constant';
+
+  let billing = $state<keyof typeof PRICING_TIERS>('monthly');
+  let plan = $derived(PRICING_TIERS[billing]);
+</script>
+
+<section class="pricing-chapter" id="pricing">
+  <div class="chapter-width pricing-layout" data-reveal>
+    <div class="pricing-copy">
+      <h2>One identity.<br />Your choice of plan.</h2>
+      <p>Each plan covers one identity. Pay monthly, cover a year, or choose lifetime access with a single payment.</p>
+      <a class="inline-link" href="/purchase">Full plan and payment details</a>
+    </div>
+    <div class="price-panel">
+      <div class="billing-options" aria-label="Billing period">
+        {#each Object.entries(PRICING_TIERS) as [key, value] (key)}<button
+            aria-pressed={billing === key}
+            onclick={() => (billing = key as keyof typeof PRICING_TIERS)}
+            >{value.title.split(' ')[0] === 'Annual' ? 'Yearly' : value.title.split(' ')[0]}</button
+          >{/each}
+      </div>
+      <div class="price" aria-live="polite"><span>${plan.price}</span><small>{plan.description}</small></div>
+      <p class="plan-caption">{plan.title}</p>
+      <ul>
+        <li>Identity profiles and a separate account vault</li>
+        <li>A dedicated email inbox and SMS number</li>
+        <li>Cryptocurrency wallets with browser signing</li>
+        <li>Browser extension and API access</li>
+      </ul>
+      <a class="primary-action" href="/purchase">Choose a plan</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .pricing-chapter {
+    background: radial-gradient(ellipse at 80% 50%, #4f46e516, transparent 60%), #090d1c;
+    border-block: 1px solid #9da8db14;
+    padding-block: 115px;
+  }
+  .pricing-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 100px;
+    align-items: center;
+  }
+  .pricing-copy h2 {
+    font-size: clamp(38px, 4.2vw, 60px);
+    letter-spacing: -2px;
+    margin-bottom: 28px;
+  }
+  .pricing-copy p {
+    max-width: 470px;
+    margin-bottom: 20px;
+  }
+  .price-panel {
+    border: 1px solid #777ac64f;
+    border-radius: 18px;
+    padding: 30px;
+    background: linear-gradient(135deg, #1b2140, #101629);
+    box-shadow: 0 30px 70px #0004;
+  }
+  .billing-options {
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+    border: 1px solid #c3bdff20;
+    border-radius: 9px;
+    background: #080e2080;
+  }
+  .billing-options button {
+    flex: 1;
+    font-size: 13px;
+    color: #a9b1ce;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    padding: 12px 8px;
+    border-radius: 6px;
+  }
+  .billing-options button[aria-pressed='true'] {
+    color: #f3f0ff;
+    background: #5145bb;
+  }
+  .price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 33px 0 8px;
+  }
+  .price > span {
+    font-size: 65px;
+    letter-spacing: -3px;
+    color: #ecebff;
+    font-weight: 550;
+    line-height: 1;
+  }
+  .price small {
+    font-size: 13px;
+    color: #a6aecb;
+  }
+  .plan-caption {
+    font-size: 13px;
+    color: #b3aaf1;
+  }
+  ul {
+    margin: 28px 0;
+    list-style: none;
+    padding: 0;
+  }
+  li {
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 9px 0 9px 22px;
+    position: relative;
+    color: #c2c8df;
+  }
+  li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #a39afa;
+  }
+  .price-panel .primary-action {
+    display: flex;
+    width: 100%;
+  }
+  @media (max-width: 800px) {
+    .pricing-layout {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .pricing-copy h2 {
+      font-size: 43px;
+    }
+    .pricing-copy p {
+      max-width: 100%;
+    }
+    .price-panel {
+      max-width: 520px;
+      width: 100%;
+      margin-inline: auto;
+    }
+    .pricing-chapter {
+      padding-block: 70px;
+    }
+  }
+  @media (max-width: 420px) {
+    .price-panel {
+      padding: 22px;
+    }
+    .price > span {
+      font-size: 55px;
+    }
+    .pricing-copy h2 {
+      font-size: 37px;
+    }
+  }
+</style>

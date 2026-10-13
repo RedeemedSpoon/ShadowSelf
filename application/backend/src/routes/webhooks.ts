@@ -1,49 +1,59 @@
 import {processStripeEvent} from '@core/stripe-service';
 import {error, parseMessage} from '@utils/utils';
-import middlewareBase from '@middlewares/middleware-base';
 import {stripeConfig, twilioConfig, origin} from '@core/config';
-import {sql, stripe, twilio} from '@core/services';
+import {requireProvider} from '@core/security';
+import {sql, stripe, getPhoneClient} from '@core/services';
 import {wsConnections} from '@core/states';
 import twilioClient from 'twilio';
 import type Stripe from 'stripe';
 import {Elysia} from 'elysia';
 
 export default new Elysia()
-  .use(middlewareBase)
-  .post('/webhook-stripe', async ({set, request}) => {
-    const signature = request.headers.get('stripe-signature')!;
-    const secret = stripeConfig.webhookSecret;
-    const body = await request.text();
-    let event: Stripe.Event;
+  .post(
+    '/api/webhooks/stripe',
+    async ({set, body, request}) => {
+      requireProvider(!!stripeConfig.secretKey && !!stripeConfig.webhookSecret, 'Card billing webhooks');
 
-    try {
-      event = await stripe.webhooks.constructEventAsync(body, signature, secret);
-    } catch (err) {
-      return error(set, 400, err instanceof Error ? err.message : (err as string));
-    }
+      const signature = request.headers.get('stripe-signature') || '';
+      let event: Stripe.Event;
 
-    await sql`INSERT INTO stripe_events (id, payload) VALUES (${event.id}, ${sql.json(JSON.parse(JSON.stringify(event)))}) ON CONFLICT DO NOTHING`;
-    void processStripeEvent(event.id).catch(() => console.error('Stripe event saved for reconciliation'));
+      try {
+        event = await stripe.webhooks.constructEventAsync(body as string, signature, stripeConfig.webhookSecret);
+      } catch {
+        return error(set, 400, 'Invalid Stripe signature');
+      }
 
-    return {received: true};
-  })
-  .post('/webhook-twilio', async ({set, body, request}) => {
-    const url = `${origin}/webhook-twilio`;
+      await sql`INSERT INTO stripe_events (id, payload) VALUES (${event.id}, ${sql.json(JSON.parse(JSON.stringify(event)))}) ON CONFLICT DO NOTHING`;
+      void processStripeEvent(event.id).catch(() => console.error('Stripe event saved for reconciliation'));
+
+      return {received: true};
+    },
+    {parse: 'text'},
+  )
+  .post('/api/webhooks/twilio', async ({set, body, request}) => {
+    requireProvider(!!twilioConfig.token, 'Phone webhooks');
 
     const signature = request.headers.get('X-Twilio-Signature') || '';
-    const rawBody = body as {[key: string]: string};
-    const auth = twilioConfig.token;
+    const fields = body as Record<string, string>;
+    const url = `${origin}/api/webhooks/twilio`;
 
-    if (!twilioClient.validateRequest(auth, signature, url, rawBody)) {
-      return error(set, 400, 'Invalid signature');
+    if (!fields || !twilioClient.validateRequest(twilioConfig.token, signature, url, fields)) {
+      return error(set, 400, 'Invalid Twilio signature');
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const rawMessage = await twilio.messages.get(rawBody.MessageSid).fetch();
-    const message = parseMessage(rawMessage);
-
-    const sockets = wsConnections.values().filter((ws) => ws.phoneNumber === message.to);
-    for (const ws of sockets) {
-      if (await ws.authorize()) ws.websocket.send(JSON.stringify({type: 'message', message}));
+    if (!/^SM[a-f0-9]{32}$/i.test(fields.MessageSid || '')) {
+      return error(set, 400, 'Invalid message reference');
     }
+
+    const message = parseMessage(await getPhoneClient().messages(fields.MessageSid).fetch());
+
+    for (const connection of wsConnections.values().filter((item) => item.phoneNumber === message.to)) {
+      if (await connection.authorize()) {
+        connection.websocket.send(JSON.stringify({type: 'message', message}));
+      }
+    }
+
+    set.headers['content-type'] = 'text/xml';
+
+    return '<Response></Response>';
   });

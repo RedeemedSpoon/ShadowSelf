@@ -19,13 +19,24 @@ export function listenForEmail(user: string, password: string, socketID: string)
     const active = connection;
     pending = pending
       .then(async () => {
-        if (stopped || active !== connection || !active || lastUID === undefined) return;
+        if (stopped || active !== connection || !active || lastUID === undefined) {
+          return;
+        }
+
         const messages = await active.search([['UID', `${lastUID + 1}:*`]], {bodies: ['']});
+
         for (const message of messages) {
-          if (message.attributes.uid <= lastUID) continue;
+          if (message.attributes.uid <= lastUID) {
+            continue;
+          }
+
           const email = await parseMessage(active, message);
+
           const socket = wsConnections.get(socketID);
-          if (stopped || active !== connection || !socket || !(await socket.authorize())) return;
+
+          if (stopped || active !== connection || !socket || !(await socket.authorize())) {
+            return;
+          }
 
           socket.websocket.send(JSON.stringify({type: 'email', email}));
           lastUID = message.attributes.uid;
@@ -35,31 +46,56 @@ export function listenForEmail(user: string, password: string, socketID: string)
   };
 
   const connect = async () => {
-    if (stopped) return;
+    if (stopped) {
+      return;
+    }
+
     try {
       const active = await imapConnection(user, password, queueMail);
-      if (stopped) return active.end();
+
+      if (stopped) {
+        return active.end();
+      }
+
       connection = active;
+
       const schedule = () => {
-        if (connection !== active) return;
+        if (connection !== active) {
+          return;
+        }
+
         connection = null;
         active.end();
-        if (!stopped) reconnect = setTimeout(() => void connect(), 5000);
+
+        if (!stopped) {
+          reconnect = setTimeout(() => void connect(), 5000);
+        }
       };
       active.once('end', schedule);
       active.once('error', schedule);
+
       const mailbox = await new Promise<{uidnext: number; uidvalidity: number}>((resolve, reject) => {
         active.imap.openBox('INBOX', (error, box) => (error ? reject(error) : resolve(box)));
       });
-      if (lastUID === undefined) lastUID = mailbox.uidnext - 1;
-      else if (uidValidity !== mailbox.uidvalidity) lastUID = 0;
+
+      if (lastUID === undefined) {
+        lastUID = mailbox.uidnext - 1;
+      } else {
+        if (uidValidity !== mailbox.uidvalidity) {
+          lastUID = 0;
+        }
+      }
+
       uidValidity = mailbox.uidvalidity;
       queueMail();
     } catch {
       connection?.end();
       connection = null;
       clearTimeout(reconnect);
-      if (!stopped) reconnect = setTimeout(() => void connect(), 5000);
+
+      if (!stopped) {
+        reconnect = setTimeout(() => void connect(), 5000);
+      }
     }
   };
 
@@ -74,8 +110,12 @@ export function listenForEmail(user: string, password: string, socketID: string)
 }
 
 export async function fetchMoreEmails(user: string, password: string, mailbox: string, since: number) {
-  if (!Number.isInteger(since) || since <= 1) return [];
+  if (!Number.isInteger(since) || since <= 1) {
+    return [];
+  }
+
   const connection = await imapConnection(user, password);
+
   let inbox;
 
   try {
@@ -89,6 +129,7 @@ export async function fetchMoreEmails(user: string, password: string, mailbox: s
 
 export async function fetchRecentEmails(user: string, password: string) {
   const connection = await imapConnection(user, password);
+
   let inboxMailbox, sentMailbox, draftsMailbox, junkMailbox;
 
   try {
@@ -114,15 +155,20 @@ export async function fetchRecentEmails(user: string, password: string) {
 
 export async function fetchEmail(user: string, password: string, isReply: boolean, uuid: string | number) {
   const connection = await imapConnection(user, password);
+
   let reply = null;
 
   try {
     for (const mailbox of ['INBOX', 'Sent']) {
       await connection.openBox(mailbox);
+
       const query = isReply ? [['HEADER', 'MESSAGE-ID', uuid]] : [['UID', uuid]];
       const message = await connection.search(query, {bodies: ['']});
 
-      if (message.length === 0) continue;
+      if (message.length === 0) {
+        continue;
+      }
+
       reply = await parseMessage(connection, message[0]);
     }
   } finally {
@@ -137,6 +183,7 @@ export async function appendToMailbox(asDraft: boolean, content: EmailContent & 
 
   try {
     await connection.openBox(asDraft ? 'Drafts' : 'Sent');
+
     const date = content.date || new Date();
     const messageID = content.messageID || `<${randomUUID()}@${content.email.split('@')[1]}>`;
     const type = /<[a-z][^>]*>/i.test(content.body) ? 'html' : 'text';
@@ -158,8 +205,12 @@ export async function appendToMailbox(asDraft: boolean, content: EmailContent & 
     });
 
     await connection.append(await mail.compile().build(), {flags: asDraft ? ['\\Seen', '\\Draft'] : ['\\Seen']});
+
     const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {bodies: ['']});
-    if (!messages[0]) throw new Error('Saved message could not be located');
+
+    if (!messages[0]) {
+      throw new Error('Saved message could not be located');
+    }
 
     return {uid: messages[0].attributes.uid, date, messageID, type};
   } finally {
@@ -172,8 +223,12 @@ export async function deleteEmail(user: string, password: string, mailbox: strin
 
   try {
     await connection.openBox(mailbox);
-    if (mailbox === 'Junk') await connection.deleteMessage(uid);
-    else await connection.moveMessage(uid.toString(), 'Junk');
+
+    if (mailbox === 'Junk') {
+      await connection.deleteMessage(uid);
+    } else {
+      await connection.moveMessage(uid.toString(), 'Junk');
+    }
   } finally {
     connection.end();
   }
@@ -182,30 +237,44 @@ export async function deleteEmail(user: string, password: string, mailbox: strin
 async function getMessageCount(inbox: string, connection: imap.ImapSimple) {
   return new Promise<number>((resolve, reject) => {
     connection.imap.status(inbox, (err, mes) => {
-      if (err) reject(err);
-      else resolve(mes.messages.total);
+      if (err) {
+        reject(err);
+      } else {
+        resolve(mes.messages.total);
+      }
     });
   });
 }
 
 async function getInbox(inbox: string, connection: imap.ImapSimple, beforeUID?: number) {
   let messagesCount = await getMessageCount(inbox, connection);
-  if (messagesCount === 0) return {messagesCount: 0, emails: []};
+
+  if (messagesCount === 0) {
+    return {messagesCount: 0, emails: []};
+  }
 
   await connection.openBox(inbox);
+
   const ids = await new Promise<number[]>((resolve, reject) => {
     const criteria = beforeUID ? [['UID', `1:${beforeUID - 1}`]] : ['ALL'];
     connection.imap.search(criteria, (error, ids) => (error ? reject(error) : resolve(ids)));
   });
+
   const selected = ids.filter((id) => !beforeUID || id < beforeUID).slice(-EMAIL_FETCH_LIMIT);
-  if (!selected.length) return {messagesCount, emails: []};
+
+  if (!selected.length) {
+    return {messagesCount, emails: []};
+  }
+
   const messages = await connection.search([['UID', selected.join(',')]], {bodies: ['']});
 
   const emails: any[] = [];
+
   for (const message of messages) {
     if (inbox === 'Junk') {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - EMAIL_JUNK_RETENTION_DAYS);
+
       const internalDate = new Date(message.attributes.date);
 
       if (internalDate < cutoffDate) {
@@ -242,11 +311,14 @@ async function parseMessage(connection: imap.ImapSimple, message: imap.Message) 
   const to = email.to && Array.isArray(email.to) ? email.to.map((t) => t.text).join(', ') : email.to?.text;
 
   let references: string[] | undefined = undefined;
+
   if (email.references) {
     if (Array.isArray(email.references)) {
       references = email.references;
-    } else if (typeof email.references === 'string') {
-      references = email.references.split(/\s+/).filter(Boolean);
+    } else {
+      if (typeof email.references === 'string') {
+        references = email.references.split(/\s+/).filter(Boolean);
+      }
     }
   }
 

@@ -1,200 +1,118 @@
-import {cryptoFees, cryptoPrices, throttle, useCache} from '@core/states';
-import {ETH_API, BTC_API, LTC_API, USDT_CONTRACT} from '@core/constants';
-import {getUtxoData, getEvmData, getXmrNode} from '@utils/crypto-nodes';
-import middlewareApi from '@middlewares/middleware-api';
-import type {CryptoWalletResponse} from '@type';
+import {cryptoFees, cryptoPrices, billingReadiness, throttle, useCache} from '@core/states';
+import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, UUID_PATTERN} from '@core/constants';
+import {chainProvider} from '@core/chain-provider';
+import {swapProvider} from '@core/swap-provider';
+import {requireProvider, ApiError} from '@core/security';
 import {trocadorApiKey} from '@core/config';
-import {error, net} from '@utils/utils';
+import middlewareApi from '@middlewares/middleware-api';
 import {checkAPI} from '@utils/checks';
+import {error} from '@utils/utils';
 import {sql} from '@core/services';
 import {Elysia} from 'elysia';
 
-export default new Elysia({prefix: '/crypto'})
+export default new Elysia({prefix: '/api/identities/:id/wallet'})
   .use(middlewareApi)
-  .get('/xmr-node/:id', async ({identity}) => ({
-    startingDate: identity?.creation_date ?? new Date(),
-    ...(await getXmrNode()),
-  }))
+  .get('/node', async ({identity}) => ({startingDate: identity!.creation_date, ...(await chainProvider.node())}))
   .get(
-    '/:id',
+    '/',
     async ({identity}) => {
-      const {btc, ltc, evm} = identity!.wallet_keys;
-      const cryptoWallet = {} as CryptoWalletResponse;
+      if (Date.now() - billingReadiness.priceSync > POLL_PRICES_INTERVAL * 3 || Date.now() - billingReadiness.feeSync > POLL_FEES_INTERVAL * 3) {
+        throw new ApiError(503, 'market_data_unavailable', 'Wallet prices or transaction fees are unavailable');
+      }
 
-      cryptoWallet.eth = await getEvmData('eth', evm);
-      cryptoWallet.btc = await getUtxoData('btc', btc);
+      const keys = identity!.wallet_keys;
+      const [btc, ltc, eth, usdt] = await Promise.all([
+        chainProvider.utxo('btc', keys.btc),
+        chainProvider.utxo('ltc', keys.ltc),
+        chainProvider.evm('eth', keys.evm),
+        chainProvider.evm('usdt', keys.evm),
+      ]);
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      cryptoWallet.ltc = await getUtxoData('ltc', ltc);
-      cryptoWallet.usdt = await getEvmData('usdt', evm);
+      const wallet = {btc, ltc, eth, usdt};
 
-      const totalFunds = (['btc', 'ltc', 'eth', 'usdt'] as const).reduce((acc, coin) => {
-        return acc + cryptoWallet[coin].balance * (cryptoPrices[coin]?.usdPrice ?? 0);
-      }, 0);
-
-      await sql`UPDATE identities SET wallet_funds = ${totalFunds} WHERE id = ${identity!.id}`;
-
-      return {prices: cryptoPrices, fees: cryptoFees, wallet: cryptoWallet};
+      return {prices: cryptoPrices, fees: cryptoFees, wallet};
     },
-    useCache('Wallet Overview', 60_000),
+    useCache('Wallet overview', 60_000),
   )
   .get(
-    '/swap-rates/:id',
+    '/swap-quotes',
     async ({query, set}) => {
-      const {err, coinFrom, coinTo, amount} = await checkAPI(query, ['coinTo', 'coinFrom', 'amount']);
-      if (err) return error(set, 400, err);
+      const input = await checkAPI(query, ['coinTo', 'coinFrom', 'amount']);
 
-      const params = `?ticker_from=${coinFrom}&ticker_to=${coinTo}&network_from=${net(coinFrom)}&network_to=${net(coinTo)}&amount_from=${amount}`;
-      const response = await fetch('https://api.trocador.app/new_rate' + params, {headers: {'API-Key': trocadorApiKey}, signal: AbortSignal.timeout(15_000)});
-      if (!response.ok) return error(set, 400, 'Something Went Wrong');
-
-      const data = await response.json();
-      if (!data.trade_id || !Array.isArray(data.quotes?.quotes)) return error(set, 502, 'Swap provider returned an invalid quote');
-
-      const providers = data.quotes.quotes.map((val: any) => ({
-        isFixed: val.fixed === 'True',
-        costPercentage: parseFloat(val.USD_total_cost_percentage),
-        returnUsd: val.amount_to_USD,
-        returnCoin: val.amount_to,
-        kycRating: val.kycrating,
-        logPolicy: val.logpolicy,
-        logo: val.provider_logo,
-        name: val.provider,
-        eta: val.eta,
-      }));
-
-      return {
-        tradeID: data.trade_id,
-        bestProvider: data.provider,
-        providers,
-        coinFrom,
-        amount,
-        coinTo,
-      };
-    },
-    throttle('Swap Rates', 5_000),
-  )
-  .post(
-    '/swap-trades/:id',
-    async ({body, set}) => {
-      const fields = ['tradeID', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider', 'isFixed'];
-      const {err, tradeID, coinTo, coinFrom, amount, destinationAddress, refundAddress, provider, isFixed} = await checkAPI(body, fields);
-      if (err) return error(set, 400, err);
-
-      const params = new URLSearchParams({
-        id: tradeID,
-        ticker_from: coinFrom,
-        ticker_to: coinTo,
-        network_from: net(coinFrom),
-        network_to: net(coinTo),
-        amount_from: String(amount),
-        address: destinationAddress,
-        address_memo: '0',
-        refund: refundAddress,
-        refund_memo: '0',
-        provider: provider,
-        fixed: isFixed ? 'True' : 'False',
-      });
-
-      try {
-        const response = await fetch(`https://api.trocador.app/new_trade?${params.toString()}`, {
-          headers: {'API-Key': trocadorApiKey},
-          method: 'GET',
-          signal: AbortSignal.timeout(30_000),
-        });
-
-        const data = await response.json();
-        if (!response.ok || (data as any).error) {
-          return error(set, 400, (data as any).error || 'Failed to create trade at provider');
-        }
-
-        if (!data.trade_id || !data.address_provider || !Number.isFinite(Number(data.amount_from)) || Number(data.amount_from) <= 0) {
-          return error(set, 502, 'Trade outcome is uncertain. Check the existing trade before retrying');
-        }
-
-        return {
-          status: data.status,
-          depositAddress: data.address_provider,
-          depositAmount: data.amount_from,
-          depositMemo: data.address_provider_memo,
-          providerTradeID: data.id_provider,
-          externalLink: `https://trocador.app/en/checkout/${data.trade_id}`,
-        };
-      } catch (_) {
-        return error(set, 502, 'Trade outcome is uncertain. Check the existing trade before retrying');
+      if (input.err) {
+        return error(set, 400, input.err);
       }
+
+      return await swapProvider.quote(input);
     },
-    throttle('Swap Trade', 10_000),
+    throttle('Swap quotes', 5_000),
   )
+  .post('/swaps', async ({body, set, user, identity}) => {
+    const fields = ['tradeID', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider', 'isFixed'];
+    const input = await checkAPI(body, fields);
+
+    if (input.err) {
+      return error(set, 400, input.err);
+    }
+
+    requireProvider(!!trocadorApiKey, 'Crypto exchange');
+
+    const requestID = (body as {requestID?: string})?.requestID;
+
+    if (!UUID_PATTERN.test(requestID || '')) {
+      return error(set, 400, 'A request ID is required');
+    }
+
+    const request = Object.fromEntries(fields.map((field) => [field, (input as unknown as Record<string, unknown>)[field]]));
+    await sql`INSERT INTO wallet_swaps (owner, request_id, identity_id, request)
+      VALUES (${user!.accountID}, ${requestID!}, ${identity!.id}, ${sql.json(request as never)}) ON CONFLICT (owner, request_id) DO NOTHING`;
+
+    const rows = await sql`SELECT * FROM wallet_swaps WHERE owner = ${user!.accountID} AND request_id = ${requestID!}`;
+
+    const swap = rows[0];
+
+    if (swap.identity_id !== identity!.id || fields.some((field) => swap.request[field] !== request[field])) {
+      return error(set, 409, 'This request ID has different trade details');
+    }
+
+    if (swap.response) {
+      return swap.response;
+    }
+
+    const claimed = await sql`UPDATE wallet_swaps SET status = 'requested' WHERE id = ${swap.id} AND status = 'pending' RETURNING id`;
+
+    if (!claimed.length) {
+      return error(set, 503, 'Trade outcome is uncertain. Review the existing provider trade before another request');
+    }
+
+    const response = await swapProvider.trade(input);
+    await sql`UPDATE wallet_swaps SET response = ${sql.json(response)}, status = 'completed' WHERE id = ${swap.id}`;
+
+    return response;
+  })
   .post(
-    '/broadcast/:id',
+    '/transactions',
     async ({body, set}) => {
       const {err, hex, coin} = await checkAPI(body, ['hex', 'coin']);
-      if (err) return error(set, 400, err);
 
-      const target = coin.toLowerCase();
-      if (['btc', 'ltc'].includes(target)) {
-        const url = target === 'btc' ? BTC_API : LTC_API;
-        const response = await fetch(`${url}/tx`, {method: 'POST', body: hex});
-        return {txid: await response.text()};
+      if (err) {
+        return error(set, 400, err);
       }
 
-      if (['eth', 'usdt'].includes(target)) {
-        const response = await fetch(ETH_API + '/eth-rpc', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({id: 1, jsonrpc: '2.0', method: 'eth_sendRawTransaction', params: [hex]}),
-        });
-
-        return {txid: (await response.json()).result};
-      }
+      return await chainProvider.broadcast(coin, hex);
     },
     throttle('Broadcast', 10_000),
   )
   .post(
-    '/sweep-info/:id',
+    '/sweep',
     async ({body, set}) => {
       const {err, coin, addresses} = await checkAPI(body, ['coin', 'addresses']);
-      if (err) return error(set, 400, err);
 
-      const target = coin.toLowerCase();
-      if (['btc', 'ltc'].includes(target)) {
-        const baseUrl = target === 'btc' ? BTC_API : LTC_API;
-
-        const requests = addresses.map((addr) => fetch(`${baseUrl}/address/${addr}/utxo`));
-        const responses = await Promise.all(requests);
-        const jsonResults = await Promise.all(responses.map((r) => (r.ok ? r.json() : [])));
-
-        const utxos = jsonResults.flatMap((list, i) =>
-          Array.isArray(list)
-            ? list.map((u: any) => ({
-                txid: u.txid,
-                vout: u.vout,
-                value: u.value,
-                address: addresses[i],
-                path_index: 0,
-              }))
-            : [],
-        );
-
-        const balance = utxos.reduce((acc, u) => acc + u.value, 0);
-        return {utxos, balance, nonce: 0};
+      if (err) {
+        return error(set, 400, err);
       }
 
-      if (['eth', 'usdt'].includes(target)) {
-        const address = addresses[0];
-        const nonceReq = fetch(`${ETH_API}?module=proxy&action=eth_getTransactionCount&address=${address}&tag=latest`);
-
-        let balUrl = `${ETH_API}?module=account&address=${address}`;
-        balUrl += target === 'usdt' ? `&action=tokenbalance&contractaddress=${USDT_CONTRACT}` : `&action=balance`;
-        const balReq = fetch(balUrl);
-
-        const [nonceRes, balRes] = await Promise.all([nonceReq, balReq]);
-        const nonceData = await nonceRes.json();
-        const balData = await balRes.json();
-
-        return {utxos: [], balance: Number(balData.result), nonce: parseInt(nonceData.result, 16)};
-      }
+      return await chainProvider.sweep(coin, addresses);
     },
-    throttle('Sweep Info', 15_000),
+    throttle('Sweep', 5_000),
   );

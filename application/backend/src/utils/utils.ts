@@ -1,21 +1,35 @@
 import type {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
-import {secretProxyKey} from '@core/config';
 import sharp from 'sharp';
 import type {ReservedSql} from 'postgres';
 
 export function error(set: {[key: string]: unknown}, status: number, message: string) {
   set.status = status;
-  return message;
+
+  const codes: Record<number, string> = {
+    400: 'invalid_request',
+    401: 'unauthenticated',
+    402: 'identity_frozen',
+    403: 'forbidden',
+    404: 'not_found',
+    409: 'conflict',
+    410: 'expired',
+    429: 'rate_limited',
+    500: 'request_failed',
+    502: 'provider_failed',
+    503: 'provider_unavailable',
+  };
+
+  return {error: {code: codes[status] || 'request_failed', message}};
 }
 
-export async function safeFetch(url: string, fallback: any, options?: RequestInit) {
-  try {
-    const res = await fetch(url, {...options, signal: options?.signal || AbortSignal.timeout(15_000)});
-    if (!res.ok) return fallback;
-    return await res.json();
-  } catch (_) {
-    return fallback;
+export async function providerJson(url: string, options?: RequestInit, fetcher: typeof fetch = fetch): Promise<any> {
+  const response = await fetcher(url, {...options, signal: options?.signal || AbortSignal.timeout(15_000)});
+
+  if (!response.ok) {
+    throw new Error('The provider request failed');
   }
+
+  return await response.json();
 }
 
 export function toTitleCase(str: string) {
@@ -26,18 +40,14 @@ export function toTitleCase(str: string) {
 
 export function net(coin: string) {
   const isUsdt = coin.toLowerCase().includes('usdt');
-  return isUsdt ? 'ERC20' : 'Mainnet';
-}
 
-export async function blobToBase64(blob: Blob) {
-  const arr = new Uint8Array(await blob.arrayBuffer());
-  const buf = Buffer.from(arr);
-  return buf.toString('base64');
+  return isUsdt ? 'ERC20' : 'Mainnet';
 }
 
 export async function resizeTo256(base64: string) {
   const buffer = Buffer.from(base64, 'base64');
   const resizedBuffer = await sharp(buffer).resize(256, 256).toBuffer();
+
   return resizedBuffer.toString('base64');
 }
 
@@ -53,20 +63,9 @@ export function parseMessage(msg: MessageInstance) {
   };
 }
 
-export async function proxyRequest(code: string, method = 'GET', body?: object) {
-  const response = await fetch(`https://${code}.shadowself.io/`, {
-    headers: {'Content-Type': 'application/json', Authorization: `Bearer ${secretProxyKey}`},
-    body: body ? JSON.stringify(body) : undefined,
-    method,
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!response.ok) throw new Error('Proxy operation failed');
-
-  return await response.json();
-}
-
 export async function withReservedTransaction<T>(connection: ReservedSql, operation: (transaction: ReservedSql) => Promise<T>) {
   await connection`BEGIN`;
+
   try {
     const result = await operation(connection);
     await connection`COMMIT`;
@@ -74,6 +73,7 @@ export async function withReservedTransaction<T>(connection: ReservedSql, operat
     return result;
   } catch (error) {
     await connection`ROLLBACK`;
+
     throw error;
   }
 }

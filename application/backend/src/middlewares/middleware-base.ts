@@ -1,18 +1,16 @@
 import {getBearerToken, verifySessionToken, trustedCookieRequest} from '@middlewares/session-auth';
-import {jwtSecret} from '@core/config';
-import {jwt} from '@elysiajs/jwt';
+import {ApiError} from '@core/security';
 import {Elysia} from 'elysia';
 
 export default (app: Elysia) =>
-  app.use(jwt({name: 'jwt', secret: jwtSecret, exp: '90d'})).derive(async ({headers, cookie, jwt, request, set}) => {
+  app.derive(async ({headers, cookie, request}) => {
     if (cookie.token?.value && !trustedCookieRequest(request)) {
-      set.status = 403;
-      throw new Response('Untrusted request origin', {status: 403});
+      throw new ApiError(403, 'untrusted_origin', 'Untrusted request origin');
     }
 
     const token = getBearerToken(headers.authorization) ?? (cookie.token?.value as string);
-    const authorize = async () => !!(await verifySessionToken(token, jwt));
-    const user = await verifySessionToken(token, jwt);
+    const authorize = async () => !!(await verifySessionToken(token));
+    const user = await verifySessionToken(token);
 
     return {user, authorize};
   });

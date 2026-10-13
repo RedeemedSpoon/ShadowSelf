@@ -1,7 +1,9 @@
 import {billingPortal, createBillingCustomer} from '@core/stripe-service';
 import {deleteIdentity} from '@core/identity-service';
 import {consumeEmailCode, claimSensitiveAttempt} from '@core/states';
-import {createTOTP, getSecret, getAPIKey, createHash, getRecovery, hashRecoveryCode, compareHash} from '@utils/cryptography';
+import {createTOTP, getSecret, createHash, getRecovery, hashRecoveryCode, compareHash} from '@utils/cryptography';
+import {apiToken, encryptSecret, tokenHash} from '@core/security';
+import {issueSession} from '@middlewares/session-auth';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendVerificationCode} from '@utils/email-smtp';
 import type {QueryUser, QueryIdentity} from '@type';
@@ -9,200 +11,308 @@ import {error} from '@utils/utils';
 import {check} from '@utils/checks';
 import {sql, stripe} from '@core/services';
 import {Elysia} from 'elysia';
+import {UUID_PATTERN} from '@core/constants';
 
-export default new Elysia({prefix: '/settings'})
+export default new Elysia({prefix: '/api/settings'})
   .use(middlewareBase)
   .resolve(async ({user, request, body, path}) => {
-    if (!user || request.method === 'GET' || /\/(logout|revoke)\/?$/.test(path)) return {verifiedPassword: ''};
+    if (!user || request.method === 'GET' || /\/sessions?\/?$/.test(path)) {
+      return {verifiedPassword: ''};
+    }
 
     const input = body as Record<string, unknown> | null;
     const password = /\/recovery\/?$/.test(path) ? input?.password : input?.currentPassword;
-    if (typeof password !== 'string' || !password || password.length > 256) return {verifiedPassword: ''};
-    if (!claimSensitiveAttempt(user.email)) return {verifiedPassword: '', passwordLimited: true};
 
-    const accounts = (await sql`SELECT password FROM users WHERE email = ${user.email} AND ${user.id} = ANY(sessions)`) as QueryUser[];
+    if (typeof password !== 'string' || !password || password.length > 256) {
+      return {verifiedPassword: ''};
+    }
+
+    if (!claimSensitiveAttempt(user.email)) {
+      return {verifiedPassword: '', passwordLimited: true};
+    }
+
+    const accounts = (await sql`SELECT password FROM users WHERE id = ${user.accountID}`) as QueryUser[];
+
     const account = accounts[0];
-    const verifiedPassword = account && (await compareHash(password, account.password)) ? account.password : '';
 
-    return {verifiedPassword};
+    return {verifiedPassword: account && (await compareHash(password, account.password)) ? account.password : ''};
   })
   .onBeforeHandle(({set, user, request, path, verifiedPassword, passwordLimited}) => {
     set.headers['cache-control'] = 'no-store';
-    if (!user) return error(set, 401, 'You are not logged in');
-    if (request.method === 'GET' || /\/(logout|revoke)\/?$/.test(path)) return;
-    if (passwordLimited) return error(set, 429, 'Too many password checks. Please wait five minutes');
-    if (!verifiedPassword) return error(set, 403, 'Current password is required and must be correct');
+
+    if (!user) {
+      return error(set, 401, 'Sign in to continue');
+    }
+
+    if (request.method === 'GET' || /\/sessions?\/?$/.test(path)) {
+      return;
+    }
+
+    if (passwordLimited) {
+      return error(set, 429, 'Too many password checks. Wait five minutes');
+    }
+
+    if (!verifiedPassword) {
+      return error(set, 403, 'Your current password is required');
+    }
   })
   .get('/', async ({user}) => {
-    const result = (await sql`SELECT * FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const {email, recovery_hashes, totp, api_access} = result[0];
+    const result = (await sql`SELECT email, username, recovery_hashes, totp, api_access FROM users WHERE id = ${user!.accountID}`) as QueryUser[];
 
-    return {email, recoveryRemaining: recovery_hashes.length, key: '', API: api_access, OTP: !!totp};
+    const {email, username, recovery_hashes, totp, api_access} = result[0];
+
+    return {email, username, recoveryRemaining: recovery_hashes.length, API: api_access, OTP: !!totp};
   })
-  .post('/portal', async ({user}) => billingPortal(user!.email))
-  .get('/otp', async ({user}) => {
-    const result = (await sql`SELECT username FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const username = result[0].username;
+  .post('/billing-portal', ({user}) => billingPortal(user!.email))
+  .get('/totp', async ({user}) => {
+    const rows = await sql`SELECT username FROM users WHERE id = ${user!.accountID}`;
 
     const secret = getSecret();
-    const totp = createTOTP(secret, username);
-    const uri = totp.toString();
 
-    return {uri, secret};
+    return {uri: createTOTP(secret, rows[0].username).toString(), secret};
   })
-  .post('/recovery', async ({set, body, user}) => {
-    const {password, err} = check(body, ['password'], true);
-    if (err || typeof password !== 'string') return error(set, 400, err || 'Password is required');
+  .post('/recovery', async ({set, user, verifiedPassword}) => {
+    const rows = await sql`SELECT totp FROM users WHERE id = ${user!.accountID}`;
 
-    const accounts = (await sql`SELECT * FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const account = accounts[0];
-    if (!account?.totp) return error(set, 400, 'Enable two-factor authentication first');
-    if (!(await compareHash(password, account.password))) return error(set, 400, 'Incorrect password');
+    if (!rows[0]?.totp) {
+      return error(set, 400, 'Enable two-factor authentication first');
+    }
 
     const recovery = getRecovery();
     const updated = await sql`UPDATE users SET recovery_hashes = ${recovery.map(hashRecoveryCode)}
-      WHERE email = ${user!.email} AND password = ${account.password} AND totp = ${account.totp} RETURNING email`;
-    if (!updated.length) return error(set, 409, 'Account changed. Please try again');
+      WHERE id = ${user!.accountID} AND password = ${verifiedPassword} AND totp = ${rows[0].totp} RETURNING id`;
+
+    if (!updated.length) {
+      return error(set, 409, 'Account changed. Try again');
+    }
 
     return {recovery, recoveryRemaining: recovery.length};
   })
-  .post('/api-access', async ({user, set, verifiedPassword}) => {
-    const updated = await sql`UPDATE users SET api_access = NOT api_access
-      WHERE email = ${user!.email} AND password = ${verifiedPassword} AND ${user!.id} = ANY(sessions) RETURNING api_access`;
-    if (!updated.length) return error(set, 409, 'Account changed. Sign in and try again');
+  .put('/api-access', async ({user, set, body, verifiedPassword}) => {
+    const enabled = (body as {enabled?: unknown})?.enabled;
+
+    if (typeof enabled !== 'boolean') {
+      return error(set, 400, 'API access must be enabled or disabled explicitly');
+    }
+
+    const updated = await sql`UPDATE users SET api_access = ${enabled}
+      WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING api_access`;
+
+    if (!updated.length) {
+      return error(set, 409, 'Account changed. Try again');
+    }
 
     return {API: updated[0].api_access};
   })
   .post('/api-key', async ({set, user, verifiedPassword}) => {
-    const access = (await sql`SELECT api_access FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    if (!access[0].api_access) return error(set, 400, 'API access is disabled. Enable it to proceed');
+    const key = apiToken();
+    const updated = await sql`UPDATE users SET api_key = ${tokenHash(key)}
+      WHERE id = ${user!.accountID} AND password = ${verifiedPassword} AND api_access = true RETURNING id`;
 
-    const key = getAPIKey();
-    const updated =
-      await sql`UPDATE users SET api_key = ${key} WHERE email = ${user!.email} AND password = ${verifiedPassword} AND ${user!.id} = ANY(sessions) RETURNING email`;
-    if (!updated.length) return error(set, 409, 'Account changed. Sign in and try again');
+    if (!updated.length) {
+      return error(set, 409, 'Enable API access before creating a key');
+    }
 
     return {key};
   })
-  .post('/logout', async ({user}) => {
-    await sql`UPDATE users SET sessions = ARRAY_REMOVE(sessions, ${user!.id}) WHERE email = ${user!.email}`;
+  .delete('/session', async ({user}) => {
+    await sql`DELETE FROM sessions WHERE id = ${user!.id} AND owner = ${user!.accountID}`;
 
     return {success: true};
   })
-  .post('/revoke', async ({set, user, body}) => {
+  .delete('/sessions', async ({set, user, body}) => {
     const id = (body as {id?: unknown} | null)?.id;
-    if (id !== undefined && typeof id !== 'string') return error(set, 400, 'Invalid session');
 
-    if (id) await sql`UPDATE users SET sessions = ARRAY_REMOVE(sessions, ${id}) WHERE email = ${user!.email}`;
-    else await sql`UPDATE users SET sessions = ARRAY[]::varchar(64)[] WHERE email = ${user!.email}`;
+    if (id !== undefined && (typeof id !== 'string' || !UUID_PATTERN.test(id))) {
+      return error(set, 400, 'Invalid session');
+    }
+
+    if (id) {
+      await sql`DELETE FROM sessions WHERE id = ${id as string} AND owner = ${user!.accountID}`;
+    } else {
+      await sql`DELETE FROM sessions WHERE owner = ${user!.accountID}`;
+    }
 
     return {success: true};
   })
   .get('/sessions', async ({user}) => {
-    const accounts = await sql`SELECT sessions FROM users WHERE email = ${user!.email}`;
+    const rows = await sql`SELECT id, created_at, expires_at FROM sessions WHERE owner = ${user!.accountID} AND expires_at > NOW() ORDER BY created_at DESC`;
 
-    return {sessions: accounts[0].sessions.map((id: string) => ({id, current: id === user!.id}))};
+    return {
+      sessions: rows.map((session) => ({id: session.id, current: session.id === user!.id, createdAt: session.created_at, expiresAt: session.expires_at})),
+    };
   })
-  .post('/otp', async ({set, body, user, verifiedPassword}) => {
+  .post('/totp', async ({set, body, user, verifiedPassword}) => {
     const {err, secret, token} = check(body, ['secret', 'token']);
-    if (err) return error(set, 400, err);
-    if (createTOTP(secret, 'temporarily').generate() !== token) {
-      return error(set, 400, 'Incorrect verification code. Please try again');
+
+    if (err) {
+      return error(set, 400, err);
+    }
+
+    const delta = createTOTP(secret, 'temporary').validate({token, window: 1});
+
+    if (delta === null) {
+      return error(set, 400, 'Incorrect verification code');
     }
 
     const recovery = getRecovery();
     const updated =
-      await sql`UPDATE users SET totp = ${secret}, recovery_hashes = ${recovery.map(hashRecoveryCode)} WHERE email = ${user!.email} AND password = ${verifiedPassword} AND ${user!.id} = ANY(sessions) RETURNING email`;
-    if (!updated.length) return error(set, 409, 'Account changed. Sign in and try again');
+      await sql`UPDATE users SET totp = ${encryptSecret(secret)}, totp_counter = ${Math.floor(Date.now() / 30_000) + delta}, recovery_hashes = ${recovery.map(hashRecoveryCode)}
+      WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING id`;
+
+    if (!updated.length) {
+      return error(set, 409, 'Account changed. Try again');
+    }
+
+    await sql`DELETE FROM sessions WHERE owner = ${user!.accountID} AND id <> ${user!.id}`;
 
     return {recovery, recoveryRemaining: recovery.length};
   })
   .post('/payment', async ({set, body, user}) => {
     const {err, payment} = check(body, ['payment']);
-    if (err) return error(set, 400, err);
 
-    const email = user!.email;
-    const customer = await createBillingCustomer(email);
+    if (err) {
+      return error(set, 400, err);
+    }
+
+    const customer = await createBillingCustomer(user!.email);
     await stripe.paymentMethods.attach(payment, {customer});
     await stripe.customers.update(customer, {invoice_settings: {default_payment_method: payment}});
 
-    return await billingPortal(email);
+    return await billingPortal(user!.email);
   })
-  .post('/email', async ({set, user, jwt, body, verifiedPassword}) => {
-    const {err, email, access} = check(body, ['email', 'access'], true);
-    if (err) return error(set, 400, err);
-
-    if (!consumeEmailCode('change', email, `${user!.email}:${user!.id}`, access)) {
-      return error(set, 400, 'Invalid or expired email code. Request a new code if needed');
-    }
-
-    const existing = await sql`SELECT email FROM users WHERE email = ${email}`;
-    if (existing.length) return error(set, 409, 'Email address is already registered');
-
-    const accounts = await sql`UPDATE users SET email = ${email}, sessions = ARRAY[${user!.id}]::varchar(64)[]
-      WHERE email = ${user!.email} AND password = ${verifiedPassword} AND ${user!.id} = ANY(sessions) RETURNING stripe_customer`;
-    if (!accounts.length) return error(set, 409, 'Account changed. Sign in and try again');
-
-    let warning;
-    if (accounts[0].stripe_customer) {
-      try {
-        await stripe.customers.update(accounts[0].stripe_customer, {email});
-      } catch {
-        warning = 'Email changed. Billing email will be synchronized when you next open billing settings';
-      }
-    }
-    const cookievalue = await jwt.sign({email, id: user!.id});
-
-    return {cookie: cookievalue, warning};
-  })
-  .put('/email', async ({set, body, user}) => {
+  .post('/email', async ({set, body, user}) => {
     const {err, email} = check(body, ['email']);
-    if (err) return error(set, 400, err);
 
-    const result = (await sql`SELECT * FROM users WHERE email = ${email}`) as QueryUser[];
-    if (result.length) return error(set, 400, 'Email address is already registered on our systems');
+    if (err) {
+      return error(set, 400, err);
+    }
+
+    const existing = await sql`SELECT id FROM users WHERE email = ${email}`;
+
+    if (existing.length) {
+      return error(set, 409, 'This email is already registered');
+    }
 
     const response = await sendVerificationCode('change', email, `${user!.email}:${user!.id}`);
-    if (response.status !== 200) return error(set, response.status, response.message);
+
+    if (response.status !== 200) {
+      return error(set, response.status, response.message);
+    }
 
     return {email};
   })
+  .put('/email', async ({set, user, body, verifiedPassword}) => {
+    const {err, email, access} = check(body, ['email', 'access'], true);
+
+    if (err) {
+      return error(set, 400, err);
+    }
+
+    if (!consumeEmailCode('change', email, `${user!.email}:${user!.id}`, access)) {
+      return error(set, 400, 'Invalid or expired email code');
+    }
+
+    const changed = await sql.begin(async (transaction) => {
+      const accounts = await transaction`UPDATE users SET email = ${email}
+        WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING email, password, totp, stripe_customer`;
+
+      if (!accounts.length) {
+        return;
+      }
+
+      await transaction`DELETE FROM sessions WHERE owner = ${user!.accountID}`;
+
+      return {token: await issueSession(accounts[0] as QueryUser, transaction), customer: accounts[0].stripe_customer};
+    });
+
+    if (!changed) {
+      return error(set, 409, 'Account changed. Try again');
+    }
+
+    let warning;
+
+    if (changed.customer) {
+      try {
+        await stripe.customers.update(changed.customer, {email});
+      } catch {
+        warning = 'Email changed. Billing email will synchronize when you next open billing settings';
+      }
+    }
+
+    return {token: changed.token, warning};
+  })
   .put('/username', async ({set, user, body, verifiedPassword}) => {
     const {err, username} = check(body, ['username']);
-    if (err) return error(set, 400, err);
 
-    const updated =
-      await sql`UPDATE users SET username = ${username} WHERE email = ${user!.email} AND password = ${verifiedPassword} AND ${user!.id} = ANY(sessions) RETURNING email`;
-    if (!updated.length) return error(set, 409, 'Account changed. Sign in and try again');
-  })
-  .put('/password', async ({set, user, body, verifiedPassword}) => {
-    const {err, password} = check(body, ['password']);
-    if (err) return error(set, 400, err);
+    if (err) {
+      return error(set, 400, err);
+    }
 
-    const hashedPassword = await createHash(password);
-    const updated = await sql`UPDATE users SET password = ${hashedPassword}, sessions = ARRAY[]::varchar(64)[], api_key = ${getAPIKey()}
-      WHERE email = ${user!.email} AND password = ${verifiedPassword} AND ${user!.id} = ANY(sessions) RETURNING email`;
-    if (!updated.length) return error(set, 409, 'Account changed. Sign in and try again');
+    const updated = await sql`UPDATE users SET username = ${username} WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING id`;
+
+    if (!updated.length) {
+      return error(set, 409, 'Account changed. Try again');
+    }
 
     return {success: true};
   })
-  .delete('/otp', async ({user, verifiedPassword, set}) => {
-    const updated =
-      await sql`UPDATE users SET totp = NULL, recovery_hashes = ARRAY[]::varchar(64)[] WHERE email = ${user!.email} AND password = ${verifiedPassword} AND ${user!.id} = ANY(sessions) RETURNING email`;
-    if (!updated.length) return error(set, 409, 'Account changed. Sign in and try again');
+  .put('/password', async ({set, user, body, verifiedPassword}) => {
+    const {err, password} = check(body, ['password']);
+
+    if (err) {
+      return error(set, 400, err);
+    }
+
+    const hash = await createHash(password);
+
+    const changed = await sql.begin(async (transaction) => {
+      const updated = await transaction`UPDATE users SET password = ${hash}, api_key = NULL
+        WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING id`;
+
+      if (!updated.length) {
+        return false;
+      }
+
+      await transaction`DELETE FROM sessions WHERE owner = ${user!.accountID}`;
+
+      return true;
+    });
+
+    if (!changed) {
+      return error(set, 409, 'Account changed. Try again');
+    }
+
+    return {success: true};
+  })
+  .delete('/totp', async ({user, verifiedPassword, set}) => {
+    const updated = await sql`UPDATE users SET totp = NULL, totp_counter = NULL, recovery_hashes = ARRAY[]::varchar(64)[]
+      WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING id`;
+
+    if (!updated.length) {
+      return error(set, 409, 'Account changed. Try again');
+    }
 
     return {recoveryRemaining: 0};
   })
-  .delete('/full', async ({user, set}) => {
-    const account = (await sql`SELECT id FROM users WHERE email = ${user!.email}`) as QueryUser[];
-    const allPurchases = (await sql`SELECT * FROM identities WHERE owner = ${account?.[0].id}`) as QueryIdentity[];
+  .delete('/account', async ({user, set}) => {
+    const purchases = (await sql`SELECT * FROM identities WHERE owner = ${user!.accountID}`) as QueryIdentity[];
 
-    for (const purchase of allPurchases) {
-      if (!(await deleteIdentity(purchase.id, account[0].id)))
-        return error(set, 202, 'Deletion is pending refund or resource cleanup. It will retry automatically');
+    for (const identity of purchases) {
+      if (!(await deleteIdentity(identity.id, user!.accountID))) {
+        set.status = 202;
+
+        return {status: 'deleting', message: 'Resource cleanup is pending. Retry account deletion after cleanup completes'};
+      }
     }
 
-    const customer = await sql`SELECT stripe_customer FROM users WHERE email = ${user!.email}`;
-    if (customer[0]?.stripe_customer) await stripe.customers.del(customer[0].stripe_customer);
-    await sql`DELETE FROM users WHERE email = ${user!.email}`;
+    const customers = await sql`SELECT stripe_customer FROM users WHERE id = ${user!.accountID}`;
+
+    if (customers[0]?.stripe_customer) {
+      await stripe.customers.del(customers[0].stripe_customer);
+    }
+
+    await sql`DELETE FROM users WHERE id = ${user!.accountID}`;
+
+    return {success: true};
   });

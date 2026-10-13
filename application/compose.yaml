@@ -1,5 +1,11 @@
 name: shadowself
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
 services:
   nginx:
     build: .
@@ -14,6 +20,8 @@ services:
     depends_on:
       - frontend
       - backend
+    restart: always
+    logging: *default-logging
 
   certbot:
     build: ./microservices/certbot
@@ -25,6 +33,7 @@ services:
       - nginx
     restart: always
     init: true
+    logging: *default-logging
 
   postgres:
     build: ./database
@@ -41,6 +50,7 @@ services:
       - data:/var/lib/postgresql
     restart: always
     init: true
+    logging: *default-logging
 
   backend:
     build: ./backend
@@ -54,10 +64,16 @@ services:
     env_file:
       - ./backend/.env
       - ./database/.env
+    environment:
+      TRUSTED_PROXY_HOSTS: nginx,frontend
     depends_on:
       - postgres
     restart: always
     init: true
+    mem_limit: 768m
+    mem_reservation: 256m
+    cpus: 0.75
+    logging: *default-logging
 
   frontend:
     healthcheck:
@@ -65,18 +81,23 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
-    build:
-      context: ./frontend
-      args:
-        PUBLIC_STRIPE_KEY: ${PUBLIC_STRIPE_KEY:?Set PUBLIC_STRIPE_KEY for the frontend build}
+    build: ./frontend
     expose:
       - 5000
     env_file:
       - ./frontend/.env
+    environment:
+      BACKEND_URL: http://backend:3000
+      ORIGIN: ''
+      ADDRESS_HEADER: x-forwarded-for
+      XFF_DEPTH: 1
+      PROTOCOL_HEADER: x-forwarded-proto
+      HOST_HEADER: x-forwarded-host
     depends_on:
       - backend
     restart: always
     init: true
+    logging: *default-logging
 
 volumes:
   data:

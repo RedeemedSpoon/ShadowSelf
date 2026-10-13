@@ -1,262 +1,171 @@
 <script lang="ts">
-  import ReactiveButton from '$component/buttons/ReactiveButton.svelte';
-  import LoadingButton from '$component/buttons/LoadingButton.svelte';
-  import InputWithIcon from '$component/inputs/InputWithIcon.svelte';
-  import StepsItem from '$component/containers/StepsItem.svelte';
-  import CopyButton from '$component/buttons/CopyButton.svelte';
-  import Tooltip from '$component/feedback/Tooltip.svelte';
-  import Steps from '$component/containers/Steps.svelte';
+  import {untrack} from 'svelte';
+  import {enhance} from '$app/forms';
+  import Button from '$component/ui/Button.svelte';
+  import Status from '$component/ui/Status.svelte';
+  import Copy from '$component/ui/Copy.svelte';
+  import PaymentMethod from '$component/console/PaymentMethod.svelte';
+  import type {ActionData} from './$types';
 
-  import DownloadIcon from '$icon/actions/Download.svelte';
-  import EmailIcon from '$icon/communication/Email.svelte';
-  import KeylockIcon from '$icon/security/Keylock.svelte';
-  import QuestionIcon from '$icon/status/Question.svelte';
-  import CopyIcon from '$icon/actions/Copy.svelte';
-  import HappyIcon from '$icon/misc/Happy.svelte';
-  import KeyIcon from '$icon/security/Key.svelte';
-  import UserIcon from '$icon/user/User.svelte';
-
-  import type {Stripe, StripeCardElement} from '@stripe/stripe-js';
-  import type {Notification, Registration} from '$type';
-  import {loadStripe} from '@stripe/stripe-js/pure';
-  import {currentStep, pendingID} from '$store';
-  import {notify} from '$utils/shared';
-
-  const {form}: {form: Notification & Registration & {stripeKey?: string}} = $props();
-
-  let qr = $state() as string;
-  let secret = $state() as string;
-  let username = $state() as string;
-  let recovery = $state() as string[];
-
-  let anchor = $state() as HTMLAnchorElement;
-  let card = $state() as StripeCardElement;
-  let key = $state() as string | undefined;
-  let stripeLoaded = $state(false);
-  let stripe = $state() as Stripe;
-  let isStripeLoading = false;
+  let {form}: {form: ActionData} = $props();
+  const initialForm = untrack(() => form);
+  const registrationFields = {email: '', username: '', secret: '', qr: '', recovery: [] as string[], stripeKey: ''};
+  let step = $state(Number(initialForm?.step) || 1);
+  let pending = $state(false);
+  let registration = $state({
+    ...registrationFields,
+    ...Object.fromEntries(Object.entries(initialForm || {}).filter(([key]) => key in registrationFields)),
+  });
+  let paymentID = $state('');
+  let savedRecovery = $state(false);
 
   $effect(() => {
-    if ($currentStep === 9 && !stripeLoaded && !isStripeLoading && key) {
-      isStripeLoading = true;
-      initStripe(key);
-    } else if ($currentStep !== 9 && stripeLoaded) {
-      stripeLoaded = false;
-      isStripeLoading = false;
-      if (card) card.destroy();
+    if (!form) {
+      return;
     }
 
-    if (form && Object.hasOwn(form, 'stripeKey')) key = form.stripeKey;
+    if (form.step) {
+      step = Number(form.step);
+    }
 
-    if (form?.message) notify(form.message, form.type);
-    if (form?.step) $currentStep = Number(form?.step);
-
-    if (form?.secret || form?.secret === '') secret = form.secret;
-    if (form?.username) username = form.username;
-    if (form?.recovery) recovery = form.recovery;
-    if (form?.qr) qr = form.qr;
+    registration = {...untrack(() => registration), ...Object.fromEntries(Object.entries(form).filter(([key]) => key in registrationFields))};
   });
 
-  function copyRecovery() {
-    navigator.clipboard.writeText(recovery.join('\n'));
+  function submit() {
+    pending = true;
+
+    return async ({update}: {update: (options: {reset: boolean}) => Promise<void>}) => {
+      try {
+        await update({reset: false});
+      } finally {
+        pending = false;
+      }
+    };
   }
 
-  function downloadRecovery() {
-    const text = recovery.join('\n');
-    const blob = new Blob([text], {type: 'text/plain'});
-    anchor.href = URL.createObjectURL(blob);
-    anchor.click();
-  }
-
-  async function initStripe(stripeKey: string) {
-    pendingID.set(1);
-    loadStripe.setLoadParameters({advancedFraudSignals: false});
-    stripe = (await loadStripe(stripeKey)) as Stripe;
-
-    card = stripe!.elements().create('card', {
-      classes: {
-        base: 'rounded-xl border p-4 transition-all duration-300 border-neutral-800 bg-neutral-800/30',
-        focus: 'ring-2 ring-primary-700',
-      },
-      style: {
-        base: {
-          color: '#cbd5e1',
-          iconColor: '#94a3b8',
-          '::placeholder': {color: '#94a3b8'},
-        },
-      },
-    });
-
-    setTimeout(() => {
-      card.mount('#payment');
-      stripeLoaded = true;
-      pendingID.set(0);
-    }, 300);
-
-    return 9;
-  }
-
-  async function createCard() {
-    pendingID.set(1);
-
-    const {paymentMethod, error} = await stripe!.createPaymentMethod({type: 'card', card});
-    if (paymentMethod) {
-      const input = document.querySelector('input[name="paymentID"]') as HTMLInputElement;
-      const submit = document.querySelector('#submit-payment') as HTMLButtonElement;
-
-      input.value = paymentMethod.id;
-      submit.click();
-    } else {
-      notify(error!.message!, 'alert');
-      pendingID.set(0);
-    }
-  }
-
-  async function backStep() {
-    let step = $currentStep - 1;
-    step = step === 7 && !secret ? 4 : step;
-    step = step === 9 ? (!key ? 8 : 9) : step;
-    $currentStep = step;
-  }
+  const titles: Record<number, string> = {
+    1: 'Create your account',
+    2: 'Verify your email',
+    3: 'Choose a username',
+    4: 'Two-factor authentication',
+    5: 'Add your authenticator',
+    6: 'Verify your authenticator',
+    7: 'Save your recovery codes',
+    8: 'Payment method',
+    9: 'Add a card',
+    10: 'Finish setup',
+  };
+  const actions: Record<number, string> = {
+    1: 'init',
+    2: 'checkEmail',
+    3: 'checkUsername',
+    4: 'askOTP',
+    5: 'showOTP',
+    6: 'checkOTP',
+    7: 'showRecovery',
+    8: 'askBilling',
+    9: 'addBilling',
+    10: 'create',
+  };
 </script>
 
-<svelte:head>
-  <title>ShadowSelf - Sign Up</title>
-  <meta name="description" content="Sign up and create your account to start using ShadowSelf today" />
-  <meta name="referrer" content="strict-origin-when-cross-origin" />
-</svelte:head>
-
-<Steps>
-  <StepsItem shouldWait={true} {backStep} index={1} action="init">
-    <h1>Create an account</h1>
-    <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
-      <label for="email">Email</label>
-      <InputWithIcon type="email" icon={EmailIcon} fill={true} name="email" placeholder="example@domain.tld" />
-    </div>
-    <div class="flex justify-end gap-6 max-md:flex-col md:items-center">
-      <label for="password">Password</label>
-      <InputWithIcon type="password" icon={KeyIcon} name="password" placeholder="correct horse battery staple" />
-    </div>
-    <div class="mt-4 -mb-2 flex justify-between px-3 text-nowrap max-md:flex-col md:items-center">
-      <a class="text-md max-md:text-sm md:mr-8" href="/login">Already have an account?</a>
-      <Tooltip tip="Password must be at least 8 characters long. It must contain 1 lowercase letter, 1 uppercase letter and 1 number">
-        <div class="group/tooltip-password flex cursor-context-menu items-center gap-0.5 select-none">
-          <h6 class="text-md group-hover/tooltip-password:text-neutral-400 max-md:text-sm">Password requirements</h6>
-          <QuestionIcon className="h-5 fill-neutral-300 group-hover/tooltip-password:fill-neutral-400" />
+<svelte:head
+  ><title>Create an account | ShadowSelf</title><meta
+    name="description"
+    content="Create a ShadowSelf account with email verification and optional two-factor authentication." /></svelte:head>
+<div class="access">
+  <section class="panel">
+    <h1>{titles[step]}</h1>
+    {#if step === 2 || step === 7 || step === 8}<p>
+        {step === 2
+          ? `Code sent to ${registration.email}.`
+          : step === 7
+            ? 'Each code restores access if you lose your authenticator and can be used once.'
+            : 'Optional. Identity purchases also accept crypto.'}
+      </p>{/if}
+    <Status message={form?.message || ''} kind="error" />
+    <form method="POST" action="?/{actions[step]}" use:enhance={submit}>
+      {#if step === 1}<div class="field">
+          <label for="signup-email">Email address</label><input id="signup-email" type="email" name="email" autocomplete="email" required />
         </div>
-      </Tooltip>
-    </div>
-    <LoadingButton>Next</LoadingButton>
-  </StepsItem>
+        <div class="field">
+          <label for="signup-password">Account password</label><input
+            id="signup-password"
+            name="password"
+            type="password"
+            minlength="12"
+            autocomplete="new-password"
+            required /><small>Minimum 12 characters.</small>
+        </div>{/if}
+      {#if step === 2}<div class="field">
+          <label for="signup-code">Email code</label><input
+            id="signup-code"
+            name="access"
+            inputmode="numeric"
+            pattern="[0-9]{8}"
+            maxlength="8"
+            autocomplete="one-time-code"
+            required />
+        </div>{/if}
+      {#if step === 3}<div class="field">
+          <label for="signup-username">Username</label><input
+            id="signup-username"
+            name="username"
+            autocomplete="nickname"
+            minlength="3"
+            maxlength="32"
+            required />
+        </div>{/if}
+      {#if step === 4}
+        <Button name="enable" value="true" type="submit" loading={pending} icon="shield">Set up two-factor authentication</Button>
+        <div class="access-links"><button type="submit">Continue without two-factor</button></div>{/if}
+      {#if step === 5}<img class="qr-image" src={registration.qr} alt="Authenticator enrollment QR code" /><Copy
+          value={registration.secret}
+          label="Copy secret" />
+        <p class="security-copy">Scan the QR code or enter this secret in your authenticator.</p>{/if}
+      {#if step === 6}<div class="field">
+          <label for="signup-totp">Authenticator code</label><input
+            id="signup-totp"
+            name="token"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            autocomplete="one-time-code"
+            required />
+        </div>{/if}
+      {#if step === 7}<div class="recovery-codes">
+          {#each registration.recovery as code (code)}<span>{code}</span>{/each}
+        </div>
+        <Copy value={registration.recovery.join('\n')} label="Copy codes" />
+        <label class="security-copy recovery-confirm"><input type="checkbox" bind:checked={savedRecovery} required /> I saved these recovery codes.</label>{/if}
+      {#if step === 8}<Button name="add" value="true" type="submit" loading={pending} icon="card">Add a payment card</Button>
+        <div class="access-links"><button type="submit">Skip for now</button></div>{/if}
+      {#if step === 9}<PaymentMethod stripeKey={registration.stripeKey} onready={(id) => (paymentID = id)} /><input
+          type="hidden"
+          name="paymentID"
+          value={paymentID} />{/if}
+      {#if step !== 4 && step !== 8}<Button type="submit" loading={pending} disabled={(step === 7 && !savedRecovery) || (step === 9 && !paymentID)} icon="arrow"
+          >{step === 10 ? 'Create account' : 'Continue'}</Button
+        >{/if}
+      {#if step === 9}<div class="access-links">
+          <button type="submit" formaction="?/askBilling" formnovalidate disabled={pending}>Skip for now</button>
+        </div>{/if}
+    </form>
+    {#if step === 1}<div class="access-links"><a href="/login">Sign in</a></div>{/if}
+  </section>
+</div>
 
-  <StepsItem shouldWait={true} {backStep} index={2} action="checkEmail">
-    <h1 class="-mb-2!">Verify your email address</h1>
-    <p>Enter the eight-digit email code. It expires in ten minutes.</p>
-    <InputWithIcon type="password" name="access" placeholder="12345678" icon={KeylockIcon} />
-    <LoadingButton className="mt-2">Continue</LoadingButton>
-  </StepsItem>
-
-  <StepsItem shouldWait={true} {backStep} index={3} action="checkUsername">
-    <h1 class="-mb-2!">Enter your username</h1>
-    <p>Enter a username for your account. You can change it later</p>
-    <InputWithIcon type="text" name="username" icon={UserIcon} placeholder="Greed" />
-    <LoadingButton className="mt-2">Continue</LoadingButton>
-  </StepsItem>
-
-  <StepsItem {backStep} index={4} action="askOTP">
-    <h1>Hello <span class="pretty-style">{username}</span>,<br /> Would you like to enable 2FA now?</h1>
-    <p class="-mt-4 mb-8">
-      Two-Factor Authentication (2FA) is a common security feature that adds an extra layer of protection to your account when trying to logging in.
-    </p>
-    <div class="flex w-full justify-between gap-2 px-8 max-md:flex-col-reverse">
-      <button class="alt" name="skip" type="submit">Skip this step</button>
-      <button name="enable" type="submit">Enable 2FA →</button>
-    </div>
-  </StepsItem>
-
-  <StepsItem {backStep} index={5} action="showOTP">
-    <div class="mb-10 flex flex-row items-center gap-12 max-xl:flex-col md:gap-24 md:px-10">
-      <div class="flex flex-col items-center gap-6">
-        <h1>Scan the QR code</h1>
-        <img src={qr} alt="QR Code" width="200" class="w-11/12 shadow-xl shadow-white/15" />
-      </div>
-      <div class="flex w-full flex-col gap-2">
-        <h1>Or enter the secret key</h1>
-        <p class="mb-2">Alternatively, you can paste this secret key into your auth app if you don't have a phone:</p>
-        <CopyButton text={secret} change={false} />
-        <p class="mt-2 ml-1 text-sm text-red-500">Use SHA-1, six digits and a 30-second period.</p>
-      </div>
-    </div>
-    <button type="submit">Next →</button>
-  </StepsItem>
-
-  <StepsItem shouldWait={true} {backStep} index={6} action="checkOTP">
-    <h1 class="-mb-2!">Enter the verification token</h1>
-    <p>Enter the verification token that was generated automatically by your authenticator app</p>
-    <InputWithIcon type="number" name="token" icon={KeylockIcon} placeholder="123456" />
-    <LoadingButton className="mt-2">Verify</LoadingButton>
-  </StepsItem>
-
-  <StepsItem {backStep} index={7} action="showRecovery">
-    <h1>Store safely these recovery codes</h1>
-    <p class="-mt-6">Save these codes now. Each works once if you lose your authenticator. We cannot show them again.</p>
-    <div id="recovery">
-      {#each recovery as code, index (index)}
-        <p>{code}</p>
-      {/each}
-    </div>
-    <div id="recovery-actions-buttons" class="-mt-4 flex justify-evenly max-md:flex-col max-md:items-center">
-      <ReactiveButton icon={CopyIcon} text="Copy to clipboard" newText="Copied!" callback={copyRecovery} />
-      <ReactiveButton icon={DownloadIcon} text="Download as .txt" newText="Downloaded!" callback={downloadRecovery} />
-      <a bind:this={anchor} aria-label="Download" href="/" download="ShadowSelf-recovery-codes.txt" class="hidden"></a>
-    </div>
-    <button type="submit">Next →</button>
-  </StepsItem>
-
-  <StepsItem {backStep} index={8} action="askBilling">
-    <h1 class="-mb-2!">Want to add a payment option?</h1>
-    <p>You will need a payment method to use ShadowSelf in it full capacity. We currently only accept credit cards</p>
-    <div class="mt-8 flex justify-between gap-2 px-8 max-md:flex-col-reverse">
-      <button class="alt" name="skip" type="submit">Skip for now</button>
-      <button name="add" type="submit">Add Payment →</button>
-    </div>
-  </StepsItem>
-
-  <StepsItem {backStep} index={9} action="addBilling">
-    <h1 class="-mb-2!">Enter your credit card details</h1>
-    <p>We use Stripe to process your payments. We don't store your details nor share them with anyone</p>
-    <div id="payment" class={!stripeLoaded ? 'hidden' : ''}></div>
-    <input hidden name="paymentID" />
-    {#if stripeLoaded}
-      <LoadingButton type="button" onclick={createCard}>Add Payment Method</LoadingButton>
-    {/if}
-    <button hidden type="submit" id="submit-payment">Submit</button>
-  </StepsItem>
-
-  <StepsItem shouldWait={true} {backStep} index={10} action="create">
-    <HappyIcon className="w-36 h-36 -mt-12" />
-    <h1 class="-mb-2! text-center">And we're done, <span class="pretty-style">{username}</span></h1>
-    <p class="-mt-2 mb-4 text-center">Just click the button below to finish setting up your account. You can still go back to make changes</p>
-    <LoadingButton>Create the account</LoadingButton>
-    <p class="-mb-6 text-center text-sm text-neutral-400">
-      By continuing, you agree to our
-      <a href="/terms">Terms of Service</a> and <a href="/privacy-policy">Privacy Policy</a>
-    </p>
-  </StepsItem>
-</Steps>
-
-<style lang="postcss">
-  @reference "$style";
-
-  h1 {
-    @apply -mt-4 mb-4 text-4xl font-bold text-neutral-300 max-md:text-2xl md:text-nowrap;
+<style>
+  .security-copy {
+    margin: 18px 0 !important;
   }
-
-  #recovery {
-    @apply grid place-items-center gap-6 rounded-xl bg-neutral-800/50 p-8 font-mono text-sm font-medium md:grid-cols-2;
+  .recovery-confirm {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-
-  #recovery-actions-buttons > * {
-    @apply inline-flex items-center gap-2;
+  .recovery-confirm input {
+    margin: 0;
+    flex-shrink: 0;
   }
 </style>

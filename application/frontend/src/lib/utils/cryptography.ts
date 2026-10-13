@@ -1,6 +1,5 @@
 import {p2wpkh} from '@scure/btc-signer';
-import {masterPassword} from '$store';
-import {notify} from '$utils/shared';
+import {vaultKey} from '$store';
 import {HDKey} from '@scure/bip32';
 import {get} from 'svelte/store';
 import type {Coins} from '$type';
@@ -9,9 +8,15 @@ export function deriveXPub(coin: Coins, key: string, index: number = 0): string 
   const node = HDKey.fromExtendedKey(key);
   const child = node.deriveChild(0).deriveChild(index);
 
-  if (coin === 'btc') return p2wpkh(child.publicKey!).address!;
-  else if (coin === 'ltc') return p2wpkh(child.publicKey!, {bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0}).address!;
-  else return key;
+  if (coin === 'btc') {
+    return p2wpkh(child.publicKey!).address!;
+  } else {
+    if (coin === 'ltc') {
+      return p2wpkh(child.publicKey!, {bech32: 'ltc', pubKeyHash: 0x30, scriptHash: 0x32, wif: 0xb0}).address!;
+    } else {
+      return key;
+    }
+  }
 }
 
 export async function deriveMasterKey(password: string, identityID: string): Promise<CryptoKey> {
@@ -25,25 +30,22 @@ export async function deriveMasterKey(password: string, identityID: string): Pro
     hash: 'SHA-256',
   };
 
-  return await crypto.subtle.deriveKey(algorithm, keyMaterial, {name: 'AES-GCM', length: 256}, true, ['encrypt', 'decrypt']);
+  return await crypto.subtle.deriveKey(algorithm, keyMaterial, {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']);
 }
 
-export async function getMasterKey() {
-  const storedKeyBase64 = get(masterPassword);
-  if (!storedKeyBase64) notify('No Master Password loaded in memory.', 'alert');
+export async function getMasterKey(): Promise<CryptoKey> {
+  const key = get(vaultKey);
 
-  const binaryString = atob(storedKeyBase64);
-  const len = binaryString.length;
-  const keyBytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    keyBytes[i] = binaryString.charCodeAt(i);
+  if (!key) {
+    throw new Error('Unlock your vault with its master password first.');
   }
 
-  return await crypto.subtle.importKey('raw', keyBytes, {name: 'AES-GCM'}, true, ['encrypt', 'decrypt']);
+  return key;
 }
 
 export async function encrypt(data: string, key?: CryptoKey) {
   key = key || (await getMasterKey());
+
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encodedData = new TextEncoder().encode(data);
   const encryptedBuffer = await crypto.subtle.encrypt({name: 'AES-GCM', iv: iv}, key, encodedData);
@@ -56,7 +58,10 @@ export async function encrypt(data: string, key?: CryptoKey) {
 }
 
 export async function decrypt(encryptedString: string, newKey?: CryptoKey) {
-  if (!encryptedString.startsWith('v1.')) throw new Error('Unsupported encrypted value');
+  if (!encryptedString.startsWith('v1.')) {
+    throw new Error('Unsupported encrypted value');
+  }
+
   const key = newKey || (await getMasterKey());
 
   const encryptedData = new Uint8Array(
@@ -70,8 +75,9 @@ export async function decrypt(encryptedString: string, newKey?: CryptoKey) {
 
   try {
     const decryptedBuffer = await crypto.subtle.decrypt({name: 'AES-GCM', iv: iv}, key, dataBuffer);
+
     return new TextDecoder().decode(decryptedBuffer);
-  } catch (_) {
-    return '';
+  } catch {
+    throw new Error('The encrypted value could not be decrypted. Check the master password or restore an intact encrypted backup.');
   }
 }

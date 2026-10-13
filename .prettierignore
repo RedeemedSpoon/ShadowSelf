@@ -1,0 +1,3 @@
+bun.lock
+**/bun.lock
+application/frontend/static/monero.worker.js

@@ -1,21 +1,6 @@
-import type {Notification, PricingModel, FullIdentity, WebSocketMessage, MoneroData} from '$type';
-import {writable, type Writable} from 'svelte/store';
-import {PRICING_TIERS} from '$constant';
+import {writable} from 'svelte/store';
+import type {FullIdentity, MoneroData} from '$type';
 
-export const user: Writable<string> = writable('');
-
-export const scrollY: Writable<number> = writable(0);
-export const currentStep: Writable<number> = writable(1);
-export const stickyYScroll: Writable<number> = writable(0);
-
-export const activeModal: Writable<number> = writable(0);
-export const pendingID: Writable<number> = writable(0);
-
-export const identity: Writable<FullIdentity> = writable();
-export const moneroData: Writable<MoneroData> = writable();
-export const masterPassword: Writable<string> = writable();
-export const handleResponse: Writable<(response: WebSocketMessage) => void> = writable(() => {});
-
-export const mobileHamburgerMenu: Writable<boolean> = writable(false);
-export const notification: Writable<Notification> = writable({id: null, message: '', type: 'info'});
-export const pricingModel: Writable<PricingModel> = writable({name: 'Monthly', ...PRICING_TIERS.monthly});
+export const identity = writable<FullIdentity>();
+export const moneroData = writable<MoneroData>();
+export const vaultKey = writable<CryptoKey | null>(null);

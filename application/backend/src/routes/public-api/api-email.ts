@@ -7,38 +7,50 @@ import {throttle} from '@core/states';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
-export default new Elysia({prefix: '/email'})
+export default new Elysia({prefix: '/api/identities/:id/mail'})
   .use(middlewareApi)
   .get(
-    '/:id',
+    '/messages',
     async ({identity}) => {
       const emails = await fetchRecentEmails(identity!.email, identity!.email_password);
+
       return {emails};
     },
     throttle('Initial Email Fetch', 3_000),
   )
   .get(
-    '/load-more/:id',
+    '/messages/more',
     async ({set, identity, query}) => {
       const {err, mailbox, since} = await checkAPI(query, ['mailbox', 'since']);
-      if (err) return error(set, 400, err);
+
+      if (err) {
+        return error(set, 400, err);
+      }
 
       const nextEmails = await fetchMoreEmails(identity!.email, identity!.email_password, mailbox!, Number(since!));
+
       return {mailbox, since, nextEmails};
     },
     throttle('More Email Fetch', 3_000),
   )
-  .get('/fetch-reply/:id', async ({set, identity, query}) => {
+  .get('/reply', async ({set, identity, query}) => {
     const {err, uuid} = await checkAPI(query, ['uuid']);
-    if (err) return error(set, 400, err);
+
+    if (err) {
+      return error(set, 400, err);
+    }
 
     const email = await fetchEmail(identity!.email, identity!.email_password, true, uuid!);
+
     return {uuid, fetchEmail: email};
   })
-  .post('/send-email/:id', async ({set, identity, body}) => {
+  .post('/messages', async ({set, identity, body}) => {
     const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
     const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
-    if (err) return error(set, 400, err);
+
+    if (err) {
+      return error(set, 400, err);
+    }
 
     const email = identity!.email;
     const password = identity!.email_password;
@@ -46,14 +58,22 @@ export default new Elysia({prefix: '/email'})
     const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
 
     const response = await sendIdentityEmail(content);
-    if (!response.messageID) return error(set, 400, 'Failed to send email');
+
+    if (!response.messageID) {
+      return error(set, 400, 'Failed to send email');
+    }
+
     const fullEmail = {...content, messageID: response.messageID, date: response.date};
 
     let uid;
     let warning;
+
     try {
       uid = (await appendToMailbox(false, fullEmail)).uid;
-      if (draft) await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
+
+      if (draft) {
+        await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
+      }
     } catch {
       warning = 'Email was sent, but saving it in Sent or removing its draft failed. Do not resend it.';
     }
@@ -61,14 +81,21 @@ export default new Elysia({prefix: '/email'})
     delete (fullEmail as {password?: string}).password;
 
     const sentEmail = {...fullEmail, uid, type: response.type};
+
     return {draft, sentEmail, warning};
   })
-  .post('/forward-email/:id', async ({set, identity, body}) => {
+  .post('/forward', async ({set, identity, body}) => {
     const {err, uid, forward} = await checkAPI(body, ['uid', 'forward']);
-    if (err) return error(set, 400, err);
+
+    if (err) {
+      return error(set, 400, err);
+    }
 
     const email = await fetchEmail(identity!.email, identity!.email_password, false, uid!);
-    if (!email) return error(set, 400, 'Failed to fetch email');
+
+    if (!email) {
+      return error(set, 400, 'Failed to fetch email');
+    }
 
     if (email.type === 'html') {
       const escape = (value: unknown) =>
@@ -96,14 +123,19 @@ export default new Elysia({prefix: '/email'})
     }
 
     email.subject = email.subject!.toUpperCase().includes('FWD: ') ? email.subject : `FWD: ${email?.subject}`;
+
     const forwardContent = {...email, to: forward, email: identity!.email, password: identity!.email_password};
 
     const response = await sendIdentityEmail(forwardContent as EmailContent);
-    if (!response.messageID) return error(set, 400, 'Failed to forward email');
+
+    if (!response.messageID) {
+      return error(set, 400, 'Failed to forward email');
+    }
 
     const fullEmail = {...forwardContent, messageID: response.messageID, date: response.date};
     let saved;
     let warning;
+
     try {
       saved = await appendToMailbox(false, fullEmail as EmailContent);
     } catch {
@@ -114,12 +146,16 @@ export default new Elysia({prefix: '/email'})
     delete (fullEmail as {email?: string}).email;
 
     const forwardEmail = {...fullEmail, uid: saved?.uid, type: response.type};
+
     return {uid, forward, forwardEmail, warning};
   })
-  .put('/save-draft/:id', async ({set, identity, body}) => {
+  .put('/draft', async ({set, identity, body}) => {
     const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
     const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
-    if (err) return error(set, 400, err);
+
+    if (err) {
+      return error(set, 400, err);
+    }
 
     const email = identity!.email;
     const password = identity!.email_password;
@@ -127,8 +163,10 @@ export default new Elysia({prefix: '/email'})
     const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
 
     const fullEmail = await appendToMailbox(true, content);
+
     let warning;
     let replacedDraft: number | undefined = draft;
+
     if (draft) {
       try {
         await deleteEmail(email, password, 'Drafts', (body as APIRequest).draft);
@@ -143,12 +181,17 @@ export default new Elysia({prefix: '/email'})
 
     const {password: _password, email: _email, ...safeContent} = content;
     const savedDraft = {...fullEmail, ...safeContent};
+
     return {draft: replacedDraft, savedDraft, warning};
   })
-  .delete('/delete-email/:id', async ({set, identity, body}) => {
+  .delete('/messages', async ({set, identity, body}) => {
     const {err, mailbox, uid} = await checkAPI(body, ['mailbox', 'uid']);
-    if (err) return error(set, 400, err);
+
+    if (err) {
+      return error(set, 400, err);
+    }
 
     await deleteEmail(identity!.email, identity!.email_password, mailbox!, (body as APIRequest).uid!);
+
     return {mailbox, uid};
   });

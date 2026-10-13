@@ -1,138 +1,169 @@
-import {origin, request, read, store, sleep} from '../../shared.js';
+import {applicationOrigin, createAccountBridge} from '../../shared.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const accountTab = await read('accountTab');
-  if (!accountTab) {
-    location.href = '../welcome/welcome.html';
+const origin = applicationOrigin(chrome.runtime.getManifest());
+const bridge = createAccountBridge(chrome, origin);
+const element = (id) => document.getElementById(id);
+let windowId;
+let identities = [];
+let pending = false;
+
+element('website').href = `${origin}/dashboard`;
+
+function status(message, error = false) {
+  element('status').textContent = message;
+  element('status').dataset.error = String(error);
+}
+
+async function run(action) {
+  if (pending) {
     return;
   }
 
-  const identities = await initialize();
-  if (!identities) return;
+  pending = true;
+  document.querySelectorAll('button').forEach((button) => (button.disabled = true));
+  status('Connecting to your signed-in tab…');
 
-  listIdentities(identities);
-  addSearch(identities);
+  try {
+    await action();
+  } catch (error) {
+    identities = [];
+    element('identities').replaceChildren();
+    element('account').hidden = true;
+    element('connection').hidden = false;
+    status(error instanceof Error ? error.message : 'Could not read your account. Retry shortly.', true);
+  } finally {
+    pending = false;
+    document.querySelectorAll('button').forEach((button) => (button.disabled = false));
+  }
+}
+
+function renderIdentities() {
+  const search = element('search').value.toLocaleLowerCase().trim();
+  const visible = identities.filter((identity) => `${identity.name} ${identity.location || ''}`.toLocaleLowerCase().includes(search));
+  const container = element('identities');
+  container.replaceChildren();
+  element('empty').hidden = visible.length > 0;
+  element('empty').textContent = identities.length ? 'No matching identities.' : 'No identities yet.';
+
+  for (const identity of visible) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'identity';
+
+    const initials = document.createElement('span');
+    initials.className = 'initials';
+    initials.textContent = identity.name.slice(0, 2).toUpperCase();
+
+    const detail = document.createElement('span');
+    const name = document.createElement('strong');
+    name.textContent = identity.name || 'Identity setup';
+
+    const location = document.createElement('small');
+    location.textContent = identity.location || identity.status || 'Open identity';
+
+    const arrow = document.createElement('span');
+    arrow.className = 'arrow';
+    arrow.textContent = '↗';
+    arrow.setAttribute('aria-hidden', 'true');
+    detail.append(name, location);
+    button.append(initials, detail, arrow);
+    button.addEventListener('click', () => {
+      void run(async () => {
+        const account = await bridge.account(windowId);
+
+        if (!account?.identities.some((item) => item.id === identity.id)) {
+          throw new Error('This identity is no longer available. Refresh your account.');
+        }
+
+        await chrome.tabs.create({windowId, url: `${origin}/identity/${encodeURIComponent(identity.id)}`, active: true});
+        status('Identity opened in this window.');
+      });
+    });
+    container.append(button);
+  }
+}
+
+function showAccount(account) {
+  identities = account.identities;
+  element('account-title').textContent = account.username;
+  element('connection').hidden = true;
+  element('account').hidden = false;
+  renderIdentities();
+  status('');
+}
+
+async function listTabs() {
+  const tabs = await bridge.tabs(windowId);
+
+  const select = element('account-tab');
+  select.replaceChildren();
+
+  const prompt = document.createElement('option');
+  prompt.value = '';
+  prompt.textContent = tabs.length ? 'Select a tab' : 'Open ShadowSelf to connect';
+  select.append(prompt);
+
+  for (const tab of tabs) {
+    const option = document.createElement('option');
+    option.value = String(tab.id);
+    option.textContent = `${tab.title || 'ShadowSelf'} · ${new URL(tab.url).pathname}`;
+    select.append(option);
+  }
+}
+
+element('search').addEventListener('input', renderIdentities);
+element('connect').addEventListener('click', () => {
+  void run(async () => {
+    const selected = element('account-tab').value;
+
+    if (!selected) {
+      throw new Error('Choose a signed-in ShadowSelf tab first.');
+    }
+
+    showAccount(await bridge.bind(Number(selected), windowId));
+  });
+});
+element('refresh').addEventListener('click', () => {
+  void run(async () => {
+    const account = await bridge.account(windowId);
+
+    if (!account) {
+      throw new Error('Select a signed-in ShadowSelf tab first.');
+    }
+
+    showAccount(account);
+  });
+});
+element('disconnect').addEventListener('click', () => {
+  void run(async () => {
+    await bridge.disconnect(windowId);
+    identities = [];
+    element('identities').replaceChildren();
+    element('search').value = '';
+    element('account-title').textContent = '';
+    element('account').hidden = true;
+    element('connection').hidden = false;
+    await listTabs();
+    status('Disconnected. Your website session is still signed in.');
+  });
+});
+element('open-dashboard').addEventListener('click', () => {
+  void run(async () => {
+    await chrome.tabs.create({windowId, url: `${origin}/dashboard`, active: true});
+    await listTabs();
+    status('Sign in to the new tab, then choose it here.');
+  });
 });
 
-function addSearch(identities) {
-  const searchBox = document.getElementById('search');
-  const container = document.getElementById('container');
-  const notFound = document.getElementById('not-found');
+void run(async () => {
+  windowId = (await chrome.windows.getCurrent()).id;
+  await listTabs();
 
-  searchBox.addEventListener('input', () => {
-    const value = searchBox.value.toLowerCase();
-    const foundIdentities = identities.filter((identity) => (identity.name || '').toLowerCase().includes(value));
+  const account = await bridge.account(windowId);
 
-    if (foundIdentities.length) {
-      notFound.classList.remove('shown');
-      container.classList.remove('not-found');
-
-      identities.forEach((identity) => {
-        const element = document.getElementById(identity.id);
-        if (!element) return;
-
-        element.classList.add('hidden');
-        element.classList.remove('last');
-      });
-
-      foundIdentities.forEach((identity, index) => {
-        const element = document.getElementById(identity.id);
-        if (!element) return;
-
-        element.classList.remove('hidden');
-
-        if (index === foundIdentities.length - 1) {
-          element.classList.add('last');
-        }
-      });
-    } else {
-      notFound.classList.add('shown');
-      container.classList.add('not-found');
-    }
-  });
-}
-
-async function listIdentities(identities) {
-  const container = document.getElementById('container');
-  for (const identity of identities) {
-    if (!identity.name) continue;
-
-    const identityElement = document.createElement('div');
-    identityElement.classList.add('identity');
-    identityElement.id = identity.id;
-
-    const picture = document.createElement('img');
-    picture.src = 'data:image/png;base64,' + identity.picture;
-    identityElement.appendChild(picture);
-
-    const name = document.createElement('h3');
-    name.innerText = identity.name;
-    identityElement.appendChild(name);
-
-    const location = document.createElement('p');
-    const text = identity.location.split(', ');
-    location.innerText = text[1] + ', ' + text[2];
-    identityElement.appendChild(location);
-
-    const url = chrome.runtime.getURL(`assets/countries/${text[0].toLowerCase()}.svg`);
-    const stream = await (await fetch(url)).text();
-    const countryFlag = new DOMParser().parseFromString(stream, 'text/html').documentElement;
-
-    countryFlag.classList.add('flag');
-    identityElement.appendChild(countryFlag);
-
-    container.appendChild(identityElement);
-    identityElement.addEventListener('click', () => {
-      const query = new URLSearchParams({identity: identity.id});
-
-      window.location.href = `../proxy/proxy.html?${query.toString()}`;
-    });
+  if (account) {
+    showAccount(account);
+  } else {
+    status('');
   }
-}
-
-async function initialize() {
-  const loadingSection = document.getElementById('loading');
-  const identitiesSection = document.getElementById('list-identities');
-  const noIdentitiesSection = document.getElementById('no-identities');
-
-  const params = new URLSearchParams(window.location.search);
-  const ignore = params.has('ignore') && params.get('ignore') === 'true';
-
-  if (!ignore) {
-    const loadingBtn = document.getElementById('loading-button');
-    const loadingError = document.getElementById('loading-error');
-    loadingSection.style.display = 'flex';
-
-    const loading = setInterval(() => {
-      if (loadingBtn.innerText.length === 10) loadingBtn.innerText = 'Loading';
-      else loadingBtn.innerText += '.';
-    }, 250);
-
-    await sleep(750);
-    const response = await request(`https://${origin}/api/proxy`, 'GET');
-    if (!response || !Array.isArray(response.identities)) {
-      loadingError.innerText = response + '\nTry logging out and logging back in.';
-      clearInterval(loading);
-      return;
-    }
-
-    await store('username', response.username);
-    await store('identities', response.identities);
-
-    clearInterval(loading);
-    loadingSection.style.display = 'none';
-  }
-
-  const username = await read('username');
-  const identities = (await read('identities')) ?? [];
-
-  if (!identities.length) {
-    noIdentitiesSection.style.display = 'flex';
-    return [];
-  } else identitiesSection.style.display = 'flex';
-
-  const usernameElement = document.getElementById('username');
-  usernameElement.innerText = username.length > 6 ? username.slice(0, 6) + '..' : username;
-
-  return identities;
-}
+});

@@ -1,58 +1,23 @@
 <script lang="ts">
-  import Notification from '$component/layout/Notification.svelte';
-  import Header from '$component/layout/Header.svelte';
-  import Footer from '$component/layout/Footer.svelte';
-
-  import {mobileHamburgerMenu, user} from '$store';
-  import {onMount, type Snippet} from 'svelte';
+  import {page} from '$app/state';
+  import type {Snippet} from 'svelte';
   import type {LayoutData} from './$types';
-
+  import PublicHeader from '$component/public/PublicHeader.svelte';
+  import PublicFooter from '$component/public/PublicFooter.svelte';
+  import ConsoleShell from '$component/console/ConsoleShell.svelte';
   import '@fontsource-variable/fira-code';
   import '@fontsource-variable/inter';
   import '../app.css';
 
-  interface Props {
-    children: Snippet;
-    data: LayoutData;
-  }
-
-  let {data, children}: Props = $props();
-
-  $effect(() => {
-    $user = data.user;
-  });
-
-  onMount(() => {
-    document.querySelector('#app')?.classList.remove('hidden');
-  });
+  let {data, children}: {data: LayoutData; children: Snippet} = $props();
+  const consoleRoute = $derived(
+    ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some((route) => page.url.pathname === route || page.url.pathname.startsWith(`${route}/`)),
+  );
 </script>
 
-<div class="hidden" id="app">
-  <Header />
-  <main>
-    {@render children?.()}
-  </main>
-  <Footer />
-  <Notification />
-  <div id="overlay" aria-hidden="true" class={$mobileHamburgerMenu ? 'visible! opacity-35!' : ''} onclick={() => ($mobileHamburgerMenu = false)}></div>
-</div>
-
-<noscript class="flex h-screen w-full flex-col items-center justify-center gap-2 text-center">
-  <h1 class="basic-style mb-5 text-4xl font-bold">Whoops! No JavaScript?</h1>
-  <p>Our app is pretty dynamic and kinda needs JavaScript to do... well, pretty much anything interactive.</p>
-  <p>So yeah, it's not really going to work without it enabled. ¯\_(ツ)_/¯</p>
-  <p>Sorry for the hassle! I'm sure you'll get it eventually.</p>
-  <p class="mt-4 text-sm text-neutral-500">
-    Well, at least you can see how it's all put together! The code is open source over on GitHub:
-    <a href="https://github.com/RedeemedSpoon/ShadowSelf" target="_blank" rel="noopener noreferrer">Check it out here!</a>
-  </p>
-</noscript>
-
-<style lang="postcss">
-  @reference "$style";
-
-  #overlay {
-    @apply invisible fixed inset-0 z-40 h-screen w-screen;
-    @apply bg-black opacity-0 transition-all duration-300 ease-in-out;
-  }
-</style>
+<a class="skip-link" href="#main-content">Skip to content</a>
+{#if consoleRoute}<ConsoleShell user={data.user}>{@render children()}</ConsoleShell>{:else}<div class="public-site">
+    <PublicHeader signedIn={Boolean(data.user)} />
+    <main id="main-content" class="public-main">{@render children()}</main>
+    <PublicFooter />
+  </div>{/if}
