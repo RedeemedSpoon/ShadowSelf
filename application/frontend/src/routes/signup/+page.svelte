@@ -51,7 +51,7 @@
       {#if registration.stage === 'account'}
         <div class="field">
           <label for="signup-email">Email address</label>
-          <input id="signup-email" type="email" name="email" autocomplete="email" maxlength="48" required />
+          <input id="signup-email" type="email" name="email" autocomplete="email" maxlength="254" required />
         </div>
         <div class="field">
           <label for="signup-username">Username</label>

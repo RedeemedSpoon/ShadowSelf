@@ -2,7 +2,7 @@
   import {untrack, onDestroy} from 'svelte';
   import {goto, invalidateAll} from '$app/navigation';
   import {request} from '$utils/webfetch';
-  import {ETHNICITIES} from '$constant';
+  import {ETHNICITIES, MAIL_DOMAIN} from '$constant';
   import type {CryptoKeys, InformationAPI} from '$type';
   import type {CreationData} from '$type';
   import Button from '$component/ui/Button.svelte';
@@ -27,6 +27,7 @@
   let password = $state('');
   let confirmation = $state('');
   let phrase = $state('');
+  let moneroPhrase = $state('');
   let saved = $state(false);
   let wallet = $state<Wallet | null>(null);
   const stages = ['Profile location', 'Profile', 'Email', 'Phone', 'Wallet', 'Review'];
@@ -39,6 +40,7 @@
       password = '';
       confirmation = '';
       phrase = '';
+      moneroPhrase = '';
       saved = false;
       phones = [];
       error = '';
@@ -82,6 +84,7 @@
     password = '';
     confirmation = '';
     phrase = '';
+    moneroPhrase = '';
     wallet = null;
   });
 
@@ -139,7 +142,7 @@
           throw new Error(result.error);
         }
 
-        email = result.data.email.includes('@') ? result.data.email : `${result.data.email}@shadowself.io`;
+        email = `${result.data.email}@${MAIL_DOMAIN}`;
       }
 
       if (step === 3) {
@@ -160,6 +163,7 @@
         password = '';
         confirmation = '';
         phrase = '';
+        moneroPhrase = '';
       }
 
       if (step === 6) {
@@ -271,8 +275,15 @@
           return;
         }
 
+        const moneroSeed = await xmr.getSeed();
+
+        if (epoch !== generationEpoch || data.id !== identityID) {
+          return;
+        }
+
         wallet = generated;
         phrase = mnemonic;
+        moneroPhrase = moneroSeed;
         saved = false;
       } finally {
         await xmr.close();
@@ -379,8 +390,8 @@
             id="create-email"
             type="email"
             bind:value={email}
-            pattern="[^@]+@shadowself\.io"
-            required /><small>Addresses use the shadowself.io domain.</small>
+            pattern={`[^@]+@${MAIL_DOMAIN.replaceAll('.', '\\.')}`}
+            required /><small>Addresses use the {MAIL_DOMAIN} domain.</small>
         </div>
       {:else if step === 4}<div class="field">
           <label for="create-phone">Phone number</label><select id="create-phone" bind:value={phone} required
@@ -412,10 +423,14 @@
             </div>
           </div>
           <Button type="button" loading={pending} icon="key" onclick={generateWallet}>Generate encrypted wallet</Button
-          >{:else}{#if phrase}<Copy value={phrase} label="Copy recovery phrase" />{:else}<Status
+          >{:else}{#if phrase}<p>Bitcoin, Litecoin, Ethereum and USDT recovery phrase</p>
+            <Copy value={phrase} label="Copy recovery phrase" />
+            <p>Monero recovery phrase. Restore this phrase in a Monero wallet.</p>
+            <Copy value={moneroPhrase} label="Copy Monero recovery phrase" />{:else}<Status
               message="This wallet draft is already encrypted. Use your saved recovery phrase and master password; the phrase is not kept after leaving this step." />{/if}<label
             class="backup-confirm"
-            ><input type="checkbox" bind:checked={saved} required /> I saved the recovery phrase and master password securely.</label
+            ><input type="checkbox" bind:checked={saved} required /> I saved both recovery phrases and the master password
+            securely.</label
           >{/if}
       {:else}<dl class="data-list">
           <div>

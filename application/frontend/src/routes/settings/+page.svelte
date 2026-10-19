@@ -270,6 +270,7 @@
               id="settings-email"
               name="email"
               type="email"
+              maxlength="254"
               bind:value={email}
               required />
           </div>{/if}{#if mode === 'emailVerify'}<input type="hidden" name="email" value={email} />

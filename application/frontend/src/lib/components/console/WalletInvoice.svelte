@@ -3,7 +3,7 @@
   import {vaultKey} from '$store';
   import {get} from 'svelte/store';
   import {onDestroy} from 'svelte';
-  import {generatePDF} from '$utils/pdf-invoice';
+  import {generatePDF, invoiceAmount} from '$utils/pdf-invoice';
   import type {FullIdentity, Coins, WalletState} from '$type';
   import QRCode from 'qrcode';
   import Button from '$component/ui/Button.svelte';
@@ -21,7 +21,8 @@
 
   onDestroy(() => (active = false));
 
-  const total = $derived(rows.reduce((sum, row) => sum + row.quantity * row.price, 0));
+  const totalCents = $derived(rows.reduce((sum, row) => sum + row.quantity * Math.round(row.price * 100), 0));
+  const total = $derived(totalCents / 100);
 
   async function download(event: SubmitEvent) {
     event.preventDefault();
@@ -35,6 +36,17 @@
       if (rate === undefined || !Number.isFinite(rate) || rate <= 0) {
         throw new Error('A current exchange rate is required. Refresh wallet prices.');
       }
+
+      if (
+        rows.some(
+          (row) =>
+            !Number.isSafeInteger(row.quantity) || row.quantity < 1 || !Number.isFinite(row.price) || row.price < 0,
+        )
+      ) {
+        throw new Error('Use positive whole quantities and nonnegative item prices.');
+      }
+
+      const cryptoDue = invoiceAmount(coin, totalCents, rate);
 
       const address =
         coin === 'btc' || coin === 'ltc'
@@ -62,8 +74,11 @@
           dateDue: due,
         },
         {clientName: client, clientEmail: email},
-        {tableRows: rows.map((row) => ({...row, total: row.price * row.quantity})), totalTransactionPrice: total},
-        {cryptoChoice: coin, exchangeRate: rate, cryptoDue: total / rate, destAddr: address, qrImage},
+        {
+          tableRows: rows.map((row) => ({...row, total: (Math.round(row.price * 100) * row.quantity) / 100})),
+          totalTransactionPrice: total,
+        },
+        {cryptoChoice: coin, exchangeRate: rate, cryptoDue, destAddr: address, qrImage},
       );
     } catch (cause) {
       error = cause instanceof Error ? cause.message : 'Could not generate this invoice.';

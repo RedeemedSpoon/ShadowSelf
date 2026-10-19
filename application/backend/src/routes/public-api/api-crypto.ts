@@ -7,9 +7,10 @@ import {requireProvider, ApiError} from '@core/security';
 import {trocadorApiKey} from '@core/config';
 import middlewareApi from '@middlewares/middleware-api';
 import {checkAPI} from '@utils/checks';
-import {error} from '@utils/utils';
+import {error, withReservedTransaction} from '@utils/utils';
 import {sql} from '@core/services';
 import {Elysia} from 'elysia';
+import type {EvmTransferRequest} from '@type';
 
 export default new Elysia({prefix: '/api/identities/:id/wallet'})
   .use(middlewareApi)
@@ -82,13 +83,13 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
     throttle('Wallet recovery', 120_000),
   )
   .post('/prepare', async ({identity, body, request}) => {
-    const input = body as {coin?: string; address?: string};
+    const input = body as EvmTransferRequest & {address?: string};
 
     if (input?.coin !== 'eth' && input?.coin !== 'usdt') {
       throw new ApiError(400, 'invalid_coin', 'Pending state is available for Ethereum and USDT');
     }
 
-    return chainProvider.prepareEvm(input.address ?? identity!.wallet_keys.evm, request.signal);
+    return chainProvider.prepareEvm(input.address ?? identity!.wallet_keys.evm, input, request.signal);
   })
   .get(
     '/swap-quotes',
@@ -179,73 +180,86 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
       return error(set, 400, 'A request ID is required');
     }
 
-    return withAccountLock(user!.accountID, async () =>
-      withIdentityLock(identity!.id, async (connection) => {
-        const owners = await connection`SELECT id FROM users WHERE id = ${user!.accountID}`;
+    return withAccountLock(user!.accountID, async (connection) =>
+      withIdentityLock(
+        identity!.id,
+        async (connection) => {
+          const owners = await connection`SELECT id FROM users WHERE id = ${user!.accountID}`;
 
-        if (!owners.length) {
-          throw new ApiError(401, 'unauthenticated', 'Sign in to continue');
-        }
+          if (!owners.length) {
+            throw new ApiError(401, 'unauthenticated', 'Sign in to continue');
+          }
 
-        const current =
-          await connection`SELECT id FROM identities WHERE id = ${identity!.id} AND owner = ${user!.accountID} AND status = 'active'`;
+          const current =
+            await connection`SELECT id FROM identities WHERE id = ${identity!.id} AND owner = ${user!.accountID} AND status = 'active'`;
 
-        if (!current.length) {
-          throw new ApiError(409, 'identity_unavailable', 'This identity is no longer active');
-        }
+          if (!current.length) {
+            throw new ApiError(409, 'identity_unavailable', 'This identity is no longer active');
+          }
 
-        const request = Object.fromEntries(
-          fields.map((field) => [field, (input as unknown as Record<string, unknown>)[field]]),
-        );
-        await connection.begin(async (transaction) => {
-          await transaction`SELECT pg_advisory_xact_lock(hashtextextended(${`${user!.accountID}:${identity!.id}:wallet-swaps`}, 0))`;
-          const unresolved = await transaction`SELECT request_id FROM wallet_swaps
+          const request = Object.fromEntries(
+            fields.map((field) => [field, (input as unknown as Record<string, unknown>)[field]]),
+          );
+          await withReservedTransaction(connection, async (transaction) => {
+            await transaction`SELECT pg_advisory_xact_lock(hashtextextended(${`${user!.accountID}:${identity!.id}:wallet-swaps`}, 0))`;
+            const unresolved = await transaction`SELECT request_id FROM wallet_swaps
         WHERE owner = ${user!.accountID} AND identity_id = ${identity!.id}
         AND status <> 'completed' AND request_id <> ${requestID!} LIMIT 1`;
 
-          if (unresolved.length) {
-            throw new ApiError(
-              409,
-              'swap_unresolved',
-              `Resolve the existing swap request ${unresolved[0].request_id} before creating another trade`,
+            if (unresolved.length) {
+              throw new ApiError(
+                409,
+                'swap_unresolved',
+                `Resolve the existing swap request ${unresolved[0].request_id} before creating another trade`,
+              );
+            }
+
+            await transaction`INSERT INTO wallet_swaps (owner, request_id, identity_id, request)
+        VALUES (${user!.accountID}, ${requestID!}, ${identity!.id}, ${transaction.json(request as never)}) ON CONFLICT (owner, request_id) DO NOTHING`;
+          });
+
+          const rows =
+            await connection`SELECT * FROM wallet_swaps WHERE owner = ${user!.accountID} AND request_id = ${requestID!}`;
+
+          const swap = rows[0];
+
+          if (swap.identity_id !== identity!.id || fields.some((field) => swap.request[field] !== request[field])) {
+            return error(set, 409, 'This request ID has different trade details');
+          }
+
+          if (swap.response) {
+            return swap.response;
+          }
+
+          const claimed =
+            await connection`UPDATE wallet_swaps SET status = 'requested' WHERE id = ${swap.id} AND status = 'pending' RETURNING id`;
+
+          if (!claimed.length) {
+            return error(
+              set,
+              503,
+              'Trade outcome is uncertain. Review the existing provider trade before another request',
             );
           }
 
-          await transaction`INSERT INTO wallet_swaps (owner, request_id, identity_id, request)
-        VALUES (${user!.accountID}, ${requestID!}, ${identity!.id}, ${transaction.json(request as never)}) ON CONFLICT (owner, request_id) DO NOTHING`;
-        });
+          const response = await swapProvider.trade(input);
+          await connection`UPDATE wallet_swaps SET response = ${connection.json(response)}, status = 'completed' WHERE id = ${swap.id}`;
 
-        const rows =
-          await connection`SELECT * FROM wallet_swaps WHERE owner = ${user!.accountID} AND request_id = ${requestID!}`;
-
-        const swap = rows[0];
-
-        if (swap.identity_id !== identity!.id || fields.some((field) => swap.request[field] !== request[field])) {
-          return error(set, 409, 'This request ID has different trade details');
-        }
-
-        if (swap.response) {
-          return swap.response;
-        }
-
-        const claimed =
-          await connection`UPDATE wallet_swaps SET status = 'requested' WHERE id = ${swap.id} AND status = 'pending' RETURNING id`;
-
-        if (!claimed.length) {
-          return error(
-            set,
-            503,
-            'Trade outcome is uncertain. Review the existing provider trade before another request',
-          );
-        }
-
-        const response = await swapProvider.trade(input);
-        await connection`UPDATE wallet_swaps SET response = ${connection.json(response)}, status = 'completed' WHERE id = ${swap.id}`;
-
-        return response;
-      }),
+          return response;
+        },
+        connection,
+      ),
     );
   })
+  .post(
+    '/transactions/reconcile',
+    async ({body}) => {
+      const input = body as {address: string; txid: string; nonce: number};
+
+      return chainProvider.reconcileEvm(input?.address, input?.txid, input?.nonce);
+    },
+    throttle('Broadcast reconciliation', 5_000),
+  )
   .post(
     '/transactions',
     async ({body, set}) => {

@@ -11,6 +11,7 @@ You are an autonomous expert developer. You are writing code for a production ap
 - Aim for functions under 60 lines, lines within the configured Prettier width of 120 characters, nesting below five levels, and components with one clear responsibility. Treat these as review thresholds, not reasons to split cohesive code into tiny helpers.
 - Avoid tiny-function soup. Keep cohesive logic together, with constants in `@core/constants`, types in `@type`, and shared helpers only where they belong.
 - Do not create new utils files unless existing ones are cluttered or the feature is large and helper-heavy.
+- Every file in `.scripts` must be an executable `.sh` shell script. Implement script logic in shell and command-line tools. Do not put TypeScript, JavaScript, or configuration files in that directory.
 - Prefer the smallest clear implementation that fully handles the required states. Do not compress code at the expense of names, error handling, or maintainability.
 
 # UI/UX & Copywriting Tone
@@ -29,11 +30,12 @@ You are an autonomous expert developer. You are writing code for a production ap
 - **Dependencies:** Library replacements and their required packages are authorized within a rewrite. Choose tools that fit the product, explain consequential changes, and remove replaced dependencies. New packages outside that scope require approval.
 - **Security:** Choose the most secure practical implementation; security and privacy take priority over convenience.
 - **Database:** Do not add database fields for transient or derivable state. This app has no users or production data. Update the fresh initialization schema directly when persistent data changes. Do not add migrations or backfills for previous development schemas.
-- **Compatibility:** Do not add or retain legacy compatibility code, deprecated contracts, old-format fallbacks, or dual implementations. Replace the old implementation and update every consumer.
+- **Compatibility:** Do not add or retain legacy compatibility code, deprecated contracts, old-format fallbacks, or dual implementations. Replace the old implementation and update every consumer. MUST FOLLOW!
 - **Contracts:** When changing an API response, request body, validation rule, or shared domain concept, inspect every frontend and backend consumer. Update both ends in the same change and keep status codes and error shapes consistent.
 - **Refactoring:** Refactor freely within the requested scope. Outline a plan first when work crosses subsystems or carries meaningful risk.
 - **Clean-up:** Remove replaced code and stale logic so the codebase does not keep filler.
-- **Tests:** Keep permanent unit, integration, contract, and end-to-end tests. Cover behavior, security boundaries, and failure recovery. Keep fixtures synthetic, isolate test databases and provider adapters, and exclude generated reports, credentials, and temporary artifacts from commits.
+- **Documentation:** Do not edit README.md, CONTRIBUTING.md, or other human-facing documentation unless the user explicitly requests or suggests those edits. Write the README in third person about the finished product and its capabilities. Keep developer instructions limited to basic local setup. Do not include rewrite status, implementation commentary, production deployment manuals, or instructions for agents.
+- **Verification:** Use temporary, focused checks when needed to verify behavior, security boundaries, and failure recovery. Keep fixtures synthetic and databases isolated. Delete all test files, fixtures, test runners, generated reports, and temporary verification artifacts before finishing. Never leave tests in the codebase.
 - **Before Finishing:** Run `bun format` and `bun lint`, then fix errors. For critical or broad changes, also run `bun run build` and preview when practical.
 - **Subagents:** When delegating work, choose the model and reasoning effort that fit the task complexity instead of using one default for every subagent.
 

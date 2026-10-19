@@ -1,7 +1,7 @@
 filenames:
   - /var/log/shadowself/nginx/access.log
 labels:
-  type: nginx
+  type: shadowself-http
 ---
 source: journalctl
 journalctl_filter:

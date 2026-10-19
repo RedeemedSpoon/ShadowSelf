@@ -1,9 +1,9 @@
 FROM nginx:alpine
 
-WORKDIR /etc/nginx
+COPY nginx-entrypoint.sh /usr/local/bin/shadowself-nginx
 
-COPY nginx.conf .
-
-VOLUME ["/var/www/certbot"]
+RUN chmod +x /usr/local/bin/shadowself-nginx
 
 EXPOSE 80 443 8080
+
+ENTRYPOINT ["/usr/local/bin/shadowself-nginx"]

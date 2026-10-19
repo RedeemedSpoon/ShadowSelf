@@ -4,10 +4,10 @@
   "license": "AGPL-3.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=dev bun --env-file=../database/.env --env-file=.env --watch src/index.ts",
+    "dev": "NODE_ENV=dev bun --env-file=../.env --watch src/index.ts",
     "build": "bun build ./src/index.ts --compile --minify-whitespace --bytecode --outfile server",
     "check": "tsc --noEmit",
-    "reconcile-billing": "bun src/core/stripe-service.ts"
+    "reconcile-billing": "bun --env-file=../.env src/core/stripe-service.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.6.0",

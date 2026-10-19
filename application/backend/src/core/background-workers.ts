@@ -1,15 +1,22 @@
 import {repairStripeEvents} from '@core/stripe-service';
 import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/swap-provider';
-import {withBillingWallet, saveWalletState, parseXmr, invoiceState} from '@core/wallet-service';
+import {
+  withBillingWallet,
+  saveWalletState,
+  parseXmr,
+  invoiceState,
+  entitlementEnd,
+  fullPaymentTimestamp,
+} from '@core/wallet-service';
 import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, POLL_CLEANUP_INTERVAL} from '@core/constants';
 import {cryptoFees, cryptoPrices, invoiceConnections, watchWallet, billingReadiness} from '@core/states';
-import {BTC_API, ETH_API, LTC_API, XMR_NODE, COINGECKO_URL} from '@core/constants';
+import {COINGECKO_URL} from '@core/constants';
 import {PAYMENT_WINDOW_MIN, INVOICE_POLL_BATCH_SIZE, INVOICE_ACTIVE_MONITOR_MS} from '@core/constants';
 import type {QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
 import {providerJson, withReservedTransaction, reportFailure} from '@utils/utils';
 import {sql} from '@core/services';
-import {cryptoBillingEnabled, stripeConfig, moneroWallet, trocadorApiKey} from '@core/config';
+import {chainEndpoints, stripeConfig, moneroWallet, trocadorApiKey} from '@core/config';
 import type {ReservedSql} from 'postgres';
 
 let activeInvoiceCursor: string | null = null;
@@ -43,10 +50,10 @@ export async function pollInvoices(connection: ReservedSql, wallet = watchWallet
   const cutoff = new Date(Date.now() - INVOICE_ACTIVE_MONITOR_MS);
   const archiveLimit = Math.max(1, Math.floor(INVOICE_POLL_BATCH_SIZE / 4));
   const active = await connection`SELECT * FROM crypto_invoices
-    WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late') AND xmr_subaddress IS NOT NULL
+    WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late', 'reconciliation') AND xmr_subaddress IS NOT NULL
     AND creation_date >= ${cutoff} AND id > COALESCE(${activeInvoiceCursor}::uuid, '00000000-0000-0000-0000-000000000000'::uuid) ORDER BY id LIMIT ${INVOICE_POLL_BATCH_SIZE - archiveLimit}`;
   const archived = await connection`SELECT * FROM crypto_invoices
-    WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late') AND xmr_subaddress IS NOT NULL
+    WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late', 'reconciliation') AND xmr_subaddress IS NOT NULL
     AND creation_date < ${cutoff} AND id > COALESCE(${archivedInvoiceCursor}::uuid, '00000000-0000-0000-0000-000000000000'::uuid) ORDER BY id LIMIT ${archiveLimit}`;
 
   activeInvoiceCursor = active.length === INVOICE_POLL_BATCH_SIZE - archiveLimit ? active.at(-1)!.id : null;
@@ -74,7 +81,9 @@ export async function activateInvoice(connection: ReservedSql, invoice: QueryInv
     const owners =
       invoice.owner === null ? [] : await transaction`SELECT id FROM users WHERE id = ${invoice.owner} FOR UPDATE`;
     const identities = invoice.renewal_id
-      ? await transaction`SELECT id FROM identities WHERE id = ${identityID} AND owner = ${invoice.owner} FOR UPDATE`
+      ? await transaction`SELECT i.id, c.entitlement_start, c.plan FROM identities i
+          LEFT JOIN crypto_invoices c ON c.id = i.crypto_invoice
+          WHERE i.id = ${identityID} AND i.owner = ${invoice.owner} FOR UPDATE OF i`
       : [];
 
     if (!owners.length || (invoice.renewal_id && !identities.length)) {
@@ -83,8 +92,11 @@ export async function activateInvoice(connection: ReservedSql, invoice: QueryInv
       return null;
     }
 
-    const claimed =
-      await transaction`UPDATE crypto_invoices SET status = 'paid' WHERE id = ${invoice.id} AND status <> 'paid' RETURNING id`;
+    const paidAt = new Date();
+    const previousEnd = identities.length ? entitlementEnd(identities[0].entitlement_start, identities[0].plan) : null;
+    const entitlementStart = new Date(Math.max(paidAt.getTime(), previousEnd?.getTime() ?? 0));
+    const claimed = await transaction`UPDATE crypto_invoices SET status = 'paid', paid_at = ${paidAt},
+      entitlement_start = ${entitlementStart} WHERE id = ${invoice.id} AND status <> 'paid' RETURNING id`;
 
     if (!claimed.length) {
       const existing =
@@ -118,17 +130,35 @@ async function observeInvoice(connection: ReservedSql, invoice: QueryInvoice, wa
     await connection`INSERT INTO invoice_observations (invoice_id, total, unlocked) VALUES (${invoice.id}, ${balance.toString()}, ${unlocked.toString()})`;
   }
 
-  const first =
-    await connection`SELECT MIN(observed_at) AS first_payment FROM invoice_observations WHERE invoice_id = ${invoice.id} AND total >= ${required.toString()}`;
   const expiry = new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000;
-  const state = invoiceState(
-    balance,
-    unlocked,
-    required,
-    expiry,
-    first[0].first_payment ? new Date(first[0].first_payment).getTime() : null,
-    Date.now(),
-  );
+  const transfers = await wallet.getIncomingTransfers({
+    accountIndex: subaddress.getAccountIndex(),
+    subaddressIndex: subaddress.getIndex(),
+  });
+  const observedAt = new Date();
+  const payments = [];
+
+  for (const transfer of transfers) {
+    const transaction = transfer.getTx();
+
+    if (transaction.getIsFailed() || transaction.getIsDoubleSpendSeen()) {
+      continue;
+    }
+
+    const hash = transaction.getHash();
+    await connection`INSERT INTO invoice_transfers (invoice_id, tx_hash, first_seen_at) VALUES (${invoice.id}, ${hash}, ${observedAt})
+      ON CONFLICT (invoice_id, tx_hash) DO NOTHING`;
+    const evidence = await connection`SELECT first_seen_at FROM invoice_transfers
+      WHERE invoice_id = ${invoice.id} AND tx_hash = ${hash}`;
+    const firstSeen = new Date(evidence[0].first_seen_at).getTime();
+    const blockSeconds = transaction.getIsConfirmed() ? transaction.getBlock()?.getTimestamp() : undefined;
+    const includedAt = Number.isSafeInteger(blockSeconds) && blockSeconds! > 0 ? blockSeconds! * 1000 : null;
+    const timestamp = firstSeen <= expiry ? firstSeen : includedAt;
+    payments.push({amount: transfer.getAmount(), timestamp});
+  }
+
+  const firstPayment = fullPaymentTimestamp(payments, required);
+  const state = invoiceState(balance, unlocked, required, expiry, firstPayment, Date.now());
   let identityID: string | null = null;
   let status: string = state;
 
@@ -159,11 +189,11 @@ async function observeInvoice(connection: ReservedSql, invoice: QueryInvoice, wa
 
 export async function pollFees(fetcher: typeof fetch = fetch) {
   const outcomes = await Promise.allSettled([
-    providerJson(`${BTC_API}/v1/fees/recommended`, undefined, fetcher),
-    providerJson(`${LTC_API}/v1/fees/recommended`, undefined, fetcher),
-    providerJson(`${ETH_API}/v2/stats`, undefined, fetcher),
+    providerJson(`${chainEndpoints.btc}/v1/fees/recommended`, undefined, fetcher),
+    providerJson(`${chainEndpoints.ltc}/v1/fees/recommended`, undefined, fetcher),
+    providerJson(`${chainEndpoints.eth}/v2/stats`, undefined, fetcher),
     providerJson(
-      XMR_NODE,
+      chainEndpoints.xmr,
       {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -237,26 +267,12 @@ export async function pollPrices(fetcher: typeof fetch = fetch) {
 }
 
 async function cleanupWorkers() {
-  const identities = await sql`
-    SELECT i.id, i.crypto_invoice, c.creation_date, c.plan
-    FROM identities i
-    JOIN crypto_invoices c ON i.crypto_invoice = c.id
-    WHERE i.status = 'active' AND i.crypto_invoice IS NOT NULL
-  `;
-
-  const now = new Date().getTime();
-
-  for (const identity of identities) {
-    const creation = new Date(identity.creation_date).getTime();
-    const days = (now - creation) / (1000 * 60 * 60 * 24);
-
-    const condition1 = identity.plan === 'monthly' && days > 30;
-    const condition2 = identity.plan === 'annually' && days > 365;
-
-    if (condition1 || condition2) {
-      await sql`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id} AND crypto_invoice = ${identity.crypto_invoice} AND status = 'active'`;
-    }
-  }
+  await sql`DELETE FROM sessions WHERE expires_at <= NOW()`;
+  await sql`UPDATE identities i SET status = 'frozen'
+    FROM crypto_invoices c WHERE i.crypto_invoice = c.id AND i.status = 'active'
+    AND c.entitlement_start IS NOT NULL
+    AND ((c.plan = 'monthly' AND c.entitlement_start + INTERVAL '30 days' <= NOW())
+      OR (c.plan = 'annually' AND c.entitlement_start + INTERVAL '365 days' <= NOW()))`;
 }
 
 async function runWorker(name: string, operation: () => Promise<unknown>, interval: number) {
@@ -285,7 +301,7 @@ export function initBackgroundWorkers() {
     void runWorker('Wallet swap reconciliation', repairWalletSwapRequests, POLL_INVOICES_INTERVAL);
   }
 
-  if (cryptoBillingEnabled && moneroWallet.address && moneroWallet.viewKey && moneroWallet.password) {
+  if (moneroWallet.address && moneroWallet.viewKey && moneroWallet.password) {
     void runWorker('Invoice polling', () => withBillingWallet(pollInvoices), POLL_INVOICES_INTERVAL);
   }
 }

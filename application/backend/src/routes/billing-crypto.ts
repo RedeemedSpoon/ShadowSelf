@@ -1,10 +1,17 @@
-import {IDENTITY_CREATION_AVAILABLE} from '@core/constants';
+import {IDENTITY_CREATION_AVAILABLE, SWAP_CHECKOUT_URL} from '@core/constants';
 import {allocateInvoiceAddress, quoteXmr, parseXmr} from '@core/wallet-service';
-import {SOCKET_AUTH_INTERVAL, POLL_PRICES_INTERVAL} from '@core/constants';
-import {cryptoPrices, invoiceConnections, watchWallet, billingReadiness} from '@core/states';
+import {POLL_PRICES_INTERVAL} from '@core/constants';
+import {
+  cryptoPrices,
+  invoiceConnections,
+  watchWallet,
+  billingReadiness,
+  guardedAuthTimer,
+  socketCapacityAvailable,
+} from '@core/states';
 import {CRYPTO_DISCOUNT, PRICING_TIERS, PAYMENT_WINDOW_MIN, UUID_PATTERN} from '@core/constants';
 import middlewareBase from '@middlewares/middleware-base';
-import {trocadorApiKey, cryptoBillingEnabled} from '@core/config';
+import {trocadorApiKey} from '@core/config';
 import {requireProvider} from '@core/security';
 import {error} from '@utils/utils';
 import {swapProvider, reconcilePaymentInvoice} from '@core/swap-provider';
@@ -63,7 +70,7 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
       depositAddress: null,
       depositAmount: null,
       ...(invoice.provider_reference
-        ? {externalLink: `https://trocador.app/en/checkout/${encodeURIComponent(invoice.provider_reference)}`}
+        ? {externalLink: `${SWAP_CHECKOUT_URL}/${encodeURIComponent(invoice.provider_reference)}`}
         : {}),
       ...invoice.response,
       status:
@@ -85,14 +92,26 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
       const authorize = ws.data.authorize;
       const user = ws.data.user;
 
-      if (!user || !(await authorize())) {
-        return ws.close(1008, 'Session expired');
+      if (!UUID_PATTERN.test(invoiceID)) {
+        return ws.close(1008, 'Invalid invoice reference');
+      }
+
+      try {
+        if (!user || !(await authorize())) {
+          return ws.close(1008, 'Session expired');
+        }
+      } catch {
+        return ws.close(1011, 'Authorization unavailable');
       }
 
       const invoice =
         await sql`SELECT c.status, i.id AS identity_id FROM crypto_invoices c JOIN users u ON u.id = c.owner
         LEFT JOIN identities i ON i.crypto_invoice = c.id AND i.owner = c.owner
-        WHERE c.id = ${invoiceID} AND u.email = ${user.email}`;
+        WHERE c.id = ${invoiceID} AND u.email = ${user.email}`.catch(() => null);
+
+      if (invoice === null) {
+        return ws.close(1011, 'Invoice authorization unavailable');
+      }
 
       if (!invoice.length) {
         ws.send(JSON.stringify({error: 'Invoice not found'}));
@@ -102,11 +121,15 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
 
       ws.send(JSON.stringify({status: invoice[0].status, identityID: invoice[0].identity_id}));
 
-      const authTimer = setInterval(async () => {
-        if (!(await authorize())) {
-          ws.close(1008, 'Session expired');
-        }
-      }, SOCKET_AUTH_INTERVAL);
+      if (ws.raw.readyState !== 1) {
+        return;
+      }
+
+      if (!socketCapacityAvailable(user.accountID)) {
+        return ws.close(1013, 'Connection limit reached');
+      }
+
+      const authTimer = guardedAuthTimer(authorize, (code, reason) => ws.close(code, reason));
       invoiceConnections.set(ws.id, {websocket: ws, invoiceID, authorize, authTimer});
     },
 
@@ -116,8 +139,12 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
     },
 
     async message(ws, message) {
-      if (!(await ws.data.authorize())) {
-        return ws.close(1008, 'Session expired');
+      try {
+        if (!(await ws.data.authorize())) {
+          return ws.close(1008, 'Session expired');
+        }
+      } catch {
+        return ws.close(1011, 'Authorization unavailable');
       }
 
       if (message === 'ping') {
@@ -128,7 +155,6 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
 
 async function createInvoice(set: Record<string, any>, email: string, body: unknown, renewal: boolean) {
   requireProvider(renewal || IDENTITY_CREATION_AVAILABLE, 'New identity purchases');
-  requireProvider(cryptoBillingEnabled, 'Crypto billing');
 
   const fields = ['plan', 'swapCoin', '?refundAddress', ...(renewal ? ['identityID'] : [])];
   const {err, plan, swapCoin, refundAddress, identityID} = await checkAPI(body, fields);

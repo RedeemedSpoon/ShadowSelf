@@ -1,0 +1,14 @@
+name: shadowself/http-metadata
+description: Parse request metadata without client identifiers
+filter: "evt.Line.Labels.type == 'shadowself-http'"
+onsuccess: next_stage
+grok:
+  pattern: '^%{WORD:method} %{NOTSPACE:path} %{INT:status} %{INT:bytes} %{NUMBER:duration}$'
+  apply_on: Line.Raw
+statics:
+  - meta: log_type
+    value: shadowself_http_metadata
+  - meta: service
+    value: shadowself-http
+  - meta: http_status
+    expression: evt.Parsed.status

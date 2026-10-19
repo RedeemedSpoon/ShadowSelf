@@ -1,5 +1,6 @@
 import {sql} from '@core/services';
 import {trocadorApiKey} from '@core/config';
+import {SWAP_API, SWAP_CHECKOUT_URL} from '@core/constants';
 import {ApiError, requireProvider} from '@core/security';
 import {net} from '@utils/utils';
 import type {APIRequest, PaymentInvoiceRecovery, SwapReconciliationRequest} from '@type';
@@ -9,9 +10,9 @@ let walletRecoveryCursor: string | null = null;
 
 export function createSwapProvider(fetcher: typeof fetch = fetch, apiKey = trocadorApiKey) {
   async function request(operation: string, parameters: URLSearchParams) {
-    requireProvider(!!apiKey, 'Crypto exchange');
+    requireProvider(!!apiKey && !!SWAP_API && !!SWAP_CHECKOUT_URL, 'Crypto exchange');
 
-    const response = await fetcher(`https://api.trocador.app/${operation}?${parameters}`, {
+    const response = await fetcher(`${SWAP_API}/${operation}?${parameters}`, {
       headers: {'API-Key': apiKey},
       signal: AbortSignal.timeout(30_000),
     });
@@ -220,7 +221,7 @@ function parseTrade(data: Record<string, unknown>, input: SwapReconciliationRequ
     depositAmount: String(data.amount_from),
     depositMemo: data.address_provider_memo == null ? undefined : String(data.address_provider_memo),
     providerTradeID: typeof data.id_provider === 'string' ? data.id_provider : undefined,
-    externalLink: `https://trocador.app/en/checkout/${encodeURIComponent(data.trade_id)}`,
+    externalLink: `${SWAP_CHECKOUT_URL}/${encodeURIComponent(data.trade_id)}`,
   };
 }
 

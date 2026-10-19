@@ -1,0 +1,13 @@
+[Unit]
+Description=Expire Junk and remove orphan ShadowSelf mailboxes
+After=docker.service dovecot.service
+Requires=docker.service dovecot.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/shadowself
+ExecStart=/bin/bash /opt/shadowself/.scripts/mail-cleanup.sh
+UMask=0077
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/vmail /run/lock

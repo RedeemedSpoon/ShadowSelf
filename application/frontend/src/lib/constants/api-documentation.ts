@@ -1,3 +1,4 @@
+import {MAIL_DOMAIN} from '$constant';
 import type {ApiDocumentationGroup} from '$type';
 
 export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
@@ -356,7 +357,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
             bio: 'A photographer who enjoys hiking.',
             picture: '<base64 image>',
           },
-          email: 'theo.mercer@shadowself.io',
+          email: `theo.mercer@${MAIL_DOMAIN}`,
           phone: '+12025550142',
         },
         response: {
@@ -370,7 +371,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
               bio: 'A photographer who enjoys hiking.',
               picture: '<base64 image>',
             },
-            email: 'theo.mercer@shadowself.io',
+            email: `theo.mercer@${MAIL_DOMAIN}`,
             phone: '+12025550142',
           },
         },
@@ -403,7 +404,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/identities/:id/creation/phones',
         detail: '{email,location?} → {phone:[...]}',
-        request: {email: 'theomercer@shadowself.io', location: 'Seattle, United States'},
+        request: {email: `theomercer@${MAIL_DOMAIN}`, location: 'Seattle, United States'},
         response: {phone: ['+12025550142']},
       },
       {
@@ -429,7 +430,8 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'GET',
         path: '/api/identities/:id/vault',
-        detail: '{accounts,vaultRevision}',
+        detail:
+          'Returns one consistent {accounts,vaultRevision,walletBlob} snapshot. Frozen identities retain read access.',
         response: {
           accounts: [
             {
@@ -442,18 +444,21 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
             },
           ],
           vaultRevision: 1,
+          walletBlob: '<current encrypted wallet blob>',
         },
       },
       {
         method: 'POST',
         path: '/api/identities/:id/vault/entries',
-        detail: '{username,password,website?,totp?,algorithm?,vaultRevision}; password and totp are encrypted values',
+        detail:
+          '{username,password,website?,totp?,algorithm?,vaultRevision,walletBlob}; encrypted secrets must match the current walletBlob encryption context',
         request: {
           username: 'theo_m',
           password: '<v1. followed by base64-encoded IV and AES-GCM ciphertext>',
           website: 'https://example.com',
           totp: null,
           vaultRevision: 1,
+          walletBlob: '<current encrypted wallet blob>',
         },
         response: {
           id: 1,
@@ -467,7 +472,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'PATCH',
         path: '/api/identities/:id/vault/entries',
-        detail: '{id,username,password,website?,totp?,algorithm?,vaultRevision}',
+        detail: '{id,username,password,website?,totp?,algorithm?,vaultRevision,walletBlob}',
         request: {
           id: 1,
           username: 'theo_m',
@@ -475,6 +480,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
           website: 'https://example.com',
           totp: null,
           vaultRevision: 2,
+          walletBlob: '<current encrypted wallet blob>',
         },
         response: {
           id: 1,
@@ -488,17 +494,18 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'DELETE',
         path: '/api/identities/:id/vault/entries',
-        detail: '{id,vaultRevision}',
-        request: {id: 1, vaultRevision: 3},
+        detail: '{id,vaultRevision,walletBlob}',
+        request: {id: 1, vaultRevision: 3, walletBlob: '<current encrypted wallet blob>'},
         response: {id: 1, vaultRevision: 4},
       },
       {
         method: 'PUT',
         path: '/api/identities/:id/vault/encryption',
         detail:
-          'Atomically replace all vault ciphertext, wallet phrase blob, and encrypted Monero keys. accounts must include every current entry exactly once. keys contains only the encrypted Monero fields; public keys stay unchanged.',
+          'Atomically replace all vault ciphertext, wallet phrase blob, and encrypted Monero keys. walletBlob must match the current encryption context. accounts must include every current entry exactly once. keys contains only the encrypted Monero fields; public keys stay unchanged.',
         request: {
           vaultRevision: 4,
+          walletBlob: '<current encrypted wallet blob>',
           accounts: [{id: 1, password: '<v1. followed by base64-encoded IV and AES-GCM ciphertext>', totp: null}],
           blob: '<v1. followed by base64-encoded IV and AES-GCM ciphertext>',
           keys: {
@@ -558,11 +565,13 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/identities/:id/mail/messages',
         detail:
-          'Send email. Optional inReplyTo is a Message-ID, references is a Message-ID array, attachments is [{filename,data}] with base64 data, and draft is the old Drafts UID. Returns {draft?,sentEmail,warning?}. A warning means delivery succeeded but mailbox cleanup failed; do not resend.',
+          'Send email with explicit text/html type and a stable UUID requestID. Reuse that ID for retries; HTTP 202 means delivery is uncertain and must not be sent as a new request. Optional inReplyTo is a Message-ID, references is a Message-ID array, attachments is [{filename,data}] with base64 data, and draft is the old Drafts UID. Returns {draft?,sentEmail,warning?}. A warning means delivery succeeded but mailbox cleanup failed; do not resend.',
         request: {
+          requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5',
           to: 'recipient@example.com',
           subject: 'Project update',
           body: 'The updated photos are ready.',
+          type: 'text',
           references: [],
           attachments: [],
         },
@@ -571,22 +580,25 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/identities/:id/mail/forward',
         detail:
-          'Forward exactly one mailbox-scoped UID, including its attachments. warning means delivery succeeded but saving Sent failed; do not resend.',
+          'Forward exactly one mailbox-scoped UID, including its attachments. Reuse a stable UUID requestID for retries; HTTP 202 retains uncertain delivery. warning means delivery succeeded but saving Sent failed; do not resend.',
         request: {
           mailbox: 'INBOX',
           uid: 42,
           forward: 'recipient@example.com',
+          requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5',
         },
       },
       {
         method: 'PUT',
         path: '/api/identities/:id/mail/draft',
         detail:
-          'Save the composer payload in Drafts. Optional draft identifies the previous UID to replace. Returns {draft?,savedDraft,warning?}. When removing the previous draft fails, the new draft remains saved.',
+          'Save the composer payload with explicit text/html type in Drafts. Unfinished recipient, subject and body may be empty. Optional draft identifies the previous UID to replace. Returns {draft?,savedDraft,warning?}. When removing the previous draft fails, the new draft remains saved.',
         request: {
+          requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5',
           to: 'recipient@example.com',
           subject: 'Project update',
           body: 'The updated photos are ready.',
+          type: 'text',
           references: [],
           attachments: [],
         },
@@ -627,7 +639,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/identities/:id/phone/messages',
         detail:
-          'Send an SMS to another E.164 number. Message body supports 4 to 160 characters. Returns {addressee,messageSent}; messageSent is a phone message record.',
+          'Send an SMS to another E.164 number. Message body supports 1 to 160 characters. Returns {addressee,messageSent}; messageSent is a phone message record.',
         request: {addressee: '+12025550142', body: 'The photos are ready.'},
       },
       {
@@ -655,10 +667,20 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/identities/:id/wallet/prepare',
         detail:
-          'Read fresh pending EVM nonce and ETH/USDT atomic balances for signing. Returns atomic ETH/USDT balances, pending nonce, gasPrice in gwei, and gasPriceAtoms as an exact wei string. Coordinate outstanding sends per sender address.',
+          'Estimate the exact ETH or Ethereum ERC-20 USDT transfer against pending state. Returns nonce plus ethBalanceAtoms, usdtBalanceAtoms, amountAtoms, gasLimit, maxFeePerGas and maxPriorityFeePerGas as atomic strings. Optional address selects an imported sender. sweep=true prepares the entire spendable balance. Persist unresolved signed bytes and retry those bytes only.',
         request: {
           coin: 'eth',
+          recipient: '0x1111111111111111111111111111111111111111',
+          amount: '0.01',
+          priority: 'medium',
         },
+      },
+      {
+        method: 'POST',
+        path: '/api/identities/:id/wallet/transactions/reconcile',
+        detail:
+          'Look up a previous ETH or USDT broadcast using its exact hash and sender nonce. status=consumed means the sender nonce advanced, seen means the hash is known, unknown retains uncertainty. Unknown sends can be retried using the same signed bytes.',
+        request: {address: '0x1111111111111111111111111111111111111111', txid: '0x' + 'a'.repeat(64), nonce: 2},
       },
       {
         method: 'POST',
@@ -676,7 +698,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         response: {
           startingDate: '2026-10-11T00:00:00.000Z',
           status: 'Network Operational',
-          nodeUrl: 'https://xmr-node.cakewallet.com:18081/json_rpc',
+          nodeUrl: '<configured HTTPS Monero RPC endpoint>',
         },
       },
       {
@@ -727,9 +749,9 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/identities/:id/wallet/sweep',
         detail:
-          'Inspect imported public addresses before client-side sweep signing. BTC/LTC return {utxos,balance,nonce}; balance and output values are satoshis. ETH/USDT also return gasBalance; balance and gasBalance are integer strings in base units. No private keys belong in this request.',
-        request: {coin: 'eth', addresses: ['0x0000000000000000000000000000000000000001']},
-        response: {utxos: [], balance: '1000000000000000', gasBalance: '1000000000000000', nonce: 1},
+          'Discover BTC/LTC outputs for imported public addresses before client-side sweep signing. Returns {utxos,balance}; amounts are satoshis. For ETH/USDT use POST /wallet/prepare with sweep=true. Never submit private keys.',
+        request: {coin: 'btc', addresses: ['<derived public Bitcoin address>']},
+        response: {utxos: [], balance: 0},
       },
     ],
   },

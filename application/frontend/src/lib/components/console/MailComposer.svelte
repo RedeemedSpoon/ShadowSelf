@@ -9,12 +9,14 @@
     initial,
     reply = false,
     pending = false,
+    deliveryUncertain = false,
     onsubmit,
     oncancel,
   }: {
     initial?: Email;
     reply?: boolean;
     pending?: boolean;
+    deliveryUncertain?: boolean;
     onsubmit: (content: Record<string, unknown>, save: boolean) => Promise<void>;
     oncancel: () => void;
   } = $props();
@@ -38,8 +40,13 @@
     ),
   );
   let error = $state('');
+  const requestID = crypto.randomUUID();
   let container: HTMLDivElement;
-  let editor: import('quill').default;
+  let editor = $state<import('quill').default>();
+
+  $effect(() => {
+    editor?.enable(!pending && !deliveryUncertain);
+  });
 
   onMount(() => {
     let cancelled = false;
@@ -117,7 +124,7 @@
     const body = html ? editor?.getSemanticHTML() : text;
     const recipient = document.getElementById('mail-to') as HTMLInputElement;
 
-    if (!recipient.reportValidity()) {
+    if (!save && !recipient.reportValidity()) {
       error = 'Enter a valid recipient email address.';
 
       return;
@@ -125,8 +132,8 @@
 
     const content = html ? editor?.getText().trim() : text.trim();
 
-    if (!content || content.length < 4) {
-      error = 'Write at least four characters in the message body.';
+    if (!save && !content) {
+      error = 'Write a message before sending.';
 
       return;
     }
@@ -134,6 +141,7 @@
     const inReplyTo = reply ? initial?.messageID : initial?.inReplyTo;
     await onsubmit(
       {
+        requestID,
         to,
         subject,
         body: html ? sanitizeEmailHtml(body || '') : body,
@@ -151,14 +159,25 @@
 <div class="panel">
   <div class="form-grid">
     <div class="field">
-      <label for="mail-to">To</label><input id="mail-to" type="email" bind:value={to} autocomplete="off" required />
+      <label for="mail-to">To</label><input
+        id="mail-to"
+        type="email"
+        bind:value={to}
+        disabled={deliveryUncertain}
+        autocomplete="off"
+        required />
     </div>
     <div class="field">
-      <label for="mail-subject">Subject</label><input id="mail-subject" bind:value={subject} maxlength="126" />
+      <label for="mail-subject">Subject</label><input
+        id="mail-subject"
+        bind:value={subject}
+        disabled={deliveryUncertain}
+        maxlength="126" />
     </div>
   </div>
   <div class="button-row editor-mode">
     <Button
+      disabled={deliveryUncertain}
       variant={!html ? 'secondary' : 'quiet'}
       onclick={() => {
         if (html && editor) {
@@ -168,6 +187,7 @@
         html = false;
       }}>Plain text</Button
     ><Button
+      disabled={deliveryUncertain}
       variant={html ? 'secondary' : 'quiet'}
       onclick={() => {
         if (!html && editor) {
@@ -179,28 +199,33 @@
   </div>
   <div class:hidden={!html} class="rich-editor"><div bind:this={container}></div></div>
   {#if !html}<div class="field">
-      <label for="mail-text">Message</label><textarea id="mail-text" bind:value={text} rows="12"></textarea>
+      <label for="mail-text">Message</label><textarea
+        id="mail-text"
+        bind:value={text}
+        disabled={deliveryUncertain}
+        rows="12"></textarea>
     </div>{/if}
   <div class="attachment-area">
     <label for="mail-files">Attach files</label><input
       id="mail-files"
       type="file"
+      disabled={deliveryUncertain}
       multiple
       onchange={addFiles} />{#each attachments as attachment, index (`${attachment.filename}-${index}`)}<div
         class="attachment-row">
         <span>{attachment.filename}</span><Button
           variant="quiet"
           icon="close"
+          disabled={deliveryUncertain}
           aria-label="Remove {attachment.filename}"
           onclick={() => (attachments = attachments.filter((_, i) => i !== index))} />
       </div>{/each}
   </div>
   <Status message={error} kind="error" />
   <div class="button-row">
-    <Button icon="send" loading={pending} onclick={() => send(false)}>Send message</Button><Button
-      variant="secondary"
-      disabled={pending}
-      onclick={() => send(true)}>Save draft</Button
+    <Button icon="send" loading={pending} onclick={() => send(false)}
+      >{deliveryUncertain ? 'Check delivery status' : 'Send message'}</Button
+    ><Button variant="secondary" disabled={pending || deliveryUncertain} onclick={() => send(true)}>Save draft</Button
     ><Button variant="quiet" disabled={pending} onclick={oncancel}>Cancel</Button>
   </div>
 </div>

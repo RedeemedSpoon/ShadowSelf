@@ -1,3 +1,4 @@
+import {emailConfig} from '@core/config';
 import {HDKey} from '@scure/bip32';
 import type {BodyField, ContactDetail, CheckIdentity, APIRequest, QueryIdentity, InitializedIdentity} from '@type';
 import {ETHNICITIES} from '@core/constants';
@@ -58,11 +59,13 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         break;
 
       case 'email':
-        if (!/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
+        body.email = body.email.trim().toLowerCase();
+
+        if (!validEmailAddress(body.email)) {
           return {err: 'Invalid email address. Please try again'} as BodyField;
         } else {
-          if (body.email.length > 48) {
-            return {err: 'Email is too long (<48 characters)'} as BodyField;
+          if (body.email.length > 254) {
+            return {err: 'Email is too long (maximum 254 characters)'} as BodyField;
           }
         }
 
@@ -155,7 +158,7 @@ export function checkContact(rawBody: unknown): ContactDetail {
     return {err: 'Invalid reply email'} as ContactDetail;
   }
 
-  if (body.email && !/^[\w\-.]+@([\w-]+\.)+[\w-]{2,}$/gm.test(body.email)) {
+  if (body.email && !validEmailAddress(body.email)) {
     return {err: 'Please enter a valid email'} as ContactDetail;
   }
 
@@ -194,19 +197,24 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
     }
 
     case 'email': {
-      if (!/^[a-zA-Z0-9_-]+@shadowself\.io$/.test(body.email!)) {
+      if (
+        typeof body.email !== 'string' ||
+        !/^[a-zA-Z0-9_-]{1,64}$/.test(body.email.split('@')[0]) ||
+        body.email.split('@').length !== 2 ||
+        body.email.split('@')[1] !== emailConfig.domain
+      ) {
         return {error: 'Invalid email address. Use only letters, numbers, underscores, and hyphens.'};
       }
 
-      if (body.email!.length > 48) {
-        return {error: 'Email is too long (<48 characters)'};
+      if (body.email!.length > 254) {
+        return {error: 'Email is too long (maximum 254 characters)'};
       }
 
       break;
     }
 
     case 'phone':
-      if (!/^\+(\d{10,13})$/.test(body.phone!)) {
+      if (typeof body.phone !== 'string' || !/^\+[1-9]\d{9,14}$/.test(body.phone)) {
         return {error: 'Invalid phone number, please try again'};
       }
 
@@ -437,17 +445,6 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
         break;
 
-      case 'sid':
-        if (typeof body.sid !== 'string') {
-          return {err: 'Message SID must be a string'} as APIRequest;
-        }
-
-        if (body.sid.length !== 34) {
-          return {err: 'Invalid message SID, please try again'} as APIRequest;
-        }
-
-        break;
-
       case 'uuid':
         if (typeof body.uuid !== 'string') {
           return {err: 'Email UUID must be a string'} as APIRequest;
@@ -478,8 +475,15 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Addressee must be a string'} as APIRequest;
         }
 
-        if (!/^\+\d{10,15}$/.test(body.addressee)) {
+        if (!/^\+[1-9]\d{9,14}$/.test(body.addressee)) {
           return {err: 'Invalid phone number format, please try again'} as APIRequest;
+        }
+
+        break;
+
+      case 'type':
+        if (body.type !== 'text' && body.type !== 'html') {
+          return {err: 'Message type must be text or html'} as APIRequest;
         }
 
         break;
@@ -500,8 +504,8 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Body must be a string'} as APIRequest;
         }
 
-        if (body.body.trim().length < 4) {
-          return {err: 'Body is too short, please try again'} as APIRequest;
+        if (body.body.length > 1_000_000) {
+          return {err: 'Body exceeds the 1 MB limit'} as APIRequest;
         }
 
         break;
@@ -522,7 +526,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'From address must be a string'} as APIRequest;
         }
 
-        if (!/^[\w\-+.%]+@([\w-]+\.)+[\w-]{2,}$/i.test(body.from)) {
+        if (!validEmailAddress(body.from)) {
           return {err: 'Invalid from email address, please try again'} as APIRequest;
         }
 
@@ -533,7 +537,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'To address must be a string'} as APIRequest;
         }
 
-        if (!/^[\w\-+.%]+@([\w-]+\.)+[\w-]{2,}$/i.test(body.to)) {
+        if (!validEmailAddress(body.to)) {
           return {err: 'Invalid recipient email, please try again'} as APIRequest;
         }
 
@@ -544,7 +548,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Forward address must be a string'} as APIRequest;
         }
 
-        if (!/^[\w\-+.%]+@([\w-]+\.)+[\w-]{2,}$/i.test(body.forward)) {
+        if (!validEmailAddress(body.forward)) {
           return {err: 'Invalid forward email, please try again'} as APIRequest;
         }
 
@@ -555,7 +559,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'inReplyTo must be a string'} as APIRequest;
         }
 
-        if (body.inReplyTo && !/^<[^<>]+@[^<>]+>$/.test(body.inReplyTo.trim())) {
+        if (body.inReplyTo.length > 998 || (body.inReplyTo && !/^<[^<>\s]+@[^<>\s]+>$/.test(body.inReplyTo))) {
           return {
             err: 'Invalid inReplyTo value (should be Message-ID format like <id@domain>), please try again',
           } as APIRequest;
@@ -564,12 +568,12 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'references':
-        if (!Array.isArray(body.references)) {
+        if (!Array.isArray(body.references) || body.references.length > 40) {
           return {err: 'References must be an array'} as APIRequest;
         }
 
         for (const ref of body.references) {
-          if (typeof ref !== 'string' || !/^<[^<>]+@[^<>]+>$/.test(ref.trim())) {
+          if (typeof ref !== 'string' || ref.length > 998 || !/^<[^<>\s]+@[^<>\s]+>$/.test(ref)) {
             return {
               err: 'Invalid reference value found (should be Message-ID format like <id@domain>), please try again',
             } as APIRequest;
@@ -587,14 +591,46 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Too many attachments (max 10), please try again'} as APIRequest;
         }
 
+        if (
+          body.attachments.reduce(
+            (size, attachment) => size + (typeof attachment?.data === 'string' ? attachment.data.length : 0),
+            0,
+          ) >
+          18 * 1024 * 1024
+        ) {
+          return {err: 'Attachments exceed the 18 MB encoded limit'} as APIRequest;
+        }
+
         for (const attachment of body.attachments) {
-          if (!attachment || typeof attachment !== 'object' || typeof attachment.data !== 'string') {
+          if (
+            !attachment ||
+            typeof attachment !== 'object' ||
+            typeof attachment.data !== 'string' ||
+            typeof attachment.filename !== 'string' ||
+            attachment.filename.length > 255 ||
+            /[\r\n]/.test(attachment.filename) ||
+            attachment.filename.includes(String.fromCharCode(0))
+          ) {
             return {
               err: 'Invalid attachment format found (expected object with data string), please try again',
             } as APIRequest;
           }
 
-          if (attachment.data.length * 0.75 > 15728640) {
+          if (
+            (attachment.cid !== undefined &&
+              (typeof attachment.cid !== 'string' || attachment.cid.length > 998 || /[\r\n]/.test(attachment.cid))) ||
+            (attachment.contentType !== undefined &&
+              (typeof attachment.contentType !== 'string' ||
+                !/^[A-Za-z0-9!#$&^_.+-]+\/[A-Za-z0-9!#$&^_.+-]+$/.test(attachment.contentType)))
+          ) {
+            return {err: 'Invalid attachment metadata'} as APIRequest;
+          }
+
+          if (
+            attachment.data.length > 14_000_000 ||
+            !/^[A-Za-z0-9+/]*={0,2}$/.test(attachment.data) ||
+            Buffer.from(attachment.data, 'base64').toString('base64') !== attachment.data
+          ) {
             return {err: 'One or more attachments exceed the 15MB size limit, please try again'} as APIRequest;
           }
         }
@@ -674,23 +710,13 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
       case 'coin':
       case 'coinTo':
       case 'coinFrom':
+      case 'swapCoin':
         if (typeof body[fieldType] !== 'string') {
           return {err: `${toTitleCase(fieldType)} must be a string`} as APIRequest;
         }
 
-        if (!['btc', 'ltc', 'eth', 'usdt', 'xmr'].includes(body[fieldType].toLowerCase())) {
+        if (!['btc', 'ltc', 'eth', 'usdt', 'xmr'].includes(body[fieldType])) {
           return {err: `Invalid ${fieldType}. Must be BTC, LTC, ETH, USDT, or XMR.`} as APIRequest;
-        }
-
-        break;
-
-      case 'swapCoin':
-        if (typeof body.swapCoin !== 'string') {
-          return {err: 'Swap coin must be a string'} as APIRequest;
-        }
-
-        if (!/^[a-zA-Z0-9]{2,10}$/.test(body.swapCoin)) {
-          return {err: 'Invalid swap coin. Must be a valid coin ticker.'} as APIRequest;
         }
 
         break;
@@ -817,4 +843,15 @@ export function isInitializedIdentity(identity: QueryIdentity): identity is Init
   ] as const;
 
   return fields.every((field) => identity[field] !== null);
+}
+
+export function validEmailAddress(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.length <= 254 &&
+    !/\s/.test(value) &&
+    /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+$/.test(
+      value,
+    )
+  );
 }

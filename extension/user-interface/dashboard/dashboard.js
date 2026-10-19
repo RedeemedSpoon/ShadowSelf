@@ -71,17 +71,7 @@ function renderIdentities() {
     button.append(initials, detail, arrow);
     button.addEventListener('click', () => {
       void run(async () => {
-        const account = await bridge.account(windowId);
-
-        if (!account?.identities.some((item) => item.id === identity.id)) {
-          throw new Error('This identity is no longer available. Refresh your account.');
-        }
-
-        await chrome.tabs.create({
-          windowId,
-          url: `${origin}/identity/${encodeURIComponent(identity.id)}`,
-          active: true,
-        });
+        await bridge.openIdentity(windowId, identity.id);
         status('Identity opened in this window.');
       });
     });

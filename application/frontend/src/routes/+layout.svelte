@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {APP_ORIGIN} from '$constant';
   import {page} from '$app/state';
   import type {Snippet} from 'svelte';
   import type {LayoutData} from './$types';
@@ -16,6 +17,8 @@
     ),
   );
 </script>
+
+<svelte:head><meta property="og:url" content={APP_ORIGIN} /></svelte:head>
 
 <a class="skip-link" href="#main-content">Skip to content</a>
 {#if consoleRoute}<ConsoleShell user={data.user}>{@render children()}</ConsoleShell>{:else}<div class="public-site">

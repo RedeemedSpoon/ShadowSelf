@@ -23,22 +23,23 @@ function resolveSecretSauce() {
 }
 
 const inProduction = ['prod', 'production'].includes(process.env.NODE_ENV || 'dev');
-export const origin = process.env.APP_ORIGIN || (inProduction ? 'https://shadowself.io' : 'http://localhost:5000');
+export const origin = process.env.APP_ORIGIN || (inProduction ? required('APP_ORIGIN') : 'http://localhost:5000');
+export const onionOrigin = process.env.ONION_ORIGIN || '';
 export const secretSauce = resolveSecretSauce();
 
 if (inProduction && (secretSauce.length < 32 || /replace-with|placeholder|change.?me|synthetic/i.test(secretSauce))) {
   throw new Error('SECRET_SAUCE must contain a random production secret of at least 32 characters');
 }
 
-export const cryptoBillingEnabled = process.env.CRYPTO_BILLING_ENABLED !== 'false';
 export const geminiApiKey = process.env.GEMINI_API_KEY || '';
+export const geminiImageModel = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image';
 export const trocadorApiKey = process.env.TROCADOR_API_KEY || '';
 
 export const dbConfig = {
   host: process.env.POSTGRES_HOST || (inProduction ? 'postgres' : 'localhost'),
   port: Number(process.env.POSTGRES_PORT || 5432),
   dbName: required('POSTGRES_DB'),
-  username: process.env.APP_DB_USER || 'shadowself_app',
+  username: 'shadowself_app',
   password: required('APP_DB_PASSWORD'),
 };
 
@@ -48,10 +49,38 @@ export const moneroWallet = {
   password: process.env.MONERO_PASSWORD || '',
 };
 
+const mailDomain = process.env.MAIL_DOMAIN || (inProduction ? required('MAIL_DOMAIN') : 'example.test');
+
 export const emailConfig = {
   host: process.env.MAIL_HOST || '',
+  domain: mailDomain,
+  contactAddress: `contact@${mailDomain}`,
+  verificationAddress: `verification@${mailDomain}`,
   contactPassword: process.env.EMAIL_CONTACT || '',
   verificationPassword: process.env.EMAIL_VERIFICATION || '',
+};
+
+function providerEndpoint(name: string) {
+  const value = process.env[name];
+
+  if (!value) {
+    return '';
+  }
+
+  const url = new URL(value);
+
+  if (url.protocol !== 'https:' || url.username || url.password || url.hash) {
+    throw new Error(`${name} must be an HTTPS endpoint without credentials or a fragment`);
+  }
+
+  return url.href.replace(/\/$/, '');
+}
+
+export const chainEndpoints = {
+  btc: providerEndpoint('BTC_API'),
+  ltc: providerEndpoint('LTC_API'),
+  eth: providerEndpoint('ETH_API'),
+  xmr: providerEndpoint('XMR_NODE'),
 };
 
 export const stripeConfig = {

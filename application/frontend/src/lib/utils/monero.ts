@@ -2,6 +2,22 @@ import {identity, moneroData} from '$store';
 import {encrypt, decrypt, getMasterKey} from '$utils/cryptography';
 import {get} from 'svelte/store';
 
+export async function moneroRecoveryPhrase(spendKey: string) {
+  const monerots = await import('monero-ts');
+  monerots.LibraryUtils.setWorkerDistPath(new URL('/monero.worker.js', location.origin).href);
+  const wallet = await monerots.createWalletFull({
+    networkType: monerots.MoneroNetworkType.MAINNET,
+    privateSpendKey: spendKey,
+    password: crypto.randomUUID(),
+  });
+
+  try {
+    return await wallet.getSeed();
+  } finally {
+    await wallet.close();
+  }
+}
+
 export function idbOperation(mode: 'readonly' | 'readwrite' | 'delete', id: string, data?: any): Promise<any> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open('ShadowSelf_XMR', 1);

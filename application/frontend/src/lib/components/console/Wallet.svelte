@@ -47,6 +47,14 @@
   let error = $state('');
   let progress = $state(0);
   let backup = $state('');
+  let moneroBackup = $state('');
+  let revealingBackup = $state(false);
+  let active = true;
+  const actions = $derived(
+    account.status === 'frozen'
+      ? ['overview', 'send']
+      : ['overview', 'receive', 'send', 'sweep', 'swap', 'invoice', 'markets'],
+  );
   let abort: AbortController;
   let overviewAbort: AbortController;
   let recovering = $state(false);
@@ -74,6 +82,7 @@
   $effect(() => {
     if (!$vaultKey) {
       backup = '';
+      moneroBackup = '';
       abort?.abort();
       syncing = false;
     }
@@ -257,6 +266,16 @@
   }
 
   async function showBackup() {
+    if (backup) {
+      backup = '';
+      moneroBackup = '';
+
+      return;
+    }
+
+    revealingBackup = true;
+    error = '';
+
     try {
       const key = get(vaultKey);
 
@@ -264,13 +283,21 @@
         return;
       }
 
-      const value = await decrypt(account.walletBlob, key);
+      const {moneroRecoveryPhrase} = await import('$utils/monero');
+      const [value, spendKey] = await Promise.all([
+        decrypt(account.walletBlob, key),
+        decrypt(account.walletKeys.xmr.spendKey, key),
+      ]);
+      const moneroPhrase = await moneroRecoveryPhrase(spendKey);
 
-      if (get(vaultKey) === key) {
+      if (active && get(vaultKey) === key) {
         backup = value;
+        moneroBackup = moneroPhrase;
       }
     } catch (cause) {
       error = cause instanceof Error ? cause.message : 'Could not reveal the recovery phrase.';
+    } finally {
+      revealingBackup = false;
     }
   }
 
@@ -278,9 +305,11 @@
     void load();
 
     return () => {
+      active = false;
       abort?.abort();
       overviewAbort?.abort();
       backup = '';
+      moneroBackup = '';
     };
   });
 </script>
@@ -296,6 +325,8 @@
   </div>
 </div>
 <Status message={error} kind="error" />
+{#if account.status === 'frozen'}<Status
+    message="Wallet recovery and withdrawals remain available after expiry. Renew to use the other identity services." />{/if}
 {#if pending}<LoadingState label="Loading wallet balances" />{/if}
 {#if mode === 'markets'}<WalletMarket />{:else}<div class="coin-grid">
     {#each Object.entries(names) as [ticker, name] (ticker)}<button
@@ -323,7 +354,7 @@
       >{/each}
   </div>
   <div class="tabs" aria-label="Wallet actions">
-    {#each ['overview', 'receive', 'send', 'sweep', 'swap', 'invoice', 'markets'] as action (action)}{#if !(coin === 'xmr' && action === 'sweep')}<button
+    {#each actions as action (action)}{#if !(coin === 'xmr' && action === 'sweep')}<button
           class:active={mode === action}
           onclick={() => (mode = action)}>{action[0].toUpperCase() + action.slice(1)}</button
         >{/if}{/each}
@@ -422,14 +453,16 @@
   <section class="panel backup-panel">
     <div class="section-heading">
       <div>
-        <h3>Recovery phrase</h3>
+        <h3>Recovery phrases</h3>
       </div>
-      <Button variant="quiet" disabled={!$vaultKey} onclick={() => (backup ? (backup = '') : showBackup())}
-        >{backup ? 'Hide phrase' : 'Reveal phrase'}</Button>
+      <Button variant="quiet" disabled={!$vaultKey} loading={revealingBackup} onclick={showBackup}
+        >{backup ? 'Hide phrases' : 'Reveal phrases'}</Button>
     </div>
-    {#if backup}<Status message="Anyone with this phrase can spend these wallet funds. Store it offline." /><Copy
-        value={backup}
-        label="Copy phrase" />{/if}
+    {#if backup}<Status message="Anyone with these phrases can spend your wallet funds. Store both offline." />
+      <p>Bitcoin, Litecoin, Ethereum and USDT</p>
+      <Copy value={backup} label="Copy phrase" />
+      <p>Monero. Restore this phrase in a Monero wallet.</p>
+      <Copy value={moneroBackup} label="Copy Monero phrase" />{/if}
   </section>{/if}
 
 <style>

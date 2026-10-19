@@ -1,5 +1,3 @@
-export const ONION_ORIGIN = 'http://shadow7sk64geknoyyzsfyjm4rylnknx5pzhfhzkecoggowhitafggqd.onion';
-
 export const DEVELOPMENT_SECRET_SAUCE = 'synthetic-development-secret-sauce-not-for-deployment';
 
 export const IDENTITY_CREATION_AVAILABLE = false;
@@ -7,12 +5,17 @@ export const IDENTITY_CREATION_AVAILABLE = false;
 export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
 export const EMAIL_JUNK_RETENTION_DAYS = 7;
 export const EMAIL_FETCH_LIMIT = 10;
+export const EMAIL_UID_WINDOW = 1000;
+export const EMAIL_OUTBOUND_HOURLY_LIMIT = 30;
+export const EMAIL_CONNECTION_LIMIT = 128;
+export const EMAIL_MAILBOX_CONNECTION_LIMIT = 4;
+export const SOCKET_CONNECTION_LIMIT = 96;
+export const SOCKET_ACCOUNT_CONNECTION_LIMIT = 8;
+export const SOCKET_MAILBOX_CONNECTION_LIMIT = 2;
 export const SMS_MAX_LENGTH = 160;
 
-export const BTC_API = 'https://mempool.space/api';
-export const LTC_API = 'https://litecoinspace.org/api';
-export const ETH_API = 'https://eth.blockscout.com/api';
-export const XMR_NODE = 'https://xmr-node.cakewallet.com:18081/json_rpc';
+export const SWAP_API = 'https://api.trocador.app';
+export const SWAP_CHECKOUT_URL = 'https://trocador.app/en/checkout';
 export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 export const COINGECKO_URL =
   'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
@@ -75,3 +78,11 @@ export const SOCKET_AUTH_INTERVAL = 5000;
 
 export const SENSITIVE_ATTEMPT_WINDOW = 300_000;
 export const SENSITIVE_ATTEMPT_LIMIT = 10;
+
+export const SWAP_NETWORKS: Record<string, string> = {
+  btc: 'Mainnet',
+  ltc: 'Mainnet',
+  eth: 'Mainnet',
+  usdt: 'ERC20',
+  xmr: 'Mainnet',
+};

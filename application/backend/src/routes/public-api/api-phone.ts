@@ -32,8 +32,8 @@ export default new Elysia({prefix: '/api/identities/:id/phone'})
       return error(set, 400, 'Choose another phone number');
     }
 
-    if (text.length > SMS_MAX_LENGTH) {
-      return error(set, 400, `Messages support up to ${SMS_MAX_LENGTH} characters`);
+    if (!text.trim() || text.length > SMS_MAX_LENGTH) {
+      return error(set, 400, `Messages support between 1 and ${SMS_MAX_LENGTH} characters`);
     }
 
     return {addressee, messageSent: await phoneProvider.send(identity!.phone, addressee, text)};

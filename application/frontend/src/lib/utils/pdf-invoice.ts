@@ -1,7 +1,33 @@
 import autoTable from 'jspdf-autotable';
 import {jsPDF} from 'jspdf';
+import {formatUnits, parseUnits} from 'viem';
+import {COIN_DECIMALS, SITE_HOST} from '$constant';
+import type {Coins, InvoiceIdentity, InvoiceClient, InvoiceTable, InvoicePayment} from '$type';
 
-export function generatePDF(identityData: any, clientData: any, tableData: any, cryptoData: any) {
+export function invoiceAmount(coin: Coins, cents: number, rate: number) {
+  if (!Number.isSafeInteger(cents) || cents <= 0 || !Number.isFinite(rate) || rate <= 0) {
+    throw new Error('A positive invoice total and exchange rate are required.');
+  }
+
+  const price = parseUnits(rate.toFixed(12), 12);
+
+  if (price <= 0n) {
+    throw new Error('The exchange rate is below supported precision.');
+  }
+
+  const decimals = COIN_DECIMALS[coin];
+  const numerator = BigInt(cents) * 10n ** BigInt(decimals) * 10n ** 12n;
+  const denominator = price * 100n;
+
+  return formatUnits((numerator + denominator - 1n) / denominator, decimals);
+}
+
+export function generatePDF(
+  identityData: InvoiceIdentity,
+  clientData: InvoiceClient,
+  tableData: InvoiceTable,
+  cryptoData: InvoicePayment,
+) {
   const doc = new jsPDF();
 
   const colorText = '#3c4257';
@@ -12,13 +38,9 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
 
   const startY = 20;
 
-  if (identityData.logo) {
-    doc.addImage(identityData.logo, 'PNG', 20, startY, 25, 25);
-  } else {
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text(identityData.name, 20, startY + 10);
-  }
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(identityData.name, 20, startY + 10);
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
@@ -62,7 +84,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setTextColor(colorSub);
   doc.text('USD due', 190, addrY + 18, {align: 'right'});
 
-  const bodyData = tableData.tableRows.map((row: any) => [
+  const bodyData = tableData.tableRows.map((row) => [
     row.description,
     row.quantity,
     `$${row.price.toFixed(2)}`,
@@ -122,7 +144,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setTextColor(colorSub);
   doc.text(`Please make payment via ${cryptoData.cryptoChoice.toUpperCase()} Network.`, 20, payY + 12);
   doc.text(
-    `Exchange Rate locked: 1 ${cryptoData.cryptoChoice.toUpperCase()} = $${cryptoData.exchangeRate.toFixed(2)}`,
+    `Reference rate: 1 ${cryptoData.cryptoChoice.toUpperCase()} = $${cryptoData.exchangeRate.toFixed(2)}`,
     20,
     payY + 18,
   );
@@ -131,9 +153,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setTextColor(colorText);
   doc.setFont('helvetica', 'bold');
 
-  const cryptoDisplay =
-    cryptoData.cryptoChoice === 'usdt' ? cryptoData.cryptoDue.toFixed(2) : cryptoData.cryptoDue.toFixed(6);
-  doc.text(`${cryptoDisplay} ${cryptoData.cryptoChoice.toUpperCase()}`, 20, payY + 28);
+  doc.text(`${cryptoData.cryptoDue} ${cryptoData.cryptoChoice.toUpperCase()}`, 20, payY + 28);
 
   doc.setFont('courier', 'normal');
   doc.setFontSize(8);
@@ -152,7 +172,7 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
 
   doc.setFontSize(8);
   doc.setTextColor(200, 200, 200);
-  doc.text(`Generated via ShadowSelf.io | Invoice #${identityData.invoice}`, 105, 290, {align: 'center'});
+  doc.text(`Generated via ${SITE_HOST} | Invoice #${identityData.invoice}`, 105, 290, {align: 'center'});
 
   const safeName = clientData.clientName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'invoice';
   doc.save(`${safeName}_${identityData.invoice}.pdf`);

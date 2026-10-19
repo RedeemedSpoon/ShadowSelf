@@ -1,3 +1,4 @@
+import {SOCKET_AUTH_INTERVAL, SOCKET_CONNECTION_LIMIT, SOCKET_ACCOUNT_CONNECTION_LIMIT} from '@core/constants';
 import {SENSITIVE_ATTEMPT_WINDOW, SENSITIVE_ATTEMPT_LIMIT} from '@core/constants';
 import type {EmailCodePurpose, EmailCode, EmailDeliveryLimit, SignupDraft} from '@type';
 import {hashVerification, getSecret, createTOTP} from '@utils/cryptography';
@@ -67,6 +68,42 @@ class ConnectionManager<T> {
 
 export const wsConnections = new ConnectionManager<WSConnection>();
 export const invoiceConnections = new ConnectionManager<InvoiceConnection>();
+
+export function socketCapacityAvailable(accountID: number) {
+  const connections = [...wsConnections.values(), ...invoiceConnections.values()];
+
+  return (
+    connections.length < SOCKET_CONNECTION_LIMIT &&
+    connections.filter(({websocket}) => (websocket.data as {user?: {accountID: number}}).user?.accountID === accountID)
+      .length < SOCKET_ACCOUNT_CONNECTION_LIMIT
+  );
+}
+
+export function guardedAuthTimer(
+  authorize: () => Promise<boolean>,
+  close: (code: number, reason: string) => void,
+  interval = SOCKET_AUTH_INTERVAL,
+) {
+  let busy = false;
+
+  return setInterval(async () => {
+    if (busy) {
+      return;
+    }
+
+    busy = true;
+
+    try {
+      if (!(await authorize())) {
+        close(1008, 'Session expired');
+      }
+    } catch {
+      close(1011, 'Authorization unavailable');
+    } finally {
+      busy = false;
+    }
+  }, interval);
+}
 
 const loginChallenges = new Map<string, LoginChallenge>();
 

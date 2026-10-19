@@ -1,9 +1,11 @@
 import {mailReader, appendToMailbox, deleteEmail} from '@utils/email-imap';
 import middlewareApi from '@middlewares/middleware-api';
-import {sendIdentityEmail} from '@utils/email-smtp';
+import {submitIdentityEmail} from '@utils/email-smtp';
 import type {APIRequest, EmailContent, Mailbox} from '@type';
 import {checkAPI} from '@utils/checks';
 import {throttle} from '@core/states';
+import {UUID_PATTERN} from '@core/constants';
+import {validEmailAddress} from '@utils/checks';
 import {error} from '@utils/utils';
 import {Elysia} from 'elysia';
 
@@ -106,8 +108,18 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       return error(set, 400, 'Invalid draft UID');
     }
 
-    const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
-    const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
+    const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body', 'type'];
+    const {
+      err,
+      to,
+      inReplyTo,
+      references,
+      attachments,
+      subject,
+      body: emailBody,
+      draft,
+      type,
+    } = await checkAPI(body, fields);
 
     if (err) {
       return error(set, 400, err);
@@ -116,15 +128,40 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
     const email = identity!.email;
     const password = identity!.mailbox_password_encrypted;
     const flatReferences = Array.isArray(references) ? references.flat(Infinity) : references;
-    const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
+    const content = {
+      email,
+      password,
+      to,
+      subject,
+      body: emailBody,
+      attachments,
+      references: flatReferences,
+      inReplyTo,
+      type,
+    };
 
-    const response = await sendIdentityEmail(content);
+    const requestID = (body as Record<string, unknown>).requestID;
 
-    if (!response.messageID) {
-      return error(set, 400, 'Failed to send email');
+    if (typeof requestID !== 'string' || !UUID_PATTERN.test(requestID)) {
+      return error(set, 400, 'A send request ID is required');
     }
 
-    const fullEmail = {...content, messageID: response.messageID, date: response.date};
+    if (!emailBody.trim()) {
+      return error(set, 400, 'Write a message body before sending');
+    }
+
+    const response = await submitIdentityEmail(identity!.id, requestID, content);
+
+    if (response.status === 'uncertain') {
+      set.status = 202;
+
+      return {
+        status: 'uncertain',
+        warning: 'Delivery could not be confirmed. Do not resend this message. Check Sent or contact the recipient.',
+      };
+    }
+
+    const fullEmail = {...content, messageID: response.messageID, date: new Date(response.date)};
 
     let uid;
     let warning;
@@ -143,7 +180,7 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
 
     const sentEmail = {...fullEmail, uid, type: response.type};
 
-    return {draft, sentEmail, warning};
+    return {status: 'sent', draft, sentEmail, warning};
   })
   .post('/forward', async ({set, identity, body}) => {
     const source = location(body);
@@ -198,20 +235,32 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
 
     email.subject = email.subject.toUpperCase().startsWith('FWD: ') ? email.subject : `FWD: ${email?.subject}`;
 
+    const {date: _date, messageID: _messageID, ...original} = email;
     const forwardContent = {
-      ...email,
+      ...original,
       to: forward,
       email: identity!.email,
       password: identity!.mailbox_password_encrypted,
     };
 
-    const response = await sendIdentityEmail(forwardContent as EmailContent);
+    const requestID = (body as Record<string, unknown>).requestID;
 
-    if (!response.messageID) {
-      return error(set, 400, 'Failed to forward email');
+    if (typeof requestID !== 'string' || !UUID_PATTERN.test(requestID)) {
+      return error(set, 400, 'A send request ID is required');
     }
 
-    const fullEmail = {...forwardContent, messageID: response.messageID, date: response.date};
+    const response = await submitIdentityEmail(identity!.id, requestID, forwardContent as EmailContent);
+
+    if (response.status === 'uncertain') {
+      set.status = 202;
+
+      return {
+        status: 'uncertain',
+        warning: 'Forward delivery could not be confirmed. Do not resend it. Check Sent or contact the recipient.',
+      };
+    }
+
+    const fullEmail = {...forwardContent, messageID: response.messageID, date: new Date(response.date)};
     let saved;
     let warning;
 
@@ -235,17 +284,41 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       return error(set, 400, 'Invalid draft UID');
     }
 
-    const fields = ['to', '?inReplyTo', '?references', '?attachments', 'subject', 'body'];
-    const {err, to, inReplyTo, references, attachments, subject, body: emailBody, draft} = await checkAPI(body, fields);
+    const fields = ['?inReplyTo', '?references', '?attachments', 'subject', 'body', 'type'];
+    const {
+      err,
+      to,
+      inReplyTo,
+      references,
+      attachments,
+      subject,
+      body: emailBody,
+      draft,
+      type,
+    } = await checkAPI(body, fields);
 
     if (err) {
       return error(set, 400, err);
     }
 
+    if (typeof to !== 'string' || (to !== '' && !validEmailAddress(to))) {
+      return error(set, 400, 'Enter a valid recipient or leave it blank for an unfinished draft');
+    }
+
     const email = identity!.email;
     const password = identity!.mailbox_password_encrypted;
     const flatReferences = Array.isArray(references) ? references.flat(Infinity) : references;
-    const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
+    const content = {
+      email,
+      password,
+      to,
+      subject,
+      body: emailBody,
+      attachments,
+      references: flatReferences,
+      inReplyTo,
+      type,
+    };
 
     const fullEmail = await appendToMailbox(true, content);
 

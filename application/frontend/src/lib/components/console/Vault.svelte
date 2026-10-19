@@ -1,11 +1,12 @@
 <script lang="ts">
   import LoadingState from '$component/ui/LoadingState.svelte';
   import {onMount} from 'svelte';
+  import {invalidateAll} from '$app/navigation';
   import {TOTP} from 'otpauth';
-  import {vaultKey} from '$store';
+  import {vaultKey, moneroData} from '$store';
   import {request} from '$utils/webfetch';
   import {decrypt, encrypt} from '$utils/cryptography';
-  import type {Account, FullIdentity} from '$type';
+  import type {Account, AccountAPI, FullIdentity} from '$type';
   import Button from '$component/ui/Button.svelte';
   import Icon from '$component/ui/Icon.svelte';
   import Status from '$component/ui/Status.svelte';
@@ -21,6 +22,7 @@
   let plain = $state<Account[]>([]);
   let pending = $state(false);
   let loaded = $state(false);
+  let decryptedReady = $state(false);
   let error = $state('');
   let query = $state('');
   let editOpen = $state(false);
@@ -29,6 +31,8 @@
   let clock = $state(Date.now());
   let edit = $state({id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'});
   let revision = $state(0);
+  let loadEpoch = 0;
+  const readOnly = $derived(account.status === 'frozen');
   const visible = $derived(
     plain.filter((entry) => `${entry.username} ${entry.website || ''}`.toLowerCase().includes(query.toLowerCase())),
   );
@@ -39,6 +43,7 @@
     let cancelled = false;
     plain = [];
     revealed = [];
+    decryptedReady = false;
 
     if (!key) {
       editOpen = false;
@@ -64,6 +69,7 @@
       .then((value) => {
         if (!cancelled) {
           plain = value;
+          decryptedReady = true;
         }
       })
       .catch((cause) => {
@@ -78,15 +84,33 @@
   });
 
   async function load() {
+    const epoch = ++loadEpoch;
+    const blob = account.walletBlob;
     pending = true;
     error = '';
 
-    const result = await request<{accounts: Account[]; vaultRevision: number}>(`/identities/${account.id}/vault`);
+    const result = await request<AccountAPI>(`/identities/${account.id}/vault`);
+
+    if (epoch !== loadEpoch || account.walletBlob !== blob) {
+      return;
+    }
+
     pending = false;
     loaded = true;
 
     if (!result.ok) {
       error = result.error;
+
+      return;
+    }
+
+    if (result.data.walletBlob !== blob) {
+      vaultKey.set(null);
+      moneroData.set({address: '', viewKey: '', spendKey: ''});
+      entries = [];
+      revision = 0;
+      error = 'The master password changed. Unlock this identity again before continuing.';
+      await invalidateAll();
 
       return;
     }
@@ -97,6 +121,10 @@
   }
 
   function startEdit(entry?: Account) {
+    if (readOnly) {
+      return;
+    }
+
     edit = entry
       ? {...entry, website: entry.website || '', totp: entry.totp || '', algorithm: entry.algorithm || 'SHA1'}
       : {id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'};
@@ -123,6 +151,11 @@
 
   async function save(event: SubmitEvent) {
     event.preventDefault();
+
+    if (readOnly) {
+      return;
+    }
+
     pending = true;
     error = '';
 
@@ -142,6 +175,7 @@
         password: edit.password ? await encrypt(edit.password, key) : '',
         totp: edit.totp ? await encrypt(edit.totp, key) : null,
         vaultRevision: revision,
+        walletBlob: account.walletBlob,
       };
 
       if ($vaultKey !== key) {
@@ -169,7 +203,7 @@
   }
 
   async function remove() {
-    if (!deleteTarget) {
+    if (!deleteTarget || readOnly) {
       return;
     }
 
@@ -179,6 +213,7 @@
     const result = await request(`/identities/${account.id}/vault/entries`, 'DELETE', {
       id: deleteTarget.id,
       vaultRevision: revision,
+      walletBlob: account.walletBlob,
     });
     pending = false;
 
@@ -196,12 +231,27 @@
     await load();
   }
 
+  function exportAccounts() {
+    if (!$vaultKey || !loaded || !decryptedReady) {
+      return;
+    }
+
+    const url = URL.createObjectURL(new Blob([JSON.stringify(plain, null, 2)], {type: 'application/json'}));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vault-${account.id}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   onMount(() => {
     void load();
-
     const timer = setInterval(() => (clock = Date.now()), 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      loadEpoch++;
+      clearInterval(timer);
+    };
   });
 </script>
 
@@ -209,8 +259,17 @@
   <div>
     <h2>Account vault</h2>
   </div>
-  <Button icon="plus" disabled={!$vaultKey} onclick={() => startEdit()}>Add account</Button>
+  <div class="button-row">
+    <Button
+      variant="quiet"
+      icon="download"
+      disabled={!$vaultKey || !loaded || !decryptedReady || pending}
+      onclick={exportAccounts}>Export decrypted JSON</Button>
+    {#if !readOnly}<Button icon="plus" disabled={!$vaultKey} onclick={() => startEdit()}>Add account</Button>{/if}
+  </div>
 </div>
+{#if readOnly}<Status
+    message="Your subscription has expired. Saved accounts remain available to read and export. Renew to edit them." />{/if}
 <Status message={error} kind="error" />
 {#if !$vaultKey}<div class="empty-state">
     <Icon name="lock" size={40} />
@@ -224,7 +283,7 @@
 {:else if !entries.length}<div class="empty-state">
     <Icon name="key" size={40} />
     <h2>No accounts saved</h2>
-    <Button icon="plus" onclick={() => startEdit()}>Add account</Button>
+    {#if !readOnly}<Button icon="plus" onclick={() => startEdit()}>Add account</Button>{/if}
   </div>
 {:else}<div class="field">
     <label for="vault-search">Find an account</label><input
@@ -240,17 +299,17 @@
             <h3>{entry.username || 'Unnamed account'}</h3>
             <small>{entry.website || 'No website'}</small>
           </div>
-          <div class="button-row">
-            <Button
-              variant="quiet"
-              icon="edit"
-              aria-label="Edit {entry.username}"
-              onclick={() => startEdit(entry)} /><Button
-              variant="quiet"
-              icon="trash"
-              aria-label="Delete {entry.username}"
-              onclick={() => (deleteTarget = entry)} />
-          </div>
+          {#if !readOnly}<div class="button-row">
+              <Button
+                variant="quiet"
+                icon="edit"
+                aria-label="Edit {entry.username}"
+                onclick={() => startEdit(entry)} /><Button
+                variant="quiet"
+                icon="trash"
+                aria-label="Delete {entry.username}"
+                onclick={() => (deleteTarget = entry)} />
+            </div>{/if}
         </div>
         <div class="vault-values">
           <div>

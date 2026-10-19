@@ -1,0 +1,8 @@
+[Unit]
+Description=Reload mail TLS certificates
+After=postfix.service dovecot.service
+Requires=postfix.service dovecot.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl reload postfix dovecot

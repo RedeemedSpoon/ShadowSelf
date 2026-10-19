@@ -6,7 +6,6 @@ import {ApiError} from '@core/security';
 import {Elysia} from 'elysia';
 import {billingReadiness, cryptoPrices} from '@core/states';
 import {POLL_INVOICES_INTERVAL, POLL_PRICES_INTERVAL} from '@core/constants';
-import {cryptoBillingEnabled} from '@core/config';
 import creation from './routes/creation-process';
 import settings from './routes/user-settings';
 import api from './routes/public-api/index';
@@ -47,7 +46,6 @@ export function createApp(providers: {sendVerificationCode?: typeof sendVerifica
     .get('/health/live', () => ({status: 'ok'}))
     .get('/health/billing', ({set}) => {
       const ready =
-        cryptoBillingEnabled &&
         billingReadiness.available &&
         Date.now() - billingReadiness.lastSync < POLL_INVOICES_INTERVAL * 3 &&
         Date.now() - billingReadiness.priceSync < POLL_PRICES_INTERVAL * 3 &&

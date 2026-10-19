@@ -2,11 +2,14 @@
 
 -- Delete Existing Tables
 DROP VIEW IF EXISTS mailboxes;
+DROP VIEW IF EXISTS mailbox_owners;
 DROP TABLE IF EXISTS service_mailboxes;
 DROP TABLE IF EXISTS fiat_intents;
 DROP TABLE IF EXISTS stripe_events;
+DROP TABLE IF EXISTS invoice_transfers;
 DROP TABLE IF EXISTS invoice_observations;
 DROP TABLE IF EXISTS creation_jobs;
+DROP TABLE IF EXISTS mail_submissions;
 DROP TABLE IF EXISTS accounts;
 DROP TABLE IF EXISTS wallet_cache;
 DROP TABLE IF EXISTS identities;
@@ -20,7 +23,7 @@ CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   username varchar(25) NOT NULL,
   password text NOT NULL,
-  email varchar(48) UNIQUE NOT NULL,
+  email varchar(254) UNIQUE NOT NULL,
   totp text,
   totp_counter bigint,
   recovery_hashes varchar(64)[] NOT NULL DEFAULT '{}',
@@ -65,6 +68,8 @@ CREATE TABLE crypto_invoices (
   xmr_amount numeric(20, 12) NOT NULL,
   status varchar(15) DEFAULT 'pending',
   renewal_id varchar(12),
+  paid_at timestamptz,
+  entitlement_start timestamptz,
   creation_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -83,10 +88,10 @@ CREATE TABLE identities (
   sex varchar(6),
   age integer,
   ethnicity varchar(12),
-  email varchar(48) UNIQUE,
+  email varchar(254) UNIQUE,
   mailbox_password_encrypted text,
   mailbox_password_hash varchar(44),
-  phone varchar(15) UNIQUE,
+  phone varchar(16) UNIQUE,
   wallet_blob varchar(5503),
   vault_revision integer NOT NULL DEFAULT 1,
   wallet_keys jsonb,
@@ -102,6 +107,17 @@ CREATE TABLE accounts (
   algorithm varchar(6),
   totp varchar(5503)
 );
+
+CREATE TABLE mail_submissions (
+  identity_id varchar(12) NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  request_id uuid NOT NULL,
+  payload_hash char(64) NOT NULL,
+  message_id text NOT NULL,
+  response jsonb,
+  created_at timestamptz NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (identity_id, request_id)
+);
+CREATE INDEX mail_submissions_created_idx ON mail_submissions(identity_id, created_at);
 
 CREATE TABLE wallet_cache (
   id integer PRIMARY KEY DEFAULT 1,
@@ -119,7 +135,7 @@ CREATE TABLE creation_jobs (
 );
 
 CREATE TABLE service_mailboxes (
-  email varchar(48) PRIMARY KEY,
+  email varchar(254) PRIMARY KEY,
   password varchar(44) NOT NULL
 );
 
@@ -127,6 +143,17 @@ CREATE VIEW mailboxes AS
   SELECT email, mailbox_password_hash AS password
   FROM identities WHERE status = 'active' AND email IS NOT NULL
   UNION ALL SELECT email, password FROM service_mailboxes;
+
+CREATE VIEW mailbox_owners AS
+  SELECT email FROM identities WHERE email IS NOT NULL
+  UNION ALL SELECT email FROM service_mailboxes;
+
+CREATE TABLE invoice_transfers (
+  invoice_id uuid NOT NULL REFERENCES crypto_invoices(id),
+  tx_hash char(64) NOT NULL,
+  first_seen_at timestamptz NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (invoice_id, tx_hash)
+);
 
 CREATE TABLE invoice_observations (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -160,5 +187,5 @@ CREATE INDEX identities_owner_creation_idx ON identities(owner, creation_date DE
 CREATE INDEX accounts_owner_idx ON accounts(owner);
 CREATE INDEX invoice_observations_latest_idx ON invoice_observations(invoice_id, id DESC);
 CREATE INDEX invoice_observations_payment_idx ON invoice_observations(invoice_id, total, observed_at);
-CREATE INDEX crypto_invoices_monitor_idx ON crypto_invoices(id) WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late');
+CREATE INDEX crypto_invoices_monitor_idx ON crypto_invoices(id) WHERE status IN ('pending', 'confirming', 'underpaid', 'expired', 'late', 'reconciliation');
 CREATE INDEX stripe_events_pending_idx ON stripe_events(id) WHERE completed_at IS NULL;

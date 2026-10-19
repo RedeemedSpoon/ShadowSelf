@@ -8,16 +8,13 @@ import type {
 } from '@type';
 import {xpubToAddress} from '@utils/cryptography';
 import {ApiError} from '@core/security';
+import {chainEndpoints} from '@core/config';
 import {
-  BTC_API,
-  ETH_API,
   UTXO_GAP_LIMIT,
   UTXO_HARD_LIMIT,
   UTXO_RECOVERY_LIMIT,
   CHAIN_REQUEST_CONCURRENCY,
-  LTC_API,
   USDT_CONTRACT,
-  XMR_NODE,
 } from '@core/constants';
 
 export async function mapChainRequests<T, R>(
@@ -89,7 +86,7 @@ export async function getUtxoData(
   fetcher: typeof fetch = fetch,
   options: WalletScanOptions = {},
 ): Promise<CryptoWalletResponse['btc']> {
-  const baseUrl = coin === 'btc' ? BTC_API : LTC_API;
+  const baseUrl = coin === 'btc' ? chainEndpoints.btc : chainEndpoints.ltc;
   const controller = new AbortController();
   const signal = AbortSignal.any([
     controller.signal,
@@ -317,12 +314,12 @@ export async function getEvmData(
   fetcher: typeof fetch = fetch,
   signal?: AbortSignal,
 ) {
-  const ethBalanceUrl = `${ETH_API}?module=account&action=balance&address=${address}`;
-  const usdtbalanceUrl = `${ETH_API}?module=account&action=tokenbalance&contractaddress=${USDT_CONTRACT}&address=${address}`;
+  const ethBalanceUrl = `${chainEndpoints.eth}?module=account&action=balance&address=${address}`;
+  const usdtbalanceUrl = `${chainEndpoints.eth}?module=account&action=tokenbalance&contractaddress=${USDT_CONTRACT}&address=${address}`;
   const balanceUrl = coin === 'eth' ? ethBalanceUrl : usdtbalanceUrl;
 
-  const nonceUrl = `${ETH_API}?module=proxy&action=eth_getTransactionCount&address=${address}&tag=pending`;
-  const historyUrl = `${ETH_API}?module=account&action=${coin === 'eth' ? 'txlist' : 'tokentx'}&address=${address}${coin === 'usdt' ? `&contractaddress=${USDT_CONTRACT}` : ''}&sort=desc&page=1&offset=50`;
+  const nonceUrl = `${chainEndpoints.eth}?module=proxy&action=eth_getTransactionCount&address=${address}&tag=pending`;
+  const historyUrl = `${chainEndpoints.eth}?module=account&action=${coin === 'eth' ? 'txlist' : 'tokentx'}&address=${address}${coin === 'usdt' ? `&contractaddress=${USDT_CONTRACT}` : ''}&sort=desc&page=1&offset=50`;
 
   try {
     const [balRes, nonceRes, histRes] = await Promise.all(
@@ -369,7 +366,7 @@ export async function getEvmData(
 
 export async function getXmrNode(fetcher: typeof fetch = fetch) {
   try {
-    const response = await fetcher(XMR_NODE, {
+    const response = await fetcher(chainEndpoints.xmr, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({jsonrpc: '2.0', id: '0', method: 'get_info'}),
@@ -408,7 +405,7 @@ export async function getXmrNode(fetcher: typeof fetch = fetch) {
       status = `Syncing (${info.height}/${info.target_height})`;
     }
 
-    return {status, nodeUrl: XMR_NODE};
+    return {status, nodeUrl: chainEndpoints.xmr};
   } catch {
     throw new ApiError(503, 'chain_unavailable', 'The Monero node is unavailable');
   }

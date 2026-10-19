@@ -1,3 +1,4 @@
+import {ONION_URL} from '$constant';
 import {createRequestLimiter} from '$lib/request-limits.server';
 import {error, redirect, type Handle} from '@sveltejs/kit';
 import {sequence} from '@sveltejs/kit/hooks';
@@ -12,7 +13,9 @@ const authenticate: Handle = async ({event, resolve}) => {
     mutation &&
     ['/login', '/signup', '/contact', '/api/auth/', '/api/contact'].some((path) => event.url.pathname.startsWith(path));
 
-  if (!limitRequest(event.getClientAddress(), sensitive)) {
+  const onion = Boolean(ONION_URL) && event.url.origin === ONION_URL;
+
+  if (!limitRequest(onion ? 'onion' : event.getClientAddress(), sensitive, onion)) {
     return new Response(
       JSON.stringify({error: {code: 'rate_limited', message: 'Too many requests. Wait before retrying'}}),
       {

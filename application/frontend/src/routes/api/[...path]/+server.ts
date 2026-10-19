@@ -3,6 +3,7 @@ import {json, type RequestHandler} from '@sveltejs/kit';
 
 const proxy: RequestHandler = async ({request, params, url}) => {
   try {
+    const timeout = /^identities\/[a-zA-Z0-9]{12}\/wallet\/recovery$/.test(params.path || '') ? 140_000 : 30_000;
     const response = await fetch(`${env.BACKEND_URL || 'http://localhost:3000'}/api/${params.path}${url.search}`, {
       method: request.method,
       headers: {
@@ -14,7 +15,7 @@ const proxy: RequestHandler = async ({request, params, url}) => {
         ),
       },
       body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.text(),
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.any([request.signal, AbortSignal.timeout(timeout)]),
     });
 
     return new Response(response.body, {

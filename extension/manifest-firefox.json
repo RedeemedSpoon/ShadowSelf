@@ -1,8 +1,8 @@
 {
   "name": "ShadowSelf",
   "short_name": "ShadowSelf",
-  "homepage_url": "https://shadowself.io",
-  "author": "RedeemedSpoon (contact@shadowself.io)",
+  "homepage_url": "__APP_ORIGIN__",
+  "author": "RedeemedSpoon",
   "description": "Open your ShadowSelf identities from a signed-in tab in this browser window. Network routing is unavailable.",
   "version": "2.0.0",
   "manifest_version": 3,
@@ -33,6 +33,6 @@
     "scripts": ["background/background.js"],
     "type": "module"
   },
-  "host_permissions": ["https://shadowself.io/*"],
+  "host_permissions": [],
   "permissions": ["storage", "scripting"]
 }

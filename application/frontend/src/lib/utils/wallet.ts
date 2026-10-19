@@ -1,5 +1,5 @@
 import type {LocalAccount} from 'viem/accounts';
-import type {BtcSigner, Coins, PrivKeyType, transactionData, UTXOData} from '$type';
+import type {BtcSigner, Coins, PrivKeyType, transactionData, UTXOData, PendingEvmSend} from '$type';
 import {UTXO_HARD_LIMIT} from '$constant';
 import {deriveXPub} from '$utils/cryptography';
 
@@ -46,18 +46,6 @@ export function selectBestUtxos(availableUtxos: UTXOData, amount: number | strin
 export function estimateTransactionFee(coin: Coins, inputs: UTXOData, feeRate: number, amount: number | string) {
   if (!amount || Number(amount) <= 0) {
     return {fee: 0, unit: coin === 'usdt' ? 'ETH' : coin.toUpperCase(), size: 0, sizeUnit: ''};
-  }
-
-  if (coin === 'eth' || coin === 'usdt') {
-    const gasLimit = coin === 'eth' ? 21_000 : 65_000;
-    const feeInEth = (gasLimit * feeRate) / 1_000_000_000;
-
-    return {
-      fee: feeInEth,
-      unit: 'ETH',
-      size: gasLimit,
-      sizeUnit: 'Gas',
-    };
   }
 
   if (coin === 'btc' || coin === 'ltc') {
@@ -146,7 +134,7 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
         throw new Error('Select funds before preparing the transaction.');
       }
 
-      if (typeof data.estimatedFee === 'number') {
+      if (!/^\d+$/.test(data.feeAtoms ?? '')) {
         throw new Error('A Bitcoin or Litecoin transaction fee is required.');
       }
 
@@ -207,10 +195,7 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
       tx.addOutputAddress(addr, amountSats, netParam);
 
       const inputTotal = data.utxos!.reduce((acc, u) => acc + BigInt(u.value), BigInt(0n));
-      const feeSats =
-        data.estimatedFee.feeAtoms !== undefined
-          ? BigInt(data.estimatedFee.feeAtoms)
-          : BigInt(Math.round(data.estimatedFee.fee * 100_000_000));
+      const feeSats = BigInt(data.feeAtoms!);
 
       if (feeSats <= 0n) {
         throw new Error('The network fee must be greater than zero.');
@@ -287,18 +272,24 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
 
       const client = createWalletClient({account, chain: mainnet, transport: http()});
 
-      if (typeof data.estimatedFee !== 'number' || !Number.isFinite(data.estimatedFee) || data.estimatedFee <= 0) {
-        throw new Error('A valid gas fee is required.');
+      if (
+        [data.gasLimit, data.maxFeePerGas, data.maxPriorityFeePerGas].some(
+          (value) => !/^\d+$/.test(value ?? '') || BigInt(value!) <= 0n,
+        )
+      ) {
+        throw new Error('A current gas estimate and fee caps are required. Prepare the transaction again.');
       }
 
-      if (!/^\d+$/.test(data.gasPriceAtoms ?? '') || BigInt(data.gasPriceAtoms!) <= 0n) {
-        throw new Error('A current gas price in wei is required. Prepare the transaction again.');
-      }
+      const gas = BigInt(data.gasLimit!);
+      const maxFeePerGas = BigInt(data.maxFeePerGas!);
+      const maxPriorityFeePerGas = BigInt(data.maxPriorityFeePerGas!);
 
-      const gasPrice = BigInt(data.gasPriceAtoms!);
+      if (maxPriorityFeePerGas > maxFeePerGas || gas > 36_000_000n) {
+        throw new Error('The prepared gas estimate is invalid. Prepare the transaction again.');
+      }
 
       const ethBalanceWei = BigInt(data.balanceAtoms!);
-      const feeWei = gasPrice * (coin === 'usdt' ? BigInt(65000) : BigInt(21000));
+      const feeWei = maxFeePerGas * gas;
 
       let serializedRequest;
 
@@ -340,9 +331,9 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
           data: fdata,
           value: BigInt(0n),
           nonce: data.nonce,
-          maxFeePerGas: gasPrice,
-          maxPriorityFeePerGas: gasPrice,
-          gas: BigInt(65000n),
+          maxFeePerGas,
+          maxPriorityFeePerGas,
+          gas,
         });
       } else {
         const amountWei = parseEther(String(amt));
@@ -355,9 +346,9 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
           to: addr,
           value: parseEther(String(amt)),
           nonce: data.nonce,
-          maxFeePerGas: gasPrice,
-          maxPriorityFeePerGas: gasPrice,
-          gas: BigInt(21000n),
+          maxFeePerGas,
+          maxPriorityFeePerGas,
+          gas,
         });
       }
 
@@ -404,35 +395,56 @@ export async function acquireEvmSend(address: string): Promise<() => void> {
   return release;
 }
 
-export function checkPendingEvmSend(address: string, nonce: number, storage: Storage = localStorage) {
-  const key = `wallet-pending:${address.toLowerCase()}`;
-  const pending = storage.getItem(key);
+export function pendingEvmSend(address: string, storage: Storage = localStorage): PendingEvmSend | null {
+  const value = storage.getItem(`wallet-pending:${address.toLowerCase()}`);
 
-  if (pending === null) {
+  if (value === null) {
+    return null;
+  }
+
+  const pending = JSON.parse(value) as PendingEvmSend;
+
+  if (
+    !Number.isSafeInteger(pending.nonce) ||
+    pending.nonce < 0 ||
+    !/^0x[a-f0-9]+$/i.test(pending.hex) ||
+    !/^0x[a-f0-9]{64}$/i.test(pending.txid) ||
+    (pending.coin !== 'eth' && pending.coin !== 'usdt')
+  ) {
+    throw new Error('The saved broadcast reference is invalid. Check transaction history before sending again.');
+  }
+
+  return pending;
+}
+
+export function checkPendingEvmSend(address: string, nonce: number, storage: Storage = localStorage) {
+  const pending = pendingEvmSend(address, storage);
+
+  if (!pending) {
     return;
   }
 
-  const saved = Number(pending);
-
-  if (
-    !/^\d+$/.test(pending) ||
-    !Number.isSafeInteger(saved) ||
-    saved < 0 ||
-    !Number.isSafeInteger(nonce) ||
-    nonce <= saved
-  ) {
+  if (!Number.isSafeInteger(nonce) || nonce <= pending.nonce) {
     throw new Error(
-      'A previous ETH or USDT broadcast is still unconfirmed by the provider. Retry after it appears in pending transactions; do not create a replacement send.',
+      'A previous broadcast is unresolved. Look it up or retry the same signed transaction before preparing another send.',
     );
   }
 
-  storage.removeItem(key);
+  clearPendingEvmSend(address, pending.txid, storage);
 }
 
-export function recordPendingEvmSend(address: string, nonce: number, storage: Storage = localStorage) {
-  if (!Number.isSafeInteger(nonce) || nonce < 0) {
+export function clearPendingEvmSend(address: string, txid: string, storage: Storage = localStorage) {
+  const pending = pendingEvmSend(address, storage);
+
+  if (pending?.txid === txid) {
+    storage.removeItem(`wallet-pending:${address.toLowerCase()}`);
+  }
+}
+
+export function recordPendingEvmSend(address: string, pending: PendingEvmSend, storage: Storage = localStorage) {
+  if (!Number.isSafeInteger(pending.nonce) || pending.nonce < 0) {
     throw new Error('A valid pending nonce is required. Prepare the transaction again.');
   }
 
-  storage.setItem(`wallet-pending:${address.toLowerCase()}`, String(nonce));
+  storage.setItem(`wallet-pending:${address.toLowerCase()}`, JSON.stringify(pending));
 }

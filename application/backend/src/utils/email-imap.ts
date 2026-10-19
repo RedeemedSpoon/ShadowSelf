@@ -1,4 +1,4 @@
-import {EMAIL_FETCH_LIMIT, EMAIL_JUNK_RETENTION_DAYS} from '@core/constants';
+import {EMAIL_FETCH_LIMIT, EMAIL_UID_WINDOW} from '@core/constants';
 import MailComposer from 'nodemailer/lib/mail-composer';
 import {imapConnection} from '@core/services';
 import {wsConnections} from '@core/states';
@@ -205,18 +205,34 @@ export function createMailReader(connect = imapConnection) {
 
 export const mailReader = createMailReader();
 
-export async function appendToMailbox(asDraft: boolean, content: EmailContent & {messageID?: string; date?: Date}) {
-  const connection = await imapConnection(content.email, content.password);
+export async function appendToMailbox(asDraft: boolean, content: EmailContent, connect = imapConnection) {
+  const connection = await connect(content.email, content.password);
 
   try {
     await connection.openBox(asDraft ? 'Drafts' : 'Sent');
 
     const date = content.date || new Date();
     const messageID = content.messageID || `<${randomUUID()}@${content.email.split('@')[1]}>`;
-    const type = /<[a-z][^>]*>/i.test(content.body) ? 'html' : 'text';
+    const type = content.type;
+
+    if (!asDraft) {
+      const existing = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+        bodies: ['HEADER.FIELDS (MESSAGE-ID)'],
+        markSeen: false,
+      });
+
+      for (const message of existing) {
+        if ((await parseEnvelope(message, 'Sent')).messageID === messageID) {
+          return {uid: message.attributes.uid, date, messageID, type};
+        }
+      }
+    }
+
     const attachments = (content.attachments || []).map((attachment) => ({
       filename: attachment.filename,
-      content: attachment.data.includes(',') ? attachment.data.split(',')[1] : attachment.data,
+      contentType: attachment.contentType,
+      cid: attachment.cid,
+      content: attachment.data,
       encoding: 'base64',
     }));
     const mail = new MailComposer({
@@ -231,9 +247,19 @@ export async function appendToMailbox(asDraft: boolean, content: EmailContent & 
       date,
     });
 
+    const existing = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+      bodies: ['HEADER.FIELDS (MESSAGE-ID)'],
+    });
+
+    if (existing.length) {
+      return {uid: existing[0].attributes.uid, date, messageID, type};
+    }
+
     await connection.append(await mail.compile().build(), {flags: asDraft ? ['\\Seen', '\\Draft'] : ['\\Seen']});
 
-    const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {bodies: ['']});
+    const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+      bodies: ['HEADER.FIELDS (MESSAGE-ID)'],
+    });
 
     if (!messages[0]) {
       throw new Error('Saved message could not be located');
@@ -268,23 +294,23 @@ async function searchIDs(connection: imap.ImapSimple, criteria: any[]) {
 }
 
 async function listMailbox(connection: imap.ImapSimple, mailbox: Mailbox, before?: number) {
-  await connection.openBox(mailbox);
-
-  if (mailbox === 'Junk') {
-    const cutoff = new Date(Date.now() - EMAIL_JUNK_RETENTION_DAYS * 86400000);
-    const expired = await searchIDs(connection, [['BEFORE', cutoff]]);
-
-    if (expired.length) {
-      await connection.deleteMessage(expired);
-    }
-  }
-
-  const ids = (await searchIDs(connection, ['ALL'])).sort((a, b) => a - b);
-  const eligible = ids.filter((id) => before === undefined || id < before);
-  const selected = eligible.slice(-EMAIL_FETCH_LIMIT);
+  const box = await new Promise<{uidnext: number; messages: {total: number}}>((resolve, reject) => {
+    connection.imap.openBox(mailbox, (error, box) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(box);
+      }
+    });
+  });
+  const upper = Math.min(before === undefined ? box.uidnext : before, box.uidnext) - 1;
+  const lower = Math.max(1, upper - EMAIL_UID_WINDOW + 1);
+  const ids = upper >= lower ? await searchIDs(connection, [['UID', `${lower}:${upper}`]]) : [];
+  const selected = ids.sort((a, b) => a - b).slice(-EMAIL_FETCH_LIMIT);
+  const nextCursor = ids.length > selected.length ? selected[0] : lower > 1 ? lower : null;
 
   if (!selected.length) {
-    return {mailbox, messages: [], messagesCount: ids.length, nextCursor: null, complete: true};
+    return {mailbox, messages: [], messagesCount: box.messages.total, nextCursor, complete: nextCursor === null};
   }
 
   const results = await connection.search([['UID', selected.join(',')]], {
@@ -297,9 +323,9 @@ async function listMailbox(connection: imap.ImapSimple, mailbox: Mailbox, before
   return {
     mailbox,
     messages,
-    messagesCount: ids.length,
-    nextCursor: eligible.length > selected.length ? selected[0] : null,
-    complete: eligible.length <= selected.length,
+    messagesCount: box.messages.total,
+    nextCursor,
+    complete: nextCursor === null,
   };
 }
 

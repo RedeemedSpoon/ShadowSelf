@@ -1,5 +1,5 @@
 import {GoogleGenAI} from '@google/genai';
-import {geminiApiKey} from '@core/config';
+import {geminiApiKey, geminiImageModel} from '@core/config';
 import {ApiError, requireProvider} from '@core/security';
 import {normalizePortrait} from '@utils/utils';
 
@@ -24,7 +24,7 @@ export async function generateProfile(
 
   const ai = new GoogleGenAI({apiKey: geminiApiKey});
   const response = await ai.models.generateContent({
-    model: process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image',
+    model: geminiImageModel,
     contents: portraitPrompt(location, ethnicity, age, sex, bio),
     config: {temperature: 1.2, imageConfig: {aspectRatio: '1:1'}},
   });

@@ -1,5 +1,13 @@
+import {PUBLIC_APP_ORIGIN, PUBLIC_ONION_ORIGIN, PUBLIC_MAIL_DOMAIN} from '$env/static/public';
+
+export const APP_ORIGIN = PUBLIC_APP_ORIGIN;
+export const SITE_HOST = new URL(APP_ORIGIN).host;
+export const MAIL_DOMAIN = PUBLIC_MAIL_DOMAIN;
+export const COIN_DECIMALS = {btc: 8, ltc: 8, eth: 18, usdt: 6, xmr: 12} as const;
+export const CONTACT_EMAIL = `contact@${MAIL_DOMAIN}`;
+
 export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
-export const ONION_URL = 'http://shadow7sk64geknoyyzsfyjm4rylnknx5pzhfhzkecoggowhitafggqd.onion';
+export const ONION_URL = PUBLIC_ONION_ORIGIN;
 export const CRYPTO_DISCOUNT = 20;
 export const UTXO_HARD_LIMIT = 120;
 

@@ -1,8 +1,8 @@
-import {SOCKET_AUTH_INTERVAL} from '@core/constants';
+import {SOCKET_MAILBOX_CONNECTION_LIMIT} from '@core/constants';
 import middlewareApi from '@middlewares/middleware-api';
 import type {QueryIdentity} from '@type';
 import {listenForEmail} from '@utils/email-imap';
-import {wsConnections} from '@core/states';
+import {wsConnections, guardedAuthTimer, socketCapacityAvailable} from '@core/states';
 import {sql} from '@core/services';
 import information from './api-information';
 import account from './api-account';
@@ -61,19 +61,27 @@ export default new Elysia()
       const identity = ws.data.identity;
       const authorize = ws.data.authorize;
 
-      if (!(await authorize())) {
-        return ws.close(1008, 'Session expired');
+      try {
+        if (!(await authorize())) {
+          return ws.close(1008, 'Session expired');
+        }
+      } catch {
+        return ws.close(1011, 'Authorization unavailable');
       }
 
-      const authTimer = setInterval(async () => {
-        try {
-          if (!(await authorize())) {
-            ws.close(1008, 'Session expired');
-          }
-        } catch {
-          ws.close(1011, 'Authorization unavailable');
-        }
-      }, SOCKET_AUTH_INTERVAL);
+      if (ws.raw.readyState !== 1) {
+        return;
+      }
+
+      if (
+        !socketCapacityAvailable(ws.data.user!.accountID) ||
+        wsConnections.values().filter((connection) => connection.emailAddress === identity!.email).length >=
+          SOCKET_MAILBOX_CONNECTION_LIMIT
+      ) {
+        return ws.close(1013, 'Connection limit reached');
+      }
+
+      const authTimer = guardedAuthTimer(authorize, (code, reason) => ws.close(code, reason));
       wsConnections.set(ws.id, {
         stopEmail: () => {},
         websocket: ws,
@@ -101,8 +109,12 @@ export default new Elysia()
       wsConnections.delete(ws.id);
     },
     async message(ws, message) {
-      if (!(await ws.data.authorize())) {
-        return ws.close(1008, 'Session expired');
+      try {
+        if (!(await ws.data.authorize())) {
+          return ws.close(1008, 'Session expired');
+        }
+      } catch {
+        return ws.close(1011, 'Authorization unavailable');
       }
 
       if (message === 'ping') {

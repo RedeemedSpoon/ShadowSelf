@@ -1,8 +1,7 @@
-import {loadEnv} from 'vite';
+import {deployment} from './deployment.js';
 import {vitePreprocess} from '@sveltejs/vite-plugin-svelte';
 import adapter from 'svelte-adapter-bun';
 
-const deployment = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), 'CSP_');
 function allowedOrigins(setting) {
   return (process.env[setting] ?? deployment[setting] ?? '')
     .split(',')
@@ -23,6 +22,7 @@ function allowedOrigins(setting) {
 const config = {
   preprocess: vitePreprocess(),
   kit: {
+    env: {dir: '..'},
     csrf: {trustedOrigins: []},
     csp: {
       mode: 'auto',

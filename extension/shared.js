@@ -1,7 +1,7 @@
 export const ACCOUNT_PATH = '/api/extension';
 
 export function applicationOrigin(manifest) {
-  return manifest.version === '0.0.0' ? 'http://localhost:5000' : 'https://shadowself.io';
+  return new URL(manifest.homepage_url).origin;
 }
 
 export function isAccountTab(tab, windowId, origin) {
@@ -113,6 +113,22 @@ export function createAccountBridge(browser, origin) {
       }
 
       return readAccount(tabId, windowId);
+    },
+    async openIdentity(windowId, identityID) {
+      const storageKey = key(windowId);
+      const stored = await browser.storage.session.get(storageKey);
+      const tabId = stored[storageKey];
+      const account = await readAccount(tabId, windowId);
+
+      if (!account.identities.some((identity) => identity.id === identityID)) {
+        throw new Error('This identity is no longer available. Refresh your account.');
+      }
+
+      const opened = await browser.tabs.duplicate(tabId);
+      await browser.tabs.update(opened.id, {
+        url: `${origin}/identity/${encodeURIComponent(identityID)}`,
+        active: true,
+      });
     },
     async disconnect(windowId) {
       await browser.storage.session.remove(key(windowId));

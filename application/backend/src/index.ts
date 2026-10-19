@@ -2,7 +2,7 @@ import {initBackgroundWorkers} from '@core/background-workers';
 import {createApp} from './app';
 
 async function start() {
-  const app = createApp().listen(Number(process.env.PORT || 3000));
+  const app = createApp().listen({port: 3000, idleTimeout: 150});
 
   if (process.env.NODE_ENV !== 'test') {
     initBackgroundWorkers();

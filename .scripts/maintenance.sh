@@ -23,6 +23,7 @@ if systemctl is-active --quiet docker; then
   (
     cd "$application_dir"
 
-    docker compose --env-file frontend/.env up -d --remove-orphans
+    bash ../.scripts/deployment.sh render
+    docker compose up -d --remove-orphans
   )
 fi

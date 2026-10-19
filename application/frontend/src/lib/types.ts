@@ -27,8 +27,10 @@ export interface CryptoKeys {
 
 export interface transactionData {
   senderAddress?: string;
-  gasPriceAtoms?: string;
-  estimatedFee: number | {fee: number; feeAtoms?: string};
+  gasLimit?: string;
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
+  feeAtoms?: string;
   privKeyType: PrivKeyType;
   wifKey: string;
   index?: number;
@@ -64,7 +66,7 @@ export interface Identity {
 }
 
 export interface FullIdentity {
-  status: 'active';
+  status: 'active' | 'frozen';
   vaultRevision: number;
   id: string;
   creationDate: string;
@@ -216,12 +218,21 @@ export interface EvmWallet {
   history: TransactionsHistory;
 }
 
+export interface PendingEvmSend {
+  nonce: number;
+  hex: string;
+  txid: string;
+  coin: 'eth' | 'usdt';
+}
+
 export interface EvmPreparation {
   nonce: number;
   ethBalanceAtoms: string;
   usdtBalanceAtoms: string;
-  gasPrice: number;
-  gasPriceAtoms: string;
+  amountAtoms: string;
+  gasLimit: string;
+  maxFeePerGas: string;
+  maxPriorityFeePerGas: string;
 }
 
 export interface CryptoWallet {
@@ -253,6 +264,33 @@ export interface InformationAPI {
 export interface AccountAPI {
   accounts: Account[];
   vaultRevision: number;
+  walletBlob: string;
+}
+
+export interface InvoiceIdentity {
+  name: string;
+  email: string;
+  invoice: string;
+  date: string;
+  dateDue: string;
+}
+
+export interface InvoiceClient {
+  clientName: string;
+  clientEmail: string;
+}
+
+export interface InvoiceTable {
+  tableRows: {description: string; quantity: number; price: number; total: number}[];
+  totalTransactionPrice: number;
+}
+
+export interface InvoicePayment {
+  cryptoChoice: Coins;
+  exchangeRate: number;
+  cryptoDue: string;
+  destAddr: string;
+  qrImage: string;
 }
 
 export interface EmailPage {
@@ -264,6 +302,7 @@ export interface EmailPage {
 }
 
 export interface EmailMutation {
+  status?: 'sent' | 'uncertain';
   warning?: string;
 }
 

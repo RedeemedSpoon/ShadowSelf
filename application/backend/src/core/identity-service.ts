@@ -4,8 +4,12 @@ import {sql, stripe} from '@core/services';
 import type {ReservedSql} from 'postgres';
 import type Stripe from 'stripe';
 
-export async function withIdentityLock<T>(id: string, operation: (connection: ReservedSql) => Promise<T>) {
-  return withResourceLock(id, operation);
+export async function withIdentityLock<T>(
+  id: string,
+  operation: (connection: ReservedSql) => Promise<T>,
+  existing?: ReservedSql,
+) {
+  return withResourceLock(id, operation, existing);
 }
 
 export async function withAccountLock<T>(

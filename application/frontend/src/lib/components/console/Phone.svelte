@@ -258,7 +258,7 @@
         <label for="sms-body">Message</label><textarea
           id="sms-body"
           bind:value={body}
-          minlength="4"
+          minlength="1"
           maxlength="160"
           required></textarea
         ><small

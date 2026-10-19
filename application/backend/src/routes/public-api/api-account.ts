@@ -3,16 +3,26 @@ import {checkAPI, validCiphertext} from '@utils/checks';
 import type {VaultMutation} from '@type';
 import {error} from '@utils/utils';
 import {sql} from '@core/services';
+import {ApiError} from '@core/security';
 import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/api/identities/:id/vault'})
   .use(middlewareApi)
-  .get('/', async ({identity}) => {
-    const accounts =
-      await sql`SELECT id, username, password, website, totp, algorithm FROM accounts WHERE owner = ${identity!.id}`;
+  .get('/', async ({identity}) =>
+    sql.begin(async (transaction) => {
+      const rows =
+        await transaction`SELECT vault_revision, wallet_blob FROM identities WHERE id = ${identity!.id} FOR SHARE`;
 
-    return {accounts, vaultRevision: identity!.vault_revision};
-  })
+      if (!rows.length) {
+        throw new ApiError(404, 'identity_not_found', 'Identity not found');
+      }
+
+      const accounts =
+        await transaction`SELECT id, username, password, website, totp, algorithm FROM accounts WHERE owner = ${identity!.id}`;
+
+      return {accounts, vaultRevision: rows[0].vault_revision, walletBlob: rows[0].wallet_blob};
+    }),
+  )
   .post('/entries', async ({set, identity, body}) => {
     const {err, username, password, website, totp, algorithm} = await checkAPI(body, [
       'username',
@@ -128,20 +138,21 @@ export default new Elysia({prefix: '/api/identities/:id/vault'})
 
 async function mutateVault(id: string, body: unknown, set: Record<string, any>, mutation: VaultMutation['apply']) {
   const revision = (body as VaultMutation)?.vaultRevision;
+  const walletBlob = (body as VaultMutation)?.walletBlob;
 
-  if (!Number.isSafeInteger(revision) || revision < 1) {
-    return error(set, 400, 'Vault revision is required');
+  if (!Number.isSafeInteger(revision) || revision < 1 || !validCiphertext(walletBlob)) {
+    return error(set, 400, 'Vault revision and encryption context are required');
   }
 
   return sql.begin(async (transaction) => {
     const identities =
-      await transaction`SELECT vault_revision FROM identities WHERE id = ${id} AND status = 'active' FOR UPDATE`;
+      await transaction`SELECT vault_revision, wallet_blob FROM identities WHERE id = ${id} AND status = 'active' FOR UPDATE`;
 
     if (!identities.length) {
       return error(set, 404, 'Identity not found');
     }
 
-    if (identities[0].vault_revision !== revision) {
+    if (identities[0].vault_revision !== revision || identities[0].wallet_blob !== walletBlob) {
       return error(set, 409, 'The vault changed. Reload before editing');
     }
 

@@ -1,12 +1,13 @@
 <script lang="ts">
+  import {APP_ORIGIN} from '$constant';
   import {tick} from 'svelte';
   import {goto} from '$app/navigation';
   import PublicPage from '$component/public/PublicPage.svelte';
   import {API_DOCUMENTATION} from '$lib/constants/api-documentation';
 
   const samples = {
-    curl: `curl --fail-with-body https://shadowself.io/api/identities \\\n  -H "Authorization: Bearer $SHADOWSELF_TOKEN"`,
-    javascript: `const response = await fetch('https://shadowself.io/api/identities', {
+    curl: `curl --fail-with-body ${APP_ORIGIN}/api/identities \\\n  -H "Authorization: Bearer $SHADOWSELF_TOKEN"`,
+    javascript: `const response = await fetch('${APP_ORIGIN}/api/identities', {
   headers: { Authorization: \`Bearer \${process.env.SHADOWSELF_TOKEN}\` }
 });
 const body = await response.json();
@@ -19,7 +20,7 @@ import os
 import urllib.request
 
 request = urllib.request.Request(
-    'https://shadowself.io/api/identities',
+    '${APP_ORIGIN}/api/identities',
     headers={'Authorization': 'Bearer ' + os.environ['SHADOWSELF_TOKEN']}
 )
 with urllib.request.urlopen(request) as response:

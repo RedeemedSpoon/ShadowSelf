@@ -1,3 +1,4 @@
+import {deployment} from './deployment.js';
 import {nodePolyfills} from 'vite-plugin-node-polyfills';
 import {sveltekit} from '@sveltejs/kit/vite';
 import {defineConfig} from 'vite';
@@ -9,6 +10,7 @@ const workerDest = path.resolve('static/monero.worker.js');
 fs.copyFileSync(workerSrc, workerDest);
 
 export default defineConfig({
+  envDir: '..',
   build: {
     assetsInlineLimit: 0,
     commonjsOptions: {
@@ -27,8 +29,7 @@ export default defineConfig({
     }),
   ],
   server: {
-    fs: {allow: [path.resolve('tests')]},
-    proxy: {'^/api/.*/events': {target: 'http://localhost:3000', ws: true}},
+    proxy: {'^/api/.*/events': {target: deployment.BACKEND_URL || 'http://localhost:3000', ws: true}},
     port: 5000,
     strictPort: true,
     hmr: {

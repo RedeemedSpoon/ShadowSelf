@@ -2,7 +2,7 @@ import type {ElysiaWS} from 'elysia/ws';
 
 export type User = {email: string; id: string; accountID: number} | undefined;
 
-export type Attachment = {filename: string; data: string};
+export type Attachment = {filename: string; data: string; cid?: string; contentType?: string};
 
 export type CryptoCurrencies = 'btc' | 'ltc' | 'eth' | 'usdt' | 'xmr';
 
@@ -124,6 +124,8 @@ export interface QueryInvoice {
   xmr_subaddress: string;
   xmr_amount: string;
   renewal_id: string | null;
+  paid_at: Date | null;
+  entitlement_start: Date | null;
   creation_date: Date;
 }
 
@@ -188,11 +190,12 @@ export interface APIRequest {
   }[];
   subject: string;
   body: string;
+  type: 'html' | 'text';
+  requestID: string;
   to: string;
   inReplyTo: string;
   references: string[];
   attachments: Attachment[];
-  sid: string;
   addressee: string;
   blob: string;
   keys: {
@@ -227,9 +230,21 @@ export interface EmailContent {
   subject: string;
   to: string;
   body: string;
+  type: 'html' | 'text';
+  messageID?: string;
+  date?: Date;
   attachments: Attachment[];
   inReplyTo: string;
   references: string[];
+}
+
+export type MailSubmissionResult =
+  {status: 'sent'; messageID: string; date: Date; type: 'html' | 'text'} | {status: 'uncertain'};
+
+export interface MailSubmissionClaim {
+  created: boolean;
+  messageID: string;
+  response?: MailSubmissionResult;
 }
 
 export interface Message {
@@ -391,6 +406,7 @@ export interface CreationDraft {
 
 export interface VaultMutation {
   vaultRevision: number;
+  walletBlob: string;
   blob: string;
   keys: CryptoKeys['xmr'];
   accounts: {id: number; password: string; totp: string | null}[];
@@ -419,4 +435,12 @@ export interface PhoneProvider {
   send(phone: string, to: string, body: string): Promise<PhoneMessage>;
   removeConversation(phone: string, contact: string): Promise<{deleted: number; failed: number; complete: boolean}>;
   available(location: string): Promise<string[]>;
+}
+
+export interface EvmTransferRequest {
+  coin: 'eth' | 'usdt';
+  recipient: string;
+  amount: string;
+  priority: 'low' | 'medium' | 'high';
+  sweep?: boolean;
 }

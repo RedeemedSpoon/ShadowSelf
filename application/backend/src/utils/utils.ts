@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 import type {ReservedSql} from 'postgres';
 import {ApiError} from '@core/security';
+import {SWAP_NETWORKS} from '@core/constants';
 
 export function reportFailure(operation: string, failure: unknown) {
   const details = failure as {code?: unknown; status?: unknown; name?: unknown} | null;
@@ -55,9 +56,13 @@ export function toTitleCase(str: string) {
 }
 
 export function net(coin: string) {
-  const isUsdt = coin.toLowerCase().includes('usdt');
+  const network = Object.hasOwn(SWAP_NETWORKS, coin) ? SWAP_NETWORKS[coin] : undefined;
 
-  return isUsdt ? 'ERC20' : 'Mainnet';
+  if (!network) {
+    throw new ApiError(400, 'invalid_coin', 'Choose a supported asset and network');
+  }
+
+  return network;
 }
 
 export async function normalizePortrait(base64: string) {

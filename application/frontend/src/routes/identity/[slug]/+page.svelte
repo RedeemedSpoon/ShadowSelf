@@ -44,9 +44,36 @@
     {id: 'phone', label: 'Phone', icon: 'phone'},
     {id: 'crypto', label: 'Crypto wallet', icon: 'wallet'},
   ];
+  const availableTabs = $derived(
+    account?.status === 'frozen' ? tabs.filter((tab) => ['account', 'crypto'].includes(tab.id)) : tabs,
+  );
+  const completeAccount = $derived(isComplete(account) ? account : null);
+  let encryptionChannel: BroadcastChannel | undefined;
+
+  function isComplete(value: IdentityMetadata | null): value is FullIdentity {
+    if (!value || value.status === 'inactive') {
+      return false;
+    }
+
+    const fields = [
+      'location',
+      'picture',
+      'name',
+      'bio',
+      'age',
+      'sex',
+      'ethnicity',
+      'email',
+      'phone',
+      'walletKeys',
+      'walletBlob',
+    ] as const;
+
+    return fields.every((field) => value[field] !== null);
+  }
 
   function update(patch: Partial<FullIdentity>) {
-    if (account?.status === 'active') {
+    if (isComplete(account)) {
       account = {...account, ...patch};
       identity.set(account);
     }
@@ -71,7 +98,7 @@
   async function unlock(event: SubmitEvent) {
     event.preventDefault();
 
-    if (!account || account.status !== 'active') {
+    if (!isComplete(account)) {
       return;
     }
 
@@ -130,8 +157,8 @@
         throw new Error('Use at least 12 characters and matching passwords.');
       }
 
-      await navigator.locks.request(`shadowself-xmr-${originalAccount.id}`, {ifAvailable: true}, async (lock) => {
-        if (!lock || !originalAccount) {
+      await navigator.locks.request(`shadowself-xmr-${originalAccount.id}`, {ifAvailable: true}, async (lease) => {
+        if (!lease) {
           throw new Error('Wait for the wallet operation to finish, then retry.');
         }
 
@@ -139,6 +166,12 @@
 
         if (!result.ok) {
           throw new Error(result.error);
+        }
+
+        if (result.data.walletBlob !== originalAccount.walletBlob) {
+          lock();
+          await invalidateAll();
+          throw new Error('The master password changed in another tab. Unlock this identity again.');
         }
 
         const key = await deriveMasterKey(password, originalAccount.id);
@@ -171,6 +204,7 @@
             blob,
             keys,
             vaultRevision: result.data.vaultRevision,
+            walletBlob: originalAccount.walletBlob,
           },
         );
 
@@ -189,6 +223,7 @@
           walletKeys: {...originalAccount.walletKeys, xmr: keys},
           vaultRevision: rotated.data.vaultRevision,
         });
+        encryptionChannel?.postMessage('rotated');
 
         if (epoch === keyEpoch) {
           vaultKey.set(key);
@@ -225,18 +260,40 @@
 
   $effect(() => {
     const hash = page.url.hash.slice(1);
-    section = tabs.some((tab) => tab.id === hash) ? (hash as keyof typeof panels) : 'info';
+    section = availableTabs.some((tab) => tab.id === hash)
+      ? (hash as keyof typeof panels)
+      : account?.status === 'frozen'
+        ? 'account'
+        : 'info';
   });
 
   $effect(() => {
     const current = data.identity;
     lock();
 
-    if (!current || current.status !== 'active') {
+    if (!isComplete(current)) {
       return;
     }
 
     identity.set(current);
+    const channel = typeof BroadcastChannel === 'undefined' ? undefined : new BroadcastChannel(`vault:${current.id}`);
+    encryptionChannel = channel;
+
+    if (channel) {
+      channel.onmessage = () => {
+        lock();
+        void invalidateAll();
+      };
+    }
+
+    if (current.status === 'frozen') {
+      return () => {
+        channel?.close();
+        encryptionChannel = undefined;
+        lock();
+        identity.set(null);
+      };
+    }
 
     let active = true;
     liveStatus = 'Connecting';
@@ -282,6 +339,8 @@
       active = false;
       clearInterval(ping);
       socket.close();
+      channel?.close();
+      encryptionChannel = undefined;
       lock();
       identity.set(null);
     };
@@ -307,10 +366,11 @@
       <p>{account.location}<span class="badge {account.status} identity-status">{account.status}</span></p>
     </div>
     <div class="button-row">
-      {#if account.status === 'active'}{#if $vaultKey}<Button variant="secondary" icon="lock" onclick={lock}
-            >Lock secrets</Button
-          ><Button variant="quiet" icon="key" onclick={() => (rotateOpen = true)}>Change master password</Button
-          >{:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button
+      {#if completeAccount}{#if $vaultKey}<Button variant="secondary" icon="lock" onclick={lock}>Lock secrets</Button
+          >{#if account.status === 'active'}<Button variant="quiet" icon="key" onclick={() => (rotateOpen = true)}
+              >Change master password</Button
+            >{/if}
+        {:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button
           >{/if}{/if}<Button
         variant="quiet"
         icon="trash"
@@ -319,35 +379,34 @@
     </div>
   </div>
   {#if account.status === 'frozen'}<Status
-      message="This identity's subscription has expired. Renew it to restore access to its services." /><a
+      message="This identity's subscription has expired. You can still read and export your vault, recover wallet keys, and move funds. Renew to restore its paid services." /><a
       class="control-button"
       href="/purchase?id={account.id}&plan={account.plan}">Renew identity</a
-    >{:else if account.status === 'inactive'}<Status
-      message="Setup is not complete. Continue provisioning this identity." /><a
+    >{/if}
+  {#if account.status === 'inactive'}<Status message="Setup is not complete. Continue provisioning this identity." /><a
       class="control-button"
       href="/create?id={account.id}">Continue setup</a
-    >{:else}
+    >{:else if !completeAccount}<Status
+      message="Setup was not completed before expiry. Renew this identity before continuing setup." />{:else}
     <div class="tabs" aria-label="Identity services">
-      {#each tabs as tab (tab.id)}<button
+      {#each availableTabs as tab (tab.id)}<button
           aria-pressed={section === tab.id}
           class:active={section === tab.id}
           onclick={() => select(tab.id)}><Icon name={tab.icon} size={17} />{tab.label}</button
         >{/each}
     </div>
-    {#key account.id}
+    {#key `${account.id}:${completeAccount.walletBlob}`}
       <div>
         {#await panel}
           <LoadingState label={`Loading ${tabs.find((tab) => tab.id === section)?.label || 'service'}`} />
         {:then Panel}
-          {#if account.status === 'active'}
-            <Panel {account} onupdate={update} onunlock={() => (unlockOpen = true)} />
-          {/if}
+          <Panel account={completeAccount} onupdate={update} onunlock={() => (unlockOpen = true)} />
         {:catch}
           <Status message="This service could not be loaded. Reload the page to retry." kind="error" />
         {/await}
       </div>
     {/key}
-    <div class="live-status">{liveStatus}</div>{/if}
+    {#if account.status === 'active'}<div class="live-status">{liveStatus}</div>{/if}{/if}
 {/if}
 <Dialog bind:open={unlockOpen} title="Unlock identity secrets" onclose={closePassword}
   ><p>Enter the master password for this identity. The key stays in memory until you lock it or leave this page.</p>

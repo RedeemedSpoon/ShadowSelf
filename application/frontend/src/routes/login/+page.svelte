@@ -75,6 +75,7 @@
             id="login-email"
             name="email"
             type="email"
+            maxlength="254"
             autocomplete="username"
             placeholder="you@example.com"
             required />

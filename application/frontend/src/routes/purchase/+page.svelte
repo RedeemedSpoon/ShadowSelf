@@ -6,7 +6,7 @@
   import {PRICING_TIERS, CRYPTO_DISCOUNT} from '$constant';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import type {Stripe, StripeElements, StripePaymentElement} from '@stripe/stripe-js';
-  import type {CardCheckout, CryptoInvoice} from '$type';
+  import type {CardCheckout, CryptoInvoice, Coins} from '$type';
   import type {PageData} from './$types';
   import QRCode from 'qrcode';
   import Button from '$component/ui/Button.svelte';
@@ -20,7 +20,7 @@
   let pending = $state(false);
   let error = $state('');
   let method = $state<'card' | 'crypto'>('card');
-  let ticker = $state('XMR');
+  let ticker = $state<Coins>('xmr');
   let refund = $state('');
   let invoice = $state<CryptoInvoice | null>(null);
   let status = $state('');
@@ -48,7 +48,7 @@
     reconciling:
       'The exchange request is being checked. Do not send payment or start another purchase. Refresh to retry reconciliation.',
     reconciliation:
-      'Payment needs manual review. Keep this reference and contact support. Do not send another payment.',
+      'Payment evidence needs review. This page will keep checking. Keep this reference and do not send another payment.',
     waiting: 'Waiting for payment.',
     pending: 'Waiting for payment.',
     confirming: 'Payment observed. Waiting for confirmations.',
@@ -187,7 +187,7 @@
         {
           plan,
           requestID,
-          swapCoin: ticker.toLowerCase(),
+          swapCoin: ticker,
           refundAddress: refund || undefined,
           ...(renewal ? {identityID: renewal} : {}),
         },
@@ -242,7 +242,7 @@
       await goto(renewal ? `/identity/${renewal}` : `/create?id=${result.data.identityID}`);
     }
 
-    if (['expired', 'late', 'refunded', 'reconciliation'].includes(result.data.status)) {
+    if (['late', 'refunded'].includes(result.data.status)) {
       clearInterval(poll);
     }
   }
@@ -383,12 +383,15 @@
             >Continue with card</Button>
         </div>{:else}<form onsubmit={newInvoice}>
           <div class="field">
-            <label for="billing-coin">Payment coin</label><input
-              id="billing-coin"
-              bind:value={ticker}
-              required
-              pattern={'[A-Za-z0-9]{2,12}'}
-              maxlength="12" /><small>XMR invoices are direct. Other coins use an external swap provider.</small>
+            <label for="billing-coin">Payment asset and network</label>
+            <select id="billing-coin" bind:value={ticker} required>
+              <option value="xmr">Monero · Mainnet</option>
+              <option value="btc">Bitcoin · Mainnet</option>
+              <option value="ltc">Litecoin · Mainnet</option>
+              <option value="eth">Ethereum · Mainnet</option>
+              <option value="usdt">USDT · Ethereum ERC-20</option>
+            </select>
+            <small>XMR invoices are direct. Other assets use an external swap provider on the selected network.</small>
           </div>
           <div class="field">
             <label for="billing-refund">Refund address</label><input

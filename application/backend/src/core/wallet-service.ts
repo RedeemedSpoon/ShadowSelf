@@ -1,6 +1,6 @@
 import {watchWallet, setWatchWallet, billingReadiness} from '@core/states';
-import {XMR_NODE, RESTORE_HEIGHT} from '@core/constants';
-import {moneroWallet, cryptoBillingEnabled} from '@core/config';
+import {RESTORE_HEIGHT} from '@core/constants';
+import {moneroWallet, chainEndpoints} from '@core/config';
 import {requireProvider} from '@core/security';
 import {sql} from '@core/services';
 import moneroTs from 'monero-ts';
@@ -26,7 +26,7 @@ async function initMoneroWallet(connection: Sql | ReservedSql) {
       await moneroTs.openWalletFull({
         password: moneroWallet.password,
         networkType: moneroTs.MoneroNetworkType.MAINNET,
-        server: XMR_NODE,
+        server: chainEndpoints.xmr,
         keysData: cacheQuery[0].keys_data,
         cacheData: cacheQuery[0].cache_data,
       }),
@@ -40,7 +40,7 @@ async function initMoneroWallet(connection: Sql | ReservedSql) {
         networkType: moneroTs.MoneroNetworkType.MAINNET,
         primaryAddress: moneroWallet.address,
         privateViewKey: moneroWallet.viewKey,
-        server: XMR_NODE,
+        server: chainEndpoints.xmr,
         restoreHeight: RESTORE_HEIGHT,
       }),
     );
@@ -118,6 +118,36 @@ export function quoteXmr(cents: number, discount: number, price: number) {
   return `${atoms / 1_000_000_000_000n}.${(atoms % 1_000_000_000_000n).toString().padStart(12, '0')}`;
 }
 
+export function entitlementEnd(start: Date | string | null, plan: string) {
+  if (plan === 'lifetime' || start === null) {
+    return null;
+  }
+
+  const duration = plan === 'monthly' ? 30 : plan === 'annually' ? 365 : null;
+  const timestamp = new Date(start).getTime();
+
+  if (duration === null || !Number.isFinite(timestamp)) {
+    throw new Error('Invalid crypto entitlement');
+  }
+
+  return new Date(timestamp + duration * 86_400_000);
+}
+
+export function fullPaymentTimestamp(payments: {amount: bigint; timestamp: number | null}[], required: bigint) {
+  const timed = payments.filter((payment) => payment.timestamp !== null).sort((a, b) => a.timestamp! - b.timestamp!);
+  let received = 0n;
+
+  for (const payment of timed) {
+    received += payment.amount;
+
+    if (received >= required) {
+      return payment.timestamp;
+    }
+  }
+
+  return null;
+}
+
 export function invoiceState(
   total: bigint,
   unlocked: bigint,
@@ -128,6 +158,10 @@ export function invoiceState(
 ) {
   if (required <= 0n || total < 0n || unlocked < 0n || unlocked > total) {
     throw new Error('Invalid invoice balance');
+  }
+
+  if (total >= required && firstFullPaymentAt === null) {
+    return 'reconciliation';
   }
 
   if (firstFullPaymentAt !== null && firstFullPaymentAt > expiresAt) {
@@ -153,10 +187,7 @@ export async function withBillingWallet<T>(
   operation: (connection: ReservedSql) => Promise<T>,
   existing?: ReservedSql,
 ): Promise<T> {
-  requireProvider(
-    cryptoBillingEnabled && !!moneroWallet.address && !!moneroWallet.viewKey && !!moneroWallet.password,
-    'Crypto billing',
-  );
+  requireProvider(!!moneroWallet.address && !!moneroWallet.viewKey && !!moneroWallet.password, 'Crypto billing');
 
   const connection = existing || (await sql.reserve());
 

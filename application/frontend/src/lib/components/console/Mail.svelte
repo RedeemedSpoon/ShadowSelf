@@ -20,8 +20,10 @@
   let pending = $state(true);
   let error = $state('');
   let warning = $state('');
+  let deliveryUncertain = $state(false);
   let forwardOpen = $state(false);
   let forwardTo = $state('');
+  let forwardRequestID = crypto.randomUUID();
   let deleteOpen = $state(false);
   let generation = 0;
   let controller: AbortController | undefined;
@@ -84,6 +86,7 @@
     thread = [];
     error = '';
     warning = '';
+    deliveryUncertain = false;
 
     const result = await request<{email: Email}>(
       `${path}/message`,
@@ -136,6 +139,12 @@
       return;
     }
 
+    await loadInlineImages(target, current);
+
+    if (current !== generation) {
+      return;
+    }
+
     pending = false;
     const seen = new SvelteSet<string>(target.messageID ? [target.messageID] : []);
     const locations = new SvelteSet([`${target.mailbox}-${target.uid}`]);
@@ -170,6 +179,12 @@
       }
 
       locations.add(location);
+      await loadInlineImages(earlier.data.fetchEmail, current);
+
+      if (current !== generation) {
+        return;
+      }
+
       thread = [...thread, earlier.data.fetchEmail];
       reference = earlier.data.fetchEmail.inReplyTo;
     }
@@ -189,12 +204,27 @@
     pending = false;
 
     if (!result.ok) {
-      error = result.error;
+      if (result.status === null && method === 'POST') {
+        deliveryUncertain = true;
+      }
+
+      error =
+        result.status === null && method === 'POST'
+          ? 'Delivery has not been confirmed. Keep this message open. Retrying this unchanged request checks its status without sending it twice.'
+          : result.error;
 
       return;
     }
 
     warning = result.data.warning || '';
+
+    if (result.data.status === 'uncertain') {
+      deliveryUncertain = true;
+
+      return;
+    }
+
+    deliveryUncertain = false;
     mode = 'browse';
     target = null;
     forwardOpen = false;
@@ -216,7 +246,37 @@
     event.preventDefault();
 
     if (target) {
-      await mutate('forward', 'POST', {forward: forwardTo, mailbox: target.mailbox, uid: target.uid});
+      await mutate('forward', 'POST', {
+        requestID: forwardRequestID,
+        forward: forwardTo,
+        mailbox: target.mailbox,
+        uid: target.uid,
+      });
+    }
+  }
+
+  async function loadInlineImages(message: Email, current: number) {
+    const files = message.attachments
+      .filter((file) => file.cid && /^image\/(png|jpeg|gif|webp)$/i.test(file.contentType || ''))
+      .slice(0, 32);
+
+    for (const file of files) {
+      const result = await request<{attachment: Attachment}>(
+        `${path}/attachment`,
+        'GET',
+        {mailbox: message.mailbox, uid: message.uid, index: file.index},
+        controller?.signal,
+      );
+
+      if (current !== generation) {
+        return;
+      }
+
+      if (result.ok) {
+        file.data = result.data.attachment.data;
+      } else {
+        warning = 'Some inline images could not be loaded.';
+      }
     }
   }
 
@@ -301,6 +361,7 @@
       onclick={() => {
         invalidate();
         target = null;
+        deliveryUncertain = false;
         mode = 'compose';
       }}>Compose</Button>
   </div>
@@ -310,6 +371,7 @@
     initial={mode === 'draft' || mode === 'reply' ? target || undefined : undefined}
     reply={mode === 'reply'}
     {pending}
+    {deliveryUncertain}
     onsubmit={submit}
     oncancel={() => {
       mode = 'browse';
@@ -321,7 +383,10 @@
       <div class="button-row">
         {#if mailbox !== 'Junk'}<Button variant="secondary" onclick={() => (mode = 'reply')}>Reply</Button><Button
             variant="quiet"
-            onclick={() => (forwardOpen = true)}>Forward</Button
+            onclick={() => {
+              forwardRequestID = crypto.randomUUID();
+              forwardOpen = true;
+            }}>Forward</Button
           ><Button variant="quiet" icon="trash" aria-label="Delete email" onclick={() => (deleteOpen = true)} />{/if}
       </div>
     </div>
@@ -354,10 +419,17 @@
   {#if pending && !page}<LoadingState label="Loading mailbox" />{:else if page && !messages.length}<div
       class="empty-state">
       <Icon name="mail" size={40} />
-      <h2>No messages in {mailbox}</h2>
+      <h2>{page.nextCursor ? 'No messages in this range' : `No messages in ${mailbox}`}</h2>
       <p>
-        {mailbox === 'INBOX' ? 'Incoming email will appear here.' : 'Messages saved in this mailbox will appear here.'}
+        {page.nextCursor
+          ? 'Continue to look for earlier messages.'
+          : mailbox === 'INBOX'
+            ? 'Incoming email will appear here.'
+            : 'Messages saved in this mailbox will appear here.'}
       </p>
+      {#if page.nextCursor}<Button variant="secondary" loading={pending} onclick={() => load(true)}
+          >Search earlier messages</Button
+        >{/if}
     </div>{:else if page}<div class="mail-list">
       {#each messages as message (message.uid)}<button
           class="mail-row"
@@ -378,9 +450,11 @@
         id="forward-email"
         type="email"
         bind:value={forwardTo}
+        disabled={deliveryUncertain}
         required />
     </div>
-    <Status message={error} kind="error" /><Button loading={pending} type="submit">Forward message</Button>
+    <Status message={error} kind="error" /><Button loading={pending} type="submit"
+      >{deliveryUncertain ? 'Check delivery status' : 'Forward message'}</Button>
   </form></Dialog>
 <Dialog bind:open={deleteOpen} title="Move message to junk"
   ><p>The message will leave {mailbox} and move to the junk mailbox.</p>

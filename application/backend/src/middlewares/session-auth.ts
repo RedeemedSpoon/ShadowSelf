@@ -1,5 +1,4 @@
-import {ONION_ORIGIN} from '@core/constants';
-import {origin} from '@core/config';
+import {origin, onionOrigin} from '@core/config';
 import {ApiError, sessionToken, tokenHash} from '@core/security';
 import {sql} from '@core/services';
 import type {QueryUser, User} from '@type';
@@ -68,5 +67,5 @@ export function trustedCookieRequest(request: Request) {
     return true;
   }
 
-  return [origin, ONION_ORIGIN].includes(request.headers.get('origin') || '');
+  return [origin, onionOrigin].filter(Boolean).includes(request.headers.get('origin') || '');
 }

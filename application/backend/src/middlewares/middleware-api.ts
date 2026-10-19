@@ -39,13 +39,21 @@ export default (app: Elysia) =>
     }
 
     const metadataRequest = path === `/api/identities/${identity.id}` || path.includes('/creation');
+    const identityPath = `/api/identities/${identity.id}`;
+    const recoveryRequest =
+      (request.method === 'GET' &&
+        ['/vault', '/wallet', '/wallet/node'].some((suffix) => path === `${identityPath}${suffix}`)) ||
+      (request.method === 'POST' &&
+        ['/wallet/recovery', '/wallet/prepare', '/wallet/transactions', '/wallet/transactions/reconcile'].some(
+          (suffix) => path === `${identityPath}${suffix}`,
+        ));
 
     if (!metadataRequest) {
-      if (identity.status === 'frozen') {
+      if (identity.status === 'frozen' && !recoveryRequest) {
         throw new ApiError(402, 'identity_frozen', 'Renew this identity to restore access');
       }
 
-      if (identity.status !== 'active' || !isInitializedIdentity(identity)) {
+      if ((identity.status !== 'active' && identity.status !== 'frozen') || !isInitializedIdentity(identity)) {
         throw new ApiError(409, 'identity_incomplete', 'Complete identity setup to continue');
       }
     }
