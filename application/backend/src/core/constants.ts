@@ -1,16 +1,21 @@
+export const ONION_ORIGIN = 'http://shadow7sk64geknoyyzsfyjm4rylnknx5pzhfhzkecoggowhitafggqd.onion';
+
+export const DEVELOPMENT_SECRET_SAUCE = 'synthetic-development-secret-sauce-not-for-deployment';
+
+export const IDENTITY_CREATION_AVAILABLE = false;
+
 export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
 export const EMAIL_JUNK_RETENTION_DAYS = 7;
 export const EMAIL_FETCH_LIMIT = 10;
 export const SMS_MAX_LENGTH = 160;
-export const SMS_PAGE_SIZE = 30;
-export const SMS_DELETE_CONCURRENCY = 4;
 
 export const BTC_API = 'https://mempool.space/api';
 export const LTC_API = 'https://litecoinspace.org/api';
 export const ETH_API = 'https://eth.blockscout.com/api';
 export const XMR_NODE = 'https://xmr-node.cakewallet.com:18081/json_rpc';
 export const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
-export const COINGECKO_URL = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
+export const COINGECKO_URL =
+  'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,litecoin,ethereum,tether,monero&sparkline=true';
 
 export const POLL_CLEANUP_INTERVAL = 3_600_000;
 export const POLL_INVOICES_INTERVAL = 15_000;
@@ -37,48 +42,22 @@ export const PRICING_TIERS = {
 
 export const EMAIL_TEMPLATES = {
   confirm: {
-    title: 'Confirm Your Email Address',
-    description: 'Thank you for signing up for Shadowself. To create your account, you need to first verify your email address.',
-    type: 'access',
-    action: 'create your account & start using Shadowself',
+    title: 'Verify your email address',
+    description: 'Enter this code in ShadowSelf to continue creating your account.',
+    notice: 'If you did not start creating an account, you can ignore this message.',
   },
   change: {
-    title: 'Change Your Email Address',
-    description: 'To change the email address associated with your account, you need to first verify this new email address.',
-    type: 'access',
-    action: 'login to your account with the new email address',
+    title: 'Verify your new email address',
+    description: 'Enter this code in account settings to confirm your new email address.',
+    notice: 'If you did not request this change, do not share the code. Your account email has not changed.',
   },
   recover: {
-    title: 'Recover Your Account',
-    description: 'Since you forgot your password, we will resort to using recovery token to get back your account.',
-    type: 'recovery',
-    action: 'login to your account & start using Shadowself',
+    title: 'Your sign-in code',
+    description:
+      'Enter this code on the ShadowSelf sign-in page. You may also need your authenticator or a recovery code.',
+    notice: 'If you did not request a sign-in code, you can ignore this message.',
   },
 };
-
-export const LOCATIONS = [
-  {
-    country: 'United States',
-    code: 'US',
-    city: 'Seattle',
-    localization: 'en_US',
-    map: 'https://osm.org/go/WIXvEZp-',
-  },
-  {
-    country: 'Canada',
-    code: 'CA',
-    city: 'Toronto',
-    localization: 'en_CA',
-    map: 'https://osm.org/go/ZX6E86v-',
-  },
-  {
-    country: 'United Kingdom',
-    code: 'GB',
-    city: 'London',
-    localization: 'en_GB',
-    map: 'https://osm.org/go/euunRP',
-  },
-];
 
 export const LOGIN_CHALLENGE_TTL = 300_000;
 export const LOGIN_CHALLENGE_ATTEMPTS = 5;

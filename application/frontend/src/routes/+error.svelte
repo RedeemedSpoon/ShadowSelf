@@ -23,8 +23,10 @@
   <h1>{notFound ? 'Page not found' : 'Unable to load this page'}</h1>
   {#if !notFound}<p>{page.error?.message || 'The service could not complete this request.'}</p>{/if}
   <div class="error-actions">
-    <a href="/">Return home <span aria-hidden="true">↗</span></a>{#if !notFound}<button type="button" onclick={retry} disabled={retrying}
-        >{retrying ? 'Loading…' : 'Try again'}</button
+    <a href="/">Return home <span aria-hidden="true">↗</span></a>{#if !notFound}<button
+        type="button"
+        onclick={retry}
+        disabled={retrying}>{retrying ? 'Loading…' : 'Try again'}</button
       >{/if}
   </div>
 </section>

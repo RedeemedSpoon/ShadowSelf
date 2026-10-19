@@ -49,7 +49,8 @@
 <footer class="public-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <a href="/" aria-label="ShadowSelf home"><img class="wordmark" src={logo} alt="ShadowSelf" width="176" height="40" /></a>
+      <a href="/" aria-label="ShadowSelf home"
+        ><img class="wordmark" src={logo} alt="ShadowSelf" width="176" height="40" /></a>
       <div class="social-links">
         {#each socialLinks as link (link.label)}<a href={link.href} aria-label={link.label} rel="noreferrer"
             ><img src={link.image} alt="" width="20" height="20" /></a
@@ -63,7 +64,9 @@
         </nav>{/each}
     </div>
   </div>
-  <div class="footer-bottom">© {new Date().getFullYear()} ShadowSelf</div>
+  <div class="footer-bottom">
+    © {new Date().getFullYear()} ShadowSelf <span aria-hidden="true">·</span> Your privacy, our priority.
+  </div>
 </footer>
 
 <style>
@@ -140,9 +143,9 @@
   .footer-bottom {
     margin-top: 36px;
     padding-top: 20px;
-    border-top: 1px solid #a5b4fc12;
     color: #71809e;
     font-size: 11px;
+    text-align: center;
   }
   a:focus-visible {
     outline: 2px solid #b7a9ff;

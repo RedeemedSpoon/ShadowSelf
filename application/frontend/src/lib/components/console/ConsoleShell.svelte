@@ -35,7 +35,10 @@
       });
 
       if (!response.ok) {
-        signOutError = response.status === 503 ? 'Could not revoke this session. Please retry.' : 'Could not sign out. Please retry.';
+        signOutError =
+          response.status === 503
+            ? 'Could not revoke this session. Please retry.'
+            : 'Could not sign out. Please retry.';
 
         return;
       }
@@ -51,12 +54,14 @@
 
 <div class="console">
   <aside class="console-sidebar">
-    <a class="console-brand" href="/"><img src={brand} alt="" /><span>ShadowSelf<small>IDENTITY CONSOLE</small></span></a>
+    <a class="console-brand" href="/"
+      ><img src={brand} alt="" /><span>ShadowSelf<small>IDENTITY CONSOLE</small></span></a>
     <nav aria-label="Application navigation">
       {#each links as link (link.href)}<a
           href={link.href}
           class:active={page.url.pathname.startsWith(link.href)}
-          aria-current={page.url.pathname.startsWith(link.href) ? 'page' : undefined}><Icon name={link.icon} />{link.label}</a
+          aria-current={page.url.pathname.startsWith(link.href) ? 'page' : undefined}
+          ><Icon name={link.icon} />{link.label}</a
         >{/each}
     </nav>
     <div class="sidebar-bottom">

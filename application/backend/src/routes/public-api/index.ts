@@ -11,7 +11,7 @@ import phone from './api-phone';
 import email from './api-email';
 import {Elysia} from 'elysia';
 
-const network = {status: 'unavailable', reason: 'Network access is unavailable. Self-hosted proxy and VPN services are retired'};
+const network = {status: 'unavailable', reason: 'A network provider has not been configured'};
 
 async function listIdentities(owner: number) {
   const rows =
@@ -25,8 +25,8 @@ async function listIdentities(owner: number) {
       name: identity.name,
       email: identity.email,
       phone: identity.phone,
-      country: identity.location?.split(',')[0] || null,
-      location: identity.location?.slice(4).trim() || null,
+      country: null,
+      location: identity.location,
       picture: identity.picture,
       accounts: identity.accounts,
       paymentMethod: identity.crypto_invoice ? 'crypto' : 'fiat',
@@ -49,7 +49,10 @@ export default new Elysia()
 
     return {
       username: rows[0].username,
-      identities: (await listIdentities(user!.accountID)).map((identity) => ({...identity, name: identity.name || 'Identity setup'})),
+      identities: (await listIdentities(user!.accountID)).map((identity) => ({
+        ...identity,
+        name: identity.name || 'Identity setup',
+      })),
       network,
     };
   })
@@ -71,12 +74,19 @@ export default new Elysia()
           ws.close(1011, 'Authorization unavailable');
         }
       }, SOCKET_AUTH_INTERVAL);
-      wsConnections.set(ws.id, {stopEmail: () => {}, websocket: ws, authorize, authTimer, phoneNumber: identity!.phone!, emailAddress: identity!.email!});
+      wsConnections.set(ws.id, {
+        stopEmail: () => {},
+        websocket: ws,
+        authorize,
+        authTimer,
+        phoneNumber: identity!.phone!,
+        emailAddress: identity!.email!,
+      });
 
       const connection = wsConnections.get(ws.id);
 
       if (connection) {
-        connection.stopEmail = listenForEmail(identity!.email!, identity!.email_password!, ws.id);
+        connection.stopEmail = listenForEmail(identity!.email!, identity!.mailbox_password_encrypted!, ws.id);
       }
     },
     close(ws) {

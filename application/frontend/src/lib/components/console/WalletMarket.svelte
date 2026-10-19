@@ -12,7 +12,12 @@
   <p class="directory-note">Independent services. Provider terms and fees apply.</p>
   <div class="market-grid">
     {#each MARKETS as market (market.link)}
-      <a class="panel market-card" href={market.link} target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">
+      <a
+        class="panel market-card"
+        href={market.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        referrerpolicy="no-referrer">
         <div class="market-heading">
           <h3>{market.name}</h3>
           <Icon name="arrow" size={16} />

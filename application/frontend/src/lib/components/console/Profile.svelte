@@ -11,7 +11,15 @@
   let editing = $state(false);
   let pending = $state('');
   let error = $state('');
-  let profile = $state(untrack(() => ({name: account.name, bio: account.bio, age: account.age, sex: account.sex, ethnicity: account.ethnicity})));
+  let profile = $state(
+    untrack(() => ({
+      name: account.name,
+      bio: account.bio,
+      age: account.age,
+      sex: account.sex,
+      ethnicity: account.ethnicity,
+    })),
+  );
 
   async function save(event: SubmitEvent) {
     event.preventDefault();
@@ -53,36 +61,60 @@
   <div>
     <h2>Identity information</h2>
   </div>
-  <Button variant="secondary" icon="edit" onclick={() => (editing = !editing)}>{editing ? 'Cancel editing' : 'Edit profile'}</Button>
+  <Button variant="secondary" icon="edit" onclick={() => (editing = !editing)}
+    >{editing ? 'Cancel editing' : 'Edit profile'}</Button>
 </div>
 <Status message={error} kind="error" />
 <div class="profile-grid">
   <section class="panel portrait-panel">
-    {#if account.picture}<img class="portrait" src="data:image/png;base64,{account.picture}" alt="Portrait of {account.name}" />{:else}<div
-        class="portrait empty-state">
-        No portrait
-      </div>{/if}<Button variant="secondary" icon="refresh" loading={pending === 'picture'} disabled={!!pending} onclick={() => regenerate('picture')}
-      >Generate portrait</Button>
+    {#if account.picture}<img
+        class="portrait"
+        src="data:image/png;base64,{account.picture}"
+        alt="Portrait of {account.name}" />{:else}<div class="portrait empty-state">No portrait</div>{/if}<Button
+      variant="secondary"
+      icon="refresh"
+      loading={pending === 'picture'}
+      disabled={!!pending}
+      onclick={() => regenerate('picture')}>Generate portrait</Button>
   </section>
   <section class="panel">
     {#if editing}<form onsubmit={save}>
         <div class="form-grid">
           <div class="field wide">
-            <label for="profile-name">Name</label><input id="profile-name" bind:value={profile.name} required minlength="2" maxlength="30" />
+            <label for="profile-name">Name</label><input
+              id="profile-name"
+              bind:value={profile.name}
+              required
+              minlength="2"
+              maxlength="30" />
           </div>
           <div class="field">
-            <label for="profile-age">Age</label><input id="profile-age" type="number" min="18" max="60" bind:value={profile.age} required />
+            <label for="profile-age">Age</label><input
+              id="profile-age"
+              type="number"
+              min="18"
+              max="60"
+              bind:value={profile.age}
+              required />
           </div>
           <div class="field">
             <label for="profile-sex">Sex</label><select id="profile-sex" bind:value={profile.sex}
               ><option value="male">Male</option><option value="female">Female</option></select>
           </div>
           <div class="field wide">
-            <label for="profile-ethnicity">Ethnicity</label><select id="profile-ethnicity" bind:value={profile.ethnicity}
-              >{#each ETHNICITIES as ethnicity (ethnicity)}<option value={ethnicity}>{ethnicity[0].toUpperCase() + ethnicity.slice(1)}</option>{/each}</select>
+            <label for="profile-ethnicity">Ethnicity</label><select
+              id="profile-ethnicity"
+              bind:value={profile.ethnicity}
+              >{#each ETHNICITIES as ethnicity (ethnicity)}<option value={ethnicity}
+                  >{ethnicity[0].toUpperCase() + ethnicity.slice(1)}</option
+                >{/each}</select>
           </div>
           <div class="field wide">
-            <label for="profile-bio">Bio</label><textarea id="profile-bio" bind:value={profile.bio} minlength="5" maxlength="126"></textarea>
+            <label for="profile-bio">Bio</label><textarea
+              id="profile-bio"
+              bind:value={profile.bio}
+              minlength="5"
+              maxlength="126"></textarea>
           </div>
         </div>
         <Button type="submit" loading={pending === 'save'}>Save profile</Button>
@@ -118,8 +150,18 @@
         </div>
       </dl>
       <div class="button-row regenerate-actions">
-        <Button variant="quiet" icon="refresh" loading={pending === 'name'} disabled={!!pending} onclick={() => regenerate('name')}>Generate name</Button
-        ><Button variant="quiet" icon="refresh" loading={pending === 'bio'} disabled={!!pending} onclick={() => regenerate('bio')}>Generate bio</Button>
+        <Button
+          variant="quiet"
+          icon="refresh"
+          loading={pending === 'name'}
+          disabled={!!pending}
+          onclick={() => regenerate('name')}>Generate name</Button
+        ><Button
+          variant="quiet"
+          icon="refresh"
+          loading={pending === 'bio'}
+          disabled={!!pending}
+          onclick={() => regenerate('bio')}>Generate bio</Button>
       </div>{/if}
   </section>
 </div>

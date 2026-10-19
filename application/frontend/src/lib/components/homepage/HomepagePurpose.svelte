@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {HOMEPAGE_SERVICES, HOMEPAGE_IDENTITY_EXAMPLES} from '$constant';
+  import {HOMEPAGE_SERVICES, HOMEPAGE_EXAMPLE_IDENTITY} from '$constant';
   import logo from '$image/brands/shadowself/icon.svg';
 </script>
 
@@ -8,15 +8,17 @@
     <div class="purpose-copy" data-reveal>
       <h2>Keep your identities separate.<br /><span>Bring the work together.</span></h2>
       <p>
-        A separate identity needs more than a name. It needs an inbox, contact details, and access to the accounts you create. ShadowSelf organizes those
-        records around the profile they belong to.
+        A separate identity needs more than a name. It needs an inbox, contact details, and access to the accounts you
+        create. ShadowSelf organizes those records around the profile they belong to.
       </p>
       <p class="purpose-answer">Select an identity to open its messages, credentials, and wallets in one workspace.</p>
     </div>
     <div class="assembly" data-reveal aria-label="Identity tools organized under one profile">
       <div class="assembly-tools">
         {#each HOMEPAGE_SERVICES as service, index (service.id)}
-          <div style:--tool-color={service.color} style:--delay={`${index * -0.7}s`}><i></i><span>{service.name}</span><b aria-hidden="true">→</b></div>
+          <div style:--tool-color={service.color} style:--delay={`${index * -0.7}s`}>
+            <i></i><span>{service.name}</span><b aria-hidden="true">→</b>
+          </div>
         {/each}
       </div>
       <div class="assembly-spine" aria-hidden="true"><span></span></div>
@@ -24,7 +26,7 @@
         <div class="assembly-record">
           <img src={logo} alt="" />
           <span>One identity workspace</span>
-          <strong>{HOMEPAGE_IDENTITY_EXAMPLES[0].name}</strong>
+          <strong>{HOMEPAGE_EXAMPLE_IDENTITY.name}</strong>
           <div><span>Profile</span><span>Accounts</span><span>Tools</span></div>
         </div>
         <p class="assembly-caption">Choose the identity first.<br />Its tools are already together.</p>
@@ -41,7 +43,11 @@
           height="24"
           rx="3"
           stroke="currentColor"
-          stroke-width="1.5" /><path d="M19 26h38M25 32h10m-10 5h19" stroke="currentColor" /><circle cx="23" cy="23" r="1" fill="currentColor" /></svg>
+          stroke-width="1.5" /><path d="M19 26h38M25 32h10m-10 5h19" stroke="currentColor" /><circle
+          cx="23"
+          cy="23"
+          r="1"
+          fill="currentColor" /></svg>
       <h3>Fewer services to juggle.</h3>
       <p>Open the identity to reach its inbox, number, vault, and wallet.</p>
     </article>
@@ -65,10 +71,19 @@
     </article>
     <article>
       <svg viewBox="0 0 64 48" fill="none" aria-hidden="true"
-        ><rect x="5" y="7" width="54" height="34" rx="4" stroke="currentColor" stroke-width="1.5" /><circle cx="20" cy="20" r="5" stroke="currentColor" /><path
+        ><rect x="5" y="7" width="54" height="34" rx="4" stroke="currentColor" stroke-width="1.5" /><circle
+          cx="20"
+          cy="20"
+          r="5"
+          stroke="currentColor" /><path
           d="M11 33c0-10 18-10 18 0m8-18h14m-14 7h10m-10 7h14"
           stroke="currentColor"
-          stroke-linecap="round" /><path d="m49 39 4 4 7-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          stroke-linecap="round" /><path
+          d="m49 39 4 4 7-8"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round" /></svg>
       <h3>Know which identity you're using.</h3>
       <p>See the profile before you reach for its tools.</p>
     </article>
@@ -92,7 +107,7 @@
     margin-bottom: 32px;
   }
   .purpose-copy h2 span {
-    color: var(--color-indigo-300);
+    color: #a78bfa;
   }
   .purpose-copy p {
     font-size: 14px;
@@ -100,8 +115,6 @@
   }
   .purpose-copy .purpose-answer {
     color: #d0d7ee;
-    padding-left: 20px;
-    border-left: 2px solid #818cf870;
   }
   .assembly {
     display: grid;
@@ -216,16 +229,15 @@
     gap: 38px;
     margin-top: 80px;
     padding-block: 35px 15px;
-    border-top: 1px solid #a5b4fc26;
   }
   .purpose-benefits article {
-    color: var(--color-indigo-300);
+    color: #a78bfa;
   }
   .purpose-benefits article:nth-child(2) {
-    color: var(--color-rose-300);
+    color: #fb7185;
   }
   .purpose-benefits article:nth-child(3) {
-    color: var(--color-amber-300);
+    color: #fbbf24;
   }
   .purpose-benefits svg {
     width: 64px;

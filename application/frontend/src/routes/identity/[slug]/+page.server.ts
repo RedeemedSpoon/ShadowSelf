@@ -6,7 +6,12 @@ import {redirect} from '@sveltejs/kit';
 export const load: PageServerLoad = async ({params, cookies}) => {
   const result = await backend<IdentityMetadata>(`/identities/${params.slug}`, 'GET', undefined, cookies.get('token'));
 
-  return {slug: params.slug, identity: result.ok ? result.data : null, loadError: result.ok ? '' : result.error, status: result.ok ? 200 : result.status};
+  return {
+    slug: params.slug,
+    identity: result.ok ? result.data : null,
+    loadError: result.ok ? '' : result.error,
+    status: result.ok ? 200 : result.status,
+  };
 };
 
 export const actions: Actions = {

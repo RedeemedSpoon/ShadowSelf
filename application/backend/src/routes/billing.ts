@@ -12,11 +12,8 @@ export default new Elysia()
   .use(billingFiat)
   .use(billingCrypto)
   .use(middlewareBase)
+  .guard({authenticated: true})
   .delete('/api/identities/:id', async ({set, params, body, user}) => {
-    if (!user) {
-      return error(set, 401, 'Sign in to continue');
-    }
-
     if (!/^[a-f0-9]{12}$/.test(params.id)) {
       return error(set, 404, 'Identity not found');
     }
@@ -43,13 +40,7 @@ export default new Elysia()
       return error(set, 404, 'Identity not found');
     }
 
-    const done = await deleteIdentity(params.id, user.accountID);
-
-    if (!done) {
-      set.status = 202;
-
-      return {status: 'deleting', message: 'Resource cleanup is pending and will retry automatically'};
-    }
+    await deleteIdentity(params.id, user.accountID);
 
     return {success: true};
   });

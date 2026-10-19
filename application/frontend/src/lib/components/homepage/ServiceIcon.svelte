@@ -4,7 +4,14 @@
   let {service}: {service: Extract<HomepageServiceId, 'identity' | 'email' | 'phone'>} = $props();
 </script>
 
-<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<svg
+  viewBox="0 0 32 32"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true">
   {#if service === 'identity'}
     <rect x="3" y="7" width="26" height="22" rx="4" fill="currentColor" fill-opacity=".08" />
     <path d="M12 7V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3M14 5h4" />

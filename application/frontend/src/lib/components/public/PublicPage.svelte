@@ -30,9 +30,8 @@
     width: min(1160px, calc(100% - 80px));
   }
   .page-introduction {
-    padding-bottom: 28px;
-    margin-bottom: 28px;
-    border-bottom: 1px solid #a5b4fc25;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
   }
   .page-eyebrow {
     color: #ad9ef4;
@@ -128,13 +127,12 @@
     display: block;
     padding-top: 28px;
     margin-top: 40px;
-    border-top: 1px solid #a5b4fc20;
     font-size: 12px;
     color: #8f9dbb;
   }
   :global(.public-page .public-action) {
     display: inline-flex;
-    gap: 20px;
+    gap: 8px;
     justify-content: center;
     align-items: center;
     min-height: 48px;
@@ -146,6 +144,33 @@
     font-size: 13px;
     text-decoration: none;
     cursor: pointer;
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      filter 180ms ease;
+  }
+  :global(.public-page .public-action:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px #6253ec40;
+    filter: brightness(1.12);
+  }
+  :global(.public-page .public-action:active) {
+    transform: translateY(0);
+  }
+  :global(.public-page .policy-summary) {
+    padding: 22px 26px;
+    background: #8773ff0c;
+    border-radius: 10px;
+    margin-bottom: 36px;
+  }
+  :global(.public-page .policy-summary h2) {
+    margin: 0 0 12px;
+    color: #b3a5ff;
+    font-size: 15px;
+  }
+  :global(.public-page .policy-summary p) {
+    margin: 0;
+    font-size: 14px;
   }
   @media (max-width: 700px) {
     .public-page,
@@ -154,8 +179,8 @@
       padding: 44px 0 56px;
     }
     .page-introduction {
-      padding-bottom: 30px;
-      margin-bottom: 30px;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
     }
     h1 {
       letter-spacing: -1.6px;

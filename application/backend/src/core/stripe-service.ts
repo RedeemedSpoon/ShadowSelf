@@ -2,13 +2,18 @@ import {origin} from '@core/config';
 import {BILLING_CURRENCY, PRICING_TIERS} from '@core/constants';
 import {sql, stripe} from '@core/services';
 import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/swap-provider';
-import {repairIdentityDeletions, repairAccountDeletions, withAccountLock} from '@core/identity-service';
+import {withAccountLock} from '@core/identity-service';
 import type {QueryIdentity} from '@type';
 import type Stripe from 'stripe';
 import type {TransactionSql, ReservedSql} from 'postgres';
 import {ApiError} from '@core/security';
 
-export async function createBillingCustomer(email: string, payment?: string, provider: Stripe = stripe, connection?: ReservedSql) {
+export async function createBillingCustomer(
+  email: string,
+  payment?: string,
+  provider: Stripe = stripe,
+  connection?: ReservedSql,
+) {
   const accounts = await sql`SELECT id, stripe_customer FROM users WHERE email = ${email}`;
 
   if (!accounts[0]) {
@@ -16,17 +21,19 @@ export async function createBillingCustomer(email: string, payment?: string, pro
   }
 
   const create = async (database: ReservedSql) => {
-    const current = await database`SELECT id, stripe_customer FROM users WHERE id = ${accounts[0].id} AND deletion_requested_at IS NULL`;
+    const current = await database`SELECT id, stripe_customer FROM users WHERE id = ${accounts[0].id}`;
 
     if (!current.length) {
-      throw new ApiError(409, 'account_deleting', 'This account is being deleted');
+      throw new ApiError(401, 'unauthenticated', 'Sign in to continue');
     }
 
     if (current[0].stripe_customer) {
       return current[0].stripe_customer;
     }
 
-    const params = payment ? {email, payment_method: payment, invoice_settings: {default_payment_method: payment}} : {email};
+    const params = payment
+      ? {email, payment_method: payment, invoice_settings: {default_payment_method: payment}}
+      : {email};
     const customer = await provider.customers.create(params, {idempotencyKey: `customer:${current[0].id}`});
     await database`UPDATE users SET stripe_customer = ${customer.id} WHERE id = ${current[0].id}`;
 
@@ -46,7 +53,10 @@ export async function billingPortal(email: string) {
 
   await stripe.customers.update(accounts[0].stripe_customer, {email});
 
-  const session = await stripe.billingPortal.sessions.create({customer: accounts[0].stripe_customer, return_url: `${origin}/settings`});
+  const session = await stripe.billingPortal.sessions.create({
+    customer: accounts[0].stripe_customer,
+    return_url: `${origin}/settings`,
+  });
 
   return {sessionUrl: session.url};
 }
@@ -74,7 +84,8 @@ export async function repairStripeEvents() {
   let cursor = '';
 
   while (true) {
-    const pending = await sql`SELECT id FROM stripe_events WHERE completed_at IS NULL AND id > ${cursor} ORDER BY id LIMIT 100`;
+    const pending =
+      await sql`SELECT id FROM stripe_events WHERE completed_at IS NULL AND id > ${cursor} ORDER BY id LIMIT 100`;
 
     for (const event of pending) {
       await processStripeEvent(event.id).catch(() => {});
@@ -113,7 +124,7 @@ async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql
       return;
     }
 
-    await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${subscriptionID} AND status <> 'deleting'`;
+    await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${subscriptionID}`;
   }
 
   if (event.type === 'charge.refunded' || event.type === 'charge.dispute.created') {
@@ -121,7 +132,7 @@ async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql
   }
 
   if (event.type === 'customer.subscription.deleted') {
-    await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${event.data.object.id} AND status <> 'deleting'`;
+    await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${event.data.object.id}`;
   }
 }
 
@@ -130,7 +141,11 @@ async function applyLifetimePayment(id: string, transaction: TransactionSql, pro
 
   const charge = payment.latest_charge;
 
-  if (payment.status !== 'succeeded' || payment.currency !== BILLING_CURRENCY || payment.amount_received !== PRICING_TIERS.lifetime) {
+  if (
+    payment.status !== 'succeeded' ||
+    payment.currency !== BILLING_CURRENCY ||
+    payment.amount_received !== PRICING_TIERS.lifetime
+  ) {
     return;
   }
 
@@ -150,15 +165,9 @@ async function applyLifetimePayment(id: string, transaction: TransactionSql, pro
 
   const purchases = await transaction`SELECT f.identity_id, f.owner FROM fiat_intents f JOIN users u ON u.id = f.owner
     WHERE f.identity_id = ${payment.metadata.id} AND f.plan = 'lifetime' AND u.stripe_customer = ${customer}
-    AND u.deletion_requested_at IS NULL AND (f.provider_id IS NULL OR f.provider_id = ${payment.id}) FOR UPDATE OF u`;
+    AND (f.provider_id IS NULL OR f.provider_id = ${payment.id}) FOR UPDATE OF u`;
 
   if (!purchases[0]) {
-    return;
-  }
-
-  const deleted = await transaction`SELECT identity_id FROM identity_deletions WHERE identity_id = ${payment.metadata.id}`;
-
-  if (deleted.length) {
     return;
   }
 
@@ -203,25 +212,20 @@ async function applyPaidInvoice(id: string, transaction: TransactionSql, provide
   }
 
   if (!paid || !['active', 'trialing'].includes(current.status)) {
-    await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${subscriptionID} AND status <> 'deleting'`;
+    await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${subscriptionID}`;
 
     return;
   }
 
   const customer = typeof current.customer === 'string' ? current.customer : current.customer.id;
-  const purchases = await transaction`SELECT f.identity_id, f.owner, f.plan FROM fiat_intents f JOIN users u ON u.id = f.owner
+  const purchases =
+    await transaction`SELECT f.identity_id, f.owner, f.plan FROM fiat_intents f JOIN users u ON u.id = f.owner
     WHERE f.identity_id = ${current.metadata.id || ''} AND f.plan = ${current.metadata.type || ''} AND u.stripe_customer = ${customer}
-    AND u.deletion_requested_at IS NULL AND (f.subscription_id IS NULL OR f.subscription_id = ${subscriptionID}) FOR UPDATE OF u`;
+    AND (f.subscription_id IS NULL OR f.subscription_id = ${subscriptionID}) FOR UPDATE OF u`;
 
   const purchase = purchases[0];
 
   if (!purchase || !['monthly', 'annually'].includes(purchase.plan)) {
-    return;
-  }
-
-  const deleted = await transaction`SELECT identity_id FROM identity_deletions WHERE identity_id = ${purchase.identity_id}`;
-
-  if (deleted.length) {
     return;
   }
 
@@ -232,7 +236,11 @@ async function applyPaidInvoice(id: string, transaction: TransactionSql, provide
     WHERE id = ${purchase.identity_id} AND owner = ${purchase.owner} AND subscription_id = ${subscriptionID} AND status = 'frozen'`;
 }
 
-async function applyChargeReversal(object: Stripe.Charge | Stripe.Dispute, transaction: TransactionSql, provider: Stripe) {
+async function applyChargeReversal(
+  object: Stripe.Charge | Stripe.Dispute,
+  transaction: TransactionSql,
+  provider: Stripe,
+) {
   const reference = object.payment_intent;
   const intentID = typeof reference === 'string' ? reference : reference?.id;
 
@@ -243,7 +251,10 @@ async function applyChargeReversal(object: Stripe.Charge | Stripe.Dispute, trans
   let identities = (await transaction`SELECT id FROM identities WHERE payment_intent = ${intentID}`) as QueryIdentity[];
 
   if (!identities.length) {
-    const payments = await provider.invoicePayments.list({payment: {type: 'payment_intent', payment_intent: intentID}, limit: 1});
+    const payments = await provider.invoicePayments.list({
+      payment: {type: 'payment_intent', payment_intent: intentID},
+      limit: 1,
+    });
 
     if (!payments.data[0]) {
       return;
@@ -262,7 +273,7 @@ async function applyChargeReversal(object: Stripe.Charge | Stripe.Dispute, trans
   }
 
   for (const identity of identities) {
-    await transaction`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id} AND status <> 'deleting'`;
+    await transaction`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
   }
 }
 
@@ -291,7 +302,8 @@ async function reconcileBilling() {
   }
 
   try {
-    const intents = await sql`SELECT f.*, u.stripe_customer FROM fiat_intents f JOIN users u ON u.id = f.owner WHERE f.provider_id IS NULL`;
+    const intents =
+      await sql`SELECT f.*, u.stripe_customer FROM fiat_intents f JOIN users u ON u.id = f.owner WHERE f.provider_id IS NULL`;
 
     for (const intent of intents) {
       if (!intent.stripe_customer) {
@@ -312,7 +324,11 @@ async function reconcileBilling() {
           await sql`UPDATE fiat_intents SET provider_id = ${matches[0]} WHERE id = ${intent.id} AND provider_id IS NULL`;
         }
       } else {
-        for await (const subscription of stripe.subscriptions.list({customer: intent.stripe_customer, status: 'all', limit: 100})) {
+        for await (const subscription of stripe.subscriptions.list({
+          customer: intent.stripe_customer,
+          status: 'all',
+          limit: 100,
+        })) {
           if (subscription.metadata.id === intent.identity_id) {
             matches.push(subscription.id);
           }
@@ -324,14 +340,14 @@ async function reconcileBilling() {
       }
 
       if (matches.length !== 1) {
-        console.error(`Payment request ${intent.id} requires manual review; found ${matches.length} matching provider objects`);
+        console.error(
+          `Payment request ${intent.id} requires manual review; found ${matches.length} matching provider objects`,
+        );
       }
     }
 
     await recoverStripeEvents(Math.floor(since / 1000));
-    await repairIdentityDeletions();
 
-    await repairAccountDeletions();
     await repairPaymentInvoices();
     await repairWalletSwapRequests();
   } finally {

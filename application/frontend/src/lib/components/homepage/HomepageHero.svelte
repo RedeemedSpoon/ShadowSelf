@@ -11,18 +11,29 @@
     <h1>Create identities.<br /><span>Keep yours private.</span></h1>
     <p>Give your online accounts their own profiles, inboxes, phone numbers, credentials, and wallets.</p>
     <div class="hero-actions">
-      <a class="primary-action" href={page.data.user ? '/dashboard' : '/signup'}>{page.data.user ? 'Open dashboard' : 'Create your account'}</a><a
-        class="secondary-action"
-        href="#services">Explore the identity tools <span aria-hidden="true">↓</span></a>
+      <a class="primary-action" href={page.data.user ? '/dashboard' : '/signup'}
+        >{page.data.user ? 'Open dashboard' : 'Create your account'}</a
+      ><a class="secondary-action" href="#services">Explore the identity tools <span aria-hidden="true">↓</span></a>
     </div>
   </div>
   <div class="hero-services" aria-label="Identity tools">
-    {#each HOMEPAGE_SERVICES as service (service.id)}<a href={`#feature-${service.id}`} style:--service-color={service.color}><i></i>{service.name}</a>{/each}
+    {#each HOMEPAGE_SERVICES as service (service.id)}<a
+        href={`#feature-${service.id}`}
+        style:--service-color={service.color}><i></i>{service.name}</a
+      >{/each}
   </div>
   <div class="scroll-cue" aria-hidden="true"><span></span></div>
 </section>
 
 <style>
+  @keyframes spectrum-flow {
+    from {
+      background-position: 0% 50%;
+    }
+    to {
+      background-position: 100% 50%;
+    }
+  }
   .spectrum-hero {
     position: relative;
     min-height: max(754px, calc(100svh - 76px));
@@ -49,7 +60,9 @@
     position: absolute;
     inset: 0;
     z-index: -2;
-    background: linear-gradient(180deg, #080b1899, transparent 30%, #070b1bf0 93%), radial-gradient(ellipse, #070b1bd9 12%, transparent 70%);
+    background:
+      linear-gradient(180deg, #080b1899, transparent 30%, #070b1bf0 93%),
+      radial-gradient(ellipse, #070b1bd9 12%, transparent 70%);
   }
   .hero-light {
     position: absolute;
@@ -73,6 +86,8 @@
   }
   .hero-content h1 span {
     background: linear-gradient(100deg, #56b9fc, #8773ff 47%, #d073ee);
+    background-size: 200% 100%;
+    animation: spectrum-flow 16s ease-in-out infinite alternate;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;

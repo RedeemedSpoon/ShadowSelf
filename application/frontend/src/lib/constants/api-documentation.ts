@@ -20,7 +20,8 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'POST',
         path: '/api/auth/password',
-        detail: 'Sign in with your account password. A second-factor account returns {challenge,expiresIn:300} instead of a token.',
+        detail:
+          'Sign in with your account password. A second-factor account returns {challenge,expiresIn:300} instead of a token.',
         request: {email: 'theo@example.com', password: 'Example-Account-Password-2026!'},
         response: {token: 'ss_session_<session token>'},
       },
@@ -89,7 +90,8 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'POST',
         path: '/api/auth/registration/email',
-        detail: 'Verify the email code. Two-factor drafts return authenticator enrollment state. Otherwise ready=true permits account completion.',
+        detail:
+          'Verify the email code. Two-factor drafts return authenticator enrollment state. Otherwise ready=true permits account completion.',
         request: {
           signup: '<signup reference>',
           access: '12345678',
@@ -135,13 +137,21 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         path: '/api/settings/sessions',
         detail: '{sessions:[{id,current,createdAt,expiresAt}]}',
         response: {
-          sessions: [{id: '2e5463b6-13db-4385-9f39-8d53da0d4d1f', current: true, createdAt: '2026-10-11T00:00:00.000Z', expiresAt: '2027-01-09T00:00:00.000Z'}],
+          sessions: [
+            {
+              id: '2e5463b6-13db-4385-9f39-8d53da0d4d1f',
+              current: true,
+              createdAt: '2026-10-11T00:00:00.000Z',
+              expiresAt: '2027-01-09T00:00:00.000Z',
+            },
+          ],
         },
       },
       {
         method: 'DELETE',
         path: '/api/settings/sessions',
-        detail: 'Provide id to revoke an owned session. Send {} or no body to revoke all sessions, including the current one.',
+        detail:
+          'Provide id to revoke an owned session. Send {} or no body to revoke all sessions, including the current one.',
         request: {id: '2e5463b6-13db-4385-9f39-8d53da0d4d1f'},
         response: {success: true},
       },
@@ -161,7 +171,11 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/settings/totp',
         detail: '{currentPassword,secret,token} → recovery codes',
-        request: {currentPassword: 'Example-Account-Password-2026!', secret: '<32-character base32 secret>', token: '123456'},
+        request: {
+          currentPassword: 'Example-Account-Password-2026!',
+          secret: '<32-character base32 secret>',
+          token: '123456',
+        },
         response: {recovery: ['<six one-time recovery codes>'], recoveryRemaining: 6},
       },
       {
@@ -203,7 +217,11 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'PUT',
         path: '/api/settings/email',
         detail: '{currentPassword,email,access} → {token,warning?}',
-        request: {currentPassword: 'Example-Account-Password-2026!', email: 'new-address@example.com', access: '12345678'},
+        request: {
+          currentPassword: 'Example-Account-Password-2026!',
+          email: 'new-address@example.com',
+          access: '12345678',
+        },
         response: {token: 'ss_session_<replacement session token>'},
       },
       {
@@ -265,7 +283,14 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         detail:
           'Partial profile update. Allowed fields are name, bio, sex, age, ethnicity, and picture. Picture is base64 image data. Returns the saved profile fields.',
         request: {name: 'Theo Mercer', bio: 'A photographer who enjoys hiking.'},
-        response: {name: 'Theo Mercer', sex: 'male', age: 31, ethnicity: 'caucasian', bio: 'A photographer who enjoys hiking.', picture: '<base64 image>'},
+        response: {
+          name: 'Theo Mercer',
+          sex: 'male',
+          age: 31,
+          ethnicity: 'caucasian',
+          bio: 'A photographer who enjoys hiking.',
+          picture: '<base64 image>',
+        },
       },
       {
         method: 'POST',
@@ -291,7 +316,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'DELETE',
         path: '/api/identities/:id',
         detail:
-          'Requires the account password. Returns {success:true} when complete, or HTTP 202 with {status:"deleting",message} while provider cleanup retries.',
+          'Requires the account password. Returns {success:true} after deletion. If billing cleanup cannot complete, returns an error so you can retry.',
         request: {currentPassword: 'Example-Account-Password-2026!'},
         response: {success: true},
       },
@@ -299,13 +324,19 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'GET',
         path: '/api/identities/:id/creation',
         detail:
-          'Returns saved draft, supported locations, identity status, and creationStatus. creationStatus is editing, provisioning, or completed. The draft accepts fields until provisioning reserves resources.',
+          'Returns the saved draft, identity status, and creationStatus. Profile location is descriptive text, independent of network allocation. creationStatus is editing, provisioning, or completed. The draft accepts fields until provisioning reserves resources.',
         response: {
           draft: {
-            location: 'US',
-            profile: {name: 'Theo Mercer', sex: 'male', age: 31, ethnicity: 'caucasian', bio: 'A photographer who enjoys hiking.', picture: '<base64 image>'},
+            location: 'Seattle, United States',
+            profile: {
+              name: 'Theo Mercer',
+              sex: 'male',
+              age: 31,
+              ethnicity: 'caucasian',
+              bio: 'A photographer who enjoys hiking.',
+              picture: '<base64 image>',
+            },
           },
-          locations: [{country: 'United States', code: 'US', city: 'Seattle', localization: 'en_US', map: 'https://osm.org/go/WIXvEZp-'}],
           status: 'inactive',
           creationStatus: 'editing',
         },
@@ -316,15 +347,29 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         detail:
           'Save any subset of location, profile, email, phone, and wallet. Profile includes picture. Wallet requires {blob,keys:{btc,ltc,evm,xmr:{address,viewKey,spendKey}}}. Draft fields are merged; provisioning locks edits.',
         request: {
-          location: 'US',
-          profile: {name: 'Theo Mercer', sex: 'male', age: 31, ethnicity: 'caucasian', bio: 'A photographer who enjoys hiking.', picture: '<base64 image>'},
+          location: 'Seattle, United States',
+          profile: {
+            name: 'Theo Mercer',
+            sex: 'male',
+            age: 31,
+            ethnicity: 'caucasian',
+            bio: 'A photographer who enjoys hiking.',
+            picture: '<base64 image>',
+          },
           email: 'theo.mercer@shadowself.io',
           phone: '+12025550142',
         },
         response: {
           draft: {
-            location: 'US',
-            profile: {name: 'Theo Mercer', sex: 'male', age: 31, ethnicity: 'caucasian', bio: 'A photographer who enjoys hiking.', picture: '<base64 image>'},
+            location: 'Seattle, United States',
+            profile: {
+              name: 'Theo Mercer',
+              sex: 'male',
+              age: 31,
+              ethnicity: 'caucasian',
+              bio: 'A photographer who enjoys hiking.',
+              picture: '<base64 image>',
+            },
             email: 'theo.mercer@shadowself.io',
             phone: '+12025550142',
           },
@@ -335,7 +380,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         path: '/api/identities/:id/creation/profile',
         detail:
           'Generate and save a profile and portrait. regenerate supplies name, bio, age, sex and ethnicity. repeat requests local name/bio suggestions without generating a portrait.',
-        request: {location: 'US', repeat: {name: true, bio: true, sex: 'male'}},
+        request: {location: 'Seattle, United States', repeat: {name: true, bio: true, sex: 'male'}},
         response: {repeat: {name: 'Theo Mercer', bio: 'A photographer who enjoys hiking.'}},
       },
       {
@@ -343,7 +388,14 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         path: '/api/identities/:id/creation/email',
         detail: '{profile} → {email} suggested local part',
         request: {
-          profile: {name: 'Theo Mercer', sex: 'male', age: 31, ethnicity: 'caucasian', bio: 'A photographer who enjoys hiking.', picture: '<base64 image>'},
+          profile: {
+            name: 'Theo Mercer',
+            sex: 'male',
+            age: 31,
+            ethnicity: 'caucasian',
+            bio: 'A photographer who enjoys hiking.',
+            picture: '<base64 image>',
+          },
         },
         response: {email: 'theomercer'},
       },
@@ -351,7 +403,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/identities/:id/creation/phones',
         detail: '{email,location?} → {phone:[...]}',
-        request: {email: 'theomercer@shadowself.io', location: 'US'},
+        request: {email: 'theomercer@shadowself.io', location: 'Seattle, United States'},
         response: {phone: ['+12025550142']},
       },
       {
@@ -498,7 +550,8 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'GET',
         path: '/api/identities/:id/mail/reply',
-        detail: 'Find a message by exact Message-ID in Inbox or Sent. Returns {fetchEmail: Email|null} with attachment metadata; preserves read state.',
+        detail:
+          'Find a message by exact Message-ID in Inbox or Sent. Returns {fetchEmail: Email|null} with attachment metadata; preserves read state.',
         query: '?uuid=%3Cmessage%40example.com%3E',
       },
       {
@@ -506,12 +559,19 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         path: '/api/identities/:id/mail/messages',
         detail:
           'Send email. Optional inReplyTo is a Message-ID, references is a Message-ID array, attachments is [{filename,data}] with base64 data, and draft is the old Drafts UID. Returns {draft?,sentEmail,warning?}. A warning means delivery succeeded but mailbox cleanup failed; do not resend.',
-        request: {to: 'recipient@example.com', subject: 'Project update', body: 'The updated photos are ready.', references: [], attachments: []},
+        request: {
+          to: 'recipient@example.com',
+          subject: 'Project update',
+          body: 'The updated photos are ready.',
+          references: [],
+          attachments: [],
+        },
       },
       {
         method: 'POST',
         path: '/api/identities/:id/mail/forward',
-        detail: 'Forward exactly one mailbox-scoped UID, including its attachments. warning means delivery succeeded but saving Sent failed; do not resend.',
+        detail:
+          'Forward exactly one mailbox-scoped UID, including its attachments. warning means delivery succeeded but saving Sent failed; do not resend.',
         request: {
           mailbox: 'INBOX',
           uid: 42,
@@ -523,19 +583,27 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         path: '/api/identities/:id/mail/draft',
         detail:
           'Save the composer payload in Drafts. Optional draft identifies the previous UID to replace. Returns {draft?,savedDraft,warning?}. When removing the previous draft fails, the new draft remains saved.',
-        request: {to: 'recipient@example.com', subject: 'Project update', body: 'The updated photos are ready.', references: [], attachments: []},
+        request: {
+          to: 'recipient@example.com',
+          subject: 'Project update',
+          body: 'The updated photos are ready.',
+          references: [],
+          attachments: [],
+        },
       },
       {
         method: 'DELETE',
         path: '/api/identities/:id/mail/messages',
-        detail: 'Mailbox must be INBOX, Sent, Drafts, or Junk. Deletion moves a message into Junk; deletion from Junk removes it permanently.',
+        detail:
+          'Mailbox must be INBOX, Sent, Drafts, or Junk. Deletion moves a message into Junk; deletion from Junk removes it permanently.',
         request: {mailbox: 'INBOX', uid: 42},
         response: {mailbox: 'INBOX', uid: 42},
       },
       {
         method: 'GET',
         path: '/api/identities/:id/phone/conversations',
-        detail: 'List a bounded page of contact summaries. Merge contacts across pages using the newest message date. cursor is an opaque continuation token.',
+        detail:
+          'List a bounded page of contact summaries. Merge contacts across pages using the newest message date. cursor is an opaque continuation token.',
         query: '?cursor=<opaque cursor>',
         response: {
           messages: [],
@@ -605,7 +673,11 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'GET',
         path: '/api/identities/:id/wallet/node',
         detail: 'Monero node and starting date',
-        response: {startingDate: '2026-10-11T00:00:00.000Z', status: 'Network Operational', nodeUrl: 'https://xmr-node.cakewallet.com:18081/json_rpc'},
+        response: {
+          startingDate: '2026-10-11T00:00:00.000Z',
+          status: 'Network Operational',
+          nodeUrl: 'https://xmr-node.cakewallet.com:18081/json_rpc',
+        },
       },
       {
         method: 'GET',
@@ -634,7 +706,8 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'GET',
         path: '/api/identities/:id/wallet/swaps',
-        detail: 'List recent persisted trade requests, including incomplete operations and recovered provider responses.',
+        detail:
+          'List recent persisted trade requests, including incomplete operations and recovered provider responses.',
       },
       {
         method: 'POST',
@@ -678,22 +751,42 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         detail:
           'Confirm using the saved card and the same plan/requestID. A create step requires Stripe Elements; auth requires Stripe authentication; finish means Stripe reported success. Identity creation is completed by the verified payment webhook.',
         request: {plan: 'monthly', requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5'},
-        response: {step: 'create', clientSecret: '<Stripe client secret>', identityID: 'a11ce0000001', providerID: 'pi_<payment intent>'},
+        response: {
+          step: 'create',
+          clientSecret: '<Stripe client secret>',
+          identityID: 'a11ce0000001',
+          providerID: 'pi_<payment intent>',
+        },
       },
       {
         method: 'POST',
         path: '/api/billing/crypto/invoices',
         detail: '{plan,swapCoin,requestID,refundAddress?}',
         request: {plan: 'monthly', requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5', swapCoin: 'xmr'},
-        response: {invoiceID: '<invoice UUID>', depositAddress: '<deposit address>', depositAmount: '0.123456', coin: 'xmr'},
+        response: {
+          invoiceID: '<invoice UUID>',
+          depositAddress: '<deposit address>',
+          depositAmount: '0.123456',
+          coin: 'xmr',
+        },
       },
       {
         method: 'POST',
         path: '/api/billing/crypto/renewals',
         detail:
           'Renew an owned identity using its existing plan. Optional refundAddress is for the selected swapCoin. Stable requestID identifies one renewal.',
-        request: {plan: 'monthly', requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5', swapCoin: 'xmr', identityID: 'a11ce0000001'},
-        response: {invoiceID: '<invoice UUID>', depositAddress: '<deposit address>', depositAmount: '0.123456', coin: 'xmr'},
+        request: {
+          plan: 'monthly',
+          requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5',
+          swapCoin: 'xmr',
+          identityID: 'a11ce0000001',
+        },
+        response: {
+          invoiceID: '<invoice UUID>',
+          depositAddress: '<deposit address>',
+          depositAmount: '0.123456',
+          coin: 'xmr',
+        },
       },
       {
         method: 'GET',
@@ -720,7 +813,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         response: {
           username: 'Theo',
           identities: [],
-          network: {status: 'unavailable', reason: 'Network access is unavailable. Self-hosted proxy and VPN services are retired'},
+          network: {status: 'unavailable', reason: 'A network provider has not been configured'},
         },
       },
       {

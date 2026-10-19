@@ -16,7 +16,6 @@
   }
 
   const links = [
-    {href: '/#services', label: 'Identity tools'},
     {href: '/#pricing', label: 'Pricing'},
     {href: '/extension', label: 'Extension'},
     {href: '/docs', label: 'Docs'},
@@ -27,7 +26,8 @@
 
 <header class="public-header">
   <div class="header-inner">
-    <a class="brand" href="/" aria-label="ShadowSelf home"><img src={logo} alt="ShadowSelf" width="180" height="40" /></a>
+    <a class="brand" href="/" aria-label="ShadowSelf home"
+      ><img src={logo} alt="ShadowSelf" width="180" height="40" /></a>
     <button
       class="menu-toggle"
       bind:this={menuButton}
@@ -43,9 +43,12 @@
           onclick={() => (expanded = false)}>{link.label}</a
         >{/each}
       <div class="account-links">
-        {#if signedIn}<a class="header-action" href="/dashboard" onclick={() => (expanded = false)}>Dashboard <span aria-hidden="true">↗</span></a>
-        {:else}<a href="/login" onclick={() => (expanded = false)}>Log in</a><a class="header-action" href="/signup" onclick={() => (expanded = false)}
-            >Create account <span aria-hidden="true">↗</span></a
+        {#if signedIn}<a class="header-action" href="/dashboard" onclick={() => (expanded = false)}
+            >Dashboard <span aria-hidden="true">↗</span></a>
+        {:else}<a href="/login" onclick={() => (expanded = false)}>Log in</a><a
+            class="header-action"
+            href="/signup"
+            onclick={() => (expanded = false)}>Create account <span aria-hidden="true">↗</span></a
           >{/if}
       </div>
     </nav>
@@ -58,14 +61,13 @@
     top: 0;
     z-index: 30;
     flex-shrink: 0;
-    border-bottom: 1px solid #a5b4fc28;
-    background: #11182aed;
+    background: #090f2099;
     box-shadow: 0 4px 24px #02040a20;
     backdrop-filter: blur(18px);
     color: #cad3ec;
   }
   .header-inner {
-    width: min(1240px, calc(100% - 80px));
+    width: min(1100px, calc(100% - 80px));
     min-height: var(--public-header-height);
     display: flex;
     align-items: center;
@@ -91,7 +93,11 @@
     text-decoration: none;
     font-size: 13px;
     color: inherit;
-    transition: color 180ms ease;
+    transition:
+      color 180ms ease,
+      background 180ms ease,
+      transform 180ms ease,
+      box-shadow 180ms ease;
   }
   a:hover,
   a[aria-current='page'] {
@@ -107,7 +113,7 @@
   .header-action {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 8px;
     padding: 12px 17px;
     background: #6253ec25;
     border: 1px solid #a298ff60;
@@ -116,6 +122,8 @@
   }
   .header-action:hover {
     background: #6253ec45;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px #6253ec30;
   }
   .menu-toggle {
     display: none;

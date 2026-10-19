@@ -36,7 +36,21 @@ export function sanitizeEmailHtml(html: string, attachments: Attachment[] = []) 
 
   const clean = DOMPurify.sanitize(html, {
     USE_PROFILES: {html: true},
-    FORBID_TAGS: ['style', 'link', 'meta', 'base', 'form', 'input', 'button', 'video', 'audio', 'source', 'iframe', 'object', 'embed'],
+    FORBID_TAGS: [
+      'style',
+      'link',
+      'meta',
+      'base',
+      'form',
+      'input',
+      'button',
+      'video',
+      'audio',
+      'source',
+      'iframe',
+      'object',
+      'embed',
+    ],
     FORBID_ATTR: ['style', 'srcset', 'background', 'ping', 'action', 'formaction'],
   });
   const document = new DOMParser().parseFromString(clean, 'text/html');

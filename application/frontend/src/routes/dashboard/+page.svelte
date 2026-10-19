@@ -15,10 +15,17 @@
     const found = data.identities.filter(
       (identity) =>
         (status === 'all' || identity.status === status) &&
-        [identity.name, identity.id, identity.location, identity.country, identity.email, identity.phone].join(' ').toLowerCase().includes(query.toLowerCase()),
+        [identity.name, identity.id, identity.location, identity.country, identity.email, identity.phone]
+          .join(' ')
+          .toLowerCase()
+          .includes(query.toLowerCase()),
     );
 
-    return sort === 'name' ? found.sort((a, b) => (a.name || '').localeCompare(b.name || '')) : sort === 'newest' ? found : [...found].reverse();
+    return sort === 'name'
+      ? found.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      : sort === 'newest'
+        ? found
+        : [...found].reverse();
   });
 
   async function reload() {
@@ -39,9 +46,13 @@
   </div>
   <a class="control-button" href="/purchase"><Icon name="plus" size={17} />New identity</a>
 </div>
-{#if data.recoveryRemaining === 0}<Status message="No recovery codes remain. Generate new codes in account settings." />{/if}
-{#if data.loadError}<Status message={data.loadError} kind="error" /><Button variant="secondary" icon="refresh" loading={pending} onclick={reload}
-    >Retry loading identities</Button>
+{#if data.recoveryRemaining === 0}<Status
+    message="No recovery codes remain. Generate new codes in account settings." />{/if}
+{#if data.loadError}<Status message={data.loadError} kind="error" /><Button
+    variant="secondary"
+    icon="refresh"
+    loading={pending}
+    onclick={reload}>Retry loading identities</Button>
 {:else if !data.identities.length}<div class="empty-state">
     <Icon name="identities" size={42} />
     <h2>No identities</h2>
@@ -50,31 +61,43 @@
 {:else}
   <div class="identity-toolbar">
     <div class="search-field">
-      <Icon name="search" size={17} /><input type="search" aria-label="Search identities" bind:value={query} placeholder="Search names, emails or locations" />
+      <Icon name="search" size={17} /><input
+        type="search"
+        aria-label="Search identities"
+        bind:value={query}
+        placeholder="Search names, emails or locations" />
     </div>
     <select bind:value={status} aria-label="Filter identity status"
-      ><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Setup pending</option><option value="frozen"
-        >Frozen</option
-      ><option value="deleting">Deleting</option></select
+      ><option value="all">All statuses</option><option value="active">Active</option><option value="inactive"
+        >Setup pending</option
+      ><option value="frozen">Frozen</option></select
     ><select bind:value={sort} aria-label="Sort identities"
-      ><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name">Name</option></select>
+      ><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name"
+        >Name</option
+      ></select>
   </div>
   <div class="identity-list">
     {#each visible as identity (identity.id)}<a
         class="identity-card"
         href={identity.status === 'inactive' ? `/create?id=${identity.id}` : `/identity/${identity.id}`}
         ><div class="identity-avatar">
-          {#if identity.picture}<img src="data:image/png;base64,{identity.picture}" alt="" />{:else}<Icon name="user" size={25} />{/if}
+          {#if identity.picture}<img src="data:image/png;base64,{identity.picture}" alt="" />{:else}<Icon
+              name="user"
+              size={25} />{/if}
         </div>
         <div class="identity-title">
           <h2>{identity.name || 'Continue identity setup'}</h2>
           <small>{identity.location || 'Profile not configured'}</small>
         </div>
-        <span class="badge {identity.status}">{identity.status === 'inactive' ? 'Setup pending' : identity.status}</span>
+        <span class="badge {identity.status}"
+          >{identity.status === 'inactive' ? 'Setup pending' : identity.status}</span>
         <div class="identity-contacts">
-          <span class="identity-detail"><Icon name="mail" size={16} /><span>{identity.email || 'Mailbox pending'}</span></span>
           <span class="identity-detail"
-            ><Icon name="phone" size={16} /><span>{identity.phone ? formatPhoneNumber(identity.phone) : 'Number pending'}</span></span>
+            ><Icon name="mail" size={16} /><span>{identity.email || 'Mailbox pending'}</span></span>
+          <span class="identity-detail"
+            ><Icon name="phone" size={16} /><span
+              >{identity.phone ? formatPhoneNumber(identity.phone) : 'Number pending'}</span
+            ></span>
         </div>
         <div class="identity-count">
           <span>{identity.accounts || 0} vault entries</span>

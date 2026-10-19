@@ -64,7 +64,9 @@
   <p>Use the correct network. USDT uses Ethereum ERC-20.</p>
   {#if (coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status !== 'Synced'}<Status
       message="Showing the first existing address because discovery is unavailable or incomplete. Reusing an address links payments publicly." />{/if}
-  <Status message={error} kind="error" />{#if address}<img class="qr-image" src={qr} alt="Receive address QR code" /><Copy
-      value={address}
-      label="Copy address" />{:else}<Status message="Unlock this identity to view its Monero address." />{/if}
+  <Status message={error} kind="error" />{#if address}<img
+      class="qr-image"
+      src={qr}
+      alt="Receive address QR code" /><Copy value={address} label="Copy address" />{:else}<Status
+      message="Unlock this identity to view its Monero address." />{/if}
 </section>

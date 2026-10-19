@@ -39,7 +39,9 @@ async function run(action) {
 
 function renderIdentities() {
   const search = element('search').value.toLocaleLowerCase().trim();
-  const visible = identities.filter((identity) => `${identity.name} ${identity.location || ''}`.toLocaleLowerCase().includes(search));
+  const visible = identities.filter((identity) =>
+    `${identity.name} ${identity.location || ''}`.toLocaleLowerCase().includes(search),
+  );
   const container = element('identities');
   container.replaceChildren();
   element('empty').hidden = visible.length > 0;
@@ -75,7 +77,11 @@ function renderIdentities() {
           throw new Error('This identity is no longer available. Refresh your account.');
         }
 
-        await chrome.tabs.create({windowId, url: `${origin}/identity/${encodeURIComponent(identity.id)}`, active: true});
+        await chrome.tabs.create({
+          windowId,
+          url: `${origin}/identity/${encodeURIComponent(identity.id)}`,
+          active: true,
+        });
         status('Identity opened in this window.');
       });
     });

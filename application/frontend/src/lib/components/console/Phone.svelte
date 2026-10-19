@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingState from '$component/ui/LoadingState.svelte';
   import {onMount} from 'svelte';
   import {request} from '$utils/webfetch';
   import type {FullIdentity, Message, MessagePage, MessageDeletion} from '$type';
@@ -14,7 +15,7 @@
   let recipient = $state('');
   let body = $state('');
   let selected = $state(false);
-  let pending = $state(false);
+  let pending = $state(true);
   let loaded = $state(false);
   let error = $state('');
   let notice = $state('');
@@ -59,7 +60,9 @@
       return;
     }
 
-    const combined = [...(append ? messages : []), ...result.data.messages].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const combined = [...(append ? messages : []), ...result.data.messages].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
     messages = [...new Map(combined.reverse().map((message) => [partner(message), message])).values()].reverse();
     listCursor = result.data.nextCursor;
   }
@@ -78,7 +81,12 @@
       conversationCursor = null;
     }
 
-    const result = await request<MessagePage>(`${path}/conversation`, 'GET', {addressee: contact, cursor}, controller?.signal);
+    const result = await request<MessagePage>(
+      `${path}/conversation`,
+      'GET',
+      {addressee: contact, cursor},
+      controller?.signal,
+    );
 
     if (current !== generation || recipient !== contact) {
       return;
@@ -92,7 +100,9 @@
       return;
     }
 
-    conversation = [...new Map([...conversation, ...result.data.messages].map((item) => [item.messageID, item])).values()];
+    conversation = [
+      ...new Map([...conversation, ...result.data.messages].map((item) => [item.messageID, item])).values(),
+    ];
     conversationCursor = result.data.nextCursor;
   }
 
@@ -204,9 +214,12 @@
     <p>{formatPhoneNumber(account.phone)}</p>
   </div>
   <div class="button-row">
-    <Button variant="quiet" icon="refresh" loading={pending} onclick={() => load()} aria-label="Refresh conversations" /><Button
-      icon="plus"
-      onclick={() => reset(true)}>New conversation</Button>
+    <Button
+      variant="quiet"
+      icon="refresh"
+      loading={pending}
+      onclick={() => load()}
+      aria-label="Refresh conversations" /><Button icon="plus" onclick={() => reset(true)}>New conversation</Button>
   </div>
 </div>
 <Status message={error} kind="error" /><Status message={notice} />
@@ -222,10 +235,14 @@
       {#each [...conversation].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) as message (message.messageID)}<article
           class:outgoing={message.from === account.phone}>
           <p>{message.body}</p>
-          <small>{new Date(message.date).toLocaleString()} · {message.status}</small>{#if message.error}<Status message={message.error} kind="error" />{/if}
+          <small>{new Date(message.date).toLocaleString()} · {message.status}</small>{#if message.error}<Status
+              message={message.error}
+              kind="error" />{/if}
         </article>{/each}
     </div>
-    {#if conversationCursor}<Button variant="secondary" loading={pending} onclick={() => open(undefined, true)}>Load earlier messages</Button>{/if}
+    {#if conversationCursor}<Button variant="secondary" loading={pending} onclick={() => open(undefined, true)}
+        >Load earlier messages</Button
+      >{/if}
     <form onsubmit={send}>
       <div class="field">
         <label for="sms-recipient">Recipient phone number</label><input
@@ -238,13 +255,20 @@
           readonly={conversation.length > 0} />
       </div>
       <div class="field">
-        <label for="sms-body">Message</label><textarea id="sms-body" bind:value={body} minlength="4" maxlength="160" required></textarea><small
-          >{body.length} characters · {Math.max(1, Math.ceil(body.length / 160))} SMS segment estimate. Unicode can use more segments.</small>
+        <label for="sms-body">Message</label><textarea
+          id="sms-body"
+          bind:value={body}
+          minlength="4"
+          maxlength="160"
+          required></textarea
+        ><small
+          >{body.length} characters · {Math.max(1, Math.ceil(body.length / 160))} SMS segment estimate. Unicode can use more
+          segments.</small>
       </div>
       <Button type="submit" icon="send" loading={pending}>Send message</Button>
     </form>
   </section>
-{:else if pending && !loaded}<div class="loading-state"><span class="spinner"></span>Loading conversations</div>{:else if error && !messages.length}<Button
+{:else if pending && !loaded}<LoadingState label="Loading conversations" />{:else if error && !messages.length}<Button
     variant="secondary"
     loading={pending}
     onclick={() => load()}>Retry loading conversations</Button
@@ -265,11 +289,14 @@
     </div>{/if}{/if}
 <Dialog bind:open={deleteOpen} title="Delete conversation"
   ><p>
-    Messages with {recipient} are removed in bounded batches. Continue until deletion is confirmed; closing this dialog leaves any remaining messages available.
+    Messages with {recipient} are removed in bounded batches. Continue until deletion is confirmed; closing this dialog leaves
+    any remaining messages available.
   </p>
   <Status message={error} kind="error" />
   <Status message={notice} />
-  <div class="delete-buttons"><Button variant="danger" loading={pending} onclick={remove}>Delete next batch</Button></div></Dialog>
+  <div class="delete-buttons">
+    <Button variant="danger" loading={pending} onclick={remove}>Delete next batch</Button>
+  </div></Dialog>
 
 <style>
   .conversation-list {

@@ -1,4 +1,3 @@
-import {repairIdentityDeletions, repairAccountDeletions} from '@core/identity-service';
 import {repairStripeEvents} from '@core/stripe-service';
 import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/swap-provider';
 import {withBillingWallet, saveWalletState, parseXmr, invoiceState} from '@core/wallet-service';
@@ -53,7 +52,9 @@ export async function pollInvoices(connection: ReservedSql, wallet = watchWallet
   activeInvoiceCursor = active.length === INVOICE_POLL_BATCH_SIZE - archiveLimit ? active.at(-1)!.id : null;
   archivedInvoiceCursor = archived.length === archiveLimit ? archived.at(-1)!.id : null;
 
-  const result = await processInvoiceBatch([...active, ...archived] as QueryInvoice[], (invoice) => observeInvoice(connection, invoice, wallet));
+  const result = await processInvoiceBatch([...active, ...archived] as QueryInvoice[], (invoice) =>
+    observeInvoice(connection, invoice, wallet),
+  );
 
   if ((await wallet.getHeight()) !== height) {
     await saveWalletState(connection, wallet);
@@ -71,9 +72,9 @@ export async function activateInvoice(connection: ReservedSql, invoice: QueryInv
 
   return withReservedTransaction(connection, async (transaction) => {
     const owners =
-      invoice.owner === null ? [] : await transaction`SELECT id FROM users WHERE id = ${invoice.owner} AND deletion_requested_at IS NULL FOR UPDATE`;
+      invoice.owner === null ? [] : await transaction`SELECT id FROM users WHERE id = ${invoice.owner} FOR UPDATE`;
     const identities = invoice.renewal_id
-      ? await transaction`SELECT id FROM identities WHERE id = ${identityID} AND owner = ${invoice.owner} AND status <> 'deleting' FOR UPDATE`
+      ? await transaction`SELECT id FROM identities WHERE id = ${identityID} AND owner = ${invoice.owner} FOR UPDATE`
       : [];
 
     if (!owners.length || (invoice.renewal_id && !identities.length)) {
@@ -82,10 +83,12 @@ export async function activateInvoice(connection: ReservedSql, invoice: QueryInv
       return null;
     }
 
-    const claimed = await transaction`UPDATE crypto_invoices SET status = 'paid' WHERE id = ${invoice.id} AND status <> 'paid' RETURNING id`;
+    const claimed =
+      await transaction`UPDATE crypto_invoices SET status = 'paid' WHERE id = ${invoice.id} AND status <> 'paid' RETURNING id`;
 
     if (!claimed.length) {
-      const existing = await transaction`SELECT id FROM identities WHERE crypto_invoice = ${invoice.id} AND owner = ${invoice.owner}`;
+      const existing =
+        await transaction`SELECT id FROM identities WHERE crypto_invoice = ${invoice.id} AND owner = ${invoice.owner}`;
 
       return existing[0]?.id || null;
     }
@@ -93,7 +96,7 @@ export async function activateInvoice(connection: ReservedSql, invoice: QueryInv
     if (invoice.renewal_id) {
       await transaction`UPDATE identities SET crypto_invoice = ${invoice.id},
         status = CASE WHEN EXISTS (SELECT 1 FROM creation_jobs WHERE identity_id = ${identityID} AND status = 'completed') THEN 'active' ELSE 'inactive' END
-        WHERE id = ${identityID} AND owner = ${invoice.owner} AND status <> 'deleting'`;
+        WHERE id = ${identityID} AND owner = ${invoice.owner}`;
     } else {
       await transaction`INSERT INTO identities (id, owner, creation_date, plan, crypto_invoice)
         VALUES (${identityID}, ${invoice.owner}, ${new Date()}, ${invoice.plan}, ${invoice.id})`;
@@ -108,7 +111,8 @@ async function observeInvoice(connection: ReservedSql, invoice: QueryInvoice, wa
   const balance = await wallet.getBalance(subaddress.getAccountIndex(), subaddress.getIndex());
   const unlocked = await wallet.getUnlockedBalance(subaddress.getAccountIndex(), subaddress.getIndex());
   const required = parseXmr(invoice.xmr_amount);
-  const previous = await connection`SELECT total, unlocked FROM invoice_observations WHERE invoice_id = ${invoice.id} ORDER BY id DESC LIMIT 1`;
+  const previous =
+    await connection`SELECT total, unlocked FROM invoice_observations WHERE invoice_id = ${invoice.id} ORDER BY id DESC LIMIT 1`;
 
   if (!previous.length || BigInt(previous[0].total) !== balance || BigInt(previous[0].unlocked) !== unlocked) {
     await connection`INSERT INTO invoice_observations (invoice_id, total, unlocked) VALUES (${invoice.id}, ${balance.toString()}, ${unlocked.toString()})`;
@@ -117,7 +121,14 @@ async function observeInvoice(connection: ReservedSql, invoice: QueryInvoice, wa
   const first =
     await connection`SELECT MIN(observed_at) AS first_payment FROM invoice_observations WHERE invoice_id = ${invoice.id} AND total >= ${required.toString()}`;
   const expiry = new Date(invoice.creation_date).getTime() + PAYMENT_WINDOW_MIN * 60_000;
-  const state = invoiceState(balance, unlocked, required, expiry, first[0].first_payment ? new Date(first[0].first_payment).getTime() : null, Date.now());
+  const state = invoiceState(
+    balance,
+    unlocked,
+    required,
+    expiry,
+    first[0].first_payment ? new Date(first[0].first_payment).getTime() : null,
+    Date.now(),
+  );
   let identityID: string | null = null;
   let status: string = state;
 
@@ -264,8 +275,6 @@ export function initBackgroundWorkers() {
   void runWorker('Fee polling', pollFees, POLL_FEES_INTERVAL);
   void runWorker('Price polling', pollPrices, POLL_PRICES_INTERVAL);
   void runWorker('Identity expiry', cleanupWorkers, POLL_CLEANUP_INTERVAL);
-  void runWorker('Identity deletion', repairIdentityDeletions, POLL_CLEANUP_INTERVAL);
-  void runWorker('Account deletion', repairAccountDeletions, POLL_CLEANUP_INTERVAL);
 
   if (stripeConfig.secretKey) {
     void runWorker('Stripe reconciliation', repairStripeEvents, POLL_INVOICES_INTERVAL);

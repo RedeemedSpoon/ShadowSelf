@@ -18,14 +18,24 @@
     onsubmit: (content: Record<string, unknown>, save: boolean) => Promise<void>;
     oncancel: () => void;
   } = $props();
-  let to = $state(untrack(() => (reply ? initial?.from.match(/<([^>]+)>/)?.[1] || initial?.from || '' : initial?.to || '')));
+  let to = $state(
+    untrack(() => (reply ? initial?.from.match(/<([^>]+)>/)?.[1] || initial?.from || '' : initial?.to || '')),
+  );
   let subject = $state(
-    untrack(() => (reply ? (initial?.subject?.toLowerCase().startsWith('re:') ? initial.subject : `Re: ${initial?.subject || ''}`) : initial?.subject || '')),
+    untrack(() =>
+      reply
+        ? initial?.subject?.toLowerCase().startsWith('re:')
+          ? initial.subject
+          : `Re: ${initial?.subject || ''}`
+        : initial?.subject || '',
+    ),
   );
   let text = $state(untrack(() => (initial && !reply ? initial.body : '')));
   let html = $state(untrack(() => initial?.type === 'html' || !initial));
   let attachments = $state<Attachment[]>(
-    untrack(() => (initial && !reply ? initial.attachments.filter((file): file is typeof file & Attachment => !!file.data) : [])),
+    untrack(() =>
+      initial && !reply ? initial.attachments.filter((file): file is typeof file & Attachment => !!file.data) : [],
+    ),
   );
   let error = $state('');
   let container: HTMLDivElement;
@@ -44,7 +54,13 @@
       editor = new Quill(container, {
         theme: 'snow',
         modules: {
-          toolbar: [['bold', 'italic', 'underline'], [{header: [1, 2, false]}], [{list: 'ordered'}, {list: 'bullet'}], ['link', 'blockquote'], ['clean']],
+          toolbar: [
+            ['bold', 'italic', 'underline'],
+            [{header: [1, 2, false]}],
+            [{list: 'ordered'}, {list: 'bullet'}],
+            ['link', 'blockquote'],
+            ['clean'],
+          ],
         },
       });
 
@@ -72,7 +88,10 @@
       }
 
       for (const file of Array.from(input.files || [])) {
-        if (file.size > 10 * 1024 * 1024 || attachments.reduce((sum, item) => sum + item.data.length, 0) + file.size * 1.34 > 18 * 1024 * 1024) {
+        if (
+          file.size > 10 * 1024 * 1024 ||
+          attachments.reduce((sum, item) => sum + item.data.length, 0) + file.size * 1.34 > 18 * 1024 * 1024
+        ) {
           throw new Error('Attachments must be under 10 MB each and 18 MB encoded total.');
         }
 
@@ -82,7 +101,10 @@
           reader.onerror = () => reject(new Error('Could not read this file.'));
           reader.readAsDataURL(file);
         });
-        attachments = [...attachments, {filename: file.name, data, contentType: file.type || 'application/octet-stream'}];
+        attachments = [
+          ...attachments,
+          {filename: file.name, data, contentType: file.type || 'application/octet-stream'},
+        ];
       }
     } catch (cause) {
       error = cause instanceof Error ? cause.message : 'Could not attach the file.';
@@ -128,8 +150,12 @@
 
 <div class="panel">
   <div class="form-grid">
-    <div class="field"><label for="mail-to">To</label><input id="mail-to" type="email" bind:value={to} autocomplete="off" required /></div>
-    <div class="field"><label for="mail-subject">Subject</label><input id="mail-subject" bind:value={subject} maxlength="126" /></div>
+    <div class="field">
+      <label for="mail-to">To</label><input id="mail-to" type="email" bind:value={to} autocomplete="off" required />
+    </div>
+    <div class="field">
+      <label for="mail-subject">Subject</label><input id="mail-subject" bind:value={subject} maxlength="126" />
+    </div>
   </div>
   <div class="button-row editor-mode">
     <Button
@@ -152,13 +178,16 @@
       }}>Formatted message</Button>
   </div>
   <div class:hidden={!html} class="rich-editor"><div bind:this={container}></div></div>
-  {#if !html}<div class="field"><label for="mail-text">Message</label><textarea id="mail-text" bind:value={text} rows="12"></textarea></div>{/if}
+  {#if !html}<div class="field">
+      <label for="mail-text">Message</label><textarea id="mail-text" bind:value={text} rows="12"></textarea>
+    </div>{/if}
   <div class="attachment-area">
     <label for="mail-files">Attach files</label><input
       id="mail-files"
       type="file"
       multiple
-      onchange={addFiles} />{#each attachments as attachment, index (`${attachment.filename}-${index}`)}<div class="attachment-row">
+      onchange={addFiles} />{#each attachments as attachment, index (`${attachment.filename}-${index}`)}<div
+        class="attachment-row">
         <span>{attachment.filename}</span><Button
           variant="quiet"
           icon="close"

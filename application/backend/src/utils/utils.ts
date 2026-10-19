@@ -1,13 +1,19 @@
-import type {MessageInstance} from 'twilio/lib/rest/api/v2010/account/message';
 import sharp from 'sharp';
 import type {ReservedSql} from 'postgres';
 import {ApiError} from '@core/security';
 
 export function reportFailure(operation: string, failure: unknown) {
   const details = failure as {code?: unknown; status?: unknown; name?: unknown} | null;
-  const providerCode = typeof details?.code === 'string' && /^(?:[0-9A-Z]{5}|ECONNREFUSED|ECONNRESET|ETIMEDOUT)$/.test(details.code) ? details.code : undefined;
-  const category = failure instanceof ApiError ? failure.code : providerCode || (failure instanceof Error ? failure.name : 'UnknownError');
-  const status = typeof details?.status === 'number' && details.status >= 400 && details.status < 600 ? details.status : undefined;
+  const providerCode =
+    typeof details?.code === 'string' && /^(?:[0-9A-Z]{5}|ECONNREFUSED|ECONNRESET|ETIMEDOUT)$/.test(details.code)
+      ? details.code
+      : undefined;
+  const category =
+    failure instanceof ApiError
+      ? failure.code
+      : providerCode || (failure instanceof Error ? failure.name : 'UnknownError');
+  const status =
+    typeof details?.status === 'number' && details.status >= 400 && details.status < 600 ? details.status : undefined;
 
   console.error('Operation failed', {operation, category, status});
 }
@@ -61,19 +67,10 @@ export async function normalizePortrait(base64: string) {
   return resizedBuffer.toString('base64');
 }
 
-export function parseMessage(msg: MessageInstance) {
-  return {
-    messageID: msg.sid,
-    status: msg.status,
-    date: msg.dateSent || msg.dateCreated,
-    error: msg.errorCode ? `${msg.errorCode}: ${msg.errorMessage || 'unknown error'}` : '',
-    body: msg.body,
-    from: msg.from,
-    to: msg.to,
-  };
-}
-
-export async function withReservedTransaction<T>(connection: ReservedSql, operation: (transaction: ReservedSql) => Promise<T>) {
+export async function withReservedTransaction<T>(
+  connection: ReservedSql,
+  operation: (transaction: ReservedSql) => Promise<T>,
+) {
   await connection`BEGIN`;
 
   try {

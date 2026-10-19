@@ -5,7 +5,13 @@ import type {Actions} from './$types';
 import type {Cookies} from '@sveltejs/kit';
 
 function setLoginChallenge(cookies: Cookies, challenge: string, expiresIn: number) {
-  cookies.set('login-challenge', challenge, {path: '/login', httpOnly: true, secure: true, sameSite: 'strict', maxAge: expiresIn});
+  cookies.set('login-challenge', challenge, {
+    path: '/login',
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: expiresIn,
+  });
 }
 
 export const actions: Actions = {

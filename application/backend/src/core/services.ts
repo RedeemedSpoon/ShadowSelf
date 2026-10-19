@@ -1,7 +1,6 @@
-import {dbConfig, emailConfig, stripeConfig, twilioConfig} from '@core/config';
+import {dbConfig, emailConfig, stripeConfig} from '@core/config';
 import {decryptSecret, requireProvider} from '@core/security';
 import nodemailer from 'nodemailer';
-import twilioClient from 'twilio';
 import postgres from 'postgres';
 import imap from 'imap-simple';
 import Stripe from 'stripe';
@@ -25,15 +24,6 @@ export const stripe = lazyClient(() => {
 
   return new Stripe(stripeConfig.secretKey, {timeout: 15_000, maxNetworkRetries: 2});
 });
-
-let phoneClient: ReturnType<typeof twilioClient> | undefined;
-
-export function getPhoneClient() {
-  requireProvider(!!twilioConfig.sid && !!twilioConfig.token, 'Phone service');
-  phoneClient ||= twilioClient(twilioConfig.sid, twilioConfig.token, {timeout: 15_000, autoRetry: false});
-
-  return phoneClient;
-}
 
 export const sql = postgres({
   host: dbConfig.host,
@@ -81,5 +71,9 @@ export async function imapConnection(user: string, password: string, onmail = (_
   });
 }
 
-export const contactTransporter = lazyClient(() => smtpTransporter('contact@shadowself.io', emailConfig.contactPassword));
-export const verificationTransporter = lazyClient(() => smtpTransporter('verification@shadowself.io', emailConfig.verificationPassword));
+export const contactTransporter = lazyClient(() =>
+  smtpTransporter('contact@shadowself.io', emailConfig.contactPassword),
+);
+export const verificationTransporter = lazyClient(() =>
+  smtpTransporter('verification@shadowself.io', emailConfig.verificationPassword),
+);

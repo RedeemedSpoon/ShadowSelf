@@ -166,7 +166,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live SMS Dashboard**: Send, receive, and reply to SMS messages via your synthetic phone numbers.
 - Full conversation thread views and the ability to permanently delete individual text messages.
 - "Hover to Copy" buttons for lightning-fast credential grabbing.
-- Cryptographic signature verification for incoming Twilio webhooks to prevent spoofing.
 
 ## [0.6.0] - 2025-3-21
 
@@ -213,7 +212,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Active status monitoring for live identities.
 - Step-by-step onboarding process: Extension syncing, Ublock Origin setup, and Canvas Blocker recommendations.
-- Twilio integration natively baked into the identity creation wizard.
 - Full mobile responsiveness across the entire Identity Creation wizard.
 
 ## [0.4.0] - 2025-2-12

@@ -95,7 +95,13 @@ export function quoteXmr(cents: number, discount: number, price: number) {
     throw new Error('Invalid Monero price');
   }
 
-  if (!Number.isSafeInteger(cents) || cents <= 0 || !Number.isSafeInteger(discount) || discount < 0 || discount >= 100) {
+  if (
+    !Number.isSafeInteger(cents) ||
+    cents <= 0 ||
+    !Number.isSafeInteger(discount) ||
+    discount < 0 ||
+    discount >= 100
+  ) {
     throw new Error('Invalid invoice price');
   }
 
@@ -112,7 +118,14 @@ export function quoteXmr(cents: number, discount: number, price: number) {
   return `${atoms / 1_000_000_000_000n}.${(atoms % 1_000_000_000_000n).toString().padStart(12, '0')}`;
 }
 
-export function invoiceState(total: bigint, unlocked: bigint, required: bigint, expiresAt: number, firstFullPaymentAt: number | null, now: number) {
+export function invoiceState(
+  total: bigint,
+  unlocked: bigint,
+  required: bigint,
+  expiresAt: number,
+  firstFullPaymentAt: number | null,
+  now: number,
+) {
   if (required <= 0n || total < 0n || unlocked < 0n || unlocked > total) {
     throw new Error('Invalid invoice balance');
   }
@@ -136,8 +149,14 @@ export function invoiceState(total: bigint, unlocked: bigint, required: bigint, 
   return now >= expiresAt ? 'expired' : 'pending';
 }
 
-export async function withBillingWallet<T>(operation: (connection: ReservedSql) => Promise<T>, existing?: ReservedSql): Promise<T> {
-  requireProvider(cryptoBillingEnabled && !!moneroWallet.address && !!moneroWallet.viewKey && !!moneroWallet.password, 'Crypto billing');
+export async function withBillingWallet<T>(
+  operation: (connection: ReservedSql) => Promise<T>,
+  existing?: ReservedSql,
+): Promise<T> {
+  requireProvider(
+    cryptoBillingEnabled && !!moneroWallet.address && !!moneroWallet.viewKey && !!moneroWallet.password,
+    'Crypto billing',
+  );
 
   const connection = existing || (await sql.reserve());
 

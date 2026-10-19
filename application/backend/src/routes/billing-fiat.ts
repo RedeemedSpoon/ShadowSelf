@@ -1,3 +1,4 @@
+import {IDENTITY_CREATION_AVAILABLE} from '@core/constants';
 import {createBillingCustomer} from '@core/stripe-service';
 import {withAccountLock} from '@core/identity-service';
 import middlewareBase from '@middlewares/middleware-base';
@@ -8,22 +9,33 @@ import {PRICING_TIERS, BILLING_CURRENCY, UUID_PATTERN} from '@core/constants';
 import {error, toTitleCase} from '@utils/utils';
 import type Stripe from 'stripe';
 import {Elysia} from 'elysia';
-import {ApiError} from '@core/security';
+import {ApiError, requireProvider} from '@core/security';
 import type {ReservedSql} from 'postgres';
 
 export default new Elysia({prefix: '/api/billing'})
   .use(middlewareBase)
-  .post('/checkout', ({set, user, body}) => checkout(set, user?.email, body, false))
-  .post('/checkout/confirm', ({set, user, body}) => checkout(set, user?.email, body, true));
+  .guard({authenticated: true})
+  .get('/availability', () => ({creationAvailable: IDENTITY_CREATION_AVAILABLE}))
+  .post('/checkout', ({set, user, body}) => checkout(set, user.email, body, false))
+  .post('/checkout/confirm', ({set, user, body}) => checkout(set, user.email, body, true));
 
-export async function checkout(set: Record<string, any>, email: string | undefined, body: unknown, confirm: boolean, provider: Stripe = stripe) {
-  if (!email) {
-    return error(set, 401, 'You are not logged in');
-  }
+export async function checkout(
+  set: Record<string, any>,
+  email: string,
+  body: unknown,
+  confirm: boolean,
+  provider: Stripe = stripe,
+) {
+  requireProvider(IDENTITY_CREATION_AVAILABLE, 'New identity purchases');
 
   const input = body as {plan?: string; requestID?: string};
 
-  if (!input || !input.plan || !Object.hasOwn(stripeConfig.prices, input.plan) || !UUID_PATTERN.test(input.requestID || '')) {
+  if (
+    !input ||
+    !input.plan ||
+    !Object.hasOwn(stripeConfig.prices, input.plan) ||
+    !UUID_PATTERN.test(input.requestID || '')
+  ) {
     return error(set, 400, 'A valid plan and payment request ID are required');
   }
 
@@ -45,10 +57,10 @@ export async function checkout(set: Record<string, any>, email: string | undefin
     }
   }
 
-  const accounts = await sql`SELECT id FROM users WHERE email = ${email} AND deletion_requested_at IS NULL`;
+  const accounts = await sql`SELECT id FROM users WHERE email = ${email}`;
 
   if (!accounts.length) {
-    return error(set, 409, 'This account is being deleted');
+    return error(set, 401, 'Sign in to continue');
   }
 
   const owner = accounts[0].id;
@@ -59,7 +71,8 @@ export async function checkout(set: Record<string, any>, email: string | undefin
     await connection`INSERT INTO fiat_intents (request_id, owner, plan, identity_id)
       VALUES (${input.requestID!}, ${owner}, ${type}, ${generateIdentityID()}) ON CONFLICT (owner, request_id) DO NOTHING`;
 
-    const intents = await connection`SELECT * FROM fiat_intents WHERE owner = ${owner} AND request_id = ${input.requestID!}`;
+    const intents =
+      await connection`SELECT * FROM fiat_intents WHERE owner = ${owner} AND request_id = ${input.requestID!}`;
 
     const intent = intents[0];
 
@@ -71,7 +84,11 @@ export async function checkout(set: Record<string, any>, email: string | undefin
       return intent.response;
     }
 
-    if (!intent.provider_id && !intent.subscription_id && Date.now() - new Date(intent.created_at).getTime() >= 23 * 60 * 60_000) {
+    if (
+      !intent.provider_id &&
+      !intent.subscription_id &&
+      Date.now() - new Date(intent.created_at).getTime() >= 23 * 60 * 60_000
+    ) {
       return error(set, 409, 'Payment request needs reconciliation. Do not start another payment');
     }
 
@@ -83,7 +100,12 @@ export async function checkout(set: Record<string, any>, email: string | undefin
     if (!confirm && paymentMethod && !intent.provider_id) {
       const method = await provider.paymentMethods.retrieve(paymentMethod);
 
-      const response = {step: 'confirm', cardName: toTitleCase(method.card?.brand || 'card'), last4: method.card?.last4, identityID: intent.identity_id};
+      const response = {
+        step: 'confirm',
+        cardName: toTitleCase(method.card?.brand || 'card'),
+        last4: method.card?.last4,
+        identityID: intent.identity_id,
+      };
       await connection`UPDATE fiat_intents SET response = ${connection.json(response)} WHERE id = ${intent.id}`;
 
       return response;
@@ -137,13 +159,18 @@ async function createStripePayment(
           );
       await connection`UPDATE fiat_intents SET subscription_id = ${subscription.id} WHERE id = ${intent.id}`;
 
-      const invoiceID = typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
+      const invoiceID =
+        typeof subscription.latest_invoice === 'string' ? subscription.latest_invoice : subscription.latest_invoice?.id;
 
       if (!invoiceID) {
         throw new Error('Stripe invoice is not available yet');
       }
 
-      const payments = await provider.invoicePayments.list({invoice: invoiceID, limit: 1, expand: ['data.payment.payment_intent']});
+      const payments = await provider.invoicePayments.list({
+        invoice: invoiceID,
+        limit: 1,
+        expand: ['data.payment.payment_intent'],
+      });
 
       const reference = payments.data[0]?.payment.payment_intent;
 

@@ -25,8 +25,7 @@ async function sendOfficialEmail(email: string, token: string, reason: keyof typ
   const mailOptions = {
     from: 'verification@shadowself.io',
     to: email,
-    subject: 'Shadowself: Please confirm your email address',
-    html: getEmailTemplate(token, reason),
+    ...verificationEmail(token, reason),
   };
 
   try {
@@ -70,38 +69,41 @@ export async function sendIdentityEmail(emailContent: EmailContent) {
   return {messageID: message?.messageId, date, type: isHtml ? 'html' : 'text'};
 }
 
-function getEmailTemplate(token: string, reason: keyof typeof EMAIL_TEMPLATES): string {
-  return `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/x-icon" href="https://shadowself.io/favicon.ico" />
-    <meta name="description" content="${EMAIL_TEMPLATES[reason].title}" />
-    <meta name="author" content="Shadowself" />
-    <title>${EMAIL_TEMPLATES[reason].title}</title>
-  </head>
-  <body style="font-family: Arial, sans-serif; max-width: 640px; margin: auto;">
-    <main style="background-color: #e2e8f0; margin: auto; max-width: 512px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-      <section style="text-align: center; padding: 20px 50px; margin: auto; background-color: #0f172a; border-radius: 10px 10px 0 0;">
-        <img src="https://shadowself.io/email-logo.png" alt="Shadowself Logo" style="width: 158px;" />
-      </section>
-      <section style="padding: 15px 30px;">
-        <h1>${EMAIL_TEMPLATES[reason].title}</h1>
-        <p style="color: #0f172a;">Hi there!</p>
-        <p style="color: #0f172a;">${EMAIL_TEMPLATES[reason].description}</p>
-        <p style="color: #0f172a;">This code expires in ten minutes and can be used once.</p>
-        <p style="color: #0f172a;">Please copy the following ${EMAIL_TEMPLATES[reason].type} token : <span style="color: #4338ca;">${token}</span></p>
-        <p style="color: #0f172a;">If you did not sign up for Shadowself, please ignore this email. if you keep receiving this email, please contact us here: <a href="mailto:contact@shadowself.io" style="color: #4338ca;">contact@shadowself.io</a></p>
-        <p style="color: #0f172a;">Once you have completed this step, you will be able to ${EMAIL_TEMPLATES[reason].action}</p>
-        <p style="color: #0f172a;">Best regards,<br />Shadowself</p>
-      </section>
-    </main>
-  </body>
-</html>
-`;
+export function verificationEmail(token: string, reason: keyof typeof EMAIL_TEMPLATES) {
+  const template = EMAIL_TEMPLATES[reason];
+  const subject = `ShadowSelf: ${template.title}`;
+  const code = token.replace(
+    /[&<>"']/g,
+    (character) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[character]!,
+  );
+  const expiry = 'This code expires in ten minutes and can be used once. Never share it with anyone.';
+  const text = `${template.title}\n\n${template.description}\n\n${token}\n\n${expiry}\n\n${template.notice}\n\nShadowSelf\ncontact@shadowself.io`;
+  const html = `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${template.title}</title></head>
+<body style="margin:0;padding:0;background-color:#eef0f6;font-family:Arial,Helvetica,sans-serif;color:#182033;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#eef0f6">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;border:1px solid #d9deea;" bgcolor="#ffffff">
+<tr><td bgcolor="#101629" style="padding:24px 28px;color:#f4f3ff;font-size:22px;font-weight:bold;">ShadowSelf</td></tr>
+<tr><td style="padding:28px;">
+<h1 style="margin:0 0 20px;font-size:24px;line-height:32px;color:#182033;">${template.title}</h1>
+<p style="margin:0 0 24px;font-size:16px;line-height:25px;">${template.description}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f0edff">
+<tr><td align="center" style="padding:22px 12px;border:1px solid #d9d1ff;color:#403080;font-family:Consolas,monospace;font-size:28px;font-weight:bold;letter-spacing:4px;word-break:break-all;">${code}</td></tr>
+</table>
+<p style="margin:24px 0 16px;font-size:14px;line-height:23px;color:#4d566c;">${expiry}</p>
+<p style="margin:0;font-size:14px;line-height:23px;color:#4d566c;">${template.notice}</p>
+</td></tr>
+<tr><td style="padding:20px 28px;border-top:1px solid #e3e6ef;font-size:13px;line-height:22px;color:#5d667c;">
+Need help? <a href="mailto:contact@shadowself.io" style="color:#5140a5;">contact@shadowself.io</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>`;
+
+  return {subject, text, html};
 }
 
 export async function sendVerificationCode(purpose: EmailCodePurpose, email: string, binding: string) {

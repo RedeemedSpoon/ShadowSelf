@@ -52,7 +52,7 @@ export interface Provider {
 }
 
 export interface Identity {
-  status: 'active' | 'inactive' | 'frozen' | 'deleting';
+  status: 'active' | 'inactive' | 'frozen';
   id: string;
   picture: string | null;
   name: string | null;
@@ -85,8 +85,22 @@ export interface FullIdentity {
 
 export type IdentityMetadata =
   | FullIdentity
-  | (Omit<FullIdentity, 'status' | 'location' | 'picture' | 'name' | 'bio' | 'age' | 'sex' | 'ethnicity' | 'email' | 'phone' | 'walletKeys' | 'walletBlob'> & {
-      status: 'inactive' | 'frozen' | 'deleting';
+  | (Omit<
+      FullIdentity,
+      | 'status'
+      | 'location'
+      | 'picture'
+      | 'name'
+      | 'bio'
+      | 'age'
+      | 'sex'
+      | 'ethnicity'
+      | 'email'
+      | 'phone'
+      | 'walletKeys'
+      | 'walletBlob'
+    > & {
+      status: 'inactive' | 'frozen';
       location: string | null;
       picture: string | null;
       name: string | null;
@@ -322,7 +336,8 @@ export interface CardCheckout {
   last4: number;
 }
 
-export type InvoiceStatus = 'pending' | 'confirming' | 'paid' | 'underpaid' | 'expired' | 'late' | 'refunded' | 'reconciling' | 'reconciliation';
+export type InvoiceStatus =
+  'pending' | 'confirming' | 'paid' | 'underpaid' | 'expired' | 'late' | 'refunded' | 'reconciling' | 'reconciliation';
 
 export interface CryptoInvoice {
   invoiceID: string;
@@ -342,14 +357,13 @@ export interface CreationData {
   id: string;
   creation: {
     draft: Record<string, unknown>;
-    locations: {code: string; country: string; city: string; localization: string}[];
     status: string;
     creationStatus: 'editing' | 'provisioning' | 'completed';
   } | null;
   loadError: string;
 }
 
-export type HomepageServiceId = 'identity' | 'vault' | 'email' | 'phone' | 'wallet';
+export type HomepageServiceId = 'identity' | 'vault' | 'email' | 'phone' | 'wallet' | 'card' | 'proxy' | 'cloud';
 
 export interface ApiDocumentationEndpoint {
   method: string;

@@ -11,7 +11,9 @@
 
   let {data, children}: {data: LayoutData; children: Snippet} = $props();
   const consoleRoute = $derived(
-    ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some((route) => page.url.pathname === route || page.url.pathname.startsWith(`${route}/`)),
+    ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some(
+      (route) => page.url.pathname === route || page.url.pathname.startsWith(`${route}/`),
+    ),
   );
 </script>
 

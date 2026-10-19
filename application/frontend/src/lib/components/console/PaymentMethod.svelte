@@ -35,7 +35,12 @@
 
         card = stripe.elements().create('card', {
           style: {
-            base: {color: '#e6ebff', fontFamily: 'Inter,sans-serif', fontSize: '14px', '::placeholder': {color: '#66738d'}},
+            base: {
+              color: '#e6ebff',
+              fontFamily: 'Inter,sans-serif',
+              fontSize: '14px',
+              '::placeholder': {color: '#66738d'},
+            },
             invalid: {color: '#f6a8b2'},
           },
         });
@@ -89,7 +94,8 @@
 <div class="payment-card" class:unavailable={kind === 'error' && !ready} bind:this={mountPoint}></div>
 <Status {message} {kind} />
 {#if ready || pending}<div class="button-row payment-actions">
-    <Button type="button" variant="secondary" loading={pending} disabled={!ready} onclick={saveCard}>Validate card</Button>
+    <Button type="button" variant="secondary" loading={pending} disabled={!ready} onclick={saveCard}
+      >Validate card</Button>
   </div>{/if}
 
 <style>

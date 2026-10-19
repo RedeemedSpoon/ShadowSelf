@@ -34,24 +34,24 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
         return error(set, 401, 'You are already logged in');
       }
     })
-    .get('/session', async ({set, user}) => {
-      if (!user) {
-        return error(set, 401, 'You are not logged in');
-      }
+    .get(
+      '/session',
+      async ({user}) => {
+        const rows = (await sql`SELECT username, email FROM users WHERE id = ${user.accountID}`) as QueryUser[];
 
-      const result = (await sql`SELECT username, email FROM users WHERE email = ${user!.email}`) as QueryUser[];
+        return {username: rows[0].username, email: rows[0].email};
+      },
+      {authenticated: true},
+    )
+    .get(
+      '/recovery-remaining',
+      async ({user}) => {
+        const rows = (await sql`SELECT recovery_hashes FROM users WHERE id = ${user.accountID}`) as QueryUser[];
 
-      return {username: result[0].username, email: result[0].email};
-    })
-    .get('/recovery-remaining', async ({user, set}) => {
-      if (!user) {
-        return error(set, 401, 'You are not logged in');
-      }
-
-      const result = (await sql`SELECT recovery_hashes FROM users WHERE email = ${user.email}`) as QueryUser[];
-
-      return {recoveryRemaining: result[0]?.recovery_hashes.length ?? 0};
-    })
+        return {recoveryRemaining: rows[0]?.recovery_hashes.length ?? 0};
+      },
+      {authenticated: true},
+    )
     .post('/password', async ({set, body}) => {
       const {password, email, err} = check(body, ['password', 'email'], true);
 
@@ -214,7 +214,10 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
         return error(set, 409, 'Recovery codes were already issued');
       }
 
-      const delta = typeof input.token === 'string' ? createTOTP(draft.secret, 'temporary').validate({token: input.token, window: 1}) : null;
+      const delta =
+        typeof input.token === 'string'
+          ? createTOTP(draft.secret, 'temporary').validate({token: input.token, window: 1})
+          : null;
 
       if (delta === null) {
         return error(set, 400, 'Incorrect verification code. Please try again');
@@ -231,13 +234,18 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
       const input = body as {signup?: string; savedRecovery?: boolean};
       const draft = getSignupDraft(input?.signup);
 
-      if (!draft?.verified || !draft.username || (draft.secret && (!draft.recoveryHashes.length || input.savedRecovery !== true))) {
+      if (
+        !draft?.verified ||
+        !draft.username ||
+        (draft.secret && (!draft.recoveryHashes.length || input.savedRecovery !== true))
+      ) {
         return error(set, 400, 'Complete verification and save the recovery codes before creating the account');
       }
 
       const {email, username, password, secret, recoveryHashes} = draft;
       const token = await sql.begin(async (transaction) => {
-        const inserted = await transaction`INSERT INTO users (email, username, password, totp, totp_counter, recovery_hashes, api_key)
+        const inserted =
+          await transaction`INSERT INTO users (email, username, password, totp, totp_counter, recovery_hashes, api_key)
           VALUES (${email}, ${username}, ${password}, ${secret ? encryptSecret(secret) : null}, ${draft.totpCounter ?? null}, ${recoveryHashes}, ${null})
           ON CONFLICT (email) DO NOTHING RETURNING email, password, totp`;
 

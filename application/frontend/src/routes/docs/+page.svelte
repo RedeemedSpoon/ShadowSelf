@@ -61,12 +61,16 @@ with urllib.request.urlopen(request) as response:
     name="description"
     content="The ShadowSelf API contract for authentication, identities, creation, vaults, messaging, wallets, and billing." /></svelte:head>
 
-<PublicPage eyebrow="API" title="API reference" description="REST endpoints under /api. JSON requests and responses." wide>
+<PublicPage
+  eyebrow="API"
+  title="API reference"
+  description="REST endpoints under /api. JSON requests and responses."
+  wide>
   <div class="docs-layout">
     <nav class="docs-navigation" aria-label="Documentation sections">
-      <a href="#authentication">Authentication</a><a href="#request-example">Request example</a><a href="#errors">Errors &amp; retries</a><a href="#security"
-        >Encryption &amp; availability</a
-      >{#each API_DOCUMENTATION as group (group.id)}<a
+      <a href="#authentication">Authentication</a><a href="#request-example">Request example</a><a href="#errors"
+        >Errors &amp; retries</a
+      ><a href="#security">Encryption &amp; availability</a>{#each API_DOCUMENTATION as group (group.id)}<a
           href={`#${group.id}`}
           onclick={async (event) => {
             if (!query) {
@@ -83,17 +87,20 @@ with urllib.request.urlopen(request) as response:
       <section id="authentication">
         <h2>Authenticate each request</h2>
         <p>
-          Send a session token or enabled API key in <code>Authorization: Bearer &lt;token&gt;</code>. Sign in through <code>POST /auth/password</code> or the
-          email flow. A completed login returns <code>{'{token}'}</code>; an account with two-factor authentication first returns
+          Send a session token or enabled API key in <code>Authorization: Bearer &lt;token&gt;</code>. Sign in through
+          <code>POST /auth/password</code>
+          or the email flow. A completed login returns <code>{'{token}'}</code>; an account with two-factor
+          authentication first returns
           <code>{'{challenge,expiresIn}'}</code>.
         </p>
         <p>
-          Complete the challenge through <code>/auth/second-factor</code> or <code>/auth/recovery</code>. Generate an API key in account settings after enabling
-          API access. The new key is shown once. Keep tokens out of URLs, browser storage, screenshots, and source control.
+          Complete the challenge through <code>/auth/second-factor</code> or <code>/auth/recovery</code>. Generate an
+          API key in account settings after enabling API access. The new key is shown once. Keep tokens out of URLs,
+          browser storage, screenshots, and source control.
         </p>
         <p>
-          The website uses a secure HTTP-only session cookie. Requests from a separate API client use the bearer header. Identity operations require ownership,
-          and active services require a ready identity.
+          The website uses a secure HTTP-only session cookie. Requests from a separate API client use the bearer header.
+          Identity operations require ownership, and active services require a ready identity.
         </p>
       </section>
       <section id="request-example">
@@ -118,60 +125,75 @@ with urllib.request.urlopen(request) as response:
         </div>
         {#if copyError}<p class="copy-error" role="status">{copyError}</p>{/if}
         <p class="code-note">
-          Success returns <code>{'{identities:[...]}'}</code>. Each identity includes an explicit status. An unavailable service is not represented as a
-          successful empty result.
+          Success returns <code>{'{identities:[...]}'}</code>. Each identity includes an explicit status. An unavailable
+          service is not represented as a successful empty result.
         </p>
       </section>
       <section id="errors">
         <h2>Handle failure before retrying</h2>
         <p>
-          Errors use the HTTP status and a consistent JSON body. Read <code>error.code</code> for the machine-readable reason and <code>error.message</code> for the
-          explanation.
+          Errors use the HTTP status and a consistent JSON body. Read <code>error.code</code> for the machine-readable
+          reason and <code>error.message</code> for the explanation.
         </p>
-        <pre class="error-example"><code>{JSON.stringify({error: {code: 'unauthenticated', message: 'Authentication required'}}, null, 2)}</code></pre>
+        <pre class="error-example"><code
+            >{JSON.stringify(
+              {error: {code: 'unauthenticated', message: 'Authentication required'}},
+              null,
+              2,
+            )}</code></pre>
         <div class="status-list">
           <div><code>400</code><span>Invalid request. Correct the input before retrying.</span></div>
-          <div><code>401 / 403</code><span>Authentication or access denied. Check the credential and ownership.</span></div>
+          <div>
+            <code>401 / 403</code><span>Authentication or access denied. Check the credential and ownership.</span>
+          </div>
           <div><code>404</code><span>The record is missing or is not available to your account.</span></div>
-          <div><code>409</code><span>The state changed or request details conflict. Reload and resolve the conflict.</span></div>
+          <div>
+            <code>409</code><span>The state changed or request details conflict. Reload and resolve the conflict.</span>
+          </div>
           <div><code>429</code><span>A rate limit applies. Wait before trying again.</span></div>
           <div><code>503</code><span>A provider is unavailable or an operation needs reconciliation.</span></div>
         </div>
         <p>
-          Use a stable UUID <code>requestID</code> for each purchase, renewal, or swap. Retry the same operation with the same ID and input. A response that asks
-          for reconciliation means you should inspect the current state before starting another payment.
+          Use a stable UUID <code>requestID</code> for each purchase, renewal, or swap. Retry the same operation with the
+          same ID and input. A response that asks for reconciliation means you should inspect the current state before starting
+          another payment.
         </p>
         <p>
-          Vault mutations require the current <code>vaultRevision</code>. A 409 response means your snapshot is stale. Reload before editing or rotating
-          encryption. A 202 deletion response means provider cleanup remains pending. A 410 response means a payment quote expired. A 502 response means a
-          provider returned invalid data or rejected the operation.
+          Vault mutations require the current <code>vaultRevision</code>. A 409 response means your snapshot is stale.
+          Reload before editing or rotating encryption. A 202 deletion response means provider cleanup remains pending.
+          A 410 response means a payment quote expired. A 502 response means a provider returned invalid data or
+          rejected the operation.
         </p>
       </section>
       <section id="security">
         <h2>Encryption and service availability</h2>
         <p>
-          Encrypt vault passwords, TOTP secrets, and wallet private material in the client before sending them. Read operations return the encrypted values. The
-          API does not accept your master password as a way to unlock the vault.
+          Encrypt vault passwords, TOTP secrets, and wallet private material in the client before sending them. Read
+          operations return the encrypted values. The API does not accept your master password as a way to unlock the
+          vault.
         </p>
         <p>
-          Derive a 256-bit AES-GCM key with PBKDF2, SHA-256, 600,000 iterations, and the UTF-8 identity ID as the salt. Each encrypted value uses a fresh
-          12-byte IV. Its wire format is <code>v1.</code> followed by base64 of the IV and ciphertext, including the 16-byte authentication tag. Account sign-in passwords
-          and account two-factor enrollment are separate from these encrypted identity secrets.
+          Derive a 256-bit AES-GCM key with PBKDF2, SHA-256, 600,000 iterations, and the UTF-8 identity ID as the salt.
+          Each encrypted value uses a fresh 12-byte IV. Its wire format is <code>v1.</code> followed by base64 of the IV and
+          ciphertext, including the 16-byte authentication tag. Account sign-in passwords and account two-factor enrollment
+          are separate from these encrypted identity secrets.
         </p>
         <p>
-          Creation uses a persistent named draft and ordinary REST calls. Save draft fields through <code>PUT /identities/:id/creation</code>, then provision
-          the validated draft. Portrait generation, email, phone, billing, and wallet operations depend on their configured providers. Names and biographies are
-          generated locally.
+          Creation uses a persistent named draft and ordinary REST calls. Save draft fields through <code
+            >PUT /identities/:id/creation</code
+          >, then provision the validated draft. Portrait generation, email, phone, billing, and wallet operations
+          depend on their configured providers. Names and biographies are generated locally.
         </p>
         <div class="policy-note">
           <p>
-            Network routing is unavailable. <code>GET /extension</code> returns <code>network.status = 'unavailable'</code>. No proxy activation or device VPN
-            endpoint exists. Crypto billing can be disabled independently of user wallets.
+            Network routing is unavailable. <code>GET /extension</code> returns
+            <code>network.status = 'unavailable'</code>. No proxy activation or device VPN endpoint exists. Crypto
+            billing can be disabled independently of user wallets.
           </p>
         </div>
         <p>
-          WebSocket event routes authenticate the connection and periodically recheck it. They support <code>ping</code> and <code>pong</code>. Reconnect with
-          valid credentials and fetch current state after a disconnect.
+          WebSocket event routes authenticate the connection and periodically recheck it. They support <code>ping</code>
+          and <code>pong</code>. Reconnect with valid credentials and fetch current state after a disconnect.
         </p>
       </section>
       <div class="endpoint-search">
@@ -187,10 +209,9 @@ with urllib.request.urlopen(request) as response:
           <div class="endpoints">
             {#each group.endpoints as endpoint (`${endpoint.method}-${endpoint.path}`)}<details>
                 <summary
-                  ><span class="method" class:write={endpoint.method !== 'GET'}>{endpoint.method}</span><code>{endpoint.path}</code><span
-                    class="expand"
-                    aria-hidden="true">+</span
-                  ></summary>
+                  ><span class="method" class:write={endpoint.method !== 'GET'}>{endpoint.method}</span><code
+                    >{endpoint.path}</code
+                  ><span class="expand" aria-hidden="true">+</span></summary>
                 <p>{endpoint.detail}</p>
                 {#if endpoint.query}<div class="endpoint-example">
                     <h3>Query example</h3>
@@ -208,10 +229,13 @@ with urllib.request.urlopen(request) as response:
           </div>
         </section>{/each}
       <p class="docs-footnote">
-        Path parameters such as <code>:id</code> must be replaced with the owned record's ID. Fields ending in <code>?</code> are optional. Do not send
-        plaintext secrets in place of encrypted fields. Example tokens, provider references, and values in angle brackets must be replaced with your own
-        results. Ciphertext examples describe the required format and are not usable encrypted secrets. JSON requests require
-        <code>Content-Type: application/json</code>. Unless a route says otherwise, a successful request returns HTTP 200.
+        Path parameters such as <code>:id</code> must be replaced with the owned record's ID. Fields ending in
+        <code>?</code>
+        are optional. Do not send plaintext secrets in place of encrypted fields. Example tokens, provider references, and
+        values in angle brackets must be replaced with your own results. Ciphertext examples describe the required format
+        and are not usable encrypted secrets. JSON requests require
+        <code>Content-Type: application/json</code>. Unless a route says otherwise, a successful request returns HTTP
+        200.
         <a href="/contact">Report a documentation issue</a>.
       </p>
     </div>
@@ -290,7 +314,6 @@ with urllib.request.urlopen(request) as response:
     gap: 10px;
     padding: 8px;
     background: #151c33;
-    border-bottom: 1px solid #a5b4fc20;
   }
   .code-toolbar > div {
     display: flex;
@@ -475,7 +498,6 @@ with urllib.request.urlopen(request) as response:
       gap: 10px 20px;
       flex-wrap: wrap;
       padding-bottom: 22px;
-      border-bottom: 1px solid #a5b4fc20;
     }
     .docs-navigation a {
       padding-block: 4px;

@@ -3,19 +3,28 @@
     <div class="privacy-heading" data-reveal>
       <h2>Your secrets.<br />Encrypted in your browser.</h2>
       <div>
-        <p>Vault passwords, TOTP secrets, and wallet signing keys are encrypted before storage. Your identity's master password stays in your browser.</p>
+        <p>
+          Vault passwords, TOTP secrets, and wallet signing keys are encrypted before storage. Your identity's master
+          password stays in your browser.
+        </p>
         <div class="privacy-links">
-          <a class="inline-link" href="https://github.com/RedeemedSpoon/ShadowSelf">Inspect the source</a><a class="inline-link" href="/privacy-policy"
-            >Read the privacy policy</a>
+          <a class="inline-link" href="https://github.com/RedeemedSpoon/ShadowSelf">Inspect the source</a><a
+            class="inline-link"
+            href="/privacy-policy">Read the privacy policy</a>
         </div>
       </div>
     </div>
     <div class="encryption-explanation" data-reveal>
       <div class="encryption-copy">
         <h3>Unlock when you need it.</h3>
-        <p>Enter the identity's master password to access saved passwords, generate two-factor codes, or authorize a wallet transfer.</p>
+        <p>
+          Enter the identity's master password to access saved passwords, generate two-factor codes, or authorize a
+          wallet transfer.
+        </p>
       </div>
-      <div class="encryption-diagram" aria-label="Secrets are encrypted in your browser before storage. The master password stays in the browser.">
+      <div
+        class="encryption-diagram"
+        aria-label="Secrets are encrypted in your browser before storage. The master password stays in the browser.">
         <div class="encryption-browser">
           <span>Your browser</span>
           <div>
@@ -29,7 +38,9 @@
           <small>Your master password</small>
         </div>
         <div class="encrypted-transfer" aria-hidden="true"><span></span><i>→</i></div>
-        <div class="encryption-storage"><span>Stored by ShadowSelf</span><code>Encrypted…<br />…b7d4e1</code><small>Encrypted values</small></div>
+        <div class="encryption-storage">
+          <span>Stored by ShadowSelf</span><code>Encrypted…<br />…b7d4e1</code><small>Encrypted values</small>
+        </div>
       </div>
       <div class="privacy-scope">
         <strong>Encryption boundary</strong>
@@ -149,7 +160,6 @@
     grid-template-columns: 220px 1fr;
     gap: 30px;
     padding: 24px 0 0;
-    border-top: 1px solid #a5b4fc20;
   }
   .privacy-scope strong {
     color: #c6bfdc;

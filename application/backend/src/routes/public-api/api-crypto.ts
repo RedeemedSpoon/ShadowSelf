@@ -26,7 +26,12 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
           coin,
           result.status === 'fulfilled'
             ? result.value
-            : {status: 'Unavailable', balance: null, history: [], error: `${coin.toUpperCase()} provider is unavailable. Retry to refresh this balance.`},
+            : {
+                status: 'Unavailable',
+                balance: null,
+                history: [],
+                error: `${coin.toUpperCase()} provider is unavailable. Retry to refresh this balance.`,
+              },
         ];
       }),
     );
@@ -51,7 +56,8 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
               ([, value]) =>
                 value &&
                 ['low', 'medium', 'high'].every(
-                  (priority) => Number.isFinite(value[priority as keyof typeof value]) && value[priority as keyof typeof value] > 0,
+                  (priority) =>
+                    Number.isFinite(value[priority as keyof typeof value]) && value[priority as keyof typeof value] > 0,
                 ),
             ),
           )
@@ -68,7 +74,10 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
         throw new ApiError(400, 'invalid_coin', 'Choose Bitcoin or Litecoin for an extended discovery scan');
       }
 
-      return {coin, wallet: await chainProvider.utxo(coin, identity!.wallet_keys[coin], {signal: request.signal, recovery: true})};
+      return {
+        coin,
+        wallet: await chainProvider.utxo(coin, identity!.wallet_keys[coin], {signal: request.signal, recovery: true}),
+      };
     },
     throttle('Wallet recovery', 120_000),
   )
@@ -100,7 +109,13 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
       ORDER BY (status <> 'completed') DESC, created_at DESC LIMIT 50`;
 
     return {
-      swaps: rows.map((row) => ({requestID: row.request_id, status: row.status, createdAt: row.created_at, request: row.request, response: row.response})),
+      swaps: rows.map((row) => ({
+        requestID: row.request_id,
+        status: row.status,
+        createdAt: row.created_at,
+        request: row.request,
+        response: row.response,
+      })),
     };
   })
   .post(
@@ -132,13 +147,24 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
       return {
         status: response ? 'completed' : swap.status,
         response,
-        message: response ? undefined : 'The provider has not confirmed this request. Keep this reference and retry lookup; do not create another trade.',
+        message: response
+          ? undefined
+          : 'The provider has not confirmed this request. Keep this reference and retry lookup; do not create another trade.',
       };
     },
     throttle('Swap reconciliation', 5_000),
   )
   .post('/swaps', async ({body, set, user, identity}) => {
-    const fields = ['tradeID', 'coinTo', 'coinFrom', 'amount', 'destinationAddress', 'refundAddress', 'provider', 'isFixed'];
+    const fields = [
+      'tradeID',
+      'coinTo',
+      'coinFrom',
+      'amount',
+      'destinationAddress',
+      'refundAddress',
+      'provider',
+      'isFixed',
+    ];
     const input = await checkAPI(body, fields);
 
     if (input.err) {
@@ -155,19 +181,22 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
 
     return withAccountLock(user!.accountID, async () =>
       withIdentityLock(identity!.id, async (connection) => {
-        const owners = await connection`SELECT id FROM users WHERE id = ${user!.accountID} AND deletion_requested_at IS NULL`;
+        const owners = await connection`SELECT id FROM users WHERE id = ${user!.accountID}`;
 
         if (!owners.length) {
-          throw new ApiError(409, 'account_deleting', 'Account deletion is in progress');
+          throw new ApiError(401, 'unauthenticated', 'Sign in to continue');
         }
 
-        const current = await connection`SELECT id FROM identities WHERE id = ${identity!.id} AND owner = ${user!.accountID} AND status = 'active'`;
+        const current =
+          await connection`SELECT id FROM identities WHERE id = ${identity!.id} AND owner = ${user!.accountID} AND status = 'active'`;
 
         if (!current.length) {
           throw new ApiError(409, 'identity_unavailable', 'This identity is no longer active');
         }
 
-        const request = Object.fromEntries(fields.map((field) => [field, (input as unknown as Record<string, unknown>)[field]]));
+        const request = Object.fromEntries(
+          fields.map((field) => [field, (input as unknown as Record<string, unknown>)[field]]),
+        );
         await connection.begin(async (transaction) => {
           await transaction`SELECT pg_advisory_xact_lock(hashtextextended(${`${user!.accountID}:${identity!.id}:wallet-swaps`}, 0))`;
           const unresolved = await transaction`SELECT request_id FROM wallet_swaps
@@ -175,14 +204,19 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
         AND status <> 'completed' AND request_id <> ${requestID!} LIMIT 1`;
 
           if (unresolved.length) {
-            throw new ApiError(409, 'swap_unresolved', `Resolve the existing swap request ${unresolved[0].request_id} before creating another trade`);
+            throw new ApiError(
+              409,
+              'swap_unresolved',
+              `Resolve the existing swap request ${unresolved[0].request_id} before creating another trade`,
+            );
           }
 
           await transaction`INSERT INTO wallet_swaps (owner, request_id, identity_id, request)
         VALUES (${user!.accountID}, ${requestID!}, ${identity!.id}, ${transaction.json(request as never)}) ON CONFLICT (owner, request_id) DO NOTHING`;
         });
 
-        const rows = await connection`SELECT * FROM wallet_swaps WHERE owner = ${user!.accountID} AND request_id = ${requestID!}`;
+        const rows =
+          await connection`SELECT * FROM wallet_swaps WHERE owner = ${user!.accountID} AND request_id = ${requestID!}`;
 
         const swap = rows[0];
 
@@ -194,10 +228,15 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
           return swap.response;
         }
 
-        const claimed = await connection`UPDATE wallet_swaps SET status = 'requested' WHERE id = ${swap.id} AND status = 'pending' RETURNING id`;
+        const claimed =
+          await connection`UPDATE wallet_swaps SET status = 'requested' WHERE id = ${swap.id} AND status = 'pending' RETURNING id`;
 
         if (!claimed.length) {
-          return error(set, 503, 'Trade outcome is uncertain. Review the existing provider trade before another request');
+          return error(
+            set,
+            503,
+            'Trade outcome is uncertain. Review the existing provider trade before another request',
+          );
         }
 
         const response = await swapProvider.trade(input);

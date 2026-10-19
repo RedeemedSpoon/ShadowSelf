@@ -20,7 +20,10 @@
 </script>
 
 <div class="copy-value">
-  <code>{concealed ? '••••••••••••' : value}</code><Button variant="quiet" icon={copied ? 'check' : 'copy'} onclick={copy} aria-label={label}
-    >{copied ? 'Copied' : label}</Button>
+  <code>{concealed ? '••••••••••••' : value}</code><Button
+    variant="quiet"
+    icon={copied ? 'check' : 'copy'}
+    onclick={copy}
+    aria-label={label}>{copied ? 'Copied' : label}</Button>
 </div>
 {#if error}<small role="alert">{error}</small>{/if}

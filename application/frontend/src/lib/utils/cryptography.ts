@@ -21,7 +21,13 @@ export function deriveXPub(coin: Coins, key: string, index: number = 0): string 
 
 export async function deriveMasterKey(password: string, identityID: string): Promise<CryptoKey> {
   const salt = new TextEncoder().encode(identityID);
-  const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), {name: 'PBKDF2'}, false, ['deriveKey']);
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    {name: 'PBKDF2'},
+    false,
+    ['deriveKey'],
+  );
 
   const algorithm = {
     name: 'PBKDF2',
@@ -30,7 +36,10 @@ export async function deriveMasterKey(password: string, identityID: string): Pro
     hash: 'SHA-256',
   };
 
-  return await crypto.subtle.deriveKey(algorithm, keyMaterial, {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']);
+  return await crypto.subtle.deriveKey(algorithm, keyMaterial, {name: 'AES-GCM', length: 256}, false, [
+    'encrypt',
+    'decrypt',
+  ]);
 }
 
 export async function getMasterKey(): Promise<CryptoKey> {
@@ -78,6 +87,8 @@ export async function decrypt(encryptedString: string, newKey?: CryptoKey) {
 
     return new TextDecoder().decode(decryptedBuffer);
   } catch {
-    throw new Error('The encrypted value could not be decrypted. Check the master password or restore an intact encrypted backup.');
+    throw new Error(
+      'The encrypted value could not be decrypted. Check the master password or restore an intact encrypted backup.',
+    );
   }
 }

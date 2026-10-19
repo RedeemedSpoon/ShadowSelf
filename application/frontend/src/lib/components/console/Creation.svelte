@@ -51,11 +51,29 @@
       }
 
       location = String(draft.location || '');
-      profile = (draft.profile as Profile) || {name: '', bio: '', picture: '', age: 28, sex: 'male', ethnicity: ETHNICITIES[0]};
+      profile = (draft.profile as Profile) || {
+        name: '',
+        bio: '',
+        picture: '',
+        age: 28,
+        sex: 'male',
+        ethnicity: ETHNICITIES[0],
+      };
       email = String(draft.email || '');
       phone = String(draft.phone || '');
       wallet = (draft.wallet as Wallet) || null;
-      step = current.creation?.creationStatus === 'provisioning' || wallet ? 6 : phone ? 5 : email ? 4 : profile.name ? 3 : location ? 2 : 1;
+      step =
+        current.creation?.creationStatus === 'provisioning' || wallet
+          ? 6
+          : phone
+            ? 5
+            : email
+              ? 4
+              : profile.name
+                ? 3
+                : location
+                  ? 2
+                  : 1;
     });
   });
 
@@ -201,13 +219,14 @@
         throw new Error('Use at least 12 characters and matching master passwords.');
       }
 
-      const [{generateMnemonic, mnemonicToSeed}, {wordlist}, {HDKey}, {mnemonicToAccount}, {deriveMasterKey, encrypt}] = await Promise.all([
-        import('@scure/bip39'),
-        import('@scure/bip39/wordlists/english.js'),
-        import('@scure/bip32'),
-        import('viem/accounts'),
-        import('$utils/cryptography'),
-      ]);
+      const [{generateMnemonic, mnemonicToSeed}, {wordlist}, {HDKey}, {mnemonicToAccount}, {deriveMasterKey, encrypt}] =
+        await Promise.all([
+          import('@scure/bip39'),
+          import('@scure/bip39/wordlists/english.js'),
+          import('@scure/bip32'),
+          import('viem/accounts'),
+          import('$utils/cryptography'),
+        ]);
       const key = await deriveMasterKey(candidate, identityID);
 
       const mnemonic = generateMnemonic(wordlist, 256);
@@ -228,7 +247,11 @@
       const monero = await import('monero-ts');
       monero.LibraryUtils.setWorkerDistPath(new URL('/monero.worker.js', locationOrigin()).href);
 
-      const xmr = await monero.createWalletFull({networkType: monero.MoneroNetworkType.MAINNET, privateSpendKey: spendKey, password: crypto.randomUUID()});
+      const xmr = await monero.createWalletFull({
+        networkType: monero.MoneroNetworkType.MAINNET,
+        privateSpendKey: spendKey,
+        password: crypto.randomUUID(),
+      });
 
       try {
         const generated = {
@@ -277,8 +300,12 @@
   </div>
   <a class="control-button quiet" href="/dashboard">Back to identities</a>
 </div>
-{#if !data.creation}<Status message={data.loadError} kind="error" /><Button variant="secondary" onclick={() => invalidateAll()}>Retry setup</Button>{:else}<ol
-    class="creation-progress">
+{#if !data.creation}<Status message={data.loadError} kind="error" /><Button
+    variant="secondary"
+    onclick={() => invalidateAll()}>Retry setup</Button
+  >{:else}<Status
+    message="Setup cannot be completed while replacement phone and network providers are being configured. Your draft can still be edited." />
+  <ol class="creation-progress">
     {#each stages as stage, index (stage)}<li class:current={step === index + 1} class:complete={step > index + 1}>
         <span>{step > index + 1 ? '✓' : String(index + 1).padStart(2, '0')}</span>{stage}
       </li>{/each}
@@ -292,30 +319,42 @@
     </div>
     <Status message={error} kind="error" />
     <form onsubmit={continueSetup}>
-      {#if step === 1}<div class="location-options">
-          {#each data.creation.locations as option (`${option.code}-${option.city}`)}<label class:selected={location === option.code}
-              ><input type="radio" name="location" value={option.code} bind:group={location} required /><span
-                ><strong>{option.city}</strong><small>{option.country}</small></span
-              ></label
-            >{/each}
+      {#if step === 1}
+        <div class="field">
+          <label for="profile-location">Profile location</label>
+          <input id="profile-location" bind:value={location} maxlength="120" placeholder="City or region" required />
+          <small>This describes the profile. Network access will depend on the configured provider.</small>
         </div>
       {:else if step === 2}<div class="creation-profile">
-          {#if profile.picture}<img src="data:image/png;base64,{profile.picture}" alt="Generated identity portrait" />{/if}
+          {#if profile.picture}<img
+              src="data:image/png;base64,{profile.picture}"
+              alt="Generated identity portrait" />{/if}
           <div class="button-row">
-            <Button type="button" variant="secondary" loading={pending} onclick={() => generate('picture')}>Generate portrait</Button><Button
-              type="button"
-              variant="quiet"
-              disabled={pending}
-              onclick={() => generate('name')}>Generate name</Button
-            ><Button type="button" variant="quiet" disabled={pending} onclick={() => generate('bio')}>Generate bio</Button>
+            <Button type="button" variant="secondary" loading={pending} onclick={() => generate('picture')}
+              >Generate portrait</Button
+            ><Button type="button" variant="quiet" disabled={pending} onclick={() => generate('name')}
+              >Generate name</Button
+            ><Button type="button" variant="quiet" disabled={pending} onclick={() => generate('bio')}
+              >Generate bio</Button>
           </div>
         </div>
         <div class="form-grid">
           <div class="field wide">
-            <label for="create-name">Name</label><input id="create-name" bind:value={profile.name} required minlength="2" maxlength="30" />
+            <label for="create-name">Name</label><input
+              id="create-name"
+              bind:value={profile.name}
+              required
+              minlength="2"
+              maxlength="30" />
           </div>
           <div class="field">
-            <label for="create-age">Age</label><input id="create-age" type="number" min="18" max="60" bind:value={profile.age} required />
+            <label for="create-age">Age</label><input
+              id="create-age"
+              type="number"
+              min="18"
+              max="60"
+              bind:value={profile.age}
+              required />
           </div>
           <div class="field">
             <label for="create-sex">Sex</label><select id="create-sex" bind:value={profile.sex}
@@ -323,10 +362,16 @@
           </div>
           <div class="field wide">
             <label for="create-ethnicity">Ethnicity</label><select id="create-ethnicity" bind:value={profile.ethnicity}
-              >{#each ETHNICITIES as ethnicity (ethnicity)}<option value={ethnicity}>{ethnicity[0].toUpperCase() + ethnicity.slice(1)}</option>{/each}</select>
+              >{#each ETHNICITIES as ethnicity (ethnicity)}<option value={ethnicity}
+                  >{ethnicity[0].toUpperCase() + ethnicity.slice(1)}</option
+                >{/each}</select>
           </div>
           <div class="field wide">
-            <label for="create-bio">Bio</label><textarea id="create-bio" bind:value={profile.bio} minlength="5" maxlength="126"></textarea>
+            <label for="create-bio">Bio</label><textarea
+              id="create-bio"
+              bind:value={profile.bio}
+              minlength="5"
+              maxlength="126"></textarea>
           </div>
         </div>
       {:else if step === 3}<div class="field">
@@ -339,9 +384,12 @@
         </div>
       {:else if step === 4}<div class="field">
           <label for="create-phone">Phone number</label><select id="create-phone" bind:value={phone} required
-            >{#if phone && !phones.includes(phone)}<option>{phone}</option>{/if}{#each phones as number (number)}<option>{number}</option>{/each}</select>
+            >{#if phone && !phones.includes(phone)}<option>{phone}</option>{/if}{#each phones as number (number)}<option
+                >{number}</option
+              >{/each}</select>
         </div>
-        <Button type="button" variant="secondary" loading={pending} onclick={refreshPhones}>Load available numbers</Button>
+        <Button type="button" variant="secondary" loading={pending} onclick={refreshPhones}
+          >Load available numbers</Button>
       {:else if step === 5}<Status
           message="Your account password does not unlock this wallet. This master password encrypts the vault and wallet in your browser." />{#if !wallet}<div
             class="form-grid">
@@ -363,11 +411,11 @@
                 required />
             </div>
           </div>
-          <Button type="button" loading={pending} icon="key" onclick={generateWallet}>Generate encrypted wallet</Button>{:else}{#if phrase}<Copy
-              value={phrase}
-              label="Copy recovery phrase" />{:else}<Status
+          <Button type="button" loading={pending} icon="key" onclick={generateWallet}>Generate encrypted wallet</Button
+          >{:else}{#if phrase}<Copy value={phrase} label="Copy recovery phrase" />{:else}<Status
               message="This wallet draft is already encrypted. Use your saved recovery phrase and master password; the phrase is not kept after leaving this step." />{/if}<label
-            class="backup-confirm"><input type="checkbox" bind:checked={saved} required /> I saved the recovery phrase and master password securely.</label
+            class="backup-confirm"
+            ><input type="checkbox" bind:checked={saved} required /> I saved the recovery phrase and master password securely.</label
           >{/if}
       {:else}<dl class="data-list">
           <div>
@@ -391,7 +439,8 @@
             <dd>Encrypted locally</dd>
           </div>
         </dl>
-        <Status message="Provisioning creates the mailbox and reserves the phone number. Provider failures retain this draft for retry." />{/if}
+        <Status
+          message="Provisioning creates the mailbox and reserves the phone number. Provider failures retain this draft for retry." />{/if}
       <div class="button-row creation-actions">
         {#if step > 1 && data.creation.creationStatus !== 'provisioning'}<Button
             type="button"
@@ -401,8 +450,11 @@
               step--;
               error = '';
             }}>Back</Button
-          >{/if}<Button type="submit" loading={pending} disabled={step === 5 && (!wallet || !saved)} icon={step === 6 ? 'check' : 'arrow'}
-          >{step === 6 ? 'Provision identity' : 'Save and continue'}</Button>
+          >{/if}<Button
+          type="submit"
+          loading={pending}
+          disabled={step === 5 && (!wallet || !saved)}
+          icon={step === 6 ? 'check' : 'arrow'}>{step === 6 ? 'Provision identity' : 'Save and continue'}</Button>
       </div>
     </form>
   </section>{/if}
@@ -443,28 +495,6 @@
   .creation-panel {
     max-width: 850px;
   }
-  .location-options {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-  .location-options label {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border: 1px solid #a5b4fc20;
-    border-radius: 6px;
-    padding: 18px;
-    cursor: pointer;
-  }
-  .location-options label.selected {
-    border-color: #9384e575;
-    background: #6253ec12;
-  }
-  .location-options small {
-    display: block;
-    margin-top: 5px;
-  }
   .creation-actions {
     justify-content: flex-end;
     margin-top: 25px;
@@ -488,9 +518,6 @@
     margin-top: 20px;
   }
   @media (max-width: 600px) {
-    .location-options {
-      grid-template-columns: 1fr;
-    }
     .creation-profile {
       flex-wrap: wrap;
     }

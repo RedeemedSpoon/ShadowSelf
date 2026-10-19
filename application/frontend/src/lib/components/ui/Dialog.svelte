@@ -2,7 +2,12 @@
   import type {Snippet} from 'svelte';
   import Button from './Button.svelte';
 
-  let {open = $bindable(false), title, children, onclose}: {open?: boolean; title: string; children: Snippet; onclose?: () => void} = $props();
+  let {
+    open = $bindable(false),
+    title,
+    children,
+    onclose,
+  }: {open?: boolean; title: string; children: Snippet; onclose?: () => void} = $props();
   let dialog: HTMLDialogElement;
 
   $effect(() => {

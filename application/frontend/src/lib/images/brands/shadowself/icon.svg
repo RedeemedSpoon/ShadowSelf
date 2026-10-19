@@ -4,9 +4,9 @@
     <linearGradient id="gradient-0-0" gradientUnits="userSpaceOnUse" x1="2175.997" y1="-1209.6" x2="2175.997" y2="-1120.8" gradientTransform="matrix(0, -1.097541, 1.097541, 0, 3454.69911, 1226.608511)" xlink:href="#gradient-0"/>
     <linearGradient id="gradient-0">
       <title>main</title>
-      <stop offset="0" style="stop-color: rgb(95, 84, 209);"/>
-      <stop offset="0.522" style="stop-color: rgb(67, 56, 202);"/>
-      <stop offset="1" style="stop-color: rgb(58, 47, 176);"/>
+      <stop offset="0" style="stop-color: rgb(98, 83, 236);"/>
+      <stop offset="0.522" style="stop-color: rgb(73, 56, 201);"/>
+      <stop offset="1" style="stop-color: rgb(73, 56, 201);"/>
     </linearGradient>
     <linearGradient id="gradient-0-1" gradientUnits="userSpaceOnUse" x1="2176.357" y1="-1161.637" x2="2176.357" y2="-1075.2" gradientTransform="matrix(-0.009396, -0.999956, 1.679354, 0.00001, 4075.027961, 1055.471585)" xlink:href="#gradient-0"/>
     <linearGradient id="gradient-3-0" gradientUnits="userSpaceOnUse" x1="2176.357" y1="-1161.637" x2="2176.357" y2="-1075.2" xlink:href="#gradient-3"/>

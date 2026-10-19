@@ -19,10 +19,6 @@ export default (app: Elysia) =>
       throw new ApiError(401, 'unauthenticated', 'Sign in to continue');
     }
 
-    if (user.deletingAccount && !['GET', 'HEAD', 'OPTIONS', 'DELETE'].includes(request.method)) {
-      throw new ApiError(409, 'account_deleting', 'Account deletion is in progress');
-    }
-
     const authorize = async () => !!(await authenticate());
 
     if (!params?.id) {
@@ -33,7 +29,8 @@ export default (app: Elysia) =>
       throw new ApiError(404, 'identity_not_found', 'Identity not found');
     }
 
-    const rows = (await sql`SELECT * FROM identities WHERE id = ${params.id} AND owner = ${user.accountID}`) as QueryIdentity[];
+    const rows =
+      (await sql`SELECT * FROM identities WHERE id = ${params.id} AND owner = ${user.accountID}`) as QueryIdentity[];
 
     const identity = rows[0];
 
@@ -58,7 +55,8 @@ export default (app: Elysia) =>
         return false;
       }
 
-      const current = await sql`SELECT id FROM identities WHERE id = ${identity.id} AND owner = ${user.accountID} AND status = 'active'`;
+      const current =
+        await sql`SELECT id FROM identities WHERE id = ${identity.id} AND owner = ${user.accountID} AND status = 'active'`;
 
       return current.length > 0;
     };

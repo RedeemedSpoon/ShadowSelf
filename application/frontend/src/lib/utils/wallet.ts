@@ -127,12 +127,12 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
     throw new Error('Enter a valid recipient address.');
   }
 
-  const [{createWalletClient, http, parseEther, parseUnits, encodeFunctionData, isAddress, formatUnits}, btc, {HDKey}, {mainnet}] = await Promise.all([
-    import('viem'),
-    import('@scure/btc-signer'),
-    import('@scure/bip32'),
-    import('viem/chains'),
-  ]);
+  const [
+    {createWalletClient, http, parseEther, parseUnits, encodeFunctionData, isAddress, formatUnits},
+    btc,
+    {HDKey},
+    {mainnet},
+  ] = await Promise.all([import('viem'), import('@scure/btc-signer'), import('@scure/bip32'), import('viem/chains')]);
   const amountAtoms = parseCoinAmount(coin, amt);
 
   const broadcastPayload = {coin: coin, hex: '', fee: '', feeUnit: coin === 'usdt' ? 'ETH' : coin.toUpperCase()};
@@ -207,7 +207,10 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
       tx.addOutputAddress(addr, amountSats, netParam);
 
       const inputTotal = data.utxos!.reduce((acc, u) => acc + BigInt(u.value), BigInt(0n));
-      const feeSats = data.estimatedFee.feeAtoms !== undefined ? BigInt(data.estimatedFee.feeAtoms) : BigInt(Math.round(data.estimatedFee.fee * 100_000_000));
+      const feeSats =
+        data.estimatedFee.feeAtoms !== undefined
+          ? BigInt(data.estimatedFee.feeAtoms)
+          : BigInt(Math.round(data.estimatedFee.fee * 100_000_000));
 
       if (feeSats <= 0n) {
         throw new Error('The network fee must be greater than zero.');
@@ -273,7 +276,12 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
         throw new Error('The signing key does not match the prepared source address.');
       }
 
-      if (!Number.isSafeInteger(data.nonce) || data.nonce! < 0 || !/^\d+$/.test(data.balanceAtoms ?? '') || !/^\d+$/.test(data.gasBalanceAtoms ?? '')) {
+      if (
+        !Number.isSafeInteger(data.nonce) ||
+        data.nonce! < 0 ||
+        !/^\d+$/.test(data.balanceAtoms ?? '') ||
+        !/^\d+$/.test(data.gasBalanceAtoms ?? '')
+      ) {
         throw new Error('Fresh pending nonce and balances are required. Prepare the transaction again.');
       }
 
@@ -406,7 +414,13 @@ export function checkPendingEvmSend(address: string, nonce: number, storage: Sto
 
   const saved = Number(pending);
 
-  if (!/^\d+$/.test(pending) || !Number.isSafeInteger(saved) || saved < 0 || !Number.isSafeInteger(nonce) || nonce <= saved) {
+  if (
+    !/^\d+$/.test(pending) ||
+    !Number.isSafeInteger(saved) ||
+    saved < 0 ||
+    !Number.isSafeInteger(nonce) ||
+    nonce <= saved
+  ) {
     throw new Error(
       'A previous ETH or USDT broadcast is still unconfirmed by the provider. Retry after it appears in pending transactions; do not create a replacement send.',
     );

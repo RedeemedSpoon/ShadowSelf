@@ -6,7 +6,10 @@ import type {CryptoCurrencies, WalletScanOptions, WalletOverviewOperation} from 
 export function createChainProvider(fetcher: typeof fetch = fetch) {
   const overviews = new Map<string, WalletOverviewOperation>();
   async function request(url: string, options?: RequestInit) {
-    const response = await fetcher(url, {...options, signal: AbortSignal.any([AbortSignal.timeout(15_000), ...(options?.signal ? [options.signal] : [])])});
+    const response = await fetcher(url, {
+      ...options,
+      signal: AbortSignal.any([AbortSignal.timeout(15_000), ...(options?.signal ? [options.signal] : [])]),
+    });
 
     if (!response.ok) {
       throw new ApiError(503, 'chain_unavailable', 'The blockchain provider is unavailable');
@@ -32,7 +35,10 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
         return pending.then((response) => response.clone());
       }) as typeof fetch;
 
-      return Promise.allSettled([getEvmData('eth', address, sharedFetch, signal), getEvmData('usdt', address, sharedFetch, signal)]);
+      return Promise.allSettled([
+        getEvmData('eth', address, sharedFetch, signal),
+        getEvmData('usdt', address, sharedFetch, signal),
+      ]);
     },
     async overview(scope: string, keys: {btc: string; ltc: string; evm: string}, signal?: AbortSignal) {
       signal?.throwIfAborted();
@@ -42,7 +48,10 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
       if (!operation) {
         const controller = new AbortController();
         const result = Promise.all([
-          Promise.allSettled([provider.utxo('btc', keys.btc, {signal: controller.signal}), provider.utxo('ltc', keys.ltc, {signal: controller.signal})]),
+          Promise.allSettled([
+            provider.utxo('btc', keys.btc, {signal: controller.signal}),
+            provider.utxo('ltc', keys.ltc, {signal: controller.signal}),
+          ]),
           provider.evmOverview(keys.evm, controller.signal),
         ]).then(([utxo, evm]) => [...utxo, ...evm]);
 
@@ -92,7 +101,13 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
       const methods = [
         {method: 'eth_getTransactionCount', params: [address, 'pending']},
         {method: 'eth_getBalance', params: [address, 'pending']},
-        {method: 'eth_call', params: [{to: USDT_CONTRACT, data: `0x70a08231${address.slice(2).toLowerCase().padStart(64, '0')}`}, 'pending']},
+        {
+          method: 'eth_call',
+          params: [
+            {to: USDT_CONTRACT, data: `0x70a08231${address.slice(2).toLowerCase().padStart(64, '0')}`},
+            'pending',
+          ],
+        },
         {method: 'eth_gasPrice', params: []},
       ];
       const values = await Promise.all(

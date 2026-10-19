@@ -1,6 +1,6 @@
 import type {ElysiaWS} from 'elysia/ws';
 
-export type User = {email: string; id: string; accountID: number; deletingAccount: boolean} | undefined;
+export type User = {email: string; id: string; accountID: number} | undefined;
 
 export type Attachment = {filename: string; data: string};
 
@@ -36,14 +36,6 @@ export interface CryptoKeys {
     spendKey: string;
     viewKey: string;
   };
-}
-
-export interface Location {
-  localization: string;
-  country: string;
-  code: string;
-  city: string;
-  map: string;
 }
 
 export interface ContactDetail {
@@ -89,7 +81,7 @@ export interface QueryIdentity {
   payment_intent: string | null;
   subscription_id: string | null;
   plan: 'monthly' | 'annually' | 'lifetime' | null;
-  status: 'active' | 'inactive' | 'frozen' | 'deleting' | null;
+  status: 'active' | 'inactive' | 'frozen' | null;
   crypto_invoice: string | null;
   location: string | null;
   picture: string | null;
@@ -99,11 +91,10 @@ export interface QueryIdentity {
   sex: string | null;
   ethnicity: string | null;
   email: string | null;
-  email_password: string | null;
+  mailbox_password_encrypted: string | null;
   phone: string | null;
   wallet_blob: string | null;
   wallet_keys: CryptoKeys | null;
-  phone_sid: string | null;
 }
 
 export interface PaymentInvoiceRecovery {
@@ -138,7 +129,19 @@ export interface QueryInvoice {
 
 export type InitializedIdentity = QueryIdentity & {
   [
-    Field in 'location' | 'picture' | 'name' | 'bio' | 'age' | 'sex' | 'ethnicity' | 'email' | 'email_password' | 'phone' | 'wallet_blob' | 'wallet_keys'
+    Field in
+      | 'location'
+      | 'picture'
+      | 'name'
+      | 'bio'
+      | 'age'
+      | 'sex'
+      | 'ethnicity'
+      | 'email'
+      | 'mailbox_password_encrypted'
+      | 'phone'
+      | 'wallet_blob'
+      | 'wallet_keys'
   ]: NonNullable<QueryIdentity[Field]>;
 };
 
@@ -392,4 +395,28 @@ export interface VaultMutation {
   keys: CryptoKeys['xmr'];
   accounts: {id: number; password: string; totp: string | null}[];
   apply: (transaction: import('postgres').TransactionSql) => Promise<Record<string, unknown>>;
+}
+
+export interface PhoneMessage {
+  messageID: string;
+  status: string;
+  date: Date;
+  error: string;
+  body: string;
+  from: string;
+  to: string;
+}
+
+export interface PhonePage {
+  messages: PhoneMessage[];
+  complete: boolean;
+  nextCursor: string | null;
+}
+
+export interface PhoneProvider {
+  conversations(phone: string, cursor?: string): Promise<PhonePage>;
+  conversation(phone: string, contact: string, cursor?: string): Promise<PhonePage>;
+  send(phone: string, to: string, body: string): Promise<PhoneMessage>;
+  removeConversation(phone: string, contact: string): Promise<{deleted: number; failed: number; complete: boolean}>;
+  available(location: string): Promise<string[]>;
 }

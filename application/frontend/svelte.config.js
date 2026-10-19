@@ -1,5 +1,23 @@
+import {loadEnv} from 'vite';
 import {vitePreprocess} from '@sveltejs/vite-plugin-svelte';
 import adapter from 'svelte-adapter-bun';
+
+const deployment = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), 'CSP_');
+function allowedOrigins(setting) {
+  return (process.env[setting] ?? deployment[setting] ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map((value) => {
+      const url = new URL(value);
+
+      if (url.protocol !== 'https:' || url.origin !== value) {
+        throw new Error(`${setting} must contain exact HTTPS origins`);
+      }
+
+      return url.origin;
+    });
+}
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -10,18 +28,11 @@ const config = {
       mode: 'auto',
       directives: {
         'default-src': ['self'],
-        'script-src': ['self', 'wasm-unsafe-eval', 'https://js.stripe.com'],
+        'script-src': ['self', 'wasm-unsafe-eval', ...allowedOrigins('CSP_SCRIPT_ORIGINS')],
         'style-src': ['self', 'unsafe-inline'],
         'img-src': ['self', 'data:', 'blob:', 'https:'],
-        'connect-src': [
-          'self',
-          'https://api.stripe.com',
-          'https://mempool.space',
-          'https://litecoinspace.org',
-          'https://eth.blockscout.com',
-          'https://xmr-node.cakewallet.com:18081',
-        ],
-        'frame-src': ['self', 'blob:', 'https://js.stripe.com', 'https://hooks.stripe.com'],
+        'connect-src': ['self', ...allowedOrigins('CSP_CONNECT_ORIGINS')],
+        'frame-src': ['self', 'blob:', ...allowedOrigins('CSP_FRAME_ORIGINS')],
         'worker-src': ['self', 'blob:'],
         'font-src': ['self', 'data:'],
         'object-src': ['none'],

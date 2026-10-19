@@ -38,7 +38,11 @@
 
       const address =
         coin === 'btc' || coin === 'ltc'
-          ? deriveXPub(coin, account.walletKeys[coin], crypto.wallet[coin].status === 'Unavailable' ? 0 : (crypto.wallet[coin].nextIndex ?? 0))
+          ? deriveXPub(
+              coin,
+              account.walletKeys[coin],
+              crypto.wallet[coin].status === 'Unavailable' ? 0 : (crypto.wallet[coin].nextIndex ?? 0),
+            )
           : coin === 'xmr'
             ? await decrypt(account.walletKeys.xmr.address, key!)
             : account.walletKeys.evm;
@@ -50,7 +54,13 @@
       }
 
       generatePDF(
-        {name: account.name, email: account.email, invoice: invoice || globalThis.crypto.randomUUID(), date: new Date().toLocaleDateString(), dateDue: due},
+        {
+          name: account.name,
+          email: account.email,
+          invoice: invoice || globalThis.crypto.randomUUID(),
+          date: new Date().toLocaleDateString(),
+          dateDue: due,
+        },
         {clientName: client, clientEmail: email},
         {tableRows: rows.map((row) => ({...row, total: row.price * row.quantity})), totalTransactionPrice: total},
         {cryptoChoice: coin, exchangeRate: rate, cryptoDue: total / rate, destAddr: address, qrImage},
@@ -71,10 +81,21 @@
   <Status message={error} kind="error" />
   <form onsubmit={download} class="invoice-form">
     <div class="form-grid">
-      <div class="field"><label for="invoice-client">Client name</label><input id="invoice-client" bind:value={client} required /></div>
-      <div class="field"><label for="invoice-email">Client email</label><input id="invoice-email" type="email" bind:value={email} /></div>
-      <div class="field"><label for="invoice-reference">Invoice reference</label><input id="invoice-reference" bind:value={invoice} required /></div>
-      <div class="field"><label for="invoice-due">Due date</label><input id="invoice-due" type="date" bind:value={due} required /></div>
+      <div class="field">
+        <label for="invoice-client">Client name</label><input id="invoice-client" bind:value={client} required />
+      </div>
+      <div class="field">
+        <label for="invoice-email">Client email</label><input id="invoice-email" type="email" bind:value={email} />
+      </div>
+      <div class="field">
+        <label for="invoice-reference">Invoice reference</label><input
+          id="invoice-reference"
+          bind:value={invoice}
+          required />
+      </div>
+      <div class="field">
+        <label for="invoice-due">Due date</label><input id="invoice-due" type="date" bind:value={due} required />
+      </div>
     </div>
     <div class="invoice-rows">
       {#each rows as row, index (index)}<div>
@@ -84,7 +105,13 @@
             min="1"
             step="1"
             bind:value={row.quantity}
-            required /><input aria-label="Price in USD" type="number" min="0" step="0.01" bind:value={row.price} required /><Button
+            required /><input
+            aria-label="Price in USD"
+            type="number"
+            min="0"
+            step="0.01"
+            bind:value={row.price}
+            required /><Button
             type="button"
             variant="quiet"
             icon="trash"
@@ -94,10 +121,15 @@
         </div>{/each}
     </div>
     <div class="button-row invoice-actions">
-      <Button type="button" variant="secondary" icon="plus" onclick={() => (rows = [...rows, {description: '', quantity: 1, price: 0}])}>Add item</Button><span
-        >Total · ${total.toFixed(2)}</span>
+      <Button
+        type="button"
+        variant="secondary"
+        icon="plus"
+        onclick={() => (rows = [...rows, {description: '', quantity: 1, price: 0}])}>Add item</Button
+      ><span>Total · ${total.toFixed(2)}</span>
     </div>
-    <Button type="submit" loading={pending} disabled={coin === 'xmr' && !$vaultKey} icon="download">Download PDF invoice</Button>
+    <Button type="submit" loading={pending} disabled={coin === 'xmr' && !$vaultKey} icon="download"
+      >Download PDF invoice</Button>
   </form>
 </section>
 

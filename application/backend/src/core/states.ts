@@ -167,7 +167,12 @@ export function issueEmailCode(purpose: EmailCodePurpose, email: string, binding
 
   const key = JSON.stringify([purpose, email]);
   const code = randomInt(0, 100_000_000).toString().padStart(8, '0');
-  emailCodes.set(key, {binding, hash: hashVerification(`${key}:${binding}:${code}`), expiresAt: now + EMAIL_CODE_TTL, attempts: 0});
+  emailCodes.set(key, {
+    binding,
+    hash: hashVerification(`${key}:${binding}:${code}`),
+    expiresAt: now + EMAIL_CODE_TTL,
+    attempts: 0,
+  });
 
   return {status: 200 as const, code};
 }
@@ -261,7 +266,12 @@ export function signupProgress(id: unknown): SignupProgress | undefined {
     return {...profile, stage: 'recovery', recovery: JSON.parse(decryptSecret(draft.encryptedRecovery))};
   }
 
-  return {...profile, stage: 'authenticator', secret: draft.secret, uri: createTOTP(draft.secret, draft.username).toString()};
+  return {
+    ...profile,
+    stage: 'authenticator',
+    secret: draft.secret,
+    uri: createTOTP(draft.secret, draft.username).toString(),
+  };
 }
 
 const emailCodes = new Map<string, EmailCode>();
@@ -279,7 +289,10 @@ export function claimSensitiveAttempt(email: string) {
 
   const entry = sensitiveAttempts.get(email) ?? {count: 0, expiresAt: Date.now() + SENSITIVE_ATTEMPT_WINDOW};
 
-  if (entry.count >= SENSITIVE_ATTEMPT_LIMIT || (sensitiveAttempts.size >= VERIFICATION_CAPACITY && !sensitiveAttempts.has(email))) {
+  if (
+    entry.count >= SENSITIVE_ATTEMPT_LIMIT ||
+    (sensitiveAttempts.size >= VERIFICATION_CAPACITY && !sensitiveAttempts.has(email))
+  ) {
     return false;
   }
 

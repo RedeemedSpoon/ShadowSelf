@@ -36,11 +36,26 @@
     message = '';
   }
 
-  const titles: Record<number, string> = {1: 'Sign in', 2: 'Email access', 3: 'Email verification', 4: 'Two-factor authentication', 5: 'Use a recovery code'};
-  const actions: Record<number, string> = {1: 'checkCredentials', 2: 'checkEmail', 3: 'checkAccess', 4: 'checkOTP', 5: 'checkRecovery'};
+  const titles: Record<number, string> = {
+    1: 'Sign in',
+    2: 'Email access',
+    3: 'Email verification',
+    4: 'Two-factor authentication',
+    5: 'Use a recovery code',
+  };
+  const actions: Record<number, string> = {
+    1: 'checkCredentials',
+    2: 'checkEmail',
+    3: 'checkAccess',
+    4: 'checkOTP',
+    5: 'checkRecovery',
+  };
 </script>
 
-<svelte:head><title>Sign in | ShadowSelf</title><meta name="description" content="Sign in to your ShadowSelf identity console." /></svelte:head>
+<svelte:head
+  ><title>Sign in | ShadowSelf</title><meta
+    name="description"
+    content="Sign in to your ShadowSelf identity console." /></svelte:head>
 <div class="access">
   <section class="panel">
     <h1>{titles[step]}</h1>
@@ -65,7 +80,12 @@
             required />
         </div>{/if}
       {#if step === 1}<div class="field">
-          <label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required />
+          <label for="login-password">Password</label><input
+            id="login-password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required />
         </div>{/if}
       {#if step === 3 || step === 4}<div class="field">
           <label for="login-code">Verification code</label><input
@@ -79,16 +99,21 @@
             required />
         </div>{/if}
       {#if step === 5}<div class="field">
-          <label for="login-recovery">Recovery code</label><input id="login-recovery" name="code" autocomplete="off" required />
+          <label for="login-recovery">Recovery code</label><input
+            id="login-recovery"
+            name="code"
+            autocomplete="off"
+            required />
         </div>{/if}
-      <Button type="submit" loading={pending} icon="arrow">{step === 1 ? 'Sign in' : step === 2 ? 'Send access code' : 'Verify'}</Button>
+      <Button type="submit" loading={pending} icon="arrow"
+        >{step === 1 ? 'Sign in' : step === 2 ? 'Send access code' : 'Verify'}</Button>
     </form>
     <div class="access-links">
-      {#if step === 1}<a href="/signup">Create an account</a><button onclick={() => switchStep(2)}>Use email access</button>{:else}<button
-          onclick={() => switchStep(1)}>Back to sign-in</button
-        >{#if step === 4}<button onclick={() => switchStep(5)}>Use recovery code</button>{:else if step === 5}<button onclick={() => switchStep(4)}
-            >Use authenticator</button
-          >{/if}{/if}
+      {#if step === 1}<a href="/signup">Create an account</a><button onclick={() => switchStep(2)}
+          >Use email access</button
+        >{:else}<button onclick={() => switchStep(1)}>Back to sign-in</button>{#if step === 4}<button
+            onclick={() => switchStep(5)}>Use recovery code</button
+          >{:else if step === 5}<button onclick={() => switchStep(4)}>Use authenticator</button>{/if}{/if}
     </div>
   </section>
 </div>

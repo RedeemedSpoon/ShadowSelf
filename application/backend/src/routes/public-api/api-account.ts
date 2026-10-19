@@ -8,12 +8,19 @@ import {Elysia} from 'elysia';
 export default new Elysia({prefix: '/api/identities/:id/vault'})
   .use(middlewareApi)
   .get('/', async ({identity}) => {
-    const accounts = await sql`SELECT id, username, password, website, totp, algorithm FROM accounts WHERE owner = ${identity!.id}`;
+    const accounts =
+      await sql`SELECT id, username, password, website, totp, algorithm FROM accounts WHERE owner = ${identity!.id}`;
 
     return {accounts, vaultRevision: identity!.vault_revision};
   })
   .post('/entries', async ({set, identity, body}) => {
-    const {err, username, password, website, totp, algorithm} = await checkAPI(body, ['username', 'password', '?website', '?totp', '?algorithm']);
+    const {err, username, password, website, totp, algorithm} = await checkAPI(body, [
+      'username',
+      'password',
+      '?website',
+      '?totp',
+      '?algorithm',
+    ]);
 
     if (err) {
       return error(set, 400, err);
@@ -28,7 +35,14 @@ export default new Elysia({prefix: '/api/identities/:id/vault'})
     });
   })
   .patch('/entries', async ({set, identity, body}) => {
-    const {err, id, username, password, website, totp, algorithm} = await checkAPI(body, ['id', 'username', 'password', '?website', '?totp', '?algorithm']);
+    const {err, id, username, password, website, totp, algorithm} = await checkAPI(body, [
+      'id',
+      'username',
+      'password',
+      '?website',
+      '?totp',
+      '?algorithm',
+    ]);
 
     if (err) {
       return error(set, 400, err);
@@ -44,7 +58,8 @@ export default new Elysia({prefix: '/api/identities/:id/vault'})
       const nextTotp = totp === undefined ? existing[0].totp : totp || null;
       const nextWebsite = website === undefined ? existing[0].website : website || null;
       const nextAlgorithm = nextTotp ? algorithm || existing[0].algorithm || 'SHA1' : null;
-      const rows = await transaction`UPDATE accounts SET username = ${username}, password = ${password}, website = ${nextWebsite},
+      const rows =
+        await transaction`UPDATE accounts SET username = ${username}, password = ${password}, website = ${nextWebsite},
         totp = ${nextTotp}, algorithm = ${nextAlgorithm} WHERE id = ${id} AND owner = ${identity!.id}
         RETURNING id, username, password, website, totp, algorithm`;
 
@@ -62,7 +77,12 @@ export default new Elysia({prefix: '/api/identities/:id/vault'})
       return error(set, 400, 'Invalid encrypted wallet keys');
     }
 
-    if (input.accounts.some((account) => !account || !validCiphertext(account.password) || (account.totp !== null && !validCiphertext(account.totp)))) {
+    if (
+      input.accounts.some(
+        (account) =>
+          !account || !validCiphertext(account.password) || (account.totp !== null && !validCiphertext(account.totp)),
+      )
+    ) {
       return error(set, 400, 'Invalid encrypted account');
     }
 
@@ -71,7 +91,11 @@ export default new Elysia({prefix: '/api/identities/:id/vault'})
 
       const ids = new Set(input.accounts.map((account) => account.id));
 
-      if (ids.size !== input.accounts.length || accounts.length !== ids.size || accounts.some((account) => !ids.has(account.id))) {
+      if (
+        ids.size !== input.accounts.length ||
+        accounts.length !== ids.size ||
+        accounts.some((account) => !ids.has(account.id))
+      ) {
         return error(set, 409, 'The vault changed. Reload before changing its password');
       }
 
@@ -110,7 +134,8 @@ async function mutateVault(id: string, body: unknown, set: Record<string, any>, 
   }
 
   return sql.begin(async (transaction) => {
-    const identities = await transaction`SELECT vault_revision FROM identities WHERE id = ${id} AND status = 'active' FOR UPDATE`;
+    const identities =
+      await transaction`SELECT vault_revision FROM identities WHERE id = ${id} AND status = 'active' FOR UPDATE`;
 
     if (!identities.length) {
       return error(set, 404, 'Identity not found');

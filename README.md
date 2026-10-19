@@ -5,13 +5,26 @@
   </picture>
 </p>
 
-ShadowSelf keeps synthetic identity profiles, email, phone conversations, encrypted account credentials and cryptocurrency wallets in one workspace. Vault encryption and wallet signing run in the browser. Email, phone, billing and chain queries rely on configured external services.
+## ShadowSelf overview
 
-The public API uses `/api`. The `/docs` page documents authentication, endpoints and error responses.
+[ShadowSelf](https://shadowself.io) lets you create synthetic identities with their own profiles, phone numbers, email addresses, credentials, wallets, virtual cards, residential connections, and files. Use an identity to register for services without handing every site your personal contact details.
 
-## Local development
+An identity is meant to last. Its inbox, recovery details, and accounts stay together, so you can return to it when you need it. Browser encryption protects vault passwords, TOTP secrets, and wallet keys. Profiles, ordinary email, SMS, and billing records are outside that encryption. A separate identity does not make cookies, browser fingerprints, or public blockchain activity disappear.
 
-Use Bun 1.4.3 and PostgreSQL. Install dependencies from the repository root and each application directory:
+The website, API, and extension are open source. This is an independent project maintained by one developer, with contributions welcome. Paid identities cover hosting, provider costs, and development.
+
+## Running locally
+
+### Requirements
+
+- Bun for the application servers, dependencies, and builds.
+- PostgreSQL for application and mail data.
+- Configured mail infrastructure and provider accounts for the services you enable.
+- Docker Compose and Nginx for the container deployment.
+
+### Application
+
+Install dependencies in the repository root and both application directories:
 
 ```sh
 bun install --frozen-lockfile
@@ -21,51 +34,112 @@ cd ../frontend
 bun install --frozen-lockfile
 ```
 
-Create local `.env` files in `application/backend`, `application/frontend` and `application/database`. The backend configuration in `application/backend/src/core/config.ts` lists required application secrets and optional provider settings. Never commit credentials. Missing providers report unavailable service states.
+Create local `.env` files in `application/backend`, `application/frontend`, and `application/database`. [Backend configuration](application/backend/src/core/config.ts) lists the application secrets and provider settings. Keep credentials out of Git.
 
-Initialize a fresh development database with `application/database/schemas.sql`, then apply `application/database/roles.sql` with `APP_DB_PASSWORD`, `MAIL_DB_PASSWORD` and `POSTGRES_DB` in the environment. The schema replaces the database tables. Use a disposable database; do not run initialization against a database you want to preserve.
-
-Run `bun dev` in `application/backend` for port 3000 and in `application/frontend` for port 5000. The frontend routes browser API requests to the backend on the same origin. `.scripts/tmux-session.sh` starts both in separate panes.
-
-## Verification
-
-From the repository root:
+For a fresh development database, initialize [schemas.sql](application/database/schemas.sql), then [roles.sql](application/database/roles.sql). Supply `POSTGRES_DB`, `APP_DB_PASSWORD`, and `MAIL_DB_PASSWORD` from your database configuration:
 
 ```sh
-bun format
-bun lint
-bun check
-bun run build
+psql -v ON_ERROR_STOP=1 -U postgres -d "$POSTGRES_DB" \
+  -f application/database/schemas.sql \
+  -f application/database/roles.sql
 ```
 
-`bun run verify` runs lint, type checks and builds. Inspect affected routes in the T3 integrated browser at desktop and mobile sizes.
+The schema drops and recreates application tables. Use a disposable development database.
 
-CI uses frozen lockfiles and rejects moderate-or-higher dependency advisories with `bun run audit`. Review low-severity findings separately. Commit dependency manifests and their `bun.lock` together. Generated reports, downloaded workers, build output and credentials stay out of source control.
+### Frontend
 
-## Browser extension
+Run these commands from `application/frontend`:
 
-The companion connects to an explicitly selected signed-in ShadowSelf tab in the current browser window. It lists identities and opens their workspace. It does not read authentication cookies or store account data in persistent extension storage.
+| Command         | Purpose                         |
+| --------------- | ------------------------------- |
+| `bun dev`       | Development server on port 5000 |
+| `bun run build` | Production build                |
+| `bun preview`   | Preview the build on port 5000  |
+| `bun start`     | Run the production server       |
 
-Network routing is unavailable. The self-hosted Squid/OpenVPN service and its browser controls have been retired. No replacement network provider is included.
+### Backend
 
-Build production packages with:
+Run these commands from `application/backend`:
+
+| Command         | Purpose                         |
+| --------------- | ------------------------------- |
+| `bun dev`       | Development server on port 3000 |
+| `bun run build` | Compile the backend executable  |
+| `./server`      | Run the compiled backend        |
+
+Browser API requests use the website's `/api` routes. The frontend forwards them to the backend on the same origin. Visit `/docs` for authentication, endpoints, request formats, and errors.
+
+### Browser extension
+
+Build packages from the repository root:
 
 ```sh
 bun run package:extension
 ```
 
-For local development, run `bash .scripts/pack-extension.sh /tmp/shadowself-extensions --development`. Extract the appropriate archive and load its directory as an unpacked extension. Development packages only request access to `http://localhost:5000`; production packages only request access to `https://shadowself.io`.
+For local development:
+
+```sh
+bash .scripts/pack-extension.sh /tmp/shadowself-extensions --development
+```
+
+Extract the package for your browser and load it as an unpacked extension. Development packages request access to `http://localhost:5000`; production packages use `https://shadowself.io`. Connect the extension to a signed-in ShadowSelf tab to open identities while browsing.
+
+### Linting, formatting, and tests
+
+Run checks from the repository root:
+
+```sh
+bun format
+bun lint
+bun check
+bun test
+bun run build
+```
+
+`bun run verify` runs lint, type checks, permanent tests, and builds. `bun run audit` checks dependency advisories. Test fixtures are synthetic and the integration database must be isolated from development data.
+
+### Quick tmux session
+
+[tmux-session.sh](.scripts/tmux-session.sh) starts the frontend and backend in separate panes:
+
+```sh
+bash .scripts/tmux-session.sh
+```
 
 ## Deployment
 
-`application/compose.yaml` defines the website, backend, database and TLS services. Configure provider callback URLs under `/api/webhooks/stripe` and `/api/webhooks/twilio`. HTTPS and onion listeners route the same `/api` contract, including events.
+Run Docker Compose from `application` after configuring its environment:
 
-Set production `APP_ORIGIN` to the public HTTPS origin. Compose clears frontend `ORIGIN` and reads the host and protocol headers supplied by Nginx so HTTPS and onion requests retain their own origins. Use `POSTGRES_HOST=postgres` for Compose and clear development `TRUSTED_PROXY_IPS`; Compose resolves the trusted frontend and Nginx service hosts. Enable cryptocurrency billing only after configuring and validating the Monero wallet.
+```sh
+cd application
+docker compose up --build
+```
 
-The operations scripts use explicit targets. Set `SHADOWSELF_SSH_TARGET` and `SHADOWSELF_DB_CONTAINER` for `.scripts/backup-database.sh` and `.scripts/query-database.sh`. `.scripts/maintenance.sh` updates host packages and reasserts Compose services; schedule it through your host scheduler. `.scripts/check-crowdsec.sh` checks the host services, collections, acquisition metrics and decisions.
+[compose.yaml](application/compose.yaml) defines the website, backend, database, and TLS services. Set `APP_ORIGIN` to the public HTTPS origin, `POSTGRES_HOST=postgres`, and the billing callback under `/api/webhooks/stripe`. Enable cryptocurrency billing after configuring and validating the Monero wallet.
 
-## Contributing
+Nginx supplies the trusted host and protocol headers for HTTPS and onion access. Compose clears the frontend `ORIGIN` setting. Nginx applies per-client API rate limits; frontend form actions have their own address limits. The backend does not resolve ingress hosts or trust forwarded client IPs. Keep the backend private behind Nginx.
 
-Follow [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md). The application has no production users or data to migrate. Change the fresh schema and update every consumer when a contract changes. Do not retain compatibility routes or old-format fallbacks.
+The operations scripts take explicit targets. Configure `SHADOWSELF_SSH_TARGET` and `SHADOWSELF_DB_CONTAINER` for database backups and queries. Schedule maintenance through your host scheduler.
 
-Licensed under [AGPL-3.0](COPYING).
+## Contribution
+
+Found a bug or have an idea? [Open an issue](https://github.com/RedeemedSpoon/ShadowSelf/issues). Have a fix? [Open a pull request](https://github.com/RedeemedSpoon/ShadowSelf/pulls).
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md) before changing the code. The current application has no production users or data to migrate. Update the fresh schema directly and keep frontend and backend contracts together.
+
+The original system design shows how the project was put together in February 2026:
+
+<img src="./application/frontend/src/lib/images/visuals/system-design.webp" alt="Original ShadowSelf system design, February 2026" width="100%">
+
+## License
+
+ShadowSelf is licensed under [GNU Affero General Public License 3.0](COPYING). You can use, modify, and distribute the code under that license's terms.
+
+### Provider availability and browser connections
+
+Phone and residential network integrations are unconfigured. Phone requests, new purchases, and identity provisioning return HTTP 503 until replacement providers are implemented. Existing crypto renewals remain available when billing is configured. Profile location is descriptive text and does not reserve an IP address or choose a network provider.
+
+Set `CSP_CONNECT_ORIGINS` in the frontend environment to a comma-separated list of exact HTTPS origins permitted for browser connections. Rebuild after changing it. Include `https://api.stripe.com` for card payments and the origin of each configured Monero node for browser wallet sync. The default permits only same-origin connections. For Stripe, also set `CSP_SCRIPT_ORIGINS=https://js.stripe.com` and `CSP_FRAME_ORIGINS=https://js.stripe.com,https://hooks.stripe.com`. These allowlists default to no external origins.
+
+`mailbox_password_encrypted` holds the encrypted credential so the backend can authenticate to IMAP and SMTP. `mailbox_password_hash` is a separate SHA-256 verifier used by Dovecot. Deletion revokes mailbox access by removing the identity; the mail cleanup script removes directories with no identity or service-mailbox owner, including files from previously frozen identities.

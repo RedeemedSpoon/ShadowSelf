@@ -1,7 +1,6 @@
 import middlewareApi from '@middlewares/middleware-api';
 import {generateProfile} from '@utils/prompts';
-import {allFakers} from '@faker-js/faker';
-import {LOCATIONS} from '@core/constants';
+import {faker} from '@faker-js/faker';
 import {checkAPI} from '@utils/checks';
 import {throttle} from '@core/states';
 import {error} from '@utils/utils';
@@ -42,8 +41,7 @@ export default new Elysia({prefix: '/api/identities'})
 
       const {sex, age, ethnicity, bio} = {...data, ...input};
 
-      const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
-      const picture = await generateProfile(lang!, age!, sex!, ethnicity!, bio!);
+      const picture = await generateProfile(identity!.location, age!, sex!, ethnicity!, bio!);
 
       await sql`UPDATE identities SET picture = ${picture} WHERE id = ${identity!.id} AND status = 'active'`;
 
@@ -60,8 +58,6 @@ export default new Elysia({prefix: '/api/identities'})
 
     const sex = input.sex ?? identity!.sex;
 
-    const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
-    const faker = allFakers[lang?.localization as keyof typeof allFakers];
     const name = faker.person.fullName({sex: sex as 'male' | 'female'}).slice(0, 30);
 
     await sql`UPDATE identities SET name = ${name} WHERE id = ${identity!.id} AND status = 'active'`;
@@ -69,8 +65,6 @@ export default new Elysia({prefix: '/api/identities'})
     return {name};
   })
   .post('/:id/profile/bio', async ({identity}) => {
-    const lang = LOCATIONS.find((location) => location.code === identity!.location.split(',')[0]);
-    const faker = allFakers[lang?.localization as keyof typeof allFakers];
     const bio = faker.person.bio().slice(0, 126);
 
     await sql`UPDATE identities SET bio = ${bio} WHERE id = ${identity!.id} AND status = 'active'`;

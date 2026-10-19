@@ -1,5 +1,5 @@
 import {billingPortal, createBillingCustomer} from '@core/stripe-service';
-import {completeAccountDeletion, withAccountLock} from '@core/identity-service';
+import {deleteAccount} from '@core/identity-service';
 import {consumeEmailCode, claimSensitiveAttempt} from '@core/states';
 import {createTOTP, getSecret, createHash, getRecovery, hashRecoveryCode, compareHash} from '@utils/cryptography';
 import {apiToken, encryptSecret, tokenHash} from '@core/security';
@@ -15,6 +15,7 @@ import {UUID_PATTERN} from '@core/constants';
 
 export default new Elysia({prefix: '/api/settings'})
   .use(middlewareBase)
+  .guard({authenticated: true})
   .resolve(async ({user, request, body, path}) => {
     if (!user || request.method === 'GET' || /\/sessions?\/?$/.test(path)) {
       return {verifiedPassword: ''};
@@ -37,12 +38,8 @@ export default new Elysia({prefix: '/api/settings'})
 
     return {verifiedPassword: account && (await compareHash(password, account.password)) ? account.password : ''};
   })
-  .onBeforeHandle(({set, user, request, path, verifiedPassword, passwordLimited}) => {
+  .onBeforeHandle(({set, request, path, verifiedPassword, passwordLimited}) => {
     set.headers['cache-control'] = 'no-store';
-
-    if (!user) {
-      return error(set, 401, 'Sign in to continue');
-    }
 
     if (request.method === 'GET' || /\/sessions?\/?$/.test(path)) {
       return;
@@ -57,14 +54,11 @@ export default new Elysia({prefix: '/api/settings'})
     }
   })
   .get('/', async ({user}) => {
-    const result =
-      (await sql`SELECT email, username, recovery_hashes, totp, api_access, deletion_requested_at FROM users WHERE id = ${user!.accountID}`) as (QueryUser & {
-        deletion_requested_at: Date | null;
-      })[];
+    const rows =
+      (await sql`SELECT email, username, recovery_hashes, totp, api_access FROM users WHERE id = ${user!.accountID}`) as QueryUser[];
+    const {email, username, recovery_hashes, totp, api_access} = rows[0];
 
-    const {email, username, recovery_hashes, totp, api_access, deletion_requested_at} = result[0];
-
-    return {email, username, deletionPending: !!deletion_requested_at, recoveryRemaining: recovery_hashes.length, API: api_access, OTP: !!totp};
+    return {email, username, recoveryRemaining: recovery_hashes.length, API: api_access, OTP: !!totp};
   })
   .post('/billing-portal', ({user}) => billingPortal(user!.email))
   .get('/totp', async ({user}) => {
@@ -139,10 +133,16 @@ export default new Elysia({prefix: '/api/settings'})
     return {success: true};
   })
   .get('/sessions', async ({user}) => {
-    const rows = await sql`SELECT id, created_at, expires_at FROM sessions WHERE owner = ${user!.accountID} AND expires_at > NOW() ORDER BY created_at DESC`;
+    const rows =
+      await sql`SELECT id, created_at, expires_at FROM sessions WHERE owner = ${user!.accountID} AND expires_at > NOW() ORDER BY created_at DESC`;
 
     return {
-      sessions: rows.map((session) => ({id: session.id, current: session.id === user!.id, createdAt: session.created_at, expiresAt: session.expires_at})),
+      sessions: rows.map((session) => ({
+        id: session.id,
+        current: session.id === user!.id,
+        createdAt: session.created_at,
+        expiresAt: session.expires_at,
+      })),
     };
   })
   .post('/totp', async ({set, body, user, verifiedPassword}) => {
@@ -252,7 +252,8 @@ export default new Elysia({prefix: '/api/settings'})
       return error(set, 400, err);
     }
 
-    const updated = await sql`UPDATE users SET username = ${username} WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING id`;
+    const updated =
+      await sql`UPDATE users SET username = ${username} WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING id`;
 
     if (!updated.length) {
       return error(set, 409, 'Account changed. Try again');
@@ -289,7 +290,8 @@ export default new Elysia({prefix: '/api/settings'})
     return {success: true};
   })
   .delete('/totp', async ({user, verifiedPassword, set}) => {
-    const updated = await sql`UPDATE users SET totp = NULL, totp_counter = NULL, recovery_hashes = ARRAY[]::varchar(64)[]
+    const updated =
+      await sql`UPDATE users SET totp = NULL, totp_counter = NULL, recovery_hashes = ARRAY[]::varchar(64)[]
       WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING id`;
 
     if (!updated.length) {
@@ -298,18 +300,8 @@ export default new Elysia({prefix: '/api/settings'})
 
     return {recoveryRemaining: 0};
   })
-  .delete('/account', async ({user, set}) => {
-    await withAccountLock(user!.accountID, async (connection) => {
-      await connection`UPDATE users SET deletion_requested_at = COALESCE(deletion_requested_at, NOW()) WHERE id = ${user!.accountID}`;
-    });
+  .delete('/account', async ({user}) => {
+    await deleteAccount(user!.accountID);
 
-    const completed = await completeAccountDeletion(user!.accountID).catch(() => false);
-
-    if (!completed) {
-      set.status = 202;
-
-      return {status: 'deleting', message: 'Account deletion is pending. Cleanup will continue automatically. You can check again here.'};
-    }
-
-    return {status: 'deleted', success: true};
+    return {success: true};
   });

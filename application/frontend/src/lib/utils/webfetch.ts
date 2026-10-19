@@ -1,6 +1,11 @@
 import type {ApiResult} from '$type';
 
-export async function request<T>(path: string, method = 'GET', body?: Record<string, unknown>, signal?: AbortSignal): Promise<ApiResult<T>> {
+export async function request<T>(
+  path: string,
+  method = 'GET',
+  body?: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<ApiResult<T>> {
   let url = `/api${path}`;
 
   if (method === 'GET' && body) {
@@ -23,7 +28,12 @@ export async function request<T>(path: string, method = 'GET', body?: Record<str
     const data = await response.json();
 
     if (!response.ok) {
-      return {ok: false, error: data.error?.message || 'Request failed', code: data.error?.code || 'request_failed', status: response.status};
+      return {
+        ok: false,
+        error: data.error?.message || 'Request failed',
+        code: data.error?.code || 'request_failed',
+        status: response.status,
+      };
     }
 
     return {ok: true, data};

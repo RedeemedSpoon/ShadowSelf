@@ -13,6 +13,7 @@
 }
 
 html {
+  scroll-behavior: smooth;
   scroll-padding-top: calc(var(--public-header-height) + 24px);
 }
 
@@ -256,10 +257,20 @@ button:disabled {
   white-space: nowrap;
   transition:
     border-color 140ms,
-    background 140ms;
+    background 140ms,
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
 }
 .control-button:hover:not(:disabled) {
   filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+.control-button.primary:hover:not(:disabled) {
+  box-shadow: 0 6px 22px #6253ec35;
+}
+.control-button:active:not(:disabled) {
+  transform: translateY(0);
 }
 .control-button.secondary {
   border-color: #a5b4fc30;

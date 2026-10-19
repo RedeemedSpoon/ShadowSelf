@@ -1,13 +1,13 @@
 import {provisionIdentity, withIdentityLock} from '@core/identity-service';
 import middlewareApi from '@middlewares/middleware-api';
-import {ETHNICITIES, LOCATIONS} from '@core/constants';
+import {ETHNICITIES} from '@core/constants';
 import {phoneProvider} from '@core/phone-provider';
 import {generateProfile} from '@utils/prompts';
 import {checkIdentity} from '@utils/checks';
 import type {CreationDraft} from '@type';
 import {ApiError} from '@core/security';
 import {sql} from '@core/services';
-import {allFakers} from '@faker-js/faker';
+import {faker} from '@faker-js/faker';
 import {Elysia} from 'elysia';
 
 async function loadDraft(identityID: string) {
@@ -76,21 +76,22 @@ export default new Elysia({prefix: '/api/identities/:id/creation'})
   .get('/', async ({identity}) => {
     const job = await loadDraft(identity!.id);
 
-    return {draft: job.draft, locations: LOCATIONS, status: identity!.status, creationStatus: job.status};
+    return {draft: job.draft, status: identity!.status, creationStatus: job.status};
   })
   .put('/', async ({identity, body}) => ({draft: await saveDraft(identity!.id, body as CreationDraft)}))
   .post('/profile', async ({identity, body}) => {
-    const input = body as {location?: string; regenerate?: CreationDraft['profile']; repeat?: {name?: boolean; bio?: boolean; sex?: 'male' | 'female'}};
+    const input = body as {
+      location?: string;
+      regenerate?: CreationDraft['profile'];
+      repeat?: {name?: boolean; bio?: boolean; sex?: 'male' | 'female'};
+    };
     const job = await loadDraft(identity!.id);
 
     const location = input?.location || job.draft.location;
-    const lang = LOCATIONS.find((item) => item.code === location);
 
-    if (!lang) {
+    if (typeof location !== 'string' || !location.trim() || location.length > 120) {
       throw new ApiError(400, 'invalid_request', 'Choose a location first');
     }
-
-    const faker = allFakers[lang.localization as keyof typeof allFakers];
 
     if (input.repeat) {
       return {
@@ -115,8 +116,8 @@ export default new Elysia({prefix: '/api/identities/:id/creation'})
       throw new ApiError(400, 'invalid_request', validation.error);
     }
 
-    const picture = await generateProfile(lang, profile.age, profile.sex, profile.ethnicity, profile.bio);
-    await saveDraft(identity!.id, {location: lang.code, profile: {...profile, picture}});
+    const picture = await generateProfile(location, profile.age, profile.sex, profile.ethnicity, profile.bio);
+    await saveDraft(identity!.id, {location, profile: {...profile, picture}});
 
     return {identity: {...profile, picture}};
   })
@@ -145,7 +146,10 @@ export default new Elysia({prefix: '/api/identities/:id/creation'})
       throw new ApiError(400, 'invalid_request', 'Email is required');
     }
 
-    const draft = await saveDraft(identity!.id, {email: input.email, ...(input.location ? {location: input.location} : {})});
+    const draft = await saveDraft(identity!.id, {
+      email: input.email,
+      ...(input.location ? {location: input.location} : {}),
+    });
 
     if (!draft.location) {
       throw new ApiError(400, 'invalid_request', 'Choose a location first');

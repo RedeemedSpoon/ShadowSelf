@@ -1,3 +1,4 @@
+import {IDENTITY_CREATION_AVAILABLE} from '@core/constants';
 import {allocateInvoiceAddress, quoteXmr, parseXmr} from '@core/wallet-service';
 import {SOCKET_AUTH_INTERVAL, POLL_PRICES_INTERVAL} from '@core/constants';
 import {cryptoPrices, invoiceConnections, watchWallet, billingReadiness} from '@core/states';
@@ -15,18 +16,16 @@ import {Elysia, t} from 'elysia';
 
 export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeout: 300}})
   .use(middlewareBase)
-  .post('/invoices', ({set, user, body}) => createInvoice(set, user?.email, body, false))
-  .post('/renewals', ({set, user, body}) => createInvoice(set, user?.email, body, true))
+  .guard({authenticated: true})
+  .post('/invoices', ({set, user, body}) => createInvoice(set, user.email, body, false))
+  .post('/renewals', ({set, user, body}) => createInvoice(set, user.email, body, true))
   .get('/requests/:id', async ({set, user, params}) => {
-    if (!user) {
-      return error(set, 401, 'Sign in to view this payment request');
-    }
-
     if (!UUID_PATTERN.test(params.id)) {
       return error(set, 404, 'Payment request not found');
     }
 
-    const invoices = await sql`SELECT id FROM crypto_invoices WHERE owner = ${user.accountID} AND request_id = ${params.id}`;
+    const invoices =
+      await sql`SELECT id FROM crypto_invoices WHERE owner = ${user.accountID} AND request_id = ${params.id}`;
 
     if (!invoices.length) {
       return error(set, 404, 'Payment request not found');
@@ -35,10 +34,6 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
     return {invoiceID: invoices[0].id};
   })
   .get('/invoices/:id', async ({set, user, params}) => {
-    if (!user) {
-      return error(set, 401, 'Sign in to view this invoice');
-    }
-
     if (!UUID_PATTERN.test(params.id)) {
       return error(set, 404, 'Invoice not found');
     }
@@ -67,7 +62,9 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
       coin: invoice.swap_coin,
       depositAddress: null,
       depositAmount: null,
-      ...(invoice.provider_reference ? {externalLink: `https://trocador.app/en/checkout/${encodeURIComponent(invoice.provider_reference)}`} : {}),
+      ...(invoice.provider_reference
+        ? {externalLink: `https://trocador.app/en/checkout/${encodeURIComponent(invoice.provider_reference)}`}
+        : {}),
       ...invoice.response,
       status:
         !invoice.response && invoice.provider_state === 'requested'
@@ -92,7 +89,8 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
         return ws.close(1008, 'Session expired');
       }
 
-      const invoice = await sql`SELECT c.status, i.id AS identity_id FROM crypto_invoices c JOIN users u ON u.id = c.owner
+      const invoice =
+        await sql`SELECT c.status, i.id AS identity_id FROM crypto_invoices c JOIN users u ON u.id = c.owner
         LEFT JOIN identities i ON i.crypto_invoice = c.id AND i.owner = c.owner
         WHERE c.id = ${invoiceID} AND u.email = ${user.email}`;
 
@@ -128,11 +126,8 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
     },
   });
 
-async function createInvoice(set: Record<string, any>, email: string | undefined, body: unknown, renewal: boolean) {
-  if (!email) {
-    return error(set, 401, 'You are not logged in');
-  }
-
+async function createInvoice(set: Record<string, any>, email: string, body: unknown, renewal: boolean) {
+  requireProvider(renewal || IDENTITY_CREATION_AVAILABLE, 'New identity purchases');
   requireProvider(cryptoBillingEnabled, 'Crypto billing');
 
   const fields = ['plan', 'swapCoin', '?refundAddress', ...(renewal ? ['identityID'] : [])];
@@ -148,33 +143,42 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
     return error(set, 400, 'A payment request ID is required');
   }
 
-  if (!watchWallet || !cryptoPrices.xmr?.usdPrice || Date.now() - billingReadiness.priceSync > POLL_PRICES_INTERVAL * 3) {
+  if (
+    !watchWallet ||
+    !cryptoPrices.xmr?.usdPrice ||
+    Date.now() - billingReadiness.priceSync > POLL_PRICES_INTERVAL * 3
+  ) {
     return error(set, 503, 'Crypto billing is initializing');
   }
 
-  const users = await sql`SELECT id FROM users WHERE email = ${email} AND deletion_requested_at IS NULL`;
+  const users = await sql`SELECT id FROM users WHERE email = ${email}`;
 
   if (!users.length) {
-    return error(set, 409, 'This account is being deleted');
+    return error(set, 401, 'Sign in to continue');
   }
 
   const owner = users[0].id;
 
   if (renewal) {
-    const identities = await sql`SELECT id FROM identities WHERE id = ${identityID} AND owner = ${owner} AND plan = ${plan} AND status <> 'deleting'`;
+    const identities =
+      await sql`SELECT id FROM identities WHERE id = ${identityID} AND owner = ${owner} AND plan = ${plan}`;
 
     if (!identities.length) {
       return error(set, 404, 'Identity not found or plan does not match');
     }
   }
 
-  const xmrAmount = quoteXmr(PRICING_TIERS[plan as keyof typeof PRICING_TIERS], CRYPTO_DISCOUNT, cryptoPrices.xmr.usdPrice);
+  const xmrAmount = quoteXmr(
+    PRICING_TIERS[plan as keyof typeof PRICING_TIERS],
+    CRYPTO_DISCOUNT,
+    cryptoPrices.xmr.usdPrice,
+  );
 
   return withAccountLock(owner, async (connection) => {
-    const owners = await connection`SELECT id FROM users WHERE id = ${owner} AND deletion_requested_at IS NULL`;
+    const owners = await connection`SELECT id FROM users WHERE id = ${owner}`;
 
     if (!owners.length) {
-      return error(set, 409, 'This account is being deleted');
+      return error(set, 401, 'Sign in to continue');
     }
 
     const unresolved =
@@ -190,7 +194,8 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
     VALUES (${owner}, ${plan}, ${xmrAmount}, ${renewal ? identityID : null}, ${requestID!}, ${swapCoin}, ${refundAddress || null})
     ON CONFLICT (owner, request_id) DO NOTHING`;
 
-    const invoices = await connection`SELECT * FROM crypto_invoices WHERE owner = ${owner} AND request_id = ${requestID!}`;
+    const invoices =
+      await connection`SELECT * FROM crypto_invoices WHERE owner = ${owner} AND request_id = ${requestID!}`;
 
     const invoice = invoices[0];
 
@@ -232,7 +237,12 @@ async function createInvoice(set: Record<string, any>, email: string | undefined
     let response;
 
     if (swapCoin === 'xmr') {
-      response = {invoiceID: invoice.id, depositAddress: invoice.xmr_subaddress, depositAmount: invoice.xmr_amount, coin: swapCoin};
+      response = {
+        invoiceID: invoice.id,
+        depositAddress: invoice.xmr_subaddress,
+        depositAmount: invoice.xmr_amount,
+        coin: swapCoin,
+      };
     } else {
       requireProvider(!!trocadorApiKey, 'Crypto exchange');
       const reference = await swapProvider.paymentQuote(swapCoin, invoice.xmr_amount);

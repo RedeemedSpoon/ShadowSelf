@@ -3,7 +3,6 @@ name: Verify
 on:
   pull_request:
   push:
-    branches: [V2, main, master]
 
 permissions:
   contents: read

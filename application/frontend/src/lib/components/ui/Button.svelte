@@ -12,10 +12,20 @@
     disabled,
     type = 'button',
     ...rest
-  }: HTMLButtonAttributes & {children?: Snippet; loading?: boolean; variant?: 'primary' | 'secondary' | 'danger' | 'quiet'; icon?: string} = $props();
+  }: HTMLButtonAttributes & {
+    children?: Snippet;
+    loading?: boolean;
+    variant?: 'primary' | 'secondary' | 'danger' | 'quiet';
+    icon?: string;
+  } = $props();
 </script>
 
-<button {...rest} {type} class="control-button {variant} {className}" disabled={disabled || loading} aria-busy={loading}>
+<button
+  {...rest}
+  {type}
+  class="control-button {variant} {className}"
+  disabled={disabled || loading}
+  aria-busy={loading}>
   {#if loading}<span class="spinner" aria-hidden="true"></span>{:else if icon}<Icon name={icon} size={17} />{/if}
   {@render children?.()}
 </button>

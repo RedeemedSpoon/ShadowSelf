@@ -1,3 +1,4 @@
+import {ONION_ORIGIN} from '@core/constants';
 import {origin} from '@core/config';
 import {ApiError, sessionToken, tokenHash} from '@core/security';
 import {sql} from '@core/services';
@@ -10,14 +11,20 @@ export function getBearerToken(authorization: string | undefined) {
   return match?.[1];
 }
 
-export async function issueSession(account: string | Pick<QueryUser, 'email' | 'password' | 'totp'>, transaction?: TransactionSql) {
+export async function issueSession(
+  account: string | Pick<QueryUser, 'email' | 'password' | 'totp'>,
+  transaction?: TransactionSql,
+) {
   const create = async (connection: TransactionSql) => {
     const email = typeof account === 'string' ? account : account.email;
     const users = await connection`SELECT id, password, totp FROM users WHERE email = ${email} FOR SHARE`;
 
     const current = users[0];
 
-    if (!current || (typeof account !== 'string' && (current.password !== account.password || current.totp !== account.totp))) {
+    if (
+      !current ||
+      (typeof account !== 'string' && (current.password !== account.password || current.totp !== account.totp))
+    ) {
       throw new ApiError(401, 'unauthenticated', 'Account changed. Sign in again');
     }
 
@@ -36,10 +43,10 @@ export async function verifySessionToken(token: string | undefined): Promise<Use
     return undefined;
   }
 
-  const rows = await sql`SELECT u.email, u.id AS account_id, s.id, u.deletion_requested_at FROM sessions s JOIN users u ON u.id = s.owner
+  const rows = await sql`SELECT u.email, u.id AS account_id, s.id FROM sessions s JOIN users u ON u.id = s.owner
     WHERE s.token_hash = ${tokenHash(token)} AND s.expires_at > NOW()`;
 
-  return rows[0] ? {email: rows[0].email, id: rows[0].id, accountID: rows[0].account_id, deletingAccount: !!rows[0].deletion_requested_at} : undefined;
+  return rows[0] ? {email: rows[0].email, id: rows[0].id, accountID: rows[0].account_id} : undefined;
 }
 
 export async function verifyApiToken(token: string | undefined): Promise<User> {
@@ -47,17 +54,19 @@ export async function verifyApiToken(token: string | undefined): Promise<User> {
     return undefined;
   }
 
-  const rows = await sql`SELECT id, email FROM users WHERE api_key = ${tokenHash(token)} AND api_access = true AND deletion_requested_at IS NULL`;
+  const rows = await sql`SELECT id, email FROM users WHERE api_key = ${tokenHash(token)} AND api_access = true`;
 
-  return rows[0] ? {email: rows[0].email, id: '', accountID: rows[0].id, deletingAccount: false} : undefined;
+  return rows[0] ? {email: rows[0].email, id: '', accountID: rows[0].id} : undefined;
 }
 
 export function trustedCookieRequest(request: Request) {
-  const safe = ['GET', 'HEAD', 'OPTIONS'].includes(request.method) && request.headers.get('upgrade')?.toLowerCase() !== 'websocket';
+  const safe =
+    ['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
+    request.headers.get('upgrade')?.toLowerCase() !== 'websocket';
 
   if (safe || getBearerToken(request.headers.get('authorization') || undefined)) {
     return true;
   }
 
-  return [origin, 'http://shadow7sk64geknoyyzsfyjm4rylnknx5pzhfhzkecoggowhitafggqd.onion'].includes(request.headers.get('origin') || '');
+  return [origin, ONION_ORIGIN].includes(request.headers.get('origin') || '');
 }

@@ -25,8 +25,7 @@
     "otpauth": "^9.5.2",
     "postgres": "^3.4.9",
     "sharp": "^0.35.5",
-    "stripe": "^22.6.2",
-    "twilio": "^6.1.1"
+    "stripe": "^22.6.2"
   },
   "type": "module",
   "module": "src/index.ts",

@@ -31,11 +31,14 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       const mailbox = query.mailbox;
       const before = query.before === undefined ? undefined : Number(query.before);
 
-      if (!['INBOX', 'Sent', 'Drafts', 'Junk'].includes(mailbox || '') || (before !== undefined && (!Number.isSafeInteger(before) || before < 1))) {
+      if (
+        !['INBOX', 'Sent', 'Drafts', 'Junk'].includes(mailbox || '') ||
+        (before !== undefined && (!Number.isSafeInteger(before) || before < 1))
+      ) {
         return error(set, 400, 'Invalid mailbox or cursor');
       }
 
-      return mailReader.list(identity!.email, identity!.email_password, mailbox as Mailbox, before);
+      return mailReader.list(identity!.email, identity!.mailbox_password_encrypted, mailbox as Mailbox, before);
     },
     {
       beforeHandle: ({identity, set, query}) => {
@@ -50,7 +53,12 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       return error(set, 400, 'Invalid mailbox or UID');
     }
 
-    const email = await mailReader.message(identity!.email, identity!.email_password, source.mailbox, source.uid);
+    const email = await mailReader.message(
+      identity!.email,
+      identity!.mailbox_password_encrypted,
+      source.mailbox,
+      source.uid,
+    );
 
     if (!email) {
       return error(set, 404, 'Email not found');
@@ -66,7 +74,13 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       return error(set, 400, 'Invalid attachment location');
     }
 
-    const attachment = await mailReader.attachment(identity!.email, identity!.email_password, source.mailbox, source.uid, index);
+    const attachment = await mailReader.attachment(
+      identity!.email,
+      identity!.mailbox_password_encrypted,
+      source.mailbox,
+      source.uid,
+      index,
+    );
 
     if (!attachment) {
       return error(set, 404, 'Attachment not found');
@@ -81,7 +95,7 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       return error(set, 400, 'Invalid Message-ID');
     }
 
-    const email = await mailReader.reply(identity!.email, identity!.email_password, uuid);
+    const email = await mailReader.reply(identity!.email, identity!.mailbox_password_encrypted, uuid);
 
     return {fetchEmail: email ? withoutAttachments(email) : null};
   })
@@ -100,7 +114,7 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
     }
 
     const email = identity!.email;
-    const password = identity!.email_password;
+    const password = identity!.mailbox_password_encrypted;
     const flatReferences = Array.isArray(references) ? references.flat(Infinity) : references;
     const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
 
@@ -143,7 +157,14 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       return error(set, 400, 'Invalid mailbox or UID');
     }
 
-    const email = await mailReader.message(identity!.email, identity!.email_password, source.mailbox, source.uid, false, true);
+    const email = await mailReader.message(
+      identity!.email,
+      identity!.mailbox_password_encrypted,
+      source.mailbox,
+      source.uid,
+      false,
+      true,
+    );
 
     if (!email) {
       return error(set, 404, 'Email not found');
@@ -151,7 +172,10 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
 
     if (email.type === 'html') {
       const escape = (value: unknown) =>
-        String(value ?? '').replace(/[&<>"']/g, (char) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[char]!);
+        String(value ?? '').replace(
+          /[&<>"']/g,
+          (char) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[char]!,
+        );
       email.body = `
       <p><strong>--- Forwarded Message ---</strong></p>
       <p><strong>From:</strong> ${escape(email.from)}</p>
@@ -174,7 +198,12 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
 
     email.subject = email.subject.toUpperCase().startsWith('FWD: ') ? email.subject : `FWD: ${email?.subject}`;
 
-    const forwardContent = {...email, to: forward, email: identity!.email, password: identity!.email_password};
+    const forwardContent = {
+      ...email,
+      to: forward,
+      email: identity!.email,
+      password: identity!.mailbox_password_encrypted,
+    };
 
     const response = await sendIdentityEmail(forwardContent as EmailContent);
 
@@ -214,7 +243,7 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
     }
 
     const email = identity!.email;
-    const password = identity!.email_password;
+    const password = identity!.mailbox_password_encrypted;
     const flatReferences = Array.isArray(references) ? references.flat(Infinity) : references;
     const content = {email, password, to, subject, body: emailBody, attachments, references: flatReferences, inReplyTo};
 
@@ -247,7 +276,7 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       return error(set, 400, err);
     }
 
-    await deleteEmail(identity!.email, identity!.email_password, mailbox!, (body as APIRequest).uid!);
+    await deleteEmail(identity!.email, identity!.mailbox_password_encrypted, mailbox!, (body as APIRequest).uid!);
 
     return {mailbox, uid};
   });

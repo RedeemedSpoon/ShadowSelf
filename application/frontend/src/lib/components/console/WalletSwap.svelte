@@ -50,10 +50,14 @@
     error = '';
     const result =
       swap.status === 'pending'
-        ? await request<{status: string; response?: WalletTrade; message?: string} | WalletTrade>(`/identities/${account.id}/wallet/swaps`, 'POST', {
-            ...swap.request,
-            requestID: swap.requestID,
-          })
+        ? await request<{status: string; response?: WalletTrade; message?: string} | WalletTrade>(
+            `/identities/${account.id}/wallet/swaps`,
+            'POST',
+            {
+              ...swap.request,
+              requestID: swap.requestID,
+            },
+          )
         : await request<{status: string; response?: WalletTrade; message?: string}>(
             `/identities/${account.id}/wallet/swaps/${swap.requestID}/reconcile`,
             'POST',
@@ -153,7 +157,8 @@
   <p>External swap providers quote and process the exchange. Review their requirements before depositing.</p>
   <Status message={error} kind="error" />
   {#if !historyLoaded}<Button variant="secondary" onclick={loadHistory}>Load swap history</Button>{/if}
-  {#if unresolved}<Status message="An earlier swap request needs reconciliation. New trades are blocked until the provider confirms its outcome." /><Copy
+  {#if unresolved}<Status
+      message="An earlier swap request needs reconciliation. New trades are blocked until the provider confirms its outcome." /><Copy
       value={unresolved.requestID}
       label="Copy request reference" /><Button loading={pending} onclick={() => reconcile(unresolved)}
       >{unresolved.status === 'pending' ? 'Resume saved request' : 'Check existing provider trade'}</Button
@@ -161,13 +166,18 @@
   {#if swaps.length}<details>
       <summary>Saved swap requests</summary>
       {#each swaps as swap (swap.requestID)}<div class="saved-swap">
-          <p>{swap.request.amount} {swap.request.coinFrom.toUpperCase()} → {swap.request.coinTo.toUpperCase()} · {swap.status}</p>
-          <Copy value={swap.requestID} label="Copy reference" />{#if swap.response}<Button variant="quiet" onclick={() => (trade = swap.response)}
-              >View deposit details</Button
+          <p>
+            {swap.request.amount}
+            {swap.request.coinFrom.toUpperCase()} → {swap.request.coinTo.toUpperCase()} · {swap.status}
+          </p>
+          <Copy value={swap.requestID} label="Copy reference" />{#if swap.response}<Button
+              variant="quiet"
+              onclick={() => (trade = swap.response)}>View deposit details</Button
             >{/if}
         </div>{/each}
     </details>{/if}
-  {#if trade}<Status message="Swap created. Deposit only the specified amount. Keep the trade reference until completion." />
+  {#if trade}<Status
+      message="Swap created. Deposit only the specified amount. Keep the trade reference until completion." />
     <dl class="data-list">
       <div>
         <dt>Trade reference</dt>
@@ -186,8 +196,11 @@
           <dd><Copy value={trade.depositMemo} /></dd>
         </div>{/if}
     </dl>
-    {#if trade.externalLink}<a class="control-button secondary swap-link" href={trade.externalLink} target="_blank" rel="noopener noreferrer"
-        >Track provider trade</a
+    {#if trade.externalLink}<a
+        class="control-button secondary swap-link"
+        href={trade.externalLink}
+        target="_blank"
+        rel="noopener noreferrer">Track provider trade</a
       >{/if}{:else}<form onsubmit={quotes} class="swap-form">
       <div class="form-grid">
         <div class="field">
@@ -201,8 +214,13 @@
             required />
         </div>
         <div class="field">
-          <label for="swap-coin">Receive coin</label><select id="swap-coin" bind:value={destinationCoin} disabled={pending} onchange={clearQuotes}
-            >{#each ['btc', 'ltc', 'eth', 'usdt', 'xmr'] as ticker (ticker)}{#if ticker !== coin}<option value={ticker}>{ticker.toUpperCase()}</option
+          <label for="swap-coin">Receive coin</label><select
+            id="swap-coin"
+            bind:value={destinationCoin}
+            disabled={pending}
+            onchange={clearQuotes}
+            >{#each ['btc', 'ltc', 'eth', 'usdt', 'xmr'] as ticker (ticker)}{#if ticker !== coin}<option value={ticker}
+                  >{ticker.toUpperCase()}</option
                 >{/if}{/each}</select>
         </div>
         <div class="field wide">
@@ -229,9 +247,14 @@
             <div>
               <h3>{provider.name}</h3>
               <p>{provider.returnCoin} {destinationCoin.toUpperCase()} · Approx. {provider.eta} minutes</p>
-              <small>KYC rating {provider.kycRating} · Logs rating {provider.logPolicy} · Fee {provider.costPercentage}%</small>
+              <small
+                >KYC rating {provider.kycRating} · Logs rating {provider.logPolicy} · Fee {provider.costPercentage}%</small>
             </div>
-            <Button variant="secondary" loading={pending} disabled={!historyLoaded || !!unresolved} onclick={() => create(provider.name)}>Create swap</Button>
+            <Button
+              variant="secondary"
+              loading={pending}
+              disabled={!historyLoaded || !!unresolved}
+              onclick={() => create(provider.name)}>Create swap</Button>
           </article>{/each}
       </div>{/if}{/if}
 </section>

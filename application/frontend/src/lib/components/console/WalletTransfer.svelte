@@ -1,7 +1,14 @@
 <script lang="ts">
   import {request} from '$utils/webfetch';
   import {deriveXPub, decrypt} from '$utils/cryptography';
-  import {selectBestUtxos, estimateTransactionFee, signTransaction, acquireEvmSend, checkPendingEvmSend, recordPendingEvmSend} from '$utils/wallet';
+  import {
+    selectBestUtxos,
+    estimateTransactionFee,
+    signTransaction,
+    acquireEvmSend,
+    checkPendingEvmSend,
+    recordPendingEvmSend,
+  } from '$utils/wallet';
   import type {prepareMoneroTransaction} from '$utils/monero';
   import {vaultKey} from '$store';
   import {get} from 'svelte/store';
@@ -19,7 +26,13 @@
     crypto,
     sweep = false,
     oncomplete,
-  }: {account: FullIdentity; coin: Coins; crypto: WalletState; sweep?: boolean; oncomplete: () => Promise<void>} = $props();
+  }: {
+    account: FullIdentity;
+    coin: Coins;
+    crypto: WalletState;
+    sweep?: boolean;
+    oncomplete: () => Promise<void>;
+  } = $props();
   let amount = $state('');
   let destination = $state('');
   let privateKey = $state('');
@@ -58,7 +71,9 @@
   });
 
   let selected = $state<UTXOData>([]);
-  const utxos = $derived((coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status !== 'Unavailable' ? crypto.wallet[coin].utxos : []);
+  const utxos = $derived(
+    (coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status !== 'Unavailable' ? crypto.wallet[coin].utxos : [],
+  );
   const fee = $derived.by(() => {
     try {
       return estimateTransactionFee(coin, selected, crypto.fees[coin]?.[priority] ?? 0, amount);
@@ -100,7 +115,12 @@
 
       if (coin === 'xmr') {
         const {prepareMoneroTransaction} = await import('$utils/monero');
-        const prepared = await prepareMoneroTransaction(crypto.wallet.xmr.nodeUrl, recipient, requestedAmount, {low: 1, medium: 2, high: 3}[priority]);
+        const prepared = await prepareMoneroTransaction(
+          crypto.wallet.xmr.nodeUrl,
+          recipient,
+          requestedAmount,
+          {low: 1, medium: 2, high: 3}[priority],
+        );
 
         if (!active || get(vaultKey) !== key) {
           return;
@@ -148,7 +168,9 @@
       const signed = await signTransaction(coin, recipient, requestedAmount, {
         senderAddress: prepared ? sendingAddress : undefined,
         gasPriceAtoms: prepared?.gasPriceAtoms,
-        estimatedFee: prepared ? prepared.gasPrice : estimateTransactionFee(coin, selected, crypto.fees[coin]?.[priority] ?? 0, requestedAmount),
+        estimatedFee: prepared
+          ? prepared.gasPrice
+          : estimateTransactionFee(coin, selected, crypto.fees[coin]?.[priority] ?? 0, requestedAmount),
         privKeyType: 'mnemonic',
         wifKey: mnemonic,
         index: wallet && wallet.status !== 'Unavailable' ? (wallet.nextIndex ?? undefined) : undefined,
@@ -194,9 +216,15 @@
       const key = bitcoin.WIF(network).decode(importedKey);
       const publicKey = new HDKey({privateKey: key, chainCode: new Uint8Array(32)}).publicKey!;
       const witness = bitcoin.p2wpkh(publicKey, network);
-      addresses = [witness.address!, bitcoin.p2sh(witness, network).address!, bitcoin.p2pkh(publicKey, network).address!];
+      addresses = [
+        witness.address!,
+        bitcoin.p2sh(witness, network).address!,
+        bitcoin.p2pkh(publicKey, network).address!,
+      ];
     } else {
-      addresses = [privateKeyToAccount((importedKey.startsWith('0x') ? importedKey : `0x${importedKey}`) as `0x${string}`).address];
+      addresses = [
+        privateKeyToAccount((importedKey.startsWith('0x') ? importedKey : `0x${importedKey}`) as `0x${string}`).address,
+      ];
     }
 
     if (coin === 'eth' || coin === 'usdt') {
@@ -208,11 +236,14 @@
       }
     }
 
-    const result = await request<{balance: number | string; gasBalance?: string; utxos?: UTXOData; nonce?: number; gasPrice?: number; gasPriceAtoms?: string}>(
-      `/identities/${account.id}/wallet/sweep`,
-      'POST',
-      {coin, addresses},
-    );
+    const result = await request<{
+      balance: number | string;
+      gasBalance?: string;
+      utxos?: UTXOData;
+      nonce?: number;
+      gasPrice?: number;
+      gasPriceAtoms?: string;
+    }>(`/identities/${account.id}/wallet/sweep`, 'POST', {coin, addresses});
 
     if (!result.ok) {
       throw new Error(result.error);
@@ -318,7 +349,10 @@
         }
 
         if (coin === 'eth' || coin === 'usdt') {
-          const fresh = await request<EvmPreparation>(`/identities/${account.id}/wallet/prepare`, 'POST', {coin, address: sendingAddress});
+          const fresh = await request<EvmPreparation>(`/identities/${account.id}/wallet/prepare`, 'POST', {
+            coin,
+            address: sendingAddress,
+          });
 
           if (!active || get(vaultKey) !== key) {
             discardPreparation();
@@ -338,7 +372,10 @@
           recordPendingEvmSend(sendingAddress, preparedNonce!);
         }
 
-        const result = await request<{txid: string}>(`/identities/${account.id}/wallet/transactions`, 'POST', {coin: payload.coin, hex: payload.hex});
+        const result = await request<{txid: string}>(`/identities/${account.id}/wallet/transactions`, 'POST', {
+          coin: payload.coin,
+          hex: payload.hex,
+        });
 
         if (!result.ok) {
           throw new Error(`${result.error} If broadcast was interrupted, check transaction history before retrying.`);
@@ -353,7 +390,10 @@
       amount = '';
       await oncomplete();
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : 'Broadcast could not be confirmed. Check history before sending again.';
+      error =
+        cause instanceof Error
+          ? cause.message
+          : 'Broadcast could not be confirmed. Check history before sending again.';
     } finally {
       pending = false;
     }
@@ -365,7 +405,9 @@
   {#if sweep}<p>Transfers the source balance minus the network fee. The private key stays in your browser.</p>{/if}
   {#if (coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status === 'Incomplete'}<Status
       message="Discovery is incomplete. This send uses only verified outputs and returns change to an existing address. Reusing an address links payments publicly." />{/if}
-  <Status message={error} kind="error" /><Status message={success} kind="success" />{#if txid}<Copy value={txid} label="Copy transaction ID" />{/if}
+  <Status message={error} kind="error" /><Status message={success} kind="success" />{#if txid}<Copy
+      value={txid}
+      label="Copy transaction ID" />{/if}
   <form onsubmit={prepare} class="transfer-form">
     {#if sweep}<div class="field">
         <label for="sweep-key">{coin === 'btc' || coin === 'ltc' ? 'WIF private key' : 'Hex private key'}</label><input
@@ -387,8 +429,13 @@
             required />
         </div>
         <div class="field">
-          <label for="send-priority">Network priority</label><select id="send-priority" bind:value={priority} disabled={pending} onchange={selectCoins}
-            ><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
+          <label for="send-priority">Network priority</label><select
+            id="send-priority"
+            bind:value={priority}
+            disabled={pending}
+            onchange={selectCoins}
+            ><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option
+            ></select>
         </div>
         <div class="field wide">
           <label for="send-destination">Recipient address</label><input
@@ -399,7 +446,8 @@
             required />
         </div>
       </div>
-      {#if coin !== 'xmr'}<p>Estimated network fee · {fee.fee} {fee.unit}</p>{/if}{#if utxos.length}<details class="coin-control">
+      {#if coin !== 'xmr'}<p>Estimated network fee · {fee.fee} {fee.unit}</p>{/if}{#if utxos.length}<details
+          class="coin-control">
           <summary>Coin control · {selected.length} selected inputs</summary>
           <p>Spending inputs together links them publicly on the blockchain.</p>
           {#each utxos as input (`${input.txid}:${input.vout}`)}<label
@@ -415,8 +463,10 @@
             >{/each}
         </details>{/if}{/if}
     <div class="button-row">
-      <Button type="submit" loading={pending}>Prepare transaction</Button><Button type="button" variant="quiet" onclick={() => (scanning = true)}
-        >Scan QR code</Button>
+      <Button type="submit" loading={pending}>Prepare transaction</Button><Button
+        type="button"
+        variant="quiet"
+        onclick={() => (scanning = true)}>Scan QR code</Button>
     </div>
   </form>
 </section>
@@ -450,11 +500,9 @@
       <dd>{coin === 'usdt' ? 'Ethereum ERC-20' : coin.toUpperCase()}</dd>
     </div>
   </dl>
-  <Status message="Crypto transactions cannot be reversed. Verify this address before sending." /><Status message={error} kind="error" /><Button
-    loading={pending}
-    icon="send"
-    onclick={broadcast}>Broadcast transaction</Button
-  ></Dialog>
+  <Status message="Crypto transactions cannot be reversed. Verify this address before sending." /><Status
+    message={error}
+    kind="error" /><Button loading={pending} icon="send" onclick={broadcast}>Broadcast transaction</Button></Dialog>
 
 <style>
   .transfer-form {

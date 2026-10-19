@@ -1,6 +1,6 @@
 import {HDKey} from '@scure/bip32';
 import type {BodyField, ContactDetail, CheckIdentity, APIRequest, QueryIdentity, InitializedIdentity} from '@type';
-import {ETHNICITIES, LOCATIONS} from '@core/constants';
+import {ETHNICITIES} from '@core/constants';
 import {toTitleCase, normalizePortrait} from '@utils/utils';
 
 export function check(rawBody: unknown, fields: string[], ignore?: boolean): BodyField {
@@ -129,7 +129,11 @@ export function checkContact(rawBody: unknown): ContactDetail {
 
   const body = rawBody as ContactDetail;
 
-  if (!['category', 'message', 'subject'].every((key) => typeof (body as unknown as Record<string, unknown>)[key] === 'string')) {
+  if (
+    !['category', 'message', 'subject'].every(
+      (key) => typeof (body as unknown as Record<string, unknown>)[key] === 'string',
+    )
+  ) {
     return {err: 'Invalid contact request'} as ContactDetail;
   }
 
@@ -171,8 +175,8 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
 
   switch (kind) {
     case 'location':
-      if (!LOCATIONS.some((loc) => loc.code === body.location)) {
-        return {error: 'Invalid location code'};
+      if (typeof body.location !== 'string' || !body.location.trim() || body.location.length > 120) {
+        return {error: 'Enter a profile location of up to 120 characters'};
       }
 
       break;
@@ -385,7 +389,10 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Website must be at most 2048 characters'} as APIRequest;
         }
 
-        if (body.website !== '' && !/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)) {
+        if (
+          body.website !== '' &&
+          !/^(https?:\/\/)?([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/[^?]*)?(\?[^#]*)?$/.test(body.website)
+        ) {
           return {err: 'Invalid website address, please try again'} as APIRequest;
         }
 
@@ -549,7 +556,9 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         }
 
         if (body.inReplyTo && !/^<[^<>]+@[^<>]+>$/.test(body.inReplyTo.trim())) {
-          return {err: 'Invalid inReplyTo value (should be Message-ID format like <id@domain>), please try again'} as APIRequest;
+          return {
+            err: 'Invalid inReplyTo value (should be Message-ID format like <id@domain>), please try again',
+          } as APIRequest;
         }
 
         break;
@@ -580,7 +589,9 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
         for (const attachment of body.attachments) {
           if (!attachment || typeof attachment !== 'object' || typeof attachment.data !== 'string') {
-            return {err: 'Invalid attachment format found (expected object with data string), please try again'} as APIRequest;
+            return {
+              err: 'Invalid attachment format found (expected object with data string), please try again',
+            } as APIRequest;
           }
 
           if (attachment.data.length * 0.75 > 15728640) {
@@ -727,7 +738,11 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
         break;
 
       case 'amount':
-        if ((typeof body.amount !== 'number' && typeof body.amount !== 'string') || !Number.isFinite(Number(body.amount)) || Number(body.amount) <= 0) {
+        if (
+          (typeof body.amount !== 'number' && typeof body.amount !== 'string') ||
+          !Number.isFinite(Number(body.amount)) ||
+          Number(body.amount) <= 0
+        ) {
           return {err: 'Amount must be a positive number'} as APIRequest;
         }
 
@@ -786,7 +801,20 @@ function validAccountPublicKey(value: unknown) {
 }
 
 export function isInitializedIdentity(identity: QueryIdentity): identity is InitializedIdentity {
-  const fields = ['location', 'picture', 'name', 'bio', 'age', 'sex', 'ethnicity', 'email', 'email_password', 'phone', 'wallet_blob', 'wallet_keys'] as const;
+  const fields = [
+    'location',
+    'picture',
+    'name',
+    'bio',
+    'age',
+    'sex',
+    'ethnicity',
+    'email',
+    'mailbox_password_encrypted',
+    'phone',
+    'wallet_blob',
+    'wallet_keys',
+  ] as const;
 
   return fields.every((field) => identity[field] !== null);
 }

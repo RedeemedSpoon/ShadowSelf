@@ -3,11 +3,10 @@ import {contact} from '@utils/email-smtp';
 import type {ContactDetail} from '@type';
 import {error, reportFailure} from '@utils/utils';
 import {ApiError} from '@core/security';
-import {createRequestLimiter, requestClientIP} from '@core/request-limits';
 import {Elysia} from 'elysia';
 import {billingReadiness, cryptoPrices} from '@core/states';
 import {POLL_INVOICES_INTERVAL, POLL_PRICES_INTERVAL} from '@core/constants';
-import {cryptoBillingEnabled, trustedProxyIPs} from '@core/config';
+import {cryptoBillingEnabled} from '@core/config';
 import creation from './routes/creation-process';
 import settings from './routes/user-settings';
 import api from './routes/public-api/index';
@@ -17,8 +16,6 @@ import webhooks from './routes/webhooks';
 import billing from './routes/billing';
 
 export function createApp(providers: {sendVerificationCode?: typeof sendVerificationCode} = {}) {
-  const limit = createRequestLimiter();
-
   return new Elysia({serve: {maxRequestBodySize: 20 * 1024 * 1024}})
     .onError(({code, error: failure, set}) => {
       if (failure instanceof ApiError) {
@@ -43,27 +40,9 @@ export function createApp(providers: {sendVerificationCode?: typeof sendVerifica
 
       return error(set, 500, 'The operation could not complete. Retry shortly');
     })
-    .onRequest(({request, server, set}) => {
+    .onRequest(({set}) => {
       set.headers['cache-control'] = 'no-store';
       set.headers['x-content-type-options'] = 'nosniff';
-
-      const path = new URL(request.url).pathname;
-
-      if (path.startsWith('/health/') || path.startsWith('/api/webhooks/')) {
-        return;
-      }
-
-      const peer = server?.requestIP(request)?.address || 'local';
-      const ip = requestClientIP(peer, request.headers.get('x-forwarded-for'), trustedProxyIPs);
-      limit(`requests:${ip}`, 240, 60_000);
-
-      if (request.method !== 'GET' && path.startsWith('/api/auth/')) {
-        limit(`authentication:${ip}`, 30, 300_000);
-      }
-
-      if (path === '/api/contact') {
-        limit(`contact:${ip}`, 5, 3_600_000);
-      }
     })
     .get('/health/live', () => ({status: 'ok'}))
     .get('/health/billing', ({set}) => {

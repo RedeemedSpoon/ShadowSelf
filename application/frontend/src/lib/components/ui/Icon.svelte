@@ -1,7 +1,8 @@
 <script lang="ts">
   let {name, size = 20, class: className = ''}: {name: string; size?: number; class?: string} = $props();
   const paths: Record<string, string> = {
-    identities: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75',
+    identities:
+      'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75',
     user: 'M20 21v-2a7 7 0 0 0-14 0v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
     mail: 'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2 M22 6l-10 7L2 6',
     phone:
@@ -29,6 +30,7 @@
     download: 'M12 3v12 M7 10l5 5 5-5 M3 16v5h18v-5',
     external: 'M15 3h6v6 M10 14L21 3 M21 14v7H3V3h7',
     send: 'M22 2L9 15 M22 2l-7 20-6-7-7-6 20-7z',
+    play: 'M8 4l12 8-12 8V4z',
     key: 'M15 3a6 6 0 1 0 0 12 6 6 0 0 0 0-12 M10 13l-8 8 M5 18l-2-2 M8 15l-2-2',
   };
 </script>

@@ -55,7 +55,13 @@ services:
   backend:
     build: ./backend
     healthcheck:
-      test: ['CMD', 'bun', '-e', "fetch('http://localhost:3000/health/live').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      test:
+        [
+          'CMD',
+          'bun',
+          '-e',
+          "fetch('http://localhost:3000/health/live').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -64,8 +70,6 @@ services:
     env_file:
       - ./backend/.env
       - ./database/.env
-    environment:
-      TRUSTED_PROXY_HOSTS: nginx,frontend
     depends_on:
       - postgres
     restart: always
@@ -77,7 +81,13 @@ services:
 
   frontend:
     healthcheck:
-      test: ['CMD', 'bun', '-e', "fetch('http://localhost:5000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      test:
+        [
+          'CMD',
+          'bun',
+          '-e',
+          "fetch('http://localhost:5000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
       interval: 15s
       timeout: 5s
       retries: 5

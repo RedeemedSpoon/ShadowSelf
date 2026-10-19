@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingState from '$component/ui/LoadingState.svelte';
   import {onMount} from 'svelte';
   import {TOTP} from 'otpauth';
   import {vaultKey} from '$store';
@@ -11,7 +12,11 @@
   import Dialog from '$component/ui/Dialog.svelte';
   import Copy from '$component/ui/Copy.svelte';
 
-  let {account, onupdate, onunlock}: {account: FullIdentity; onupdate: (patch: Partial<FullIdentity>) => void; onunlock: () => void} = $props();
+  let {
+    account,
+    onupdate,
+    onunlock,
+  }: {account: FullIdentity; onupdate: (patch: Partial<FullIdentity>) => void; onunlock: () => void} = $props();
   let entries = $state<Account[]>([]);
   let plain = $state<Account[]>([]);
   let pending = $state(false);
@@ -24,7 +29,9 @@
   let clock = $state(Date.now());
   let edit = $state({id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'});
   let revision = $state(0);
-  const visible = $derived(plain.filter((entry) => `${entry.username} ${entry.website || ''}`.toLowerCase().includes(query.toLowerCase())));
+  const visible = $derived(
+    plain.filter((entry) => `${entry.username} ${entry.website || ''}`.toLowerCase().includes(query.toLowerCase())),
+  );
 
   $effect(() => {
     const key = $vaultKey;
@@ -106,7 +113,9 @@
     const time = clock;
 
     try {
-      return entry.totp ? new TOTP({algorithm: entry.algorithm || 'SHA1', secret: entry.totp}).generate({timestamp: time}) : '';
+      return entry.totp
+        ? new TOTP({algorithm: entry.algorithm || 'SHA1', secret: entry.totp}).generate({timestamp: time})
+        : '';
     } catch {
       return 'Invalid TOTP secret';
     }
@@ -167,7 +176,10 @@
     pending = true;
     error = '';
 
-    const result = await request(`/identities/${account.id}/vault/entries`, 'DELETE', {id: deleteTarget.id, vaultRevision: revision});
+    const result = await request(`/identities/${account.id}/vault/entries`, 'DELETE', {
+      id: deleteTarget.id,
+      vaultRevision: revision,
+    });
     pending = false;
 
     if (!result.ok) {
@@ -206,15 +218,20 @@
     <p>Requires this identity's master password.</p>
     <Button icon="key" onclick={onunlock}>Unlock vault</Button>
   </div>
-{:else if pending && !loaded}<div class="loading-state"><span class="spinner"></span>Loading vault</div>
-{:else if !loaded || (error && !entries.length)}<Button variant="secondary" loading={pending} onclick={load}>Retry loading vault</Button>
+{:else if pending && !loaded}<LoadingState label="Loading vault" />
+{:else if !loaded || (error && !entries.length)}<Button variant="secondary" loading={pending} onclick={load}
+    >Retry loading vault</Button>
 {:else if !entries.length}<div class="empty-state">
     <Icon name="key" size={40} />
     <h2>No accounts saved</h2>
     <Button icon="plus" onclick={() => startEdit()}>Add account</Button>
   </div>
 {:else}<div class="field">
-    <label for="vault-search">Find an account</label><input id="vault-search" type="search" bind:value={query} placeholder="Search username or website" />
+    <label for="vault-search">Find an account</label><input
+      id="vault-search"
+      type="search"
+      bind:value={query}
+      placeholder="Search username or website" />
   </div>
   <div class="vault-list">
     {#each visible as entry (entry.id)}<article class="panel vault-entry">
@@ -224,7 +241,11 @@
             <small>{entry.website || 'No website'}</small>
           </div>
           <div class="button-row">
-            <Button variant="quiet" icon="edit" aria-label="Edit {entry.username}" onclick={() => startEdit(entry)} /><Button
+            <Button
+              variant="quiet"
+              icon="edit"
+              aria-label="Edit {entry.username}"
+              onclick={() => startEdit(entry)} /><Button
               variant="quiet"
               icon="trash"
               aria-label="Delete {entry.username}"
@@ -233,12 +254,22 @@
         </div>
         <div class="vault-values">
           <div>
-            <small>Password</small><Copy value={entry.password} concealed={!revealed.includes(entry.id)} label="Copy password" /><Button
+            <small>Password</small><Copy
+              value={entry.password}
+              concealed={!revealed.includes(entry.id)}
+              label="Copy password" /><Button
               variant="quiet"
-              onclick={() => (revealed = revealed.includes(entry.id) ? revealed.filter((id) => id !== entry.id) : [...revealed, entry.id])}
+              onclick={() =>
+                (revealed = revealed.includes(entry.id)
+                  ? revealed.filter((id) => id !== entry.id)
+                  : [...revealed, entry.id])}
               >{revealed.includes(entry.id) ? 'Hide password' : 'Reveal password'}</Button>
           </div>
-          {#if entry.totp}<div><small>Authenticator · {30 - (Math.floor(clock / 1000) % 30)}s</small><Copy value={code(entry)} label="Copy code" /></div>{/if}
+          {#if entry.totp}<div>
+              <small>Authenticator · {30 - (Math.floor(clock / 1000) % 30)}s</small><Copy
+                value={code(entry)}
+                label="Copy code" />
+            </div>{/if}
         </div>
       </article>{/each}
   </div>
@@ -249,7 +280,12 @@
   onclose={() => (edit = {id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'})}
   ><form onsubmit={save}>
     <div class="field">
-      <label for="entry-username">Username</label><input id="entry-username" bind:value={edit.username} maxlength="25" required autocomplete="off" />
+      <label for="entry-username">Username</label><input
+        id="entry-username"
+        bind:value={edit.username}
+        maxlength="25"
+        required
+        autocomplete="off" />
     </div>
     <div class="field">
       <label for="entry-website">Website</label><input
@@ -268,7 +304,11 @@
         required /><Button variant="quiet" type="button" onclick={generatePassword}>Generate a random password</Button>
     </div>
     <div class="field">
-      <label for="entry-totp">TOTP secret</label><input id="entry-totp" bind:value={edit.totp} autocomplete="off" placeholder="Optional base32 secret" />
+      <label for="entry-totp">TOTP secret</label><input
+        id="entry-totp"
+        bind:value={edit.totp}
+        autocomplete="off"
+        placeholder="Optional base32 secret" />
     </div>
     <div class="field">
       <label for="entry-algorithm">TOTP algorithm</label><select id="entry-algorithm" bind:value={edit.algorithm}
@@ -280,8 +320,10 @@
   ><p>This removes {deleteTarget?.username} from this identity's vault.</p>
   <Status message={error} kind="error" />
   <div class="button-row delete-buttons">
-    <Button variant="secondary" onclick={() => (deleteTarget = null)}>Cancel</Button><Button variant="danger" loading={pending} onclick={remove}
-      >Delete account</Button>
+    <Button variant="secondary" onclick={() => (deleteTarget = null)}>Cancel</Button><Button
+      variant="danger"
+      loading={pending}
+      onclick={remove}>Delete account</Button>
   </div></Dialog>
 
 <style>

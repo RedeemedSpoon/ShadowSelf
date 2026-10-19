@@ -13,7 +13,9 @@
     name="description"
     content="Ask a question, report a bug, or get help with a ShadowSelf account or payment." /></svelte:head>
 
-<PublicPage title="Contact">
+<PublicPage
+  title="Contact"
+  description="A question, a bug, or something worth building. Send it here. Include a reply address if you want an answer.">
   <form
     method="POST"
     use:enhance={() => {
@@ -27,15 +29,29 @@
         }
       };
     }}>
-    {#if form?.error}<div id="contact-feedback" class="feedback error" role="alert" tabindex="-1">{form.error}</div>{/if}
-    {#if form?.success}<div id="contact-feedback" class="feedback success" role="status" tabindex="-1">{form.success}</div>{/if}
+    {#if form?.error}<div id="contact-feedback" class="feedback error" role="alert" tabindex="-1">
+        {form.error}
+      </div>{/if}
+    {#if form?.success}<div id="contact-feedback" class="feedback success" role="status" tabindex="-1">
+        {form.success}
+      </div>{/if}
     <div class="form-row">
       <div class="field">
-        <label for="subject">Subject</label><input id="subject" name="subject" value={form?.values?.subject || ''} required maxlength="120" />
+        <label for="subject">Subject</label><input
+          id="subject"
+          name="subject"
+          value={form?.values?.subject || ''}
+          required
+          maxlength="120" />
       </div>
       <div class="field">
-        <label for="category">Category</label><select id="category" name="category" required value={form?.values?.category || 'question'}
-          >{#each CONTACT_CATEGORIES as item (item.value)}<option value={item.value}>{item.label}</option>{/each}</select>
+        <label for="category">Category</label><select
+          id="category"
+          name="category"
+          required
+          value={form?.values?.category || 'question'}
+          >{#each CONTACT_CATEGORIES as item (item.value)}<option value={item.value}>{item.label}</option
+            >{/each}</select>
       </div>
     </div>
     <div class="field">
@@ -50,7 +66,8 @@
       <p id="email-help" class="field-help">Leave empty to remain anonymous.</p>
     </div>
     <div class="field">
-      <label for="message">Message</label><textarea id="message" name="message" required maxlength="10000" rows="7">{form?.values?.message || ''}</textarea>
+      <label for="message">Message</label><textarea id="message" name="message" required maxlength="10000" rows="7"
+        >{form?.values?.message || ''}</textarea>
     </div>
     <div class="submit-row">
       <button class="public-action" type="submit" disabled={pending} aria-busy={pending}

@@ -51,7 +51,9 @@ async function readMoneroCache(id: string, key: CryptoKey) {
 }
 
 async function saveMoneroCache(id: string, key: CryptoKey, buffers: DataView[]) {
-  const bytes = buffers.map((buffer) => Array.from(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)));
+  const bytes = buffers.map((buffer) =>
+    Array.from(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)),
+  );
   await idbOperation('readwrite', id, await encrypt(JSON.stringify({keys: bytes[0], cache: bytes[1]}), key));
 }
 
@@ -68,6 +70,10 @@ export async function prepareMoneroTransaction(nodeUrl: string, address: string,
   }
 
   const account = get(identity);
+
+  if (!account) {
+    throw new Error('Open an identity before using its wallet');
+  }
   const key = await getMasterKey();
 
   const cacheID = `${account.id}:${account.walletBlob}`;
@@ -97,7 +103,7 @@ export async function prepareMoneroTransaction(nodeUrl: string, address: string,
     try {
       await wallet.sync();
 
-      if (get(identity).walletBlob !== account.walletBlob || (await getMasterKey()) !== key) {
+      if (get(identity)?.walletBlob !== account.walletBlob || (await getMasterKey()) !== key) {
         throw new Error('Wallet encryption changed or the vault was locked. Unlock it again');
       }
 
@@ -118,8 +124,15 @@ export async function prepareMoneroTransaction(nodeUrl: string, address: string,
   });
 }
 
-export async function broadcastMoneroTransaction(nodeUrl: string, prepared: Awaited<ReturnType<typeof prepareMoneroTransaction>>) {
+export async function broadcastMoneroTransaction(
+  nodeUrl: string,
+  prepared: Awaited<ReturnType<typeof prepareMoneroTransaction>>,
+) {
   const account = get(identity);
+
+  if (!account) {
+    throw new Error('Open an identity before using its wallet');
+  }
   const key = await getMasterKey();
 
   if (account.walletBlob !== prepared.walletBlob) {
@@ -181,6 +194,10 @@ export default async function initMoneroScan(
   signal?: AbortSignal,
 ) {
   const account = get(identity);
+
+  if (!account) {
+    throw new Error('Open an identity before using its wallet');
+  }
   const encryptionKey = await getMasterKey();
 
   const monerots = await import('monero-ts');
@@ -287,13 +304,22 @@ export default async function initMoneroScan(
       await wallet.sync(undefined, undefined, true);
       clearInterval(progressTracker);
 
-      if (signal?.aborted || get(identity).id !== identityID || get(identity).walletBlob !== account.walletBlob || (await getMasterKey()) !== encryptionKey) {
+      if (
+        signal?.aborted ||
+        get(identity)?.id !== identityID ||
+        get(identity)?.walletBlob !== account.walletBlob ||
+        (await getMasterKey()) !== encryptionKey
+      ) {
         return;
       }
 
       await saveMoneroCache(cacheID, encryptionKey, await wallet.getData());
 
-      const [balance, unlocked, txs] = await Promise.all([wallet.getBalance(), wallet.getUnlockedBalance(), wallet.getTxs()]);
+      const [balance, unlocked, txs] = await Promise.all([
+        wallet.getBalance(),
+        wallet.getUnlockedBalance(),
+        wallet.getTxs(),
+      ]);
 
       const history = txs
         .map((tx: any) => {
@@ -313,7 +339,7 @@ export default async function initMoneroScan(
         })
         .sort((a: any, b: any) => b.date.getTime() - a.date.getTime());
 
-      if (signal?.aborted || get(identity).id !== identityID || (await getMasterKey()) !== encryptionKey) {
+      if (signal?.aborted || get(identity)?.id !== identityID || (await getMasterKey()) !== encryptionKey) {
         return;
       }
 

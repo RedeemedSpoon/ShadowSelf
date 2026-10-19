@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingState from '$component/ui/LoadingState.svelte';
   import {onMount, untrack} from 'svelte';
   import {get} from 'svelte/store';
   import {vaultKey, moneroData} from '$store';
@@ -15,7 +16,12 @@
   import WalletMarket from './WalletMarket.svelte';
 
   let {account, onunlock}: {account: FullIdentity; onunlock: () => void} = $props();
-  const unavailable = {status: 'Unavailable' as const, balance: null, history: [], error: 'Balance has not been loaded.'};
+  const unavailable = {
+    status: 'Unavailable' as const,
+    balance: null,
+    history: [],
+    error: 'Balance has not been loaded.',
+  };
   let crypto = $state<WalletState>({
     prices: {},
     fees: {},
@@ -24,12 +30,19 @@
       ltc: {...unavailable},
       eth: {...unavailable},
       usdt: {...unavailable},
-      xmr: {status: 'Not synced', startingDate: new Date(untrack(() => account.creationDate)), nodeUrl: '', balance: 0, unlockedBalance: 0, history: []},
+      xmr: {
+        status: 'Not synced',
+        startingDate: new Date(untrack(() => account.creationDate)),
+        nodeUrl: '',
+        balance: 0,
+        unlockedBalance: 0,
+        history: [],
+      },
     },
   });
   let coin = $state<Coins>('btc');
   let mode = $state('overview');
-  let pending = $state(false);
+  let pending = $state(true);
   let syncing = $state(false);
   let error = $state('');
   let progress = $state(0);
@@ -48,7 +61,9 @@
     const minimum = Math.min(...values);
     const range = Math.max(...values) - minimum || 1;
 
-    return values.map((value, index) => `${(index / (values.length - 1)) * 600},${105 - ((value - minimum) / range) * 90}`).join(' ');
+    return values
+      .map((value, index) => `${(index / (values.length - 1)) * 600},${105 - ((value - minimum) / range) * 90}`)
+      .join(' ');
   });
   const walletError = $derived.by(() => {
     const selected = crypto.wallet[coin];
@@ -75,10 +90,21 @@
       ...crypto,
       prices: {},
       fees: {},
-      wallet: {...crypto.wallet, btc: {...unavailable}, ltc: {...unavailable}, eth: {...unavailable}, usdt: {...unavailable}},
+      wallet: {
+        ...crypto.wallet,
+        btc: {...unavailable},
+        ltc: {...unavailable},
+        eth: {...unavailable},
+        usdt: {...unavailable},
+      },
     };
 
-    const result = await request<WalletOverviewAPI>(`/identities/${account.id}/wallet`, 'GET', undefined, operation.signal);
+    const result = await request<WalletOverviewAPI>(
+      `/identities/${account.id}/wallet`,
+      'GET',
+      undefined,
+      operation.signal,
+    );
 
     if (operation.signal.aborted) {
       return;
@@ -131,7 +157,10 @@
         return;
       }
 
-      crypto.wallet[selected] = {...unavailable, error: 'Extended discovery failed. Retry before relying on this balance.'};
+      crypto.wallet[selected] = {
+        ...unavailable,
+        error: 'Extended discovery failed. Retry before relying on this balance.',
+      };
       error = cause instanceof Error ? cause.message : 'Extended discovery failed.';
     } finally {
       if (!operation.signal.aborted) {
@@ -261,11 +290,13 @@
     <h2>Crypto wallet</h2>
   </div>
   <div class="button-row">
-    <Button variant="quiet" onclick={() => (mode = mode === 'markets' ? 'overview' : 'markets')}>{mode === 'markets' ? 'Back to wallet' : 'Markets'}</Button
+    <Button variant="quiet" onclick={() => (mode = mode === 'markets' ? 'overview' : 'markets')}
+      >{mode === 'markets' ? 'Back to wallet' : 'Markets'}</Button
     ><Button variant="secondary" icon="refresh" loading={pending} onclick={load}>Refresh</Button>
   </div>
 </div>
 <Status message={error} kind="error" />
+{#if pending}<LoadingState label="Loading wallet balances" />{/if}
 {#if mode === 'markets'}<WalletMarket />{:else}<div class="coin-grid">
     {#each Object.entries(names) as [ticker, name] (ticker)}<button
         class:active={coin === ticker}
@@ -274,11 +305,14 @@
           mode = 'overview';
         }}
         ><span>{ticker.toUpperCase()}<small>{name}</small></span><strong
-          >{crypto.wallet[ticker as Coins].balance !== null && (ticker !== 'xmr' || crypto.wallet.xmr.status === 'Synced')
+          >{crypto.wallet[ticker as Coins].balance !== null &&
+          (ticker !== 'xmr' || crypto.wallet.xmr.status === 'Synced')
             ? crypto.wallet[ticker as Coins].balance!.toLocaleString(undefined, {maximumFractionDigits: 8})
-            : ticker === 'xmr'
-              ? 'Not synced'
-              : 'Unavailable'}</strong
+            : pending && ticker !== 'xmr'
+              ? 'Loading'
+              : ticker === 'xmr'
+                ? 'Not synced'
+                : 'Unavailable'}</strong
         ><small
           >{ticker === 'xmr' && crypto.wallet.xmr.status !== 'Synced'
             ? 'Unlock to sync'
@@ -300,8 +334,10 @@
         <p>{syncing ? `Scanning blockchain · ${progress}%` : crypto.wallet.xmr.status}</p>
       </div>
       <div class="button-row">
-        <Button loading={syncing} disabled={!$vaultKey} onclick={sync}>Sync Monero</Button><Button variant="quiet" disabled={syncing} onclick={clearCache}
-          >Clear local cache</Button>
+        <Button loading={syncing} disabled={!$vaultKey} onclick={sync}>Sync Monero</Button><Button
+          variant="quiet"
+          disabled={syncing}
+          onclick={clearCache}>Clear local cache</Button>
       </div>
     </div>{/if}
   {#if coin !== 'xmr' && crypto.wallet[coin].status !== 'Synced'}<Status message={walletError} />{/if}
@@ -309,27 +345,42 @@
     {#if mode === 'overview'}
       {#if coin === 'btc' || coin === 'ltc'}
         <div class="panel">
-          <p>Discovery checks up to 120 addresses and stops after 20 unused addresses. Recovery checks all 1,200 addresses for larger gaps.</p>
-          <Button variant="secondary" loading={recovering} disabled={pending} onclick={recover}>Run extended recovery scan</Button>
+          <p>
+            Discovery checks up to 120 addresses and stops after 20 unused addresses. Recovery checks all 1,200
+            addresses for larger gaps.
+          </p>
+          <Button variant="secondary" loading={recovering} disabled={pending} onclick={recover}
+            >Run extended recovery scan</Button>
         </div>
       {/if}
       <section class="panel price-panel">
         <div class="section-heading">
           <div>
             <h3>{names[coin]} market price</h3>
-            <p>{crypto.prices[coin] ? `${formatUSD(crypto.prices[coin]!.usdPrice)} USD per ${coin.toUpperCase()}` : 'Market price unavailable'}</p>
+            <p>
+              {crypto.prices[coin]
+                ? `${formatUSD(crypto.prices[coin]!.usdPrice)} USD per ${coin.toUpperCase()}`
+                : 'Market price unavailable'}
+            </p>
           </div>
           {#if crypto.prices[coin]}<span class="badge">{crypto.prices[coin]!.dailyChange.toFixed(2)}% · 24h</span>{/if}
         </div>
         {#if chartPoints}<svg viewBox="0 0 600 120" role="img" aria-label="Seven-day {names[coin]} price history"
-            ><polyline points={chartPoints} fill="none" stroke="#a496f4" stroke-width="2" vector-effect="non-scaling-stroke" /></svg
+            ><polyline
+              points={chartPoints}
+              fill="none"
+              stroke="#a496f4"
+              stroke-width="2"
+              vector-effect="non-scaling-stroke" /></svg
           >{:else}<p>No seven-day price history was returned.</p>{/if}
       </section>
       <section class="panel">
         <div class="section-heading">
           <div>
             <h3>{names[coin]} transactions</h3>
-            {#if coin === 'xmr' && crypto.wallet.xmr.status !== 'Synced'}<p>Sync Monero to load transaction history.</p>{/if}
+            {#if coin === 'xmr' && crypto.wallet.xmr.status !== 'Synced'}<p>
+                Sync Monero to load transaction history.
+              </p>{/if}
           </div>
           <span class="badge">{crypto.wallet[coin].status}</span>
         </div>
@@ -342,7 +393,8 @@
             </p>
           </div>{:else}<div class="transaction-list">
             {#each history as transaction (transaction.txid)}<div>
-                <span>{transaction.type}<small>{new Date(transaction.date).toLocaleString()}</small></span><span>{transaction.amount} {coin.toUpperCase()}</span
+                <span>{transaction.type}<small>{new Date(transaction.date).toLocaleString()}</small></span><span
+                  >{transaction.amount} {coin.toUpperCase()}</span
                 ><code>{transaction.txid.slice(0, 12)}…</code>
               </div>{/each}
           </div>{/if}
@@ -353,7 +405,8 @@
         {crypto} />{:else if mode === 'invoice'}{#await import('./WalletInvoice.svelte') then module}<module.default
           {account}
           {coin}
-          {crypto} />{/await}{:else if mode === 'swap'}<WalletSwap {account} {coin} />{:else if !$vaultKey}<div class="empty-state">
+          {crypto} />{/await}{:else if mode === 'swap'}<WalletSwap {account} {coin} />{:else if !$vaultKey}<div
+        class="empty-state">
         <Icon name="lock" size={40} />
         <h2>Wallet locked</h2>
         <p>Signing requires this identity's master password.</p>
@@ -371,9 +424,12 @@
       <div>
         <h3>Recovery phrase</h3>
       </div>
-      <Button variant="quiet" disabled={!$vaultKey} onclick={() => (backup ? (backup = '') : showBackup())}>{backup ? 'Hide phrase' : 'Reveal phrase'}</Button>
+      <Button variant="quiet" disabled={!$vaultKey} onclick={() => (backup ? (backup = '') : showBackup())}
+        >{backup ? 'Hide phrase' : 'Reveal phrase'}</Button>
     </div>
-    {#if backup}<Status message="Anyone with this phrase can spend these wallet funds. Store it offline." /><Copy value={backup} label="Copy phrase" />{/if}
+    {#if backup}<Status message="Anyone with this phrase can spend these wallet funds. Store it offline." /><Copy
+        value={backup}
+        label="Copy phrase" />{/if}
   </section>{/if}
 
 <style>

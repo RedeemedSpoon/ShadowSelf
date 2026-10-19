@@ -34,12 +34,21 @@
   let elements: StripeElements;
   let payment: StripePaymentElement;
   let poll: ReturnType<typeof setInterval>;
+  const purchaseUnavailable = $derived(!data.creationAvailable && !page.url.searchParams.has('id'));
   const renewal = $derived(page.url.searchParams.get('id'));
   const tier = $derived(PRICING_TIERS[plan]);
-  const capabilities = ['Identity profile', 'Dedicated mailbox', 'Phone number', 'Encrypted account vault', 'Client-signed crypto wallet'];
+  const capabilities = [
+    'Identity profile',
+    'Dedicated mailbox',
+    'Phone number',
+    'Encrypted account vault',
+    'Client-signed crypto wallet',
+  ];
   const invoiceMessages: Record<string, string> = {
-    reconciling: 'The exchange request is being checked. Do not send payment or start another purchase. Refresh to retry reconciliation.',
-    reconciliation: 'Payment needs manual review. Keep this reference and contact support. Do not send another payment.',
+    reconciling:
+      'The exchange request is being checked. Do not send payment or start another purchase. Refresh to retry reconciliation.',
+    reconciliation:
+      'Payment needs manual review. Keep this reference and contact support. Do not send another payment.',
     waiting: 'Waiting for payment.',
     pending: 'Waiting for payment.',
     confirming: 'Payment observed. Waiting for confirmations.',
@@ -65,7 +74,10 @@
     error = '';
 
     try {
-      const result = await request<CardCheckout>(confirm ? '/billing/checkout/confirm' : '/billing/checkout', 'POST', {plan, requestID});
+      const result = await request<CardCheckout>(confirm ? '/billing/checkout/confirm' : '/billing/checkout', 'POST', {
+        plan,
+        requestID,
+      });
 
       if (!result.ok) {
         throw new Error(result.error);
@@ -119,7 +131,10 @@
     payment?.destroy();
     elements = stripe.elements({
       clientSecret: details.clientSecret,
-      appearance: {theme: 'night', variables: {colorPrimary: '#8d7cf2', colorBackground: '#10192c', colorText: '#e6ebff', borderRadius: '5px'}},
+      appearance: {
+        theme: 'night',
+        variables: {colorPrimary: '#8d7cf2', colorBackground: '#10192c', colorText: '#e6ebff', borderRadius: '5px'},
+      },
     });
     payment = elements.create('payment');
     payment.on('ready', () => (cardReady = true));
@@ -166,13 +181,17 @@
     replaceState(`?plan=${plan}&${renewal ? `id=${renewal}&` : ''}request=${requestID}`, page.state);
 
     try {
-      const result = await request<CryptoInvoice>(renewal ? '/billing/crypto/renewals' : '/billing/crypto/invoices', 'POST', {
-        plan,
-        requestID,
-        swapCoin: ticker.toLowerCase(),
-        refundAddress: refund || undefined,
-        ...(renewal ? {identityID: renewal} : {}),
-      });
+      const result = await request<CryptoInvoice>(
+        renewal ? '/billing/crypto/renewals' : '/billing/crypto/invoices',
+        'POST',
+        {
+          plan,
+          requestID,
+          swapCoin: ticker.toLowerCase(),
+          refundAddress: refund || undefined,
+          ...(renewal ? {identityID: renewal} : {}),
+        },
+      );
 
       if (!result.ok) {
         throw new Error(result.error);
@@ -237,7 +256,9 @@
 
     const scheme = {xmr: 'monero', btc: 'bitcoin', ltc: 'litecoin'}[value.coin.toLowerCase()];
     const amountKey = value.coin.toLowerCase() === 'xmr' ? 'tx_amount' : 'amount';
-    const uri = scheme ? `${scheme}:${value.depositAddress}?${amountKey}=${encodeURIComponent(value.depositAmount || '')}` : value.depositAddress;
+    const uri = scheme
+      ? `${scheme}:${value.depositAddress}?${amountKey}=${encodeURIComponent(value.depositAmount || '')}`
+      : value.depositAddress;
     qr = await QRCode.toDataURL(uri, {width: 240, margin: 2});
   }
 
@@ -294,13 +315,17 @@
   </div>
 </div>
 <Status message={error} kind="error" />
+{#if purchaseUnavailable}<Status
+    message={data.availabilityError ||
+      'New identity purchases are unavailable while replacement phone and network providers are being configured.'} />{/if}
 <div class="purchase-grid">
   <section class="panel">
     <div class="plan-switch" aria-label="Billing plan">
       {#each Object.keys(PRICING_TIERS) as choice (choice)}<button
           class:active={plan === choice}
           disabled={!!checkout || !!invoice || pending || !!renewal}
-          onclick={() => choose(choice as typeof plan)}>{choice === 'annually' ? 'Annual' : choice === 'lifetime' ? 'Lifetime' : 'Monthly'}</button
+          onclick={() => choose(choice as typeof plan)}
+          >{choice === 'annually' ? 'Annual' : choice === 'lifetime' ? 'Lifetime' : 'Monthly'}</button
         >{/each}
     </div>
     <div class="plan-price"><span>${tier.price.toFixed(2)}</span><small>{tier.description}</small></div>
@@ -316,7 +341,10 @@
       <dl class="data-list">
         {#if invoice.depositAddress && invoice.depositAmount}<div>
             <dt>Send amount</dt>
-            <dd><Copy value={String(invoice.depositAmount)} label="Copy amount" /> {invoice.coin || ticker.toUpperCase()}</dd>
+            <dd>
+              <Copy value={String(invoice.depositAmount)} label="Copy amount" />
+              {invoice.coin || ticker.toUpperCase()}
+            </dd>
           </div>
           <div>
             <dt>Deposit address</dt>
@@ -331,7 +359,8 @@
           <dd>{invoice.invoiceID}</dd>
         </div>
       </dl>
-      {#if invoice.depositMemo}<Status message="Include the exact memo or destination tag with your payment. The address alone is not sufficient." />{/if}
+      {#if invoice.depositMemo}<Status
+          message="Include the exact memo or destination tag with your payment. The address alone is not sufficient." />{/if}
       <Status message={status} />
       <div class="button-row invoice-actions">
         <Button variant="secondary" onclick={refreshInvoice}>Refresh payment status</Button>{#if invoice.externalLink}<a
@@ -343,13 +372,16 @@
       </div>
       <small>Keep this invoice reference. An interrupted connection does not cancel a payment.</small>
     {:else}<div class="tabs payment-tabs">
-        {#if !renewal}<button class:active={method === 'card'} onclick={() => (method = 'card')}><Icon name="card" size={16} />Card</button>{/if}<button
-          class:active={method === 'crypto' || !!renewal}
-          onclick={() => (method = 'crypto')}><Icon name="wallet" size={16} />Crypto</button>
+        {#if !renewal}<button class:active={method === 'card'} onclick={() => (method = 'card')}
+            ><Icon name="card" size={16} />Card</button
+          >{/if}<button class:active={method === 'crypto' || !!renewal} onclick={() => (method = 'crypto')}
+          ><Icon name="wallet" size={16} />Crypto</button>
       </div>
       {#if method === 'card' && !renewal}<p>Stripe handles card details and subscription payments.</p>
-        <div class="checkout-actions"><Button icon="card" loading={pending} onclick={() => payCard()}>Continue with card</Button></div>{:else}<form
-          onsubmit={newInvoice}>
+        <div class="checkout-actions">
+          <Button icon="card" loading={pending} disabled={purchaseUnavailable} onclick={() => payCard()}
+            >Continue with card</Button>
+        </div>{:else}<form onsubmit={newInvoice}>
           <div class="field">
             <label for="billing-coin">Payment coin</label><input
               id="billing-coin"
@@ -364,7 +396,8 @@
               bind:value={refund}
               placeholder="Optional address for {ticker.toUpperCase()}" />
           </div>
-          <Button type="submit" icon="wallet" loading={pending}>Create payment invoice</Button>
+          <Button type="submit" icon="wallet" loading={pending} disabled={purchaseUnavailable}
+            >Create payment invoice</Button>
         </form>{/if}{/if}
   </section>
 </div>
@@ -372,10 +405,9 @@
   ><Status message={error} kind="error" />{#if checkout?.step === 'confirm'}<p>
       Pay ${tier.price.toFixed(2)} using your saved {checkout.cardName} card ending {checkout.last4}.
     </p>
-    <div class="checkout-actions"><Button loading={pending} onclick={() => payCard(true)}>Confirm purchase</Button></div>{:else}<div
-      class="stripe-mount"
-      bind:this={mountPoint}>
-    </div>
+    <div class="checkout-actions">
+      <Button loading={pending} onclick={() => payCard(true)}>Confirm purchase</Button>
+    </div>{:else}<div class="stripe-mount" bind:this={mountPoint}></div>
     <div class="checkout-actions">
       <Button disabled={!cardReady} loading={pending} onclick={confirmCard}>Pay ${tier.price.toFixed(2)}</Button>
     </div>{/if}</Dialog>

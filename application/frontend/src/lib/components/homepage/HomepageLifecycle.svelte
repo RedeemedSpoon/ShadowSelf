@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {HOMEPAGE_IDENTITY_EXAMPLES} from '$constant';
+  import {HOMEPAGE_EXAMPLE_IDENTITY} from '$constant';
 
-  const example = HOMEPAGE_IDENTITY_EXAMPLES[0];
+  const example = HOMEPAGE_EXAMPLE_IDENTITY;
 </script>
 
 <section class="network-lifecycle" id="lifecycle">
@@ -15,15 +15,21 @@
         <div>
           <h3>Create the profile</h3>
           <p>Generate a profile, then choose the name and contact details you'll use.</p>
-          <div class="lifecycle-example"><span>Profile</span><strong>{example.name}</strong><code>@{example.handle}</code></div>
+          <div class="lifecycle-example">
+            <span>Profile</span><strong>{example.name}</strong><code>@{example.handle}</code>
+          </div>
         </div>
       </li>
       <li data-reveal>
         <span class="lifecycle-dot">2</span>
         <div>
           <h3>Register and verify</h3>
-          <p>Sign up using the identity's email address or phone number. Open the incoming link or code in its workspace.</p>
-          <div class="lifecycle-example email-example"><span>Email</span><strong>Confirm your account</strong><code>{example.email}</code></div>
+          <p>
+            Sign up using the identity's email address or phone number. Open the incoming link or code in its workspace.
+          </p>
+          <div class="lifecycle-example email-example">
+            <span>Email</span><strong>Confirm your account</strong><code>{example.email}</code>
+          </div>
         </div>
       </li>
       <li data-reveal>

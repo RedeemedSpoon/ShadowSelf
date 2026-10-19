@@ -79,7 +79,14 @@ export function createSwapProvider(fetcher: typeof fetch = fetch, apiKey = troca
     async paymentQuote(coin: string, amount: string) {
       const data = await request(
         'new_rate',
-        new URLSearchParams({ticker_from: coin, ticker_to: 'xmr', network_from: net(coin), network_to: 'Mainnet', amount_to: amount, payment: 'True'}),
+        new URLSearchParams({
+          ticker_from: coin,
+          ticker_to: 'xmr',
+          network_from: net(coin),
+          network_to: 'Mainnet',
+          amount_to: amount,
+          payment: 'True',
+        }),
       );
 
       if (typeof data.trade_id !== 'string' || !data.trade_id) {
@@ -182,7 +189,11 @@ function parseTrade(data: Record<string, unknown>, input: SwapReconciliationRequ
     Number(data.amount_from) <= 0 ||
     typeof data.status !== 'string'
   ) {
-    throw new ApiError(502, 'uncertain_trade', 'Trade outcome is uncertain. Check the provider before starting another trade');
+    throw new ApiError(
+      502,
+      'uncertain_trade',
+      'Trade outcome is uncertain. Check the provider before starting another trade',
+    );
   }
 
   if (
@@ -196,7 +207,11 @@ function parseTrade(data: Record<string, unknown>, input: SwapReconciliationRequ
     (input.amount !== undefined && !sameAmount(data.amount_from, input.amount)) ||
     (input.receiveAmount !== undefined && !sameAmount(data.amount_to, input.receiveAmount))
   ) {
-    throw new ApiError(502, 'swap_reconciliation_mismatch', 'The provider trade does not match this request. Manual review is required');
+    throw new ApiError(
+      502,
+      'swap_reconciliation_mismatch',
+      'The provider trade does not match this request. Manual review is required',
+    );
   }
 
   return {
@@ -211,7 +226,11 @@ function parseTrade(data: Record<string, unknown>, input: SwapReconciliationRequ
 
 export const swapProvider = createSwapProvider();
 
-export async function reconcilePaymentInvoice(invoice: PaymentInvoiceRecovery, provider = swapProvider, database = sql) {
+export async function reconcilePaymentInvoice(
+  invoice: PaymentInvoiceRecovery,
+  provider = swapProvider,
+  database = sql,
+) {
   const trade = await provider.reconcile({
     tradeID: invoice.provider_reference,
     coinFrom: invoice.swap_coin,
@@ -232,7 +251,8 @@ export async function reconcilePaymentInvoice(invoice: PaymentInvoiceRecovery, p
 }
 
 export async function repairPaymentInvoices() {
-  const invoices = await sql`SELECT id, provider_reference, swap_coin, xmr_subaddress, xmr_amount, response FROM crypto_invoices
+  const invoices =
+    await sql`SELECT id, provider_reference, swap_coin, xmr_subaddress, xmr_amount, response FROM crypto_invoices
     WHERE provider_state = 'requested' AND response IS NULL
     AND id > COALESCE(${paymentRecoveryCursor}::uuid, '00000000-0000-0000-0000-000000000000'::uuid) ORDER BY id LIMIT 100`;
 
@@ -240,7 +260,10 @@ export async function repairPaymentInvoices() {
 
   for (const invoice of invoices) {
     try {
-      if (!invoice.provider_reference || !(await reconcilePaymentInvoice(invoice as Parameters<typeof reconcilePaymentInvoice>[0]))) {
+      if (
+        !invoice.provider_reference ||
+        !(await reconcilePaymentInvoice(invoice as Parameters<typeof reconcilePaymentInvoice>[0]))
+      ) {
         console.error(`Invoice ${invoice.id} remains uncertain; provider review is required`);
       }
     } catch {

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingState from '$component/ui/LoadingState.svelte';
   import {enhance} from '$app/forms';
   import {goto, invalidateAll} from '$app/navigation';
   import {page} from '$app/state';
@@ -162,12 +163,16 @@
           throw new Error('The identity was locked. Unlock it before changing the password.');
         }
 
-        const rotated = await request<{vaultRevision: number}>(`/identities/${originalAccount.id}/vault/encryption`, 'PUT', {
-          accounts: entries,
-          blob,
-          keys,
-          vaultRevision: result.data.vaultRevision,
-        });
+        const rotated = await request<{vaultRevision: number}>(
+          `/identities/${originalAccount.id}/vault/encryption`,
+          'PUT',
+          {
+            accounts: entries,
+            blob,
+            keys,
+            vaultRevision: result.data.vaultRevision,
+          },
+        );
 
         if (!rotated.ok) {
           throw new Error(rotated.error);
@@ -179,7 +184,11 @@
           return;
         }
 
-        update({walletBlob: blob, walletKeys: {...originalAccount.walletKeys, xmr: keys}, vaultRevision: rotated.data.vaultRevision});
+        update({
+          walletBlob: blob,
+          walletKeys: {...originalAccount.walletKeys, xmr: keys},
+          vaultRevision: rotated.data.vaultRevision,
+        });
 
         if (epoch === keyEpoch) {
           vaultKey.set(key);
@@ -232,7 +241,9 @@
     let active = true;
     liveStatus = 'Connecting';
 
-    const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/identities/${current.id}/events`);
+    const socket = new WebSocket(
+      `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/api/identities/${current.id}/events`,
+    );
     socket.onopen = () => {
       if (active) {
         liveStatus = 'Live updates connected';
@@ -272,6 +283,7 @@
       clearInterval(ping);
       socket.close();
       lock();
+      identity.set(null);
     };
   });
 </script>
@@ -282,8 +294,9 @@
     <h1>{data.status === 404 ? 'Identity not found' : 'Identity could not be loaded'}</h1>
     <p>{data.loadError}</p>
     <div class="button-row">
-      <Button variant="secondary" icon="refresh" onclick={() => invalidateAll()}>Retry</Button><a class="control-button quiet" href="/dashboard"
-        >Back to identities</a>
+      <Button variant="secondary" icon="refresh" onclick={() => invalidateAll()}>Retry</Button><a
+        class="control-button quiet"
+        href="/dashboard">Back to identities</a>
     </div>
   </div>
 {:else}
@@ -294,33 +307,37 @@
       <p>{account.location}<span class="badge {account.status} identity-status">{account.status}</span></p>
     </div>
     <div class="button-row">
-      {#if account.status === 'active'}{#if $vaultKey}<Button variant="secondary" icon="lock" onclick={lock}>Lock secrets</Button><Button
-            variant="quiet"
-            icon="key"
-            onclick={() => (rotateOpen = true)}>Change master password</Button
-          >{:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button>{/if}{/if}<Button
+      {#if account.status === 'active'}{#if $vaultKey}<Button variant="secondary" icon="lock" onclick={lock}
+            >Lock secrets</Button
+          ><Button variant="quiet" icon="key" onclick={() => (rotateOpen = true)}>Change master password</Button
+          >{:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button
+          >{/if}{/if}<Button
         variant="quiet"
         icon="trash"
         aria-label="Delete identity"
         onclick={() => (deleteOpen = true)} />
     </div>
   </div>
-  {#if account.status === 'frozen'}<Status message="This identity's subscription has expired. Renew it to restore access to its services." /><a
+  {#if account.status === 'frozen'}<Status
+      message="This identity's subscription has expired. Renew it to restore access to its services." /><a
       class="control-button"
       href="/purchase?id={account.id}&plan={account.plan}">Renew identity</a
-    >{:else if account.status === 'inactive'}<Status message="Setup is not complete. Continue provisioning this identity." /><a
+    >{:else if account.status === 'inactive'}<Status
+      message="Setup is not complete. Continue provisioning this identity." /><a
       class="control-button"
       href="/create?id={account.id}">Continue setup</a
-    >{:else if account.status === 'deleting'}<Status message="Identity deletion is in progress. Provider resources are being cleaned up." />{:else}
+    >{:else}
     <div class="tabs" aria-label="Identity services">
-      {#each tabs as tab (tab.id)}<button aria-pressed={section === tab.id} class:active={section === tab.id} onclick={() => select(tab.id)}
-          ><Icon name={tab.icon} size={17} />{tab.label}</button
+      {#each tabs as tab (tab.id)}<button
+          aria-pressed={section === tab.id}
+          class:active={section === tab.id}
+          onclick={() => select(tab.id)}><Icon name={tab.icon} size={17} />{tab.label}</button
         >{/each}
     </div>
     {#key account.id}
       <div>
         {#await panel}
-          <div class="loading-state"><span class="spinner"></span>Loading {tabs.find((tab) => tab.id === section)?.label}</div>
+          <LoadingState label={`Loading ${tabs.find((tab) => tab.id === section)?.label || 'service'}`} />
         {:then Panel}
           {#if account.status === 'active'}
             <Panel {account} onupdate={update} onunlock={() => (unlockOpen = true)} />
@@ -336,12 +353,20 @@
   ><p>Enter the master password for this identity. The key stays in memory until you lock it or leave this page.</p>
   <form onsubmit={unlock}>
     <div class="field password-field">
-      <label for="unlock-password">Master password</label><input id="unlock-password" type="password" autocomplete="off" bind:value={password} required />
+      <label for="unlock-password">Master password</label><input
+        id="unlock-password"
+        type="password"
+        autocomplete="off"
+        bind:value={password}
+        required />
     </div>
     <Status {message} kind="error" /><Button type="submit" loading={pending} icon="key">Unlock vault and wallet</Button>
   </form></Dialog>
 <Dialog bind:open={rotateOpen} title="Change master password" onclose={closePassword}
-  ><p>This re-encrypts every vault secret and the wallet atomically. Keep the new password safe. Forgotten passwords cannot be recovered.</p>
+  ><p>
+    This re-encrypts every vault secret and the wallet atomically. Keep the new password safe. Forgotten passwords
+    cannot be recovered.
+  </p>
   <form onsubmit={rotate}>
     <div class="field password-field">
       <label for="new-master">New master password</label><input
@@ -363,7 +388,10 @@
     <Status {message} kind="error" /><Button type="submit" loading={pending}>Re-encrypt identity</Button>
   </form></Dialog>
 <Dialog bind:open={deleteOpen} title="Delete this identity"
-  ><p>Deletion cancels its subscription and removes its profile, vault and messaging resources. Move any wallet funds before proceeding.</p>
+  ><p>
+    Deletion cancels its subscription and removes its profile, vault and messaging resources. Move any wallet funds
+    before proceeding.
+  </p>
   <form method="POST" action="?/delete" use:enhance>
     <div class="field password-field">
       <label for="delete-password">Account password</label><input
@@ -373,7 +401,8 @@
         autocomplete="current-password"
         required />
     </div>
-    <Status message={form?.message || ''} kind="error" /><Button variant="danger" type="submit" icon="trash">Delete identity</Button>
+    <Status message={form?.message || ''} kind="error" /><Button variant="danger" type="submit" icon="trash"
+      >Delete identity</Button>
   </form></Dialog>
 
 <style>

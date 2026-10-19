@@ -16,7 +16,13 @@
     recovery: 'Save your recovery codes',
     complete: 'Complete account creation',
   };
-  const actions = {account: 'init', email: 'verifyEmail', authenticator: 'verifyAuthenticator', recovery: 'create', complete: 'create'};
+  const actions = {
+    account: 'init',
+    email: 'verifyEmail',
+    authenticator: 'verifyAuthenticator',
+    recovery: 'create',
+    complete: 'create',
+  };
 
   function submit() {
     pending = true;
@@ -33,7 +39,9 @@
 
 <svelte:head>
   <title>Create an account | ShadowSelf</title>
-  <meta name="description" content="Create a ShadowSelf account with email verification and optional two-factor authentication." />
+  <meta
+    name="description"
+    content="Create a ShadowSelf account with email verification and optional two-factor authentication." />
 </svelte:head>
 <div class="access">
   <section class="panel">
@@ -51,7 +59,14 @@
         </div>
         <div class="field">
           <label for="signup-password">Account password</label>
-          <input id="signup-password" name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required />
+          <input
+            id="signup-password"
+            name="password"
+            type="password"
+            minlength="12"
+            maxlength="256"
+            autocomplete="new-password"
+            required />
           <small>Minimum 12 characters.</small>
         </div>
         <label class="security-copy recovery-confirm">
@@ -61,7 +76,14 @@
         <p>Code sent to {registration.email}.</p>
         <div class="field">
           <label for="signup-code">Email code</label>
-          <input id="signup-code" name="access" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" autocomplete="one-time-code" required />
+          <input
+            id="signup-code"
+            name="access"
+            inputmode="numeric"
+            pattern="[0-9]{8}"
+            maxlength="8"
+            autocomplete="one-time-code"
+            required />
         </div>
       {:else if registration.stage === 'authenticator'}
         <img class="qr-image" src={registration.qr} alt="Authenticator enrollment QR code" />
@@ -69,7 +91,14 @@
         <p class="security-copy">Scan the QR code or enter this secret in your authenticator.</p>
         <div class="field">
           <label for="signup-totp">Authenticator code</label>
-          <input id="signup-totp" name="token" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required />
+          <input
+            id="signup-totp"
+            name="token"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            autocomplete="one-time-code"
+            required />
         </div>
       {:else if registration.stage === 'recovery'}
         <p>Each code restores access if you lose your authenticator and can be used once.</p>
@@ -83,7 +112,11 @@
       {:else}
         <p>Your email is verified. Retry creating the account.</p>
       {/if}
-      <Button type="submit" loading={pending} disabled={registration.stage === 'recovery' && !savedRecovery} icon="arrow">
+      <Button
+        type="submit"
+        loading={pending}
+        disabled={registration.stage === 'recovery' && !savedRecovery}
+        icon="arrow">
         {registration.stage === 'account'
           ? 'Create account'
           : registration.stage === 'recovery' || registration.stage === 'complete'

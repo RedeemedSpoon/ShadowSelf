@@ -11,7 +11,6 @@ export const load: PageServerLoad = async ({url, cookies}) => {
 
   const result = await backend<{
     draft: Record<string, unknown>;
-    locations: {code: string; country: string; city: string; localization: string}[];
     status: string;
     creationStatus: 'editing' | 'provisioning' | 'completed';
   }>(`/identities/${id}/creation`, 'GET', undefined, cookies.get('token'));

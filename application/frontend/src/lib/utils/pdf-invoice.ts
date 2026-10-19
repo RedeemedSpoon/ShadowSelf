@@ -62,7 +62,12 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setTextColor(colorSub);
   doc.text('USD due', 190, addrY + 18, {align: 'right'});
 
-  const bodyData = tableData.tableRows.map((row: any) => [row.description, row.quantity, `$${row.price.toFixed(2)}`, `$${row.total.toFixed(2)}`]);
+  const bodyData = tableData.tableRows.map((row: any) => [
+    row.description,
+    row.quantity,
+    `$${row.price.toFixed(2)}`,
+    `$${row.total.toFixed(2)}`,
+  ]);
 
   autoTable(doc, {
     startY: addrY + 25,
@@ -116,13 +121,18 @@ export function generatePDF(identityData: any, clientData: any, tableData: any, 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(colorSub);
   doc.text(`Please make payment via ${cryptoData.cryptoChoice.toUpperCase()} Network.`, 20, payY + 12);
-  doc.text(`Exchange Rate locked: 1 ${cryptoData.cryptoChoice.toUpperCase()} = $${cryptoData.exchangeRate.toFixed(2)}`, 20, payY + 18);
+  doc.text(
+    `Exchange Rate locked: 1 ${cryptoData.cryptoChoice.toUpperCase()} = $${cryptoData.exchangeRate.toFixed(2)}`,
+    20,
+    payY + 18,
+  );
 
   doc.setFontSize(14);
   doc.setTextColor(colorText);
   doc.setFont('helvetica', 'bold');
 
-  const cryptoDisplay = cryptoData.cryptoChoice === 'usdt' ? cryptoData.cryptoDue.toFixed(2) : cryptoData.cryptoDue.toFixed(6);
+  const cryptoDisplay =
+    cryptoData.cryptoChoice === 'usdt' ? cryptoData.cryptoDue.toFixed(2) : cryptoData.cryptoDue.toFixed(6);
   doc.text(`${cryptoDisplay} ${cryptoData.cryptoChoice.toUpperCase()}`, 20, payY + 28);
 
   doc.setFont('courier', 'normal');

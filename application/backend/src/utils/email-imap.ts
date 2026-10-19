@@ -113,7 +113,11 @@ export function listenForEmail(user: string, password: string, socketID: string)
 }
 
 export function createMailReader(connect = imapConnection) {
-  async function withConnection<T>(user: string, password: string, action: (connection: imap.ImapSimple) => Promise<T>) {
+  async function withConnection<T>(
+    user: string,
+    password: string,
+    action: (connection: imap.ImapSimple) => Promise<T>,
+  ) {
     const connection = await connect(user, password);
 
     try {
@@ -127,7 +131,14 @@ export function createMailReader(connect = imapConnection) {
     list(user: string, password: string, mailbox: Mailbox, before?: number) {
       return withConnection(user, password, (connection) => listMailbox(connection, mailbox, before));
     },
-    message(user: string, password: string, mailbox: Mailbox, uid: number, markRead = true, includeAttachments = false) {
+    message(
+      user: string,
+      password: string,
+      mailbox: Mailbox,
+      uid: number,
+      markRead = true,
+      includeAttachments = false,
+    ) {
       return withConnection(user, password, async (connection) => {
         await connection.openBox(mailbox);
 
@@ -160,7 +171,10 @@ export function createMailReader(connect = imapConnection) {
           return null;
         }
 
-        return {...attachmentMetadata(part, index), data: Buffer.from(await connection.getPartData(message, part)).toString('base64')};
+        return {
+          ...attachmentMetadata(part, index),
+          data: Buffer.from(await connection.getPartData(message, part)).toString('base64'),
+        };
       });
     },
     reply(user: string, password: string, messageID: string) {
@@ -168,7 +182,11 @@ export function createMailReader(connect = imapConnection) {
         for (const mailbox of ['INBOX', 'Sent'] as const) {
           await connection.openBox(mailbox);
 
-          const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {bodies: ['HEADER'], struct: true, markSeen: false});
+          const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+            bodies: ['HEADER'],
+            struct: true,
+            markSeen: false,
+          });
 
           for (const message of messages) {
             const email = await parseMessage(connection, message, mailbox);
@@ -310,7 +328,11 @@ async function parseEnvelope(message: imap.Message, mailbox: Mailbox) {
 
 function attachmentParts(message: imap.Message) {
   return imap.getParts(message.attributes.struct || []).filter((part) => {
-    return part.disposition?.type?.toUpperCase() === 'ATTACHMENT' || part.disposition?.type?.toUpperCase() === 'INLINE' || part.type !== 'text';
+    return (
+      part.disposition?.type?.toUpperCase() === 'ATTACHMENT' ||
+      part.disposition?.type?.toUpperCase() === 'INLINE' ||
+      part.type !== 'text'
+    );
   });
 }
 
@@ -323,7 +345,12 @@ function attachmentMetadata(part: any, index: number) {
   };
 }
 
-async function parseMessage(connection: imap.ImapSimple, message: imap.Message, mailbox: Mailbox, includeAttachments = false) {
+async function parseMessage(
+  connection: imap.ImapSimple,
+  message: imap.Message,
+  mailbox: Mailbox,
+  includeAttachments = false,
+) {
   const summary = await parseEnvelope(message, mailbox);
   const header = message.parts.find((part) => part.which.startsWith('HEADER'))?.body;
   const raw =
@@ -335,7 +362,9 @@ async function parseMessage(connection: imap.ImapSimple, message: imap.Message, 
   const email = await simpleParser(raw);
   const parts = imap.getParts(message.attributes.struct || []);
   const files = attachmentParts(message);
-  const bodyParts = parts.filter((part) => part.type === 'text' && !files.includes(part) && ['html', 'plain'].includes(part.subtype));
+  const bodyParts = parts.filter(
+    (part) => part.type === 'text' && !files.includes(part) && ['html', 'plain'].includes(part.subtype),
+  );
   const htmlParts = bodyParts.filter((part) => part.subtype === 'html');
   const selected = htmlParts.length ? htmlParts : bodyParts;
   const bodies: string[] = [];
@@ -344,7 +373,10 @@ async function parseMessage(connection: imap.ImapSimple, message: imap.Message, 
     const data = await connection.getPartData(message, part);
 
     if (Buffer.isBuffer(data)) {
-      const content = Buffer.concat([Buffer.from(`Content-Type: text/${part.subtype}; charset=${part.params?.charset || 'utf-8'}\r\n\r\n`), data]);
+      const content = Buffer.concat([
+        Buffer.from(`Content-Type: text/${part.subtype}; charset=${part.params?.charset || 'utf-8'}\r\n\r\n`),
+        data,
+      ]);
       const parsed = await simpleParser(content);
       bodies.push(part.subtype === 'html' ? parsed.html || '' : parsed.text || '');
     } else {
@@ -355,14 +387,17 @@ async function parseMessage(connection: imap.ImapSimple, message: imap.Message, 
   const attachments = [];
 
   for (const [index, part] of files.entries()) {
-    const data = includeAttachments ? Buffer.from(await connection.getPartData(message, part)).toString('base64') : undefined;
+    const data = includeAttachments
+      ? Buffer.from(await connection.getPartData(message, part)).toString('base64')
+      : undefined;
     attachments.push({...attachmentMetadata(part, index), data});
   }
 
   return {
     ...summary,
     inReplyTo: email.inReplyTo || null,
-    references: typeof email.references === 'string' ? email.references.split(/\s+/).filter(Boolean) : email.references || [],
+    references:
+      typeof email.references === 'string' ? email.references.split(/\s+/).filter(Boolean) : email.references || [],
     attachments,
     body: bodies.join('\n'),
     type: htmlParts.length ? ('html' as const) : ('text' as const),

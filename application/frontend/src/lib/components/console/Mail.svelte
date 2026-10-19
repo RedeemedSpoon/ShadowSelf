@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingState from '$component/ui/LoadingState.svelte';
   import {onMount} from 'svelte';
   import {SvelteSet} from 'svelte/reactivity';
   import {request} from '$utils/webfetch';
@@ -16,7 +17,7 @@
   let target = $state<Email | null>(null);
   let thread = $state<Email[]>([]);
   let mode = $state<'browse' | 'compose' | 'reply' | 'draft'>('browse');
-  let pending = $state(false);
+  let pending = $state(true);
   let error = $state('');
   let warning = $state('');
   let forwardOpen = $state(false);
@@ -49,7 +50,12 @@
     pending = true;
     error = '';
 
-    const result = await request<EmailPage>(`${path}/messages`, 'GET', {mailbox: box, before: cursor}, controller?.signal);
+    const result = await request<EmailPage>(
+      `${path}/messages`,
+      'GET',
+      {mailbox: box, before: cursor},
+      controller?.signal,
+    );
 
     if (current !== generation || mailbox !== box) {
       return;
@@ -64,7 +70,9 @@
     }
 
     const existing = append ? messages : [];
-    const combined = [...new Map([...existing, ...result.data.messages].map((message) => [message.uid, message])).values()];
+    const combined = [
+      ...new Map([...existing, ...result.data.messages].map((message) => [message.uid, message])).values(),
+    ];
     page = {...result.data, messages: combined.sort((a, b) => b.uid - a.uid)};
   }
 
@@ -77,7 +85,12 @@
     error = '';
     warning = '';
 
-    const result = await request<{email: Email}>(`${path}/message`, 'GET', {mailbox: box, uid: message.uid}, controller?.signal);
+    const result = await request<{email: Email}>(
+      `${path}/message`,
+      'GET',
+      {mailbox: box, uid: message.uid},
+      controller?.signal,
+    );
 
     if (current !== generation) {
       return;
@@ -130,7 +143,12 @@
 
     while (reference && !seen.has(reference) && seen.size < 40) {
       seen.add(reference);
-      const earlier = await request<{fetchEmail: Email | null}>(`${path}/reply`, 'GET', {uuid: reference}, controller?.signal);
+      const earlier = await request<{fetchEmail: Email | null}>(
+        `${path}/reply`,
+        'GET',
+        {uuid: reference},
+        controller?.signal,
+      );
 
       if (current !== generation) {
         return;
@@ -273,7 +291,12 @@
     <p>{account.email}</p>
   </div>
   <div class="button-row">
-    <Button variant="quiet" icon="refresh" loading={pending} onclick={() => load()} aria-label="Refresh mailbox" /><Button
+    <Button
+      variant="quiet"
+      icon="refresh"
+      loading={pending}
+      onclick={() => load()}
+      aria-label="Refresh mailbox" /><Button
       icon="plus"
       onclick={() => {
         invalidate();
@@ -324,15 +347,24 @@
       </article>{/each}
   </section>
 {:else}<div class="tabs" aria-label="Mailboxes">
-    {#each names as box (box)}<button class:active={mailbox === box} onclick={() => reset(box as typeof mailbox)}>{box}</button>{/each}
+    {#each names as box (box)}<button class:active={mailbox === box} onclick={() => reset(box as typeof mailbox)}
+        >{box}</button
+      >{/each}
   </div>
-  {#if pending && !page}<div class="loading-state"><span class="spinner"></span>Loading mailbox</div>{:else if page && !messages.length}<div
+  {#if pending && !page}<LoadingState label="Loading mailbox" />{:else if page && !messages.length}<div
       class="empty-state">
       <Icon name="mail" size={40} />
       <h2>No messages in {mailbox}</h2>
+      <p>
+        {mailbox === 'INBOX' ? 'Incoming email will appear here.' : 'Messages saved in this mailbox will appear here.'}
+      </p>
     </div>{:else if page}<div class="mail-list">
-      {#each messages as message (message.uid)}<button class="mail-row" class:unread={!message.read} onclick={() => open(message)}
-          ><span class="mail-from">{mailbox === 'Sent' ? message.to : message.from}</span><span class="mail-subject">{message.subject || 'No subject'}</span
+      {#each messages as message (message.uid)}<button
+          class="mail-row"
+          class:unread={!message.read}
+          onclick={() => open(message)}
+          ><span class="mail-from">{mailbox === 'Sent' ? message.to : message.from}</span><span class="mail-subject"
+            >{message.subject || 'No subject'}</span
           ><time>{new Date(message.date).toLocaleDateString()}</time></button
         >{/each}
     </div>
@@ -341,13 +373,21 @@
       </div>{/if}{:else}<Button variant="secondary" onclick={() => load()}>Retry loading mailbox</Button>{/if}{/if}
 <Dialog bind:open={forwardOpen} title="Forward email"
   ><form onsubmit={forward}>
-    <div class="field"><label for="forward-email">Recipient</label><input id="forward-email" type="email" bind:value={forwardTo} required /></div>
+    <div class="field">
+      <label for="forward-email">Recipient</label><input
+        id="forward-email"
+        type="email"
+        bind:value={forwardTo}
+        required />
+    </div>
     <Status message={error} kind="error" /><Button loading={pending} type="submit">Forward message</Button>
   </form></Dialog>
 <Dialog bind:open={deleteOpen} title="Move message to junk"
   ><p>The message will leave {mailbox} and move to the junk mailbox.</p>
   <Status message={error} kind="error" />
-  <div class="more-button"><Button variant="danger" loading={pending} onclick={remove}>Move to junk</Button></div></Dialog>
+  <div class="more-button">
+    <Button variant="danger" loading={pending} onclick={remove}>Move to junk</Button>
+  </div></Dialog>
 
 <style>
   .mail-list {

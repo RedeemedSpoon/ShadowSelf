@@ -7,14 +7,15 @@
   <div>
     <h2>Website, extension,<br />and API.</h2>
     <p>
-      Open an identity while browsing, manage it on the website, or automate it through the API. Each uses the same profiles, messages, and account records.
+      Open an identity while browsing, manage it on the website, or automate it through the API. Each uses the same
+      profiles, messages, and account records.
     </p>
     <a class="inline-link" href="/docs">Read the API documentation</a>
   </div>
   <div class="access-diagram">
     <div class="access-endpoints">
-      <a href={page.data.user ? '/dashboard' : '/signup'}>Website<span>Manage the identity</span></a><a href="/extension"
-        >Extension<span>Use it while browsing</span></a
+      <a href={page.data.user ? '/dashboard' : '/signup'}>Website<span>Manage the identity</span></a><a
+        href="/extension">Extension<span>Use it while browsing</span></a
       ><a href="/docs">API<span>Build your own workflow</span></a>
     </div>
     <div class="access-bus"></div>

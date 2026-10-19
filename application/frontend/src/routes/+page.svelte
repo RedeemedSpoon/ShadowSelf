@@ -2,9 +2,7 @@
   import HomepageHero from '$component/homepage/HomepageHero.svelte';
   import HomepageFeatures from '$component/homepage/HomepageFeatures.svelte';
   import HomepageLifecycle from '$component/homepage/HomepageLifecycle.svelte';
-  import HomepageIdentities from '$component/homepage/HomepageIdentities.svelte';
   import HomepagePurpose from '$component/homepage/HomepagePurpose.svelte';
-  import HomepagePromise from '$component/homepage/HomepagePromise.svelte';
   import HomepageAccess from '$component/homepage/HomepageAccess.svelte';
   import HomepagePrivacy from '$component/homepage/HomepagePrivacy.svelte';
   import HomepagePricing from '$component/homepage/HomepagePricing.svelte';
@@ -58,7 +56,7 @@
   <title>ShadowSelf | Create and manage separate online identities</title>
   <meta
     name="description"
-    content="Create synthetic identities with their own profiles, account vaults, email, phone, and crypto wallets. Explore ShadowSelf's open-source identity tools." />
+    content="Create synthetic identities with their own profiles, account vaults, email aliases, PGP, mobile numbers, wallets, virtual cards, residential proxies, cloud storage, and privacy utilities. Explore ShadowSelf's open-source identity tools." />
 </svelte:head>
 
 <a class="homepage-skip" href="#overview">Skip to homepage content</a>
@@ -68,10 +66,8 @@
   <HomepageFeatures />
   <HomepageLifecycle />
   <HomepageAccess />
-  <HomepageIdentities />
   <HomepagePricing />
   <HomepagePrivacy />
-  <HomepagePromise />
   <HomepageClosing />
 </div>
 
@@ -141,7 +137,7 @@
   :global(.homepage .secondary-action) {
     display: inline-flex;
     align-items: center;
-    gap: 15px;
+    gap: 8px;
     color: #c2bde9;
     font-size: 13px;
     padding-block: 14px;

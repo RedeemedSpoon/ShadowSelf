@@ -1,3 +1,13 @@
+import type {
+  CryptoWalletResponse,
+  UTXOData,
+  TransactionsHistory,
+  UtxoProviderTransaction,
+  EvmProviderTransaction,
+  WalletScanOptions,
+} from '@type';
+import {xpubToAddress} from '@utils/cryptography';
+import {ApiError} from '@core/security';
 import {
   BTC_API,
   ETH_API,
@@ -9,11 +19,12 @@ import {
   USDT_CONTRACT,
   XMR_NODE,
 } from '@core/constants';
-import type {CryptoWalletResponse, UTXOData, TransactionsHistory, UtxoProviderTransaction, EvmProviderTransaction, WalletScanOptions} from '@type';
-import {xpubToAddress} from '@utils/cryptography';
-import {ApiError} from '@core/security';
 
-export async function mapChainRequests<T, R>(items: T[], operation: (item: T, index: number) => Promise<R>, signal?: AbortSignal): Promise<R[]> {
+export async function mapChainRequests<T, R>(
+  items: T[],
+  operation: (item: T, index: number) => Promise<R>,
+  signal?: AbortSignal,
+): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let next = 0;
 
@@ -30,16 +41,27 @@ export async function mapChainRequests<T, R>(items: T[], operation: (item: T, in
   return results;
 }
 
-export function aggregateWalletHistory(transactions: UtxoProviderTransaction[], addresses: Set<string>): TransactionsHistory {
+export function aggregateWalletHistory(
+  transactions: UtxoProviderTransaction[],
+  addresses: Set<string>,
+): TransactionsHistory {
   const unique = new Map(transactions.map((transaction) => [transaction.txid, transaction]));
 
   return [...unique.values()]
     .map((transaction) => {
-      const spent = transaction.vin.reduce((sum, input) => sum + (addresses.has(input.prevout?.scriptpubkey_address || '') ? input.prevout!.value : 0), 0);
-      const received = transaction.vout.reduce((sum, output) => sum + (addresses.has(output.scriptpubkey_address) ? output.value : 0), 0);
+      const spent = transaction.vin.reduce(
+        (sum, input) => sum + (addresses.has(input.prevout?.scriptpubkey_address || '') ? input.prevout!.value : 0),
+        0,
+      );
+      const received = transaction.vout.reduce(
+        (sum, output) => sum + (addresses.has(output.scriptpubkey_address) ? output.value : 0),
+        0,
+      );
       const external =
         spent > 0
-          ? transaction.vout.filter((output) => !addresses.has(output.scriptpubkey_address)).map((output) => output.scriptpubkey_address)
+          ? transaction.vout
+              .filter((output) => !addresses.has(output.scriptpubkey_address))
+              .map((output) => output.scriptpubkey_address)
           : transaction.vin
               .filter((input) => !addresses.has(input.prevout?.scriptpubkey_address || ''))
               .map((input) => input.prevout?.scriptpubkey_address || 'Unknown');
@@ -50,7 +72,12 @@ export function aggregateWalletHistory(transactions: UtxoProviderTransaction[], 
         type: received > spent ? ('received' as const) : ('sent' as const),
         amount: Math.abs(received - spent) / 100_000_000,
         date: new Date(transaction.status.block_time ? transaction.status.block_time * 1000 : Date.now()),
-        counterparty: counterparties.length === 0 ? 'Internal transfer' : counterparties.length === 1 ? counterparties[0] : 'Multiple',
+        counterparty:
+          counterparties.length === 0
+            ? 'Internal transfer'
+            : counterparties.length === 1
+              ? counterparties[0]
+              : 'Multiple',
       };
     })
     .sort((left, right) => right.date.getTime() - left.date.getTime());
@@ -64,7 +91,11 @@ export async function getUtxoData(
 ): Promise<CryptoWalletResponse['btc']> {
   const baseUrl = coin === 'btc' ? BTC_API : LTC_API;
   const controller = new AbortController();
-  const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(options.recovery ? 120_000 : 25_000), ...(options.signal ? [options.signal] : [])]);
+  const signal = AbortSignal.any([
+    controller.signal,
+    AbortSignal.timeout(options.recovery ? 120_000 : 25_000),
+    ...(options.signal ? [options.signal] : []),
+  ]);
   const limit = options.recovery ? UTXO_RECOVERY_LIMIT : UTXO_HARD_LIMIT;
   const addresses = new Set<string>();
   const utxos: UTXOData = [];
@@ -87,7 +118,10 @@ export async function getUtxoData(
 
   try {
     for (let start = 0; start < limit; start += CHAIN_REQUEST_CONCURRENCY) {
-      const indices = Array.from({length: Math.min(CHAIN_REQUEST_CONCURRENCY, limit - start)}, (_, offset) => start + offset);
+      const indices = Array.from(
+        {length: Math.min(CHAIN_REQUEST_CONCURRENCY, limit - start)},
+        (_, offset) => start + offset,
+      );
       const batch = await mapChainRequests(
         indices,
         async (index) => {
@@ -95,7 +129,12 @@ export async function getUtxoData(
           const info = await read(`/address/${address}`);
 
           for (const stats of [info.chain_stats, info.mempool_stats]) {
-            if (!stats || !['tx_count', 'funded_txo_sum', 'spent_txo_sum'].every((field) => Number.isSafeInteger(stats[field]) && stats[field] >= 0)) {
+            if (
+              !stats ||
+              !['tx_count', 'funded_txo_sum', 'spent_txo_sum'].every(
+                (field) => Number.isSafeInteger(stats[field]) && stats[field] >= 0,
+              )
+            ) {
               throw new Error('Invalid address response');
             }
           }
@@ -116,7 +155,11 @@ export async function getUtxoData(
 
         gap = 0;
         activeCount = index + 1;
-        balanceAtoms += info.chain_stats.funded_txo_sum - info.chain_stats.spent_txo_sum + info.mempool_stats.funded_txo_sum - info.mempool_stats.spent_txo_sum;
+        balanceAtoms +=
+          info.chain_stats.funded_txo_sum -
+          info.chain_stats.spent_txo_sum +
+          info.mempool_stats.funded_txo_sum -
+          info.mempool_stats.spent_txo_sum;
       }
 
       const active = batch.filter(({info}) => info.chain_stats.tx_count + info.mempool_stats.tx_count > 0);
@@ -138,7 +181,11 @@ export async function getUtxoData(
           if (
             data.some(
               (item) =>
-                !/^[a-f0-9]{64}$/i.test(item.txid) || !Number.isSafeInteger(item.vout) || item.vout < 0 || !Number.isSafeInteger(item.value) || item.value < 0,
+                !/^[a-f0-9]{64}$/i.test(item.txid) ||
+                !Number.isSafeInteger(item.vout) ||
+                item.vout < 0 ||
+                !Number.isSafeInteger(item.value) ||
+                item.value < 0,
             )
           ) {
             throw new Error('Invalid unspent outputs');
@@ -153,9 +200,10 @@ export async function getUtxoData(
                 !Array.isArray(item.vin) ||
                 !Array.isArray(item.vout) ||
                 !item.status ||
-                [...item.vout, ...item.vin.flatMap((input: {prevout?: unknown}) => (input.prevout ? [input.prevout] : []))].some(
-                  (output) => !Number.isSafeInteger(output.value) || output.value < 0,
-                ),
+                [
+                  ...item.vout,
+                  ...item.vin.flatMap((input: {prevout?: unknown}) => (input.prevout ? [input.prevout] : [])),
+                ].some((output) => !Number.isSafeInteger(output.value) || output.value < 0),
             )
           ) {
             throw new Error('Invalid transaction history');
@@ -178,7 +226,8 @@ export async function getUtxoData(
       throw new Error('Invalid wallet balance');
     }
 
-    const complete = gap >= UTXO_GAP_LIMIT && activeCount < UTXO_HARD_LIMIT && activeCount <= (normalScanEnd ?? scanned);
+    const complete =
+      gap >= UTXO_GAP_LIMIT && activeCount < UTXO_HARD_LIMIT && activeCount <= (normalScanEnd ?? scanned);
 
     return {
       status: complete ? 'Synced' : 'Incomplete',
@@ -199,7 +248,11 @@ export async function getUtxoData(
   }
 }
 
-export function aggregateEvmHistory(transactions: EvmProviderTransaction[], address: string, decimals: number): TransactionsHistory {
+export function aggregateEvmHistory(
+  transactions: EvmProviderTransaction[],
+  address: string,
+  decimals: number,
+): TransactionsHistory {
   const owned = address.toLowerCase();
   const entries = new Map<string, {transaction: EvmProviderTransaction; net: bigint; counterparties: Set<string>}>();
 
@@ -247,13 +300,23 @@ export function aggregateEvmHistory(transactions: EvmProviderTransaction[], addr
         type: net > 0n ? ('received' as const) : ('sent' as const),
         amount,
         date,
-        counterparty: counterparties.size === 0 ? 'Internal transfer' : counterparties.size === 1 ? [...counterparties][0] : 'Multiple',
+        counterparty:
+          counterparties.size === 0
+            ? 'Internal transfer'
+            : counterparties.size === 1
+              ? [...counterparties][0]
+              : 'Multiple',
       };
     })
     .sort((left, right) => right.date.getTime() - left.date.getTime());
 }
 
-export async function getEvmData(coin: 'eth' | 'usdt', address: string, fetcher: typeof fetch = fetch, signal?: AbortSignal) {
+export async function getEvmData(
+  coin: 'eth' | 'usdt',
+  address: string,
+  fetcher: typeof fetch = fetch,
+  signal?: AbortSignal,
+) {
   const ethBalanceUrl = `${ETH_API}?module=account&action=balance&address=${address}`;
   const usdtbalanceUrl = `${ETH_API}?module=account&action=tokenbalance&contractaddress=${USDT_CONTRACT}&address=${address}`;
   const balanceUrl = coin === 'eth' ? ethBalanceUrl : usdtbalanceUrl;
@@ -263,7 +326,9 @@ export async function getEvmData(coin: 'eth' | 'usdt', address: string, fetcher:
 
   try {
     const [balRes, nonceRes, histRes] = await Promise.all(
-      [balanceUrl, nonceUrl, historyUrl].map((url) => fetcher(url, {signal: AbortSignal.any([AbortSignal.timeout(15_000), ...(signal ? [signal] : [])])})),
+      [balanceUrl, nonceUrl, historyUrl].map((url) =>
+        fetcher(url, {signal: AbortSignal.any([AbortSignal.timeout(15_000), ...(signal ? [signal] : [])])}),
+      ),
     );
 
     if (![balRes, nonceRes, histRes].every((response) => response.ok)) {
@@ -287,7 +352,10 @@ export async function getEvmData(coin: 'eth' | 'usdt', address: string, fetcher:
       throw new Error('Invalid wallet values');
     }
 
-    if (!Array.isArray(histData.result) || (histData.status !== '1' && !(histData.status === '0' && histData.result.length === 0))) {
+    if (
+      !Array.isArray(histData.result) ||
+      (histData.status !== '1' && !(histData.status === '0' && histData.result.length === 0))
+    ) {
       throw new Error('Invalid wallet history');
     }
 
@@ -316,7 +384,13 @@ export async function getXmrNode(fetcher: typeof fetch = fetch) {
 
     const info = data.result;
 
-    if (data.error || !info || typeof info.status !== 'string' || !Number.isSafeInteger(info.height) || !Number.isSafeInteger(info.target_height)) {
+    if (
+      data.error ||
+      !info ||
+      typeof info.status !== 'string' ||
+      !Number.isSafeInteger(info.height) ||
+      !Number.isSafeInteger(info.target_height)
+    ) {
       throw new Error('Invalid Monero node response');
     }
 

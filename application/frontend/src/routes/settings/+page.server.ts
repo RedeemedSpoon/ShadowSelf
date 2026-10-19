@@ -1,6 +1,6 @@
 import type {PageServerLoad, Actions} from './$types';
 import {env} from '$env/dynamic/public';
-import {fetchBackend} from '$lib/backend.server';
+import {backend, fetchBackend} from '$lib/backend.server';
 import {createCookie} from '$utils/shared';
 import {redirect} from '@sveltejs/kit';
 import QRCode from 'qrcode';
@@ -10,11 +10,21 @@ export const load: PageServerLoad = async ({cookies, setHeaders}) => {
 
   const response = await fetchBackend('/settings', 'GET', undefined, cookies.get('token'));
 
-  const sessions = await fetchBackend('/settings/sessions', 'GET', undefined, cookies.get('token'));
+  const sessions = await backend<{sessions: {id: string; current: boolean}[]}>(
+    '/settings/sessions',
+    'GET',
+    undefined,
+    cookies.get('token'),
+  );
 
   const stripeKey = env.PUBLIC_STRIPE_KEY || '';
 
-  return {settings: response, stripeKey, sessions: (sessions.sessions || []) as {id: string; current: boolean}[]};
+  return {
+    settings: response,
+    stripeKey,
+    sessions: sessions.ok ? sessions.data.sessions : [],
+    sessionsError: sessions.ok ? '' : sessions.error,
+  };
 };
 
 export const actions: Actions = {
@@ -44,7 +54,12 @@ export const actions: Actions = {
 
     const email = form.get('email');
 
-    const response = await fetchBackend('/settings/email', 'POST', {email, currentPassword: form.get('currentPassword')}, cookies.get('token'));
+    const response = await fetchBackend(
+      '/settings/email',
+      'POST',
+      {email, currentPassword: form.get('currentPassword')},
+      cookies.get('token'),
+    );
 
     if (response.type !== 'success') {
       return response;
@@ -58,7 +73,12 @@ export const actions: Actions = {
     const access = form.get('access');
     const email = form.get('email');
 
-    const response = await fetchBackend('/settings/email', 'PUT', {email, access, currentPassword: form.get('currentPassword')}, cookies.get('token'));
+    const response = await fetchBackend(
+      '/settings/email',
+      'PUT',
+      {email, access, currentPassword: form.get('currentPassword')},
+      cookies.get('token'),
+    );
 
     if (response.type !== 'success') {
       return response;
@@ -66,14 +86,23 @@ export const actions: Actions = {
 
     createCookie(cookies, 'token', response.token);
 
-    return {toggleModel: false, message: response.warning || 'Successfully changed email address', type: response.warning ? 'info' : 'success'};
+    return {
+      toggleModel: false,
+      message: response.warning || 'Successfully changed email address',
+      type: response.warning ? 'info' : 'success',
+    };
   },
   username: async ({request, cookies}) => {
     const form = await request.formData();
 
     const username = form.get('username');
 
-    const response = await fetchBackend('/settings/username', 'PUT', {username, currentPassword: form.get('currentPassword')}, cookies.get('token'));
+    const response = await fetchBackend(
+      '/settings/username',
+      'PUT',
+      {username, currentPassword: form.get('currentPassword')},
+      cookies.get('token'),
+    );
 
     if (response.type !== 'success') {
       return response;
@@ -86,7 +115,12 @@ export const actions: Actions = {
 
     const password = form.get('password');
 
-    const response = await fetchBackend('/settings/password', 'PUT', {password, currentPassword: form.get('currentPassword')}, cookies.get('token'));
+    const response = await fetchBackend(
+      '/settings/password',
+      'PUT',
+      {password, currentPassword: form.get('currentPassword')},
+      cookies.get('token'),
+    );
 
     if (response.type !== 'success') {
       return response;
@@ -115,7 +149,12 @@ export const actions: Actions = {
     const secret = form.get('secret');
     const token = form.get('token');
 
-    const response = await fetchBackend('/settings/totp', 'POST', {token, secret, currentPassword: form.get('currentPassword')}, cookies.get('token'));
+    const response = await fetchBackend(
+      '/settings/totp',
+      'POST',
+      {token, secret, currentPassword: form.get('currentPassword')},
+      cookies.get('token'),
+    );
 
     if (response.type !== 'success') {
       return {step: 2, ...response};
@@ -158,7 +197,12 @@ export const actions: Actions = {
 
     const payment = form.get('paymentID');
 
-    const response = await fetchBackend('/settings/payment', 'POST', {payment, currentPassword: form.get('currentPassword')}, cookies.get('token'));
+    const response = await fetchBackend(
+      '/settings/payment',
+      'POST',
+      {payment, currentPassword: form.get('currentPassword')},
+      cookies.get('token'),
+    );
 
     if (!response.sessionUrl) {
       return response;
@@ -184,7 +228,7 @@ export const actions: Actions = {
 
     const response = await fetchBackend('/settings/account', 'DELETE', {currentPassword}, cookies.get('token'));
 
-    if (response.type !== 'success' || response.status !== 'deleted') {
+    if (response.type !== 'success') {
       return response;
     }
 

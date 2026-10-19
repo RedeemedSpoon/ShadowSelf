@@ -1,5 +1,4 @@
-import {lookup} from 'node:dns/promises';
-import {isIP} from 'node:net';
+import {DEVELOPMENT_SECRET_SAUCE} from '@core/constants';
 
 function required(key: string): string {
   const value = process.env[key];
@@ -11,9 +10,21 @@ function required(key: string): string {
   return value;
 }
 
+function resolveSecretSauce() {
+  if (process.env.SECRET_SAUCE) {
+    return process.env.SECRET_SAUCE;
+  }
+
+  if (!['dev', 'development', 'test'].includes(process.env.NODE_ENV || 'dev')) {
+    return required('SECRET_SAUCE');
+  }
+
+  return DEVELOPMENT_SECRET_SAUCE;
+}
+
 const inProduction = ['prod', 'production'].includes(process.env.NODE_ENV || 'dev');
 export const origin = process.env.APP_ORIGIN || (inProduction ? 'https://shadowself.io' : 'http://localhost:5000');
-export const secretSauce = required('SECRET_SAUCE');
+export const secretSauce = resolveSecretSauce();
 
 if (inProduction && (secretSauce.length < 32 || /replace-with|placeholder|change.?me|synthetic/i.test(secretSauce))) {
   throw new Error('SECRET_SAUCE must contain a random production secret of at least 32 characters');
@@ -52,60 +63,3 @@ export const stripeConfig = {
     lifetime: process.env.LIFETIME_PRICE_ID || '',
   },
 };
-
-export const twilioConfig = {
-  sid: process.env.TWILIO_SID || '',
-  token: process.env.TWILIO_TOKEN || '',
-  messagingService: process.env.TWILIO_MESSAGING_SERVICE || '',
-};
-
-const configuredProxyIPs = (process.env.TRUSTED_PROXY_IPS || '')
-  .split(',')
-  .map((ip) => ip.trim())
-  .filter(Boolean);
-const configuredProxyHosts = (process.env.TRUSTED_PROXY_HOSTS || '')
-  .split(',')
-  .map((host) => host.trim())
-  .filter(Boolean);
-export const trustedProxyIPs = [...configuredProxyIPs];
-
-export async function resolveTrustedProxyHosts(
-  hosts = configuredProxyHosts,
-  resolver: (host: string) => Promise<{address: string}[]> = (host) => lookup(host, {all: true}),
-) {
-  const results = await Promise.allSettled(
-    hosts.map(async (host) => {
-      if (!/^[a-zA-Z0-9][a-zA-Z0-9.-]*$/.test(host)) {
-        throw new Error('Invalid trusted proxy hostname');
-      }
-
-      return await resolver(host);
-    }),
-  );
-
-  const current = [...configuredProxyIPs];
-
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      for (const {address} of result.value) {
-        if (isIP(address) && !current.includes(address)) {
-          current.push(address);
-        }
-      }
-    } else {
-      console.error('Trusted proxy lookup failed. Forwarded addresses will be ignored for that host until lookup recovers');
-    }
-  }
-
-  trustedProxyIPs.splice(0, trustedProxyIPs.length, ...current);
-}
-
-export function refreshTrustedProxyHosts() {
-  if (!configuredProxyHosts.length) {
-    return;
-  }
-
-  return setInterval(() => {
-    void resolveTrustedProxyHosts();
-  }, 30_000).unref();
-}

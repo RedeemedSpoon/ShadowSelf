@@ -29,7 +29,10 @@ async function registrationState(response: SignupResponse): Promise<SignupState>
 }
 
 async function completeRegistration(cookies: Cookies, savedRecovery = false) {
-  const result = await backend<{token: string}>('/auth/registration/complete', 'POST', {signup: cookies.get('signup'), savedRecovery});
+  const result = await backend<{token: string}>('/auth/registration/complete', 'POST', {
+    signup: cookies.get('signup'),
+    savedRecovery,
+  });
 
   if (!result.ok) {
     return {message: result.error};
@@ -75,13 +78,28 @@ export const actions: Actions = {
       return {message: result.error};
     }
 
-    cookies.set('signup', result.data.signup, {path: '/signup', httpOnly: true, secure: true, sameSite: 'strict', maxAge: result.data.expiresIn});
+    cookies.set('signup', result.data.signup, {
+      path: '/signup',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: result.data.expiresIn,
+    });
 
-    return {registration: await registrationState({stage: 'email', email: String(form.get('email')), username: String(form.get('username'))})};
+    return {
+      registration: await registrationState({
+        stage: 'email',
+        email: String(form.get('email')),
+        username: String(form.get('username')),
+      }),
+    };
   },
   verifyEmail: async ({request, cookies}) => {
     const form = await request.formData();
-    const result = await backend<SignupResponse>('/auth/registration/email', 'POST', {signup: cookies.get('signup'), access: form.get('access')});
+    const result = await backend<SignupResponse>('/auth/registration/email', 'POST', {
+      signup: cookies.get('signup'),
+      access: form.get('access'),
+    });
 
     if (!result.ok) {
       return {message: result.error};
@@ -95,7 +113,10 @@ export const actions: Actions = {
   },
   verifyAuthenticator: async ({request, cookies}) => {
     const token = (await request.formData()).get('token');
-    const result = await backend<SignupResponse>('/auth/registration/recovery', 'POST', {signup: cookies.get('signup'), token});
+    const result = await backend<SignupResponse>('/auth/registration/recovery', 'POST', {
+      signup: cookies.get('signup'),
+      token,
+    });
 
     if (!result.ok) {
       return {message: result.error};
