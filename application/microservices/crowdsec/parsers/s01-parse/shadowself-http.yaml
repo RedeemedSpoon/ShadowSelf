@@ -1,14 +1,24 @@
-name: shadowself/http-metadata
-description: Parse request metadata without client identifiers
+name: shadowself/http-security
+description: Parse minimal clearnet HTTP security events
 filter: "evt.Line.Labels.type == 'shadowself-http'"
 onsuccess: next_stage
 grok:
-  pattern: '^%{WORD:method} %{NOTSPACE:path} %{INT:status} %{INT:bytes} %{NUMBER:duration}$'
+  pattern: '^%{IP:remote_addr} \[%{HTTPDATE:time_local}\] "%{WORD:verb} %{NOTSPACE:request}" %{INT:status}$'
   apply_on: Line.Raw
 statics:
+  - target: evt.StrTime
+    expression: evt.Parsed.time_local
   - meta: log_type
-    value: shadowself_http_metadata
+    value: http_access-log
   - meta: service
-    value: shadowself-http
+    value: http
+  - meta: source_ip
+    expression: evt.Parsed.remote_addr
   - meta: http_status
     expression: evt.Parsed.status
+  - meta: http_path
+    expression: evt.Parsed.request
+  - meta: http_verb
+    expression: evt.Parsed.verb
+  - meta: target_fqdn
+    value: shadowself

@@ -283,6 +283,7 @@ export async function initialEvmHistory(
         address,
         fetcher,
         attempt,
+        indexed,
       );
     },
     signal,
@@ -310,6 +311,7 @@ export async function loadEvmHistory(
   address: string,
   fetcher: typeof fetch,
   signal?: AbortSignal,
+  indexedHeight?: number,
 ): Promise<WalletHistoryPage> {
   if (
     cursor.kind !== 'evm' ||
@@ -322,7 +324,7 @@ export async function loadEvmHistory(
     throw new ApiError(400, 'invalid_history_cursor', 'Refresh this wallet before loading more history');
   }
 
-  const indexed = await explorerHeight(cursor.endpoint, fetcher, signal);
+  const indexed = indexedHeight ?? (await explorerHeight(cursor.endpoint, fetcher, signal));
 
   if (indexed < cursor.endblock) {
     throw new ApiError(503, 'history_indexing', 'The explorer has not indexed this history snapshot yet');

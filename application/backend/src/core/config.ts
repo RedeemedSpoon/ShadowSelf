@@ -32,7 +32,7 @@ if (inProduction && (secretSauce.length < 32 || /replace-with|placeholder|change
 }
 
 export const geminiApiKey = process.env.GEMINI_API_KEY || '';
-export const geminiImageModel = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image';
+export const geminiImageModel = process.env.GEMINI_IMAGE_MODEL || 'gemini-nano-banana-2.1';
 export const trocadorApiKey = process.env.TROCADOR_API_KEY || '';
 
 export const dbConfig = {

@@ -1,8 +1,9 @@
-/var/log/shadowself/nginx/*.log {
+/var/log/shadowself/nginx/security.log {
   daily
-  rotate 14
+  rotate 1
+  maxage 1
+  maxsize 1M
   compress
-  delaycompress
   missingok
   notifempty
   copytruncate

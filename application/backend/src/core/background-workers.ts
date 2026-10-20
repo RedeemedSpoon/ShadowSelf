@@ -193,6 +193,17 @@ async function observeInvoice(connection: ReservedSql, invoice: QueryInvoice, wa
 export async function pollFees(fetcher: typeof fetch = fetch) {
   const feeQuote = (network: 'btc' | 'ltc') =>
     withChainEndpoint(network, async (endpoint, signal) => {
+      if (network === 'ltc') {
+        const estimate = await chainJson(`${endpoint}/v1/fees/recommended`, {signal}, fetcher);
+        const quote = {hourFee: estimate.hourFee, halfHourFee: estimate.halfHourFee, fastestFee: estimate.fastestFee};
+
+        if (Object.values(quote).some((value) => typeof value !== 'number' || !Number.isFinite(value) || value <= 0)) {
+          throw new Error('Litecoin fee estimates are unavailable');
+        }
+
+        return quote;
+      }
+
       const estimate = await chainJson(`${endpoint}/fee-estimates`, {signal}, fetcher);
       const target = (blocks: number) => {
         const candidates = Object.entries(estimate).filter(

@@ -1,5 +1,5 @@
 filenames:
-  - /var/log/shadowself/nginx/access.log
+  - /var/log/shadowself/nginx/security.log
 labels:
   type: shadowself-http
 ---
