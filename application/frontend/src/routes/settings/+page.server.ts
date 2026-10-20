@@ -224,9 +224,16 @@ export const actions: Actions = {
     redirect(303, '/login');
   },
   delete: async ({request, cookies}) => {
-    const currentPassword = (await request.formData()).get('currentPassword');
+    const form = await request.formData();
+    const currentPassword = form.get('currentPassword');
+    const refundAddress = form.get('refundAddress') || undefined;
 
-    const response = await fetchBackend('/settings/account', 'DELETE', {currentPassword}, cookies.get('token'));
+    const response = await fetchBackend(
+      '/settings/account',
+      'DELETE',
+      {currentPassword, refundAddress},
+      cookies.get('token'),
+    );
 
     if (response.type !== 'success') {
       return response;

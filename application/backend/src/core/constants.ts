@@ -31,11 +31,25 @@ export const UTXO_RECOVERY_LIMIT = 1200;
 export const CHAIN_REQUEST_CONCURRENCY = 6;
 export const INVOICE_POLL_BATCH_SIZE = 100;
 export const INVOICE_ACTIVE_MONITOR_MS = 7 * 86_400_000;
-export const RESTORE_HEIGHT = 3_600_000;
 
 export const PAYMENT_WINDOW_MIN = 40;
 export const CRYPTO_DISCOUNT = 20;
 export const BILLING_CURRENCY = 'usd';
+export const CRYPTO_REFUND_CONFIRMATIONS = 10;
+export const REFUND_WINDOW_MS = 14 * 86_400_000;
+export const STRIPE_EVENT_RETENTION_DAYS = 30;
+export const STRIPE_EVENT_TYPES = [
+  'payment_intent.succeeded',
+  'invoice.paid',
+  'invoice.payment_failed',
+  'charge.refunded',
+  'charge.dispute.created',
+  'charge.dispute.closed',
+  'customer.subscription.deleted',
+  'refund.created',
+  'refund.updated',
+  'refund.failed',
+] as const;
 export const UUID_PATTERN = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 export const PRICING_TIERS = {
   monthly: 499,
@@ -86,3 +100,8 @@ export const SWAP_NETWORKS: Record<string, string> = {
   usdt: 'ERC20',
   xmr: 'Mainnet',
 };
+
+export const CHAIN_REQUEST_TIMEOUT_MS = 6_000;
+export const CHAIN_PROVIDER_COOLDOWN_MS = 30_000;
+export const WALLET_HISTORY_PAGE_SIZE = 50;
+export const ESPLORA_HISTORY_PAGE_SIZE = 25;

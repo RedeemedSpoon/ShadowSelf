@@ -11,7 +11,7 @@ import {error} from '@utils/utils';
 import {check} from '@utils/checks';
 import {sql, stripe} from '@core/services';
 import {Elysia} from 'elysia';
-import {UUID_PATTERN} from '@core/constants';
+import {REFUND_WINDOW_MS, UUID_PATTERN} from '@core/constants';
 
 export default new Elysia({prefix: '/api/settings'})
   .use(middlewareBase)
@@ -58,7 +58,27 @@ export default new Elysia({prefix: '/api/settings'})
       (await sql`SELECT email, username, recovery_hashes, totp, api_access FROM users WHERE id = ${user!.accountID}`) as QueryUser[];
     const {email, username, recovery_hashes, totp, api_access} = rows[0];
 
-    return {email, username, recoveryRemaining: recovery_hashes.length, API: api_access, OTP: !!totp};
+    const refunds = await sql`SELECT c.id, c.requested_at AS "requestedAt", c.error_code AS "errorCode"
+      FROM stripe_cleanup c JOIN users u ON u.stripe_customer = c.customer_id
+      WHERE u.id = ${user!.accountID} AND c.refund_requested ORDER BY c.requested_at DESC`;
+
+    const cryptoRefunds =
+      await sql`SELECT id, requested_at AS "requestedAt", error_code AS "errorCode", xmr_amount AS "xmrAmount"
+      FROM crypto_refunds WHERE owner = ${user!.accountID} ORDER BY requested_at DESC`;
+    const eligible = await sql`SELECT 1 FROM identities i JOIN crypto_invoices c ON c.identity_id = i.id
+      WHERE i.owner = ${user!.accountID} AND c.owner = i.owner AND NOT c.renewal AND c.status = 'paid'
+      AND i.creation_date <= NOW() AND i.creation_date >= NOW() - ${REFUND_WINDOW_MS} * INTERVAL '1 millisecond' LIMIT 1`;
+
+    return {
+      email,
+      username,
+      recoveryRemaining: recovery_hashes.length,
+      API: api_access,
+      OTP: !!totp,
+      refunds,
+      cryptoRefunds,
+      cryptoRefundRequired: eligible.length > 0,
+    };
   })
   .post('/billing-portal', ({user}) => billingPortal(user!.email))
   .get('/totp', async ({user}) => {
@@ -300,8 +320,8 @@ export default new Elysia({prefix: '/api/settings'})
 
     return {recoveryRemaining: 0};
   })
-  .delete('/account', async ({user}) => {
-    await deleteAccount(user!.accountID);
+  .delete('/account', async ({user, body}) => {
+    await deleteAccount(user!.accountID, (body as {refundAddress?: unknown})?.refundAddress);
 
     return {success: true};
   });

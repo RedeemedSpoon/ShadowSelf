@@ -44,9 +44,15 @@ export default (app: Elysia) =>
       (request.method === 'GET' &&
         ['/vault', '/wallet', '/wallet/node'].some((suffix) => path === `${identityPath}${suffix}`)) ||
       (request.method === 'POST' &&
-        ['/wallet/recovery', '/wallet/prepare', '/wallet/transactions', '/wallet/transactions/reconcile'].some(
-          (suffix) => path === `${identityPath}${suffix}`,
-        ));
+        [
+          '/wallet/recovery',
+          '/wallet/history',
+          '/wallet/addresses',
+          '/wallet/utxos/verify',
+          '/wallet/prepare',
+          '/wallet/transactions',
+          '/wallet/transactions/reconcile',
+        ].some((suffix) => path === `${identityPath}${suffix}`));
 
     if (!metadataRequest) {
       if (identity.status === 'frozen' && !recoveryRequest) {

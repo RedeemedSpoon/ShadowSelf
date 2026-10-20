@@ -1,6 +1,7 @@
 import {cryptoFees, cryptoPrices, billingReadiness, throttle} from '@core/states';
 import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, UUID_PATTERN} from '@core/constants';
 import {chainProvider} from '@core/chain-provider';
+import {issuedWalletAddresses, reserveWalletAddress, rememberRecoveredAddresses} from '@core/wallet-addresses';
 import {withAccountLock, withIdentityLock} from '@core/identity-service';
 import {swapProvider} from '@core/swap-provider';
 import {requireProvider, ApiError} from '@core/security';
@@ -17,7 +18,8 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
   .get('/node', async ({identity}) => ({startingDate: identity!.creation_date, ...(await chainProvider.node())}))
   .get('/', async ({identity, user, request}) => {
     const scope = `${user!.accountID}:${identity!.id}`;
-    const outcomes = await chainProvider.overview(scope, identity!.wallet_keys, request.signal);
+    const issued = await issuedWalletAddresses(identity!.id);
+    const outcomes = await chainProvider.overview(scope, identity!.wallet_keys, issued, request.signal);
 
     const wallet = Object.fromEntries(
       ['btc', 'ltc', 'eth', 'usdt'].map((coin, index) => {
@@ -67,21 +69,89 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
     return {prices, fees, wallet};
   })
   .post(
-    '/recovery',
+    '/history',
     async ({identity, body, request}) => {
+      const {coin, cursor} = (body ?? {}) as {coin?: string; cursor?: unknown};
+
+      if (coin !== 'btc' && coin !== 'ltc' && coin !== 'eth' && coin !== 'usdt') {
+        throw new ApiError(400, 'invalid_coin', 'Choose a supported history asset');
+      }
+
+      const key = coin === 'btc' || coin === 'ltc' ? identity!.wallet_keys[coin] : identity!.wallet_keys.evm;
+
+      return chainProvider.history(coin, key, cursor, request.signal);
+    },
+    throttle('Wallet history', 1_000),
+  )
+  .post(
+    '/recovery',
+    async ({identity, user, body, request}) => {
       const coin = (body as {coin?: string})?.coin;
 
       if (coin !== 'btc' && coin !== 'ltc') {
         throw new ApiError(400, 'invalid_coin', 'Choose Bitcoin or Litecoin for an extended discovery scan');
       }
 
-      return {
-        coin,
-        wallet: await chainProvider.utxo(coin, identity!.wallet_keys[coin], {signal: request.signal, recovery: true}),
-      };
+      const issued = await issuedWalletAddresses(identity!.id);
+      const wallet = await chainProvider.utxo(coin, identity!.wallet_keys[coin], {
+        signal: request.signal,
+        recovery: true,
+        issued: issued[coin],
+      });
+      await rememberRecoveredAddresses(identity!.id, user!.accountID, coin, wallet);
+
+      return {coin, wallet};
     },
     throttle('Wallet recovery', 120_000),
   )
+  .post('/addresses', async ({identity, user, body, request}) =>
+    reserveWalletAddress(identity!.id, user!.accountID, body, request.signal),
+  )
+  .post('/utxos/verify', async ({body}) => {
+    const {coin, utxos} = (body ?? {}) as {
+      coin?: string;
+      utxos?: {txid: string; vout: number; value: number; address: string}[];
+    };
+
+    if (
+      (coin !== 'btc' && coin !== 'ltc') ||
+      !Array.isArray(utxos) ||
+      !utxos.length ||
+      utxos.length > 500 ||
+      utxos.some(
+        (output) =>
+          !output ||
+          !/^[a-f0-9]{64}$/i.test(output.txid) ||
+          !Number.isSafeInteger(output.vout) ||
+          output.vout < 0 ||
+          !Number.isSafeInteger(output.value) ||
+          output.value <= 0 ||
+          typeof output.address !== 'string',
+      )
+    ) {
+      throw new ApiError(400, 'invalid_inputs', 'Select valid unspent outputs');
+    }
+
+    const current = await chainProvider.sweep(coin, [...new Set(utxos.map((output) => output.address))]);
+    const outputs = new Map(current.utxos.map((output) => [`${output.txid}:${output.vout}`, output]));
+
+    if (
+      new Set(utxos.map((output) => `${output.txid}:${output.vout}`)).size !== utxos.length ||
+      utxos.some((output) => {
+        const fresh = outputs.get(`${output.txid}:${output.vout}`);
+
+        return !fresh || fresh.value !== output.value || fresh.address !== output.address;
+      })
+    ) {
+      throw new ApiError(
+        409,
+        'inputs_changed',
+        'Selected funds changed or have already been spent. Refresh and prepare again',
+      );
+    }
+
+    return {verified: true};
+  })
   .post('/prepare', async ({identity, body, request}) => {
     const input = body as EvmTransferRequest & {address?: string};
 
@@ -253,23 +323,31 @@ export default new Elysia({prefix: '/api/identities/:id/wallet'})
   })
   .post(
     '/transactions/reconcile',
-    async ({body}) => {
-      const input = body as {address: string; txid: string; nonce: number};
+    async ({body, request}) => {
+      const input = body as {coin?: string; hex?: string; address: string; txid: string; nonce: number};
 
-      return chainProvider.reconcileEvm(input?.address, input?.txid, input?.nonce);
+      if (input?.coin === 'btc' || input?.coin === 'ltc') {
+        return chainProvider.reconcileUtxo(input.coin, input.hex!, request.signal);
+      }
+
+      if (input?.coin !== 'eth' && input?.coin !== 'usdt') {
+        throw new ApiError(400, 'invalid_coin', 'Choose a supported transaction asset');
+      }
+
+      return chainProvider.reconcileEvm(input.address, input.txid, input.nonce);
     },
     throttle('Broadcast reconciliation', 5_000),
   )
   .post(
     '/transactions',
-    async ({body, set}) => {
+    async ({body, set, request}) => {
       const {err, hex, coin} = await checkAPI(body, ['hex', 'coin']);
 
       if (err) {
         return error(set, 400, err);
       }
 
-      return await chainProvider.broadcast(coin, hex);
+      return await chainProvider.broadcast(coin, hex, request.signal);
     },
     throttle('Broadcast', 10_000),
   )

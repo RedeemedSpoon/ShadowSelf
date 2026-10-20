@@ -9,7 +9,6 @@ export const CONTACT_EMAIL = `contact@${MAIL_DOMAIN}`;
 export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
 export const ONION_URL = PUBLIC_ONION_ORIGIN;
 export const CRYPTO_DISCOUNT = 20;
-export const UTXO_HARD_LIMIT = 120;
 
 export const PRICING_TIERS = {
   monthly: {

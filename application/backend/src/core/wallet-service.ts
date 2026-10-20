@@ -1,6 +1,6 @@
-import {watchWallet, setWatchWallet, billingReadiness} from '@core/states';
-import {RESTORE_HEIGHT} from '@core/constants';
-import {moneroWallet, chainEndpoints} from '@core/config';
+import {withChainEndpoint, moneroNodeInfo} from '@core/chain-requests';
+import {billingWallet, setBillingWallet, billingReadiness} from '@core/states';
+import {moneroWallet} from '@core/config';
 import {requireProvider} from '@core/security';
 import {sql} from '@core/services';
 import moneroTs from 'monero-ts';
@@ -10,23 +10,25 @@ import type {ReservedSql, Sql} from 'postgres';
 let loadedRevision: string | null = null;
 let savedDigest = '';
 
-async function initMoneroWallet(connection: Sql | ReservedSql) {
+async function initMoneroWallet(connection: Sql | ReservedSql, endpoint: string) {
   const cacheQuery = await connection`SELECT keys_data, cache_data, revision FROM wallet_cache WHERE id = 1`;
 
-  if (watchWallet && cacheQuery[0] && String(cacheQuery[0].revision) === loadedRevision) {
+  if (billingWallet && cacheQuery[0] && String(cacheQuery[0].revision) === loadedRevision) {
+    await billingWallet.setDaemonConnection(endpoint);
+
     return;
   }
 
-  if (watchWallet) {
-    await watchWallet.close();
+  if (billingWallet) {
+    await billingWallet.close();
   }
 
   if (cacheQuery.length > 0) {
-    setWatchWallet(
+    setBillingWallet(
       await moneroTs.openWalletFull({
         password: moneroWallet.password,
         networkType: moneroTs.MoneroNetworkType.MAINNET,
-        server: chainEndpoints.xmr,
+        server: endpoint,
         keysData: cacheQuery[0].keys_data,
         cacheData: cacheQuery[0].cache_data,
       }),
@@ -34,23 +36,35 @@ async function initMoneroWallet(connection: Sql | ReservedSql) {
     loadedRevision = String(cacheQuery[0].revision);
     savedDigest = createHash('sha256').update(cacheQuery[0].keys_data).update(cacheQuery[0].cache_data).digest('hex');
   } else {
-    setWatchWallet(
+    setBillingWallet(
       await moneroTs.createWalletFull({
         password: moneroWallet.password,
         networkType: moneroTs.MoneroNetworkType.MAINNET,
         primaryAddress: moneroWallet.address,
         privateViewKey: moneroWallet.viewKey,
-        server: chainEndpoints.xmr,
-        restoreHeight: RESTORE_HEIGHT,
+        privateSpendKey: moneroWallet.spendKey,
+        server: endpoint,
+        restoreHeight: moneroWallet.restoreHeight,
       }),
     );
+  }
 
-    await watchWallet.sync();
+  if (
+    (await billingWallet.isViewOnly()) ||
+    (await billingWallet.getPrimaryAddress()) !== moneroWallet.address ||
+    (await billingWallet.getPrivateSpendKey()) !== moneroWallet.spendKey ||
+    (await billingWallet.getPrivateViewKey()) !== moneroWallet.viewKey
+  ) {
+    throw new Error('The billing wallet does not match the configured spendable Monero wallet');
+  }
+
+  if (!cacheQuery.length) {
+    await billingWallet.sync();
     await saveWalletState(connection);
   }
 }
 
-export async function saveWalletState(connection: Sql | ReservedSql, wallet = watchWallet) {
+export async function saveWalletState(connection: Sql | ReservedSql, wallet = billingWallet) {
   if (!wallet) {
     return;
   }
@@ -105,13 +119,29 @@ export function quoteXmr(cents: number, discount: number, price: number) {
     throw new Error('Invalid invoice price');
   }
 
-  const scaledPrice = parseXmr(price.toFixed(12));
+  return quoteUsdXmr(purchaseUsdAmount(cents, discount), price);
+}
 
-  if (!scaledPrice) {
-    throw new Error('Monero price is below supported precision');
+export function purchaseUsdAmount(cents: number, discount: number) {
+  const units = BigInt(cents) * BigInt(100 - discount);
+
+  return `${units / 10_000n}.${(units % 10_000n).toString().padStart(4, '0')}`;
+}
+
+export function quoteUsdXmr(amount: string, price: number) {
+  if (!/^\d+(?:\.\d{1,4})?$/.test(amount) || !Number.isFinite(price) || price <= 0) {
+    throw new Error('Invalid refund conversion');
   }
 
-  const numerator = BigInt(cents) * BigInt(100 - discount) * 1_000_000_000_000n * 1_000_000_000_000n;
+  const [whole, fraction = ''] = amount.split('.');
+  const usdUnits = BigInt(whole) * 10_000n + BigInt(fraction.padEnd(4, '0'));
+  const scaledPrice = parseXmr(price.toFixed(12));
+
+  if (usdUnits <= 0n || scaledPrice <= 0n) {
+    throw new Error('The refund value or exchange rate is below supported precision');
+  }
+
+  const numerator = usdUnits * 1_000_000_000_000n * 1_000_000_000_000n;
   const denominator = scaledPrice * 10_000n;
   const atoms = (numerator + denominator - 1n) / denominator;
 
@@ -187,7 +217,10 @@ export async function withBillingWallet<T>(
   operation: (connection: ReservedSql) => Promise<T>,
   existing?: ReservedSql,
 ): Promise<T> {
-  requireProvider(!!moneroWallet.address && !!moneroWallet.viewKey && !!moneroWallet.password, 'Crypto billing');
+  requireProvider(
+    !!moneroWallet.address && !!moneroWallet.viewKey && !!moneroWallet.spendKey && !!moneroWallet.password,
+    'Crypto billing',
+  );
 
   const connection = existing || (await sql.reserve());
 
@@ -201,7 +234,11 @@ export async function withBillingWallet<T>(
       throw new Error('Crypto billing is busy. Retry this request shortly');
     }
 
-    await initMoneroWallet(connection);
+    await withChainEndpoint('xmr', async (endpoint, signal) => {
+      await moneroNodeInfo(endpoint, signal);
+      await initMoneroWallet(connection, endpoint);
+      await billingWallet.sync();
+    });
 
     const result = await operation(connection);
     billingReadiness.available = true;
@@ -229,10 +266,10 @@ export async function withBillingWallet<T>(
 
 export async function allocateInvoiceAddress(id: string, connection: ReservedSql) {
   return withBillingWallet(async (connection) => {
-    const subaddresses = await watchWallet.getSubaddresses(0);
+    const subaddresses = await billingWallet.getSubaddresses(0);
 
     const existing = subaddresses.find((address) => address.getLabel() === id);
-    const subaddress = existing || (await watchWallet.createSubaddress(0, id));
+    const subaddress = existing || (await billingWallet.createSubaddress(0, id));
 
     if (!existing) {
       await saveWalletState(connection);

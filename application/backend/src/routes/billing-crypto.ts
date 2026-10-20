@@ -1,10 +1,10 @@
 import {IDENTITY_CREATION_AVAILABLE, SWAP_CHECKOUT_URL} from '@core/constants';
-import {allocateInvoiceAddress, quoteXmr, parseXmr} from '@core/wallet-service';
+import {allocateInvoiceAddress, quoteXmr, parseXmr, purchaseUsdAmount} from '@core/wallet-service';
 import {POLL_PRICES_INTERVAL} from '@core/constants';
 import {
   cryptoPrices,
   invoiceConnections,
-  watchWallet,
+  billingWallet,
   billingReadiness,
   guardedAuthTimer,
   socketCapacityAvailable,
@@ -45,9 +45,9 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
       return error(set, 404, 'Invoice not found');
     }
 
-    const invoices = await sql`SELECT c.*, i.id AS identity_id,
+    const invoices = await sql`SELECT c.*,
       (SELECT total FROM invoice_observations WHERE invoice_id = c.id ORDER BY id DESC LIMIT 1) AS observed_total
-      FROM crypto_invoices c LEFT JOIN identities i ON i.crypto_invoice = c.id AND i.owner = c.owner
+      FROM crypto_invoices c
       WHERE c.id = ${params.id} AND c.owner = ${user.accountID}`;
 
     const invoice = invoices[0];
@@ -67,6 +67,7 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
     return {
       invoiceID: invoice.id,
       coin: invoice.swap_coin,
+      usdAmount: invoice.usd_amount,
       depositAddress: null,
       depositAmount: null,
       ...(invoice.provider_reference
@@ -79,7 +80,7 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
           : invoice.status === 'pending' && Date.now() >= expiresAt
             ? 'expired'
             : invoice.status,
-      identityID: invoice.identity_id || invoice.renewal_id || null,
+      identityID: invoice.identity_id || null,
       createdAt: invoice.creation_date,
       expiresAt: new Date(expiresAt).toISOString(),
       remainingAmount: `${atoms / 1_000_000_000_000n}.${(atoms % 1_000_000_000_000n).toString().padStart(12, '0')}`,
@@ -170,7 +171,7 @@ async function createInvoice(set: Record<string, any>, email: string, body: unkn
   }
 
   if (
-    !watchWallet ||
+    !billingWallet ||
     !cryptoPrices.xmr?.usdPrice ||
     Date.now() - billingReadiness.priceSync > POLL_PRICES_INTERVAL * 3
   ) {
@@ -216,8 +217,10 @@ async function createInvoice(set: Record<string, any>, email: string, body: unkn
       return {invoiceID: unresolved[0].id, status: 'reconciling'};
     }
 
-    await connection`INSERT INTO crypto_invoices (owner, plan, xmr_amount, renewal_id, request_id, swap_coin, refund_address)
-    VALUES (${owner}, ${plan}, ${xmrAmount}, ${renewal ? identityID : null}, ${requestID!}, ${swapCoin}, ${refundAddress || null})
+    const usdAmount = purchaseUsdAmount(PRICING_TIERS[plan as keyof typeof PRICING_TIERS], CRYPTO_DISCOUNT);
+
+    await connection`INSERT INTO crypto_invoices (owner, plan, xmr_amount, identity_id, renewal, usd_amount, request_id, swap_coin, refund_address)
+    VALUES (${owner}, ${plan}, ${xmrAmount}, ${renewal ? identityID : null}, ${renewal}, ${usdAmount}, ${requestID!}, ${swapCoin}, ${refundAddress || null})
     ON CONFLICT (owner, request_id) DO NOTHING`;
 
     const invoices =
@@ -226,10 +229,11 @@ async function createInvoice(set: Record<string, any>, email: string, body: unkn
     const invoice = invoices[0];
 
     if (
+      invoice.renewal !== renewal ||
       invoice.plan !== plan ||
       invoice.swap_coin !== swapCoin ||
       (invoice.refund_address || '') !== (refundAddress || '') ||
-      (invoice.renewal_id || null) !== (renewal ? identityID : null)
+      (renewal && invoice.identity_id !== identityID)
     ) {
       return error(set, 409, 'This payment request has different details. Start a new purchase');
     }

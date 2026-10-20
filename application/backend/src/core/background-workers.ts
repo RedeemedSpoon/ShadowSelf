@@ -1,3 +1,6 @@
+import {withChainEndpoint, chainJson, ethereumRpc, requireEthereumMainnet} from '@core/chain-requests';
+import {repairCryptoRefunds} from '@core/crypto-refunds';
+import {repairStripeCleanup} from '@core/stripe-cleanup';
 import {repairStripeEvents} from '@core/stripe-service';
 import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/swap-provider';
 import {
@@ -9,14 +12,14 @@ import {
   fullPaymentTimestamp,
 } from '@core/wallet-service';
 import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, POLL_CLEANUP_INTERVAL} from '@core/constants';
-import {cryptoFees, cryptoPrices, invoiceConnections, watchWallet, billingReadiness} from '@core/states';
+import {cryptoFees, cryptoPrices, invoiceConnections, billingWallet, billingReadiness} from '@core/states';
 import {COINGECKO_URL} from '@core/constants';
 import {PAYMENT_WINDOW_MIN, INVOICE_POLL_BATCH_SIZE, INVOICE_ACTIVE_MONITOR_MS} from '@core/constants';
 import type {QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
-import {providerJson, withReservedTransaction, reportFailure} from '@utils/utils';
+import {withReservedTransaction, reportFailure} from '@utils/utils';
 import {sql} from '@core/services';
-import {chainEndpoints, stripeConfig, moneroWallet, trocadorApiKey} from '@core/config';
+import {stripeConfig, moneroWallet, trocadorApiKey} from '@core/config';
 import type {ReservedSql} from 'postgres';
 
 let activeInvoiceCursor: string | null = null;
@@ -37,7 +40,7 @@ export async function processInvoiceBatch<T>(invoices: T[], process: (invoice: T
   return {processed: invoices.length, failed};
 }
 
-export async function pollInvoices(connection: ReservedSql, wallet = watchWallet) {
+export async function pollInvoices(connection: ReservedSql, wallet = billingWallet) {
   if (!wallet) {
     return;
   }
@@ -75,18 +78,18 @@ export async function pollInvoices(connection: ReservedSql, wallet = watchWallet
 }
 
 export async function activateInvoice(connection: ReservedSql, invoice: QueryInvoice) {
-  const identityID = invoice.renewal_id || generateIdentityID();
+  const identityID = invoice.identity_id || generateIdentityID();
 
   return withReservedTransaction(connection, async (transaction) => {
     const owners =
       invoice.owner === null ? [] : await transaction`SELECT id FROM users WHERE id = ${invoice.owner} FOR UPDATE`;
-    const identities = invoice.renewal_id
+    const identities = invoice.renewal
       ? await transaction`SELECT i.id, c.entitlement_start, c.plan FROM identities i
           LEFT JOIN crypto_invoices c ON c.id = i.crypto_invoice
           WHERE i.id = ${identityID} AND i.owner = ${invoice.owner} FOR UPDATE OF i`
       : [];
 
-    if (!owners.length || (invoice.renewal_id && !identities.length)) {
+    if (!owners.length || (invoice.renewal && !identities.length)) {
       await transaction`UPDATE crypto_invoices SET status = 'reconciliation' WHERE id = ${invoice.id} AND status <> 'paid'`;
 
       return null;
@@ -96,7 +99,7 @@ export async function activateInvoice(connection: ReservedSql, invoice: QueryInv
     const previousEnd = identities.length ? entitlementEnd(identities[0].entitlement_start, identities[0].plan) : null;
     const entitlementStart = new Date(Math.max(paidAt.getTime(), previousEnd?.getTime() ?? 0));
     const claimed = await transaction`UPDATE crypto_invoices SET status = 'paid', paid_at = ${paidAt},
-      entitlement_start = ${entitlementStart} WHERE id = ${invoice.id} AND status <> 'paid' RETURNING id`;
+      entitlement_start = ${entitlementStart}, identity_id = ${identityID} WHERE id = ${invoice.id} AND status <> 'paid' RETURNING id`;
 
     if (!claimed.length) {
       const existing =
@@ -105,7 +108,7 @@ export async function activateInvoice(connection: ReservedSql, invoice: QueryInv
       return existing[0]?.id || null;
     }
 
-    if (invoice.renewal_id) {
+    if (invoice.renewal) {
       await transaction`UPDATE identities SET crypto_invoice = ${invoice.id},
         status = CASE WHEN EXISTS (SELECT 1 FROM creation_jobs WHERE identity_id = ${identityID} AND status = 'completed') THEN 'active' ELSE 'inactive' END
         WHERE id = ${identityID} AND owner = ${invoice.owner}`;
@@ -118,7 +121,7 @@ export async function activateInvoice(connection: ReservedSql, invoice: QueryInv
   });
 }
 
-async function observeInvoice(connection: ReservedSql, invoice: QueryInvoice, wallet = watchWallet) {
+async function observeInvoice(connection: ReservedSql, invoice: QueryInvoice, wallet = billingWallet) {
   const subaddress = await wallet.getAddressIndex(invoice.xmr_subaddress);
   const balance = await wallet.getBalance(subaddress.getAccountIndex(), subaddress.getIndex());
   const unlocked = await wallet.getUnlockedBalance(subaddress.getAccountIndex(), subaddress.getIndex());
@@ -188,19 +191,64 @@ async function observeInvoice(connection: ReservedSql, invoice: QueryInvoice, wa
 }
 
 export async function pollFees(fetcher: typeof fetch = fetch) {
+  const feeQuote = (network: 'btc' | 'ltc') =>
+    withChainEndpoint(network, async (endpoint, signal) => {
+      const estimate = await chainJson(`${endpoint}/fee-estimates`, {signal}, fetcher);
+      const target = (blocks: number) => {
+        const candidates = Object.entries(estimate).filter(
+          ([key, value]) => Number(key) <= blocks && typeof value === 'number' && Number.isFinite(value) && value > 0,
+        );
+        candidates.sort(([left], [right]) => Number(right) - Number(left));
+
+        return candidates[0]?.[1] as number | undefined;
+      };
+      const quote = {hourFee: target(6), halfHourFee: target(3), fastestFee: target(1)};
+
+      if (Object.values(quote).some((value) => value === undefined)) {
+        throw new Error('Fee estimates are unavailable');
+      }
+
+      return quote;
+    });
   const outcomes = await Promise.allSettled([
-    providerJson(`${chainEndpoints.btc}/v1/fees/recommended`, undefined, fetcher),
-    providerJson(`${chainEndpoints.ltc}/v1/fees/recommended`, undefined, fetcher),
-    providerJson(`${chainEndpoints.eth}/v2/stats`, undefined, fetcher),
-    providerJson(
-      chainEndpoints.xmr,
-      {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({jsonrpc: '2.0', id: '0', method: 'get_fee_estimate'}),
-      },
-      fetcher,
-    ),
+    feeQuote('btc'),
+    feeQuote('ltc'),
+    withChainEndpoint('ethRpc', async (endpoint, signal) => {
+      await requireEthereumMainnet(endpoint, signal, fetcher);
+
+      const [block, tip] = await Promise.all([
+        ethereumRpc(endpoint, 'eth_getBlockByNumber', ['latest', false], signal, fetcher),
+        ethereumRpc(endpoint, 'eth_maxPriorityFeePerGas', [], signal, fetcher),
+      ]);
+
+      if (!/^0x[a-f0-9]+$/i.test(block?.baseFeePerGas || '') || !/^0x[a-f0-9]+$/i.test(tip || '')) {
+        throw new Error('Ethereum fee estimates are unavailable');
+      }
+
+      const base = BigInt(block.baseFeePerGas) * 2n;
+      const priority = BigInt(tip) || 1n;
+      const units = (multiplier: bigint) => Number(base + priority * multiplier) / 1e9;
+
+      return {gas_prices: {slow: units(1n), average: units(2n), fast: units(3n)}};
+    }),
+    withChainEndpoint('xmr', async (endpoint, signal) => {
+      const data = await chainJson(
+        endpoint,
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({jsonrpc: '2.0', id: '0', method: 'get_fee_estimate'}),
+          signal,
+        },
+        fetcher,
+      );
+
+      if (data.error || !Number.isFinite(data.result?.fee) || data.result.fee <= 0) {
+        throw new Error('Monero fee estimates are unavailable');
+      }
+
+      return data;
+    }),
   ]);
   const values = outcomes.map((outcome) => (outcome.status === 'fulfilled' ? outcome.value : null));
   const candidates = {
@@ -294,6 +342,7 @@ export function initBackgroundWorkers() {
 
   if (stripeConfig.secretKey) {
     void runWorker('Stripe reconciliation', repairStripeEvents, POLL_INVOICES_INTERVAL);
+    void runWorker('Stripe cleanup', repairStripeCleanup, POLL_INVOICES_INTERVAL);
   }
 
   if (trocadorApiKey) {
@@ -301,7 +350,8 @@ export function initBackgroundWorkers() {
     void runWorker('Wallet swap reconciliation', repairWalletSwapRequests, POLL_INVOICES_INTERVAL);
   }
 
-  if (moneroWallet.address && moneroWallet.viewKey && moneroWallet.password) {
+  if (moneroWallet.address && moneroWallet.viewKey && moneroWallet.spendKey && moneroWallet.password) {
     void runWorker('Invoice polling', () => withBillingWallet(pollInvoices), POLL_INVOICES_INTERVAL);
+    void runWorker('Crypto refunds', repairCryptoRefunds, POLL_INVOICES_INTERVAL);
   }
 }

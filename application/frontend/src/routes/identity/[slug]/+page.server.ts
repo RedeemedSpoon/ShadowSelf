@@ -16,9 +16,16 @@ export const load: PageServerLoad = async ({params, cookies}) => {
 
 export const actions: Actions = {
   delete: async ({request, cookies, params}) => {
-    const currentPassword = (await request.formData()).get('currentPassword');
+    const form = await request.formData();
+    const currentPassword = form.get('currentPassword');
+    const refundAddress = form.get('refundAddress') || undefined;
 
-    const result = await backend(`/identities/${params.slug}`, 'DELETE', {currentPassword}, cookies.get('token'));
+    const result = await backend(
+      `/identities/${params.slug}`,
+      'DELETE',
+      {currentPassword, refundAddress},
+      cookies.get('token'),
+    );
 
     if (!result.ok) {
       return {message: result.error};

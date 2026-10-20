@@ -1,8 +1,9 @@
 import {ApiError} from '@core/security';
+import {queueCryptoRefund, validateRefundAddress} from '@core/crypto-refunds';
+import {REFUND_WINDOW_MS} from '@core/constants';
 import {withReservedTransaction} from '@utils/utils';
-import {sql, stripe} from '@core/services';
-import type {ReservedSql} from 'postgres';
-import type Stripe from 'stripe';
+import {sql} from '@core/services';
+import type {ReservedSql, TransactionSql} from 'postgres';
 
 export async function withIdentityLock<T>(
   id: string,
@@ -69,120 +70,86 @@ export async function provisionIdentity(id: string) {
   );
 }
 
-export async function deleteIdentity(id: string, owner: number, provider: Stripe = stripe) {
+export async function deleteIdentity(id: string, owner: number, refundAddress?: unknown) {
+  const address = await validateRefundAddress(refundAddress);
+
   return withAccountLock(owner, async (connection) => {
-    await removeIdentity(id, owner, provider, connection);
-  });
-}
-
-async function removeIdentity(id: string, owner: number, provider: Stripe, connection: ReservedSql) {
-  const identities = await connection`SELECT * FROM identities WHERE id = ${id} AND owner = ${owner}`;
-  const identity = identities[0];
-
-  if (!identity) {
-    return;
-  }
-
-  if (!(await cancelIdentityBilling(identity, Date.now(), provider))) {
-    throw new ApiError(503, 'cleanup_incomplete', 'The refund is still processing. Retry deletion after it completes');
-  }
-
-  await withReservedTransaction(connection, async (transaction) => {
-    await transaction`SELECT id FROM users WHERE id = ${owner} FOR UPDATE`;
-    await transaction`DELETE FROM fiat_intents WHERE identity_id = ${id} AND owner = ${owner}`;
-    await transaction`DELETE FROM wallet_swaps WHERE identity_id = ${id} AND owner = ${owner}`;
-    await transaction`DELETE FROM identities WHERE id = ${id} AND owner = ${owner}`;
-  });
-}
-
-export async function deleteAccount(owner: number, provider: Stripe = stripe) {
-  return withAccountLock(owner, async (connection) => {
-    const accounts = await connection`SELECT stripe_customer FROM users WHERE id = ${owner}`;
-
-    if (!accounts.length) {
-      return;
-    }
-
-    const identities = await connection`SELECT id FROM identities WHERE owner = ${owner}`;
-
-    for (const identity of identities) {
-      await removeIdentity(identity.id, owner, provider, connection);
-    }
-
-    if (accounts[0].stripe_customer) {
-      try {
-        await provider.customers.del(accounts[0].stripe_customer);
-      } catch (error) {
-        if ((error as {code?: string}).code !== 'resource_missing') {
-          throw error;
-        }
-      }
-    }
-
     await withReservedTransaction(connection, async (transaction) => {
       await transaction`SELECT id FROM users WHERE id = ${owner} FOR UPDATE`;
-      await transaction`DELETE FROM users WHERE id = ${owner}`;
+      await removeIdentityRecords(id, owner, transaction, address);
     });
   });
 }
 
-async function cancelIdentityBilling(identity: Record<string, any>, requestedAt: number, provider: Stripe) {
-  if (identity.subscription_id) {
-    const subscription = await provider.subscriptions.retrieve(identity.subscription_id);
+export async function removeIdentityRecords(
+  id: string,
+  owner: number,
+  transaction: ReservedSql | TransactionSql,
+  refundAddress?: string,
+) {
+  await queueCryptoRefund(id, owner, refundAddress, transaction);
+  await queueIdentityBilling(id, owner, transaction);
+  await transaction`UPDATE crypto_invoices SET owner = NULL, identity_id = NULL, xmr_subaddress = NULL,
+    refund_address = NULL, provider_reference = NULL, provider_state = NULL, response = NULL
+    WHERE identity_id = ${id} AND owner = ${owner} AND status = 'paid'`;
+  await transaction`DELETE FROM fiat_intents WHERE identity_id = ${id} AND owner = ${owner}`;
+  await transaction`DELETE FROM wallet_swaps WHERE identity_id = ${id} AND owner = ${owner}`;
+  await transaction`DELETE FROM identities WHERE id = ${id} AND owner = ${owner}`;
+}
 
-    if (subscription.status !== 'canceled') {
-      await provider.subscriptions.cancel(subscription.id, {}, {idempotencyKey: `cancel:${identity.id}`});
-    }
+async function queueIdentityBilling(id: string, owner: number, transaction: ReservedSql | TransactionSql) {
+  const identities =
+    await transaction`SELECT i.subscription_id, i.payment_intent, i.creation_date, u.stripe_customer, f.provider_id FROM identities i
+    JOIN users u ON u.id = i.owner LEFT JOIN fiat_intents f ON f.identity_id = i.id AND f.owner = i.owner
+    WHERE i.id = ${id} AND i.owner = ${owner}`;
+  const identity = identities[0];
+
+  if (!identity || (!identity.subscription_id && !identity.payment_intent)) {
+    return;
   }
 
-  if (requestedAt - new Date(identity.creation_date).getTime() > 14 * 86_400_000) {
-    return true;
+  if (!identity.stripe_customer) {
+    throw new ApiError(503, 'billing_reference_missing', 'Billing details need reconciliation before deletion');
   }
 
-  let intent = identity.payment_intent;
+  const age = Date.now() - new Date(identity.creation_date).getTime();
 
-  if (!intent && identity.subscription_id) {
-    const invoices = await provider.invoices.list({subscription: identity.subscription_id, limit: 1});
+  await transaction`INSERT INTO stripe_cleanup (customer_id, subscription_id, payment_intent, refund_requested)
+    VALUES (${identity.stripe_customer}, ${identity.subscription_id}, ${identity.payment_intent || identity.provider_id || null},
+      ${age >= 0 && age <= REFUND_WINDOW_MS}) ON CONFLICT DO NOTHING`;
+}
 
-    if (invoices.data[0]) {
-      const payments = await provider.invoicePayments.list({invoice: invoices.data[0].id, limit: 1});
+export async function deleteAccount(owner: number, refundAddress?: unknown) {
+  const address = await validateRefundAddress(refundAddress);
 
-      const reference = payments.data[0]?.payment.payment_intent;
-      intent = typeof reference === 'string' ? reference : reference?.id;
-    }
-  }
+  return withAccountLock(owner, async (connection) => {
+    await withReservedTransaction(connection, async (transaction) => {
+      const accounts = await transaction`SELECT stripe_customer FROM users WHERE id = ${owner} FOR UPDATE`;
 
-  if (!intent) {
-    return true;
-  }
+      if (!accounts.length) {
+        return;
+      }
 
-  const payment = await provider.paymentIntents.retrieve(intent);
+      const identities = await transaction`SELECT id FROM identities WHERE owner = ${owner}`;
 
-  let refunded = 0;
-  let failed = 0;
+      for (const identity of identities) {
+        await removeIdentityRecords(identity.id, owner, transaction, address);
+      }
 
-  for await (const refund of provider.refunds.list({payment_intent: intent, limit: 100})) {
-    if (refund.status === 'pending' || refund.status === 'requires_action') {
-      return false;
-    }
+      const customer = accounts[0].stripe_customer;
 
-    if (refund.status === 'succeeded') {
-      refunded += refund.amount;
-    } else {
-      failed++;
-    }
-  }
+      if (customer) {
+        await transaction`INSERT INTO stripe_cleanup (customer_id, checkout_reference, subscription_id, payment_intent, refund_requested)
+          SELECT ${customer}, CASE WHEN f.subscription_id IS NULL AND f.provider_id IS NULL THEN f.identity_id END,
+            f.subscription_id, f.provider_id, true FROM fiat_intents f
+          WHERE f.owner = ${owner} AND (f.subscription_id IS NOT NULL OR f.provider_id IS NOT NULL
+            OR f.response IS NULL)
+          AND NOT EXISTS (SELECT 1 FROM identities i WHERE i.id = f.identity_id AND i.owner = ${owner})
+          ON CONFLICT DO NOTHING`;
+        await transaction`INSERT INTO stripe_cleanup (customer_id) VALUES (${customer}) ON CONFLICT DO NOTHING`;
+      }
 
-  const remaining = payment.amount_received - refunded;
-
-  if (remaining <= 0) {
-    return true;
-  }
-
-  const refund = await provider.refunds.create(
-    {payment_intent: intent, amount: remaining},
-    {idempotencyKey: `refund:${identity.id}:${intent}:${refunded}:${failed}`},
-  );
-
-  return refund.status === 'succeeded';
+      await transaction`DELETE FROM users WHERE id = ${owner}`;
+    });
+  });
 }

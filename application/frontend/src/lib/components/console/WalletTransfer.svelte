@@ -1,8 +1,10 @@
 <script lang="ts">
   import {request} from '$utils/webfetch';
-  import {deriveXPub, decrypt} from '$utils/cryptography';
+  import {decrypt} from '$utils/cryptography';
   import {
     selectBestUtxos,
+    reserveWalletAddress,
+    verifyWalletInputs,
     estimateTransactionFee,
     signTransaction,
     acquireEvmSend,
@@ -10,6 +12,14 @@
     recordPendingEvmSend,
     pendingEvmSend,
     clearPendingEvmSend,
+    acquireUtxoSend,
+    utxoJournalKey,
+    utxoJournalScope,
+    pendingUtxoSend,
+    recordPendingUtxoSend,
+    clearPendingUtxoSend,
+    checkPendingUtxoInputs,
+    inspectUtxoSend,
   } from '$utils/wallet';
   import type {prepareMoneroTransaction} from '$utils/monero';
   import {vaultKey} from '$store';
@@ -24,6 +34,7 @@
     transactionData,
     EvmPreparation,
     PendingEvmSend,
+    PendingUtxoSend,
   } from '$type';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
@@ -62,9 +73,70 @@
   let sendingAddress = '';
   let preparedNonce: number | undefined;
   let unresolved = $state<PendingEvmSend | null>(null);
+  let unresolvedUtxo = $state<PendingUtxoSend | null>(null);
+  let restoringJournal = $state(false);
+  let journalKey: CryptoKey | undefined;
+  let journalScope = '';
+
+  $effect(() => {
+    const key = $vaultKey;
+    const selected = coin;
+
+    if (!key || (selected !== 'btc' && selected !== 'ltc')) {
+      journalKey = undefined;
+      unresolvedUtxo = null;
+      return;
+    }
+
+    let cancelled = false;
+    const scopePromise = utxoJournalScope(account, selected);
+    const restore = async () => {
+      restoringJournal = true;
+
+      try {
+        const mnemonic = await decrypt(account.walletBlob, key);
+
+        if (!mnemonic) {
+          throw new Error('Unlock the wallet to recover its saved payment.');
+        }
+
+        const encryption = await utxoJournalKey(mnemonic);
+        const scope = await scopePromise;
+        const saved = await pendingUtxoSend(scope, selected, encryption);
+
+        if (!cancelled && active && get(vaultKey) === key) {
+          journalKey = encryption;
+          journalScope = scope;
+          unresolvedUtxo = saved;
+        }
+      } catch (failure) {
+        if (!cancelled) {
+          error = failure instanceof Error ? failure.message : 'Saved payment recovery is unavailable.';
+        }
+      } finally {
+        if (!cancelled) {
+          restoringJournal = false;
+        }
+      }
+    };
+    const changed = (event: StorageEvent) => {
+      if (event.key?.startsWith(`wallet-pending-utxo:${selected}:`) || event.key === null) {
+        void restore();
+      }
+    };
+
+    window.addEventListener('storage', changed);
+    void restore();
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('storage', changed);
+    };
+  });
 
   function discardPreparation() {
     payload = undefined;
+    preparedInputs = [];
     monero = undefined;
     releaseSend?.();
     releaseSend = undefined;
@@ -83,6 +155,11 @@
   });
 
   let selected = $state<UTXOData>([]);
+  let preparedInputs: UTXOData = [];
+  const canPrepare = $derived(
+    (coin !== 'btc' && coin !== 'ltc') ||
+      (crypto.wallet[coin].status !== 'Unavailable' && !!crypto.fees[coin]?.[priority]),
+  );
   const utxos = $derived(
     (coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status !== 'Unavailable' ? crypto.wallet[coin].utxos : [],
   );
@@ -119,6 +196,31 @@
     const recipient = destination;
 
     try {
+      if (!canPrepare) {
+        throw new Error('Refresh available wallet outputs and current network fees before preparing a transaction.');
+      }
+
+      if (coin === 'btc' || coin === 'ltc') {
+        releaseSend = await acquireUtxoSend(coin);
+        const mnemonic = await decrypt(account.walletBlob, key!);
+
+        if (!mnemonic) {
+          throw new Error('Could not unlock the wallet payment journal.');
+        }
+
+        journalKey = await utxoJournalKey(mnemonic);
+        journalScope = await utxoJournalScope(account, coin);
+        unresolvedUtxo = await pendingUtxoSend(journalScope, coin, journalKey);
+
+        if (unresolvedUtxo) {
+          throw new Error('Recover the previous payment before preparing another send.');
+        }
+
+        if (!active || get(vaultKey) !== key) {
+          return;
+        }
+      }
+
       if (sweep) {
         await prepareSweep();
 
@@ -184,18 +286,46 @@
         preparedNonce = prepared.nonce;
       }
 
-      const wallet = coin === 'btc' || coin === 'ltc' ? crypto.wallet[coin] : undefined;
+      let changePath: transactionData['changePath'];
+      const inputs = selected.map((output) => ({...output}));
+      const networkFee = estimateTransactionFee(
+        coin,
+        inputs,
+        crypto.fees[coin]?.[priority] ?? 0,
+        requestedAmount,
+      ).feeAtoms;
+
+      if (coin === 'btc' || coin === 'ltc') {
+        const {parseUnits} = await import('viem');
+        const change =
+          inputs.reduce((sum, output) => sum + BigInt(output.value), 0n) -
+          parseUnits(requestedAmount, 8) -
+          BigInt(networkFee || '0');
+
+        if (change >= BigInt(coin === 'btc' ? 546 : 1000)) {
+          if (crypto.wallet[coin].status === 'Incomplete' && inputs.length) {
+            changePath = {branch: inputs[0].branch, index: inputs[0].pathIndex};
+          } else {
+            const allocation = await reserveWalletAddress(account, coin, 1, globalThis.crypto.randomUUID());
+            changePath = {branch: 1, index: allocation.index};
+          }
+        }
+
+        checkPendingUtxoInputs(journalScope, coin, inputs);
+        await verifyWalletInputs(account.id, coin, inputs);
+        preparedInputs = inputs;
+      }
+
       const signed = await signTransaction(coin, recipient, requestedAmount, {
         senderAddress: prepared ? sendingAddress : undefined,
         gasLimit: prepared?.gasLimit,
         maxFeePerGas: prepared?.maxFeePerGas,
         maxPriorityFeePerGas: prepared?.maxPriorityFeePerGas,
-        feeAtoms: estimateTransactionFee(coin, selected, crypto.fees[coin]?.[priority] ?? 0, requestedAmount).feeAtoms,
+        feeAtoms: networkFee,
         privKeyType: 'mnemonic',
         wifKey: mnemonic,
-        index: wallet && wallet.status !== 'Unavailable' ? (wallet.nextIndex ?? undefined) : undefined,
-        xpubKey: coin === 'btc' || coin === 'ltc' ? account.walletKeys[coin] : undefined,
-        utxos: selected,
+        changePath,
+        utxos: inputs,
         nonce: prepared?.nonce,
         balanceAtoms: coin === 'usdt' ? prepared?.usdtBalanceAtoms : prepared?.ethBalanceAtoms,
         gasBalanceAtoms: prepared?.ethBalanceAtoms,
@@ -259,23 +389,22 @@
 
       const minerFee = Math.ceil((result.data.utxos.length * 148 + 44) * rate);
       const satoshis = BigInt(result.data.balance) - BigInt(minerFee);
-      const wallet = crypto.wallet[coin];
+      const receive = await reserveWalletAddress(account, coin, 0, globalThis.crypto.randomUUID());
 
       if (satoshis <= 0n) {
         throw new Error('The balance does not cover the network fee.');
       }
 
-      if (wallet.status !== 'Synced' || wallet.nextIndex === null) {
-        throw new Error('A complete discovery scan is required before sweeping to this wallet.');
-      }
-
       amount = formatUnits(satoshis, 8);
-      destination = deriveXPub(coin, account.walletKeys[coin], wallet.nextIndex);
+      destination = receive.address;
+      preparedInputs = result.data.utxos;
+      checkPendingUtxoInputs(journalScope, coin, preparedInputs);
+      await verifyWalletInputs(account.id, coin, preparedInputs);
       transfer = {
         feeAtoms: String(minerFee),
         privKeyType: 'wif',
         wifKey: importedKey,
-        utxos: result.data.utxos.map((item) => ({...item, pathIndex: 0})),
+        utxos: result.data.utxos,
       };
     } else {
       sendingAddress = privateKeyToAccount(
@@ -362,6 +491,31 @@
           throw new Error('Prepare the transaction again.');
         }
 
+        if (coin === 'btc' || coin === 'ltc') {
+          if (!journalKey) {
+            throw new Error('Prepare the wallet payment again.');
+          }
+
+          const existing = await pendingUtxoSend(journalScope, coin, journalKey);
+
+          if (existing) {
+            unresolvedUtxo = existing;
+            throw new Error('Use saved payment recovery to retry this broadcast.');
+          }
+
+          checkPendingUtxoInputs(journalScope, coin, preparedInputs);
+          await verifyWalletInputs(account.id, coin, preparedInputs);
+          const saved = await inspectUtxoSend(coin, payload.hex, {...reviewed});
+          await recordPendingUtxoSend(journalScope, saved, journalKey);
+          unresolvedUtxo = saved;
+          review = false;
+        }
+
+        if (!active || get(vaultKey) !== key) {
+          discardPreparation();
+          return;
+        }
+
         if (coin === 'eth' || coin === 'usdt') {
           const fresh = await request<EvmPreparation>(`/identities/${account.id}/wallet/prepare`, 'POST', {
             coin,
@@ -398,14 +552,13 @@
         });
 
         if (!result.ok) {
-          if (result.code === 'broadcast_rejected' && unresolved) {
-            clearPendingEvmSend(sendingAddress, unresolved.txid);
-            unresolved = null;
-            review = false;
-            discardPreparation();
-          }
-
           throw new Error(`${result.error} If broadcast was interrupted, check transaction history before retrying.`);
+        }
+
+        if (unresolvedUtxo && result.data.txid !== unresolvedUtxo.txid) {
+          throw new Error(
+            'The provider returned a different transaction reference. Keep the saved payment for recovery.',
+          );
         }
 
         txid = result.data.txid;
@@ -426,6 +579,84 @@
       pending = false;
     }
   }
+  async function recoverUtxoBroadcast(retry: boolean) {
+    const key = get(vaultKey);
+
+    if (!key || !active || (coin !== 'btc' && coin !== 'ltc') || !journalKey) {
+      return;
+    }
+
+    const encryption = journalKey;
+    pending = true;
+    error = '';
+    let release: (() => void) | undefined;
+
+    try {
+      discardPreparation();
+      release = await acquireUtxoSend(coin);
+      const saved = await pendingUtxoSend(journalScope, coin, encryption);
+      unresolvedUtxo = saved;
+
+      if (!saved || !active || get(vaultKey) !== key) {
+        return;
+      }
+
+      const lookup = await request<{status: 'unknown' | 'seen' | 'confirmed' | 'conflicted'; txid: string}>(
+        `/identities/${account.id}/wallet/transactions/reconcile`,
+        'POST',
+        {coin, hex: saved.hex},
+      );
+
+      if (!lookup.ok && !retry) {
+        throw new Error(lookup.error);
+      }
+
+      if (!active || get(vaultKey) !== key) {
+        return;
+      }
+
+      if (lookup.ok && lookup.data.txid !== saved.txid) {
+        throw new Error('The provider returned a different transaction reference.');
+      }
+
+      const status = lookup.ok ? lookup.data.status : 'unknown';
+
+      if (status === 'confirmed' || status === 'conflicted') {
+        await clearPendingUtxoSend(journalScope, saved, encryption);
+        unresolvedUtxo = null;
+        success =
+          status === 'confirmed'
+            ? 'The saved payment is confirmed.'
+            : 'A confirmed transaction spent a saved input. This payment can no longer confirm. Review history before sending again.';
+      } else if (status === 'unknown' && retry) {
+        const result = await request<{txid: string}>(`/identities/${account.id}/wallet/transactions`, 'POST', {
+          coin,
+          hex: saved.hex,
+        });
+
+        if (!result.ok || result.data.txid !== saved.txid) {
+          throw new Error(result.ok ? 'The provider returned a different transaction reference.' : result.error);
+        }
+
+        success = 'The same saved payment was submitted again. Keep this browser data until it confirms.';
+      } else {
+        success =
+          status === 'seen'
+            ? 'The saved payment is in the mempool. Waiting for confirmation.'
+            : 'The provider has not seen this payment. It remains saved; retry submits exactly the same transaction.';
+      }
+
+      txid = saved.txid;
+      review = false;
+      await oncomplete();
+    } catch (failure) {
+      error = failure instanceof Error ? failure.message : 'The saved payment could not be checked.';
+    } finally {
+      release?.();
+      pending = false;
+    }
+  }
+
   async function recoverBroadcast(retry: boolean) {
     const key = get(vaultKey);
 
@@ -472,6 +703,7 @@
         `/identities/${account.id}/wallet/transactions/reconcile`,
         'POST',
         {
+          coin: saved.coin,
           address: sendingAddress,
           txid: saved.txid,
           nonce: saved.nonce,
@@ -499,11 +731,6 @@
         });
 
         if (!result.ok) {
-          if (result.code === 'broadcast_rejected') {
-            clearPendingEvmSend(sendingAddress, saved.txid);
-            unresolved = null;
-          }
-
           throw new Error(result.error);
         }
       }
@@ -538,6 +765,24 @@
   <Status message={error} kind="error" /><Status message={success} kind="success" />{#if txid}<Copy
       value={txid}
       label="Copy transaction ID" />{/if}
+  {#if unresolvedUtxo}
+    <div class="saved-payment">
+      <p>
+        A saved {unresolvedUtxo.coin.toUpperCase()} payment is awaiting confirmation. New sends from this wallet stay blocked
+        until its outcome is known. Keep this browser's site data.
+      </p>
+      <p>
+        {unresolvedUtxo.review.amount}
+        {unresolvedUtxo.coin.toUpperCase()} to <code>{unresolvedUtxo.review.recipient}</code>
+      </p>
+      <Copy value={unresolvedUtxo.txid} label="Copy saved transaction ID" />
+      <div class="button-row">
+        <Button loading={pending} onclick={() => recoverUtxoBroadcast(false)}>Look up saved payment</Button>
+        <Button loading={pending} variant="quiet" onclick={() => recoverUtxoBroadcast(true)}
+          >Retry saved payment</Button>
+      </div>
+    </div>
+  {/if}
   {#if unresolved}
     <p>
       A previous ETH or USDT broadcast needs a status check. Retrying submits the same signed bytes and cannot create a
@@ -549,12 +794,15 @@
     </div>
   {/if}
   <form onsubmit={prepare} class="transfer-form">
+    {#if restoringJournal}<Status message="Checking for a saved payment…" />{/if}
+    {#if !canPrepare}<Status
+        message="Refresh available wallet outputs and current network fees before preparing a new payment. Saved payments can still be checked or retried." />{/if}
     {#if sweep}<div class="field">
         <label for="sweep-key">{coin === 'btc' || coin === 'ltc' ? 'WIF private key' : 'Hex private key'}</label><input
           id="sweep-key"
           type="password"
           bind:value={privateKey}
-          disabled={pending}
+          disabled={pending || restoringJournal || !!unresolvedUtxo || !canPrepare}
           autocomplete="off"
           required />
       </div>{:else}<div class="form-grid">
@@ -563,7 +811,7 @@
             id="send-amount"
             inputmode="decimal"
             bind:value={amount}
-            disabled={pending}
+            disabled={pending || restoringJournal || !!unresolvedUtxo || !canPrepare}
             onchange={selectCoins}
             pattern="[0-9]+(\.[0-9]+)?"
             required />
@@ -572,7 +820,7 @@
           <label for="send-priority">Network priority</label><select
             id="send-priority"
             bind:value={priority}
-            disabled={pending}
+            disabled={pending || restoringJournal || !!unresolvedUtxo || !canPrepare}
             onchange={selectCoins}
             ><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option
             ></select>
@@ -581,7 +829,7 @@
           <label for="send-destination">Recipient address</label><input
             id="send-destination"
             bind:value={destination}
-            disabled={pending}
+            disabled={pending || restoringJournal || !!unresolvedUtxo || !canPrepare}
             autocomplete="off"
             required />
         </div>
@@ -607,10 +855,9 @@
             >{/each}
         </details>{/if}{/if}
     <div class="button-row">
-      <Button type="submit" loading={pending}>Prepare transaction</Button><Button
-        type="button"
-        variant="quiet"
-        onclick={() => (scanning = true)}>Scan QR code</Button>
+      <Button type="submit" loading={pending} disabled={restoringJournal || !!unresolvedUtxo || !canPrepare}
+        >Prepare transaction</Button
+      ><Button type="button" variant="quiet" onclick={() => (scanning = true)}>Scan QR code</Button>
     </div>
   </form>
 </section>
@@ -646,9 +893,17 @@
   </dl>
   <Status message="Crypto transactions cannot be reversed. Verify this address before sending." /><Status
     message={error}
-    kind="error" /><Button loading={pending} icon="send" onclick={broadcast}>Broadcast transaction</Button></Dialog>
+    kind="error" /><Button
+    loading={pending}
+    disabled={restoringJournal || !!unresolvedUtxo || !canPrepare}
+    icon="send"
+    onclick={broadcast}>Broadcast transaction</Button
+  ></Dialog>
 
 <style>
+  .saved-payment code {
+    overflow-wrap: anywhere;
+  }
   .transfer-form {
     margin-top: 24px;
   }

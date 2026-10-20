@@ -24,8 +24,8 @@ export const billingReadiness = {lastSync: 0, priceSync: 0, feeSync: 0, availabl
 export const cryptoPrices: Partial<CryptoPrices> = {};
 export const cryptoFees: Partial<CryptoFees> = {};
 
-export let watchWallet: moneroTs.MoneroWalletFull;
-export const setWatchWallet = (wallet: moneroTs.MoneroWalletFull) => (watchWallet = wallet);
+export let billingWallet: moneroTs.MoneroWalletFull;
+export const setBillingWallet = (wallet: moneroTs.MoneroWalletFull) => (billingWallet = wallet);
 
 const rateLimits = new Set<string>();
 

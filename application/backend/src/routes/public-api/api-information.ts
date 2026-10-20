@@ -1,4 +1,5 @@
 import middlewareApi from '@middlewares/middleware-api';
+import {identityCryptoRefund} from '@core/crypto-refunds';
 import {generateProfile} from '@utils/prompts';
 import {faker} from '@faker-js/faker';
 import {checkAPI} from '@utils/checks';
@@ -9,25 +10,30 @@ import {Elysia} from 'elysia';
 
 export default new Elysia({prefix: '/api/identities'})
   .use(middlewareApi)
-  .get('/:id', ({identity}) => ({
-    id: identity!.id,
-    plan: identity!.plan,
-    location: identity!.location,
-    picture: identity!.picture,
-    name: identity!.name,
-    bio: identity!.bio,
-    age: identity!.age,
-    sex: identity!.sex,
-    ethnicity: identity!.ethnicity,
-    email: identity!.email,
-    phone: identity!.phone,
-    vaultRevision: identity!.vault_revision,
-    creationDate: identity!.creation_date,
-    status: identity!.status,
-    walletKeys: identity!.wallet_keys,
-    walletBlob: identity!.wallet_blob,
-    paymentMethod: identity!.crypto_invoice ? 'crypto' : 'fiat',
-  }))
+  .get('/:id', async ({identity, user}) => {
+    const refund = await identityCryptoRefund(identity!.id, user!.accountID);
+
+    return {
+      id: identity!.id,
+      plan: identity!.plan,
+      location: identity!.location,
+      picture: identity!.picture,
+      name: identity!.name,
+      bio: identity!.bio,
+      age: identity!.age,
+      sex: identity!.sex,
+      ethnicity: identity!.ethnicity,
+      email: identity!.email,
+      phone: identity!.phone,
+      vaultRevision: identity!.vault_revision,
+      creationDate: identity!.creation_date,
+      status: identity!.status,
+      walletKeys: identity!.wallet_keys,
+      walletBlob: identity!.wallet_blob,
+      paymentMethod: identity!.crypto_invoice ? 'crypto' : 'fiat',
+      cryptoRefund: refund ? {usdAmount: refund.usd_amount} : null,
+    };
+  })
   .post(
     '/:id/profile/picture',
     async ({set, identity, body}) => {

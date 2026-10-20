@@ -1,8 +1,8 @@
-import {processStripeEvent} from '@core/stripe-service';
+import {processStripeEvent, saveStripeEvent} from '@core/stripe-service';
 import {error} from '@utils/utils';
 import {stripeConfig} from '@core/config';
 import {requireProvider} from '@core/security';
-import {sql, stripe} from '@core/services';
+import {stripe} from '@core/services';
 import type Stripe from 'stripe';
 import {Elysia} from 'elysia';
 
@@ -20,7 +20,7 @@ export default new Elysia().post(
       return error(set, 400, 'Invalid Stripe signature');
     }
 
-    await sql`INSERT INTO stripe_events (id, payload) VALUES (${event.id}, ${sql.json(JSON.parse(JSON.stringify(event)))}) ON CONFLICT DO NOTHING`;
+    await saveStripeEvent(event);
     void processStripeEvent(event.id).catch(() => console.error('Stripe event saved for reconciliation'));
 
     return {received: true};

@@ -1,8 +1,16 @@
 import {USDT_CONTRACT} from '@core/constants';
-import {chainEndpoints} from '@core/config';
-import {getUtxoData, getEvmData, getXmrNode, mapChainRequests} from '@utils/crypto-nodes';
-import {ApiError, requireProvider} from '@core/security';
-import type {CryptoCurrencies, WalletScanOptions, WalletOverviewOperation, EvmTransferRequest} from '@type';
+import {withChainEndpoint, chainJson, chainRequest, ethereumRpc, requireEthereumMainnet} from '@core/chain-requests';
+import {initialEvmHistory, openHistoryCursor, loadUtxoHistory, loadEvmHistory} from '@core/wallet-history';
+import {Transaction} from '@scure/btc-signer';
+import {getUtxoData, getXmrNode, mapChainRequests} from '@utils/crypto-nodes';
+import {ApiError} from '@core/security';
+import type {
+  CryptoCurrencies,
+  WalletScanOptions,
+  WalletOverviewOperation,
+  EvmTransferRequest,
+  WalletIssuedBounds,
+} from '@type';
 
 function validateEvmTransfer(input: EvmTransferRequest) {
   if (
@@ -40,13 +48,43 @@ function validateEvmTransfer(input: EvmTransferRequest) {
   return amount;
 }
 
+function parseUtxoTransaction(hex: string) {
+  try {
+    if (typeof hex !== 'string' || hex.length > 1_000_000 || !/^(?:[a-f0-9]{2})+$/i.test(hex)) {
+      throw new Error('Invalid signed bytes');
+    }
+
+    const transaction = Transaction.fromRaw(Uint8Array.from(Buffer.from(hex, 'hex')));
+
+    if (
+      !transaction.isFinal ||
+      !transaction.inputsLength ||
+      transaction.inputsLength > 500 ||
+      !transaction.outputsLength
+    ) {
+      throw new Error('Invalid signed transaction');
+    }
+
+    const inputs = Array.from({length: transaction.inputsLength}, (_, index) => {
+      const input = transaction.getInput(index);
+
+      if (!input.txid || input.index === undefined) {
+        throw new Error('Invalid transaction input');
+      }
+
+      return {txid: Buffer.from(input.txid).toString('hex'), vout: input.index};
+    });
+
+    return {id: transaction.id, inputs};
+  } catch {
+    throw new ApiError(400, 'invalid_transaction', 'Use one complete signed Bitcoin or Litecoin transaction');
+  }
+}
+
 export function createChainProvider(fetcher: typeof fetch = fetch) {
   const overviews = new Map<string, WalletOverviewOperation>();
   async function request(url: string, options?: RequestInit) {
-    const response = await fetcher(url, {
-      ...options,
-      signal: AbortSignal.any([AbortSignal.timeout(15_000), ...(options?.signal ? [options.signal] : [])]),
-    });
+    const response = await chainRequest(url, options, fetcher);
 
     if (!response.ok) {
       throw new ApiError(503, 'chain_unavailable', 'The blockchain provider is unavailable');
@@ -55,33 +93,52 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
     return response;
   }
 
-  async function rpc(method: string, params: unknown[], signal?: AbortSignal): Promise<any> {
-    requireProvider(!!chainEndpoints.eth, 'Ethereum provider');
-
-    const response = await request(`${chainEndpoints.eth}/eth-rpc`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({jsonrpc: '2.0', id: 1, method, params}),
-      signal,
-    });
-    const data = await response.json();
-
-    if (data.error || data.result === undefined) {
-      throw new ApiError(503, 'chain_unavailable', 'Ethereum transaction preparation is unavailable');
-    }
-
-    return data.result;
+  function rpc(endpoint: string, method: string, params: unknown[], signal?: AbortSignal): Promise<any> {
+    return ethereumRpc(endpoint, method, params, signal, fetcher);
   }
 
-  async function pendingEvm(address: string, signal?: AbortSignal) {
+  async function readUtxoTransaction(endpoint: string, txid: string, signal: AbortSignal) {
+    if (!/^[a-f0-9]{64}$/i.test(txid || '')) {
+      throw new ApiError(502, 'invalid_chain_data', 'The provider returned an invalid transaction reference');
+    }
+
+    const response = await chainRequest(`${endpoint}/tx/${txid}`, {signal}, fetcher);
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new ApiError(503, 'chain_unavailable', 'Transaction status is unavailable');
+    }
+
+    const data = await response.json();
+
+    if (
+      data.txid !== txid ||
+      !Array.isArray(data.vin) ||
+      typeof data.status?.confirmed !== 'boolean' ||
+      (data.status.confirmed &&
+        (!Number.isSafeInteger(data.status.block_height) ||
+          data.status.block_height <= 0 ||
+          !/^[a-f0-9]{64}$/i.test(data.status.block_hash || '')))
+    ) {
+      throw new ApiError(502, 'invalid_chain_data', 'The provider returned invalid transaction status');
+    }
+
+    return data;
+  }
+
+  async function pendingEvm(endpoint: string, address: string, signal?: AbortSignal) {
     if (typeof address !== 'string' || !/^0x[a-f0-9]{40}$/i.test(address)) {
       throw new ApiError(400, 'invalid_address', 'Use one valid Ethereum address');
     }
 
     const values = await Promise.all([
-      rpc('eth_getTransactionCount', [address, 'pending'], signal),
-      rpc('eth_getBalance', [address, 'pending'], signal),
+      rpc(endpoint, 'eth_getTransactionCount', [address, 'pending'], signal),
+      rpc(endpoint, 'eth_getBalance', [address, 'pending'], signal),
       rpc(
+        endpoint,
         'eth_call',
         [{to: USDT_CONTRACT, data: `0x70a08231${address.slice(2).padStart(64, '0')}`}, 'pending'],
         signal,
@@ -102,6 +159,7 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
   }
 
   async function estimateEvmTransfer(
+    endpoint: string,
     address: string,
     input: EvmTransferRequest,
     amount: bigint,
@@ -122,7 +180,7 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
       transaction.value = `0x${amount.toString(16)}`;
     }
 
-    const estimate = await rpc('eth_estimateGas', [transaction, 'pending'], signal);
+    const estimate = await rpc(endpoint, 'eth_estimateGas', [transaction, 'pending'], signal);
 
     if (
       typeof estimate !== 'string' ||
@@ -150,6 +208,7 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
 
     if (input.sweep && input.coin === 'eth') {
       const verified = await rpc(
+        endpoint,
         'eth_estimateGas',
         [{...transaction, value: `0x${amount.toString(16)}`}, 'pending'],
         signal,
@@ -169,43 +228,133 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
 
   const provider = {
     async utxo(coin: 'btc' | 'ltc', key: string, options?: WalletScanOptions) {
-      requireProvider(!!(coin === 'btc' ? chainEndpoints.btc : chainEndpoints.ltc), 'Blockchain provider');
+      const wallet = await withChainEndpoint(
+        coin,
+        (endpoint, signal) => getUtxoData(coin, key, endpoint, fetcher, {...options, signal}),
+        options?.signal,
+      );
 
-      return getUtxoData(coin, key, fetcher, options);
-    },
-    evm: (coin: 'eth' | 'usdt', address: string) => getEvmData(coin, address, fetcher),
-    async evmOverview(address: string, signal?: AbortSignal) {
-      const requests = new Map<string, Promise<Response>>();
-      const sharedFetch = ((input: RequestInfo | URL, options?: RequestInit) => {
-        const key = String(input);
-        let pending = requests.get(key);
+      if (wallet.historyError && wallet.historyCursor) {
+        try {
+          const page = await provider.history(coin, key, wallet.historyCursor, options?.signal);
+          const history = new Map([...wallet.history, ...page.history].map((entry) => [entry.txid, entry]));
 
-        if (!pending) {
-          pending = fetcher(input, options);
-          requests.set(key, pending);
+          return {
+            ...wallet,
+            ...page,
+            history: [...history.values()].sort(
+              (left, right) => new Date(right.date).getTime() - new Date(left.date).getTime(),
+            ),
+          };
+        } catch {
+          options?.signal?.throwIfAborted();
         }
+      }
 
-        return pending.then((response) => response.clone());
-      }) as typeof fetch;
-
-      return Promise.allSettled([
-        getEvmData('eth', address, sharedFetch, signal),
-        getEvmData('usdt', address, sharedFetch, signal),
-      ]);
+      return wallet;
     },
-    async overview(scope: string, keys: {btc: string; ltc: string; evm: string}, signal?: AbortSignal) {
+    async evmOverview(address: string, signal?: AbortSignal) {
+      const state = await withChainEndpoint(
+        'ethRpc',
+        async (endpoint, attempt) => {
+          await requireEthereumMainnet(endpoint, attempt, fetcher);
+
+          const [pending, height] = await Promise.all([
+            pendingEvm(endpoint, address, attempt),
+            rpc(endpoint, 'eth_blockNumber', [], attempt),
+          ]);
+
+          if (
+            typeof height !== 'string' ||
+            !/^0x[a-f0-9]+$/i.test(height) ||
+            BigInt(height) > BigInt(Number.MAX_SAFE_INTEGER)
+          ) {
+            throw new ApiError(502, 'invalid_chain_data', 'The provider returned an invalid Ethereum height');
+          }
+
+          return {...pending, height: Number(BigInt(height))};
+        },
+        signal,
+      );
+
+      return Promise.allSettled(
+        (['eth', 'usdt'] as const).map(async (coin) => {
+          const balanceAtoms = coin === 'eth' ? state.ethBalanceAtoms : state.usdtBalanceAtoms;
+          let history: import('@type').WalletHistoryPage;
+
+          try {
+            history = await initialEvmHistory(coin, address, state.height, fetcher, signal);
+          } catch {
+            history = {
+              history: [],
+              historyCursor: null,
+              historyError: 'Transaction history is unavailable. Refresh to retry.',
+            };
+          }
+
+          return {
+            status: 'Synced',
+            balance: Number(balanceAtoms) / (coin === 'eth' ? 1e18 : 1e6),
+            balanceAtoms,
+            nonce: state.nonce,
+            ...history,
+          };
+        }),
+      );
+    },
+    async history(coin: string, key: string, value: unknown, signal?: AbortSignal) {
+      const cursor = openHistoryCursor(value, coin, key);
+      const controller = new AbortController();
+      const attempt = AbortSignal.any([controller.signal, AbortSignal.timeout(20_000), ...(signal ? [signal] : [])]);
+
+      try {
+        const network = cursor.kind === 'utxo' ? cursor.coin : 'eth';
+
+        return await withChainEndpoint(
+          network,
+          async (endpoint, signal) => {
+            if (cursor.kind === 'utxo') {
+              return loadUtxoHistory({...cursor, endpoint}, key, fetcher, signal);
+            }
+
+            const reset = endpoint !== cursor.endpoint;
+            const page = await loadEvmHistory(
+              reset ? {...cursor, endpoint, page: 1, previous: '', carry: undefined} : cursor,
+              key,
+              fetcher,
+              signal,
+            );
+
+            return {...page, reset};
+          },
+          attempt,
+          cursor.endpoint,
+        );
+      } finally {
+        controller.abort();
+      }
+    },
+    async overview(
+      scope: string,
+      keys: {btc: string; ltc: string; evm: string},
+      issued: Record<'btc' | 'ltc', WalletIssuedBounds>,
+      signal?: AbortSignal,
+    ) {
       signal?.throwIfAborted();
-      const key = JSON.stringify([scope, keys.btc, keys.ltc, keys.evm]);
+      const key = JSON.stringify([scope, keys.btc, keys.ltc, keys.evm, issued]);
       let operation = overviews.get(key);
 
       if (!operation) {
         const controller = new AbortController();
         const result = Promise.all([
           Promise.allSettled([
-            provider.utxo('btc', keys.btc, {signal: controller.signal}),
-            provider.utxo('ltc', keys.ltc, {signal: controller.signal}),
+            provider.utxo('btc', keys.btc, {signal: controller.signal, issued: issued.btc}),
+            provider.utxo('ltc', keys.ltc, {signal: controller.signal, issued: issued.ltc}),
           ]),
-          provider.evmOverview(keys.evm, controller.signal),
+          provider.evmOverview(keys.evm, controller.signal).catch((reason) => [
+            {status: 'rejected' as const, reason},
+            {status: 'rejected' as const, reason},
+          ]),
         ]).then(([utxo, evm]) => [...utxo, ...evm]);
 
         operation = {controller, result, subscribers: 0};
@@ -249,41 +398,50 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
     async prepareEvm(address: string, input: EvmTransferRequest, signal?: AbortSignal) {
       const requestedAmount = validateEvmTransfer(input);
 
-      const [pending, block, priorityResult] = await Promise.all([
-        pendingEvm(address, signal),
-        rpc('eth_getBlockByNumber', ['latest', false], signal),
-        rpc('eth_maxPriorityFeePerGas', [], signal),
-      ]);
+      return withChainEndpoint(
+        'ethRpc',
+        async (endpoint, signal) => {
+          await requireEthereumMainnet(endpoint, signal, fetcher);
 
-      if (!/^0x[a-f0-9]+$/i.test(block?.baseFeePerGas || '') || !/^0x[a-f0-9]+$/i.test(priorityResult || '')) {
-        throw new ApiError(502, 'invalid_chain_data', 'Current Ethereum fee data is unavailable');
-      }
+          const [pending, block, priorityResult] = await Promise.all([
+            pendingEvm(endpoint, address, signal),
+            rpc(endpoint, 'eth_getBlockByNumber', ['latest', false], signal),
+            rpc(endpoint, 'eth_maxPriorityFeePerGas', [], signal),
+          ]);
 
-      const multiplier = {low: 100n, medium: 150n, high: 200n}[input.priority];
-      const suggestedPriority = BigInt(priorityResult);
-      const maxPriorityFeePerGas = ((suggestedPriority > 0n ? suggestedPriority : 1n) * multiplier + 99n) / 100n;
-      const maxFeePerGas = BigInt(block.baseFeePerGas) * 2n + maxPriorityFeePerGas;
-      const balance = BigInt(input.coin === 'eth' ? pending.ethBalanceAtoms : pending.usdtBalanceAtoms);
-      const amount = input.sweep ? balance : requestedAmount;
-      if (amount > balance) {
-        throw new ApiError(400, 'insufficient_funds', 'The source balance does not cover this amount');
-      }
+          if (!/^0x[a-f0-9]+$/i.test(block?.baseFeePerGas || '') || !/^0x[a-f0-9]+$/i.test(priorityResult || '')) {
+            throw new ApiError(502, 'invalid_chain_data', 'Current Ethereum fee data is unavailable');
+          }
 
-      const prepared = await estimateEvmTransfer(
-        address,
-        input,
-        amount,
-        BigInt(pending.ethBalanceAtoms),
-        maxFeePerGas,
+          const multiplier = {low: 100n, medium: 150n, high: 200n}[input.priority];
+          const suggestedPriority = BigInt(priorityResult);
+          const maxPriorityFeePerGas = ((suggestedPriority > 0n ? suggestedPriority : 1n) * multiplier + 99n) / 100n;
+          const maxFeePerGas = BigInt(block.baseFeePerGas) * 2n + maxPriorityFeePerGas;
+          const balance = BigInt(input.coin === 'eth' ? pending.ethBalanceAtoms : pending.usdtBalanceAtoms);
+          const amount = input.sweep ? balance : requestedAmount;
+          if (amount > balance) {
+            throw new ApiError(400, 'insufficient_funds', 'The source balance does not cover this amount');
+          }
+
+          const prepared = await estimateEvmTransfer(
+            endpoint,
+            address,
+            input,
+            amount,
+            BigInt(pending.ethBalanceAtoms),
+            maxFeePerGas,
+            signal,
+          );
+
+          return {
+            ...pending,
+            ...prepared,
+            maxFeePerGas: maxFeePerGas.toString(),
+            maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
+          };
+        },
         signal,
       );
-
-      return {
-        ...pending,
-        ...prepared,
-        maxFeePerGas: maxFeePerGas.toString(),
-        maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
-      };
     },
     async reconcileEvm(address: string, txid: string, nonce: number) {
       if (
@@ -297,134 +455,219 @@ export function createChainProvider(fetcher: typeof fetch = fetch) {
         throw new ApiError(400, 'invalid_transaction', 'A valid sender and broadcast reference are required');
       }
 
-      const [transaction, pending] = await Promise.all([
-        rpc('eth_getTransactionByHash', [txid]),
-        rpc('eth_getTransactionCount', [address, 'pending']),
-      ]);
+      return withChainEndpoint('ethRpc', async (endpoint, signal) => {
+        await requireEthereumMainnet(endpoint, signal, fetcher);
 
-      if (typeof pending !== 'string' || !/^0x[a-f0-9]+$/i.test(pending)) {
-        throw new ApiError(502, 'invalid_chain_data', 'Broadcast reconciliation is unavailable');
-      }
+        const [transaction, pending] = await Promise.all([
+          rpc(endpoint, 'eth_getTransactionByHash', [txid], signal),
+          rpc(endpoint, 'eth_getTransactionCount', [address, 'pending'], signal),
+        ]);
 
-      if (
-        transaction &&
-        (transaction.hash?.toLowerCase() !== txid.toLowerCase() ||
-          transaction.from?.toLowerCase() !== address.toLowerCase() ||
-          !/^0x[a-f0-9]+$/i.test(transaction.nonce || '') ||
-          BigInt(transaction.nonce) !== BigInt(nonce))
-      ) {
-        throw new ApiError(502, 'invalid_chain_data', 'The provider returned a different transaction');
-      }
-
-      return {status: BigInt(pending) > BigInt(nonce) ? 'consumed' : transaction ? 'seen' : 'unknown'};
-    },
-    async broadcast(coin: CryptoCurrencies, hex: string) {
-      if (coin === 'btc' || coin === 'ltc') {
-        requireProvider(!!(coin === 'btc' ? chainEndpoints.btc : chainEndpoints.ltc), 'Blockchain provider');
-
-        const response = await request(`${coin === 'btc' ? chainEndpoints.btc : chainEndpoints.ltc}/tx`, {
-          method: 'POST',
-          body: hex,
-        });
-
-        const txid = (await response.text()).trim();
-
-        if (!/^[a-f0-9]{64}$/i.test(txid)) {
-          throw new ApiError(502, 'broadcast_failed', 'The provider did not confirm transaction acceptance');
+        if (typeof pending !== 'string' || !/^0x[a-f0-9]+$/i.test(pending)) {
+          throw new ApiError(502, 'invalid_chain_data', 'Broadcast reconciliation is unavailable');
         }
 
-        return {txid};
+        if (
+          transaction &&
+          (transaction.hash?.toLowerCase() !== txid.toLowerCase() ||
+            transaction.from?.toLowerCase() !== address.toLowerCase() ||
+            !/^0x[a-f0-9]+$/i.test(transaction.nonce || '') ||
+            BigInt(transaction.nonce) !== BigInt(nonce))
+        ) {
+          throw new ApiError(502, 'invalid_chain_data', 'The provider returned a different transaction');
+        }
+
+        return {status: BigInt(pending) > BigInt(nonce) ? 'consumed' : transaction ? 'seen' : 'unknown'};
+      });
+    },
+    async reconcileUtxo(coin: 'btc' | 'ltc', hex: string, signal?: AbortSignal) {
+      const signed = parseUtxoTransaction(hex);
+      const deadline = AbortSignal.any([AbortSignal.timeout(20_000), ...(signal ? [signal] : [])]);
+
+      return withChainEndpoint(
+        coin,
+        async (endpoint, signal) => {
+          const current = await readUtxoTransaction(endpoint, signed.id, signal);
+
+          if (current) {
+            if (
+              current.vin.length !== signed.inputs.length ||
+              current.vin.some(
+                (input: {txid: string; vout: number}) =>
+                  !signed.inputs.some((expected) => expected.txid === input.txid && expected.vout === input.vout),
+              )
+            ) {
+              throw new ApiError(502, 'invalid_chain_data', 'The provider returned a different transaction');
+            }
+
+            return {status: current.status.confirmed ? 'confirmed' : 'seen', txid: signed.id};
+          }
+
+          const conflicts = await mapChainRequests(
+            signed.inputs,
+            async (input) => {
+              const spent = await chainJson(`${endpoint}/tx/${input.txid}/outspend/${input.vout}`, {signal}, fetcher);
+
+              if (typeof spent.spent !== 'boolean') {
+                throw new ApiError(502, 'invalid_chain_data', 'The provider returned invalid input status');
+              }
+
+              if (!spent.spent || spent.txid === signed.id || !spent.status?.confirmed) {
+                return false;
+              }
+
+              const spender = await readUtxoTransaction(endpoint, spent.txid, signal);
+
+              return (
+                !!spender?.status.confirmed &&
+                spender.vin.some(
+                  (entry: {txid: string; vout: number}) => entry.txid === input.txid && entry.vout === input.vout,
+                )
+              );
+            },
+            signal,
+          );
+
+          if (conflicts.some(Boolean)) {
+            return {status: 'conflicted', txid: signed.id};
+          }
+
+          return {status: 'unknown', txid: signed.id};
+        },
+        deadline,
+      );
+    },
+    async broadcast(coin: CryptoCurrencies, hex: string, signal?: AbortSignal) {
+      if (coin === 'btc' || coin === 'ltc') {
+        const signed = parseUtxoTransaction(hex);
+
+        try {
+          return await withChainEndpoint(
+            coin,
+            async (endpoint, signal) => {
+              const response = await chainRequest(`${endpoint}/tx`, {method: 'POST', body: hex, signal}, fetcher);
+              const txid = (await response.text()).trim();
+
+              if (!response.ok || txid !== signed.id) {
+                throw new ApiError(
+                  502,
+                  'broadcast_uncertain',
+                  'Broadcast acceptance is uncertain. Look up or retry the saved transaction',
+                );
+              }
+
+              return {txid};
+            },
+            signal,
+          );
+        } catch {
+          throw new ApiError(
+            502,
+            'broadcast_uncertain',
+            'Broadcast acceptance is uncertain. Look up or retry the same signed transaction',
+          );
+        }
       }
 
       if (coin !== 'eth' && coin !== 'usdt') {
         throw new ApiError(400, 'invalid_coin', 'Monero transactions are broadcast by the browser wallet');
       }
 
-      requireProvider(!!chainEndpoints.eth, 'Ethereum provider');
+      return withChainEndpoint(
+        'ethRpc',
+        async (endpoint, signal) => {
+          await requireEthereumMainnet(endpoint, signal, fetcher);
 
-      const response = await request(`${chainEndpoints.eth}/eth-rpc`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id: 1, jsonrpc: '2.0', method: 'eth_sendRawTransaction', params: [hex]}),
-      });
+          const data = await chainJson(
+            endpoint,
+            {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({id: 1, jsonrpc: '2.0', method: 'eth_sendRawTransaction', params: [hex]}),
+              signal,
+            },
+            fetcher,
+          );
 
-      const result = await response.json();
+          if (data.error || !/^0x[a-f0-9]{64}$/i.test(data.result || '')) {
+            throw new ApiError(
+              502,
+              'broadcast_uncertain',
+              'Broadcast acceptance is uncertain. Look up or retry the same signed transaction',
+            );
+          }
 
-      if (result.error || !/^0x[a-f0-9]{64}$/i.test(result.result || '')) {
-        const message = typeof result.error?.message === 'string' ? result.error.message : '';
-        const rejected = /invalid (?:sender|signature|chain id)|intrinsic gas too low|invalid rlp/i.test(message);
-
-        throw new ApiError(
-          502,
-          rejected ? 'broadcast_rejected' : 'broadcast_uncertain',
-          rejected
-            ? 'The signed transaction is invalid and was rejected. Prepare it again'
-            : 'Broadcast acceptance is uncertain. Look up or retry the same signed transaction',
-        );
-      }
-
-      return {txid: result.result};
+          return {txid: data.result};
+        },
+        signal,
+      );
     },
     async sweep(coin: CryptoCurrencies, addresses: string[]) {
       if (coin === 'btc' || coin === 'ltc') {
-        const base = coin === 'btc' ? chainEndpoints.btc : chainEndpoints.ltc;
-        requireProvider(!!base, 'Blockchain provider');
-
-        if (!addresses.every((address) => /^[a-zA-Z0-9]{26,90}$/.test(address))) {
-          throw new ApiError(400, 'invalid_address', 'Invalid sweep address');
-        }
-
-        const results = await mapChainRequests(addresses, async (address) => {
-          const response = await request(`${base}/address/${encodeURIComponent(address)}/utxo`);
-
-          const values = await response.json();
-
-          if (
-            !Array.isArray(values) ||
-            values.some(
-              (item) =>
-                !/^[a-f0-9]{64}$/i.test(item.txid || '') ||
-                !Number.isSafeInteger(item.vout) ||
-                item.vout < 0 ||
-                !Number.isSafeInteger(item.value) ||
-                item.value < 0,
-            )
-          ) {
-            throw new ApiError(502, 'invalid_chain_data', 'The provider returned invalid unspent outputs');
+        return withChainEndpoint(coin, async (base, signal) => {
+          if (!addresses.every((address) => /^[a-zA-Z0-9]{26,90}$/.test(address))) {
+            throw new ApiError(400, 'invalid_address', 'Invalid sweep address');
           }
 
-          return values.map((item) => ({txid: item.txid, vout: item.vout, value: item.value, address, pathIndex: 0}));
-        });
+          const results = await mapChainRequests(addresses, async (address) => {
+            const response = await request(`${base}/address/${encodeURIComponent(address)}/utxo`, {signal});
 
-        const utxos = results.flat();
+            const values = await response.json();
 
-        if (utxos.length > 500) {
-          throw new ApiError(400, 'sweep_limit', 'Sweep supports up to 500 unspent outputs');
-        }
+            if (
+              !Array.isArray(values) ||
+              values.some(
+                (item) =>
+                  !/^[a-f0-9]{64}$/i.test(item.txid || '') ||
+                  !Number.isSafeInteger(item.vout) ||
+                  item.vout < 0 ||
+                  !Number.isSafeInteger(item.value) ||
+                  item.value < 0,
+              )
+            ) {
+              throw new ApiError(502, 'invalid_chain_data', 'The provider returned invalid unspent outputs');
+            }
 
-        const transactions = new Map<string, string>();
+            return values.map((item) => ({
+              txid: item.txid,
+              vout: item.vout,
+              value: item.value,
+              address,
+              pathIndex: 0,
+              branch: 0 as const,
+            }));
+          });
 
-        const legacy = utxos.filter((output) => output.address.startsWith(coin === 'btc' ? '1' : 'L'));
+          const utxos = results.flat();
 
-        await mapChainRequests([...new Set(legacy.map((output) => output.txid))], async (txid) => {
-          const response = await request(`${base}/tx/${txid}/hex`);
-
-          const rawTx = (await response.text()).trim();
-
-          if (!/^[a-f0-9]+$/i.test(rawTx) || rawTx.length % 2) {
-            throw new ApiError(502, 'invalid_chain_data', 'Previous transaction data is unavailable');
+          if (utxos.length > 500) {
+            throw new ApiError(400, 'sweep_limit', 'Sweep supports up to 500 unspent outputs');
           }
 
-          transactions.set(txid, rawTx);
+          const transactions = new Map<string, string>();
+
+          const legacy = utxos.filter((output) => output.address.startsWith(coin === 'btc' ? '1' : 'L'));
+
+          await mapChainRequests([...new Set(legacy.map((output) => output.txid))], async (txid) => {
+            const response = await request(`${base}/tx/${txid}/hex`, {signal});
+
+            const rawTx = (await response.text()).trim();
+
+            if (!/^[a-f0-9]+$/i.test(rawTx) || rawTx.length % 2) {
+              throw new ApiError(502, 'invalid_chain_data', 'Previous transaction data is unavailable');
+            }
+
+            transactions.set(txid, rawTx);
+          });
+
+          const balance = utxos.reduce((total, output) => total + output.value, 0);
+
+          if (!Number.isSafeInteger(balance)) {
+            throw new ApiError(502, 'invalid_chain_data', 'Sweep balance exceeds supported precision');
+          }
+
+          return {utxos: utxos.map((output) => ({...output, rawTx: transactions.get(output.txid)})), balance};
         });
-
-        const balance = utxos.reduce((total, output) => total + output.value, 0);
-
-        if (!Number.isSafeInteger(balance)) {
-          throw new ApiError(502, 'invalid_chain_data', 'Sweep balance exceeds supported precision');
-        }
-
-        return {utxos: utxos.map((output) => ({...output, rawTx: transactions.get(output.txid)})), balance};
       }
 
       throw new ApiError(400, 'invalid_coin', 'Choose Bitcoin or Litecoin for private-key discovery');

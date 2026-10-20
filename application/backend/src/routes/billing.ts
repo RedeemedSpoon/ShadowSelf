@@ -40,7 +40,7 @@ export default new Elysia()
       return error(set, 404, 'Identity not found');
     }
 
-    await deleteIdentity(params.id, user.accountID);
+    await deleteIdentity(params.id, user.accountID, (body as {refundAddress?: unknown})?.refundAddress);
 
     return {success: true};
   });

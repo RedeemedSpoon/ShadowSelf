@@ -448,10 +448,28 @@
   </form></Dialog>
 <Dialog bind:open={deleteOpen} title="Delete this identity"
   ><p>
-    Deletion cancels its subscription and removes its profile, vault and messaging resources. Move any wallet funds
-    before proceeding.
+    Deletion removes its profile, vault and messaging resources. Subscription cancellation and eligible refunds continue
+    automatically afterward. Move any wallet funds before proceeding. Your account and other identities remain.
   </p>
   <form method="POST" action="?/delete" use:enhance>
+    {#if account?.cryptoRefund}
+      <p>
+        Your original ${Number(account.cryptoRefund.usdAmount).toFixed(2)} purchase is eligible for an automatic XMR refund,
+        converted at the exchange rate when the payout is signed. ShadowSelf pays the outgoing network fee.
+      </p>
+      <div class="field">
+        <label for="identity-refund-address">Monero refund address</label>
+        <input
+          id="identity-refund-address"
+          name="refundAddress"
+          autocomplete="off"
+          spellcheck="false"
+          maxlength="106"
+          required />
+        <small
+          >Use a mainnet XMR address you control outside this identity. Deletion removes this identity's wallet access.</small>
+      </div>
+    {/if}
     <div class="field password-field">
       <label for="delete-password">Account password</label><input
         id="delete-password"

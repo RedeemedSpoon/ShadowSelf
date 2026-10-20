@@ -43,9 +43,17 @@ export const dbConfig = {
   password: required('APP_DB_PASSWORD'),
 };
 
+const moneroRestoreHeight = Number(process.env.MONERO_RESTORE_HEIGHT || '0');
+
+if (!Number.isSafeInteger(moneroRestoreHeight) || moneroRestoreHeight < 0) {
+  throw new Error('MONERO_RESTORE_HEIGHT must be a nonnegative integer');
+}
+
 export const moneroWallet = {
   address: process.env.MONERO_ADDRESS || '',
   viewKey: process.env.MONERO_VIEWKEY || '',
+  spendKey: process.env.MONERO_SPENDKEY || '',
+  restoreHeight: moneroRestoreHeight,
   password: process.env.MONERO_PASSWORD || '',
 };
 
@@ -60,27 +68,34 @@ export const emailConfig = {
   verificationPassword: process.env.EMAIL_VERIFICATION || '',
 };
 
-function providerEndpoint(name: string) {
-  const value = process.env[name];
+function providerEndpoints(name: string) {
+  const values = [process.env[name], process.env[`${name}_FALLBACKS`]].filter(Boolean).join(',');
 
-  if (!value) {
-    return '';
-  }
+  return [
+    ...new Set(
+      values
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .map((value) => {
+          const url = new URL(value);
 
-  const url = new URL(value);
+          if (url.protocol !== 'https:' || url.username || url.password || url.hash) {
+            throw new Error(`${name} must contain HTTPS endpoints without credentials or fragments`);
+          }
 
-  if (url.protocol !== 'https:' || url.username || url.password || url.hash) {
-    throw new Error(`${name} must be an HTTPS endpoint without credentials or a fragment`);
-  }
-
-  return url.href.replace(/\/$/, '');
+          return url.href.replace(/\/$/, '');
+        }),
+    ),
+  ];
 }
 
 export const chainEndpoints = {
-  btc: providerEndpoint('BTC_API'),
-  ltc: providerEndpoint('LTC_API'),
-  eth: providerEndpoint('ETH_API'),
-  xmr: providerEndpoint('XMR_NODE'),
+  btc: providerEndpoints('BTC_API'),
+  ltc: providerEndpoints('LTC_API'),
+  eth: providerEndpoints('ETH_API'),
+  ethRpc: providerEndpoints('ETH_RPC_URLS'),
+  xmr: providerEndpoints('XMR_NODE'),
 };
 
 export const stripeConfig = {

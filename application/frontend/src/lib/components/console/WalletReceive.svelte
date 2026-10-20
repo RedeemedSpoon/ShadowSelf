@@ -1,39 +1,46 @@
 <script lang="ts">
   import {vaultKey} from '$store';
-  import {deriveXPub, decrypt} from '$utils/cryptography';
-  import type {FullIdentity, Coins, WalletState} from '$type';
+  import {decrypt} from '$utils/cryptography';
+  import type {FullIdentity, Coins} from '$type';
+  import {reserveWalletAddress} from '$utils/wallet';
+  import Button from '$component/ui/Button.svelte';
   import QRCode from 'qrcode';
   import Copy from '$component/ui/Copy.svelte';
   import Status from '$component/ui/Status.svelte';
 
-  let {account, coin, crypto}: {account: FullIdentity; coin: Coins; crypto: WalletState} = $props();
+  let {account, coin}: {account: FullIdentity; coin: Coins} = $props();
   let address = $state('');
   let qr = $state('');
   let error = $state('');
+  let pending = $state(true);
+  let retry = $state(0);
+  const requests: Record<string, string> = {};
 
   $effect(() => {
     const key = $vaultKey;
     const selected = coin;
+    const scope = `${account.id}:${selected}`;
+    const attempt = retry;
+
+    requests[scope] ||= globalThis.crypto.randomUUID();
+    const requestID = requests[scope];
     let cancelled = false;
     address = '';
     qr = '';
     error = '';
+    pending = true;
     void (async () => {
       try {
         const value =
           selected === 'btc' || selected === 'ltc'
-            ? deriveXPub(
-                selected,
-                account.walletKeys[selected],
-                crypto.wallet[selected].status === 'Unavailable' ? 0 : (crypto.wallet[selected].nextIndex ?? 0),
-              )
+            ? (await reserveWalletAddress(account, selected, 0, requestID)).address
             : selected === 'xmr'
               ? key
                 ? await decrypt(account.walletKeys.xmr.address, key)
                 : ''
               : account.walletKeys.evm;
 
-        if (cancelled) {
+        if (cancelled || retry !== attempt) {
           return;
         }
 
@@ -50,6 +57,10 @@
         if (!cancelled) {
           error = cause instanceof Error ? cause.message : 'Could not create a receive address.';
         }
+      } finally {
+        if (!cancelled) {
+          pending = false;
+        }
       }
     })();
 
@@ -62,11 +73,15 @@
 <section class="panel">
   <h3>Receive {coin.toUpperCase()}</h3>
   <p>Use the correct network. USDT uses Ethereum ERC-20.</p>
-  {#if (coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status !== 'Synced'}<Status
-      message="Showing the first existing address because discovery is unavailable or incomplete. Reusing an address links payments publicly." />{/if}
-  <Status message={error} kind="error" />{#if address}<img
-      class="qr-image"
-      src={qr}
-      alt="Receive address QR code" /><Copy value={address} label="Copy address" />{:else}<Status
-      message="Unlock this identity to view its Monero address." />{/if}
+  <Status message={error} kind="error" />
+  {#if pending}
+    <Status message="Checking address history and creating a receive address…" />
+  {:else if address}
+    {#if qr}<img class="qr-image" src={qr} alt="Receive address QR code" />{/if}
+    <Copy value={address} label="Copy address" />
+  {:else if error}
+    <Button variant="secondary" onclick={() => retry++}>Retry address lookup</Button>
+  {:else}
+    <Status message="Unlock this identity to view its Monero address." />
+  {/if}
 </section>

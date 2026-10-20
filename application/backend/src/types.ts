@@ -123,7 +123,9 @@ export interface QueryInvoice {
   status: 'pending' | 'confirming' | 'paid' | 'underpaid' | 'expired' | 'refunded' | 'late' | 'reconciliation';
   xmr_subaddress: string;
   xmr_amount: string;
-  renewal_id: string | null;
+  identity_id: string | null;
+  renewal: boolean;
+  usd_amount: string;
   paid_at: Date | null;
   entitlement_start: Date | null;
   creation_date: Date;
@@ -257,7 +259,13 @@ export interface Message {
   to: string;
 }
 
+export interface WalletIssuedBounds {
+  receive: number;
+  change: number;
+}
+
 export interface WalletScanOptions {
+  issued?: WalletIssuedBounds;
   recovery?: boolean;
   signal?: AbortSignal;
 }
@@ -268,6 +276,9 @@ export interface EvmProviderTransaction {
   to: string | null;
   value: string;
   timeStamp: string;
+  blockNumber: string;
+  contractAddress?: string;
+  logIndex?: string;
   isError?: string;
   txreceipt_status?: string;
 }
@@ -276,7 +287,7 @@ export interface UtxoProviderTransaction {
   txid: string;
   vin: {prevout?: {scriptpubkey_address: string; value: number}}[];
   vout: {scriptpubkey_address: string; value: number}[];
-  status: {block_time?: number};
+  status: {confirmed: boolean; block_time?: number};
 }
 
 export interface UtxoWalletData {
@@ -284,8 +295,12 @@ export interface UtxoWalletData {
   balance: number;
   utxos: UTXOData;
   history: TransactionsHistory;
+  historyCursor: string | null;
+  historyError?: string;
   activeCount: number;
-  nextIndex: number | null;
+  discovered: WalletIssuedBounds;
+  nextReceiveIndex: number | null;
+  nextChangeIndex: number | null;
   scanned: number;
   scanLimit: number;
   error?: string;
@@ -300,8 +315,24 @@ export interface WalletOverviewOperation {
 export interface CryptoWalletResponse {
   btc: UtxoWalletData;
   ltc: UtxoWalletData;
-  eth: {status: string; balance: number; balanceAtoms: string; nonce: number; history: TransactionsHistory};
-  usdt: {status: string; balance: number; balanceAtoms: string; nonce: number; history: TransactionsHistory};
+  eth: {
+    status: string;
+    balance: number;
+    balanceAtoms: string;
+    nonce: number;
+    history: TransactionsHistory;
+    historyCursor: string | null;
+    historyError?: string;
+  };
+  usdt: {
+    status: string;
+    balance: number;
+    balanceAtoms: string;
+    nonce: number;
+    history: TransactionsHistory;
+    historyCursor: string | null;
+    historyError?: string;
+  };
   xmr: {status: string; startingDate: Date; nodeUrl: string};
 }
 
@@ -326,6 +357,7 @@ export type UTXOData = {
   vout: number;
   address: string;
   pathIndex: number;
+  branch: 0 | 1;
   value: number;
 }[];
 
@@ -443,4 +475,82 @@ export interface EvmTransferRequest {
   amount: string;
   priority: 'low' | 'medium' | 'high';
   sweep?: boolean;
+}
+
+export interface StripeCleanup {
+  id: string;
+  customer_id: string;
+  checkout_reference: string | null;
+  subscription_id: string | null;
+  payment_intent: string | null;
+  refund_requested: boolean;
+  requested_at: Date;
+  resume_invoices: string[];
+  retry_at: Date | null;
+  attempts: number;
+  error_code: string | null;
+}
+
+export interface StripeEventReference {
+  id: string;
+  type: string;
+  object_id: string;
+}
+
+export interface CryptoRefund {
+  id: string;
+  invoice_id: string;
+  owner: number | null;
+  destination_encrypted: string;
+  usd_amount: string;
+  xmr_amount: string | null;
+  metadata_encrypted: string | null;
+  tx_hash: string | null;
+  requested_at: Date;
+  attempts: number;
+  error_code: string | null;
+}
+
+export interface WalletAddressAllocation {
+  coin: 'btc' | 'ltc';
+  branch: 0 | 1;
+  index: number;
+  address: string;
+}
+
+export type ChainNetwork = 'btc' | 'ltc' | 'eth' | 'ethRpc' | 'xmr';
+
+export interface WalletHistoryPage {
+  reset?: boolean;
+  history: TransactionsHistory;
+  historyCursor: string | null;
+  historyError?: string;
+}
+
+export interface UtxoHistoryCursor {
+  kind: 'utxo';
+  coin: 'btc' | 'ltc';
+  key: string;
+  endpoint: string;
+  counts: [number, number];
+  after: {branch: 0 | 1; index: number; txid: string | null; remaining: number}[];
+  mempoolLimited?: boolean;
+}
+
+export interface EvmHistoryGroup {
+  hash: string;
+  net: string;
+  timestamp: string;
+  counterparties: string[];
+}
+
+export interface EvmHistoryCursor {
+  kind: 'evm';
+  coin: 'eth' | 'usdt';
+  key: string;
+  endpoint: string;
+  endblock: number;
+  page: number;
+  previous: string;
+  carry?: EvmHistoryGroup;
 }

@@ -1,7 +1,17 @@
 import type {LocalAccount} from 'viem/accounts';
-import type {BtcSigner, Coins, PrivKeyType, transactionData, UTXOData, PendingEvmSend} from '$type';
-import {UTXO_HARD_LIMIT} from '$constant';
-import {deriveXPub} from '$utils/cryptography';
+import type {
+  BtcSigner,
+  Coins,
+  PrivKeyType,
+  transactionData,
+  UTXOData,
+  PendingEvmSend,
+  FullIdentity,
+  WalletAddressAllocation,
+  PendingUtxoSend,
+} from '$type';
+import {request} from '$utils/webfetch';
+import {deriveXPub, encrypt, decrypt} from '$utils/cryptography';
 
 function parseCoinAmount(coin: Coins, amount: string | number): bigint {
   const decimals = coin === 'eth' ? 18 : coin === 'usdt' ? 6 : coin === 'xmr' ? 12 : 8;
@@ -140,14 +150,34 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
 
       const signer = (await parsePrivKey(data.wifKey, data.privKeyType, coin)) as BtcSigner;
 
-      const pathBase = isBtc ? "m/84'/0'/0'/0" : "m/84'/2'/0'/0";
+      const pathBase = isBtc ? "m/84'/0'/0'" : "m/84'/2'/0'";
       const tx = new btc.Transaction(netParam);
 
+      const outpoints = new Set<string>();
+
       for (const utxo of data.utxos!) {
+        const outpoint = `${utxo.txid}:${utxo.vout}`;
+
+        if (
+          !/^[a-f0-9]{64}$/i.test(utxo.txid) ||
+          !Number.isSafeInteger(utxo.vout) ||
+          utxo.vout < 0 ||
+          !Number.isSafeInteger(utxo.value) ||
+          utxo.value <= 0 ||
+          !Number.isSafeInteger(utxo.pathIndex) ||
+          utxo.pathIndex < 0 ||
+          utxo.pathIndex >= 2 ** 31 ||
+          (utxo.branch !== 0 && utxo.branch !== 1) ||
+          outpoints.has(outpoint)
+        ) {
+          throw new Error('Selected outputs contain invalid values or duplicate inputs.');
+        }
+
+        outpoints.add(outpoint);
         let publicKey: Uint8Array;
 
         if (signer.type === 'hd') {
-          const child = signer.root.derive(`${pathBase}/${utxo.pathIndex}`);
+          const child = signer.root.derive(`${pathBase}/${utxo.branch}/${utxo.pathIndex}`);
           publicKey = child.publicKey!;
         } else {
           publicKey = new HDKey({privateKey: signer.privKey, chainCode: new Uint8Array(32)}).publicKey!;
@@ -210,16 +240,21 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
       if (change >= BigInt(isBtc ? 546 : 1000)) {
         let returnAddress;
 
-        if (data.privKeyType === 'mnemonic') {
-          if (data.index === undefined) {
-            returnAddress = data.utxos[0].address;
-          } else {
-            if (!Number.isSafeInteger(data.index) || data.index < 0 || data.index >= UTXO_HARD_LIMIT) {
-              throw new Error('A discovered change address within the supported range is required.');
-            }
+        if (signer.type === 'hd') {
+          const path = data.changePath;
 
-            returnAddress = deriveXPub(coin, data.xpubKey!, data.index);
+          if (
+            !path ||
+            (path.branch !== 0 && path.branch !== 1) ||
+            !Number.isSafeInteger(path.index) ||
+            path.index < 0 ||
+            path.index >= 2 ** 31
+          ) {
+            throw new Error('An owned change address is required. Prepare the transaction again.');
           }
+
+          const child = signer.root.derive(`${pathBase}/${path.branch}/${path.index}`);
+          returnAddress = btc.p2wpkh(child.publicKey!, netParam).address;
         } else {
           const pubKey = new HDKey({
             privateKey: (signer as any).privKey,
@@ -237,12 +272,18 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
         let privateKey: Uint8Array;
 
         if (signer.type === 'hd') {
-          privateKey = signer.root.derive(`${pathBase}/${utxo.pathIndex}`).privateKey!;
+          privateKey = signer.root.derive(`${pathBase}/${utxo.branch}/${utxo.pathIndex}`).privateKey!;
         } else {
           privateKey = signer.privKey;
         }
 
         tx.signIdx(privateKey, i);
+      }
+
+      const expectedFee = change >= BigInt(isBtc ? 546 : 1000) ? feeSats : inputTotal - amountSats;
+
+      if (tx.fee !== expectedFee) {
+        throw new Error('The signed inputs do not match the reviewed network fee.');
       }
 
       tx.finalize();
@@ -363,6 +404,10 @@ export async function signTransaction(coin: Coins, addr: string, amt: number | s
 }
 
 export async function acquireEvmSend(address: string): Promise<() => void> {
+  return acquireWalletSend(`evm:${address.toLowerCase()}`, 'ETH or USDT');
+}
+
+async function acquireWalletSend(scope: string, asset: string): Promise<() => void> {
   if (!navigator.locks) {
     throw new Error('This browser cannot coordinate wallet sends across tabs. Use a browser with Web Locks support.');
   }
@@ -379,9 +424,9 @@ export async function acquireEvmSend(address: string): Promise<() => void> {
   });
 
   void navigator.locks
-    .request(`wallet-send:${address.toLowerCase()}`, {ifAvailable: true}, async (lock) => {
+    .request(`wallet-send:${scope}`, {ifAvailable: true}, async (lock) => {
       if (!lock) {
-        denied(new Error('Another tab is preparing or submitting an ETH or USDT transaction from this address.'));
+        denied(new Error(`Another tab is preparing or submitting a ${asset} transaction. Finish that payment first.`));
         return;
       }
 
@@ -447,4 +492,200 @@ export function recordPendingEvmSend(address: string, pending: PendingEvmSend, s
   }
 
   storage.setItem(`wallet-pending:${address.toLowerCase()}`, JSON.stringify(pending));
+}
+
+export async function reserveWalletAddress(
+  account: FullIdentity,
+  coin: 'btc' | 'ltc',
+  branch: 0 | 1,
+  requestID: string,
+) {
+  const result = await request<WalletAddressAllocation>(`/identities/${account.id}/wallet/addresses`, 'POST', {
+    coin,
+    branch,
+    requestID,
+  });
+
+  if (!result.ok) {
+    throw new Error(result.error);
+  }
+
+  const allocation = result.data;
+
+  if (
+    allocation.coin !== coin ||
+    allocation.branch !== branch ||
+    !Number.isSafeInteger(allocation.index) ||
+    allocation.index < 0 ||
+    allocation.index >= 2 ** 31 ||
+    allocation.address !== deriveXPub(coin, account.walletKeys[coin], allocation.index, branch)
+  ) {
+    throw new Error('The allocated address does not belong to this wallet.');
+  }
+
+  return allocation;
+}
+
+export async function verifyWalletInputs(id: string, coin: 'btc' | 'ltc', utxos: UTXOData) {
+  const result = await request(`/identities/${id}/wallet/utxos/verify`, 'POST', {coin, utxos});
+
+  if (!result.ok) {
+    throw new Error(result.error);
+  }
+}
+
+export async function acquireUtxoSend(coin: 'btc' | 'ltc') {
+  return acquireWalletSend(`utxo:${coin}`, coin.toUpperCase());
+}
+
+export async function utxoJournalKey(mnemonic: string) {
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(`ShadowSelf signed transaction journal\0${mnemonic}`),
+  );
+
+  return crypto.subtle.importKey('raw', digest, {name: 'AES-GCM'}, false, ['encrypt', 'decrypt']);
+}
+
+export async function utxoJournalScope(account: FullIdentity, coin: 'btc' | 'ltc') {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(account.walletKeys[coin]));
+  const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+
+  return `wallet-pending-utxo:${coin}:${fingerprint}`;
+}
+
+export async function inspectUtxoSend(
+  coin: 'btc' | 'ltc',
+  hex: string,
+  review: PendingUtxoSend['review'],
+): Promise<PendingUtxoSend> {
+  const {Transaction} = await import('@scure/btc-signer');
+
+  if (typeof hex !== 'string' || hex.length > 1_000_000 || !/^(?:[a-f0-9]{2})+$/i.test(hex)) {
+    throw new Error('The saved transaction bytes are invalid.');
+  }
+
+  const transaction = Transaction.fromRaw(Uint8Array.from(Buffer.from(hex, 'hex')));
+
+  if (
+    !transaction.isFinal ||
+    !transaction.inputsLength ||
+    transaction.inputsLength > 500 ||
+    !transaction.outputsLength
+  ) {
+    throw new Error('The saved transaction is not complete.');
+  }
+
+  const inputs = Array.from({length: transaction.inputsLength}, (_, index) => {
+    const input = transaction.getInput(index);
+
+    if (!input.txid || input.index === undefined) {
+      throw new Error('The saved transaction inputs are invalid.');
+    }
+
+    return {txid: Buffer.from(input.txid).toString('hex'), vout: input.index};
+  });
+
+  return {coin, txid: transaction.id, hex, inputs, review};
+}
+
+export async function pendingUtxoSend(
+  scope: string,
+  coin: 'btc' | 'ltc',
+  key: CryptoKey,
+  storage: Storage = localStorage,
+): Promise<PendingUtxoSend | null> {
+  const value = storage.getItem(scope);
+
+  if (value === null) {
+    return null;
+  }
+
+  const envelope = JSON.parse(value);
+  const plaintext = await decrypt(envelope.sealed, key);
+
+  if (!plaintext) {
+    throw new Error('The saved payment cannot be unlocked. Keep this browser data until it can be recovered.');
+  }
+
+  const pending = JSON.parse(plaintext) as PendingUtxoSend;
+  const inspected = await inspectUtxoSend(coin, pending.hex, pending.review);
+
+  if (
+    pending.coin !== coin ||
+    pending.txid !== inspected.txid ||
+    envelope.txid !== inspected.txid ||
+    JSON.stringify(envelope.inputs) !== JSON.stringify(inspected.inputs) ||
+    JSON.stringify(pending.inputs) !== JSON.stringify(inspected.inputs)
+  ) {
+    throw new Error('The saved payment does not match its transaction reference.');
+  }
+
+  return inspected;
+}
+
+export function checkPendingUtxoInputs(
+  scope: string,
+  coin: 'btc' | 'ltc',
+  inputs: UTXOData,
+  storage: Storage = localStorage,
+) {
+  for (let index = 0; index < storage.length; index++) {
+    const name = storage.key(index)!;
+
+    if (!name.startsWith(`wallet-pending-utxo:${coin}:`)) {
+      continue;
+    }
+
+    const entry = JSON.parse(storage.getItem(name)!);
+
+    if (!Array.isArray(entry.inputs)) {
+      throw new Error('A saved payment needs recovery before another send.');
+    }
+
+    if (
+      name === scope ||
+      entry.inputs.some((pending: {txid: string; vout: number}) =>
+        inputs.some((input) => input.txid === pending.txid && input.vout === pending.vout),
+      )
+    ) {
+      throw new Error(
+        'A previous payment is unresolved. Open its original wallet and look up or retry that payment first.',
+      );
+    }
+  }
+}
+
+export async function recordPendingUtxoSend(
+  scope: string,
+  pending: PendingUtxoSend,
+  key: CryptoKey,
+  storage: Storage = localStorage,
+) {
+  const existing = await pendingUtxoSend(scope, pending.coin, key, storage);
+
+  if (existing && existing.txid !== pending.txid) {
+    throw new Error('A previous payment needs recovery before another send.');
+  }
+
+  const sealed = await encrypt(JSON.stringify(pending), key);
+  const value = JSON.stringify({txid: pending.txid, inputs: pending.inputs, sealed});
+  storage.setItem(scope, value);
+
+  if (storage.getItem(scope) !== value) {
+    throw new Error('The signed payment could not be saved. Nothing was broadcast.');
+  }
+}
+
+export async function clearPendingUtxoSend(
+  scope: string,
+  pending: PendingUtxoSend,
+  key: CryptoKey,
+  storage: Storage = localStorage,
+) {
+  const current = await pendingUtxoSend(scope, pending.coin, key, storage);
+
+  if (current?.txid === pending.txid) {
+    storage.removeItem(scope);
+  }
 }

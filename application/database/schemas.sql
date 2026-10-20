@@ -6,6 +6,9 @@ DROP VIEW IF EXISTS mailbox_owners;
 DROP TABLE IF EXISTS service_mailboxes;
 DROP TABLE IF EXISTS fiat_intents;
 DROP TABLE IF EXISTS stripe_events;
+DROP TABLE IF EXISTS stripe_cleanup;
+DROP TABLE IF EXISTS crypto_refunds;
+DROP TABLE IF EXISTS wallet_addresses;
 DROP TABLE IF EXISTS invoice_transfers;
 DROP TABLE IF EXISTS invoice_observations;
 DROP TABLE IF EXISTS creation_jobs;
@@ -27,7 +30,7 @@ CREATE TABLE users (
   totp text,
   totp_counter bigint,
   recovery_hashes varchar(64)[] NOT NULL DEFAULT '{}',
-  stripe_customer varchar(18),
+  stripe_customer text,
   api_access boolean DEFAULT false,
   api_key varchar(64) UNIQUE
 );
@@ -67,7 +70,9 @@ CREATE TABLE crypto_invoices (
   UNIQUE (owner, request_id),
   xmr_amount numeric(20, 12) NOT NULL,
   status varchar(15) DEFAULT 'pending',
-  renewal_id varchar(12),
+  identity_id varchar(12),
+  renewal boolean NOT NULL DEFAULT false,
+  usd_amount numeric(12, 4) NOT NULL,
   paid_at timestamptz,
   entitlement_start timestamptz,
   creation_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -77,8 +82,8 @@ CREATE TABLE identities (
   id varchar(12) PRIMARY KEY,
   owner integer NOT NULL REFERENCES users(id),
   creation_date timestamp NOT NULL,
-  payment_intent varchar(27),
-  subscription_id varchar(28),
+  payment_intent text,
+  subscription_id text,
   crypto_invoice uuid REFERENCES crypto_invoices(id),
   plan varchar(8),
   location text,
@@ -97,6 +102,31 @@ CREATE TABLE identities (
   wallet_keys jsonb,
   status varchar(8) DEFAULT 'inactive'
 );
+
+CREATE TABLE wallet_addresses (
+  identity_id varchar(12) NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+  coin varchar(3) NOT NULL CHECK (coin IN ('btc', 'ltc')),
+  request_id uuid NOT NULL,
+  branch smallint NOT NULL CHECK (branch IN (0, 1)),
+  address_index integer NOT NULL CHECK (address_index >= 0),
+  PRIMARY KEY (identity_id, coin, request_id),
+  UNIQUE (identity_id, coin, branch, address_index)
+);
+
+CREATE TABLE crypto_refunds (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  invoice_id uuid NOT NULL UNIQUE REFERENCES crypto_invoices(id),
+  owner integer REFERENCES users(id) ON DELETE SET NULL,
+  destination_encrypted text NOT NULL,
+  xmr_amount numeric(20, 12),
+  metadata_encrypted text,
+  tx_hash char(64),
+  requested_at timestamptz NOT NULL DEFAULT NOW(),
+  retry_at timestamptz NOT NULL DEFAULT NOW(),
+  attempts integer NOT NULL DEFAULT 0,
+  error_code text
+);
+CREATE INDEX crypto_refunds_retry_idx ON crypto_refunds(retry_at);
 
 CREATE TABLE accounts (
   id SERIAL PRIMARY KEY,
@@ -165,15 +195,33 @@ CREATE TABLE invoice_observations (
 
 CREATE TABLE stripe_events (
   id text PRIMARY KEY,
-  payload jsonb NOT NULL,
+  type text NOT NULL,
+  object_id text NOT NULL,
   received_at timestamptz NOT NULL DEFAULT NOW(),
   completed_at timestamptz
 );
 
+CREATE TABLE stripe_cleanup (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_id text NOT NULL,
+  checkout_reference text UNIQUE,
+  subscription_id text UNIQUE,
+  payment_intent text UNIQUE,
+  refund_requested boolean NOT NULL DEFAULT false,
+  requested_at timestamptz NOT NULL DEFAULT NOW(),
+  resume_invoices text[] NOT NULL DEFAULT '{}',
+  retry_at timestamptz DEFAULT NOW(),
+  attempts integer NOT NULL DEFAULT 0,
+  error_code text
+);
+CREATE INDEX stripe_cleanup_retry_idx ON stripe_cleanup(retry_at);
+CREATE UNIQUE INDEX stripe_cleanup_customer_idx ON stripe_cleanup(customer_id)
+  WHERE checkout_reference IS NULL AND subscription_id IS NULL AND payment_intent IS NULL;
+
 CREATE TABLE fiat_intents (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   request_id uuid NOT NULL,
-  owner integer REFERENCES users(id) ON DELETE SET NULL,
+  owner integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   plan varchar(8) NOT NULL,
   identity_id varchar(12) NOT NULL UNIQUE,
   provider_id text,

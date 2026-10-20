@@ -5,9 +5,9 @@ import {randomBytes, createHmac} from 'node:crypto';
 import {HDKey} from '@scure/bip32';
 import * as OTPAuth from 'otpauth';
 
-export function xpubToAddress(coin: 'btc' | 'ltc', xpub: string, index: number = 0): string {
+export function xpubToAddress(coin: 'btc' | 'ltc', xpub: string, index: number = 0, branch: 0 | 1 = 0): string {
   const node = HDKey.fromExtendedKey(xpub);
-  const child = node.deriveChild(0).deriveChild(index);
+  const child = node.deriveChild(branch).deriveChild(index);
 
   if (coin === 'btc') {
     return p2wpkh(child.publicKey!).address!;

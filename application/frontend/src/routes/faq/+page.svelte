@@ -118,7 +118,7 @@
         {
           question: 'Can I get a refund?',
           answer:
-            'Eligible initial purchases have a 14-day window. Delete an eligible card-paid identity to initiate its refund. For crypto, keep the identity active and contact us with its ID and an XMR refund address. Crypto refunds are handled manually. The refund policy has the details.',
+            'Eligible initial purchases have a 14-day window. Delete an eligible identity to initiate its refund. Crypto purchases require an external XMR refund address and are refunded automatically at their original USD purchase value, converted when the payout is signed. ShadowSelf pays the outgoing network fee. The refund policy has the details.',
         },
       ],
     },

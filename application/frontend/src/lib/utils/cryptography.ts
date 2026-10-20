@@ -4,9 +4,9 @@ import {HDKey} from '@scure/bip32';
 import {get} from 'svelte/store';
 import type {Coins} from '$type';
 
-export function deriveXPub(coin: Coins, key: string, index: number = 0): string {
+export function deriveXPub(coin: Coins, key: string, index: number = 0, branch: 0 | 1 = 0): string {
   const node = HDKey.fromExtendedKey(key);
-  const child = node.deriveChild(0).deriveChild(index);
+  const child = node.deriveChild(branch).deriveChild(index);
 
   if (coin === 'btc') {
     return p2wpkh(child.publicKey!).address!;

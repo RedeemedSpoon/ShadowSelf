@@ -161,6 +161,60 @@
       </div>
     </section>
   </div>
+  {#if settings.cryptoRefunds?.length}
+    <section class="panel sessions-panel" aria-label="Crypto refunds">
+      <h2>Crypto refunds</h2>
+      <p>
+        Eligible refunds are paid in XMR using the original USD purchase value. The exchange rate is fixed when the
+        payout is signed. ShadowSelf pays the outgoing fee.
+      </p>
+      <div class="sessions-list refund-list">
+        {#each settings.cryptoRefunds as refund (refund.id)}
+          <div>
+            <div class="session-title">
+              Requested {new Date(refund.requestedAt).toLocaleDateString()}
+              <code>{refund.id}</code>
+            </div>
+            {#if refund.xmrAmount}
+              <p>{refund.xmrAmount} XMR · Awaiting network confirmation. Retries use the same signed payout.</p>
+            {:else}
+              <p>
+                Queued. Waiting for a current exchange rate and available wallet funds. Processing retries
+                automatically.
+              </p>
+            {/if}
+          </div>
+        {/each}
+      </div>
+      <Button variant="secondary" onclick={() => invalidateAll()}>Refresh refund status</Button>
+    </section>
+  {/if}
+  {#if settings.refunds?.length}
+    <section class="panel sessions-panel" aria-label="Card refunds">
+      <h2>Card refunds</h2>
+      <p>These refunds continue after identity deletion. Completed refunds no longer appear here.</p>
+      <div class="sessions-list refund-list">
+        {#each settings.refunds as refund (refund.id)}
+          <div>
+            <span class="session-title">
+              Requested {new Date(refund.requestedAt).toLocaleDateString()}
+              <code>{refund.id}</code>
+            </span>
+            {#if ['refund_failed', 'billing_reference_missing', 'billing_reference_mismatch', 'billing_reference_ambiguous', 'provider_rejected'].includes(refund.errorCode)}
+              <p>Needs attention. <a href="/contact">Contact support</a> with this reference.</p>
+            {:else if refund.errorCode === 'refund_requires_action'}
+              <p>Action required. Check Stripe's refund email or <a href="/contact">contact support</a>.</p>
+            {:else if refund.errorCode === 'payment_disputed'}
+              <p>Waiting for the payment dispute to be resolved.</p>
+            {:else}
+              <p>Processing. No further deletion request is needed.</p>
+            {/if}
+          </div>
+        {/each}
+      </div>
+      <Button variant="secondary" onclick={() => invalidateAll()}>Refresh refund status</Button>
+    </section>
+  {/if}
   <section class="panel sessions-panel">
     <div class="section-heading">
       <div>
@@ -336,10 +390,28 @@
     </form></Dialog>
   <Dialog bind:open={deleteOpen} title="Delete your account"
     ><p>
-      This cancels subscriptions and deletes your account and identities. Move any wallet funds first. If billing
-      cleanup fails, retry the deletion.
+      This deletes your account and identities. Subscription cancellation and eligible refunds continue automatically
+      after deletion. Move any wallet funds first.
     </p>
     <form method="POST" action="?/delete" use:enhance={submit} data-action="delete">
+      {#if settings.cryptoRefundRequired}
+        <p>
+          Eligible initial crypto purchases will be refunded in XMR at their original USD value, converted when each
+          payout is signed. ShadowSelf pays the outgoing network fee.
+        </p>
+        <div class="field">
+          <label for="account-refund-address">Monero refund address</label>
+          <input
+            id="account-refund-address"
+            name="refundAddress"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="106"
+            required />
+          <small
+            >Use a mainnet XMR address you control outside this account. Refunds continue after account deletion.</small>
+        </div>
+      {/if}
       <div class="field settings-password">
         <label for="account-delete-password">Account password</label><input
           id="account-delete-password"
@@ -377,6 +449,18 @@
     gap: 15px;
     padding: 15px 0;
     border-top: 1px solid #a5b4fc20;
+  }
+  .refund-list > div {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .refund-list .session-title {
+    flex: 1 0 220px;
+  }
+  .refund-list p {
+    flex: 1 1 240px;
+    margin: 0;
+    font-size: 12px;
   }
   .session-title {
     font-size: 12px;

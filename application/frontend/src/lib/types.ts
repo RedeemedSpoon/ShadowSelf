@@ -33,8 +33,7 @@ export interface transactionData {
   feeAtoms?: string;
   privKeyType: PrivKeyType;
   wifKey: string;
-  index?: number;
-  xpubKey?: string;
+  changePath?: {branch: 0 | 1; index: number};
   utxos?: UTXOData;
   nonce?: number;
   balanceAtoms?: string;
@@ -72,6 +71,7 @@ export interface FullIdentity {
   creationDate: string;
   plan: 'monthly' | 'annually' | 'lifetime' | null;
   paymentMethod: string;
+  cryptoRefund: {usdAmount: string} | null;
   location: string;
   picture: string;
   name: string;
@@ -179,6 +179,7 @@ export type UTXOData = {
   vout: number;
   address: string;
   pathIndex: number;
+  branch: 0 | 1;
   rawTx?: string;
   value: number;
 }[];
@@ -203,8 +204,12 @@ export interface UtxoWallet {
   balance: number;
   utxos: UTXOData;
   history: TransactionsHistory;
+  historyCursor: string | null;
+  historyError?: string;
   activeCount: number;
-  nextIndex: number | null;
+  discovered: {receive: number; change: number};
+  nextReceiveIndex: number | null;
+  nextChangeIndex: number | null;
   scanned: number;
   scanLimit: number;
   error?: string;
@@ -216,6 +221,8 @@ export interface EvmWallet {
   nonce: number;
   balanceAtoms: string;
   history: TransactionsHistory;
+  historyCursor: string | null;
+  historyError?: string;
 }
 
 export interface PendingEvmSend {
@@ -380,6 +387,7 @@ export type InvoiceStatus =
 
 export interface CryptoInvoice {
   invoiceID: string;
+  usdAmount: string;
   identityID: string | null;
   depositAddress: string | null;
   depositAmount: string | null;
@@ -426,4 +434,26 @@ export interface SignupState {
   secret: string;
   qr: string;
   recovery: string[];
+}
+
+export interface WalletAddressAllocation {
+  coin: 'btc' | 'ltc';
+  branch: 0 | 1;
+  index: number;
+  address: string;
+}
+
+export interface WalletHistoryPage {
+  reset?: boolean;
+  history: TransactionsHistory;
+  historyCursor: string | null;
+  historyError?: string;
+}
+
+export interface PendingUtxoSend {
+  coin: 'btc' | 'ltc';
+  txid: string;
+  hex: string;
+  inputs: {txid: string; vout: number}[];
+  review: {amount: string; recipient: string; fee: string; unit: string};
 }

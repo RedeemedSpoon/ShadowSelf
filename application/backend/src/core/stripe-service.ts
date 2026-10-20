@@ -1,9 +1,10 @@
 import {origin} from '@core/config';
-import {BILLING_CURRENCY, PRICING_TIERS} from '@core/constants';
+import {BILLING_CURRENCY, PRICING_TIERS, STRIPE_EVENT_TYPES, STRIPE_EVENT_RETENTION_DAYS} from '@core/constants';
+import {repairStripeCleanup} from '@core/stripe-cleanup';
 import {sql, stripe} from '@core/services';
 import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/swap-provider';
-import {withAccountLock} from '@core/identity-service';
-import type {QueryIdentity} from '@type';
+import {withAccountLock, removeIdentityRecords} from '@core/identity-service';
+import type {QueryIdentity, StripeEventReference} from '@type';
 import type Stripe from 'stripe';
 import type {TransactionSql, ReservedSql} from 'postgres';
 import {ApiError} from '@core/security';
@@ -69,18 +70,31 @@ export async function processStripeEvent(id: string, provider: Stripe = stripe) 
       return;
     }
 
-    const rows = await transaction`SELECT payload, completed_at FROM stripe_events WHERE id = ${id} FOR UPDATE`;
+    const rows =
+      await transaction`SELECT id, type, object_id, completed_at FROM stripe_events WHERE id = ${id} FOR UPDATE`;
 
     if (!rows[0] || rows[0].completed_at) {
       return;
     }
 
-    await applyStripeEvent(rows[0].payload, transaction, provider);
+    await applyStripeEvent(rows[0] as StripeEventReference, transaction, provider);
     await transaction`UPDATE stripe_events SET completed_at = NOW() WHERE id = ${id}`;
   });
 }
 
+export async function saveStripeEvent(event: Stripe.Event) {
+  if (!(STRIPE_EVENT_TYPES as readonly string[]).includes(event.type) || !('id' in event.data.object)) {
+    return;
+  }
+
+  await sql`INSERT INTO stripe_events (id, type, object_id)
+    VALUES (${event.id}, ${event.type}, ${event.data.object.id}) ON CONFLICT DO NOTHING`;
+}
+
 export async function repairStripeEvents() {
+  await sql`DELETE FROM stripe_events WHERE completed_at IS NOT NULL
+    AND received_at < NOW() - ${STRIPE_EVENT_RETENTION_DAYS} * INTERVAL '1 day'`;
+
   let cursor = '';
 
   while (true) {
@@ -99,17 +113,17 @@ export async function repairStripeEvents() {
   }
 }
 
-async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql, provider: Stripe) {
+async function applyStripeEvent(event: StripeEventReference, transaction: TransactionSql, provider: Stripe) {
   if (event.type === 'payment_intent.succeeded') {
-    await applyLifetimePayment(event.data.object.id, transaction, provider);
+    await applyLifetimePayment(event.object_id, transaction, provider);
   }
 
   if (event.type === 'invoice.paid') {
-    await applyPaidInvoice(event.data.object.id, transaction, provider);
+    await applyPaidInvoice(event.object_id, transaction, provider);
   }
 
   if (event.type === 'invoice.payment_failed') {
-    const invoice = await provider.invoices.retrieve(event.data.object.id);
+    const invoice = await provider.invoices.retrieve(event.object_id);
 
     const reference = invoice.parent?.subscription_details?.subscription;
     const subscriptionID = typeof reference === 'string' ? reference : reference?.id;
@@ -127,12 +141,22 @@ async function applyStripeEvent(event: Stripe.Event, transaction: TransactionSql
     await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${subscriptionID}`;
   }
 
-  if (event.type === 'charge.refunded' || event.type === 'charge.dispute.created') {
-    await applyChargeReversal(event.data.object, transaction, provider);
+  if (event.type === 'charge.refunded') {
+    const charge = await provider.charges.retrieve(event.object_id);
+    await applyChargeReversal(charge, transaction, provider);
+  }
+
+  if (event.type === 'charge.dispute.created' || event.type === 'charge.dispute.closed') {
+    const dispute = await provider.disputes.retrieve(event.object_id);
+    await applyChargeReversal(dispute, transaction, provider);
+  }
+
+  if (event.type.startsWith('refund.')) {
+    await applyRefundUpdate(event.object_id, transaction, provider);
   }
 
   if (event.type === 'customer.subscription.deleted') {
-    await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${event.data.object.id}`;
+    await transaction`UPDATE identities SET status = 'frozen' WHERE subscription_id = ${event.object_id}`;
   }
 }
 
@@ -149,7 +173,7 @@ async function applyLifetimePayment(id: string, transaction: TransactionSql, pro
     return;
   }
 
-  if (charge && typeof charge !== 'string' && (charge.amount_refunded > 0 || charge.disputed)) {
+  if (charge && typeof charge !== 'string' && (charge.refunded || (await hasOpenDispute(charge, provider)))) {
     return;
   }
 
@@ -162,6 +186,8 @@ async function applyLifetimePayment(id: string, transaction: TransactionSql, pro
   if (!customer) {
     return;
   }
+
+  await transaction`SELECT id FROM users WHERE stripe_customer = ${customer} FOR UPDATE`;
 
   const purchases = await transaction`SELECT f.identity_id, f.owner FROM fiat_intents f JOIN users u ON u.id = f.owner
     WHERE f.identity_id = ${payment.metadata.id} AND f.plan = 'lifetime' AND u.stripe_customer = ${customer}
@@ -190,7 +216,12 @@ async function applyPaidInvoice(id: string, transaction: TransactionSql, provide
   const latestID = typeof current.latest_invoice === 'string' ? current.latest_invoice : current.latest_invoice?.id;
   const latest = latestID ? await provider.invoices.retrieve(latestID) : null;
 
-  let paid = latest?.status === 'paid';
+  const plan = current.metadata.type as keyof typeof PRICING_TIERS;
+  let paid =
+    latest?.status === 'paid' &&
+    latest.currency === BILLING_CURRENCY &&
+    Object.hasOwn(PRICING_TIERS, plan) &&
+    latest.amount_paid === PRICING_TIERS[plan];
 
   if (paid && latestID) {
     for await (const entry of provider.invoicePayments.list({invoice: latestID, limit: 100})) {
@@ -205,7 +236,7 @@ async function applyPaidInvoice(id: string, transaction: TransactionSql, provide
 
       const charge = payment.latest_charge;
 
-      if (charge && typeof charge !== 'string' && (charge.amount_refunded > 0 || charge.disputed)) {
+      if (charge && typeof charge !== 'string' && (charge.refunded || (await hasOpenDispute(charge, provider)))) {
         paid = false;
       }
     }
@@ -218,8 +249,10 @@ async function applyPaidInvoice(id: string, transaction: TransactionSql, provide
   }
 
   const customer = typeof current.customer === 'string' ? current.customer : current.customer.id;
+  await transaction`SELECT id FROM users WHERE stripe_customer = ${customer} FOR UPDATE`;
+
   const purchases =
-    await transaction`SELECT f.identity_id, f.owner, f.plan FROM fiat_intents f JOIN users u ON u.id = f.owner
+    await transaction`SELECT f.identity_id, f.owner, f.plan, f.provider_id FROM fiat_intents f JOIN users u ON u.id = f.owner
     WHERE f.identity_id = ${current.metadata.id || ''} AND f.plan = ${current.metadata.type || ''} AND u.stripe_customer = ${customer}
     AND (f.subscription_id IS NULL OR f.subscription_id = ${subscriptionID}) FOR UPDATE OF u`;
 
@@ -229,8 +262,8 @@ async function applyPaidInvoice(id: string, transaction: TransactionSql, provide
     return;
   }
 
-  await transaction`INSERT INTO identities (id, owner, creation_date, plan, subscription_id)
-    VALUES (${purchase.identity_id}, ${purchase.owner}, ${new Date(invoice.created * 1000)}, ${purchase.plan}, ${subscriptionID}) ON CONFLICT (id) DO NOTHING`;
+  await transaction`INSERT INTO identities (id, owner, creation_date, plan, subscription_id, payment_intent)
+    VALUES (${purchase.identity_id}, ${purchase.owner}, ${new Date(current.created * 1000)}, ${purchase.plan}, ${subscriptionID}, ${purchases[0].provider_id}) ON CONFLICT (id) DO NOTHING`;
   await transaction`UPDATE identities SET status = CASE
     WHEN EXISTS (SELECT 1 FROM creation_jobs WHERE identity_id = ${purchase.identity_id} AND status = 'completed') THEN 'active' ELSE 'inactive' END
     WHERE id = ${purchase.identity_id} AND owner = ${purchase.owner} AND subscription_id = ${subscriptionID} AND status = 'frozen'`;
@@ -246,6 +279,19 @@ async function applyChargeReversal(
 
   if (!intentID) {
     return;
+  }
+
+  const cleanup = await transaction`SELECT customer_id FROM stripe_cleanup WHERE payment_intent = ${intentID}`;
+
+  if (cleanup[0]) {
+    const key = `stripe-customer:${cleanup[0].customer_id}`;
+    const lock = await transaction`SELECT pg_try_advisory_xact_lock(hashtextextended(${key}, 0)) AS acquired`;
+
+    if (!lock[0].acquired) {
+      throw new Error('Stripe cleanup is running');
+    }
+
+    await transaction`UPDATE stripe_cleanup SET retry_at = NOW() WHERE payment_intent = ${intentID}`;
   }
 
   let identities = (await transaction`SELECT id FROM identities WHERE payment_intent = ${intentID}`) as QueryIdentity[];
@@ -273,25 +319,119 @@ async function applyChargeReversal(
   }
 
   for (const identity of identities) {
-    await transaction`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
+    const owners = await transaction`SELECT owner FROM identities WHERE id = ${identity.id}`;
+
+    if (!owners[0]) {
+      continue;
+    }
+
+    await transaction`SELECT id FROM users WHERE id = ${owners[0].owner} FOR UPDATE`;
+
+    if ('refunded' in object && object.refunded) {
+      await removeIdentityRecords(identity.id, owners[0].owner, transaction);
+
+      continue;
+    }
+
+    const rows = await transaction`SELECT payment_intent, subscription_id FROM identities WHERE id = ${identity.id}`;
+
+    if ('charge' in object && !['won', 'warning_closed'].includes(object.status)) {
+      if (object.status === 'lost' && rows[0]?.subscription_id) {
+        await provider.subscriptions.update(
+          rows[0].subscription_id,
+          {cancel_at_period_end: true},
+          {idempotencyKey: `dispute-cancellation:${object.id}`},
+        );
+      }
+
+      await transaction`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
+
+      continue;
+    }
+
+    if (rows[0]?.subscription_id) {
+      const subscription = await provider.subscriptions.retrieve(rows[0].subscription_id);
+      const reference = subscription.latest_invoice;
+      const invoiceID = typeof reference === 'string' ? reference : reference?.id;
+
+      if (invoiceID) {
+        await applyPaidInvoice(invoiceID, transaction, provider);
+      }
+    } else {
+      const payment = await provider.paymentIntents.retrieve(intentID, {expand: ['latest_charge']});
+      const charge = payment.latest_charge;
+      const reversed =
+        !charge || typeof charge === 'string' || charge.refunded || (await hasOpenDispute(charge, provider));
+
+      if (reversed) {
+        await transaction`UPDATE identities SET status = 'frozen' WHERE id = ${identity.id}`;
+      } else {
+        await restoreIdentity(identity.id, transaction);
+      }
+    }
   }
 }
 
-async function recoverStripeEvents(since: number) {
-  const types = [
-    'payment_intent.succeeded',
-    'invoice.paid',
-    'invoice.payment_failed',
-    'charge.refunded',
-    'charge.dispute.created',
-    'customer.subscription.deleted',
-  ];
+async function hasOpenDispute(charge: Stripe.Charge, provider: Stripe) {
+  if (!charge.disputed) {
+    return false;
+  }
 
-  for await (const event of stripe.events.list({created: {gte: since}, types, limit: 100})) {
-    await sql`INSERT INTO stripe_events (id, payload) VALUES (${event.id}, ${sql.json(JSON.parse(JSON.stringify(event)))}) ON CONFLICT DO NOTHING`;
+  for await (const dispute of provider.disputes.list({charge: charge.id, limit: 100})) {
+    if (!['won', 'warning_closed'].includes(dispute.status)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+async function restoreIdentity(id: string, transaction: TransactionSql) {
+  await transaction`UPDATE identities SET status = CASE
+    WHEN EXISTS (SELECT 1 FROM creation_jobs WHERE identity_id = ${id} AND status = 'completed')
+    THEN 'active' ELSE 'inactive' END WHERE id = ${id} AND status = 'frozen'`;
+}
+
+async function applyRefundUpdate(id: string, transaction: TransactionSql, provider: Stripe) {
+  const refund = await provider.refunds.retrieve(id);
+
+  if (refund.metadata?.purpose !== 'identity_refund') {
+    return;
+  }
+
+  const reference = refund.payment_intent;
+  const paymentID = typeof reference === 'string' ? reference : reference?.id;
+
+  if (!paymentID) {
+    return;
+  }
+
+  const payment = await provider.paymentIntents.retrieve(paymentID);
+  const customer = typeof payment.customer === 'string' ? payment.customer : payment.customer?.id;
+
+  if (!customer) {
+    return;
+  }
+
+  const lock =
+    await transaction`SELECT pg_try_advisory_xact_lock(hashtextextended(${'stripe-customer:' + customer}, 0)) AS acquired`;
+
+  if (!lock[0].acquired) {
+    throw new Error('Stripe cleanup is running');
+  }
+
+  await transaction`INSERT INTO stripe_cleanup (customer_id, payment_intent, refund_requested)
+    VALUES (${customer}, ${paymentID}, true) ON CONFLICT (payment_intent)
+    DO UPDATE SET retry_at = NOW()`;
+}
+
+async function recoverStripeEvents(since: number) {
+  for await (const event of stripe.events.list({created: {gte: since}, types: [...STRIPE_EVENT_TYPES], limit: 100})) {
+    await saveStripeEvent(event);
   }
 
   await repairStripeEvents();
+  await repairStripeCleanup();
 }
 
 async function reconcileBilling() {
@@ -347,6 +487,16 @@ async function reconcileBilling() {
     }
 
     await recoverStripeEvents(Math.floor(since / 1000));
+
+    const blocked = await sql`SELECT id, error_code FROM stripe_cleanup WHERE retry_at IS NULL`;
+
+    for (const job of blocked) {
+      console.error(`Stripe cleanup ${job.id} needs attention: ${job.error_code}`);
+    }
+
+    if (blocked.length) {
+      process.exitCode = 1;
+    }
 
     await repairPaymentInvoices();
     await repairWalletSwapRequests();

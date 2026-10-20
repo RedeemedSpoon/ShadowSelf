@@ -130,8 +130,18 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'GET',
         path: '/api/settings',
-        detail: '{email,username,recoveryRemaining,API,OTP}',
-        response: {email: 'theo@example.com', username: 'Theo', recoveryRemaining: 6, API: false, OTP: true},
+        detail:
+          '{email,username,recoveryRemaining,API,OTP,refunds,cryptoRefunds,cryptoRefundRequired}. refunds contains unfinished card refunds; cryptoRefunds contains pending XMR payouts with id,requestedAt,errorCode,xmrAmount. cryptoRefundRequired indicates an eligible identity purchase needs an external XMR address on account deletion.',
+        response: {
+          email: 'theo@example.com',
+          username: 'Theo',
+          recoveryRemaining: 6,
+          API: false,
+          OTP: true,
+          refunds: [],
+          cryptoRefunds: [],
+          cryptoRefundRequired: false,
+        },
       },
       {
         method: 'GET',
@@ -256,7 +266,8 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       {
         method: 'DELETE',
         path: '/api/settings/account',
-        detail: '{currentPassword}; 202 means cleanup is pending',
+        detail:
+          'Requires {currentPassword,refundAddress?}. An external mainnet XMR refundAddress is required when cryptoRefundRequired=true. Returns {success:true} after account deletion. Card cancellation, eligible refunds, and customer cleanup continue automatically. Crypto refunds use the original discounted USD purchase value, converted to XMR at signing; ShadowSelf pays the outgoing network fee.',
         request: {currentPassword: 'Example-Account-Password-2026!'},
         response: {success: true},
       },
@@ -317,7 +328,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'DELETE',
         path: '/api/identities/:id',
         detail:
-          'Requires the account password. Returns {success:true} after deletion. If billing cleanup cannot complete, returns an error so you can retry.',
+          'Requires {currentPassword,refundAddress?}. A valid external mainnet XMR refundAddress is required when identity metadata has cryptoRefund. Returns {success:true} after deletion. Subscription cancellation and eligible refunds continue automatically. Crypto refunds use the initial discounted USD purchase value, converted at signing; renewals are excluded and ShadowSelf pays the outgoing fee.',
         request: {currentPassword: 'Example-Account-Password-2026!'},
         response: {success: true},
       },
@@ -661,7 +672,30 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'GET',
         path: '/api/identities/:id/wallet',
         detail:
-          'Returns independent coin states, prices, and fees. Unavailable balances are null with status=Unavailable and an error. Missing price/fee entries remain unavailable; receiving public addresses does not require them. BTC/LTC status=Incomplete indicates a bounded scan; nextIndex=null prohibits generating another undiscoverable address.',
+          'Returns independent coin states, prices, and fees. Unavailable balances are null with status=Unavailable and an error. Missing price/fee entries remain unavailable. BTC/LTC scan receive and change branches, including all previously issued addresses and a trailing discovery gap. Unspent outputs carry branch and pathIndex. status=Incomplete and null nextReceiveIndex/nextChangeIndex disable new addresses. No balance cache is used.',
+      },
+      {
+        method: 'POST',
+        path: '/api/identities/:id/wallet/history',
+        detail:
+          'Continue BTC/LTC/ETH/USDT history using the opaque historyCursor from the wallet response. Returns history, historyCursor and optional historyError. A null cursor completes confirmed history. reset=true replaces previously loaded history when an Ethereum explorer fallback restarts pagination. Balances remain fresh independently of history availability.',
+        request: {coin: 'btc', cursor: '<opaque historyCursor>'},
+      },
+      {
+        method: 'POST',
+        path: '/api/identities/:id/wallet/addresses',
+        detail:
+          'Reserve an unused BTC/LTC address after fresh discovery. branch=0 receives payments; branch=1 receives change. requestID is an idempotency UUID. Retry the same ID after interruption. Response address must be checked against the locally derived xpub address. Reservations survive unpaid invoices and prevent address reuse.',
+        request: {coin: 'btc', branch: 0, requestID: '<UUID>'},
+        response: {coin: 'btc', branch: 0, index: 0, address: '<derived receive address>'},
+      },
+      {
+        method: 'POST',
+        path: '/api/identities/:id/wallet/utxos/verify',
+        detail:
+          'Freshly verify selected outpoints, values and addresses immediately before signing and broadcasting. Changed or spent inputs return 409 inputs_changed. This does not reserve blockchain funds or make a provider independently trustworthy.',
+        request: {coin: 'btc', utxos: [{txid: 'a'.repeat(64), vout: 0, value: 100000, address: '<owned address>'}]},
+        response: {verified: true},
       },
       {
         method: 'POST',
@@ -679,14 +713,19 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/identities/:id/wallet/transactions/reconcile',
         detail:
-          'Look up a previous ETH or USDT broadcast using its exact hash and sender nonce. status=consumed means the sender nonce advanced, seen means the hash is known, unknown retains uncertainty. Unknown sends can be retried using the same signed bytes.',
-        request: {address: '0x1111111111111111111111111111111111111111', txid: '0x' + 'a'.repeat(64), nonce: 2},
+          'BTC/LTC require coin and hex containing the exact saved signed transaction. Returns txid and status=confirmed, seen, conflicted, or unknown. Only confirmation or a verified confirmed competing spend permits clearing the saved payment. ETH/USDT require coin, address, txid, and nonce; status=consumed means the nonce advanced. Unknown sends retain uncertainty and may retry the same bytes only.',
+        request: {
+          coin: 'eth',
+          address: '0x1111111111111111111111111111111111111111',
+          txid: '0x' + 'a'.repeat(64),
+          nonce: 2,
+        },
       },
       {
         method: 'POST',
         path: '/api/identities/:id/wallet/recovery',
         detail:
-          'Explicitly scan up to 1200 BTC/LTC addresses to find funds beyond the normal gap. Recovered funds can be spent with an existing owned change address; receiving new addresses stays bounded.',
+          'Explicitly scan at least 1200 addresses per BTC/LTC branch, extended to cover all issued addresses. Discovered bounds persist so later fresh scans cover recovered funds. Incomplete discovery is reported explicitly.',
         request: {
           coin: 'btc',
         },

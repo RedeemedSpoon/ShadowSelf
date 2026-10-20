@@ -1,5 +1,6 @@
 <script lang="ts">
-  import {deriveXPub, decrypt} from '$utils/cryptography';
+  import {decrypt} from '$utils/cryptography';
+  import {reserveWalletAddress} from '$utils/wallet';
   import {vaultKey} from '$store';
   import {get} from 'svelte/store';
   import {onDestroy} from 'svelte';
@@ -18,6 +19,7 @@
   let pending = $state(false);
   let error = $state('');
   let active = true;
+  const addressRequests: Record<string, string> = {};
 
   onDestroy(() => (active = false));
 
@@ -46,15 +48,15 @@
         throw new Error('Use positive whole quantities and nonnegative item prices.');
       }
 
+      const scope = `${account.id}:${coin}:${invoice}`;
+
+      addressRequests[scope] ||= globalThis.crypto.randomUUID();
+
       const cryptoDue = invoiceAmount(coin, totalCents, rate);
 
       const address =
         coin === 'btc' || coin === 'ltc'
-          ? deriveXPub(
-              coin,
-              account.walletKeys[coin],
-              crypto.wallet[coin].status === 'Unavailable' ? 0 : (crypto.wallet[coin].nextIndex ?? 0),
-            )
+          ? (await reserveWalletAddress(account, coin, 0, addressRequests[scope])).address
           : coin === 'xmr'
             ? await decrypt(account.walletKeys.xmr.address, key!)
             : account.walletKeys.evm;
@@ -91,8 +93,6 @@
 <section class="panel">
   <h3>Create a payment invoice</h3>
   <p>Download a PDF with your receive address and the current {coin.toUpperCase()} exchange rate.</p>
-  {#if (coin === 'btc' || coin === 'ltc') && crypto.wallet[coin].status !== 'Synced'}<Status
-      message="This invoice reuses the first existing address because discovery is unavailable or incomplete. Reusing an address links payments publicly." />{/if}
   <Status message={error} kind="error" />
   <form onsubmit={download} class="invoice-form">
     <div class="form-grid">
