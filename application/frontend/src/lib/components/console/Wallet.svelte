@@ -489,7 +489,7 @@
             ><polyline
               points={chartPoints}
               fill="none"
-              stroke="#a496f4"
+              stroke="var(--feature-wallet)"
               stroke-width="2"
               vector-effect="non-scaling-stroke" /></svg
           >{:else}<p>No seven-day price history was returned.</p>{/if}
@@ -583,12 +583,12 @@
     color: #c7d1e8;
   }
   .coin-grid button.active {
-    border-color: #9c8ff075;
-    background: #6353eb12;
+    border-color: color-mix(in srgb, var(--feature-wallet) 55%, transparent);
+    background: color-mix(in srgb, var(--feature-wallet) 8%, transparent);
   }
   .coin-grid button > span {
     font-size: 12px;
-    color: #bbb2ff;
+    color: var(--feature-wallet);
     display: block;
   }
   .coin-grid small {

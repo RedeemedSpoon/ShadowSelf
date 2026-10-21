@@ -9,7 +9,117 @@
   --line: #a5b4fc20;
   --muted: #9caac6;
   --accent: #9b91ff;
+  --feature-identity: #818cf8;
+  --feature-vault: #facc15;
+  --feature-email: #ff5263;
+  --feature-phone: #38bdf8;
+  --feature-wallet: #20dc91;
+  --feature-card: #f472d0;
+  --feature-proxy: #b1ec28;
+  --feature-cloud: #ff963e;
   --public-header-height: 76px;
+}
+
+[data-feature='identity'] {
+  --feature-accent: var(--feature-identity);
+}
+
+[data-feature='vault'] {
+  --feature-accent: var(--feature-vault);
+}
+
+[data-feature='email'] {
+  --feature-accent: var(--feature-email);
+}
+
+[data-feature='phone'] {
+  --feature-accent: var(--feature-phone);
+}
+
+[data-feature='wallet'] {
+  --feature-accent: var(--feature-wallet);
+}
+
+[data-feature='card'] {
+  --feature-accent: var(--feature-card);
+}
+
+[data-feature='proxy'] {
+  --feature-accent: var(--feature-proxy);
+}
+
+[data-feature='cloud'] {
+  --feature-accent: var(--feature-cloud);
+}
+
+svg[data-icon='user'] {
+  color: var(--feature-identity);
+}
+
+svg[data-icon='identities'] {
+  color: var(--feature-identity);
+}
+
+svg[data-icon='lock'] {
+  color: var(--feature-vault);
+}
+
+svg[data-icon='key'] {
+  color: var(--feature-vault);
+}
+
+svg[data-icon='mail'] {
+  color: var(--feature-email);
+}
+
+svg[data-icon='phone'] {
+  color: var(--feature-phone);
+}
+
+svg[data-icon='wallet'] {
+  color: var(--feature-wallet);
+}
+
+svg[data-icon='card'] {
+  color: var(--feature-card);
+}
+
+svg[data-icon='proxy'] {
+  color: var(--feature-proxy);
+}
+
+svg[data-icon='cloud'] {
+  color: var(--feature-cloud);
+}
+
+svg[data-icon='folder'] {
+  color: var(--feature-cloud);
+}
+
+.tabs button[data-feature] {
+  color: color-mix(in srgb, var(--feature-accent) 75%, #cbd5e1);
+}
+
+[data-feature] .tabs button.active,
+.tabs button[data-feature].active {
+  color: var(--feature-accent);
+  border-bottom-color: var(--feature-accent);
+  background: color-mix(in srgb, var(--feature-accent) 9%, transparent);
+}
+
+.control-button.primary svg[data-icon] {
+  color: inherit;
+}
+
+[data-feature] > .section-heading h2,
+[data-feature] .empty-state > svg {
+  color: var(--feature-accent);
+}
+
+[data-feature] .control-button.primary {
+  background: color-mix(in srgb, var(--feature-accent) 70%, #0e1629);
+  border-color: color-mix(in srgb, var(--feature-accent) 65%, transparent);
+  color: #080f1e;
 }
 
 html {
@@ -21,6 +131,61 @@ html {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+}
+
+:where(
+  button,
+  summary,
+  select,
+  option,
+  nav,
+  [role='button'],
+  [role='tablist'],
+  [role='tab'],
+  [role='menu'],
+  [role='menuitem'],
+  [role='listbox'],
+  [role='option'],
+  [role='switch'],
+  [role='checkbox'],
+  [role='radio'],
+  .tabs,
+  .badge,
+  .method,
+  .status-code,
+  .browser-stores,
+  .primary-action,
+  .secondary-action,
+  .public-action,
+  .extension-action,
+  .header-action,
+  .control-button,
+  .console-brand,
+  .brand,
+  .social-links,
+  .loading-placeholder,
+  .service-visual,
+  .privacy-illustration,
+  .assembly,
+  .access-diagram,
+  .extension-art,
+  svg,
+  img
+) {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+:where(
+  input:not([type='button'], [type='submit'], [type='reset']),
+  textarea,
+  [contenteditable]:not([contenteditable='false']),
+  pre,
+  pre code,
+  .copy-value code
+) {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .public-main {

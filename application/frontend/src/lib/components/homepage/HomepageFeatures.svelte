@@ -1,5 +1,6 @@
 <script lang="ts">
   import {HOMEPAGE_SERVICES} from '$constant';
+  import Icon from '$component/ui/Icon.svelte';
   import ServiceVisual from './ServiceVisual.svelte';
 </script>
 
@@ -10,7 +11,7 @@
       style:--service-color={service.color}>
       <div class="tool-inner" data-reveal>
         <div class="profile-tool-heading">
-          <span>{service.name}</span>
+          <span><Icon name={service.icon} size={16} />{service.name}</span>
           <h3>{service.title}</h3>
           <p>{service.description}</p>
         </div>
@@ -39,6 +40,9 @@
     margin: auto;
   }
   .profile-tool-heading > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-size: 13px;
     color: var(--service-color);
   }

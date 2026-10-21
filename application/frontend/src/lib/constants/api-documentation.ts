@@ -3,8 +3,10 @@ import type {ApiDocumentationGroup} from '$type';
 
 export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
   {
-    id: 'authentication-settings',
-    title: 'Authentication and settings',
+    id: 'authentication-endpoints',
+    title: 'Authentication',
+    icon: 'lock',
+    feature: 'identity',
     endpoints: [
       {
         method: 'GET',
@@ -127,6 +129,20 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
           token: 'ss_session_<session token>',
         },
       },
+      {
+        method: 'GET',
+        path: '/api/auth/test',
+        detail: '{authenticated:true}',
+        response: {authenticated: true},
+      },
+    ],
+  },
+  {
+    id: 'account-settings',
+    title: 'Account settings',
+    icon: 'settings',
+    feature: 'identity',
+    endpoints: [
       {
         method: 'GET',
         path: '/api/settings',
@@ -276,6 +292,8 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
   {
     id: 'identities-creation',
     title: 'Identities and creation',
+    icon: 'user',
+    feature: 'identity',
     endpoints: [
       {
         method: 'GET',
@@ -435,8 +453,10 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
     ],
   },
   {
-    id: 'vault-messaging-wallets',
-    title: 'Vault, messaging and wallets',
+    id: 'vault',
+    title: 'Account vault',
+    icon: 'key',
+    feature: 'vault',
     endpoints: [
       {
         method: 'GET',
@@ -536,6 +556,14 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
           vaultRevision: 5,
         },
       },
+    ],
+  },
+  {
+    id: 'email',
+    title: 'Email',
+    icon: 'mail',
+    feature: 'email',
+    endpoints: [
       {
         method: 'GET',
         path: '/api/identities/:id/mail/messages',
@@ -622,6 +650,14 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         request: {mailbox: 'INBOX', uid: 42},
         response: {mailbox: 'INBOX', uid: 42},
       },
+    ],
+  },
+  {
+    id: 'phone',
+    title: 'Phone',
+    icon: 'phone',
+    feature: 'phone',
+    endpoints: [
       {
         method: 'GET',
         path: '/api/identities/:id/phone/conversations',
@@ -668,6 +704,14 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
           complete: false,
         },
       },
+    ],
+  },
+  {
+    id: 'wallets',
+    title: 'Cryptocurrency wallets',
+    icon: 'wallet',
+    feature: 'wallet',
+    endpoints: [
       {
         method: 'GET',
         path: '/api/identities/:id/wallet',
@@ -795,8 +839,10 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
     ],
   },
   {
-    id: 'billing-extension-operations',
-    title: 'Billing, extension and operations',
+    id: 'billing',
+    title: 'Billing',
+    icon: 'card',
+    feature: 'card',
     endpoints: [
       {
         method: 'POST',
@@ -867,6 +913,14 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         detail: 'Invoice state updates',
         response: {status: 'pending', identityID: null},
       },
+    ],
+  },
+  {
+    id: 'extension',
+    title: 'Browser extension',
+    icon: 'code',
+    feature: 'identity',
+    endpoints: [
       {
         method: 'GET',
         path: '/api/extension',
@@ -877,12 +931,14 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
           network: {status: 'unavailable', reason: 'A network provider has not been configured'},
         },
       },
-      {
-        method: 'GET',
-        path: '/api/auth/test',
-        detail: '{authenticated:true}',
-        response: {authenticated: true},
-      },
+    ],
+  },
+  {
+    id: 'contact',
+    title: 'Contact',
+    icon: 'send',
+    feature: 'identity',
+    endpoints: [
       {
         method: 'POST',
         path: '/api/contact',

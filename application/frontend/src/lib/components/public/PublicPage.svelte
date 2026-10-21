@@ -7,11 +7,22 @@
     description = '',
     children,
     wide = false,
-  }: {eyebrow?: string; title: string; description?: string; children: Snippet; wide?: boolean} = $props();
+    centered = false,
+    sidebar,
+  }: {
+    eyebrow?: string;
+    title: string;
+    description?: string;
+    children: Snippet;
+    wide?: boolean;
+    centered?: boolean;
+    sidebar?: Snippet;
+  } = $props();
 </script>
 
-<div class="public-page" class:wide>
-  <div class="page-introduction">
+<div class="public-page" class:wide class:with-sidebar={Boolean(sidebar)}>
+  {#if sidebar}<aside class="page-sidebar">{@render sidebar()}</aside>{/if}
+  <div class="page-introduction" class:centered>
     {#if eyebrow}<span class="page-eyebrow">{eyebrow}</span>{/if}
     <h1>{title}</h1>
     {#if description}<p>{description}</p>{/if}
@@ -29,9 +40,37 @@
   .public-page.wide {
     width: min(1160px, calc(100% - 80px));
   }
+  .public-page.with-sidebar {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    column-gap: 65px;
+  }
+  .with-sidebar .page-introduction,
+  .with-sidebar .page-content {
+    grid-column: 2;
+    min-width: 0;
+  }
+  .page-sidebar {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    position: sticky;
+    top: calc(var(--public-header-height) + 24px);
+    align-self: start;
+    max-height: calc(100dvh - var(--public-header-height) - 48px);
+    overflow-y: auto;
+  }
   .page-introduction {
     padding-bottom: 12px;
     margin-bottom: 24px;
+  }
+  .page-introduction.centered {
+    text-align: center;
+    margin-bottom: 44px;
+  }
+  :global(.public-page h1),
+  :global(.public-page label) {
+    user-select: text;
+    -webkit-user-select: text;
   }
   .page-eyebrow {
     color: #ad9ef4;
@@ -125,8 +164,8 @@
   }
   :global(.public-page .policy-date) {
     display: block;
-    padding-top: 28px;
-    margin-top: 40px;
+    padding-top: 0;
+    margin-top: 20px;
     font-size: 12px;
     color: #8f9dbb;
   }
@@ -158,19 +197,41 @@
     transform: translateY(0);
   }
   :global(.public-page .policy-summary) {
+    --policy-accent: #818cf8;
     padding: 22px 26px;
-    background: #8773ff0c;
-    border-radius: 10px;
+    background: #6366f112;
+    border-left: 5px solid var(--policy-accent);
+    border-radius: 0 8px 8px 0;
     margin-bottom: 36px;
   }
   :global(.public-page .policy-summary h2) {
     margin: 0 0 12px;
-    color: #b3a5ff;
+    color: var(--policy-accent);
     font-size: 15px;
   }
   :global(.public-page .policy-summary p) {
     margin: 0;
     font-size: 14px;
+  }
+  @media (max-width: 900px) {
+    .public-page.with-sidebar {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .with-sidebar .page-introduction {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .page-sidebar {
+      grid-column: 1;
+      grid-row: 2;
+      position: static;
+      max-height: none;
+      margin-bottom: 28px;
+    }
+    .with-sidebar .page-content {
+      grid-column: 1;
+      grid-row: 3;
+    }
   }
   @media (max-width: 700px) {
     .public-page,

@@ -1,5 +1,21 @@
 <script lang="ts">
+  import {fly} from 'svelte/transition';
+  import {onMount} from 'svelte';
   import {PRICING_TIERS} from '$constant';
+
+  let reducedMotion = $state(true);
+
+  onMount(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => {
+      reducedMotion = preference.matches;
+    };
+
+    update();
+    preference.addEventListener('change', update);
+
+    return () => preference.removeEventListener('change', update);
+  });
 
   let billing = $state<keyof typeof PRICING_TIERS>('monthly');
   let plan = $derived(PRICING_TIERS[billing]);
@@ -20,8 +36,12 @@
             >{value.title.split(' ')[0] === 'Annual' ? 'Yearly' : value.title.split(' ')[0]}</button
           >{/each}
       </div>
-      <div class="price" aria-live="polite"><span>${plan.price}</span><small>{plan.description}</small></div>
-      <p class="plan-caption">{plan.title}</p>
+      <div class="price-value" aria-live="polite" aria-atomic="true">
+        {#key billing}<div in:fly={{x: reducedMotion ? 0 : -20, duration: reducedMotion ? 0 : 280}}>
+            <div class="price"><span>${plan.price}</span><small>{plan.description}</small></div>
+            <p class="plan-caption">{plan.title}</p>
+          </div>{/key}
+      </div>
       <ul>
         <li>Identity profiles and a separate account vault</li>
         <li>A dedicated email inbox and SMS number</li>
@@ -83,6 +103,10 @@
     color: #f3f0ff;
     background: #5145bb;
   }
+  .price-value {
+    min-height: 130px;
+    overflow: hidden;
+  }
   .price {
     display: flex;
     align-items: baseline;
@@ -103,7 +127,7 @@
   }
   .plan-caption {
     font-size: 13px;
-    color: #b3aaf1;
+    color: #a5b4fc;
   }
   ul {
     margin: 28px 0;
@@ -121,7 +145,7 @@
     content: '✓';
     position: absolute;
     left: 0;
-    color: #a39afa;
+    color: #818cf8;
   }
   .price-panel .primary-action {
     display: flex;

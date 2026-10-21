@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Select from '$component/ui/Select.svelte';
   import PublicPage from '$component/public/PublicPage.svelte';
   import {CONTACT_CATEGORIES} from '$constant';
   import {enhance} from '$app/forms';
@@ -6,6 +7,7 @@
 
   let {form}: {form: ActionData} = $props();
   let pending = $state(false);
+  let category = $derived(form?.values?.category || 'question');
 </script>
 
 <svelte:head
@@ -45,13 +47,8 @@
           maxlength="120" />
       </div>
       <div class="field">
-        <label for="category">Category</label><select
-          id="category"
-          name="category"
-          required
-          value={form?.values?.category || 'question'}
-          >{#each CONTACT_CATEGORIES as item (item.value)}<option value={item.value}>{item.label}</option
-            >{/each}</select>
+        <label for="category">Category</label>
+        <Select id="category" name="category" label="Category" options={CONTACT_CATEGORIES} bind:value={category} />
       </div>
     </div>
     <div class="field">
@@ -101,7 +98,6 @@
     margin-left: 4px;
   }
   input,
-  select,
   textarea {
     width: 100%;
     padding: 13px 15px;
@@ -114,12 +110,10 @@
     outline: none;
     box-shadow: none;
   }
-  input,
-  select {
+  input {
     height: 46px;
   }
   input:focus,
-  select:focus,
   textarea:focus {
     border-color: #a394ed;
     box-shadow: 0 0 0 3px #a394ed15;

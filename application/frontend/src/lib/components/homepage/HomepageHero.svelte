@@ -85,7 +85,7 @@
     animation: hero-enter 1s both;
   }
   .hero-content h1 span {
-    background: linear-gradient(100deg, #56b9fc, #8773ff 47%, #d073ee);
+    background: linear-gradient(100deg, #60a5fa, #818cf8 47%, #4f46e5);
     background-size: 200% 100%;
     animation: spectrum-flow 16s ease-in-out infinite alternate;
     background-clip: text;

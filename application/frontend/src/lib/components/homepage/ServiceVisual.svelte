@@ -3,24 +3,30 @@
   import {HOMEPAGE_EXAMPLE_IDENTITY} from '$constant';
   import type {HomepageServiceId} from '$type';
   import ServiceIcon from './ServiceIcon.svelte';
-  import AssetIcon from './AssetIcon.svelte';
+  import BlockchainVisual from './BlockchainVisual.svelte';
+  import DriveVisual from './DriveVisual.svelte';
   import Icon from '$component/ui/Icon.svelte';
   import map from '$image/patterns/world-map.svg';
 
   let {service}: {service: HomepageServiceId} = $props();
   const example = HOMEPAGE_EXAMPLE_IDENTITY;
+  let codeCycle = $state(0);
+  const demoCode = $derived(String((482901 + codeCycle * 193207) % 1000000).padStart(6, '0'));
 </script>
 
-<div class="service-visual" aria-label="Illustrative example">
+<div class="service-visual" data-service={service} aria-label="Illustrative example">
   {#if service === 'identity'}
     <div class="identity-art">
       <div class="identity-echo" aria-hidden="true"></div>
       <div class="identity-pass">
         <div class="window-bar">
-          <span class="emblem"><ServiceIcon service="identity" /></span><span>Example identity</span>
+          <span class="emblem"><ServiceIcon /></span><span>Example identity</span>
         </div>
         <div class="person">
-          <img src={portrait} alt={`Example profile for ${example.name}`} loading="lazy" />
+          <div class="portrait-scan">
+            <img src={portrait} alt={`Example profile for ${example.name}`} loading="lazy" /><span aria-hidden="true"
+            ></span>
+          </div>
           <div>
             <h4>{example.name}</h4>
             <code>@{example.handle}</code>
@@ -43,7 +49,6 @@
     </div>
   {:else if service === 'vault'}
     <div class="vault-art">
-      <div class="vault-ring" aria-hidden="true"><Icon name="key" size={48} /></div>
       <div class="vault-record credential-sheet">
         <div class="vault-account">
           <span class="vault-mark"><Icon name="lock" /></span>
@@ -59,9 +64,15 @@
           </div>
           <div>
             <dt>Two-factor code</dt>
-            <dd class="totp">482 901 <span aria-hidden="true"></span></dd>
+            <dd class="totp"><span class="totp-digits">{demoCode.slice(0, 3)} {demoCode.slice(3)}</span></dd>
           </div>
         </dl>
+        <div class="totp-countdown" aria-label="Example code refreshes every 10 seconds">
+          <span
+            onanimationiteration={() => {
+              codeCycle += 1;
+            }}></span>
+        </div>
         <div class="secret-note"><Icon name="shield" size={16} /> Encrypted in your browser</div>
       </div>
       <div class="recovery-slip">
@@ -71,50 +82,44 @@
     </div>
   {:else if service === 'email'}
     <div class="mail-art">
-      <span class="floating-emblem"><ServiceIcon service="email" /></span>
+      <div class="mail-notification">
+        <span><Icon name="mail" size={17} /></span>
+        <div><strong>New email received</strong><small>Studio workspace · just now</small></div>
+        <i></i>
+      </div>
       <div class="record">
         <div class="window-bar"><span>Theo's inbox</span><span>Example message</span></div>
         <div class="message">
           <code>To: {example.email}</code>
-          <h4>Confirm your email address</h4>
-          <p>Follow the link in this message to finish creating your account.</p>
-          <span class="fake-link">Verification link</span>
+          <h4>Your project invitation is here</h4>
+          <p>Maya invited you to the studio workspace. Your project files are ready.</p>
+          <span class="fake-link">View invitation</span>
         </div>
         <div class="record-footer">Delivered to your identity's inbox.</div>
       </div>
     </div>
   {:else if service === 'phone'}
     <div class="phone-art">
-      <span class="floating-emblem"><ServiceIcon service="phone" /></span>
-      <div class="phone-frame">
-        <div class="phone-camera"></div>
-        <div class="phone-top"><span>Messages</span><span>Example</span></div>
-        <code class="phone-number">{example.phone}</code>
-        <div class="sms-message">
-          Your verification code is <strong>482 901</strong><small>Photography forum</small>
+      <div class="phone-device">
+        <div class="phone-frame">
+          <div class="phone-camera"></div>
+          <div class="phone-top">
+            <span class="contact-avatar">M</span>
+            <div><strong>Maya</strong><span>SMS conversation</span></div>
+          </div>
+          <code class="phone-number">{example.phone}</code>
+          <div class="sms-time">Today, 16:42</div>
+          <div class="sms-message">Are we still meeting at the studio tomorrow?</div>
+          <div class="sms-response">Yes, see you at 10!</div>
+          <span class="sms-delivered">Delivered</span>
+          <div class="sms-typing" aria-label="A reply is being typed"><span></span><span></span><span></span></div>
+          <div class="phone-home"></div>
         </div>
-        <div class="sms-response">Received by this identity.</div>
-        <div class="phone-home"></div>
       </div>
-      <span class="phone-side">A number for the profile.<br />Messages in its workspace.</span>
+      <span class="phone-side">Conversations and codes.<br />Kept with this identity.</span>
     </div>
   {:else if service === 'wallet'}
-    <div class="crypto-art">
-      <div class="crypto-orbit" aria-hidden="true"></div>
-      <div class="crypto-balance">
-        <span>Bitcoin wallet</span><strong>0.0248 <small>BTC</small></strong><code>bc1q…7k4m</code>
-      </div>
-      <div class="crypto-coins">
-        {#each ['BTC', 'LTC', 'ETH', 'XMR', 'USDT'] as asset, index (asset)}
-          <div class="crypto-coin" style:--coin-index={index} aria-label={asset}>
-            <AssetIcon asset={asset as 'BTC' | 'LTC' | 'ETH' | 'XMR' | 'USDT'} />
-          </div>
-        {/each}
-      </div>
-      <div class="crypto-receipt">
-        <Icon name="download" size={18} /><span>Received <small>12 confirmations</small></span><code>+0.0048 BTC</code>
-      </div>
-    </div>
+    <BlockchainVisual />
   {:else if service === 'card'}
     <div class="payment-art">
       <div class="payment-card">
@@ -140,21 +145,7 @@
       </div>
     </div>
   {:else if service === 'cloud'}
-    <div class="drive-art">
-      <div class="drive-folder"><span>Identity files</span><Icon name="lock" size={16} /></div>
-      <div class="drive-files">
-        <div class="drive-file image-file">
-          <img src={portrait} alt="Theo Mercer" loading="lazy" /><span>profile.jpg</span>
-        </div>
-        <div class="drive-file pdf-file">
-          <span class="file-format">PDF</span><i></i><i></i><i></i><span>notes.pdf</span>
-        </div>
-        <div class="drive-file video-file"><Icon name="play" size={30} /><span>intro.mp4</span></div>
-      </div>
-      <div class="drive-caption">
-        <Icon name="shield" size={16} /><span>Image metadata removed. Ready to share.</span>
-      </div>
-    </div>
+    <DriveVisual />
   {/if}
 </div>
 
@@ -237,7 +228,7 @@
     align-items: center;
     margin: 23px 0;
   }
-  .person > img {
+  .portrait-scan {
     width: 80px;
     height: 90px;
     object-fit: cover;
@@ -329,8 +320,8 @@
     place-items: center;
     width: 40px;
     height: 40px;
-    border: 1px solid #fbbf2440;
-    background: #fbbf2410;
+    border: 1px solid color-mix(in srgb, var(--feature-vault) 25%, transparent);
+    background: color-mix(in srgb, var(--feature-vault) 6%, transparent);
     color: var(--service-color);
     border-radius: 9px;
   }
@@ -350,18 +341,11 @@
     align-items: center;
     gap: 12px;
   }
-  .totp span {
-    width: 14px;
-    height: 14px;
-    border: 2px solid #fbbf2433;
-    border-top-color: var(--service-color);
-    border-radius: 50%;
-  }
   .secret-note {
     margin: 4px 23px 23px;
     padding: 12px;
-    border: 1px solid #fbbf2426;
-    background: #fbbf2408;
+    border: 1px solid color-mix(in srgb, var(--feature-vault) 15%, transparent);
+    background: color-mix(in srgb, var(--feature-vault) 3%, transparent);
     border-radius: 6px;
     color: #d6bc80;
     font-size: 10px;
@@ -374,18 +358,6 @@
   .mail-art .record {
     position: relative;
     z-index: 1;
-  }
-  .mail-art .floating-emblem {
-    z-index: 0;
-  }
-  .floating-emblem {
-    position: absolute;
-    width: 90px;
-    height: 90px;
-    right: 24px;
-    top: -18px;
-    transform: rotate(12deg);
-    color: var(--service-color);
   }
   .message {
     padding: 24px 25px 20px;
@@ -400,92 +372,115 @@
     display: inline-block;
     margin-top: 20px;
     padding: 10px 15px;
-    background: #87354e;
-    border: 1px solid #c1627b;
+    background: color-mix(in srgb, var(--feature-email) 35%, #111827);
+    border: 1px solid var(--feature-email);
     border-radius: 5px;
     color: #ffe9ef;
     font-size: 11px;
   }
   .phone-art {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 28px;
+    display: grid;
+    justify-items: center;
+    gap: 24px;
     width: 100%;
+    padding-top: 14px;
   }
-  .phone-art .floating-emblem {
-    right: 12px;
-    top: 10px;
-    opacity: 0.75;
+  .phone-device {
+    position: relative;
+    width: 240px;
   }
   .phone-frame {
     position: relative;
-    width: 215px;
-    height: 363px;
-    flex-shrink: 0;
-    padding: 35px 16px 20px;
-    border: 3px solid #334458;
+    width: 240px;
+    min-height: 374px;
+    padding: 38px 17px 38px;
+    border: 2px solid #39516a;
     border-radius: 30px;
     background: linear-gradient(155deg, #192a40, #0d1627);
-    box-shadow: 18px 24px 60px #0007;
-    transform: rotate(-5deg);
+    box-shadow: 12px 20px 40px #0005;
+    transform: rotate(-3deg);
   }
   .phone-camera {
     position: absolute;
-    width: 45px;
+    width: 42px;
     height: 5px;
     border-radius: 6px;
-    background: #0b1320;
-    top: 13px;
-    left: calc(50% - 22px);
+    background: #080f1b;
+    top: 14px;
+    left: calc(50% - 21px);
   }
   .phone-top {
     display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #d9eaff;
+    align-items: center;
+    gap: 10px;
+    color: #e0f2fe;
   }
-  .phone-top span:last-child {
-    color: #8aabc7;
-    font-size: 10px;
+  .contact-avatar {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #38bdf826;
+    color: #7dd3fc;
+    font-size: 13px;
+  }
+  .phone-top strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .phone-top div > span {
+    display: block;
+    margin-top: 3px;
+    color: #85a9c6;
+    font-size: 9px;
   }
   .phone-number {
     display: block;
-    margin-top: 17px;
+    margin-top: 16px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #7dd3fc18;
     color: #81b5d2;
     font-size: 10px;
     text-align: center;
   }
-  .sms-message {
-    font-size: 11px;
-    line-height: 1.8;
-    background: #213b57;
-    border-radius: 13px 13px 13px 2px;
-    padding: 17px 13px;
-    margin-top: 30px;
-    color: #cfeaff;
+  .sms-time {
+    margin: 17px 0 13px;
+    color: #7995af;
+    font-size: 9px;
+    text-align: center;
   }
-  .sms-message strong {
-    display: block;
-    font:
-      24px 'Fira Code Variable',
-      monospace;
-    color: #92dbfc;
-    margin: 7px 0;
-    letter-spacing: 1px;
+  .sms-message,
+  .sms-response {
+    max-width: 90%;
+    font-size: 11px;
+    line-height: 1.65;
+    padding: 12px 13px;
+    border-radius: 13px;
+  }
+  .sms-message {
+    background: #213b57;
+    border-bottom-left-radius: 4px;
+    color: #d5eaff;
   }
   .sms-response {
-    border-radius: 12px 12px 2px 12px;
-    background: #17536a;
-    color: #c3f0fa;
-    font-size: 10px;
-    padding: 11px;
-    margin: 17px 0 0 22px;
+    margin: 13px 0 0 auto;
+    width: fit-content;
+    border-bottom-right-radius: 4px;
+    background: #17658a;
+    color: #e4f5ff;
+  }
+  .sms-delivered {
+    display: block;
+    margin-top: 5px;
+    font-size: 8px;
+    text-align: right;
+    color: #7995af;
   }
   .phone-home {
     position: absolute;
-    width: 65px;
+    width: 64px;
     height: 3px;
     border-radius: 3px;
     background: #6e8198;
@@ -493,10 +488,10 @@
     left: calc(50% - 32px);
   }
   .phone-side {
-    font-size: 11px;
+    font-size: 10px;
     color: #90b9d2;
     line-height: 1.8;
-    max-width: 140px;
+    text-align: center;
   }
   @media (max-width: 600px) {
     .identity-pass {
@@ -508,32 +503,15 @@
     .person {
       gap: 12px;
     }
-    .person > img {
+    .portrait-scan {
       width: 65px;
       height: 80px;
     }
     .person h4 {
       font-size: 20px;
     }
-    .phone-art {
-      gap: 14px;
-    }
-    .phone-side {
-      max-width: 100px;
-      font-size: 10px;
-    }
-    .phone-frame {
-      width: 195px;
-    }
-    .phone-art .floating-emblem {
-      width: 70px;
-      height: 70px;
-    }
   }
   @media (max-width: 380px) {
-    .phone-side {
-      display: none;
-    }
     .person h4 {
       font-size: 17px;
     }
@@ -542,23 +520,14 @@
     }
   }
   .vault-art,
-  .crypto-art,
   .payment-art,
-  .proxy-art,
-  .drive-art {
+  .proxy-art {
     width: 100%;
     max-width: 470px;
     position: relative;
   }
   .vault-art {
     padding: 40px 14px 30px;
-  }
-  .vault-ring {
-    position: absolute;
-    top: 0;
-    right: 28px;
-    color: #fbbf24;
-    transform: rotate(25deg);
   }
   .credential-sheet {
     position: relative;
@@ -578,122 +547,26 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    border: 1px solid #fbbf2440;
+    border: 1px solid color-mix(in srgb, var(--feature-vault) 25%, transparent);
     border-radius: 8px;
     background: #29251b;
-    color: #fbbf24;
+    color: var(--feature-vault);
     transform: rotate(3deg);
     font-size: 11px;
   }
   .recovery-slip code {
     margin-left: auto;
   }
-  .crypto-art {
-    height: 350px;
-    display: grid;
-    place-items: center;
-  }
-  .crypto-orbit {
-    position: absolute;
-    width: 290px;
-    height: 290px;
-    border: 1px dashed #34d39940;
-    border-radius: 50%;
-    transform: rotateX(40deg);
-  }
-  .crypto-balance {
-    text-align: center;
-    padding-bottom: 10px;
-  }
-  .crypto-balance > span {
-    display: block;
-    color: #8dc9b1;
-    font-size: 12px;
-    margin-bottom: 15px;
-  }
-  .crypto-balance strong {
-    display: block;
-    color: #d1fae5;
-    font:
-      30px 'Fira Code Variable',
-      monospace;
-    margin-bottom: 15px;
-  }
-  .crypto-balance small {
-    color: #34d399;
-    font-size: 14px;
-  }
-  .crypto-coins {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-  .crypto-coin {
-    position: absolute;
-    width: 45px;
-    height: 45px;
-    padding: 8px;
-    border-radius: 50%;
-    background: #142822;
-    border: 1px solid #34d39960;
-    box-shadow:
-      0 5px 0 #0b1914,
-      0 12px 20px #0004;
-    color: #34d399;
-  }
-  .crypto-coin:nth-child(1) {
-    left: 10%;
-    top: 12%;
-    color: #f7931a;
-    transform: rotate(-15deg);
-  }
-  .crypto-coin:nth-child(2) {
-    right: 14%;
-    top: 6%;
-    color: #bfc6d4;
-  }
-  .crypto-coin:nth-child(3) {
-    right: 2%;
-    top: 45%;
-    color: #a5b4fc;
-    transform: rotate(12deg);
-  }
-  .crypto-coin:nth-child(4) {
-    left: 3%;
-    top: 48%;
-    color: #ff6600;
-  }
-  .crypto-coin:nth-child(5) {
-    left: 46%;
-    bottom: 16%;
-    color: #26a17b;
-  }
-  .crypto-receipt {
-    position: absolute;
-    bottom: 0;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    background: #101e21;
-    border-radius: 8px;
-    padding: 12px 16px;
-    border: 1px solid #34d39930;
-    color: #34d399;
-    font-size: 11px;
-  }
-  .crypto-receipt small {
-    display: block;
-    margin-top: 4px;
-  }
   .payment-art {
     padding: 35px 10px;
   }
   .payment-card {
     padding: 26px;
-    border: 1px solid #e879f960;
+    border: 1px solid color-mix(in srgb, var(--feature-card) 38%, transparent);
     border-radius: 16px;
     background:
-      radial-gradient(ellipse at 80% 10%, #e879f925, transparent 65%), linear-gradient(140deg, #392544, #161525);
+      radial-gradient(ellipse at 80% 10%, color-mix(in srgb, var(--feature-card) 15%, transparent), transparent 65%),
+      linear-gradient(140deg, #392544, #161525);
     box-shadow: 0 24px 45px #0005;
     transform: rotate(-7deg);
   }
@@ -724,7 +597,11 @@
     width: 36px;
     height: 22px;
     background:
-      radial-gradient(circle at 11px 11px, #e879f980 0 10px, transparent 11px),
+      radial-gradient(
+        circle at 11px 11px,
+        color-mix(in srgb, var(--feature-card) 50%, transparent) 0 10px,
+        transparent 11px
+      ),
       radial-gradient(circle at 25px 11px, #a78bfa80 0 10px, transparent 11px);
   }
   .payment-receipt {
@@ -735,10 +612,10 @@
     margin: -5px 0 0 45px;
     padding: 16px;
     background: #181b2c;
-    border: 1px solid #e879f930;
+    border: 1px solid color-mix(in srgb, var(--feature-card) 19%, transparent);
     border-radius: 8px;
     transform: rotate(3deg);
-    color: #e879f9;
+    color: var(--feature-card);
     font-size: 11px;
   }
   .payment-receipt strong {
@@ -764,7 +641,7 @@
     inset: 0;
     width: 100%;
     height: 300px;
-    color: #a3e635;
+    color: var(--feature-proxy);
   }
   .proxy-route path {
     stroke: currentColor;
@@ -778,8 +655,8 @@
     animation: route-travel 6s linear infinite;
   }
   .proxy-route circle {
-    fill: #a3e635;
-    stroke: #a3e63540;
+    fill: var(--feature-proxy);
+    stroke: color-mix(in srgb, var(--feature-proxy) 25%, transparent);
     stroke-width: 12;
   }
   .route-origin,
@@ -787,7 +664,7 @@
     position: absolute;
     top: 63%;
     left: 10%;
-    color: #a3e635;
+    color: var(--feature-proxy);
     font-size: 10px;
   }
   .route-destination {
@@ -804,10 +681,10 @@
     align-items: center;
     gap: 14px;
     padding: 18px;
-    border: 1px solid #a3e63535;
+    border: 1px solid color-mix(in srgb, var(--feature-proxy) 21%, transparent);
     background: #17211c;
     border-radius: 8px;
-    color: #a3e635;
+    color: var(--feature-proxy);
     font-size: 11px;
   }
   .proxy-ticket code {
@@ -817,110 +694,195 @@
   .proxy-ticket i {
     width: 6px;
     height: 6px;
-    background: #a3e635;
+    background: var(--feature-proxy);
     border-radius: 50%;
     margin-left: auto;
-    box-shadow: 0 0 12px #a3e63570;
+    box-shadow: 0 0 12px color-mix(in srgb, var(--feature-proxy) 44%, transparent);
   }
-  .drive-art {
-    padding: 55px 12px 25px;
-  }
-  .drive-folder {
-    height: 210px;
+  .identity-pass,
+  .payment-card,
+  .message {
     position: relative;
-    border-radius: 0 12px 12px 12px;
-    background: linear-gradient(145deg, #67452c, #382a24);
-    border: 1px solid #fb923c60;
-    padding: 25px;
-    display: flex;
-    justify-content: space-between;
-    color: #fed7aa;
-    font-size: 12px;
+    overflow: hidden;
   }
-  .drive-folder::before {
+  .payment-card::after {
     content: '';
     position: absolute;
-    top: -23px;
-    left: -1px;
-    width: 45%;
-    height: 24px;
-    border: 1px solid #fb923c60;
-    border-bottom: 0;
-    border-radius: 9px 15px 0 0;
-    background: #67452c;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      110deg,
+      transparent 35%,
+      color-mix(in srgb, var(--feature-card) 9%, transparent) 50%,
+      transparent 65%
+    );
+    animation: card-reflection 8s ease-in-out infinite;
   }
-  .drive-files {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
+  .portrait-scan {
     position: relative;
-    margin-top: -145px;
-    padding-inline: 10px;
-  }
-  .drive-file {
-    width: 31%;
-    height: 145px;
-    border-radius: 7px;
-    border: 1px solid #d5b19650;
-    background: #182031;
-    box-shadow: 0 15px 25px #0005;
     overflow: hidden;
-    position: relative;
+    border: 1px solid #818cf860;
+    flex-shrink: 0;
   }
-  .drive-file > span:last-child {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    text-align: center;
-    padding: 10px 4px;
-    background: #111827;
-    color: #d6ddec;
-    font-size: 9px;
-  }
-  .image-file {
-    transform: rotate(-9deg);
-  }
-  .image-file img {
+  .portrait-scan img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: 45% 25%;
   }
-  .pdf-file {
-    background: #e7e4dc;
-    transform: translateY(-15px);
-    padding: 17px;
+  .portrait-scan > span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 28%;
+    border-bottom: 1px solid #c7d2fe;
+    background: linear-gradient(transparent, #818cf83b);
+    box-shadow: 0 3px 9px #818cf860;
+    animation: identity-scan 5s ease-in-out infinite;
   }
-  .file-format {
-    color: #b43f47;
-    font-size: 18px;
-    font-weight: 650;
+  .totp-digits {
+    color: var(--feature-vault);
+    font-size: 20px;
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
   }
-  .pdf-file i {
+  .totp-countdown {
+    height: 4px;
+    margin: 3px 23px 17px;
+    border-radius: 2px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--feature-vault) 14%, transparent);
+  }
+  .totp-countdown > span {
     display: block;
-    height: 3px;
-    margin-top: 10px;
-    background: #a5a5ab;
+    height: 100%;
+    background: var(--feature-vault);
+    transform-origin: left;
+    animation: totp-timer 10s linear infinite;
   }
-  .pdf-file i:last-of-type {
-    width: 65%;
-  }
-  .video-file {
-    display: grid;
-    place-items: center;
-    background: linear-gradient(140deg, #38405f, #1b2236);
-    color: #c4b5fd;
-    transform: rotate(9deg);
-  }
-  .drive-caption {
+  .mail-notification {
+    position: absolute;
+    top: 20px;
+    left: 10px;
+    right: 12px;
+    z-index: 3;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 35px;
-    color: #fdba74;
-    font-size: 10px;
+    gap: 11px;
+    padding: 13px;
+    border: 1px solid color-mix(in srgb, var(--feature-email) 55%, transparent);
+    border-radius: 8px;
+    background: #231823;
+    box-shadow: 0 10px 25px #0005;
+    animation: email-arrival 7s ease-in-out infinite;
+  }
+  .mail-notification strong {
+    display: block;
+    color: #ffe0e4;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .mail-notification small {
+    display: block;
+    margin-top: 5px;
+    font-size: 9px;
+    color: #bd929f;
+  }
+  .mail-notification > i {
+    margin-left: auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--feature-email);
+  }
+  .sms-typing {
+    display: flex;
+    gap: 4px;
+    width: fit-content;
+    margin-top: 12px;
+    border-radius: 12px 12px 12px 4px;
+    padding: 12px;
+    background: #213b57;
+  }
+  .sms-typing > span {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--feature-phone);
+    animation: typing-dot 1.5s ease-in-out infinite;
+  }
+  .sms-typing > span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .sms-typing > span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  @keyframes identity-scan {
+    0%,
+    12% {
+      transform: translateY(-110%);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    70% {
+      transform: translateY(360%);
+      opacity: 1;
+    }
+    80%,
+    100% {
+      transform: translateY(360%);
+      opacity: 0;
+    }
+  }
+  @keyframes totp-timer {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes email-arrival {
+    0%,
+    8% {
+      transform: translateY(-14px);
+      opacity: 0;
+    }
+    18%,
+    72% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    90%,
+    100% {
+      transform: translateY(-8px);
+      opacity: 0;
+    }
+  }
+  @keyframes typing-dot {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.4;
+    }
+    30% {
+      transform: translateY(-3px);
+      opacity: 1;
+    }
+  }
+  @keyframes card-reflection {
+    0%,
+    45% {
+      transform: translateX(-100%);
+    }
+    80%,
+    100% {
+      transform: translateX(100%);
+    }
   }
   @keyframes route-travel {
     to {
@@ -928,9 +890,6 @@
     }
   }
   @media (max-width: 380px) {
-    .crypto-balance strong {
-      font-size: 25px;
-    }
     .recovery-slip {
       margin-left: 0;
     }

@@ -38,11 +38,11 @@
   let liveStatus = $state('Connecting');
   let keyEpoch = 0;
   const tabs = [
-    {id: 'info', label: 'Information', icon: 'user'},
-    {id: 'account', label: 'Account vault', icon: 'lock'},
-    {id: 'email', label: 'Email', icon: 'mail'},
-    {id: 'phone', label: 'Phone', icon: 'phone'},
-    {id: 'crypto', label: 'Crypto wallet', icon: 'wallet'},
+    {id: 'info', feature: 'identity', label: 'Information', icon: 'user'},
+    {id: 'account', feature: 'vault', label: 'Account vault', icon: 'lock'},
+    {id: 'email', feature: 'email', label: 'Email', icon: 'mail'},
+    {id: 'phone', feature: 'phone', label: 'Phone', icon: 'phone'},
+    {id: 'crypto', feature: 'wallet', label: 'Crypto wallet', icon: 'wallet'},
   ];
   const availableTabs = $derived(
     account?.status === 'frozen' ? tabs.filter((tab) => ['account', 'crypto'].includes(tab.id)) : tabs,
@@ -390,13 +390,14 @@
       message="Setup was not completed before expiry. Renew this identity before continuing setup." />{:else}
     <div class="tabs" aria-label="Identity services">
       {#each availableTabs as tab (tab.id)}<button
+          data-feature={tab.feature}
           aria-pressed={section === tab.id}
           class:active={section === tab.id}
           onclick={() => select(tab.id)}><Icon name={tab.icon} size={17} />{tab.label}</button
         >{/each}
     </div>
     {#key `${account.id}:${completeAccount.walletBlob}`}
-      <div>
+      <div data-feature={tabs.find((tab) => tab.id === section)?.feature}>
         {#await panel}
           <LoadingState label={`Loading ${tabs.find((tab) => tab.id === section)?.label || 'service'}`} />
         {:then Panel}

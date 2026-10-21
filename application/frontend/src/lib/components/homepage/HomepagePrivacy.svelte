@@ -1,50 +1,70 @@
+<script lang="ts">
+  import {HOMEPAGE_CHAIN_LINK_PATH} from '$constant';
+  import Icon from '$component/ui/Icon.svelte';
+</script>
+
 <section class="privacy" id="privacy">
   <div class="chapter-width">
-    <div class="privacy-heading" data-reveal>
-      <h2>Your secrets.<br />Encrypted in your browser.</h2>
-      <div>
+    <div class="privacy-layout" data-reveal>
+      <div
+        class="privacy-illustration"
+        aria-label="Your browser holds the key to passwords, TOTP, and wallet secrets. Only encrypted values are stored.">
+        <div class="browser-frame">
+          <div class="browser-title"><span><i></i><i></i><i></i></span><small>Your browser</small></div>
+          <div class="key-chamber">
+            <div class="key-halo"><Icon name="key" size={43} /></div>
+            <strong>You hold the key.</strong><span>Master password stays here</span>
+          </div>
+          <svg class="secret-chains" viewBox="0 0 360 100" preserveAspectRatio="none" fill="none" aria-hidden="true">
+            <defs
+              ><clipPath id="homepage-chain-separator"><rect x="0" y="10" width="360" height="100" /></clipPath></defs>
+            <g clip-path="url(#homepage-chain-separator)">
+              {#each [60, 180, 300] as target (target)}
+                {@const count = target === 180 ? 3 : 4}
+                {@const origin = target === 60 ? 152 : target === 300 ? 208 : 180}
+                {#each Array.from({length: count}, (_, index) => index) as index (index)}
+                  {@const progress = (index + 0.5) / count}
+                  {@const x = origin + (target - origin) * progress}
+                  {@const y = 100 * progress}
+                  <path
+                    d={HOMEPAGE_CHAIN_LINK_PATH}
+                    transform={`translate(${x} ${y}) rotate(${(Math.atan2(100, target - origin) * 180) / Math.PI + 45}) scale(1.35) translate(-12 -12)`} />
+                {/each}
+              {/each}
+            </g>
+            <path class="chain-anchor" d="M120 10H240" />
+          </svg>
+          <div class="secret-boxes">
+            <div><Icon name="key" size={19} /><span>Passwords</span><code>••••••••</code></div>
+            <div><Icon name="shield" size={19} /><span>TOTP</span><code>••••••</code></div>
+            <div><Icon name="wallet" size={19} /><span>Wallet secrets</span><code>••••••••</code></div>
+          </div>
+          <svg class="storage-chains" viewBox="0 0 360 32" preserveAspectRatio="none" fill="none" aria-hidden="true">
+            {#each [60, 180, 300] as x (x)}
+              <path d={HOMEPAGE_CHAIN_LINK_PATH} transform={`translate(${x} 16) rotate(135) translate(-12 -12)`} />
+            {/each}
+          </svg>
+          <div class="cipher-storage">
+            <Icon name="cloud" size={24} />
+            <div><span>Stored by ShadowSelf</span><code>8f2c…a91b &nbsp; 4e7d…b023</code></div>
+            <Icon name="lock" size={17} />
+          </div>
+        </div>
+        <p class="illustration-caption">Encrypted before it leaves your device.</p>
+      </div>
+      <div class="privacy-copy">
+        <span class="privacy-eyebrow">Zero-knowledge vault. Open-source code.</span>
+        <h2>Your secrets<br />stay yours.</h2>
         <p>
-          Vault passwords, TOTP secrets, and wallet signing keys are encrypted before storage. Your identity's master
-          password stays in your browser.
+          Your browser encrypts vault passwords, TOTP secrets, and wallet recovery material before storage. Your
+          identity's master password never leaves the browser. ShadowSelf stores the encrypted values without the key to
+          read them.
         </p>
         <div class="privacy-links">
-          <a class="inline-link" href="https://github.com/RedeemedSpoon/ShadowSelf">Inspect the source</a><a
-            class="inline-link"
-            href="/privacy-policy">Read the privacy policy</a>
+          <a class="inline-link" href="https://github.com/RedeemedSpoon/ShadowSelf"
+            >Inspect the source <Icon name="external" size={13} /></a
+          ><a class="inline-link" href="/privacy-policy">Read the privacy policy <Icon name="arrow" size={13} /></a>
         </div>
-      </div>
-    </div>
-    <div class="encryption-explanation" data-reveal>
-      <div class="encryption-copy">
-        <h3>Unlock when you need it.</h3>
-        <p>
-          Enter the identity's master password to access saved passwords, generate two-factor codes, or authorize a
-          wallet transfer.
-        </p>
-      </div>
-      <div
-        class="encryption-diagram"
-        aria-label="Secrets are encrypted in your browser before storage. The master password stays in the browser.">
-        <div class="encryption-browser">
-          <span>Your browser</span>
-          <div>
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"
-              ><rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5" /><path
-                d="M8 10V6a4 4 0 0 1 8 0v4m-4 4v3"
-                stroke="currentColor"
-                stroke-width="1.5" /></svg
-            ><strong>Encrypt locally</strong>
-          </div>
-          <small>Your master password</small>
-        </div>
-        <div class="encrypted-transfer" aria-hidden="true"><span></span><i>→</i></div>
-        <div class="encryption-storage">
-          <span>Stored by ShadowSelf</span><code>Encrypted…<br />…b7d4e1</code><small>Encrypted values</small>
-        </div>
-      </div>
-      <div class="privacy-scope">
-        <strong>Encryption boundary</strong>
-        <p>Profiles, account metadata, email, SMS, and billing records are outside vault encryption.</p>
       </div>
     </div>
   </div>
@@ -53,202 +73,243 @@
 <style>
   .privacy {
     padding-block: 110px;
-    background: #0b1020;
+    background: radial-gradient(ellipse at 20% 45%, #4338ca10, transparent 55%), #0b1020;
   }
-  .privacy-heading {
+  .privacy-layout {
     display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: 85px;
-    margin-bottom: 55px;
-  }
-  .privacy-heading h2 {
-    font-size: clamp(37px, 3.8vw, 52px);
-    letter-spacing: -1.8px;
-  }
-  .privacy-heading p {
-    font-size: 14px;
-  }
-  .encryption-explanation {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px 65px;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 90px;
     align-items: center;
-    padding: 40px;
-    border: 1px solid #a5b4fc29;
-    background: linear-gradient(120deg, #181c36, #111a2c);
+  }
+  .privacy-illustration {
+    max-width: 460px;
+    width: 100%;
+    margin: auto;
+    padding: 15px;
+  }
+  .browser-frame {
+    border: 1px solid #818cf84a;
     border-radius: 10px;
+    background: linear-gradient(150deg, #1a2340, #0e1729);
+    box-shadow: 0 22px 60px #0004;
+    overflow: hidden;
   }
-  .encryption-copy h3 {
-    font-size: 25px;
-    font-weight: 500;
-    color: #e0e7ff;
-    margin: 0 0 15px;
-  }
-  .encryption-copy p {
-    font-size: 13px;
-  }
-  .encryption-diagram {
-    display: grid;
-    grid-template-columns: 1fr 45px 1fr;
-    align-items: center;
-  }
-  .encryption-browser,
-  .encryption-storage {
-    padding: 20px 14px;
-    border: 1px solid #a5b4fc36;
-    background: #101629;
-    border-radius: 7px;
-  }
-  .encryption-diagram span {
-    font-size: 10px;
-    color: #9baac8;
-    display: block;
-  }
-  .encryption-browser > div {
+  .browser-title {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 9px;
-    margin-block: 23px;
+    border-bottom: 1px solid #818cf822;
+    padding: 13px 16px;
   }
-  .encryption-browser svg {
-    width: 25px;
-    height: 25px;
-    color: var(--color-indigo-300);
-    flex-shrink: 0;
+  .browser-title > span {
+    display: flex;
+    gap: 5px;
   }
-  .encryption-browser strong {
-    font-size: 11px;
+  .browser-title i {
+    height: 5px;
+    width: 5px;
+    background: #4e5d80;
+    border-radius: 50%;
+  }
+  .browser-title small {
+    color: #94a3b8;
+    font-size: 10px;
+  }
+  .key-chamber {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 28px 15px 0;
+  }
+  .key-halo {
+    display: grid;
+    place-items: center;
+    width: 82px;
+    height: 82px;
+    margin-bottom: 6px;
+    color: #a5b4fc;
+    border: 1px solid #818cf83d;
+    outline: 1px dashed #818cf825;
+    outline-offset: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #6366f125, #6366f105);
+  }
+  .key-chamber strong {
+    font-size: 17px;
+    color: #dbe4ff;
     font-weight: 500;
-    color: #d5dcf7;
   }
-  .encryption-diagram small {
+  .key-chamber > span {
     font-size: 9px;
-    color: #9caaca;
+    color: #8698bd;
   }
-  .encryption-storage code {
-    display: block;
-    margin-block: 17px;
-    font-size: 13px;
-    line-height: 1.5;
-    letter-spacing: 2px;
-    color: var(--color-violet-300);
-  }
-  .encrypted-transfer {
-    height: 1px;
-    background: #818cf850;
-    position: relative;
-  }
-  .encrypted-transfer span {
-    width: 8px;
-    height: 3px;
-    background: #a5b4fc;
-    position: absolute;
-    top: -1px;
-    animation: encrypt-transfer 3s linear infinite;
-  }
-  .encrypted-transfer i {
-    position: absolute;
-    right: 0;
-    top: -11px;
-    font-size: 14px;
-    font-style: normal;
+  .privacy-illustration :global(svg[data-icon]) {
     color: #a5b4fc;
   }
-  .privacy-scope {
-    grid-column: 1 / -1;
+  .secret-chains,
+  .storage-chains {
+    display: block;
+    width: calc(100% - 32px);
+    margin-inline: 16px;
+    stroke: #a5b4fc;
+    stroke-width: 1.6;
+  }
+  .secret-chains {
+    height: 94px;
+    margin-top: 22px;
+    overflow: visible;
+  }
+  .chain-anchor {
+    stroke-opacity: 0.8;
+    stroke-width: 1.5;
+  }
+  .secret-chains path,
+  .storage-chains path {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .storage-chains {
+    height: 30px;
+  }
+  .secret-boxes {
     display: grid;
-    grid-template-columns: 220px 1fr;
-    gap: 30px;
-    padding: 24px 0 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    margin-inline: 16px;
   }
-  .privacy-scope strong {
-    color: #c6bfdc;
-    font-size: 12px;
-    font-weight: 500;
-    padding-top: 4px;
+  .secret-boxes > div {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 10px;
+    padding: 14px 4px;
+    border: 1px solid #818cf84a;
+    border-radius: 6px;
+    background: #111b31;
+    color: #a5b4fc;
   }
-  .privacy-scope p {
+  .secret-boxes span {
+    font-size: 10px;
+    color: #c3cfe8;
+    text-align: center;
+  }
+  .secret-boxes code {
+    font-size: 9px;
+    color: #6e80a9;
+  }
+  .cipher-storage {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    margin: 0 16px 16px;
+    border: 1px solid #64748b40;
+    border-radius: 7px;
+    background: #0d1729;
+    color: #8a9cc0;
+  }
+  .cipher-storage > div {
+    flex: 1;
+  }
+  .cipher-storage span {
+    display: block;
+    color: #a9b8d3;
+    font-size: 10px;
+  }
+  .cipher-storage code {
+    display: block;
+    color: #6e81a9;
+    font-size: 9px;
+    margin-top: 8px;
+  }
+  .privacy-illustration .illustration-caption {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 10px;
+    color: #7384a5;
+  }
+  .privacy-eyebrow {
+    display: block;
+    color: #818cf8;
     font-size: 12px;
-    color: #929fbc;
+    margin-bottom: 22px;
+  }
+  .privacy-copy h2 {
+    font-size: clamp(40px, 4vw, 58px);
+    letter-spacing: -2px;
+    margin-bottom: 27px;
+  }
+  .privacy-copy > p {
+    font-size: 14px;
   }
   .privacy-links {
     display: flex;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: 30px;
-    margin-top: 30px;
+    margin-top: 32px;
   }
-  @keyframes encrypt-transfer {
-    from {
-      left: 0;
-      opacity: 0;
-    }
-    25%,
-    75% {
-      opacity: 1;
-    }
-    to {
-      left: calc(100% - 8px);
-      opacity: 0;
-    }
+  .privacy-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
   }
-  @media (max-width: 1000px) {
-    .privacy-heading {
-      gap: 40px;
+  @media (max-width: 900px) {
+    .privacy-layout {
+      gap: 35px;
     }
-    .encryption-explanation {
-      gap: 30px;
-      padding: 30px;
-    }
-  }
-  @media (max-width: 800px) {
-    .encryption-explanation {
-      grid-template-columns: 1fr;
-    }
-    .encryption-diagram {
-      max-width: 480px;
-      width: 100%;
-      margin: auto;
+    .privacy-illustration {
+      padding: 0;
     }
   }
   @media (max-width: 650px) {
     .privacy {
       padding-block: 65px;
     }
-    .privacy-heading {
+    .privacy-layout {
       grid-template-columns: 1fr;
-      gap: 25px;
-      margin-bottom: 35px;
+      gap: 40px;
     }
-    .encryption-explanation {
-      padding: 24px 18px;
+    .privacy-copy {
+      grid-row: 1;
     }
-    .encryption-diagram {
-      grid-template-columns: 1fr 25px 1fr;
+    .privacy-copy h2 {
+      font-size: 43px;
     }
-    .encryption-browser,
-    .encryption-storage {
-      padding: 17px 10px;
-    }
-    .encryption-browser > div {
-      flex-direction: column;
-      align-items: start;
-      gap: 8px;
-      margin-block: 14px;
-    }
-    .encryption-storage code {
-      margin-block: 26px;
-      font-size: 12px;
-    }
-    .encryption-diagram span,
-    .encryption-diagram small {
-      font-size: 8px;
-    }
-    .privacy-scope {
-      grid-template-columns: 1fr;
-      gap: 10px;
+    .privacy-illustration {
+      max-width: 370px;
     }
     .privacy-links {
-      gap: 20px;
+      justify-content: flex-start;
+      gap: 24px;
+    }
+  }
+  @media (max-width: 380px) {
+    .secret-boxes {
+      gap: 6px;
+      margin-inline: 10px;
+    }
+    .secret-boxes span {
+      font-size: 9px;
+    }
+    .privacy-illustration :global(svg[data-icon]) {
+      color: #a5b4fc;
+    }
+    .secret-chains,
+    .storage-chains {
+      display: block;
+      width: calc(100% - 32px);
+      margin-inline: 16px;
+      stroke: #a5b4fc;
+      stroke-width: 1.6;
+    }
+    .secret-chains {
+      width: calc(100% - 20px);
+      margin-inline: 10px;
+    }
+    .cipher-storage {
+      margin-inline: 10px;
+      padding: 12px;
     }
   }
 </style>

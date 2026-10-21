@@ -3,9 +3,9 @@
   import {page} from '$app/state';
 </script>
 
-<section class="network-access chapter-width" data-reveal>
+<div class="network-access" data-reveal>
   <div>
-    <h2>Website, extension,<br />and API.</h2>
+    <h3>Website, extension, and API.</h3>
     <p>
       Open an identity while browsing, manage it on the website, or automate it through the API. Each uses the same
       profiles, messages, and account records.
@@ -18,10 +18,11 @@
         href="/extension">Extension<span>Use it while browsing</span></a
       ><a href="/docs">API<span>Build your own workflow</span></a>
     </div>
-    <div class="access-bus"></div>
+    <svg class="access-connections" viewBox="0 0 600 68" preserveAspectRatio="none" fill="none" aria-hidden="true"
+      ><path d="M100 0V35H500V0M300 0V68" /></svg>
     <div class="access-source"><img src={logo} alt="" /><span>One identity workspace</span></div>
   </div>
-</section>
+</div>
 
 <style>
   .network-access {
@@ -29,11 +30,16 @@
     grid-template-columns: 1fr 1.15fr;
     gap: 90px;
     align-items: center;
-    padding-block: 100px 130px;
+    padding-top: 65px;
+    margin-top: 65px;
+    border-top: 1px solid #64748b29;
   }
-  .network-access h2 {
-    font-size: 43px;
-    letter-spacing: -1.7px;
+  .network-access h3 {
+    font-size: 30px;
+    letter-spacing: -1px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: #e0e7ff;
     margin-bottom: 25px;
   }
   .network-access p {
@@ -41,11 +47,11 @@
     margin-bottom: 27px;
   }
   .access-endpoints {
-    display: flex;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .access-endpoints a {
-    flex: 1;
+    margin-inline: 6px;
     font-size: 14px;
     color: #c7d2fe;
     padding: 20px 8px;
@@ -60,32 +66,23 @@
     color: #84a2bd;
     margin-top: 8px;
   }
-  .access-bus {
-    height: 45px;
-    margin-inline: 16%;
-    border: 1px solid #527899;
-    border-top: 0;
-    position: relative;
+  .access-connections {
+    display: block;
+    width: 100%;
+    height: 68px;
+    overflow: visible;
+    stroke: #8caed5;
+    stroke-width: 1.5;
   }
-  .access-bus::before,
-  .access-bus::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    height: 45px;
-    width: 1px;
-    background: #527899;
-  }
-  .access-bus::after {
-    top: 100%;
-    height: 26px;
+  .access-connections path {
+    vector-effect: non-scaling-stroke;
   }
   .access-source {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 15px;
-    margin: 26px auto 20px;
+    margin: 0 auto 20px;
     border: 1px solid #6670b168;
     background: #1d2345;
     border-radius: 8px;
@@ -106,16 +103,15 @@
   @media (max-width: 700px) {
     .network-access {
       grid-template-columns: 1fr;
-      padding-block: 65px;
+      padding-top: 40px;
+      margin-top: 40px;
       gap: 45px;
     }
-    .network-access h2 {
-      font-size: 35px;
-    }
-    .access-endpoints {
-      gap: 7px;
+    .network-access h3 {
+      font-size: 28px;
     }
     .access-endpoints a {
+      position: relative;
       font-size: 12px;
       padding: 17px 5px;
     }

@@ -61,9 +61,9 @@
     top: 0;
     z-index: 30;
     flex-shrink: 0;
-    background: #090f2099;
+    background: #060a16;
+    border-bottom: 1px solid #64748b26;
     box-shadow: 0 4px 24px #02040a20;
-    backdrop-filter: blur(18px);
     color: #cad3ec;
   }
   .header-inner {

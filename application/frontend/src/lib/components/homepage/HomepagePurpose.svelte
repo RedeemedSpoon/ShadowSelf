@@ -1,33 +1,86 @@
 <script lang="ts">
-  import {HOMEPAGE_SERVICES, HOMEPAGE_EXAMPLE_IDENTITY} from '$constant';
-  import logo from '$image/brands/shadowself/icon.svg';
+  import {onMount} from 'svelte';
+  import {HOMEPAGE_SERVICES, HOMEPAGE_DEMO_PROFILES} from '$constant';
+  import Icon from '$component/ui/Icon.svelte';
+  import portraits from '$image/homepage/profile-pictures/persona-profiles.webp';
+
+  let profileIndex = $state(0);
+  let assembly: HTMLDivElement;
+
+  onMount(() => {
+    profileIndex = crypto.getRandomValues(new Uint32Array(1))[0] % HOMEPAGE_DEMO_PROFILES.length;
+    const interval = window.setInterval(() => {
+      if (document.hidden || assembly.dataset.inView !== 'true') {
+        return;
+      }
+
+      profileIndex = (profileIndex + 1) % HOMEPAGE_DEMO_PROFILES.length;
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  });
 </script>
 
 <section class="purpose" id="why-shadowself">
   <div class="chapter-width purpose-layout">
     <div class="purpose-copy" data-reveal>
-      <h2>Keep your identities separate.<br /><span>Bring the work together.</span></h2>
+      <h2>Privacy comes at a cost.<br /><span>It shouldn't be your time.</span></h2>
       <p>
-        A separate identity needs more than a name. It needs an inbox, contact details, and access to the accounts you
-        create. ShadowSelf organizes those records around the profile they belong to.
+        Burner numbers. Password managers. Separate email inboxes. Maintaining a private life online means paying for
+        scattered tools and doing the work to keep them apart.
       </p>
-      <p class="purpose-answer">Select an identity to open its messages, credentials, and wallets in one workspace.</p>
+      <p class="purpose-answer">
+        That burden shouldn't come with wanting more control over your life. ShadowSelf brings those tools into one
+        workspace, organized around the identity that uses them.
+      </p>
     </div>
-    <div class="assembly" data-reveal aria-label="Identity tools organized under one profile">
+    <div class="assembly" bind:this={assembly} data-reveal aria-label="Identity tools organized under one profile">
       <div class="assembly-tools">
         {#each HOMEPAGE_SERVICES as service, index (service.id)}
           <div style:--tool-color={service.color} style:--delay={`${index * -0.7}s`}>
-            <i></i><span>{service.name}</span><b aria-hidden="true">→</b>
+            <Icon name={service.icon} size={16} /><span>{service.name}</span><b aria-hidden="true">→</b>
           </div>
         {/each}
       </div>
       <div class="assembly-spine" aria-hidden="true"><span></span></div>
       <div class="assembly-profile">
         <div class="assembly-record">
-          <img src={logo} alt="" />
-          <span>One identity workspace</span>
-          <strong>{HOMEPAGE_EXAMPLE_IDENTITY.name}</strong>
-          <div><span>Profile</span><span>Accounts</span><span>Tools</span></div>
+          <div class="profile-topline">
+            <span>Example identity</span>
+          </div>
+          <div class="profile-slides">
+            {#each HOMEPAGE_DEMO_PROFILES as profile, index (profile.name)}
+              <div
+                class="profile-slide"
+                class:active={index === profileIndex}
+                class:exiting={index ===
+                  (profileIndex + HOMEPAGE_DEMO_PROFILES.length - 1) % HOMEPAGE_DEMO_PROFILES.length}
+                aria-hidden={index !== profileIndex}>
+                <div class="profile-person">
+                  <div
+                    class="profile-portrait"
+                    role="img"
+                    aria-label={`Fictional portrait of ${profile.name}`}
+                    style:background-image={`url(${portraits})`}
+                    style:background-position={profile.position}>
+                  </div>
+                  <strong>{profile.name}</strong>
+                  <span>{profile.location}</span>
+                </div>
+                <div class="profile-email"><Icon name="mail" size={13} /><span>{profile.email}</span></div>
+                <dl class="profile-stats">
+                  <div>
+                    <dt>Saved accounts</dt>
+                    <dd>{profile.accounts}</dd>
+                  </div>
+                  <div>
+                    <dt>Wallet balance</dt>
+                    <dd>{profile.balance}</dd>
+                  </div>
+                </dl>
+              </div>
+            {/each}
+          </div>
         </div>
         <p class="assembly-caption">Choose the identity first.<br />Its tools are already together.</p>
       </div>
@@ -78,10 +131,16 @@
           stroke="currentColor" /><path
           d="M11 33c0-10 18-10 18 0m8-18h14m-14 7h10m-10 7h14"
           stroke="currentColor"
-          stroke-linecap="round" /><path
-          d="m49 39 4 4 7-8"
+          stroke-linecap="round" /><circle
+          cx="54"
+          cy="37"
+          r="9"
+          fill="#202b13"
           stroke="currentColor"
-          stroke-width="2"
+          stroke-width="1.5" /><path
+          d="m49 37 3.5 3.5 6-7"
+          stroke="currentColor"
+          stroke-width="2.5"
           stroke-linecap="round"
           stroke-linejoin="round" /></svg>
       <h3>Know which identity you're using.</h3>
@@ -107,7 +166,7 @@
     margin-bottom: 32px;
   }
   .purpose-copy h2 span {
-    color: #a78bfa;
+    color: var(--brand-accent);
   }
   .purpose-copy p {
     font-size: 14px;
@@ -118,7 +177,7 @@
   }
   .assembly {
     display: grid;
-    grid-template-columns: 1fr 45px 1.1fr;
+    grid-template-columns: minmax(0, 1fr) 45px minmax(0, 1.1fr);
     align-items: center;
     position: relative;
   }
@@ -135,12 +194,9 @@
     border-bottom: 1px solid color-mix(in srgb, var(--tool-color) 25%, transparent);
     border-radius: 5px 0 0 5px;
   }
-  .assembly-tools i {
-    width: 5px;
-    height: 5px;
-    background: var(--tool-color);
-    border-radius: 50%;
-    box-shadow: 0 0 9px color-mix(in srgb, var(--tool-color) 50%, transparent);
+  .assembly-tools :global(svg) {
+    color: var(--tool-color);
+    flex-shrink: 0;
   }
   .assembly-tools span {
     font-size: 11px;
@@ -187,32 +243,104 @@
     border-radius: 9px;
     box-shadow: 0 25px 50px #0004;
   }
-  .assembly-record img {
-    width: 39px;
-    height: 39px;
-    margin-bottom: 26px;
-  }
-  .assembly-record > span {
-    display: block;
-    color: #a3accd;
+  .profile-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #8998bb;
     font-size: 9px;
-    margin-bottom: 10px;
   }
-  .assembly-record strong {
-    display: block;
-    color: #e0e7ff;
-    font-size: 20px;
-    font-weight: 500;
-    letter-spacing: -0.5px;
+  .profile-slides {
+    position: relative;
+    height: 260px;
+    min-width: 0;
   }
-  .assembly-record > div {
+  .profile-slide {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .profile-slide.active {
+    visibility: visible;
+    z-index: 1;
+    animation: persona-enter 500ms ease-in-out both;
+  }
+  .profile-slide.exiting {
+    visibility: visible;
+    z-index: 2;
+    animation: persona-exit 500ms ease-in-out both;
+  }
+  @keyframes persona-enter {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0);
+    }
+  }
+  @keyframes persona-exit {
+    from {
+      clip-path: inset(0);
+    }
+    to {
+      clip-path: inset(0 0 0 100%);
+    }
+  }
+  .profile-person {
     display: grid;
-    gap: 10px;
-    border-top: 1px solid #a5b4fc25;
-    margin-top: 24px;
-    padding-top: 17px;
+    justify-items: center;
+    text-align: center;
+    gap: 9px;
+    padding-block: 18px;
+  }
+  .profile-portrait {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-size: 300% 200%;
+    box-shadow: 0 0 0 4px #6366f11a;
+  }
+  .profile-person strong {
+    color: #e0e7ff;
+    font-size: clamp(15px, 1.4vw, 19px);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .profile-person > span {
+    color: #9daac7;
     font-size: 10px;
-    color: #acb9dd;
+  }
+  .profile-email {
+    min-height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #a5b4fc;
+    font-size: 9px;
+    overflow-wrap: anywhere;
+  }
+  .profile-stats {
+    display: grid;
+    gap: 12px;
+    border-top: 1px solid #818cf82b;
+    padding-top: 16px;
+    margin: 18px 0 0;
+  }
+  .profile-stats > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 10px;
+  }
+  .profile-stats dt {
+    color: #94a3b8;
+  }
+  .profile-stats dd {
+    margin: 0;
+    color: #dbe5ff;
+    font-variant-numeric: tabular-nums;
   }
   .assembly-caption {
     position: absolute;
@@ -231,13 +359,13 @@
     padding-block: 35px 15px;
   }
   .purpose-benefits article {
-    color: #a78bfa;
+    color: var(--brand-accent);
   }
   .purpose-benefits article:nth-child(2) {
-    color: #fb7185;
+    color: #22d3ee;
   }
   .purpose-benefits article:nth-child(3) {
-    color: #fbbf24;
+    color: #bef264;
   }
   .purpose-benefits svg {
     width: 64px;
@@ -257,6 +385,11 @@
     max-width: 280px;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .profile-slide.exiting {
+      visibility: hidden;
+    }
+  }
   @keyframes signal {
     0%,
     75%,
@@ -282,7 +415,7 @@
       gap: 40px;
     }
     .assembly {
-      grid-template-columns: 1fr 25px 1fr;
+      grid-template-columns: minmax(0, 1fr) 25px minmax(0, 1fr);
     }
     .assembly-spine {
       margin-right: 12px;
@@ -310,7 +443,7 @@
       max-width: 470px;
       width: 100%;
       margin: 0 auto 30px;
-      grid-template-columns: 1fr 35px 1.1fr;
+      grid-template-columns: minmax(0, 1fr) 35px minmax(0, 1.1fr);
     }
     .assembly-spine {
       margin-right: 17px;
@@ -341,8 +474,40 @@
     .purpose-benefits p {
       max-width: none;
     }
-    .assembly-record strong {
-      font-size: 18px;
+  }
+  @media (max-width: 380px) {
+    .assembly {
+      grid-template-columns: 1fr;
+    }
+    .assembly-tools {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .assembly-tools > div {
+      padding: 12px 9px;
+      border-radius: 5px;
+    }
+    .assembly-spine {
+      height: 30px;
+      width: 1px;
+      margin: 0 auto;
+      border: 0;
+      border-left: 1px solid #818cf84d;
+    }
+    .assembly-spine::after {
+      display: none;
+    }
+    .assembly-spine span {
+      display: none;
+    }
+    .assembly-profile {
+      max-width: 260px;
+      width: 100%;
+      margin: auto;
+    }
+    .assembly-caption {
+      position: static;
+      margin-top: 15px;
     }
   }
 </style>

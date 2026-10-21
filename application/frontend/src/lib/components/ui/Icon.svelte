@@ -12,6 +12,7 @@
     settings:
       'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.93 4.93l2.12 2.12 M16.95 16.95l2.12 2.12 M19.07 4.93l-2.12 2.12 M7.05 16.95l-2.12 2.12',
     plus: 'M12 5v14 M5 12h14',
+    chevron: 'M4 8l8 8 8-8',
     arrow: 'M5 12h14 M12 5l7 7-7 7',
     back: 'M19 12H5 M12 19l-7-7 7-7',
     close: 'M6 6l12 12 M6 18L18 6',
@@ -31,11 +32,17 @@
     external: 'M15 3h6v6 M10 14L21 3 M21 14v7H3V3h7',
     send: 'M22 2L9 15 M22 2l-7 20-6-7-7-6 20-7z',
     play: 'M8 4l12 8-12 8V4z',
+    upload: 'M12 16V3 M7 8l5-5 5 5 M3 16v5h18v-5',
+    folder: 'M3 7V4h6l3 3h9v14H3V7z',
+    file: 'M14 2H4v20h16V8l-6-6z M14 2v6h6 M8 13h8 M8 17h5',
+    cloud: 'M7 19h11a4 4 0 0 0 .5-8 6.5 6.5 0 0 0-12.7-1.6A4.8 4.8 0 0 0 7 19z',
+    proxy: 'M4 3h16v6H4z M4 10h16v6H4z M7 6h.01 M11 6h6 M7 13h.01 M11 13h6 M12 16v4 M3 21h6 M15 21h6 M9 19h6v4H9z',
     key: 'M15 3a6 6 0 1 0 0 12 6 6 0 0 0 0-12 M10 13l-8 8 M5 18l-2-2 M8 15l-2-2',
   };
 </script>
 
 <svg
+  data-icon={name}
   width={size}
   height={size}
   viewBox="0 0 24 24"

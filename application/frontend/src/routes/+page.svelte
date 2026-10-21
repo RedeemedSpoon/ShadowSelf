@@ -3,7 +3,6 @@
   import HomepageFeatures from '$component/homepage/HomepageFeatures.svelte';
   import HomepageLifecycle from '$component/homepage/HomepageLifecycle.svelte';
   import HomepagePurpose from '$component/homepage/HomepagePurpose.svelte';
-  import HomepageAccess from '$component/homepage/HomepageAccess.svelte';
   import HomepagePrivacy from '$component/homepage/HomepagePrivacy.svelte';
   import HomepagePricing from '$component/homepage/HomepagePricing.svelte';
   import HomepageClosing from '$component/homepage/HomepageClosing.svelte';
@@ -29,6 +28,18 @@
       {threshold: 0.1},
     );
 
+    const ambientObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        (entry.target as HTMLElement).dataset.inView = String(entry.isIntersecting);
+      }
+    });
+
+    node.querySelectorAll(':scope > section, .service-visual, .assembly').forEach((section) => {
+      section.setAttribute('data-ambient', '');
+      ambientObserver.observe(section);
+    });
+
+    node.dataset.ambient = 'observed';
     node.dataset.motion = 'enabled';
     node.querySelectorAll('[data-reveal]').forEach((section) => observer.observe(section));
 
@@ -46,6 +57,7 @@
     return {
       destroy() {
         observer.disconnect();
+        ambientObserver.disconnect();
         preference.removeEventListener('change', stopMotion);
       },
     };
@@ -65,7 +77,6 @@
   <HomepagePurpose />
   <HomepageFeatures />
   <HomepageLifecycle />
-  <HomepageAccess />
   <HomepagePricing />
   <HomepagePrivacy />
   <HomepageClosing />
@@ -73,10 +84,18 @@
 
 <style>
   .homepage {
+    --brand-accent: #818cf8;
+    --brand-line: #6366f140;
     background: #090f20;
     color: #e6ebff;
     font-family: 'Inter Variable', sans-serif;
     overflow: clip;
+  }
+  :global(.homepage > section + section),
+  :global(.homepage > .profile-tools),
+  :global(.homepage > .profile-tools + section) {
+    border-top: 1px solid #7786b329;
+    box-shadow: inset 0 1px #02061780;
   }
   :global(:where(.homepage) *) {
     box-sizing: border-box;
@@ -138,7 +157,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #c2bde9;
+    color: #b7c2e4;
     font-size: 13px;
     padding-block: 14px;
   }
@@ -148,18 +167,18 @@
   :global(.homepage .inline-link) {
     display: inline-block;
     font-size: 12px;
-    color: #b0a2f6;
+    color: var(--brand-accent);
     text-decoration: underline;
     text-underline-offset: 6px;
-    text-decoration-color: #a291e74d;
+    text-decoration-color: #6366f14d;
   }
   :global(.homepage .inline-link:hover) {
-    color: #e5dcff;
+    color: #e0e7ff;
   }
   :global(.homepage a:focus-visible),
   :global(.homepage button:focus-visible),
   :global(.homepage summary:focus-visible) {
-    outline: 2px solid #b7a9ff;
+    outline: 2px solid #818cf8;
     outline-offset: 5px;
   }
   :global(.homepage section[id]),
@@ -176,6 +195,11 @@
   :global(.homepage[data-motion='enabled'] [data-reveal][data-revealed='true']) {
     opacity: 1;
     transform: translateY(0);
+  }
+  :global(.homepage[data-ambient='observed'] [data-ambient]:not([data-in-view='true']) *),
+  :global(.homepage[data-ambient='observed'] [data-ambient]:not([data-in-view='true']) *::before),
+  :global(.homepage[data-ambient='observed'] [data-ambient]:not([data-in-view='true']) *::after) {
+    animation-play-state: paused !important;
   }
   .homepage-skip {
     position: fixed;

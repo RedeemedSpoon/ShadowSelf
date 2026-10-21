@@ -7,8 +7,34 @@
     title,
     children,
     onclose,
-  }: {open?: boolean; title: string; children: Snippet; onclose?: () => void} = $props();
+    wide = false,
+    fit = false,
+    dismissOnBackdrop = false,
+  }: {
+    open?: boolean;
+    title: string;
+    children: Snippet;
+    onclose?: () => void;
+    wide?: boolean;
+    fit?: boolean;
+    dismissOnBackdrop?: boolean;
+  } = $props();
   let dialog: HTMLDialogElement;
+
+  $effect(() => {
+    if (!open || !fit) {
+      return;
+    }
+
+    const position = window.scrollY;
+    const root = document.documentElement;
+    root.style.setProperty('--dialog-scroll-offset', `${-position}px`);
+
+    return () => {
+      root.style.removeProperty('--dialog-scroll-offset');
+      queueMicrotask(() => window.scrollTo({top: position, behavior: 'instant'}));
+    };
+  });
 
   $effect(() => {
     if (!dialog) {
@@ -32,12 +58,69 @@
     });
     onclose?.();
   }
+
+  function dismissBackdrop(event: PointerEvent) {
+    if (!open || !dismissOnBackdrop || event.target !== dialog) {
+      return;
+    }
+
+    const bounds = dialog.getBoundingClientRect();
+
+    if (
+      event.clientX < bounds.left ||
+      event.clientX > bounds.right ||
+      event.clientY < bounds.top ||
+      event.clientY > bounds.bottom
+    ) {
+      event.preventDefault();
+      close();
+    }
+  }
 </script>
 
-<dialog bind:this={dialog} onclose={close} oncancel={close} class="console-dialog" aria-label={title}>
+<svelte:window onpointerdown={dismissBackdrop} />
+
+<dialog
+  bind:this={dialog}
+  onclose={close}
+  oncancel={close}
+  class="console-dialog"
+  class:wide
+  class:fit
+  aria-label={title}>
   <div class="dialog-heading">
     <h2>{title}</h2>
     <Button variant="quiet" icon="close" aria-label="Close dialog" onclick={close} />
   </div>
   {@render children()}
 </dialog>
+
+<style>
+  :global(html:has(.console-dialog.fit)) {
+    scrollbar-gutter: stable;
+  }
+  :global(html:has(.console-dialog.fit:modal)) {
+    overflow: hidden;
+  }
+  :global(html:has(.console-dialog.fit:modal) body) {
+    position: fixed;
+    top: var(--dialog-scroll-offset);
+    width: 100%;
+    overflow: hidden;
+  }
+  .console-dialog.fit[open] {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    height: min(900px, calc(80vw + 160px), calc(100dvh - 48px));
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+  .console-dialog.fit .dialog-heading {
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+  .console-dialog.wide {
+    width: min(1200px, calc(100vw - 32px));
+  }
+</style>

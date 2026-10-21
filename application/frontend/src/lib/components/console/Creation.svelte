@@ -30,7 +30,14 @@
   let moneroPhrase = $state('');
   let saved = $state(false);
   let wallet = $state<Wallet | null>(null);
-  const stages = ['Profile location', 'Profile', 'Email', 'Phone', 'Wallet', 'Review'];
+  const stages = [
+    {label: 'Profile location', feature: 'identity'},
+    {label: 'Profile', feature: 'identity'},
+    {label: 'Email', feature: 'email'},
+    {label: 'Phone', feature: 'phone'},
+    {label: 'Wallet', feature: 'wallet'},
+    {label: 'Review', feature: 'identity'},
+  ];
   const path = $derived(`/identities/${data.id}/creation`);
 
   $effect(() => {
@@ -317,14 +324,17 @@
   >{:else}<Status
     message="Setup cannot be completed while replacement phone and network providers are being configured. Your draft can still be edited." />
   <ol class="creation-progress">
-    {#each stages as stage, index (stage)}<li class:current={step === index + 1} class:complete={step > index + 1}>
-        <span>{step > index + 1 ? '✓' : String(index + 1).padStart(2, '0')}</span>{stage}
+    {#each stages as stage, index (stage.label)}<li
+        data-feature={stage.feature}
+        class:current={step === index + 1}
+        class:complete={step > index + 1}>
+        <span>{step > index + 1 ? '✓' : String(index + 1).padStart(2, '0')}</span>{stage.label}
       </li>{/each}
   </ol>
-  <section class="panel creation-panel">
+  <section class="panel creation-panel" data-feature={stages[step - 1].feature}>
     <div class="section-heading">
       <div>
-        <h2>{stages[step - 1]}</h2>
+        <h2>{stages[step - 1].label}</h2>
         {#if step === 5}<p>Master passwords cannot be recovered.</p>{/if}
       </div>
     </div>
@@ -475,6 +485,13 @@
   </section>{/if}
 
 <style>
+  .creation-progress li[data-feature] {
+    color: var(--feature-accent);
+  }
+  .creation-progress li[data-feature] span {
+    border-color: color-mix(in srgb, var(--feature-accent) 50%, transparent);
+    color: var(--feature-accent);
+  }
   .creation-progress {
     list-style: none;
     display: flex;
@@ -535,6 +552,13 @@
   @media (max-width: 600px) {
     .creation-profile {
       flex-wrap: wrap;
+    }
+    .creation-progress li[data-feature] {
+      color: var(--feature-accent);
+    }
+    .creation-progress li[data-feature] span {
+      border-color: color-mix(in srgb, var(--feature-accent) 50%, transparent);
+      color: var(--feature-accent);
     }
     .creation-progress {
       gap: 10px;

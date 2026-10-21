@@ -352,8 +352,8 @@
   }
   .conversation article.outgoing {
     align-self: flex-end;
-    background: #6253ec12;
-    border-color: #8472ed30;
+    background: color-mix(in srgb, var(--feature-phone) 8%, transparent);
+    border-color: color-mix(in srgb, var(--feature-phone) 25%, transparent);
   }
   .conversation article p {
     color: #d3dded;

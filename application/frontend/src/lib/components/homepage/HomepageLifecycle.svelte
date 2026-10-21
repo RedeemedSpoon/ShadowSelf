@@ -1,4 +1,6 @@
 <script lang="ts">
+  import HomepageAccess from './HomepageAccess.svelte';
+  import Icon from '$component/ui/Icon.svelte';
   import {HOMEPAGE_EXAMPLE_IDENTITY} from '$constant';
 
   const example = HOMEPAGE_EXAMPLE_IDENTITY;
@@ -7,7 +9,8 @@
 <section class="network-lifecycle" id="lifecycle">
   <div class="chapter-width">
     <div class="lifecycle-heading" data-reveal>
-      <h2>From profile<br />to working accounts.</h2>
+      <h2>From a separate profile<br />to an everyday workspace.</h2>
+      <p>Create the identity once. Reach its accounts on the website, in your browser, or through the API.</p>
     </div>
     <ol class="lifecycle">
       <li data-reveal>
@@ -52,7 +55,11 @@
           </div>
         </div>
       </li>
+      <li class="lifecycle-goal" aria-label="Setup complete" data-reveal>
+        <span class="lifecycle-dot"><Icon name="check" size={17} /></span>
+      </li>
     </ol>
+    <HomepageAccess />
   </div>
 </section>
 
@@ -68,8 +75,8 @@
   }
   .lifecycle {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 28px;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) 30px;
+    gap: 0;
     margin-top: 65px;
     padding: 0;
     list-style: none;
@@ -77,7 +84,21 @@
   .lifecycle li {
     position: relative;
     border-top: 1px solid #547597;
-    padding-top: 33px;
+    padding: 33px 23px 0 0;
+  }
+  .lifecycle-heading > p {
+    max-width: 650px;
+    margin-top: 25px;
+    font-size: 14px;
+  }
+  .lifecycle-goal {
+    border-top: 0 !important;
+    padding: 0 !important;
+  }
+  .lifecycle-goal .lifecycle-dot {
+    border-color: #34d39980;
+    color: #6ee7b7;
+    background: #102a25;
   }
   .lifecycle-dot {
     position: absolute;
@@ -129,18 +150,18 @@
     overflow-wrap: anywhere;
   }
   .email-example {
-    background: #2a1b2c;
-    border-color: #a85b793e;
+    background: color-mix(in srgb, var(--feature-email) 12%, #0b1021);
+    border-color: color-mix(in srgb, var(--feature-email) 30%, transparent);
   }
   .email-example strong {
-    color: #e4b1c4;
+    color: var(--feature-email);
   }
   .vault-example {
     background: #292315;
     border-color: #fbbf2443;
   }
   .vault-example strong {
-    color: var(--color-amber-300);
+    color: var(--feature-vault);
   }
   .return-example {
     background: #16312c;
@@ -151,11 +172,30 @@
   }
   @media (max-width: 1050px) {
     .lifecycle {
-      grid-template-columns: 1fr 1fr;
-      gap: 55px 35px;
+      grid-template-columns: 1fr;
+      gap: 0;
+      margin-left: 14px;
+    }
+    .lifecycle li {
+      padding: 0 0 35px 35px;
+      border-top: 0;
+      border-left: 1px solid #547597;
+    }
+    .lifecycle li:last-child {
+      border-left: 0;
+      min-height: 29px;
+    }
+    .lifecycle-dot {
+      left: -15px;
+      top: 0;
     }
     .lifecycle p {
       min-height: 0;
+      max-width: 600px;
+    }
+    .lifecycle-example {
+      margin-top: 18px;
+      max-width: 430px;
     }
   }
   @media (max-width: 700px) {
@@ -164,23 +204,10 @@
     }
     .lifecycle-heading h2 {
       font-size: 35px;
+      letter-spacing: -1.3px;
     }
     .lifecycle {
-      grid-template-columns: 1fr;
       margin-top: 45px;
-    }
-    .lifecycle li {
-      padding-left: 35px;
-      padding-top: 0;
-      border-top: 0;
-      border-left: 1px solid #547597;
-    }
-    .lifecycle-dot {
-      left: -15px;
-      top: 0;
-    }
-    .lifecycle-example {
-      margin-top: 18px;
     }
   }
 </style>

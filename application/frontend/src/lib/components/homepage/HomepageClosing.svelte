@@ -17,9 +17,8 @@
 
 <style>
   .spectrum-text {
-    background: linear-gradient(100deg, #57b6ef, #8d7bf5, #c976eb);
+    background: linear-gradient(100deg, #60a5fa, #818cf8, #4f46e5);
     background-size: 200% 100%;
-    animation: spectrum-flow 16s ease-in-out infinite alternate;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
@@ -42,19 +41,36 @@
   .spectrum-close p {
     margin: 26px 0 30px;
   }
+  .spectrum-close::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(ellipse at center, #090e23 12%, #090e23d9 32%, transparent 75%);
+    pointer-events: none;
+  }
   .close-lines {
     position: absolute;
-    inset: -100%;
-    background: repeating-conic-gradient(from 0deg at 50% 50%, transparent 0 8deg, #a594ff70 8.1deg 8.25deg);
-    z-index: -1;
+    left: 50%;
+    top: 50%;
+    width: hypot(100vw, 100svh);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(
+      from 0deg at center,
+      transparent 0deg 8.65deg,
+      #818cf83d 8.82deg,
+      transparent 9deg
+    );
+    z-index: -2;
+    transform-origin: center;
     animation: rotate-lines 100s linear infinite;
-    mask-image: radial-gradient(ellipse, transparent 10%, #000 50%, transparent 65%);
+    pointer-events: none;
   }
   .spectrum-close .primary-action {
     position: relative;
     overflow: hidden;
     gap: 10px;
-    animation: action-glow 5s ease-in-out infinite;
   }
   .spectrum-close .primary-action::after {
     content: '';
@@ -71,21 +87,9 @@
   .spectrum-close .primary-action:hover span {
     transform: translate(2px, -2px);
   }
-  @keyframes spectrum-flow {
-    from {
-      background-position: 0% 50%;
-    }
+  @keyframes rotate-lines {
     to {
-      background-position: 100% 50%;
-    }
-  }
-  @keyframes action-glow {
-    0%,
-    100% {
-      box-shadow: 0 8px 28px #6253ec25;
-    }
-    50% {
-      box-shadow: 0 8px 38px #6253ec65;
+      transform: rotate(360deg);
     }
   }
   @keyframes action-sheen {
@@ -95,11 +99,6 @@
     }
     100% {
       translate: 120%;
-    }
-  }
-  @keyframes rotate-lines {
-    to {
-      rotate: 360deg;
     }
   }
   @media (max-width: 700px) {

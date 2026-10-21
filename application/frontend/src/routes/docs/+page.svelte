@@ -2,6 +2,8 @@
   import {APP_ORIGIN} from '$constant';
   import {tick} from 'svelte';
   import {goto} from '$app/navigation';
+  import Icon from '$component/ui/Icon.svelte';
+  import CodeLanguageIcon from '$component/public/CodeLanguageIcon.svelte';
   import PublicPage from '$component/public/PublicPage.svelte';
   import {API_DOCUMENTATION} from '$lib/constants/api-documentation';
 
@@ -44,6 +46,30 @@ with urllib.request.urlopen(request) as response:
     })).filter((group) => group.endpoints.length),
   );
 
+  function endpointFeature(path: string) {
+    if (path.includes('/vault')) {
+      return 'vault';
+    }
+
+    if (path.includes('/mail')) {
+      return 'email';
+    }
+
+    if (path.includes('/phone')) {
+      return 'phone';
+    }
+
+    if (path.includes('/wallet')) {
+      return 'wallet';
+    }
+
+    if (path.includes('/billing')) {
+      return 'card';
+    }
+
+    return 'identity';
+  }
+
   async function copySample() {
     copied = false;
     copyError = '';
@@ -62,17 +88,17 @@ with urllib.request.urlopen(request) as response:
     name="description"
     content="The ShadowSelf API contract for authentication, identities, creation, vaults, messaging, wallets, and billing." /></svelte:head>
 
-<PublicPage
-  eyebrow="API"
-  title="API reference"
-  description="REST endpoints under /api. JSON requests and responses."
-  wide>
-  <div class="docs-layout">
+<PublicPage title="API reference" description="REST endpoints under /api. JSON requests and responses." wide>
+  {#snippet sidebar()}
     <nav class="docs-navigation" aria-label="Documentation sections">
-      <a href="#authentication">Authentication</a><a href="#request-example">Request example</a><a href="#errors"
-        >Errors &amp; retries</a
-      ><a href="#security">Encryption &amp; availability</a>{#each API_DOCUMENTATION as group (group.id)}<a
+      <span class="navigation-label">Getting started</span>
+      <a href="#authentication"><Icon name="lock" size={15} />Authentication</a>
+      <a href="#request-example"><Icon name="code" size={15} />Request example</a>
+      <a href="#errors"><Icon name="warning" size={15} />Errors &amp; retries</a>
+      <a href="#security"><Icon name="shield" size={15} />Encryption &amp; availability</a>
+      <span class="navigation-label">Endpoints</span>{#each API_DOCUMENTATION as group (group.id)}<a
           href={`#${group.id}`}
+          data-feature={group.feature}
           onclick={async (event) => {
             if (!query) {
               return;
@@ -81,194 +107,245 @@ with urllib.request.urlopen(request) as response:
             query = '';
             await tick();
             await goto(`#${group.id}`);
-          }}>{group.title}</a
+          }}><Icon name={group.icon} size={15} />{group.title}</a
         >{/each}
     </nav>
-    <div class="docs-content">
-      <section id="authentication">
-        <h2>Authenticate each request</h2>
-        <p>
-          Send a session token or enabled API key in <code>Authorization: Bearer &lt;token&gt;</code>. Sign in through
-          <code>POST /auth/password</code>
-          or the email flow. A completed login returns <code>{'{token}'}</code>; an account with two-factor
-          authentication first returns
-          <code>{'{challenge,expiresIn}'}</code>.
-        </p>
-        <p>
-          Complete the challenge through <code>/auth/second-factor</code> or <code>/auth/recovery</code>. Generate an
-          API key in account settings after enabling API access. The new key is shown once. Keep tokens out of URLs,
-          browser storage, screenshots, and source control.
-        </p>
-        <p>
-          The website uses a secure HTTP-only session cookie. Requests from a separate API client use the bearer header.
-          Identity operations require ownership, and active services require a ready identity.
-        </p>
-      </section>
-      <section id="request-example">
-        <h2>List your identities</h2>
-        <p>Set <code>SHADOWSELF_TOKEN</code> in your client environment.</p>
-        <div class="code-window">
-          <div class="code-toolbar">
-            <div aria-label="Example language">
-              {#each languages as item (item.id)}<button
-                  type="button"
-                  aria-pressed={language === item.id}
-                  onclick={() => {
-                    language = item.id;
-                    copied = false;
-                    copyError = '';
-                  }}>{item.label}</button
-                >{/each}
-            </div>
-            <button type="button" onclick={copySample}>{copied ? 'Copied' : 'Copy'}</button>
-          </div>
-          <pre><code>{samples[language]}</code></pre>
-        </div>
-        {#if copyError}<p class="copy-error" role="status">{copyError}</p>{/if}
-        <p class="code-note">
-          Success returns <code>{'{identities:[...]}'}</code>. Each identity includes an explicit status. An unavailable
-          service is not represented as a successful empty result.
-        </p>
-      </section>
-      <section id="errors">
-        <h2>Handle failure before retrying</h2>
-        <p>
-          Errors use the HTTP status and a consistent JSON body. Read <code>error.code</code> for the machine-readable
-          reason and <code>error.message</code> for the explanation.
-        </p>
-        <pre class="error-example"><code
-            >{JSON.stringify(
-              {error: {code: 'unauthenticated', message: 'Authentication required'}},
-              null,
-              2,
-            )}</code></pre>
-        <div class="status-list">
-          <div><code>400</code><span>Invalid request. Correct the input before retrying.</span></div>
-          <div>
-            <code>401 / 403</code><span>Authentication or access denied. Check the credential and ownership.</span>
-          </div>
-          <div><code>404</code><span>The record is missing or is not available to your account.</span></div>
-          <div>
-            <code>409</code><span>The state changed or request details conflict. Reload and resolve the conflict.</span>
-          </div>
-          <div><code>429</code><span>A rate limit applies. Wait before trying again.</span></div>
-          <div><code>503</code><span>A provider is unavailable or an operation needs reconciliation.</span></div>
-        </div>
-        <p>
-          Use a stable UUID <code>requestID</code> for each purchase, renewal, or swap. Retry the same operation with the
-          same ID and input. A response that asks for reconciliation means you should inspect the current state before starting
-          another payment.
-        </p>
-        <p>
-          Vault mutations require the current <code>vaultRevision</code>. A 409 response means your snapshot is stale.
-          Reload before editing or rotating encryption. A 202 deletion response means provider cleanup remains pending.
-          A 410 response means a payment quote expired. A 502 response means a provider returned invalid data or
-          rejected the operation.
-        </p>
-      </section>
-      <section id="security">
-        <h2>Encryption and service availability</h2>
-        <p>
-          Encrypt vault passwords, TOTP secrets, and wallet private material in the client before sending them. Read
-          operations return the encrypted values. The API does not accept your master password as a way to unlock the
-          vault.
-        </p>
-        <p>
-          Derive a 256-bit AES-GCM key with PBKDF2, SHA-256, 600,000 iterations, and the UTF-8 identity ID as the salt.
-          Each encrypted value uses a fresh 12-byte IV. Its wire format is <code>v1.</code> followed by base64 of the IV and
-          ciphertext, including the 16-byte authentication tag. Account sign-in passwords and account two-factor enrollment
-          are separate from these encrypted identity secrets.
-        </p>
-        <p>
-          Creation uses a persistent named draft and ordinary REST calls. Save draft fields through <code
-            >PUT /identities/:id/creation</code
-          >, then provision the validated draft. Portrait generation, email, phone, billing, and wallet operations
-          depend on their configured providers. Names and biographies are generated locally.
-        </p>
-        <div class="policy-note">
-          <p>
-            Network routing is unavailable. <code>GET /extension</code> returns
-            <code>network.status = 'unavailable'</code>. No proxy activation or device VPN endpoint exists. Crypto
-            billing can be disabled independently of user wallets.
-          </p>
-        </div>
-        <p>
-          WebSocket event routes authenticate the connection and periodically recheck it. They support <code>ping</code>
-          and <code>pong</code>. Reconnect with valid credentials and fetch current state after a disconnect.
-        </p>
-      </section>
-      <div class="endpoint-search">
-        <label for="endpoint-search">Find an endpoint</label><input
-          id="endpoint-search"
-          type="search"
-          placeholder="Search path, method, or payload"
-          bind:value={query} />
-      </div>
-      {#if !groups.length}<p class="empty-results" role="status">No endpoints match "{query}".</p>{/if}
-      {#each groups as group (group.id)}<section id={group.id} class="endpoint-group">
-          <h2>{group.title}<span>{group.endpoints.length}</span></h2>
-          <div class="endpoints">
-            {#each group.endpoints as endpoint (`${endpoint.method}-${endpoint.path}`)}<details>
-                <summary
-                  ><span class="method" class:write={endpoint.method !== 'GET'}>{endpoint.method}</span><code
-                    >{endpoint.path}</code
-                  ><span class="expand" aria-hidden="true">+</span></summary>
-                <p>{endpoint.detail}</p>
-                {#if endpoint.query}<div class="endpoint-example">
-                    <h3>Query example</h3>
-                    <pre><code>{endpoint.query}</code></pre>
-                  </div>{/if}
-                {#if endpoint.request}<div class="endpoint-example">
-                    <h3>JSON request</h3>
-                    <pre><code>{JSON.stringify(endpoint.request, null, 2)}</code></pre>
-                  </div>{/if}
-                {#if endpoint.response}<div class="endpoint-example">
-                    <h3>Success response example</h3>
-                    <pre><code>{JSON.stringify(endpoint.response, null, 2)}</code></pre>
-                  </div>{/if}
-              </details>{/each}
-          </div>
-        </section>{/each}
-      <p class="docs-footnote">
-        Path parameters such as <code>:id</code> must be replaced with the owned record's ID. Fields ending in
-        <code>?</code>
-        are optional. Do not send plaintext secrets in place of encrypted fields. Example tokens, provider references, and
-        values in angle brackets must be replaced with your own results. Ciphertext examples describe the required format
-        and are not usable encrypted secrets. JSON requests require
-        <code>Content-Type: application/json</code>. Unless a route says otherwise, a successful request returns HTTP
-        200.
-        <a href="/contact">Report a documentation issue</a>.
+  {/snippet}
+  <div class="docs-content">
+    <section id="authentication">
+      <h2 class="section-title"><Icon name="lock" size={21} />Authenticate each request</h2>
+      <p>
+        Send a session token or enabled API key in <code>Authorization: Bearer &lt;token&gt;</code>. Sign in through
+        <code><span class="method" data-method="POST">POST</span> /auth/password</code>
+        or the email flow. A completed login returns <code>{'{token}'}</code>; an account with two-factor authentication
+        first returns
+        <code>{'{challenge,expiresIn}'}</code>.
       </p>
+      <p>
+        Complete the challenge through <code>/auth/second-factor</code> or <code>/auth/recovery</code>. Generate an API
+        key in account settings after enabling API access. The new key is shown once. Keep tokens out of URLs, browser
+        storage, screenshots, and source control.
+      </p>
+      <p>
+        The website uses a secure HTTP-only session cookie. Requests from a separate API client use the bearer header.
+        Identity operations require ownership, and active services require a ready identity.
+      </p>
+    </section>
+    <section id="request-example">
+      <h2 class="section-title"><Icon name="code" size={21} />List your identities</h2>
+      <p>Set <code>SHADOWSELF_TOKEN</code> in your client environment.</p>
+      <div class="code-window">
+        <div class="code-toolbar">
+          <div aria-label="Example language">
+            {#each languages as item (item.id)}<button
+                type="button"
+                data-language={item.id}
+                aria-pressed={language === item.id}
+                onclick={() => {
+                  language = item.id;
+                  copied = false;
+                  copyError = '';
+                }}><CodeLanguageIcon language={item.id} />{item.label}</button
+              >{/each}
+          </div>
+          <button type="button" class="copy-button" onclick={copySample}
+            ><Icon name={copied ? 'check' : 'copy'} size={14} />{copied ? 'Copied' : 'Copy'}</button>
+        </div>
+        <pre><code>{samples[language]}</code></pre>
+      </div>
+      {#if copyError}<p class="copy-error" role="status">{copyError}</p>{/if}
+      <p class="code-note">
+        Success returns <code>{'{identities:[...]}'}</code>. Each identity includes an explicit status. An unavailable
+        service is not represented as a successful empty result.
+      </p>
+    </section>
+    <section id="errors">
+      <h2 class="section-title"><Icon name="warning" size={21} />Handle failure before retrying</h2>
+      <p>
+        Errors use the HTTP status and a consistent JSON body. Read <code>error.code</code> for the machine-readable
+        reason and <code>error.message</code> for the explanation.
+      </p>
+      <pre class="error-example"><code
+          >{JSON.stringify(
+            {error: {code: 'unauthenticated', message: 'Authentication required'}},
+            null,
+            2,
+          )}</code></pre>
+      <div class="status-list">
+        <div>
+          <code class="status-code" data-status="400">400</code><span
+            >Invalid request. Correct the input before retrying.</span>
+        </div>
+        <div>
+          <code class="status-code" data-status="401">401 / 403</code><span
+            >Authentication or access denied. Check the credential and ownership.</span>
+        </div>
+        <div>
+          <code class="status-code" data-status="404">404</code><span
+            >The record is missing or is not available to your account.</span>
+        </div>
+        <div>
+          <code class="status-code" data-status="409">409</code><span
+            >The state changed or request details conflict. Reload and resolve the conflict.</span>
+        </div>
+        <div>
+          <code class="status-code" data-status="429">429</code><span
+            >A rate limit applies. Wait before trying again.</span>
+        </div>
+        <div>
+          <code class="status-code" data-status="503">503</code><span
+            >A provider is unavailable or an operation needs reconciliation.</span>
+        </div>
+      </div>
+      <p>
+        Use a stable UUID <code>requestID</code> for each purchase, renewal, or swap. Retry the same operation with the same
+        ID and input. A response that asks for reconciliation means you should inspect the current state before starting another
+        payment.
+      </p>
+      <p>
+        Vault mutations require the current <code>vaultRevision</code>. A 409 response means your snapshot is stale.
+        Reload before editing or rotating encryption. A 202 deletion response means provider cleanup remains pending. A
+        410 response means a payment quote expired. A 502 response means a provider returned invalid data or rejected
+        the operation.
+      </p>
+    </section>
+    <section id="security">
+      <h2 class="section-title"><Icon name="shield" size={21} />Encryption and service availability</h2>
+      <p>
+        Encrypt vault passwords, TOTP secrets, and wallet private material in the client before sending them. Read
+        operations return the encrypted values. The API does not accept your master password as a way to unlock the
+        vault.
+      </p>
+      <p>
+        Derive a 256-bit AES-GCM key with PBKDF2, SHA-256, 600,000 iterations, and the UTF-8 identity ID as the salt.
+        Each encrypted value uses a fresh 12-byte IV. Its wire format is <code>v1.</code> followed by base64 of the IV and
+        ciphertext, including the 16-byte authentication tag. Account sign-in passwords and account two-factor enrollment
+        are separate from these encrypted identity secrets.
+      </p>
+      <p>
+        Creation uses a persistent named draft and ordinary REST calls. Save draft fields through <code
+          ><span class="method" data-method="PUT">PUT</span> /identities/:id/creation</code
+        >, then provision the validated draft. Portrait generation, email, phone, billing, and wallet operations depend
+        on their configured providers. Names and biographies are generated locally.
+      </p>
+      <div class="policy-note">
+        <p>
+          Network routing is unavailable. <code><span class="method" data-method="GET">GET</span> /extension</code>
+          returns
+          <code>network.status = 'unavailable'</code>. No proxy activation or device VPN endpoint exists. Crypto billing
+          can be disabled independently of user wallets.
+        </p>
+      </div>
+      <p>
+        WebSocket event routes authenticate the connection and periodically recheck it. They support <code>ping</code>
+        and <code>pong</code>. Reconnect with valid credentials and fetch current state after a disconnect.
+      </p>
+    </section>
+    <div class="endpoint-search">
+      <label for="endpoint-search">Find an endpoint</label><input
+        id="endpoint-search"
+        type="search"
+        placeholder="Search path, method, or payload"
+        bind:value={query} />
     </div>
+    {#if !groups.length}<p class="empty-results" role="status">No endpoints match "{query}".</p>{/if}
+    {#each groups as group (group.id)}<section id={group.id} class="endpoint-group" data-feature={group.feature}>
+        <h2 class="section-title">
+          <Icon name={group.icon} size={22} />{group.title}<span>{group.endpoints.length}</span>
+        </h2>
+        <div class="endpoints">
+          {#each group.endpoints as endpoint (`${endpoint.method}-${endpoint.path}`)}<details
+              data-feature={endpointFeature(endpoint.path)}>
+              <summary
+                ><span class="method" data-method={endpoint.method}>{endpoint.method}</span><code>{endpoint.path}</code
+                ><span class="expand" aria-hidden="true">+</span></summary>
+              <p>{endpoint.detail}</p>
+              {#if endpoint.query}<div class="endpoint-example">
+                  <h3>Query example</h3>
+                  <pre><code>{endpoint.query}</code></pre>
+                </div>{/if}
+              {#if endpoint.request}<div class="endpoint-example">
+                  <h3>JSON request</h3>
+                  <pre><code>{JSON.stringify(endpoint.request, null, 2)}</code></pre>
+                </div>{/if}
+              {#if endpoint.response}<div class="endpoint-example">
+                  <h3>Success response example</h3>
+                  <pre><code>{JSON.stringify(endpoint.response, null, 2)}</code></pre>
+                </div>{/if}
+            </details>{/each}
+        </div>
+      </section>{/each}
+    <p class="docs-footnote">
+      Path parameters such as <code>:id</code> must be replaced with the owned record's ID. Fields ending in
+      <code>?</code>
+      are optional. Do not send plaintext secrets in place of encrypted fields. Example tokens, provider references, and values
+      in angle brackets must be replaced with your own results. Ciphertext examples describe the required format and are not
+      usable encrypted secrets. JSON requests require
+      <code>Content-Type: application/json</code>. Unless a route says otherwise, a successful request returns HTTP 200.
+      <a href="/contact">Report a documentation issue</a>.
+    </p>
   </div>
 </PublicPage>
 
 <style>
-  .docs-layout {
-    display: grid;
-    grid-template-columns: 210px minmax(0, 1fr);
-    gap: 65px;
-  }
   .docs-navigation {
-    position: sticky;
-    top: calc(var(--public-header-height) + 24px);
-    max-height: calc(100dvh - var(--public-header-height) - 48px);
-    overflow-y: auto;
-    align-self: start;
     display: grid;
     gap: 4px;
     padding-right: 20px;
     border-right: 1px solid #a5b4fc20;
   }
+  .navigation-label {
+    color: #667796;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0 0 10px;
+  }
+  .navigation-label:not(:first-child) {
+    margin-top: 16px;
+    padding-top: 20px;
+    border-top: 1px solid #a5b4fc20;
+  }
   .docs-navigation a {
+    display: flex;
+    align-items: center;
+    gap: 9px;
     font-size: 11px;
     line-height: 1.7;
-    padding: 10px 0;
+    padding: 9px 0;
     text-decoration: none;
     color: #94a3c2;
   }
   .docs-navigation a:hover {
     color: #c4b5fd;
+  }
+  .docs-navigation a[data-feature] :global(svg) {
+    color: var(--feature-accent);
+    flex-shrink: 0;
+  }
+  .docs-navigation a:not([data-feature]) :global(svg) {
+    color: #94a3c2;
+    flex-shrink: 0;
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title :global(svg) {
+    flex-shrink: 0;
+    color: #a5b4fc;
+  }
+  .endpoint-group .section-title :global(svg) {
+    color: var(--feature-accent);
+  }
+  .endpoint-group {
+    padding-top: 28px;
+    margin-top: 42px;
+    border-top: 1px solid #a5b4fc25;
+  }
+  .endpoint-group h2 {
+    margin-top: 0;
   }
   .docs-content {
     min-width: 0;
@@ -319,8 +396,13 @@ with urllib.request.urlopen(request) as response:
   .code-toolbar > div {
     display: flex;
     gap: 3px;
+    flex-wrap: wrap;
   }
   button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     border: 1px solid transparent;
     background: transparent;
     color: #9eacc9;
@@ -333,10 +415,27 @@ with urllib.request.urlopen(request) as response:
   button:hover {
     color: #e0e7ff;
   }
-  button[aria-pressed='true'] {
-    color: #d9d0ff;
-    border-color: #a394ed40;
-    background: #a394ed15;
+  button[data-language='curl'] {
+    --language-color: #4ade80;
+  }
+  button[data-language='python'] {
+    --language-color: #60a5fa;
+  }
+  button[data-language='javascript'] {
+    --language-color: #facc15;
+  }
+  button[data-language] {
+    color: var(--language-color);
+  }
+  button[data-language][aria-pressed='true'] {
+    border-color: color-mix(in srgb, var(--language-color) 45%, transparent);
+    background: color-mix(in srgb, var(--language-color) 12%, transparent);
+  }
+  .copy-button {
+    flex-shrink: 0;
+  }
+  .copy-button :global(svg) {
+    color: currentColor;
   }
   .code-note {
     margin-top: 18px !important;
@@ -392,6 +491,9 @@ with urllib.request.urlopen(request) as response:
     border-color: #ad9eed;
     box-shadow: 0 0 0 3px #ad9eed15;
   }
+  .endpoints details[data-feature] {
+    border-left: 2px solid var(--feature-accent);
+  }
   .endpoint-group h2 {
     display: flex;
     align-items: center;
@@ -433,18 +535,62 @@ with urllib.request.urlopen(request) as response:
     line-height: 1.7;
   }
   .method {
-    color: #7dc4e8;
+    display: inline-block;
+    color: #0a1020;
+    background: var(--method-color);
     font:
-      10px 'Fira Code Variable',
+      700 10px 'Fira Code Variable',
       monospace;
-    border: 1px solid #7dc4e835;
-    padding: 3px;
+    padding: 4px 6px;
     text-align: center;
     border-radius: 4px;
   }
-  .method.write {
-    color: #bda8ef;
-    border-color: #bda8ef35;
+  [data-method='GET'] {
+    --method-color: #4ade80;
+  }
+  [data-method='POST'] {
+    --method-color: #60a5fa;
+  }
+  [data-method='PUT'] {
+    --method-color: #fbbf24;
+  }
+  [data-method='PATCH'] {
+    --method-color: #c084fc;
+  }
+  [data-method='DELETE'] {
+    --method-color: #fb7185;
+  }
+  [data-method='WS'] {
+    --method-color: #22d3ee;
+  }
+  .status-code {
+    align-self: start;
+    width: fit-content;
+    color: #0a1020;
+    background: var(--status-color);
+    font-weight: 700;
+    font-size: 10px;
+    padding: 4px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  [data-status='400'] {
+    --status-color: #fbbf24;
+  }
+  [data-status='401'] {
+    --status-color: #fb7185;
+  }
+  [data-status='404'] {
+    --status-color: #94a3b8;
+  }
+  [data-status='409'] {
+    --status-color: #fb923c;
+  }
+  [data-status='429'] {
+    --status-color: #c084fc;
+  }
+  [data-status='503'] {
+    --status-color: #f472b6;
   }
   .expand {
     color: #b09eed;
@@ -486,28 +632,46 @@ with urllib.request.urlopen(request) as response:
     padding: 25px 0;
   }
   @media (max-width: 900px) {
-    .docs-layout {
-      grid-template-columns: 1fr;
-      gap: 30px;
-    }
     .docs-navigation {
       position: static;
       max-height: none;
       border-right: 0;
       padding-right: 0;
       display: flex;
-      gap: 10px 20px;
+      gap: 8px 18px;
       flex-wrap: wrap;
       padding-bottom: 22px;
     }
     .docs-navigation a {
       padding-block: 4px;
     }
+    .navigation-label {
+      width: 100%;
+      padding-bottom: 2px;
+    }
+    .navigation-label:not(:first-child) {
+      margin-top: 8px;
+      padding-top: 12px;
+    }
   }
   @media (max-width: 500px) {
+    .code-toolbar {
+      align-items: flex-start;
+    }
     .code-toolbar button {
-      padding: 8px;
+      padding: 7px 6px;
       font-size: 9px;
+      gap: 5px;
+    }
+    .status-list > div {
+      grid-template-columns: 78px minmax(0, 1fr);
+      gap: 12px;
+    }
+    .section-title {
+      align-items: flex-start;
+    }
+    .section-title :global(svg) {
+      margin-top: 4px;
     }
     pre {
       padding: 18px;

@@ -38,11 +38,11 @@
   const renewal = $derived(page.url.searchParams.get('id'));
   const tier = $derived(PRICING_TIERS[plan]);
   const capabilities = [
-    'Identity profile',
-    'Dedicated mailbox',
-    'Phone number',
-    'Encrypted account vault',
-    'Client-signed crypto wallet',
+    {label: 'Identity profile', icon: 'user'},
+    {label: 'Dedicated mailbox', icon: 'mail'},
+    {label: 'Phone number', icon: 'phone'},
+    {label: 'Encrypted account vault', icon: 'lock'},
+    {label: 'Client-signed crypto wallet', icon: 'wallet'},
   ];
   const invoiceMessages: Record<string, string> = {
     reconciling:
@@ -331,7 +331,9 @@
     <div class="plan-price"><span>${tier.price.toFixed(2)}</span><small>{tier.description}</small></div>
     <h2>Included services</h2>
     <ul class="included-capabilities">
-      {#each capabilities as capability (capability)}<li><Icon name="check" size={16} />{capability}</li>{/each}
+      {#each capabilities as capability (capability.label)}<li>
+          <Icon name={capability.icon} size={16} />{capability.label}
+        </li>{/each}
     </ul>
     <small>{CRYPTO_DISCOUNT}% discount with crypto.</small>
   </section>
@@ -372,10 +374,12 @@
       </div>
       <small>Keep this invoice reference. An interrupted connection does not cancel a payment.</small>
     {:else}<div class="tabs payment-tabs">
-        {#if !renewal}<button class:active={method === 'card'} onclick={() => (method = 'card')}
+        {#if !renewal}<button data-feature="card" class:active={method === 'card'} onclick={() => (method = 'card')}
             ><Icon name="card" size={16} />Card</button
-          >{/if}<button class:active={method === 'crypto' || !!renewal} onclick={() => (method = 'crypto')}
-          ><Icon name="wallet" size={16} />Crypto</button>
+          >{/if}<button
+          data-feature="wallet"
+          class:active={method === 'crypto' || !!renewal}
+          onclick={() => (method = 'crypto')}><Icon name="wallet" size={16} />Crypto</button>
       </div>
       {#if method === 'card' && !renewal}<p>Stripe handles card details and subscription payments.</p>
         <div class="checkout-actions">
@@ -457,6 +461,9 @@
     letter-spacing: -2px;
     font-weight: 550;
   }
+  .tabs button[data-feature] {
+    color: var(--feature-accent);
+  }
   .included-capabilities {
     padding: 0;
     margin: 24px 0;
@@ -470,9 +477,6 @@
     gap: 10px;
     color: #b7c3dc;
     font-size: 12px;
-  }
-  .included-capabilities :global(svg) {
-    color: #8cbaab;
   }
   .payment-tabs {
     margin-top: 17px;

@@ -5,6 +5,8 @@
   import {EXTENSION_STORES} from '$constant';
 
   let storesExpanded = $state(false);
+  let download: HTMLDivElement;
+  let storesButton: HTMLButtonElement;
 </script>
 
 <svelte:head>
@@ -16,7 +18,15 @@
 
 <svelte:window
   onkeydown={(event) => {
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && storesExpanded) {
+      storesExpanded = false;
+      storesButton.focus();
+    }
+  }} />
+
+<svelte:document
+  onclick={(event) => {
+    if (storesExpanded && event.target instanceof Node && !download.contains(event.target)) {
       storesExpanded = false;
     }
   }} />
@@ -28,19 +38,40 @@
       Keep your identities close while you browse. Open their profiles, messages, and account vaults from the extension,
       then get back to what you were doing.
     </p>
-    <div class="extension-download">
+    <div
+      class="extension-download"
+      bind:this={download}
+      onfocusout={(event) => {
+        if (!download.contains(event.relatedTarget as Node | null)) {
+          storesExpanded = false;
+        }
+      }}>
       <a class="extension-action" href={EXTENSION_STORES[0].href} target="_blank" rel="noreferrer">
         Add to Firefox <Icon name="download" size={17} />
       </a>
-      <details bind:open={storesExpanded}>
-        <summary aria-label="Other browsers"><Icon name="arrow" size={17} /></summary>
-        <div class="browser-stores">
-          {#each EXTENSION_STORES.slice(1) as store (store.browser)}
-            <a href={store.href} target="_blank" rel="noreferrer" onclick={() => (storesExpanded = false)}
-              >Add to {store.browser} <Icon name="external" size={15} /></a>
-          {/each}
-        </div>
-      </details>
+      <button
+        type="button"
+        class="browser-toggle"
+        bind:this={storesButton}
+        aria-label="Other browsers"
+        aria-expanded={storesExpanded}
+        aria-controls="browser-stores"
+        onclick={() => {
+          storesExpanded = !storesExpanded;
+        }}>
+        <Icon name="chevron" size={18} />
+      </button>
+      <div
+        id="browser-stores"
+        class="browser-stores"
+        class:expanded={storesExpanded}
+        inert={!storesExpanded}
+        aria-hidden={!storesExpanded}>
+        {#each EXTENSION_STORES.slice(1) as store (store.browser)}
+          <a href={store.href} target="_blank" rel="noreferrer" onclick={() => (storesExpanded = false)}
+            >Add to {store.browser} <Icon name="external" size={15} /></a>
+        {/each}
+      </div>
     </div>
   </div>
   <div
@@ -92,15 +123,23 @@
     position: relative;
     display: inline-flex;
     align-items: stretch;
+    border-radius: 7px;
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .extension-download:hover,
+  .extension-download:has(.browser-toggle[aria-expanded='true']) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 32px #6253ec50;
   }
   .extension-download .extension-action {
     border-radius: 7px 0 0 7px;
   }
-  .extension-download summary {
+  .browser-toggle {
     list-style: none;
     display: grid;
     place-items: center;
-    height: 100%;
     padding-inline: 14px;
     color: #f3f0ff;
     background: #4938c9;
@@ -110,17 +149,14 @@
     cursor: pointer;
     transition: background 180ms ease;
   }
-  .extension-download summary::-webkit-details-marker {
-    display: none;
-  }
-  .extension-download summary :global(svg) {
-    transform: rotate(90deg);
+  .browser-toggle :global(svg) {
+    transform: rotate(0deg);
     transition: transform 180ms ease;
   }
-  .extension-download details[open] summary :global(svg) {
-    transform: rotate(-90deg);
+  .browser-toggle[aria-expanded='true'] :global(svg) {
+    transform: rotate(180deg);
   }
-  .extension-download summary:hover {
+  .browser-toggle:hover {
     background: #6253ec;
   }
   .browser-stores {
@@ -134,6 +170,21 @@
     border-radius: 8px;
     background: #11182a;
     box-shadow: 0 15px 35px #0005;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-7px);
+    pointer-events: none;
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      visibility 0s linear 180ms;
+  }
+  .browser-stores.expanded {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition-delay: 0s;
   }
   .browser-stores a {
     display: flex;
@@ -149,6 +200,10 @@
     background: #8773ff15;
   }
 
+  .extension-copy {
+    position: relative;
+    z-index: 2;
+  }
   .extension-page {
     width: min(1100px, calc(100% - 80px));
     margin-inline: auto;
@@ -192,19 +247,6 @@
     transition:
       transform 180ms ease,
       box-shadow 180ms ease;
-  }
-  .extension-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 32px #6253ec50;
-  }
-  .extension-action:active {
-    transform: translateY(0);
-  }
-  .extension-action :global(svg) {
-    transition: transform 180ms ease;
-  }
-  .extension-action:hover :global(svg) {
-    transform: translateX(3px);
   }
   .extension-art {
     position: relative;
@@ -346,16 +388,16 @@
     width: 42px;
     height: 42px;
     border-radius: 8px;
-    background: #fbbf240c;
-    color: #fbbf24;
+    background: color-mix(in srgb, var(--feature-vault) 8%, transparent);
+    color: var(--feature-vault);
   }
   .preview-tools > span:nth-child(2) {
-    color: #fb7185;
-    background: #fb71850c;
+    color: var(--feature-email);
+    background: color-mix(in srgb, var(--feature-email) 8%, transparent);
   }
   .preview-tools > span:nth-child(3) {
-    color: #38bdf8;
-    background: #38bdf80c;
+    color: var(--feature-phone);
+    background: color-mix(in srgb, var(--feature-phone) 8%, transparent);
   }
   .preview-action {
     display: flex;
@@ -399,6 +441,17 @@
     }
     50% {
       translate: 0 -9px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .extension-download,
+    .browser-stores,
+    .browser-toggle :global(svg) {
+      transition: none;
+    }
+    .extension-download:hover,
+    .extension-download:has(.browser-toggle[aria-expanded='true']) {
+      transform: none;
     }
   }
   @media (max-width: 800px) {

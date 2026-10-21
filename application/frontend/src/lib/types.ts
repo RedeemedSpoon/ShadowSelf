@@ -424,6 +424,8 @@ export interface ApiDocumentationEndpoint {
 export interface ApiDocumentationGroup {
   id: string;
   title: string;
+  icon: string;
+  feature: HomepageServiceId;
   endpoints: ApiDocumentationEndpoint[];
 }
 

@@ -1,6 +1,8 @@
 <script lang="ts">
+  import Dialog from '$component/ui/Dialog.svelte';
   import PublicPage from '$component/public/PublicPage.svelte';
   import systemDesign from '$image/visuals/system-design.webp';
+  let designOpen = $state(false);
 </script>
 
 <svelte:head>
@@ -41,13 +43,19 @@
     </p>
   </div>
   <figure>
-    <a href={systemDesign} target="_blank" rel="noreferrer" aria-label="Open the original system design at full size">
+    <button
+      class="design-preview"
+      type="button"
+      onclick={() => {
+        designOpen = true;
+      }}
+      aria-label="View the original system design">
       <img
         src={systemDesign}
         alt="Original ShadowSelf system design connecting the browser, website, extension, backend, database, and external providers."
         loading="lazy" />
-    </a>
-    <figcaption>The original system design, February 2026. Open the image for a closer look.</figcaption>
+    </button>
+    <figcaption>The original system design, February 2026. Click to enlarge.</figcaption>
   </figure>
   <div class="about-copy">
     <h2>A small project with real costs</h2>
@@ -65,10 +73,58 @@
   </div>
 </PublicPage>
 
+<Dialog bind:open={designOpen} title="Original system design" wide fit dismissOnBackdrop>
+  <img class="design-full" src={systemDesign} alt="Original ShadowSelf system design, February 2026" />
+  <div class="design-actions">
+    <a
+      href="https://github.com/RedeemedSpoon/ShadowSelf/blob/master/application/frontend/src/lib/images/visuals/system-design.webp"
+      target="_blank"
+      rel="noreferrer">Open original ↗</a>
+    <a href={systemDesign} download="shadowself-system-design.webp">Download image</a>
+    <button
+      type="button"
+      onclick={() => {
+        designOpen = false;
+      }}>Close</button>
+  </div>
+</Dialog>
+
 <style>
-  .about-copy {
-    max-width: 780px;
-    margin-inline: auto;
+  .design-preview {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+  }
+  .design-full {
+    display: block;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    height: 0;
+    object-fit: contain;
+  }
+  .design-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+  .design-actions a {
+    color: #a5b4fc;
+  }
+  .design-actions button {
+    margin-left: auto;
+    padding: 9px 16px;
+    border: 1px solid #818cf840;
+    border-radius: 6px;
+    color: #e0e7ff;
+    background: #242b49;
+    cursor: pointer;
   }
   .about-copy:first-child h2:first-child {
     margin-top: 0;
@@ -80,10 +136,9 @@
     display: block;
     width: 100%;
     height: auto;
-    border-radius: 10px;
   }
   figcaption {
-    text-align: center;
+    text-align: left;
     margin-top: 14px;
     color: #8f9dbb;
     font-size: 12px;

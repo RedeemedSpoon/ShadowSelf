@@ -33,65 +33,124 @@ export const PRICING_TIERS = {
 export const HOMEPAGE_SERVICES = [
   {
     id: 'identity',
+    icon: 'user',
     name: 'Identity',
     title: 'A profile of its own.',
     description: 'Generate a name, biography, location, and portrait, then edit the profile to suit the identity.',
-    color: '#a78bfa',
+    color: 'var(--feature-identity)',
   },
   {
     id: 'vault',
+    icon: 'lock',
     name: 'Account vault',
     title: 'Passwords and TOTP, per identity.',
     description:
       'Save website credentials under the profile that uses them. Unlock passwords and generate two-factor codes in your browser.',
-    color: '#fbbf24',
+    color: 'var(--feature-vault)',
   },
   {
     id: 'email',
+    icon: 'mail',
     name: 'Email',
     title: 'An inbox of its own.',
     description:
       'Receive verification links and correspondence at a dedicated address. Reply, forward, save drafts, and send attachments from the workspace.',
-    color: '#fb7185',
+    color: 'var(--feature-email)',
   },
   {
     id: 'phone',
+    icon: 'phone',
     name: 'Phone',
     title: 'SMS under a separate number.',
     description:
       "Send and receive SMS with the identity's number. Verification codes and conversations stay with the accounts they're for.",
-    color: '#38bdf8',
+    color: 'var(--feature-phone)',
   },
   {
     id: 'wallet',
+    icon: 'wallet',
     name: 'Wallet',
     title: 'Wallets under each identity.',
     description:
       'Receive Bitcoin, Litecoin, Ethereum, USDT, and Monero. Sign transfers in your browser and track balances and transactions per identity.',
-    color: '#34d399',
+    color: 'var(--feature-wallet)',
   },
   {
     id: 'card',
+    icon: 'card',
     name: 'Credit card',
     title: 'A virtual card for online purchases.',
     description: 'Keep virtual card details, spending limits, and payment records with the identity that uses them.',
-    color: '#e879f9',
+    color: 'var(--feature-card)',
   },
   {
     id: 'proxy',
+    icon: 'proxy',
     name: 'Residential proxies',
     title: 'A connection for each identity.',
     description:
       'Manage residential proxy settings per identity and check provider status. A different IP address does not remove cookies or browser fingerprints.',
-    color: '#a3e635',
+    color: 'var(--feature-proxy)',
   },
   {
     id: 'cloud',
+    icon: 'cloud',
     name: 'Online drive',
     title: 'Files under each identity.',
     description:
       'Store identity files together. Inspect, remove, or edit image metadata and prepare pictures with watermarks and cloaking before sharing.',
-    color: '#fb923c',
+    color: 'var(--feature-cloud)',
+  },
+] as const;
+
+export const HOMEPAGE_DEMO_PROFILES = [
+  {
+    name: 'Amara Cole',
+    location: 'Lisbon, Portugal',
+    email: 'amara.cole@example.com',
+    balance: '$1,284.60',
+    accounts: 12,
+    position: '0% 0%',
+  },
+  {
+    name: 'Leon Park',
+    location: 'Innsbruck, Austria',
+    email: 'leon.park@example.com',
+    balance: '$738.25',
+    accounts: 8,
+    position: '50% 0%',
+  },
+  {
+    name: 'Sofia Reyes',
+    location: 'Valencia, Spain',
+    email: 'sofia.reyes@example.com',
+    balance: '$2,046.80',
+    accounts: 16,
+    position: '100% 0%',
+  },
+  {
+    name: 'Idris Haddad',
+    location: 'Tunis, Tunisia',
+    email: 'idris.haddad@example.com',
+    balance: '$462.15',
+    accounts: 6,
+    position: '0% 100%',
+  },
+  {
+    name: 'Freya Lind',
+    location: 'Bergen, Norway',
+    email: 'freya.lind@example.com',
+    balance: '$1,607.90',
+    accounts: 11,
+    position: '50% 100%',
+  },
+  {
+    name: 'Kavya Rao',
+    location: 'Pune, India',
+    email: 'kavya.rao@example.com',
+    balance: '$925.40',
+    accounts: 9,
+    position: '100% 100%',
   },
 ] as const;
 
@@ -121,3 +180,6 @@ export const EXTENSION_STORES = [
     href: 'https://microsoftedge.microsoft.com/addons/detail/shadowself/fjlfnbhdginnpjnlkhhbjhejgaamhdhb',
   },
 ] as const;
+
+export const HOMEPAGE_CHAIN_LINK_PATH =
+  'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71';

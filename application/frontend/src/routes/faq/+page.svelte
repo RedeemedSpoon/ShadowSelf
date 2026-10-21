@@ -2,6 +2,12 @@
   import PublicPage from '$component/public/PublicPage.svelte';
   import {CRYPTO_DISCOUNT, PRICING_TIERS} from '$constant';
 
+  let expanded = $state<string[]>([]);
+
+  function toggleQuestion(question: string) {
+    expanded = expanded.includes(question) ? expanded.filter((value) => value !== question) : [...expanded, question];
+  }
+
   const groups = [
     {
       title: 'Start here',
@@ -132,15 +138,26 @@
     content="Identity tools, encryption, centralization, providers, self-hosting, payments, and ownership." />
 </svelte:head>
 
-<PublicPage title="Frequently asked questions">
-  {#each groups as group (group.title)}
+<PublicPage title="Frequently asked questions" centered>
+  {#each groups as group, groupIndex (group.title)}
     <section class="question-group" aria-label={group.title}>
       <h2>{group.title}</h2>
-      {#each group.questions as item (item.question)}
-        <details>
-          <summary>{item.question}<span aria-hidden="true">+</span></summary>
-          <p>{item.answer}</p>
-        </details>
+      {#each group.questions as item, index (item.question)}
+        {@const open = expanded.includes(item.question)}
+        {@const id = `question-${groupIndex}-${index}`}
+        <article class:open>
+          <button
+            type="button"
+            {id}
+            aria-expanded={open}
+            aria-controls={`${id}-answer`}
+            onclick={() => toggleQuestion(item.question)}>
+            {item.question}<span aria-hidden="true">+</span>
+          </button>
+          <div class="answer" id={`${id}-answer`} role="region" aria-labelledby={id} inert={!open}>
+            <div><p>{item.answer}</p></div>
+          </div>
+        </article>
       {/each}
     </section>
   {/each}
@@ -156,10 +173,42 @@
     color: #a99ae9;
   }
 
-  details {
+  article {
     border-bottom: 1px solid #a5b4fc20;
   }
-  summary {
+  article:last-child {
+    border-bottom: 0;
+  }
+  .answer {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 380ms ease;
+  }
+  .answer > div {
+    overflow: hidden;
+  }
+  article.open .answer {
+    grid-template-rows: 1fr;
+  }
+  .answer p {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition:
+      opacity 280ms ease,
+      transform 380ms ease;
+    margin: 0;
+  }
+  article.open .answer p {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 70ms;
+  }
+  article > button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    font-family: inherit;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -171,34 +220,38 @@
     font-size: 15px;
     line-height: 1.5;
   }
-  summary::-webkit-details-marker {
-    display: none;
-  }
-  summary > span {
+  article > button > span {
     color: #a99ae9;
     font-size: 23px;
     flex-shrink: 0;
     transition: transform 180ms ease;
   }
-  details[open] summary > span {
+  article.open > button > span {
     transform: rotate(45deg);
   }
-  details > p {
+  .answer p {
     font-size: 14px;
     padding-right: 35px;
     padding-bottom: 18px;
   }
   @media (max-width: 600px) {
-    summary {
+    article > button {
       gap: 18px;
       padding-block: 18px;
     }
-    details > p {
+    .answer p {
       padding-right: 0;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    summary > span {
+    .answer,
+    .answer p {
+      transition: none;
+    }
+    .answer p {
+      transform: none;
+    }
+    article > button > span {
       transition: none;
     }
   }
