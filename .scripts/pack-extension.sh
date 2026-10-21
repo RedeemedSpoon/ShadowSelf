@@ -39,10 +39,18 @@ for variant in chrome firefox; do
   cp "$stage/manifest-$variant.json" "$stage/manifest.json"
   rm "$stage/manifest-chrome.json" "$stage/manifest-firefox.json"
 
+  match_origin=$origin
+
+  if [[ "$variant" == firefox ]]; then
+    match_origin=$(printf '%s' "$origin" | sed -E 's/:[0-9]+$//')
+  fi
+
   jq \
     --arg origin "$origin" \
+    --arg match_origin "$match_origin" \
     --argjson development "$development" \
-    '.homepage_url = $origin | .host_permissions = [$origin + "/*"] |
+    '.homepage_url = $origin | .host_permissions = [$match_origin + "/*"] |
+      .content_scripts[0].matches = [$match_origin + "/*"] |
       if $development then .version = "0.0.0" | .name = "ShadowSelf Development" else . end' \
     "$stage/manifest.json" > "$stage/manifest.json.tmp"
 

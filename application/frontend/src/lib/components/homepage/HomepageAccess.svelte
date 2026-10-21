@@ -18,8 +18,12 @@
         href="/extension">Extension<span>Use it while browsing</span></a
       ><a href="/docs">API<span>Build your own workflow</span></a>
     </div>
-    <svg class="access-connections" viewBox="0 0 600 68" preserveAspectRatio="none" fill="none" aria-hidden="true"
-      ><path d="M100 0V35H500V0M300 0V68" /></svg>
+    <svg class="access-connections" viewBox="0 0 600 68" preserveAspectRatio="none" fill="none" aria-hidden="true">
+      <path class="connection-track" d="M100 0V35H500V0M300 0V68" />
+      <path class="connection-signal" pathLength="100" d="M100 0V35H300V68" />
+      <path class="connection-signal" pathLength="100" d="M300 0V68" />
+      <path class="connection-signal" pathLength="100" d="M500 0V35H300V68" />
+    </svg>
     <div class="access-source"><img src={logo} alt="" /><span>One identity workspace</span></div>
   </div>
 </div>
@@ -76,6 +80,38 @@
   }
   .access-connections path {
     vector-effect: non-scaling-stroke;
+  }
+  .connection-track {
+    opacity: 0.45;
+  }
+  .connection-signal {
+    stroke: #a5b4fc;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 12 112;
+    stroke-dashoffset: 12;
+    animation: converge 3.6s linear infinite;
+    filter: drop-shadow(0 0 3px #818cf880);
+  }
+  @keyframes converge {
+    0% {
+      stroke-dashoffset: 12;
+      opacity: 0;
+    }
+    8%,
+    92% {
+      opacity: 1;
+    }
+    100% {
+      stroke-dashoffset: -112;
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .connection-signal {
+      animation: none;
+      opacity: 0;
+    }
   }
   .access-source {
     display: flex;

@@ -19,6 +19,7 @@
   let step = $state(1);
   let pending = $state(false);
   let error = $state('');
+  let noticeDismissed = $state(false);
   let phones = $state<string[]>([]);
   let location = $state('');
   let profile = $state<Profile>({name: '', bio: '', picture: '', age: 28, sex: 'male', ethnicity: ETHNICITIES[0]});
@@ -318,173 +319,185 @@
   </div>
   <a class="control-button quiet" href="/dashboard">Back to identities</a>
 </div>
-{#if !data.creation}<Status message={data.loadError} kind="error" /><Button
-    variant="secondary"
-    onclick={() => invalidateAll()}>Retry setup</Button
-  >{:else}<Status
-    message="Setup cannot be completed while replacement phone and network providers are being configured. Your draft can still be edited." />
-  <ol class="creation-progress">
-    {#each stages as stage, index (stage.label)}<li
-        data-feature={stage.feature}
-        class:current={step === index + 1}
-        class:complete={step > index + 1}>
-        <span>{step > index + 1 ? '✓' : String(index + 1).padStart(2, '0')}</span>{stage.label}
-      </li>{/each}
-  </ol>
-  <section class="panel creation-panel" data-feature={stages[step - 1].feature}>
-    <div class="section-heading">
-      <div>
-        <h2>{stages[step - 1].label}</h2>
-        {#if step === 5}<p>Master passwords cannot be recovered.</p>{/if}
+<div class="creation-flow">
+  {#if !data.creation}<Status message={data.loadError} kind="error" /><Button
+      variant="secondary"
+      onclick={() => invalidateAll()}>Retry setup</Button
+    >{:else}
+    {#if !noticeDismissed}
+      <Status
+        message="Setup cannot be completed while replacement phone and network providers are being configured. Your draft can still be edited."
+        ondismiss={() => (noticeDismissed = true)} />
+    {/if}
+    <ol class="creation-progress">
+      {#each stages as stage, index (stage.label)}<li
+          data-feature={stage.feature}
+          class:current={step === index + 1}
+          class:complete={step > index + 1}>
+          <span>{step > index + 1 ? '✓' : String(index + 1).padStart(2, '0')}</span>{stage.label}
+        </li>{/each}
+    </ol>
+    <section class="panel creation-panel" data-feature={stages[step - 1].feature}>
+      <div class="section-heading">
+        <div>
+          <h2>{stages[step - 1].label}</h2>
+          {#if step === 5}<p>Master passwords cannot be recovered.</p>{/if}
+        </div>
       </div>
-    </div>
-    <Status message={error} kind="error" />
-    <form onsubmit={continueSetup}>
-      {#if step === 1}
-        <div class="field">
-          <label for="profile-location">Profile location</label>
-          <input id="profile-location" bind:value={location} maxlength="120" placeholder="City or region" required />
-          <small>This describes the profile. Network access will depend on the configured provider.</small>
-        </div>
-      {:else if step === 2}<div class="creation-profile">
-          {#if profile.picture}<img
-              src="data:image/png;base64,{profile.picture}"
-              alt="Generated identity portrait" />{/if}
-          <div class="button-row">
-            <Button type="button" variant="secondary" loading={pending} onclick={() => generate('picture')}
-              >Generate portrait</Button
-            ><Button type="button" variant="quiet" disabled={pending} onclick={() => generate('name')}
-              >Generate name</Button
-            ><Button type="button" variant="quiet" disabled={pending} onclick={() => generate('bio')}
-              >Generate bio</Button>
-          </div>
-        </div>
-        <div class="form-grid">
-          <div class="field wide">
-            <label for="create-name">Name</label><input
-              id="create-name"
-              bind:value={profile.name}
-              required
-              minlength="2"
-              maxlength="30" />
-          </div>
+      <Status message={error} kind="error" />
+      <form onsubmit={continueSetup}>
+        {#if step === 1}
           <div class="field">
-            <label for="create-age">Age</label><input
-              id="create-age"
-              type="number"
-              min="18"
-              max="60"
-              bind:value={profile.age}
-              required />
+            <label for="profile-location">Profile location</label>
+            <input id="profile-location" bind:value={location} maxlength="120" placeholder="City or region" required />
+            <small>This describes the profile. Network access will depend on the configured provider.</small>
           </div>
-          <div class="field">
-            <label for="create-sex">Sex</label><select id="create-sex" bind:value={profile.sex}
-              ><option value="male">Male</option><option value="female">Female</option></select>
+        {:else if step === 2}<div class="creation-profile">
+            {#if profile.picture}<img
+                src="data:image/png;base64,{profile.picture}"
+                alt="Generated identity portrait" />{/if}
+            <div class="button-row">
+              <Button type="button" variant="secondary" loading={pending} onclick={() => generate('picture')}
+                >Generate portrait</Button
+              ><Button type="button" variant="quiet" disabled={pending} onclick={() => generate('name')}
+                >Generate name</Button
+              ><Button type="button" variant="quiet" disabled={pending} onclick={() => generate('bio')}
+                >Generate bio</Button>
+            </div>
           </div>
-          <div class="field wide">
-            <label for="create-ethnicity">Ethnicity</label><select id="create-ethnicity" bind:value={profile.ethnicity}
-              >{#each ETHNICITIES as ethnicity (ethnicity)}<option value={ethnicity}
-                  >{ethnicity[0].toUpperCase() + ethnicity.slice(1)}</option
-                >{/each}</select>
-          </div>
-          <div class="field wide">
-            <label for="create-bio">Bio</label><textarea
-              id="create-bio"
-              bind:value={profile.bio}
-              minlength="5"
-              maxlength="126"></textarea>
-          </div>
-        </div>
-      {:else if step === 3}<div class="field">
-          <label for="create-email">Mailbox address</label><input
-            id="create-email"
-            type="email"
-            bind:value={email}
-            pattern={`[^@]+@${MAIL_DOMAIN.replaceAll('.', '\\.')}`}
-            required /><small>Addresses use the {MAIL_DOMAIN} domain.</small>
-        </div>
-      {:else if step === 4}<div class="field">
-          <label for="create-phone">Phone number</label><select id="create-phone" bind:value={phone} required
-            >{#if phone && !phones.includes(phone)}<option>{phone}</option>{/if}{#each phones as number (number)}<option
-                >{number}</option
-              >{/each}</select>
-        </div>
-        <Button type="button" variant="secondary" loading={pending} onclick={refreshPhones}
-          >Load available numbers</Button>
-      {:else if step === 5}<Status
-          message="Your account password does not unlock this wallet. This master password encrypts the vault and wallet in your browser." />{#if !wallet}<div
-            class="form-grid">
+          <div class="form-grid">
+            <div class="field wide">
+              <label for="create-name">Name</label><input
+                id="create-name"
+                bind:value={profile.name}
+                required
+                minlength="2"
+                maxlength="30" />
+            </div>
             <div class="field">
-              <label for="create-master">Master password</label><input
-                id="create-master"
-                type="password"
-                minlength="12"
-                bind:value={password}
-                autocomplete="new-password"
+              <label for="create-age">Age</label><input
+                id="create-age"
+                type="number"
+                min="18"
+                max="60"
+                bind:value={profile.age}
                 required />
             </div>
             <div class="field">
-              <label for="create-confirm">Confirm master password</label><input
-                id="create-confirm"
-                type="password"
-                bind:value={confirmation}
-                autocomplete="new-password"
-                required />
+              <label for="create-sex">Sex</label><select id="create-sex" bind:value={profile.sex}
+                ><option value="male">Male</option><option value="female">Female</option></select>
+            </div>
+            <div class="field wide">
+              <label for="create-ethnicity">Ethnicity</label><select
+                id="create-ethnicity"
+                bind:value={profile.ethnicity}
+                >{#each ETHNICITIES as ethnicity (ethnicity)}<option value={ethnicity}
+                    >{ethnicity[0].toUpperCase() + ethnicity.slice(1)}</option
+                  >{/each}</select>
+            </div>
+            <div class="field wide">
+              <label for="create-bio">Bio</label><textarea
+                id="create-bio"
+                bind:value={profile.bio}
+                minlength="5"
+                maxlength="126"></textarea>
             </div>
           </div>
-          <Button type="button" loading={pending} icon="key" onclick={generateWallet}>Generate encrypted wallet</Button
-          >{:else}{#if phrase}<p>Bitcoin, Litecoin, Ethereum and USDT recovery phrase</p>
-            <Copy value={phrase} label="Copy recovery phrase" />
-            <p>Monero recovery phrase. Restore this phrase in a Monero wallet.</p>
-            <Copy value={moneroPhrase} label="Copy Monero recovery phrase" />{:else}<Status
-              message="This wallet draft is already encrypted. Use your saved recovery phrase and master password; the phrase is not kept after leaving this step." />{/if}<label
-            class="backup-confirm"
-            ><input type="checkbox" bind:checked={saved} required /> I saved both recovery phrases and the master password
-            securely.</label
-          >{/if}
-      {:else}<dl class="data-list">
-          <div>
-            <dt>Name</dt>
-            <dd>{profile.name}</dd>
+        {:else if step === 3}<div class="field">
+            <label for="create-email">Mailbox address</label><input
+              id="create-email"
+              type="email"
+              bind:value={email}
+              pattern={`[^@]+@${MAIL_DOMAIN.replaceAll('.', '\\.')}`}
+              required /><small>Addresses use the {MAIL_DOMAIN} domain.</small>
           </div>
-          <div>
-            <dt>Profile location</dt>
-            <dd>{location}</dd>
+        {:else if step === 4}<div class="field">
+            <label for="create-phone">Phone number</label><select id="create-phone" bind:value={phone} required
+              >{#if phone && !phones.includes(phone)}<option>{phone}</option
+                >{/if}{#each phones as number (number)}<option>{number}</option>{/each}</select>
           </div>
-          <div>
-            <dt>Email</dt>
-            <dd>{email}</dd>
-          </div>
-          <div>
-            <dt>Phone</dt>
-            <dd>{phone}</dd>
-          </div>
-          <div>
-            <dt>Wallet</dt>
-            <dd>Encrypted locally</dd>
-          </div>
-        </dl>
-        <Status
-          message="Provisioning creates the mailbox and reserves the phone number. Provider failures retain this draft for retry." />{/if}
-      <div class="button-row creation-actions">
-        {#if step > 1 && data.creation.creationStatus !== 'provisioning'}<Button
-            type="button"
-            variant="quiet"
-            disabled={pending}
-            onclick={() => {
-              step--;
-              error = '';
-            }}>Back</Button
-          >{/if}<Button
-          type="submit"
-          loading={pending}
-          disabled={step === 5 && (!wallet || !saved)}
-          icon={step === 6 ? 'check' : 'arrow'}>{step === 6 ? 'Provision identity' : 'Save and continue'}</Button>
-      </div>
-    </form>
-  </section>{/if}
+          <Button type="button" variant="secondary" loading={pending} onclick={refreshPhones}
+            >Load available numbers</Button>
+        {:else if step === 5}<Status
+            message="Your account password does not unlock this wallet. This master password encrypts the vault and wallet in your browser." />{#if !wallet}<div
+              class="form-grid">
+              <div class="field">
+                <label for="create-master">Master password</label><input
+                  id="create-master"
+                  type="password"
+                  minlength="12"
+                  bind:value={password}
+                  autocomplete="new-password"
+                  required />
+              </div>
+              <div class="field">
+                <label for="create-confirm">Confirm master password</label><input
+                  id="create-confirm"
+                  type="password"
+                  bind:value={confirmation}
+                  autocomplete="new-password"
+                  required />
+              </div>
+            </div>
+            <Button type="button" loading={pending} icon="key" onclick={generateWallet}
+              >Generate encrypted wallet</Button
+            >{:else}{#if phrase}<p>Bitcoin, Litecoin, Ethereum and USDT recovery phrase</p>
+              <Copy value={phrase} label="Copy recovery phrase" />
+              <p>Monero recovery phrase. Restore this phrase in a Monero wallet.</p>
+              <Copy value={moneroPhrase} label="Copy Monero recovery phrase" />{:else}<Status
+                message="This wallet draft is already encrypted. Use your saved recovery phrase and master password; the phrase is not kept after leaving this step." />{/if}<label
+              class="backup-confirm"
+              ><input type="checkbox" bind:checked={saved} required /> I saved both recovery phrases and the master password
+              securely.</label
+            >{/if}
+        {:else}<dl class="data-list">
+            <div>
+              <dt>Name</dt>
+              <dd>{profile.name}</dd>
+            </div>
+            <div>
+              <dt>Profile location</dt>
+              <dd>{location}</dd>
+            </div>
+            <div>
+              <dt>Email</dt>
+              <dd>{email}</dd>
+            </div>
+            <div>
+              <dt>Phone</dt>
+              <dd>{phone}</dd>
+            </div>
+            <div>
+              <dt>Wallet</dt>
+              <dd>Encrypted locally</dd>
+            </div>
+          </dl>
+          <Status
+            message="Provisioning creates the mailbox and reserves the phone number. Provider failures retain this draft for retry." />{/if}
+        <div class="button-row creation-actions">
+          {#if step > 1 && data.creation.creationStatus !== 'provisioning'}<Button
+              type="button"
+              variant="quiet"
+              disabled={pending}
+              onclick={() => {
+                step--;
+                error = '';
+              }}>Back</Button
+            >{/if}<Button
+            type="submit"
+            loading={pending}
+            disabled={step === 5 && (!wallet || !saved)}
+            icon={step === 6 ? 'check' : 'arrow'}>{step === 6 ? 'Provision identity' : 'Save and continue'}</Button>
+        </div>
+      </form>
+    </section>{/if}
+</div>
 
 <style>
+  .creation-flow {
+    width: min(850px, 100%);
+    margin-inline: auto;
+  }
   .creation-progress li[data-feature] {
     color: var(--feature-accent);
   }
@@ -523,9 +536,6 @@
   }
   .creation-progress li.complete {
     color: #83baa9;
-  }
-  .creation-panel {
-    max-width: 850px;
   }
   .creation-actions {
     justify-content: flex-end;

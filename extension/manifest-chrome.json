@@ -6,6 +6,7 @@
   "description": "Open your ShadowSelf identities from a signed-in tab in this browser window. Network routing is unavailable.",
   "version": "2.0.0",
   "manifest_version": 3,
+  "minimum_chrome_version": "127",
   "incognito": "spanning",
   "icons": {
     "16": "assets/icons/icon-16x16.png",
@@ -28,5 +29,6 @@
     "type": "module"
   },
   "host_permissions": [],
+  "content_scripts": [{"matches": ["__APP_ORIGIN__/*"], "js": ["content/website.js"], "run_at": "document_start"}],
   "permissions": ["storage", "scripting"]
 }

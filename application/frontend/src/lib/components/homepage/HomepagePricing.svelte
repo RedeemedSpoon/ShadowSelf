@@ -37,7 +37,7 @@
           >{/each}
       </div>
       <div class="price-value" aria-live="polite" aria-atomic="true">
-        {#key billing}<div in:fly={{x: reducedMotion ? 0 : -20, duration: reducedMotion ? 0 : 280}}>
+        {#key billing}<div in:fly={{y: reducedMotion ? 0 : 10, duration: reducedMotion ? 0 : 280}}>
             <div class="price"><span>${plan.price}</span><small>{plan.description}</small></div>
             <p class="plan-caption">{plan.title}</p>
           </div>{/key}
@@ -104,8 +104,8 @@
     background: #5145bb;
   }
   .price-value {
+    display: flow-root;
     min-height: 130px;
-    overflow: hidden;
   }
   .price {
     display: flex;

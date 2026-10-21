@@ -171,9 +171,13 @@
     text-decoration: underline;
     text-underline-offset: 6px;
     text-decoration-color: #6366f14d;
+    transition:
+      color 220ms ease,
+      text-decoration-color 220ms ease;
   }
   :global(.homepage .inline-link:hover) {
     color: #e0e7ff;
+    text-decoration-color: #e0e7ff;
   }
   :global(.homepage a:focus-visible),
   :global(.homepage button:focus-visible),

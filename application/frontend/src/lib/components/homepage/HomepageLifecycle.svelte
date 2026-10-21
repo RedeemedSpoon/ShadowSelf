@@ -1,57 +1,53 @@
 <script lang="ts">
   import HomepageAccess from './HomepageAccess.svelte';
   import Icon from '$component/ui/Icon.svelte';
-  import {HOMEPAGE_EXAMPLE_IDENTITY} from '$constant';
-
-  const example = HOMEPAGE_EXAMPLE_IDENTITY;
 </script>
 
 <section class="network-lifecycle" id="lifecycle">
   <div class="chapter-width">
     <div class="lifecycle-heading" data-reveal>
-      <h2>From a separate profile<br />to an everyday workspace.</h2>
-      <p>Create the identity once. Reach its accounts on the website, in your browser, or through the API.</p>
+      <h2>A separate account.<br />From signup to sign-in.</h2>
+      <p>Keep the profile, verification messages, and saved login together through each step.</p>
     </div>
     <ol class="lifecycle">
       <li data-reveal>
         <span class="lifecycle-dot">1</span>
         <div>
-          <h3>Create the profile</h3>
-          <p>Generate a profile, then choose the name and contact details you'll use.</p>
+          <h3>Choose an identity</h3>
+          <p>Open a profile with its own email address and phone number before signing up elsewhere.</p>
           <div class="lifecycle-example">
-            <span>Profile</span><strong>{example.name}</strong><code>@{example.handle}</code>
+            <span>Identity selected</span><strong>Santiago Vega</strong><code>Spain · santiago.vega@example.com</code>
           </div>
         </div>
       </li>
       <li data-reveal>
         <span class="lifecycle-dot">2</span>
         <div>
-          <h3>Register and verify</h3>
-          <p>
-            Sign up using the identity's email address or phone number. Open the incoming link or code in its workspace.
-          </p>
+          <h3>Verify the new account</h3>
+          <p>Sign up with that email or number. Read the incoming verification link or code in ShadowSelf.</p>
           <div class="lifecycle-example email-example">
-            <span>Email</span><strong>Confirm your account</strong><code>{example.email}</code>
+            <span>New email · Trail Notes</span><strong>Your verification code</strong><code>719 204</code>
           </div>
         </div>
       </li>
       <li data-reveal>
         <span class="lifecycle-dot">3</span>
         <div>
-          <h3>Save the credentials</h3>
-          <p>Add the website, username, password, and TOTP secret to the account vault.</p>
+          <h3>Save the login</h3>
+          <p>Store the website, username, password, and TOTP secret in this identity's account vault.</p>
           <div class="lifecycle-example vault-example">
-            <span>Account vault</span><strong>Login + two-factor code</strong><code>Website / password / TOTP</code>
+            <span>trailnotes.example</span><strong>santiago.routes</strong><code>Password saved · TOTP enabled</code>
           </div>
         </div>
       </li>
       <li data-reveal>
         <span class="lifecycle-dot">4</span>
         <div>
-          <h3>Use the account again</h3>
-          <p>Open the same identity for its login, two-factor code, and recovery messages.</p>
+          <h3>Sign in next time</h3>
+          <p>Choose the same identity, copy its saved login, and use its current two-factor code.</p>
           <div class="lifecycle-example return-example">
-            <span>Identity workspace</span><strong>{example.name}</strong><code>Accounts / messages / wallet</code>
+            <span>trailnotes.example</span><strong>Signed in as santiago.routes</strong><code
+              >Same account, same identity</code>
           </div>
         </div>
       </li>

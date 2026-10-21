@@ -1,6 +1,6 @@
 <script lang="ts">
   import logo from '$image/brands/shadowself/icon.svg';
-  import portrait from '$image/homepage/profile-pictures/theo-mercer.webp';
+  import portrait from '$image/homepage/profile-pictures/yuna-choi.webp';
   import Icon from '$component/ui/Icon.svelte';
   import {EXTENSION_STORES} from '$constant';
 
@@ -106,7 +106,7 @@
       <div class="preview-label"><span>Browser companion</span><i></i></div>
       <div class="identity-preview">
         <img src={portrait} alt="" width="55" height="62" />
-        <div><strong>Theo Mercer</strong><span>@theo_m</span></div>
+        <div><strong>Yuna Choi</strong><span>@yuna.frames</span></div>
       </div>
       <div class="preview-tools">
         <span><Icon name="lock" size={21} /></span><span><Icon name="mail" size={21} /></span><span

@@ -73,7 +73,7 @@
   </div>
 </PublicPage>
 
-<Dialog bind:open={designOpen} title="Original system design" wide fit dismissOnBackdrop>
+<Dialog bind:open={designOpen} title="Original system design" wide fit>
   <img class="design-full" src={systemDesign} alt="Original ShadowSelf system design, February 2026" />
   <div class="design-actions">
     <a
@@ -138,7 +138,7 @@
     height: auto;
   }
   figcaption {
-    text-align: left;
+    text-align: center;
     margin-top: 14px;
     color: #8f9dbb;
     font-size: 12px;

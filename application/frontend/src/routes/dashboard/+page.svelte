@@ -4,6 +4,7 @@
   import Button from '$component/ui/Button.svelte';
   import Icon from '$component/ui/Icon.svelte';
   import Status from '$component/ui/Status.svelte';
+  import Select from '$component/ui/Select.svelte';
   import {formatPhoneNumber} from '$utils/formatting';
 
   let {data}: {data: PageData} = $props();
@@ -11,6 +12,7 @@
   let status = $state('all');
   let sort = $state('newest');
   let pending = $state(false);
+  let recoveryDismissed = $state(false);
   const visible = $derived.by(() => {
     const found = data.identities.filter(
       (identity) =>
@@ -21,11 +23,14 @@
           .includes(query.toLowerCase()),
     );
 
-    return sort === 'name'
-      ? found.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-      : sort === 'newest'
-        ? found
-        : [...found].reverse();
+    const ordered =
+      sort === 'name'
+        ? found.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        : sort === 'newest'
+          ? found
+          : [...found].reverse();
+
+    return ordered.sort((a, b) => Number(a.status === 'inactive') - Number(b.status === 'inactive'));
   });
 
   async function reload() {
@@ -46,8 +51,9 @@
   </div>
   <a class="control-button" href="/purchase"><Icon name="plus" size={17} />New identity</a>
 </div>
-{#if data.recoveryRemaining === 0}<Status
-    message="No recovery codes remain. Generate new codes in account settings." />{/if}
+{#if data.recoveryRemaining === 0 && !recoveryDismissed}<Status
+    message="No recovery codes remain. Generate new codes in account settings."
+    ondismiss={() => (recoveryDismissed = true)} />{/if}
 {#if data.loadError}<Status message={data.loadError} kind="error" /><Button
     variant="secondary"
     icon="refresh"
@@ -67,18 +73,36 @@
         bind:value={query}
         placeholder="Search names, emails or locations" />
     </div>
-    <select bind:value={status} aria-label="Filter identity status"
-      ><option value="all">All statuses</option><option value="active">Active</option><option value="inactive"
-        >Setup pending</option
-      ><option value="frozen">Frozen</option></select
-    ><select bind:value={sort} aria-label="Sort identities"
-      ><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name"
-        >Name</option
-      ></select>
+    <div class="toolbar-select">
+      <Select
+        id="identity-status"
+        label="Filter identity status"
+        compact
+        bind:value={status}
+        options={[
+          {value: 'all', label: 'All statuses'},
+          {value: 'active', label: 'Active'},
+          {value: 'inactive', label: 'Setup pending'},
+          {value: 'frozen', label: 'Frozen'},
+        ]} />
+    </div>
+    <div class="toolbar-select">
+      <Select
+        id="identity-sort"
+        label="Sort identities"
+        compact
+        bind:value={sort}
+        options={[
+          {value: 'newest', label: 'Newest first'},
+          {value: 'oldest', label: 'Oldest first'},
+          {value: 'name', label: 'Name'},
+        ]} />
+    </div>
   </div>
   <div class="identity-list">
     {#each visible as identity (identity.id)}<a
         class="identity-card"
+        class:unfinished={identity.status === 'inactive'}
         href={identity.status === 'inactive' ? `/create?id=${identity.id}` : `/identity/${identity.id}`}
         ><div class="identity-avatar">
           {#if identity.picture}<img src="data:image/png;base64,{identity.picture}" alt="" />{:else}<Icon
@@ -102,7 +126,7 @@
         <div class="identity-count">
           <span>{identity.accounts || 0} vault entries</span>
         </div>
-        <Icon name="arrow" size={17} /></a
+        {#if identity.status !== 'inactive'}<Icon name="arrow" size={17} />{/if}</a
       >{/each}
   </div>
   {#if !visible.length}<div class="empty-state">
@@ -124,9 +148,8 @@
     gap: 10px;
     margin-bottom: 20px;
   }
-  .identity-toolbar select {
-    width: auto;
-    min-width: 130px;
+  .toolbar-select {
+    width: 155px;
   }
   .search-field {
     position: relative;
@@ -158,6 +181,23 @@
   }
   .identity-card:hover {
     border-color: #9384e55a;
+  }
+  .identity-card.unfinished {
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    border-style: dashed;
+    border-color: #818cf866;
+    background: transparent;
+    opacity: 0.58;
+    transition:
+      border-color 200ms ease,
+      opacity 200ms ease;
+  }
+  .identity-card.unfinished:hover,
+  .identity-card.unfinished:focus-visible {
+    opacity: 0.8;
+  }
+  .unfinished .identity-avatar {
+    border-style: dashed;
   }
   .identity-avatar {
     grid-row: 1/3;
@@ -228,7 +268,7 @@
     .search-field {
       flex-basis: 100%;
     }
-    .identity-toolbar select {
+    .toolbar-select {
       flex: 1;
       min-width: 0;
     }

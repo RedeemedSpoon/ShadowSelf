@@ -2,6 +2,32 @@ import {applicationOrigin, isAccountTab} from '../shared.js';
 
 const origin = applicationOrigin(chrome.runtime.getManifest());
 
+chrome.runtime.onMessage.addListener((message, sender, respond) => {
+  if (
+    message?.type !== 'open-website-popup' ||
+    sender.id !== chrome.runtime.id ||
+    sender.frameId !== 0 ||
+    !isAccountTab(sender.tab, sender.tab?.windowId, origin)
+  ) {
+    return false;
+  }
+
+  try {
+    if (new URL(sender.url).origin !== origin) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+
+  chrome.action.openPopup({windowId: sender.tab.windowId}).then(
+    () => respond({opened: true}),
+    () => respond({opened: false}),
+  );
+
+  return true;
+});
+
 async function clearBindings(matches) {
   const values = await chrome.storage.session.get(null);
 

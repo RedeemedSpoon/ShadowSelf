@@ -9,7 +9,6 @@
     onclose,
     wide = false,
     fit = false,
-    dismissOnBackdrop = false,
   }: {
     open?: boolean;
     title: string;
@@ -17,7 +16,6 @@
     onclose?: () => void;
     wide?: boolean;
     fit?: boolean;
-    dismissOnBackdrop?: boolean;
   } = $props();
   let dialog: HTMLDialogElement;
 
@@ -60,7 +58,7 @@
   }
 
   function dismissBackdrop(event: PointerEvent) {
-    if (!open || !dismissOnBackdrop || event.target !== dialog) {
+    if (!open || event.target !== dialog) {
       return;
     }
 
@@ -90,12 +88,26 @@
   aria-label={title}>
   <div class="dialog-heading">
     <h2>{title}</h2>
-    <Button variant="quiet" icon="close" aria-label="Close dialog" onclick={close} />
+    <Button variant="quiet" class="dialog-close" icon="close" aria-label="Close dialog" onclick={close} />
   </div>
   {@render children()}
 </dialog>
 
 <style>
+  .console-dialog .dialog-heading :global(.dialog-close) {
+    color: var(--muted);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    filter: none;
+    transform: none;
+    transition: color 200ms ease;
+  }
+  .dialog-heading :global(.dialog-close:hover),
+  .dialog-heading :global(.dialog-close:focus-visible) {
+    color: #fb7185;
+  }
+
   :global(html:has(.console-dialog.fit)) {
     scrollbar-gutter: stable;
   }

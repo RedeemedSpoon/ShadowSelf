@@ -1,11 +1,12 @@
 <script lang="ts">
   import Icon from '$component/ui/Icon.svelte';
-  import portraits from '$image/homepage/profile-pictures/identity-profiles.webp';
+  import portrait from '$image/homepage/profile-pictures/gabriel-costa.webp';
+  import {HOMEPAGE_PANEL_IDENTITIES} from '$constant';
 </script>
 
 <div
   class="drive-art"
-  aria-label="Nadia Laurent's profile photo, document, and video downloading from her identity drive">
+  aria-label={`${HOMEPAGE_PANEL_IDENTITIES.cloud.name}'s profile photo, document, and video downloading from the identity drive`}>
   <div class="download-source">
     <svg viewBox="0 0 72 58" fill="none" aria-hidden="true">
       <path
@@ -35,15 +36,15 @@
   </div>
   <div class="file-folder">
     <div class="folder-heading">
-      <span><Icon name="folder" size={17} />Profile files</span><small>Nadia Laurent</small>
+      <span><Icon name="folder" size={17} />Profile files</span><small>{HOMEPAGE_PANEL_IDENTITIES.cloud.name}</small>
     </div>
     <div class="file-tiles">
       <div class="file-tile">
         <div
           class="file-preview portrait"
           role="img"
-          aria-label="Fictional portrait of Nadia Laurent"
-          style:background-image={`url(${portraits})`}>
+          aria-label={`Fictional portrait of ${HOMEPAGE_PANEL_IDENTITIES.cloud.name}`}
+          style:background-image={`url(${portrait})`}>
         </div>
         <span>profile.jpg</span>
       </div>
@@ -169,8 +170,8 @@
     color: var(--feature-cloud);
   }
   .portrait {
-    background-size: 200%;
-    background-position: 100% 100%;
+    background-size: cover;
+    background-position: center;
   }
   .file-tile > span {
     display: block;

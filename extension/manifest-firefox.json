@@ -26,7 +26,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "verfication@shadowself.io",
-      "strict_min_version": "126.0"
+      "strict_min_version": "149.0"
     }
   },
   "background": {
@@ -34,5 +34,6 @@
     "type": "module"
   },
   "host_permissions": [],
+  "content_scripts": [{"matches": ["__APP_ORIGIN__/*"], "js": ["content/website.js"], "run_at": "document_start"}],
   "permissions": ["storage", "scripting"]
 }

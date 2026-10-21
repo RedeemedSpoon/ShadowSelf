@@ -5,19 +5,52 @@
   import portraits from '$image/homepage/profile-pictures/persona-profiles.webp';
 
   let profileIndex = $state(0);
+  let outgoing = $state<number | null>(null);
   let assembly: HTMLDivElement;
+  let progress = $state(0);
 
   onMount(() => {
     profileIndex = crypto.getRandomValues(new Uint32Array(1))[0] % HOMEPAGE_DEMO_PROFILES.length;
-    const interval = window.setInterval(() => {
-      if (document.hidden || assembly.dataset.inView !== 'true') {
-        return;
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let advance: ReturnType<typeof setTimeout>;
+    let finish: ReturnType<typeof setTimeout>;
+
+    let elapsed = 0;
+    let previous = performance.now();
+    let frame: number;
+
+    const tick = (now: number) => {
+      const delta = Math.min(now - previous, 100);
+      previous = now;
+
+      if (!document.hidden && assembly.dataset.inView === 'true' && !preference.matches && outgoing === null) {
+        elapsed += delta;
+        progress = Math.min(elapsed / 6500, 1);
+
+        if (progress === 1) {
+          outgoing = profileIndex;
+          advance = setTimeout(() => {
+            profileIndex = (profileIndex + 1) % HOMEPAGE_DEMO_PROFILES.length;
+            progress = 0;
+          }, 480);
+          finish = setTimeout(() => {
+            outgoing = null;
+            elapsed = 0;
+            progress = 0;
+          }, 1300);
+        }
       }
 
-      profileIndex = (profileIndex + 1) % HOMEPAGE_DEMO_PROFILES.length;
-    }, 5000);
+      frame = requestAnimationFrame(tick);
+    };
 
-    return () => window.clearInterval(interval);
+    frame = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(advance);
+      clearTimeout(finish);
+    };
   });
 </script>
 
@@ -42,45 +75,43 @@
           </div>
         {/each}
       </div>
-      <div class="assembly-spine" aria-hidden="true"><span></span></div>
+      <div class="assembly-spine" aria-hidden="true"></div>
       <div class="assembly-profile">
-        <div class="assembly-record">
-          <div class="profile-topline">
-            <span>Example identity</span>
-          </div>
-          <div class="profile-slides">
-            {#each HOMEPAGE_DEMO_PROFILES as profile, index (profile.name)}
-              <div
-                class="profile-slide"
-                class:active={index === profileIndex}
-                class:exiting={index ===
-                  (profileIndex + HOMEPAGE_DEMO_PROFILES.length - 1) % HOMEPAGE_DEMO_PROFILES.length}
-                aria-hidden={index !== profileIndex}>
-                <div class="profile-person">
-                  <div
-                    class="profile-portrait"
-                    role="img"
-                    aria-label={`Fictional portrait of ${profile.name}`}
-                    style:background-image={`url(${portraits})`}
-                    style:background-position={profile.position}>
-                  </div>
-                  <strong>{profile.name}</strong>
-                  <span>{profile.location}</span>
+        <div class="profile-deck">
+          {#each HOMEPAGE_DEMO_PROFILES as profile, index (profile.name)}
+            {@const depth = (index - profileIndex + HOMEPAGE_DEMO_PROFILES.length) % HOMEPAGE_DEMO_PROFILES.length}
+            <div
+              class="assembly-record"
+              class:shuffling={outgoing === index}
+              style:--depth={depth}
+              style:z-index={HOMEPAGE_DEMO_PROFILES.length - depth}
+              aria-hidden={depth !== 0}>
+              <div class="profile-topline"><span>Example identity</span></div>
+              <div class="profile-person">
+                <div
+                  class="profile-portrait"
+                  role="img"
+                  aria-label={`Fictional portrait of ${profile.name}`}
+                  style:background-image={`url(${portraits})`}
+                  style:background-position={profile.position}>
                 </div>
-                <div class="profile-email"><Icon name="mail" size={13} /><span>{profile.email}</span></div>
-                <dl class="profile-stats">
-                  <div>
-                    <dt>Saved accounts</dt>
-                    <dd>{profile.accounts}</dd>
-                  </div>
-                  <div>
-                    <dt>Wallet balance</dt>
-                    <dd>{profile.balance}</dd>
-                  </div>
-                </dl>
+                <strong>{profile.name}</strong>
+                <span>{profile.location}</span>
               </div>
-            {/each}
-          </div>
+              <div class="profile-email"><Icon name="mail" size={13} /><span>{profile.email}</span></div>
+              <dl class="profile-stats">
+                <div>
+                  <dt>Saved accounts</dt>
+                  <dd>{profile.accounts}</dd>
+                </div>
+                <div>
+                  <dt>Wallet balance</dt>
+                  <dd>{profile.balance}</dd>
+                </div>
+              </dl>
+              <span class="card-progress" style:scale={`${depth === 0 ? progress : 0} 1`} aria-hidden="true"></span>
+            </div>
+          {/each}
         </div>
         <p class="assembly-caption">Choose the identity first.<br />Its tools are already together.</p>
       </div>
@@ -225,23 +256,44 @@
     width: 23px;
     background: #818cf880;
   }
-  .assembly-spine span {
-    position: absolute;
-    width: 3px;
-    height: 35px;
-    right: -2px;
-    background: linear-gradient(transparent, #a5b4fc, transparent);
-    animation: collect 6s linear infinite;
-  }
   .assembly-profile {
     position: relative;
   }
+  .profile-deck {
+    position: relative;
+    height: 330px;
+    margin-top: 52px;
+    perspective: 1000px;
+    --shuffle-travel: 55%;
+    --stack-step: 6px;
+  }
   .assembly-record {
+    position: absolute;
+    overflow: hidden;
+    inset: 0;
+    transform: translate3d(calc(var(--depth) * var(--stack-step)), calc(var(--depth) * -17px), 0)
+      scale(calc(1 - var(--depth) * 0.035)) rotate(calc(var(--depth) * 1deg));
+    transform-origin: center 70%;
+    transition:
+      transform 820ms cubic-bezier(0.22, 0.7, 0.2, 1),
+      box-shadow 820ms ease;
     padding: 25px 18px;
     border: 1px solid #818cf85e;
     background: linear-gradient(150deg, #24264a, #12192e);
     border-radius: 9px;
-    box-shadow: 0 25px 50px #0004;
+    box-shadow:
+      0 12px 30px #02061766,
+      0 2px 8px #02061755;
+  }
+  .card-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #a5b4fc;
+    box-shadow: 0 0 8px #818cf866;
+    transform-origin: left;
   }
   .profile-topline {
     display: flex;
@@ -250,41 +302,26 @@
     color: #8998bb;
     font-size: 9px;
   }
-  .profile-slides {
-    position: relative;
-    height: 260px;
-    min-width: 0;
+  .assembly-record.shuffling {
+    animation: card-to-back 1300ms cubic-bezier(0.3, 0.65, 0.2, 1) both;
   }
-  .profile-slide {
-    position: absolute;
-    inset: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-  .profile-slide.active {
-    visibility: visible;
-    z-index: 1;
-    animation: persona-enter 500ms ease-in-out both;
-  }
-  .profile-slide.exiting {
-    visibility: visible;
-    z-index: 2;
-    animation: persona-exit 500ms ease-in-out both;
-  }
-  @keyframes persona-enter {
-    from {
-      clip-path: inset(0 100% 0 0);
+  @keyframes card-to-back {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+      z-index: 7;
     }
-    to {
-      clip-path: inset(0);
+    42% {
+      transform: translate3d(var(--shuffle-travel), -22px, 45px) scale(0.98) rotate(10deg);
+      z-index: 7;
+      box-shadow: 0 24px 42px #02061780;
     }
-  }
-  @keyframes persona-exit {
-    from {
-      clip-path: inset(0);
+    48% {
+      z-index: 1;
     }
-    to {
-      clip-path: inset(0 0 0 100%);
+    100% {
+      transform: translate3d(calc(var(--depth) * var(--stack-step)), calc(var(--depth) * -17px), 0)
+        scale(calc(1 - var(--depth) * 0.035)) rotate(calc(var(--depth) * 1deg));
+      z-index: 1;
     }
   }
   .profile-person {
@@ -319,7 +356,12 @@
     gap: 6px;
     color: #a5b4fc;
     font-size: 9px;
-    overflow-wrap: anywhere;
+  }
+  .profile-email > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .profile-stats {
     display: grid;
@@ -386,8 +428,14 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .profile-slide.exiting {
-      visibility: hidden;
+    .card-progress {
+      display: none;
+    }
+    .assembly-record {
+      transition: none;
+    }
+    .assembly-record.shuffling {
+      animation: none;
     }
   }
   @keyframes signal {
@@ -400,14 +448,6 @@
     85% {
       opacity: 1;
       translate: 4px;
-    }
-  }
-  @keyframes collect {
-    from {
-      top: 0;
-    }
-    to {
-      top: calc(100% - 35px);
     }
   }
   @media (max-width: 1000px) {
@@ -428,6 +468,10 @@
     }
   }
   @media (max-width: 750px) {
+    .profile-deck {
+      --shuffle-travel: -45%;
+      --stack-step: 0px;
+    }
     .purpose {
       padding-block: 65px 35px;
     }
@@ -495,9 +539,6 @@
       border-left: 1px solid #818cf84d;
     }
     .assembly-spine::after {
-      display: none;
-    }
-    .assembly-spine span {
       display: none;
     }
     .assembly-profile {

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import portrait from '$image/homepage/profile-pictures/theo-mercer.webp';
-  import {HOMEPAGE_EXAMPLE_IDENTITY} from '$constant';
+  import portrait from '$image/homepage/profile-pictures/yuna-choi.webp';
+  import {HOMEPAGE_PANEL_IDENTITIES} from '$constant';
   import type {HomepageServiceId} from '$type';
   import ServiceIcon from './ServiceIcon.svelte';
   import BlockchainVisual from './BlockchainVisual.svelte';
@@ -9,7 +9,7 @@
   import map from '$image/patterns/world-map.svg';
 
   let {service}: {service: HomepageServiceId} = $props();
-  const example = HOMEPAGE_EXAMPLE_IDENTITY;
+  const examples = HOMEPAGE_PANEL_IDENTITIES;
   let codeCycle = $state(0);
   const demoCode = $derived(String((482901 + codeCycle * 193207) % 1000000).padStart(6, '0'));
 </script>
@@ -24,28 +24,30 @@
         </div>
         <div class="person">
           <div class="portrait-scan">
-            <img src={portrait} alt={`Example profile for ${example.name}`} loading="lazy" /><span aria-hidden="true"
-            ></span>
+            <img src={portrait} alt={`Example profile for ${examples.identity.name}`} loading="lazy" /><span
+              aria-hidden="true"></span>
           </div>
           <div>
-            <h4>{example.name}</h4>
-            <code>@{example.handle}</code>
-            <p>Photography &amp; design</p>
+            <h4>{examples.identity.name}</h4>
+            <code>@{examples.identity.handle}</code>
+            <p>Film photography</p>
           </div>
         </div>
         <dl class="fields">
           <div>
             <dt>Location</dt>
-            <dd>London, United Kingdom</dd>
+            <dd>{examples.identity.location}</dd>
           </div>
           <div>
             <dt>Biography</dt>
-            <dd>Photographer. Design enthusiast.</dd>
+            <dd>Film, sea air, and long walks.</dd>
           </div>
         </dl>
         <div class="record-footer"><span>Profile details</span><span>Saved together</span></div>
       </div>
-      <div class="identity-orbit" aria-hidden="true"><span>TM</span><span>UK</span><span>01</span></div>
+      <div class="identity-orbit" aria-hidden="true">
+        <span>{examples.identity.initials}</span><span>{examples.identity.countryCode}</span><span>01</span>
+      </div>
     </div>
   {:else if service === 'vault'}
     <div class="vault-art">
@@ -53,8 +55,8 @@
         <div class="vault-account">
           <span class="vault-mark"><Icon name="lock" /></span>
           <div>
-            <h4>Photography forum</h4>
-            <small>{example.handle}</small>
+            <h4>Hiking journal</h4>
+            <small>{examples.vault.handle}</small>
           </div>
         </div>
         <dl class="fields">
@@ -87,12 +89,16 @@
         <div><strong>New email received</strong><small>Studio workspace · just now</small></div>
         <i></i>
       </div>
+
       <div class="record">
-        <div class="window-bar"><span>Theo's inbox</span><span>Example message</span></div>
+        <div class="window-bar mail-heading">
+          <span>{examples.email.name}'s inbox</span>
+          <span class="mail-back"><Icon name="back" size={12} />Back</span>
+        </div>
         <div class="message">
-          <code>To: {example.email}</code>
+          <code>To: {examples.email.email}</code>
           <h4>Your project invitation is here</h4>
-          <p>Maya invited you to the studio workspace. Your project files are ready.</p>
+          <p>Lucia invited you to the studio workspace. Your project files are ready.</p>
           <span class="fake-link">View invitation</span>
         </div>
         <div class="record-footer">Delivered to your identity's inbox.</div>
@@ -104,10 +110,10 @@
         <div class="phone-frame">
           <div class="phone-camera"></div>
           <div class="phone-top">
-            <span class="contact-avatar">M</span>
-            <div><strong>Maya</strong><span>SMS conversation</span></div>
+            <span class="contact-avatar">Z</span>
+            <div><strong>{examples.phone.name}</strong><span>SMS conversation</span></div>
           </div>
-          <code class="phone-number">{example.phone}</code>
+          <code class="phone-number">{examples.phone.phone}</code>
           <div class="sms-time">Today, 16:42</div>
           <div class="sms-message">Are we still meeting at the studio tomorrow?</div>
           <div class="sms-response">Yes, see you at 10!</div>
@@ -116,7 +122,6 @@
           <div class="phone-home"></div>
         </div>
       </div>
-      <span class="phone-side">Conversations and codes.<br />Kept with this identity.</span>
     </div>
   {:else if service === 'wallet'}
     <BlockchainVisual />
@@ -126,7 +131,7 @@
         <div><span>ShadowSelf</span><small>Virtual card</small></div>
         <span class="card-chip" aria-hidden="true"></span>
         <code>•••• &nbsp; •••• &nbsp; •••• &nbsp; 0042</code>
-        <div><span>{example.name}</span><span class="card-circles" aria-hidden="true"></span></div>
+        <div><span>{examples.card.name}</span><span class="card-circles" aria-hidden="true"></span></div>
       </div>
       <div class="payment-receipt">
         <Icon name="card" size={18} /><span>Monthly limit <strong>$250.00</strong></span><small>$42.00 spent</small>
@@ -352,7 +357,7 @@
     line-height: 1.7;
   }
   .mail-art {
-    padding-top: 48px;
+    padding-top: 0;
     isolation: isolate;
   }
   .mail-art .record {
@@ -487,12 +492,6 @@
     bottom: 12px;
     left: calc(50% - 32px);
   }
-  .phone-side {
-    font-size: 10px;
-    color: #90b9d2;
-    line-height: 1.8;
-    text-align: center;
-  }
   @media (max-width: 600px) {
     .identity-pass {
       padding: 19px;
@@ -540,6 +539,7 @@
     gap: 8px;
   }
   .recovery-slip {
+    --icon-color: var(--feature-vault);
     position: relative;
     z-index: 2;
     margin: -10px 0 0 30px;
@@ -763,19 +763,33 @@
   }
   .mail-notification {
     position: absolute;
-    top: 20px;
+    top: 0;
     left: 10px;
     right: 12px;
     z-index: 3;
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 7px;
     padding: 13px;
     border: 1px solid color-mix(in srgb, var(--feature-email) 55%, transparent);
     border-radius: 8px;
     background: #231823;
     box-shadow: 0 10px 25px #0005;
     animation: email-arrival 7s ease-in-out infinite;
+  }
+  .mail-heading {
+    gap: 8px;
+    justify-content: space-between;
+  }
+  .mail-heading > span:first-child {
+    min-width: 0;
+    flex: 1;
+  }
+  .mail-back {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
   }
   .mail-notification strong {
     display: block;

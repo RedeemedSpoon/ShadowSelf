@@ -365,24 +365,23 @@
       <h1>{account.name || 'Identity setup'}</h1>
       <p>{account.location}<span class="badge {account.status} identity-status">{account.status}</span></p>
     </div>
-    <div class="button-row">
+    <div class="button-row identity-actions">
       {#if completeAccount}{#if $vaultKey}<Button variant="secondary" icon="lock" onclick={lock}>Lock secrets</Button
           >{#if account.status === 'active'}<Button variant="quiet" icon="key" onclick={() => (rotateOpen = true)}
               >Change master password</Button
             >{/if}
         {:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button
-          >{/if}{/if}<Button
-        variant="quiet"
-        icon="trash"
-        aria-label="Delete identity"
-        onclick={() => (deleteOpen = true)} />
+          >{/if}{/if}
+      {#if account.status === 'frozen'}
+        <a class="control-button" href="/purchase?id={account.id}&plan={account.plan}">
+          <Icon name="refresh" size={17} />Renew identity
+        </a>
+      {/if}
+      <Button variant="quiet" icon="trash" aria-label="Delete identity" onclick={() => (deleteOpen = true)} />
     </div>
   </div>
   {#if account.status === 'frozen'}<Status
-      message="This identity's subscription has expired. You can still read and export your vault, recover wallet keys, and move funds. Renew to restore its paid services." /><a
-      class="control-button"
-      href="/purchase?id={account.id}&plan={account.plan}">Renew identity</a
-    >{/if}
+      message="This identity's subscription has expired. You can still read and export your vault, recover wallet keys, and move funds. Renew to restore its paid services." />{/if}
   {#if account.status === 'inactive'}<Status message="Setup is not complete. Continue provisioning this identity." /><a
       class="control-button"
       href="/create?id={account.id}">Continue setup</a
@@ -484,6 +483,17 @@
   </form></Dialog>
 
 <style>
+  @media (max-width: 600px) {
+    .identity-actions {
+      gap: 5px;
+    }
+    .identity-actions :global(.control-button) {
+      gap: 5px;
+      padding-inline: 8px;
+      font-size: clamp(10px, 2.8vw, 11px);
+    }
+  }
+
   .identity-status {
     margin-left: 10px;
   }

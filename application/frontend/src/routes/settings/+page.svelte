@@ -4,6 +4,7 @@
   import type {SubmitFunction} from '@sveltejs/kit';
   import type {PageProps} from './$types';
   import Button from '$component/ui/Button.svelte';
+  import Icon from '$component/ui/Icon.svelte';
   import Status from '$component/ui/Status.svelte';
   import Dialog from '$component/ui/Dialog.svelte';
   import Copy from '$component/ui/Copy.svelte';
@@ -78,7 +79,7 @@
 <svelte:head><title>Account settings | ShadowSelf</title></svelte:head>
 <div class="page-heading">
   <div>
-    <h1>Account settings</h1>
+    <h1><Icon name="settings" size={24} />Account settings</h1>
   </div>
 </div>
 <Status message={form?.message || ''} kind={form?.type === 'success' ? 'success' : 'error'} /><Status
@@ -91,7 +92,7 @@
     <section class="panel">
       <div class="section-heading">
         <div>
-          <h2>Account details</h2>
+          <h2><Icon name="user" size={20} />Account details</h2>
         </div>
       </div>
       <dl class="data-list">
@@ -117,9 +118,9 @@
     <section class="panel">
       <div class="section-heading">
         <div>
-          <h2>Sign-in security</h2>
+          <h2><Icon name="shield" size={20} />Sign-in security</h2>
         </div>
-        <span class="badge {settings.OTP ? 'active' : ''}">{settings.OTP ? '2FA enabled' : '2FA off'}</span>
+        <span class="badge {settings.OTP ? 'active' : 'disabled'}">{settings.OTP ? '2FA enabled' : '2FA off'}</span>
       </div>
       <p>{settings.recoveryRemaining ?? 0} recovery codes remain. Each code is valid once.</p>
       <div class="button-row settings-actions">
@@ -136,9 +137,9 @@
     <section class="panel">
       <div class="section-heading">
         <div>
-          <h2>API access</h2>
+          <h2><Icon name="code" size={20} />API access</h2>
         </div>
-        <span class="badge {settings.API ? 'active' : ''}">{settings.API ? 'Enabled' : 'Disabled'}</span>
+        <span class="badge {settings.API ? 'active' : 'disabled'}">{settings.API ? 'Enabled' : 'Disabled'}</span>
       </div>
       <p>New API keys are shown once. Generating a key replaces the existing one.</p>
       <div class="button-row settings-actions">
@@ -150,7 +151,7 @@
     <section class="panel">
       <div class="section-heading">
         <div>
-          <h2>Billing</h2>
+          <h2><Icon name="card" size={20} />Billing</h2>
         </div>
       </div>
       <p>Identity subscriptions use Stripe.</p>
@@ -163,7 +164,7 @@
   </div>
   {#if settings.cryptoRefunds?.length}
     <section class="panel sessions-panel" aria-label="Crypto refunds">
-      <h2>Crypto refunds</h2>
+      <h2><Icon name="refresh" size={20} />Crypto refunds</h2>
       <p>
         Eligible refunds are paid in XMR using the original USD purchase value. The exchange rate is fixed when the
         payout is signed. ShadowSelf pays the outgoing fee.
@@ -215,11 +216,18 @@
       <Button variant="secondary" onclick={() => invalidateAll()}>Refresh refund status</Button>
     </section>
   {/if}
-  <section class="panel sessions-panel">
+  <section class="panel sessions-panel active-sessions">
     <div class="section-heading">
       <div>
-        <h2>Active sessions</h2>
+        <h2><Icon name="identities" size={20} />Active sessions</h2>
       </div>
+      <form class="sign-out-sessions" method="POST" action="?/session" use:enhance={submit} data-action="sessions">
+        <input type="hidden" name="revoke" value="true" /><Button
+          type="submit"
+          variant="quiet"
+          class="revoke-all"
+          loading={pending === 'sessions'}>Sign out all sessions</Button>
+      </form>
     </div>
     {#if data.sessionsError}<Status message={data.sessionsError} kind="error" /><Button
         variant="secondary"
@@ -227,7 +235,7 @@
       >{:else if !data.sessions.length}<p>No active sessions.</p>{:else}<div class="sessions-list">
         {#each data.sessions as session (session.id)}<div>
             <span class="session-title"
-              >{session.current ? 'This browser' : 'Signed-in browser'}<code>{session.id.slice(0, 12)}…</code></span>
+              >{session.current ? 'This browser' : 'Signed-in browser'}<code>({session.id.slice(0, 12)}…)</code></span>
             <form method="POST" action="?/revokeSession" use:enhance={submit} data-action={session.id}>
               <input type="hidden" name="id" value={session.id} /><input
                 type="hidden"
@@ -239,16 +247,10 @@
             </form>
           </div>{/each}
       </div>{/if}
-    <form method="POST" action="?/session" use:enhance={submit} data-action="sessions">
-      <input type="hidden" name="revoke" value="true" /><Button
-        type="submit"
-        variant="quiet"
-        loading={pending === 'sessions'}>Sign out all sessions</Button>
-    </form>
   </section>
   <section class="panel danger-panel">
     <div>
-      <h2>Delete account</h2>
+      <h2><Icon name="trash" size={20} />Delete account</h2>
       <p>Delete the account and its identities. Move wallet funds first.</p>
     </div>
     <Button variant="danger" icon="trash" onclick={() => (deleteOpen = true)}>Delete account</Button>
@@ -428,6 +430,23 @@
 {/if}
 
 <style>
+  h1,
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h1 :global(svg),
+  h2 :global(svg) {
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+  .danger-panel h2 {
+    margin-bottom: 12px;
+  }
+  .danger-panel h2 :global(svg) {
+    color: #f6a8b2;
+  }
   .settings-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -450,6 +469,16 @@
     padding: 15px 0;
     border-top: 1px solid #a5b4fc20;
   }
+  .active-sessions .section-heading {
+    margin-bottom: 12px;
+  }
+  .active-sessions .sessions-list > div:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .active-sessions .sessions-list > div:last-child {
+    padding-bottom: 0;
+  }
   .refund-list > div {
     flex-wrap: wrap;
     align-items: flex-start;
@@ -463,13 +492,27 @@
     font-size: 12px;
   }
   .session-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 12px;
   }
+  .sign-out-sessions {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+  }
+  .sign-out-sessions :global(.revoke-all) {
+    color: #f08b9b;
+  }
+  .sign-out-sessions :global(.revoke-all:hover) {
+    color: #ffacba;
+    background: #fb718512;
+  }
   .session-title code {
-    display: block;
     color: #71839f;
     font-size: 10px;
-    margin-top: 5px;
+    white-space: nowrap;
   }
   .danger-panel {
     display: flex;
@@ -483,11 +526,49 @@
     margin-top: 20px;
   }
   @media (max-width: 950px) {
+    h1,
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h1 :global(svg),
+    h2 :global(svg) {
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+    .danger-panel h2 :global(svg) {
+      color: #f6a8b2;
+    }
     .settings-grid {
       grid-template-columns: 1fr;
     }
     .danger-panel {
       flex-wrap: wrap;
+    }
+  }
+  @media (max-width: 600px) {
+    .active-sessions .section-heading {
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+    .active-sessions h2 {
+      gap: 6px;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+    .sign-out-sessions :global(.revoke-all) {
+      padding: 8px 0;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    .sessions-list:not(.refund-list) > div {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+    .sessions-list:not(.refund-list) > div > form {
+      justify-self: end;
     }
   }
 </style>

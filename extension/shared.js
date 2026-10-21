@@ -91,7 +91,7 @@ export function createAccountBridge(browser, origin) {
     async tabs(windowId) {
       key(windowId);
 
-      const tabs = await browser.tabs.query({windowId, url: `${origin}/*`});
+      const tabs = await browser.tabs.query({windowId});
 
       return tabs.filter((tab) => isAccountTab(tab, windowId, origin));
     },

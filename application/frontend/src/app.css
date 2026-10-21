@@ -64,10 +64,6 @@ svg[data-icon='lock'] {
   color: var(--feature-vault);
 }
 
-svg[data-icon='key'] {
-  color: var(--feature-vault);
-}
-
 svg[data-icon='mail'] {
   color: var(--feature-email);
 }
@@ -107,6 +103,10 @@ svg[data-icon='folder'] {
   background: color-mix(in srgb, var(--feature-accent) 9%, transparent);
 }
 
+.control-button svg[data-icon='lock'] {
+  color: var(--accent);
+}
+
 .control-button.primary svg[data-icon] {
   color: inherit;
 }
@@ -123,7 +123,7 @@ svg[data-icon='folder'] {
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   scroll-padding-top: calc(var(--public-header-height) + 24px);
 }
 
@@ -135,6 +135,7 @@ html {
 
 :where(
   button,
+  a,
   summary,
   select,
   option,
@@ -218,6 +219,31 @@ a {
 a {
   color: inherit;
   text-decoration: none;
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    opacity 200ms ease;
+}
+
+::view-transition-old(root) {
+  animation: page-leave 140ms ease both;
+}
+
+::view-transition-new(root) {
+  animation: page-enter 220ms ease both;
+}
+
+@keyframes page-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+  }
 }
 button {
   cursor: pointer;
@@ -229,6 +255,19 @@ button:disabled {
 :focus-visible {
   outline: 2px solid #9b91ff;
   outline-offset: 3px;
+}
+:root :is(input, textarea, select, .select-trigger) {
+  outline: none;
+  box-shadow: 0 0 0 0 #818cf800;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background-color 220ms ease;
+}
+:root :is(input, textarea, select, .select-trigger):focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px #818cf82e;
 }
 ::selection {
   background: #6253ec70;
@@ -248,81 +287,8 @@ button:disabled {
 .console {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 226px minmax(0, 1fr);
+  grid-template-columns: 250px minmax(0, 1fr);
   background: radial-gradient(ellipse at 85% 0%, #3a287818, transparent 50%), #090f20;
-}
-.console-sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  border-right: 1px solid var(--line);
-  padding: 30px 18px 22px;
-  display: flex;
-  flex-direction: column;
-  background: #080e1bcc;
-}
-.console-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 6px 34px;
-  font-weight: 650;
-  font-size: 19px;
-  letter-spacing: -0.5px;
-}
-.console-brand img {
-  width: 31px;
-  height: 31px;
-}
-.console .console-brand small {
-  display: block;
-  font-size: 9px;
-  color: var(--muted);
-  letter-spacing: 1.1px;
-  line-height: 1.3;
-  font-weight: 500;
-  margin-top: 5px;
-}
-.console-sidebar nav {
-  display: grid;
-  gap: 6px;
-}
-.console-sidebar nav a {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  font-size: 12px;
-  color: var(--muted);
-  padding: 12px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-}
-.console-sidebar nav a:hover {
-  color: #e6ebff;
-  background: #ffffff04;
-}
-.console-sidebar nav a.active {
-  color: #d1ccff;
-  background: #6253ec16;
-  border-color: #a5b4fc20;
-}
-.sidebar-bottom {
-  margin-top: auto;
-  display: grid;
-  gap: 15px;
-  font-size: 12px;
-}
-.sidebar-bottom small {
-  color: #6d7a96;
-  font-size: 10px;
-  padding: 0 8px;
-}
-.account-name {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 8px;
-  overflow-wrap: anywhere;
 }
 .console-main {
   width: 100%;
@@ -586,6 +552,11 @@ button:disabled {
   color: #83cbb1;
   border-color: #7cc6a82e;
 }
+.badge.disabled {
+  color: #f08b9b;
+  border-color: #f08b9b38;
+  background: #f08b9b0a;
+}
 .badge.frozen,
 .badge.pending {
   color: #e2be82;
@@ -741,12 +712,6 @@ button:disabled {
   .console-main {
     padding: 34px 26px;
   }
-  .console-sidebar {
-    padding: 25px 12px;
-  }
-  .console-brand {
-    font-size: 17px;
-  }
 }
 @media (max-width: 800px) {
   :root {
@@ -756,52 +721,6 @@ button:disabled {
 @media (max-width: 760px) {
   .console {
     display: block;
-  }
-  .console-sidebar {
-    position: relative;
-    height: auto;
-    padding: 16px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .console-brand {
-    padding: 0 90px 0 0;
-    font-size: 17px;
-  }
-  .console .console-brand small {
-    display: none;
-  }
-  .console-sidebar nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 4px;
-    margin-top: 17px;
-  }
-  .console-sidebar nav a {
-    padding: 9px;
-    font-size: 11px;
-    white-space: nowrap;
-    gap: 6px;
-  }
-  .console-sidebar nav a svg {
-    width: 16px;
-  }
-  .sidebar-bottom {
-    display: block;
-    margin: 0;
-  }
-  .sidebar-bottom .account-name,
-  .sidebar-bottom small {
-    display: none;
-  }
-  .sidebar-bottom form {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-  }
-  .sidebar-bottom .control-button {
-    padding: 9px;
-    font-size: 11px;
   }
   .console-main {
     padding: 27px 18px;

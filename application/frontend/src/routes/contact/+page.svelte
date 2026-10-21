@@ -107,16 +107,9 @@
     background: #11182c;
     font: inherit;
     font-size: 13px;
-    outline: none;
-    box-shadow: none;
   }
   input {
     height: 46px;
-  }
-  input:focus,
-  textarea:focus {
-    border-color: #a394ed;
-    box-shadow: 0 0 0 3px #a394ed15;
   }
   textarea {
     resize: vertical;

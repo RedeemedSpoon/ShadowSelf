@@ -117,6 +117,36 @@
     margin: 78px 25px 0;
     animation: hero-enter 1s 0.45s both;
   }
+  .hero-actions .secondary-action {
+    position: relative;
+    gap: 5px;
+    transition: color 240ms ease;
+  }
+  .hero-actions .secondary-action::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 7px;
+    height: 1px;
+    background: #818cf8;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 260ms ease;
+  }
+  .hero-actions .secondary-action:hover,
+  .hero-actions .secondary-action:focus-visible {
+    color: #a5b4fc;
+  }
+  .hero-actions .secondary-action:hover::after,
+  .hero-actions .secondary-action:focus-visible::after {
+    transform: scaleX(1);
+  }
+  .secondary-action > span {
+    transition: transform 260ms ease;
+  }
+  .secondary-action:hover > span,
+  .secondary-action:focus-visible > span {
+    transform: translateY(4px);
+  }
   .hero-services a {
     display: flex;
     gap: 8px;

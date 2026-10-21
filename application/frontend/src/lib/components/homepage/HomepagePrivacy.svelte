@@ -106,10 +106,16 @@
     gap: 5px;
   }
   .browser-title i {
-    height: 5px;
-    width: 5px;
-    background: #4e5d80;
+    height: 8px;
+    width: 8px;
+    background: #ff5f57;
     border-radius: 50%;
+  }
+  .browser-title i:nth-child(2) {
+    background: #febc2e;
+  }
+  .browser-title i:nth-child(3) {
+    background: #28c840;
   }
   .browser-title small {
     color: #94a3b8;

@@ -1,6 +1,8 @@
 <script lang="ts">
   import {APP_ORIGIN} from '$constant';
   import {page} from '$app/state';
+  import {goto, onNavigate} from '$app/navigation';
+  import {MediaQuery} from 'svelte/reactivity';
   import type {Snippet} from 'svelte';
   import type {LayoutData} from './$types';
   import PublicHeader from '$component/public/PublicHeader.svelte';
@@ -11,6 +13,70 @@
   import '../app.css';
 
   let {data, children}: {data: LayoutData; children: Snippet} = $props();
+  const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
+
+  onNavigate((navigation) => {
+    if (
+      reducedMotion.current ||
+      !document.startViewTransition ||
+      navigation.from?.url.pathname === navigation.to?.url.pathname
+    ) {
+      return;
+    }
+
+    return new Promise<void>((resolve) => {
+      document.startViewTransition(async () => {
+        resolve();
+        await navigation.complete;
+      });
+    });
+  });
+
+  async function followSection(event: MouseEvent) {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
+
+    if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) {
+      return;
+    }
+
+    const destination = new URL(link.href);
+
+    if (
+      destination.origin !== location.origin ||
+      destination.pathname !== location.pathname ||
+      destination.search !== location.search ||
+      !destination.hash
+    ) {
+      return;
+    }
+
+    const target = document.getElementById(decodeURIComponent(destination.hash.slice(1)));
+
+    if (!target) {
+      return;
+    }
+
+    event.preventDefault();
+    await goto(destination, {noScroll: true, keepFocus: true});
+
+    if (link.classList.contains('skip-link')) {
+      target.tabIndex = -1;
+      target.focus({preventScroll: true});
+    }
+
+    target.scrollIntoView({behavior: reducedMotion.current ? 'instant' : 'smooth', block: 'start'});
+  }
   const consoleRoute = $derived(
     ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some(
       (route) => page.url.pathname === route || page.url.pathname.startsWith(`${route}/`),
@@ -20,8 +86,12 @@
 
 <svelte:head><meta property="og:url" content={APP_ORIGIN} /></svelte:head>
 
+<svelte:document onclickcapture={followSection} />
+
 <a class="skip-link" href="#main-content">Skip to content</a>
-{#if consoleRoute}<ConsoleShell user={data.user}>{@render children()}</ConsoleShell>{:else}<div class="public-site">
+{#if consoleRoute}<ConsoleShell user={data.user} identities={data.identities} identitiesError={data.identitiesError}
+    >{@render children()}</ConsoleShell
+  >{:else}<div class="public-site">
     <PublicHeader signedIn={Boolean(data.user)} />
     <main id="main-content" class="public-main">{@render children()}</main>
     <PublicFooter />

@@ -10,7 +10,7 @@
     wallet: 'M20 8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H4 M22 12h-6v5h6 M18 14.5h.01',
     lock: 'M5 11h14v11H5z M8 11V7a4 4 0 0 1 8 0v4 M12 15v3',
     settings:
-      'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.93 4.93l2.12 2.12 M16.95 16.95l2.12 2.12 M19.07 4.93l-2.12 2.12 M7.05 16.95l-2.12 2.12',
+      'M19.39 8.94 L21.81 10.05 L21.81 13.95 L19.39 15.06 L19.39 15.06 L20.31 17.56 L17.56 20.31 L15.06 19.39 L15.06 19.39 L13.95 21.81 L10.05 21.81 L8.94 19.39 L8.94 19.39 L6.44 20.31 L3.69 17.56 L4.61 15.06 L4.61 15.06 L2.19 13.95 L2.19 10.05 L4.61 8.94 L4.61 8.94 L3.69 6.44 L6.44 3.69 L8.94 4.61 L8.94 4.61 L10.05 2.19 L13.95 2.19 L15.06 4.61 L15.06 4.61 L17.56 3.69 L20.31 6.44 L19.39 8.94Z M15.5 12a3.5 3.5 0 1 0-7 0 3.5 3.5 0 0 0 7 0Z',
     plus: 'M12 5v14 M5 12h14',
     chevron: 'M4 8l8 8 8-8',
     arrow: 'M5 12h14 M12 5l7 7-7 7',
@@ -37,7 +37,7 @@
     file: 'M14 2H4v20h16V8l-6-6z M14 2v6h6 M8 13h8 M8 17h5',
     cloud: 'M7 19h11a4 4 0 0 0 .5-8 6.5 6.5 0 0 0-12.7-1.6A4.8 4.8 0 0 0 7 19z',
     proxy: 'M4 3h16v6H4z M4 10h16v6H4z M7 6h.01 M11 6h6 M7 13h.01 M11 13h6 M12 16v4 M3 21h6 M15 21h6 M9 19h6v4H9z',
-    key: 'M15 3a6 6 0 1 0 0 12 6 6 0 0 0 0-12 M10 13l-8 8 M5 18l-2-2 M8 15l-2-2',
+    key: 'M14.5 2a7.5 7.5 0 0 0-6.9 10.4L1 19v4h4l2-2v-2h2l2.6-2.6A7.5 7.5 0 1 0 14.5 2Z M17.5 5.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z',
   };
 </script>
 
@@ -46,10 +46,21 @@
   width={size}
   height={size}
   viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
+  fill={name === 'key' ? 'currentColor' : 'none'}
+  fill-rule="evenodd"
+  stroke={name === 'key' ? 'none' : 'currentColor'}
   stroke-width="1.6"
   stroke-linecap="round"
   stroke-linejoin="round"
   class={className}
-  aria-hidden="true"><path d={paths[name] || paths.info} /></svg>
+  style:color={name === 'key' ? 'var(--icon-color, var(--accent))' : undefined}
+  aria-hidden="true">
+  {#if name === 'account'}
+    <circle cx="12" cy="12" r="10" />
+    <path
+      class="account-person"
+      d="M15 9.5a3 3 0 1 0-6 0 3 3 0 0 0 6 0Z M5 19.14C5.6 16 8 14.5 12 14.5S18.4 16 19 19.14A10 10 0 0 1 5 19.14Z" />
+  {:else}
+    <path d={paths[name] || paths.info} />
+  {/if}
+</svg>

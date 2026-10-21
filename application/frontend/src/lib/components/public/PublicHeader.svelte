@@ -1,6 +1,7 @@
 <script lang="ts">
   import logo from '$image/brands/shadowself/logo-beside-text.svg';
   import {page} from '$app/state';
+  import Icon from '$component/ui/Icon.svelte';
 
   let {signedIn = false}: {signedIn?: boolean} = $props();
   let expanded = $state(false);
@@ -16,7 +17,7 @@
   }
 
   const links = [
-    {href: '/#pricing', label: 'Pricing'},
+    {href: '/purchase', label: 'Purchase'},
     {href: '/extension', label: 'Extension'},
     {href: '/docs', label: 'Docs'},
   ];
@@ -43,12 +44,15 @@
           onclick={() => (expanded = false)}>{link.label}</a
         >{/each}
       <div class="account-links">
-        {#if signedIn}<a class="header-action" href="/dashboard" onclick={() => (expanded = false)}
-            >Dashboard <span aria-hidden="true">↗</span></a>
-        {:else}<a href="/login" onclick={() => (expanded = false)}>Log in</a><a
+        {#if signedIn}<div class="signed-in-links">
+            <a class="settings-link" href="/settings" aria-label="Account settings" onclick={() => (expanded = false)}
+              ><Icon name="settings" size={19} /></a>
+            <a class="dashboard-link" href="/dashboard" onclick={() => (expanded = false)}>Dashboard</a>
+          </div>
+        {:else}<a class="sign-in" href="/login" onclick={() => (expanded = false)}>Log in</a><a
             class="header-action"
             href="/signup"
-            onclick={() => (expanded = false)}>Create account <span aria-hidden="true">↗</span></a
+            onclick={() => (expanded = false)}>Create account</a
           >{/if}
       </div>
     </nav>
@@ -99,8 +103,7 @@
       transform 180ms ease,
       box-shadow 180ms ease;
   }
-  a:hover,
-  a[aria-current='page'] {
+  a:hover {
     color: #fff;
   }
   .account-links {
@@ -115,15 +118,67 @@
     align-items: center;
     gap: 8px;
     padding: 12px 17px;
-    background: #6253ec25;
-    border: 1px solid #a298ff60;
+    background: linear-gradient(135deg, #6253ec, #4938c9);
+    border: 1px solid #a298ff70;
     border-radius: 7px;
-    color: #e2dcff;
+    color: #f3f0ff;
+    box-shadow:
+      inset 0 1px #ffffff15,
+      0 4px 16px #4235b024;
   }
   .header-action:hover {
-    background: #6253ec45;
-    transform: translateY(-2px);
+    background: linear-gradient(135deg, #7163f5, #5947d8);
     box-shadow: 0 6px 24px #6253ec30;
+  }
+  .sign-in {
+    color: #a5a7ff;
+  }
+  .settings-link {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    color: #818cf8;
+  }
+  .signed-in-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #818cf8;
+  }
+  .dashboard-link {
+    position: relative;
+    padding-block: 8px;
+    color: #818cf8;
+  }
+  .dashboard-link::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 2px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 240ms ease;
+  }
+  .dashboard-link:hover,
+  .settings-link:hover {
+    color: #818cf8;
+  }
+  .dashboard-link:hover::after,
+  .dashboard-link:focus-visible::after {
+    transform: scaleX(1);
+  }
+  .settings-link :global(svg) {
+    fill: transparent;
+    transition:
+      fill 260ms ease,
+      transform 260ms ease;
+  }
+  .settings-link:hover :global(svg),
+  .settings-link:focus-visible :global(svg) {
+    fill: currentColor;
+    transform: rotate(20deg);
   }
   .menu-toggle {
     display: none;

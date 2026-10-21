@@ -1,23 +1,28 @@
 <script lang="ts">
   import {tick} from 'svelte';
+  import {fly} from 'svelte/transition';
+  import {MediaQuery} from 'svelte/reactivity';
 
   let {
     id,
     name,
     label,
     options,
+    compact = false,
     value = $bindable(''),
   }: {
     id: string;
-    name: string;
+    name?: string;
     label: string;
     options: readonly {value: string; label: string}[];
     value?: string;
+    compact?: boolean;
   } = $props();
 
   let open = $state(false);
   let root: HTMLDivElement;
   let trigger: HTMLButtonElement;
+  const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
   const selected = $derived(options.find((option) => option.value === value) ?? options[0]);
 
   async function openOptions() {
@@ -74,6 +79,7 @@
 
 <div
   class="select"
+  class:compact
   bind:this={root}
   onfocusout={(event) => {
     if (!root.contains(event.relatedTarget as Node | null)) {
@@ -104,7 +110,12 @@
     </svg>
   </button>
   {#if open}
-    <div id={`${id}-options`} class="select-options" role="listbox" aria-label={label}>
+    <div
+      id={`${id}-options`}
+      class="select-options"
+      role="listbox"
+      aria-label={label}
+      transition:fly={{y: -5, duration: reducedMotion.current ? 0 : 160}}>
       {#each options as option (option.value)}
         <button
           type="button"
@@ -123,6 +134,7 @@
 <style>
   .select {
     position: relative;
+    min-width: 0;
   }
   .select-trigger {
     display: flex;
@@ -139,6 +151,7 @@
     font-size: 13px;
     text-align: left;
     cursor: pointer;
+    gap: 12px;
   }
   .select-trigger:focus-visible,
   .select-trigger[aria-expanded='true'] {
@@ -146,8 +159,8 @@
   }
   .chevron {
     display: block;
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
     flex-shrink: 0;
     transform-origin: center;
     color: #a5b4fc;
@@ -158,13 +171,21 @@
   }
   .select-options {
     position: absolute;
-    z-index: 10;
+    z-index: 20;
     inset: calc(100% + 8px) 0 auto;
     padding: 5px;
     border: 1px solid #818cf845;
     border-radius: 8px;
     background: #141d32;
     box-shadow: 0 12px 32px #02061780;
+    max-height: min(320px, 50dvh);
+    overflow-y: auto;
+  }
+  .compact .select-trigger {
+    height: 42px;
+    padding: 11px 12px;
+    font-size: 12px;
+    background: #0b1223;
   }
   .select-options button {
     display: flex;
