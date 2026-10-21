@@ -101,7 +101,7 @@
   }
   .billing-options button[aria-pressed='true'] {
     color: #f3f0ff;
-    background: #5145bb;
+    background: var(--accent-deep);
   }
   .price-value {
     display: flow-root;
@@ -127,7 +127,7 @@
   }
   .plan-caption {
     font-size: 13px;
-    color: #a5b4fc;
+    color: var(--accent-light);
   }
   ul {
     margin: 28px 0;
@@ -145,7 +145,7 @@
     content: '✓';
     position: absolute;
     left: 0;
-    color: #818cf8;
+    color: var(--accent);
   }
   .price-panel .primary-action {
     display: flex;

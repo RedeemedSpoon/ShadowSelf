@@ -89,7 +89,7 @@
   .extension-download:hover,
   .extension-download:has(.browser-toggle[aria-expanded='true']) {
     transform: translateY(-3px);
-    box-shadow: 0 10px 32px #6253ec50;
+    box-shadow: 0 10px 32px color-mix(in srgb, var(--accent-strong) 31.37%, transparent);
   }
   .extension-download .extension-action {
     border-radius: 7px 0 0 7px;
@@ -100,8 +100,8 @@
     place-items: center;
     padding-inline: 14px;
     color: #f3f0ff;
-    background: #4938c9;
-    border: 1px solid #a298ff70;
+    background: var(--accent-deep);
+    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
     border-left: 0;
     border-radius: 0 7px 7px 0;
     cursor: pointer;
@@ -115,7 +115,7 @@
     transform: rotate(180deg);
   }
   .browser-toggle:hover {
-    background: #6253ec;
+    background: var(--accent-strong);
   }
   .browser-stores {
     position: absolute;
@@ -124,7 +124,7 @@
     right: 0;
     z-index: 5;
     padding: 6px;
-    border: 1px solid #a5b4fc30;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
     border-radius: 8px;
     background: #11182a;
     box-shadow: 0 15px 35px #0005;
@@ -181,7 +181,7 @@
     letter-spacing: -2px;
   }
   h1 span {
-    color: #b3a5ff;
+    color: var(--accent);
   }
   p {
     max-width: 460px;
@@ -196,12 +196,12 @@
     align-items: center;
     gap: 10px;
     padding: 15px 23px;
-    border: 1px solid #a298ff70;
+    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
     border-radius: 7px;
-    background: linear-gradient(135deg, #6253ec, #4938c9);
+    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
     color: #f3f0ff;
     font-size: 14px;
-    box-shadow: 0 8px 28px #6253ec25;
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--accent-strong) 14.51%, transparent);
     transition:
       transform 180ms ease,
       box-shadow 180ms ease;

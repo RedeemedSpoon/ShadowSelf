@@ -23,7 +23,12 @@
   .skeleton-lines i {
     height: 38px;
     border-radius: 5px;
-    background: linear-gradient(90deg, #a5b4fc08, #a5b4fc18, #a5b4fc08);
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent-light) 3.14%, transparent),
+      color-mix(in srgb, var(--accent-light) 9.41%, transparent),
+      color-mix(in srgb, var(--accent-light) 3.14%, transparent)
+    );
     background-size: 200% 100%;
     animation: shimmer 1.6s ease-in-out infinite;
   }

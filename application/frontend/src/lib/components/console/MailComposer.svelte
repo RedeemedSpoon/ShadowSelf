@@ -239,7 +239,7 @@
   }
   .rich-editor :global(.ql-toolbar),
   .rich-editor :global(.ql-container) {
-    border-color: #a5b4fc30;
+    border-color: color-mix(in srgb, var(--accent-light) 18.82%, transparent);
     background: #070e1c;
     color: #c6d1e9;
   }

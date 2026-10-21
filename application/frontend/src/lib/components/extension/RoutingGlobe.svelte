@@ -105,12 +105,12 @@
     context.setTransform(2, 0, 0, 2, 0, 0);
     context.clearRect(0, 0, 328, 328);
     context.lineWidth = 0.6;
-    context.strokeStyle = '#818cf826';
+    context.strokeStyle = '#9b91ff26';
     trace(context, graticule, project);
     context.lineWidth = 0.45;
-    context.strokeStyle = '#a5b4fc66';
+    context.strokeStyle = '#b8adff66';
     trace(context, coasts, project);
-    context.fillStyle = '#a5b4fc99';
+    context.fillStyle = '#b8adff99';
     context.beginPath();
 
     for (const vector of land) {

@@ -102,7 +102,7 @@
   .payment-card {
     min-height: 43px;
     padding: 14px 10px;
-    border: 1px solid #a5b4fc30;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
     border-radius: 5px;
     background: #070e1c;
   }

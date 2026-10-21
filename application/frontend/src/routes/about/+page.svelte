@@ -115,12 +115,12 @@
     font-size: 13px;
   }
   .design-actions a {
-    color: #a5b4fc;
+    color: var(--accent-light);
   }
   .design-actions button {
     margin-left: auto;
     padding: 9px 16px;
-    border: 1px solid #818cf840;
+    border: 1px solid color-mix(in srgb, var(--accent) 25.1%, transparent);
     border-radius: 6px;
     color: #e0e7ff;
     background: #242b49;

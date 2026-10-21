@@ -170,11 +170,11 @@
   .question-group h2 {
     margin: 0 0 10px;
     font-size: 18px;
-    color: #a99ae9;
+    color: var(--accent);
   }
 
   article {
-    border-bottom: 1px solid #a5b4fc20;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
   }
   article:last-child {
     border-bottom: 0;
@@ -221,7 +221,7 @@
     line-height: 1.5;
   }
   article > button > span {
-    color: #a99ae9;
+    color: var(--accent);
     font-size: 23px;
     flex-shrink: 0;
     transition: transform 180ms ease;

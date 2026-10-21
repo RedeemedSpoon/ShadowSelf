@@ -141,7 +141,7 @@
   <aside class="console-sidebar">
     <div class="sidebar-heading">
       <a class="console-brand" href="/dashboard" aria-label="ShadowSelf dashboard">
-        <img src={brand} alt="" /><span>ShadowSelf<small>IDENTITY CONSOLE</small></span>
+        <img src={brand} alt="" /><span>Shadow<span class="brand-self">Self</span><small>IDENTITY CONSOLE</small></span>
       </a>
       <a class="homepage-link" href="/"><Icon name="back" size={14} />Back to homepage</a>
     </div>
@@ -242,6 +242,9 @@
     width: 31px;
     height: 31px;
   }
+  .brand-self {
+    color: var(--accent-strong);
+  }
   .console-brand small {
     display: block;
     margin-top: 5px;
@@ -290,7 +293,7 @@
   .account-name:hover,
   .identity-navigation-heading:hover {
     color: #e6ebff;
-    background: #818cf80d;
+    background: color-mix(in srgb, var(--accent) 5.1%, transparent);
   }
   .identity-navigation-heading {
     display: flex;
@@ -311,6 +314,9 @@
     background: transparent;
     color: inherit;
   }
+  .identity-navigation-heading :global(svg[data-icon='identities']) {
+    color: inherit;
+  }
   .identity-navigation-heading :global(svg[data-icon='chevron']) {
     transform: rotate(-90deg);
     transition: transform 180ms ease;
@@ -322,7 +328,7 @@
     margin: 7px 0 12px 22px;
     padding-left: 12px;
     padding-right: 5px;
-    border-left: 1px solid #a5b4fc25;
+    border-left: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
   }
   .identity-shortcut {
     display: flex;
@@ -349,8 +355,8 @@
   }
   .identity-shortcut:hover,
   .identity-shortcut.active {
-    background: #818cf812;
-    color: #d1ccff;
+    background: color-mix(in srgb, var(--accent) 7.06%, transparent);
+    color: var(--accent-light);
   }
   .identity-shortcut.unfinished {
     opacity: 0.6;
@@ -420,7 +426,7 @@
       transform 180ms ease;
   }
   .homepage-link:hover {
-    color: #d1ccff;
+    color: var(--accent-light);
   }
   @media (max-width: 760px) {
     .console-sidebar {

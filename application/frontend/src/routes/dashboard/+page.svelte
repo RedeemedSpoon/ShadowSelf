@@ -174,7 +174,7 @@
     align-items: center;
     gap: 7px 16px;
     padding: 17px 20px;
-    border: 1px solid #a5b4fc20;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     border-radius: 7px;
     background: linear-gradient(110deg, #111a2c, #0d1425);
     transition: border-color 140ms;
@@ -185,7 +185,7 @@
   .identity-card.unfinished {
     grid-template-columns: 42px minmax(0, 1fr) auto;
     border-style: dashed;
-    border-color: #818cf866;
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
     background: transparent;
     opacity: 0.58;
     transition:
@@ -204,11 +204,11 @@
     width: 42px;
     height: 42px;
     background: #6553e316;
-    border: 1px solid #a5b4fc25;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
     border-radius: 8px;
     display: grid;
     place-items: center;
-    color: #a69bfc;
+    color: var(--accent);
     overflow: hidden;
   }
   .identity-avatar img {

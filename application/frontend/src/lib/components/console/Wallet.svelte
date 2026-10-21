@@ -577,7 +577,7 @@
     min-width: 0;
     text-align: left;
     padding: 16px 13px;
-    border: 1px solid #a5b4fc20;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     border-radius: 6px;
     background: #10192a;
     color: #c7d1e8;
@@ -616,7 +616,7 @@
     gap: 20px;
     justify-content: space-between;
     padding: 15px 0;
-    border-bottom: 1px solid #a5b4fc16;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-light) 8.63%, transparent);
     font-size: 12px;
   }
   .transaction-list small {

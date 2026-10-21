@@ -285,8 +285,11 @@
   }
   .record-footer {
     font-size: 10px;
-    color: #9e98c5;
+    color: var(--accent);
     padding: 15px 25px;
+  }
+  .mail-art .record-footer {
+    color: #e6ebff;
   }
   .identity-pass .record-footer {
     padding: 14px 0 0;
@@ -307,7 +310,7 @@
     border: 1px solid #8a72d871;
     background: #282040;
     border-radius: 13px;
-    color: #c4a9ff;
+    color: var(--accent-light);
     font-size: 20px;
     box-shadow: 0 10px 20px #0004;
   }
@@ -615,13 +618,16 @@
     border: 1px solid color-mix(in srgb, var(--feature-card) 19%, transparent);
     border-radius: 8px;
     transform: rotate(3deg);
-    color: var(--feature-card);
+    color: #e6ebff;
     font-size: 11px;
+  }
+  .payment-receipt :global(svg[data-icon='card']) {
+    color: inherit;
   }
   .payment-receipt strong {
     display: block;
     margin-top: 5px;
-    color: #f5d0fe;
+    color: inherit;
   }
   .payment-receipt small {
     margin-left: auto;
@@ -721,7 +727,7 @@
   .portrait-scan {
     position: relative;
     overflow: hidden;
-    border: 1px solid #818cf860;
+    border: 1px solid color-mix(in srgb, var(--accent) 37.65%, transparent);
     flex-shrink: 0;
   }
   .portrait-scan img {
@@ -737,8 +743,8 @@
     right: 0;
     height: 28%;
     border-bottom: 1px solid #c7d2fe;
-    background: linear-gradient(transparent, #818cf83b);
-    box-shadow: 0 3px 9px #818cf860;
+    background: linear-gradient(transparent, color-mix(in srgb, var(--accent) 23.14%, transparent));
+    box-shadow: 0 3px 9px color-mix(in srgb, var(--accent) 37.65%, transparent);
     animation: identity-scan 5s ease-in-out infinite;
   }
   .totp-digits {

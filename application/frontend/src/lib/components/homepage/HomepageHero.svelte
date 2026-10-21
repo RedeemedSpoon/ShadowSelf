@@ -85,7 +85,7 @@
     animation: hero-enter 1s both;
   }
   .hero-content h1 span {
-    background: linear-gradient(100deg, #60a5fa, #818cf8 47%, #4f46e5);
+    background: linear-gradient(100deg, var(--accent-strong), var(--accent) 47%, var(--accent-deep));
     background-size: 200% 100%;
     animation: spectrum-flow 16s ease-in-out infinite alternate;
     background-clip: text;
@@ -127,14 +127,14 @@
     position: absolute;
     inset: auto 0 7px;
     height: 1px;
-    background: #818cf8;
+    background: var(--accent);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 260ms ease;
   }
   .hero-actions .secondary-action:hover,
   .hero-actions .secondary-action:focus-visible {
-    color: #a5b4fc;
+    color: var(--accent-light);
   }
   .hero-actions .secondary-action:hover::after,
   .hero-actions .secondary-action:focus-visible::after {
@@ -174,7 +174,7 @@
     display: block;
     width: 1px;
     height: 13px;
-    background: #a79efb;
+    background: var(--accent);
     animation: scroll-down 2.5s ease infinite;
   }
   @keyframes wall-drift {

@@ -1,4 +1,8 @@
 :root {
+  --accent: #8170ee;
+  --accent-light: #9b91ff;
+  --accent-strong: #6253ec;
+  --accent-deep: #4938c9;
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   background: #080b14;
@@ -28,15 +32,15 @@ select {
 }
 button {
   cursor: pointer;
-  border: 1px solid #6f78ff;
+  border: 1px solid var(--accent);
   border-radius: 8px;
   padding: 9px 13px;
   color: #fff;
-  background: #4d55bf;
+  background: var(--accent-deep);
   font-weight: 600;
 }
 button:hover {
-  background: #6069d9;
+  background: var(--accent-strong);
 }
 button:disabled {
   cursor: wait;
@@ -51,15 +55,15 @@ button.secondary:hover {
   background: #1b2438;
 }
 :focus-visible {
-  outline: 2px solid #7dd3fc;
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 a {
-  color: #a5b4fc;
+  color: var(--accent-light);
   text-decoration: none;
 }
 a:hover {
-  color: #bae6fd;
+  color: var(--accent-light);
 }
 p {
   color: #9ba8c2;

@@ -241,7 +241,7 @@
     animation: signal 5.6s var(--delay) ease infinite;
   }
   .assembly-spine {
-    border: 1px solid #818cf84d;
+    border: 1px solid color-mix(in srgb, var(--accent) 30.2%, transparent);
     border-left: 0;
     height: calc(100% - 68px);
     margin-right: 22px;
@@ -254,7 +254,7 @@
     top: 50%;
     height: 1px;
     width: 23px;
-    background: #818cf880;
+    background: color-mix(in srgb, var(--accent) 50.2%, transparent);
   }
   .assembly-profile {
     position: relative;
@@ -278,7 +278,7 @@
       transform 820ms cubic-bezier(0.22, 0.7, 0.2, 1),
       box-shadow 820ms ease;
     padding: 25px 18px;
-    border: 1px solid #818cf85e;
+    border: 1px solid color-mix(in srgb, var(--accent) 36.86%, transparent);
     background: linear-gradient(150deg, #24264a, #12192e);
     border-radius: 9px;
     box-shadow:
@@ -291,8 +291,8 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: #a5b4fc;
-    box-shadow: 0 0 8px #818cf866;
+    background: var(--accent-light);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 40%, transparent);
     transform-origin: left;
   }
   .profile-topline {
@@ -336,7 +336,7 @@
     height: 64px;
     border-radius: 50%;
     background-size: 300% 200%;
-    box-shadow: 0 0 0 4px #6366f11a;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-strong) 10.2%, transparent);
   }
   .profile-person strong {
     color: #e0e7ff;
@@ -354,7 +354,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    color: #a5b4fc;
+    color: var(--accent-light);
     font-size: 9px;
   }
   .profile-email > span {
@@ -366,7 +366,7 @@
   .profile-stats {
     display: grid;
     gap: 12px;
-    border-top: 1px solid #818cf82b;
+    border-top: 1px solid color-mix(in srgb, var(--accent) 16.86%, transparent);
     padding-top: 16px;
     margin: 18px 0 0;
   }
@@ -536,7 +536,7 @@
       width: 1px;
       margin: 0 auto;
       border: 0;
-      border-left: 1px solid #818cf84d;
+      border-left: 1px solid color-mix(in srgb, var(--accent) 30.2%, transparent);
     }
     .assembly-spine::after {
       display: none;

@@ -310,7 +310,7 @@
     padding: 20px;
     width: 100%;
     background: #10192a;
-    border: 1px solid #a5b4fc20;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     border-radius: 6px;
     color: #c5d1e8;
     text-align: left;
@@ -344,7 +344,7 @@
   }
   .conversation article {
     background: #ffffff04;
-    border: 1px solid #a5b4fc20;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     border-radius: 6px;
     padding: 14px;
     max-width: 85%;

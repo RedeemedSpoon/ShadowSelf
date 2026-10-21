@@ -467,7 +467,7 @@
     justify-content: space-between;
     gap: 15px;
     padding: 15px 0;
-    border-top: 1px solid #a5b4fc20;
+    border-top: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
   }
   .active-sessions .section-heading {
     margin-bottom: 12px;

@@ -101,7 +101,7 @@
   textarea {
     width: 100%;
     padding: 13px 15px;
-    border: 1px solid #a5b4fc30;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
     border-radius: 7px;
     color: #e0e7f9;
     background: #11182c;

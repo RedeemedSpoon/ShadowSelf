@@ -39,11 +39,11 @@
     color: #aab6d1;
   }
   .error-code {
-    color: #a599ef;
+    color: var(--accent);
     font:
       13px 'Fira Code Variable',
       monospace;
-    border: 1px solid #a599ef40;
+    border: 1px solid color-mix(in srgb, var(--accent) 25.1%, transparent);
     border-radius: 5px;
     padding: 7px 12px;
   }
@@ -71,15 +71,15 @@
     gap: 22px;
     align-items: center;
     padding: 13px 20px;
-    border: 1px solid #a298ff70;
+    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
     border-radius: 7px;
-    background: linear-gradient(135deg, #6253ec, #4938c9);
+    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
     color: #f3f0ff;
     font-size: 13px;
     text-decoration: none;
   }
   button {
-    color: #c0b2f8;
+    color: var(--accent-light);
     background: none;
     border: 0;
     cursor: pointer;
@@ -92,7 +92,7 @@
   }
   a:focus-visible,
   button:focus-visible {
-    outline: 2px solid #b7a9ff;
+    outline: 2px solid var(--accent-light);
     outline-offset: 5px;
   }
   :global(.console) .error-content {

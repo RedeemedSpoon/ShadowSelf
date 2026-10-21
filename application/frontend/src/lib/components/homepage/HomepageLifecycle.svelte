@@ -122,6 +122,7 @@
     min-height: 116px;
   }
   .lifecycle-example {
+    --example-color: var(--accent);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -133,11 +134,11 @@
   }
   .lifecycle-example > span {
     font-size: 9px;
-    color: #a29dcc;
+    color: var(--example-color);
   }
   .lifecycle-example strong {
     font-size: 12px;
-    color: #d0c7f7;
+    color: var(--accent-light);
     font-weight: 500;
   }
   .lifecycle-example code {
@@ -146,6 +147,7 @@
     overflow-wrap: anywhere;
   }
   .email-example {
+    --example-color: var(--feature-email);
     background: color-mix(in srgb, var(--feature-email) 12%, #0b1021);
     border-color: color-mix(in srgb, var(--feature-email) 30%, transparent);
   }
@@ -153,6 +155,7 @@
     color: var(--feature-email);
   }
   .vault-example {
+    --example-color: var(--feature-vault);
     background: #292315;
     border-color: #fbbf2443;
   }
@@ -160,6 +163,7 @@
     color: var(--feature-vault);
   }
   .return-example {
+    --example-color: #a2dacc;
     background: #16312c;
     border-color: #4ca58b33;
   }

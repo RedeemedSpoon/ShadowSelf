@@ -80,7 +80,7 @@ main {
 }
 .identity .arrow {
   margin-left: auto;
-  color: #a5b4fc;
+  color: var(--accent-light);
 }
 #status {
   margin: 12px 0 0;

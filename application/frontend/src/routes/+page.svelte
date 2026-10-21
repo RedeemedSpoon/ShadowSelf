@@ -84,8 +84,8 @@
 
 <style>
   .homepage {
-    --brand-accent: #818cf8;
-    --brand-line: #6366f140;
+    --brand-accent: var(--accent);
+    --brand-line: color-mix(in srgb, var(--accent-strong) 25.1%, transparent);
     background: #090f20;
     color: #e6ebff;
     font-family: 'Inter Variable', sans-serif;
@@ -135,9 +135,9 @@
     align-items: center;
     min-height: 52px;
     padding: 15px 25px;
-    border: 1px solid #a298ff70;
+    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
     border-radius: 7px;
-    background: linear-gradient(135deg, #6253ec, #4938c9);
+    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
     box-shadow:
       0 8px 28px #4235b02e,
       inset 0 1px #ffffff15;
@@ -170,7 +170,7 @@
     color: var(--brand-accent);
     text-decoration: underline;
     text-underline-offset: 6px;
-    text-decoration-color: #6366f14d;
+    text-decoration-color: color-mix(in srgb, var(--accent-strong) 30.2%, transparent);
     transition:
       color 220ms ease,
       text-decoration-color 220ms ease;
@@ -182,7 +182,7 @@
   :global(.homepage a:focus-visible),
   :global(.homepage button:focus-visible),
   :global(.homepage summary:focus-visible) {
-    outline: 2px solid #818cf8;
+    outline: 2px solid var(--accent);
     outline-offset: 5px;
   }
   :global(.homepage section[id]),

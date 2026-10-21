@@ -6,10 +6,14 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --surface: #0e1629;
-  --line: #a5b4fc20;
+  --line: color-mix(in srgb, var(--accent-light) 12.55%, transparent);
   --muted: #9caac6;
-  --accent: #9b91ff;
-  --feature-identity: #818cf8;
+  --accent: #8170ee;
+  --accent-light: #9b91ff;
+  --accent-strong: #6253ec;
+  --accent-deep: #4938c9;
+  --accent-hover: #7b6af2;
+  --feature-identity: var(--accent);
   --feature-vault: #facc15;
   --feature-email: #ff5263;
   --feature-phone: #38bdf8;
@@ -120,6 +124,11 @@ svg[data-icon='folder'] {
   background: color-mix(in srgb, var(--feature-accent) 70%, #0e1629);
   border-color: color-mix(in srgb, var(--feature-accent) 65%, transparent);
   color: #080f1e;
+}
+
+[data-feature='identity'] .control-button.primary {
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
+  color: #f0efff;
 }
 
 html {
@@ -253,12 +262,12 @@ button:disabled {
   opacity: 0.5;
 }
 :focus-visible {
-  outline: 2px solid #9b91ff;
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 :root :is(input, textarea, select, .select-trigger) {
   outline: none;
-  box-shadow: 0 0 0 0 #818cf800;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
   transition:
     border-color 220ms ease,
     box-shadow 220ms ease,
@@ -266,18 +275,18 @@ button:disabled {
 }
 :root :is(input, textarea, select, .select-trigger):focus {
   outline: none;
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px #818cf82e;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18.04%, transparent);
 }
 ::selection {
-  background: #6253ec70;
+  background: color-mix(in srgb, var(--accent-strong) 43.92%, transparent);
 }
 .skip-link {
   position: fixed;
   top: -60px;
   left: 16px;
   z-index: 100;
-  background: #6253ec;
+  background: var(--accent-strong);
   padding: 10px 16px;
   border-radius: 5px;
 }
@@ -333,7 +342,7 @@ button:disabled {
   line-height: 1.6;
 }
 .eyebrow {
-  color: #9185ef;
+  color: var(--accent);
   font-family: 'Fira Code Variable', monospace;
   letter-spacing: 1.7px;
   font-size: 10px;
@@ -378,10 +387,10 @@ button:disabled {
   gap: 8px;
   padding: 10px 15px;
   min-height: 38px;
-  border: 1px solid #a298ff60;
+  border: 1px solid color-mix(in srgb, var(--accent) 37.65%, transparent);
   border-radius: 6px;
   color: #f0efff;
-  background: linear-gradient(135deg, #6253ec, #4938c9);
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
   font-size: 12px;
   font-weight: 560;
   line-height: 1.3;
@@ -398,13 +407,13 @@ button:disabled {
   transform: translateY(-1px);
 }
 .control-button.primary:hover:not(:disabled) {
-  box-shadow: 0 6px 22px #6253ec35;
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--accent-strong) 20.78%, transparent);
 }
 .control-button:active:not(:disabled) {
   transform: translateY(0);
 }
 .control-button.secondary {
-  border-color: #a5b4fc30;
+  border-color: color-mix(in srgb, var(--accent-light) 18.82%, transparent);
   background: #ffffff04;
   color: #c8d1e6;
 }
@@ -460,7 +469,7 @@ button:disabled {
 .console-dialog select,
 .console-dialog textarea {
   width: 100%;
-  border: 1px solid #a5b4fc28;
+  border: 1px solid color-mix(in srgb, var(--accent-light) 15.69%, transparent);
   background: #070e1cb3;
   color: #e6ebff;
   border-radius: 5px;
@@ -526,11 +535,11 @@ button:disabled {
   gap: 15px;
   text-align: center;
   padding: 32px;
-  border: 1px dashed #a5b4fc26;
+  border: 1px dashed color-mix(in srgb, var(--accent-light) 14.9%, transparent);
   border-radius: 7px;
 }
 .empty-state > svg {
-  color: #9185ef;
+  color: var(--accent);
 }
 .empty-state p {
   max-width: 440px;
@@ -543,7 +552,7 @@ button:disabled {
   padding: 4px 7px;
   color: #a6b5d1;
   background: #ffffff06;
-  border: 1px solid #a5b4fc22;
+  border: 1px solid color-mix(in srgb, var(--accent-light) 13.33%, transparent);
   border-radius: 4px;
   text-transform: capitalize;
 }
@@ -592,12 +601,12 @@ button:disabled {
 }
 .access-links a,
 .text-link {
-  color: #aea5ff;
+  color: var(--accent);
 }
 .access-links button {
   border: 0;
   background: none;
-  color: #aea5ff;
+  color: var(--accent);
   padding: 0;
   font-size: 12px;
 }
@@ -617,7 +626,7 @@ button:disabled {
 .console-dialog {
   background: #10192c;
   color: #e6ebff;
-  border: 1px solid #a5b4fc40;
+  border: 1px solid color-mix(in srgb, var(--accent-light) 25.1%, transparent);
   border-radius: 8px;
   padding: 25px;
   width: min(550px, calc(100vw - 32px));
@@ -672,8 +681,8 @@ button:disabled {
   white-space: nowrap;
 }
 .tabs button.active {
-  color: #c6bdff;
-  border-bottom-color: #8d7cf2;
+  color: var(--accent-light);
+  border-bottom-color: var(--accent);
 }
 .recovery-codes {
   display: grid;

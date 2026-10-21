@@ -73,7 +73,7 @@
     -webkit-user-select: text;
   }
   .page-eyebrow {
-    color: #ad9ef4;
+    color: var(--accent);
     font:
       11px 'Fira Code Variable',
       monospace;
@@ -120,8 +120,8 @@
     margin: 26px 0 12px;
   }
   :global(.public-page a) {
-    color: #bbacf8;
-    text-decoration-color: #bbacf855;
+    color: var(--accent-light);
+    text-decoration-color: color-mix(in srgb, var(--accent-light) 33.33%, transparent);
     text-underline-offset: 5px;
   }
   :global(.public-page a:hover) {
@@ -130,7 +130,7 @@
   :global(.public-page a:focus-visible),
   :global(.public-page summary:focus-visible),
   :global(.public-page button:focus-visible) {
-    outline: 2px solid #b7a9ff;
+    outline: 2px solid var(--accent-light);
     outline-offset: 5px;
   }
   :global(.public-page ul),
@@ -154,8 +154,8 @@
   }
   :global(.public-page .policy-note) {
     padding: 23px 26px;
-    border-left: 2px solid #8876de;
-    background: #a5b4fc08;
+    border-left: 2px solid var(--accent);
+    background: color-mix(in srgb, var(--accent-light) 3.14%, transparent);
     border-radius: 0 8px 8px 0;
     margin-bottom: 28px;
   }
@@ -176,9 +176,9 @@
     align-items: center;
     min-height: 48px;
     padding: 13px 22px;
-    border: 1px solid #a298ff70;
+    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
     border-radius: 7px;
-    background: linear-gradient(135deg, #6253ec, #4938c9);
+    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
     color: #f3f0ff;
     font-size: 13px;
     text-decoration: none;
@@ -190,16 +190,16 @@
   }
   :global(.public-page .public-action:hover) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px #6253ec40;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-strong) 25.1%, transparent);
     filter: brightness(1.12);
   }
   :global(.public-page .public-action:active) {
     transform: translateY(0);
   }
   :global(.public-page .policy-summary) {
-    --policy-accent: #818cf8;
+    --policy-accent: var(--accent);
     padding: 22px 26px;
-    background: #6366f112;
+    background: color-mix(in srgb, var(--accent-strong) 7.06%, transparent);
     border-left: 5px solid var(--policy-accent);
     border-radius: 0 8px 8px 0;
     margin-bottom: 36px;

@@ -111,15 +111,15 @@
     align-items: center;
     gap: 24px;
     padding-left: 28px;
-    border-left: 1px solid #a5b4fc25;
+    border-left: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
   }
   .header-action {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 12px 17px;
-    background: linear-gradient(135deg, #6253ec, #4938c9);
-    border: 1px solid #a298ff70;
+    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
+    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
     border-radius: 7px;
     color: #f3f0ff;
     box-shadow:
@@ -127,29 +127,29 @@
       0 4px 16px #4235b024;
   }
   .header-action:hover {
-    background: linear-gradient(135deg, #7163f5, #5947d8);
-    box-shadow: 0 6px 24px #6253ec30;
+    background: linear-gradient(135deg, var(--accent-hover), var(--accent-strong));
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--accent-strong) 18.82%, transparent);
   }
   .sign-in {
-    color: #a5a7ff;
+    color: var(--accent);
   }
   .settings-link {
     display: grid;
     place-items: center;
     width: 30px;
     height: 30px;
-    color: #818cf8;
+    color: var(--accent);
   }
   .signed-in-links {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #818cf8;
+    color: var(--accent);
   }
   .dashboard-link {
     position: relative;
     padding-block: 8px;
-    color: #818cf8;
+    color: var(--accent);
   }
   .dashboard-link::after {
     content: '';
@@ -163,7 +163,7 @@
   }
   .dashboard-link:hover,
   .settings-link:hover {
-    color: #818cf8;
+    color: var(--accent-light);
   }
   .dashboard-link:hover::after,
   .dashboard-link:focus-visible::after {
@@ -184,7 +184,7 @@
     display: none;
     background: transparent;
     color: #d7dff4;
-    border: 1px solid #a5b4fc35;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 20.78%, transparent);
     width: 42px;
     height: 42px;
     padding: 12px;
@@ -200,7 +200,7 @@
   }
   a:focus-visible,
   button:focus-visible {
-    outline: 2px solid #b7a9ff;
+    outline: 2px solid var(--accent-light);
     outline-offset: 5px;
   }
   @media (max-width: 1050px) {
@@ -235,7 +235,7 @@
       overflow-y: auto;
       padding: 20px;
       background: #10172cf5;
-      border: 1px solid #a5b4fc30;
+      border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
       border-radius: 9px;
       box-shadow: 0 20px 50px #0006;
     }
@@ -249,7 +249,7 @@
     }
     .account-links {
       border-left: 0;
-      border-top: 1px solid #a5b4fc25;
+      border-top: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
       margin-top: 12px;
       padding: 18px 0 0;
       justify-content: space-between;

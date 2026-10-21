@@ -17,7 +17,7 @@
 
 <style>
   .spectrum-text {
-    background: linear-gradient(100deg, #60a5fa, #818cf8, #4f46e5);
+    background: linear-gradient(100deg, var(--accent-strong), var(--accent), var(--accent-deep));
     background-size: 200% 100%;
     background-clip: text;
     color: transparent;
@@ -59,7 +59,7 @@
     background: repeating-conic-gradient(
       from 0deg at center,
       transparent 0deg 8.65deg,
-      #818cf83d 8.82deg,
+      color-mix(in srgb, var(--accent) 23.92%, transparent) 8.82deg,
       transparent 9deg
     );
     z-index: -2;

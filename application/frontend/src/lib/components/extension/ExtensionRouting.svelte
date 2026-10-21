@@ -139,9 +139,9 @@
           stop-opacity=".25" /><stop offset="1" stop-color="#090f20" stop-opacity=".1" />
       </radialGradient>
       <linearGradient id="routing-rim" x1="180" y1="70" x2="430" y2="350" gradientUnits="userSpaceOnUse"
-        ><stop stop-color="#a5b4fc" stop-opacity=".6" /><stop
+        ><stop stop-color="#b8adff" stop-opacity=".6" /><stop
           offset=".5"
-          stop-color="#818cf8"
+          stop-color="#9b91ff"
           stop-opacity=".12" /><stop offset="1" stop-color="#38bdf8" stop-opacity=".36" /></linearGradient>
       <filter id="routing-glow" x="-60%" y="-60%" width="220%" height="220%"
         ><feGaussianBlur stdDeviation="3" /></filter>
@@ -171,7 +171,7 @@
 
     <g class="extension-origin">
       <circle cx="125" cy="355" r="39" class="origin-aura" />
-      <circle cx="125" cy="355" r="31" fill="#151b33" stroke="#818cf866" />
+      <circle cx="125" cy="355" r="31" fill="#151b33" stroke="#9b91ff66" />
       <image href={logo} x="104" y="334" width="42" height="42" />
       <text x="125" y="414" text-anchor="middle">SHADOWSELF</text>
       <text class="origin-label" x="125" y="430" text-anchor="middle">Browser extension</text>
@@ -246,13 +246,13 @@
     gap: 10px;
     width: min(285px, calc(100% - 20px));
     padding: 11px 13px;
-    border: 1px solid #818cf866;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
     border-radius: 8px;
-    color: #a5b4fc;
+    color: var(--accent-light);
     background: #191b3be8;
     box-shadow:
       0 8px 30px #02061760,
-      inset 0 1px #a5b4fc0d;
+      inset 0 1px color-mix(in srgb, var(--accent-light) 5.1%, transparent);
     backdrop-filter: blur(12px);
   }
   .notification-brand {
@@ -261,7 +261,7 @@
     width: 33px;
     height: 33px;
     border-radius: 7px;
-    background: #818cf814;
+    background: color-mix(in srgb, var(--accent) 7.84%, transparent);
   }
   .route-notification strong {
     display: block;
@@ -285,15 +285,15 @@
     overflow: visible;
   }
   .orbital-line {
-    stroke: #818cf81c;
+    stroke: color-mix(in srgb, var(--accent) 10.98%, transparent);
     stroke-dasharray: 4 8;
   }
   .outer-rim {
-    stroke: #818cf826;
+    stroke: color-mix(in srgb, var(--accent) 14.9%, transparent);
     stroke-width: 0.8;
   }
   .route-shadow {
-    stroke: #818cf8;
+    stroke: var(--accent);
     stroke-width: 6;
     filter: url(#routing-glow);
     opacity: 0;
@@ -303,7 +303,7 @@
     opacity: 0.26;
   }
   .route-line {
-    stroke: #a5b4fc;
+    stroke: var(--accent-light);
     stroke-width: 1.3;
     stroke-linecap: round;
     stroke-dasharray: 1;
@@ -350,8 +350,8 @@
     opacity: 1;
   }
   .marker-halo {
-    fill: #818cf80a;
-    stroke: #818cf826;
+    fill: color-mix(in srgb, var(--accent) 3.92%, transparent);
+    stroke: color-mix(in srgb, var(--accent) 14.9%, transparent);
   }
   .marker-core {
     fill: #68799b;
@@ -361,8 +361,8 @@
     fill: #c7d2fe;
   }
   .active .marker-halo {
-    fill: #818cf815;
-    stroke: #818cf880;
+    fill: color-mix(in srgb, var(--accent) 8.24%, transparent);
+    stroke: color-mix(in srgb, var(--accent) 50.2%, transparent);
   }
   .location-marker text {
     fill: #bdc9e4;
@@ -395,11 +395,11 @@
     }
   }
   .origin-aura {
-    stroke: #818cf81c;
-    fill: #818cf803;
+    stroke: color-mix(in srgb, var(--accent) 10.98%, transparent);
+    fill: color-mix(in srgb, var(--accent) 1.18%, transparent);
   }
   .extension-origin text {
-    fill: #a5b4fc;
+    fill: var(--accent-light);
     font:
       8px 'Fira Code Variable',
       monospace;
@@ -423,11 +423,11 @@
     align-items: center;
     margin: 10px 15px 0;
     padding: 20px 0;
-    border-top: 1px solid #818cf826;
-    border-bottom: 1px solid #818cf81a;
+    border-top: 1px solid color-mix(in srgb, var(--accent) 14.9%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 10.2%, transparent);
   }
   .connection-readout > div + div {
-    border-left: 1px solid #818cf81f;
+    border-left: 1px solid color-mix(in srgb, var(--accent) 12.16%, transparent);
     padding-left: 20px;
   }
   .connection-readout > div > span {
@@ -487,14 +487,14 @@
     flex-shrink: 0;
   }
   .connected-location.connecting :global(svg[data-icon='refresh']) {
-    color: #a5b4fc;
+    color: var(--accent-light);
     animation: connection-spin 1s linear infinite;
   }
   .connected-location .country-flag {
     width: 19px;
     height: 13px;
     border-radius: 2px;
-    box-shadow: 0 0 0 1px #a5b4fc20;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-light) 12.55%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
     .route-flow.active,

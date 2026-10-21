@@ -397,7 +397,7 @@
             title="Message body from {message.from}"
             sandbox="allow-popups allow-popups-to-escape-sandbox"
             referrerpolicy="no-referrer"
-            srcdoc={`<!doctype html><html><head><meta charset='utf-8'><meta http-equiv='Content-Security-Policy' content="default-src 'none'; img-src data:; style-src 'unsafe-inline'"><style>body{color:#c6d1e9;font:14px/1.7 sans-serif;overflow-wrap:anywhere}a{color:#aea5ff}img{max-width:100%}</style></head><body>${sanitizeEmailHtml(
+            srcdoc={`<!doctype html><html><head><meta charset='utf-8'><meta http-equiv='Content-Security-Policy' content="default-src 'none'; img-src data:; style-src 'unsafe-inline'"><style>body{color:#c6d1e9;font:14px/1.7 sans-serif;overflow-wrap:anywhere}a{color:var(--accent)}img{max-width:100%}</style></head><body>${sanitizeEmailHtml(
               message.body,
               message.attachments.filter((file): file is typeof file & Attachment => !!file.data),
             )}</body></html>`}></iframe
@@ -465,7 +465,7 @@
 
 <style>
   .mail-list {
-    border: 1px solid #a5b4fc20;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     border-radius: 7px;
     overflow: hidden;
   }
@@ -478,13 +478,13 @@
     text-align: left;
     background: #10192a;
     border: 0;
-    border-bottom: 1px solid #a5b4fc16;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-light) 8.63%, transparent);
     padding: 17px 20px;
     color: #b5c2db;
     font-size: 12px;
   }
   .mail-row.unread {
-    border-left: 3px solid #8b80ff;
+    border-left: 3px solid var(--accent);
     font-weight: 600;
   }
   .mail-row:hover {
@@ -510,7 +510,7 @@
     margin-top: 20px;
   }
   .mail-message {
-    border-bottom: 1px solid #a5b4fc20;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     padding: 10px 0 25px;
     margin-bottom: 20px;
   }

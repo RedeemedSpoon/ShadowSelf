@@ -85,13 +85,13 @@
     opacity: 0.45;
   }
   .connection-signal {
-    stroke: #a5b4fc;
+    stroke: var(--accent-light);
     stroke-width: 2.5;
     stroke-linecap: round;
     stroke-dasharray: 12 112;
     stroke-dashoffset: 12;
     animation: converge 3.6s linear infinite;
-    filter: drop-shadow(0 0 3px #818cf880);
+    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 50.2%, transparent));
   }
   @keyframes converge {
     0% {

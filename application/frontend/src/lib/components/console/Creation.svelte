@@ -522,16 +522,16 @@
     white-space: nowrap;
   }
   .creation-progress li span {
-    border: 1px solid #a5b4fc20;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     border-radius: 5px;
     padding: 5px 7px;
     font-family: monospace;
   }
   .creation-progress li.current {
-    color: #c9bfff;
+    color: var(--accent-light);
   }
   .creation-progress li.current span {
-    background: #6253ec22;
+    background: color-mix(in srgb, var(--accent-strong) 13.33%, transparent);
     border-color: #a592ff50;
   }
   .creation-progress li.complete {

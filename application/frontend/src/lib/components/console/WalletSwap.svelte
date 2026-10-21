@@ -273,7 +273,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    border-top: 1px solid #a5b4fc20;
+    border-top: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     padding-top: 17px;
   }
   .swap-link {

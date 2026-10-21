@@ -133,7 +133,7 @@
       clientSecret: details.clientSecret,
       appearance: {
         theme: 'night',
-        variables: {colorPrimary: '#8d7cf2', colorBackground: '#10192c', colorText: '#e6ebff', borderRadius: '5px'},
+        variables: {colorPrimary: '#9b91ff', colorBackground: '#10192c', colorText: '#e6ebff', borderRadius: '5px'},
       },
     });
     payment = elements.create('payment');
@@ -433,7 +433,7 @@
     display: flex;
     gap: 4px;
     padding: 4px;
-    border: 1px solid #a5b4fc20;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     border-radius: 6px;
     background: #070e1c;
   }
@@ -447,8 +447,8 @@
     font-size: 11px;
   }
   .plan-switch button.active {
-    background: #6253ec24;
-    color: #c5bbff;
+    background: color-mix(in srgb, var(--accent-strong) 14.12%, transparent);
+    color: var(--accent-light);
   }
   .plan-price {
     margin: 28px 0;

@@ -72,7 +72,7 @@
 <style>
   .public-footer {
     flex-shrink: 0;
-    border-top: 1px solid #a5b4fc20;
+    border-top: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
     background: #070c18;
     padding: 48px 0 24px;
     color: #9caac6;
@@ -107,7 +107,7 @@
     opacity: 0.7;
   }
   .social-links a:hover {
-    background: #a5b4fc0c;
+    background: color-mix(in srgb, var(--accent-light) 4.71%, transparent);
     opacity: 1;
   }
   .social-links img {
@@ -148,7 +148,7 @@
     text-align: center;
   }
   a:focus-visible {
-    outline: 2px solid #b7a9ff;
+    outline: 2px solid var(--accent-light);
     outline-offset: 5px;
   }
   @media (max-width: 1050px) {

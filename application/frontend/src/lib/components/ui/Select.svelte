@@ -143,7 +143,7 @@
     width: 100%;
     height: 46px;
     padding: 13px 15px;
-    border: 1px solid #a5b4fc30;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
     border-radius: 7px;
     color: #e0e7f9;
     background: #11182c;
@@ -155,7 +155,7 @@
   }
   .select-trigger:focus-visible,
   .select-trigger[aria-expanded='true'] {
-    border-color: #818cf8;
+    border-color: var(--accent);
   }
   .chevron {
     display: block;
@@ -163,7 +163,7 @@
     height: 15px;
     flex-shrink: 0;
     transform-origin: center;
-    color: #a5b4fc;
+    color: var(--accent-light);
     transition: transform 180ms ease;
   }
   .chevron.open {
@@ -174,7 +174,7 @@
     z-index: 20;
     inset: calc(100% + 8px) 0 auto;
     padding: 5px;
-    border: 1px solid #818cf845;
+    border: 1px solid color-mix(in srgb, var(--accent) 27.06%, transparent);
     border-radius: 8px;
     background: #141d32;
     box-shadow: 0 12px 32px #02061780;
@@ -203,12 +203,12 @@
   }
   .select-options button:hover,
   .select-options button:focus-visible {
-    background: #818cf81c;
+    background: color-mix(in srgb, var(--accent) 10.98%, transparent);
     outline-offset: -2px;
   }
   .select-options button[aria-selected='true'] {
-    color: #b5bfff;
-    background: #818cf815;
+    color: var(--accent-light);
+    background: color-mix(in srgb, var(--accent) 8.24%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
     .chevron {

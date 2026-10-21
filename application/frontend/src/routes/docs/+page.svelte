@@ -292,7 +292,7 @@ with urllib.request.urlopen(request) as response:
     display: grid;
     gap: 4px;
     padding-right: 20px;
-    border-right: 1px solid #a5b4fc20;
+    border-right: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
   }
   .navigation-label {
     color: #667796;
@@ -304,7 +304,7 @@ with urllib.request.urlopen(request) as response:
   .navigation-label:not(:first-child) {
     margin-top: 16px;
     padding-top: 20px;
-    border-top: 1px solid #a5b4fc20;
+    border-top: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
   }
   .docs-navigation a {
     display: flex;
@@ -317,7 +317,7 @@ with urllib.request.urlopen(request) as response:
     color: #94a3c2;
   }
   .docs-navigation a:hover {
-    color: #c4b5fd;
+    color: var(--accent-light);
   }
   .docs-navigation a[data-feature] :global(svg) {
     color: var(--feature-accent);
@@ -334,7 +334,7 @@ with urllib.request.urlopen(request) as response:
   }
   .section-title :global(svg) {
     flex-shrink: 0;
-    color: #a5b4fc;
+    color: var(--accent-light);
   }
   .endpoint-group .section-title :global(svg) {
     color: var(--feature-accent);
@@ -342,7 +342,7 @@ with urllib.request.urlopen(request) as response:
   .endpoint-group {
     padding-top: 28px;
     margin-top: 42px;
-    border-top: 1px solid #a5b4fc25;
+    border-top: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
   }
   .endpoint-group h2 {
     margin-top: 0;
@@ -365,7 +365,7 @@ with urllib.request.urlopen(request) as response:
   }
   p code {
     padding: 2px 4px;
-    background: #a5b4fc0c;
+    background: color-mix(in srgb, var(--accent-light) 4.71%, transparent);
     border-radius: 3px;
   }
   pre {
@@ -381,7 +381,7 @@ with urllib.request.urlopen(request) as response:
     white-space: pre;
   }
   .code-window {
-    border: 1px solid #a5b4fc30;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
     border-radius: 8px;
     overflow: hidden;
   }
@@ -447,7 +447,7 @@ with urllib.request.urlopen(request) as response:
     margin-top: 10px !important;
   }
   .error-example {
-    border: 1px solid #a5b4fc25;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
     border-radius: 7px;
   }
   .status-list {
@@ -459,7 +459,7 @@ with urllib.request.urlopen(request) as response:
     display: grid;
     grid-template-columns: 85px 1fr;
     gap: 15px;
-    border-bottom: 1px solid #a5b4fc14;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-light) 7.84%, transparent);
     padding: 12px 0;
     font-size: 12px;
     line-height: 1.7;
@@ -467,7 +467,7 @@ with urllib.request.urlopen(request) as response:
   .endpoint-search {
     padding: 25px;
     background: #111a30;
-    border: 1px solid #a5b4fc25;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
     border-radius: 8px;
     margin-top: 40px;
   }
@@ -479,7 +479,7 @@ with urllib.request.urlopen(request) as response:
   }
   .endpoint-search input {
     width: 100%;
-    border: 1px solid #a5b4fc35;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 20.78%, transparent);
     border-radius: 6px;
     padding: 13px;
     background: #0c1325;
@@ -488,8 +488,8 @@ with urllib.request.urlopen(request) as response:
     outline: none;
   }
   .endpoint-search input:focus {
-    border-color: #ad9eed;
-    box-shadow: 0 0 0 3px #ad9eed15;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8.24%, transparent);
   }
   .endpoints details[data-feature] {
     border-left: 2px solid var(--feature-accent);
@@ -503,18 +503,18 @@ with urllib.request.urlopen(request) as response:
     font:
       11px 'Fira Code Variable',
       monospace;
-    color: #a79acf;
-    border: 1px solid #a5b4fc25;
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
     padding: 4px 7px;
     border-radius: 4px;
   }
   .endpoints {
-    border: 1px solid #a5b4fc25;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
     border-radius: 8px;
     overflow: hidden;
   }
   details + details {
-    border-top: 1px solid #a5b4fc18;
+    border-top: 1px solid color-mix(in srgb, var(--accent-light) 9.41%, transparent);
   }
   summary {
     display: grid;
@@ -524,7 +524,7 @@ with urllib.request.urlopen(request) as response:
     list-style: none;
     padding: 17px;
     cursor: pointer;
-    background: #a5b4fc04;
+    background: color-mix(in srgb, var(--accent-light) 1.57%, transparent);
   }
   summary::-webkit-details-marker {
     display: none;
@@ -593,7 +593,7 @@ with urllib.request.urlopen(request) as response:
     --status-color: #f472b6;
   }
   .expand {
-    color: #b09eed;
+    color: var(--accent);
     font-size: 16px;
   }
   details[open] .expand {
@@ -619,7 +619,7 @@ with urllib.request.urlopen(request) as response:
     color: #97a8c6;
   }
   .endpoint-example pre {
-    border: 1px solid #a5b4fc18;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 9.41%, transparent);
     border-radius: 5px;
     padding: 14px;
   }

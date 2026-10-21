@@ -101,7 +101,7 @@
     color: #bae6fd;
   }
   .connection-speed.upload {
-    color: #c7d2fe;
+    color: var(--accent-light);
   }
   .speed-direction {
     stroke: currentColor;

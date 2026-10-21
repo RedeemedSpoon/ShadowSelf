@@ -88,7 +88,7 @@
     padding: 15px;
   }
   .browser-frame {
-    border: 1px solid #818cf84a;
+    border: 1px solid color-mix(in srgb, var(--accent) 29.02%, transparent);
     border-radius: 10px;
     background: linear-gradient(150deg, #1a2340, #0e1729);
     box-shadow: 0 22px 60px #0004;
@@ -98,7 +98,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #818cf822;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 13.33%, transparent);
     padding: 13px 16px;
   }
   .browser-title > span {
@@ -133,12 +133,16 @@
     width: 82px;
     height: 82px;
     margin-bottom: 6px;
-    color: #a5b4fc;
-    border: 1px solid #818cf83d;
-    outline: 1px dashed #818cf825;
+    color: var(--accent-light);
+    border: 1px solid color-mix(in srgb, var(--accent) 23.92%, transparent);
+    outline: 1px dashed color-mix(in srgb, var(--accent) 14.51%, transparent);
     outline-offset: 9px;
     border-radius: 50%;
-    background: radial-gradient(circle, #6366f125, #6366f105);
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--accent-strong) 14.51%, transparent),
+      color-mix(in srgb, var(--accent-strong) 1.96%, transparent)
+    );
   }
   .key-chamber strong {
     font-size: 17px;
@@ -150,14 +154,14 @@
     color: #8698bd;
   }
   .privacy-illustration :global(svg[data-icon]) {
-    color: #a5b4fc;
+    color: var(--accent-light);
   }
   .secret-chains,
   .storage-chains {
     display: block;
     width: calc(100% - 32px);
     margin-inline: 16px;
-    stroke: #a5b4fc;
+    stroke: var(--accent-light);
     stroke-width: 1.6;
   }
   .secret-chains {
@@ -189,10 +193,10 @@
     align-content: start;
     gap: 10px;
     padding: 14px 4px;
-    border: 1px solid #818cf84a;
+    border: 1px solid color-mix(in srgb, var(--accent) 29.02%, transparent);
     border-radius: 6px;
     background: #111b31;
-    color: #a5b4fc;
+    color: var(--accent-light);
   }
   .secret-boxes span {
     font-size: 10px;
@@ -236,7 +240,7 @@
   }
   .privacy-eyebrow {
     display: block;
-    color: #818cf8;
+    color: var(--accent);
     font-size: 12px;
     margin-bottom: 22px;
   }
@@ -299,14 +303,14 @@
       font-size: 9px;
     }
     .privacy-illustration :global(svg[data-icon]) {
-      color: #a5b4fc;
+      color: var(--accent-light);
     }
     .secret-chains,
     .storage-chains {
       display: block;
       width: calc(100% - 32px);
       margin-inline: 16px;
-      stroke: #a5b4fc;
+      stroke: var(--accent-light);
       stroke-width: 1.6;
     }
     .secret-chains {
