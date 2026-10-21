@@ -459,3 +459,11 @@ export interface PendingUtxoSend {
   inputs: {txid: string; vout: number}[];
   review: {amount: string; recipient: string; fee: string; unit: string};
 }
+
+export type GlobeVector = readonly [number, number, number];
+
+export interface RoutingMarker {
+  x: number;
+  y: number;
+  visibility: number;
+}

@@ -185,3 +185,56 @@ export const EXTENSION_STORES = [
 
 export const HOMEPAGE_CHAIN_LINK_PATH =
   'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71';
+
+export const EXTENSION_ROUTE_PREVIEW = [
+  {
+    city: 'Amsterdam',
+    country: 'Netherlands',
+    code: 'NL',
+    ip: '203.0.113.82',
+    download: 84.6,
+    upload: 32.8,
+    latency: 24,
+    longitude: 4.9041,
+    latitude: 52.3676,
+    viewLongitude: 25,
+    labelX: 18,
+  },
+  {
+    city: 'New York',
+    country: 'United States',
+    code: 'US',
+    ip: '198.51.100.24',
+    download: 62.4,
+    upload: 24.6,
+    latency: 78,
+    longitude: -74.006,
+    latitude: 40.7128,
+    viewLongitude: -65,
+    labelX: -18,
+  },
+  {
+    city: 'Tokyo',
+    country: 'Japan',
+    code: 'JP',
+    ip: '192.0.2.146',
+    download: 108.2,
+    upload: 46.3,
+    latency: 172,
+    longitude: 139.6917,
+    latitude: 35.6895,
+    viewLongitude: 105,
+    labelX: 18,
+  },
+] as const;
+
+export const EXTENSION_SPEED_HISTORY = {
+  samples: 26,
+  interval: 700,
+  width: 158,
+  height: 64,
+  ceilings: [
+    Math.max(...EXTENSION_ROUTE_PREVIEW.map((route) => route.download)) * 1.2,
+    Math.max(...EXTENSION_ROUTE_PREVIEW.map((route) => route.upload)) * 1.2,
+  ],
+} as const;
