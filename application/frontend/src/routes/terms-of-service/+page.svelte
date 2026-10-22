@@ -33,7 +33,7 @@
   <p>
     You are responsible for protecting your sign-in password, second-factor setup, recovery codes, API keys, and vault
     master password. Notify the project if you discover unauthorized access. We cannot decrypt browser-protected vault
-    or wallet secrets without your master password.
+    passwords, TOTP secrets, or wallet secrets without your master password.
   </p>
   <h2>Prohibited use</h2>
   <p>Do not use the service to:</p>

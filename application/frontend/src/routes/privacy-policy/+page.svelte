@@ -11,9 +11,10 @@
   <section class="policy-summary" aria-label="Policy summary">
     <h2>TLDR</h2>
     <p>
-      We do not sell your information. Your browser encrypts vault passwords, TOTP secrets, and wallet keys; the master
-      password stays with you. Profiles, ordinary mail, SMS, and billing records are outside that encryption. Providers
-      receive what they need to run their services. A synthetic identity is not a promise that every record disappears.
+      We do not sell your information. Your browser encrypts vault passwords, TOTP secrets, and wallet secrets; the
+      master password stays with you. Profiles, ordinary mail, SMS, and billing records are outside that encryption.
+      Providers receive what they need to run their services. A synthetic identity is not a promise that every record
+      disappears.
     </p>
   </section>
 
@@ -32,9 +33,9 @@
   <p>Account usernames and website addresses are stored separately from encrypted passwords and TOTP secrets.</p>
   <h2>Browser encryption</h2>
   <p>
-    Your browser encrypts protected vault and wallet secrets using your master password before sending them for storage.
-    The service stores encrypted values. It does not receive your master password or plaintext wallet signing keys
-    through these flows.
+    Your browser encrypts vault passwords, TOTP secrets, and wallet secrets using your master password before sending
+    them for storage. The service stores encrypted values. It does not receive your master password or plaintext wallet
+    signing keys through these flows.
   </p>
   <p>
     This protection depends on the password you choose, the security of your browser and device, and the code running in

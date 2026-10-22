@@ -55,12 +55,12 @@
         {
           question: 'What can ShadowSelf see?',
           answer:
-            'The server handles profiles, mail, SMS, account metadata, and billing records. Your browser encrypts vault passwords, TOTP secrets, and wallet signing keys before storage. Your master password stays on your device. PGP protects mail you encrypt with it; ordinary mail is outside vault encryption.',
+            'The server handles profiles, mail, SMS, account metadata, and billing records. Your browser encrypts vault passwords, TOTP secrets, and wallet secrets before storage. Your master password stays on your device. PGP protects mail you encrypt with it; ordinary mail is outside vault encryption.',
         },
         {
           question: 'What happens if I forget the master password?',
           answer:
-            'You can recover access to your account, but that does not unlock encrypted vault or wallet secrets. We do not have your master password to reset. Keep your wallet recovery material somewhere safe outside the vault.',
+            'You can recover access to your account, but that does not unlock encrypted vault passwords, TOTP secrets, or wallet secrets. We do not have your master password to reset. Keep your wallet secrets somewhere safe outside the vault.',
         },
         {
           question: 'Will every website accept these details?',

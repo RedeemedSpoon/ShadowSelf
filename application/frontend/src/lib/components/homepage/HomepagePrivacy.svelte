@@ -8,7 +8,7 @@
     <div class="privacy-layout" data-reveal>
       <div
         class="privacy-illustration"
-        aria-label="Your browser holds the key to passwords, TOTP, and wallet secrets. Only encrypted values are stored.">
+        aria-label="Your browser holds the key to passwords, TOTP secrets, and wallet secrets. Only encrypted values are stored.">
         <div class="browser-frame">
           <div class="browser-title"><span><i></i><i></i><i></i></span><small>Your browser</small></div>
           <div class="key-chamber">
@@ -39,10 +39,13 @@
             <div><Icon name="shield" size={19} /><span>TOTP</span><code>••••••</code></div>
             <div><Icon name="wallet" size={19} /><span>Wallet secrets</span><code>••••••••</code></div>
           </div>
-          <svg class="storage-chains" viewBox="0 0 360 32" preserveAspectRatio="none" fill="none" aria-hidden="true">
-            {#each [60, 180, 300] as x (x)}
-              <path d={HOMEPAGE_CHAIN_LINK_PATH} transform={`translate(${x} 16) rotate(135) translate(-12 -12)`} />
-            {/each}
+          <svg
+            class="storage-connectors"
+            viewBox="0 0 360 32"
+            preserveAspectRatio="none"
+            fill="none"
+            aria-hidden="true">
+            <path d="M60 0V32M180 0V32M300 0V32" />
           </svg>
           <div class="cipher-storage">
             <Icon name="cloud" size={24} />
@@ -55,9 +58,8 @@
       <div class="privacy-copy">
         <h2>Zero-knowledge vault.<br />Open-source code.</h2>
         <p>
-          Your browser encrypts vault passwords, TOTP secrets, and wallet recovery material before storage. Your
-          identity's master password never leaves the browser. ShadowSelf stores the encrypted values without the key to
-          read them.
+          Your browser encrypts vault passwords, TOTP secrets, and wallet secrets before storage. Your identity's master
+          password never leaves the browser. ShadowSelf stores the encrypted values without the key to read them.
         </p>
         <div class="privacy-links">
           <a class="inline-link" href="https://github.com/RedeemedSpoon/ShadowSelf"
@@ -124,7 +126,7 @@
     display: grid;
     justify-items: center;
     gap: 10px;
-    padding: 28px 15px 0;
+    padding: 42px 15px 0;
   }
   .key-halo {
     display: grid;
@@ -156,28 +158,27 @@
     color: var(--accent-light);
   }
   .secret-chains,
-  .storage-chains {
+  .storage-connectors {
     display: block;
     width: calc(100% - 32px);
     margin-inline: 16px;
-    stroke: var(--accent-light);
+    stroke: #64748b80;
     stroke-width: 1.6;
   }
   .secret-chains {
     height: 94px;
-    margin-top: 22px;
+    margin-top: 8px;
     overflow: visible;
   }
   .chain-anchor {
     stroke: #cbd5e1;
     stroke-width: 1.5;
   }
-  .secret-chains path,
-  .storage-chains path {
+  .secret-chains path {
     stroke-linecap: round;
     stroke-linejoin: round;
   }
-  .storage-chains {
+  .storage-connectors {
     height: 30px;
   }
   .secret-boxes {
@@ -192,7 +193,7 @@
     align-content: start;
     gap: 10px;
     padding: 14px 4px;
-    border: 1px solid color-mix(in srgb, var(--accent) 29.02%, transparent);
+    border: 1px solid #64748b40;
     border-radius: 6px;
     background: #111b31;
     color: var(--accent-light);
@@ -296,18 +297,8 @@
     .secret-boxes span {
       font-size: 9px;
     }
-    .privacy-illustration :global(svg[data-icon]) {
-      color: var(--accent-light);
-    }
     .secret-chains,
-    .storage-chains {
-      display: block;
-      width: calc(100% - 32px);
-      margin-inline: 16px;
-      stroke: var(--accent-light);
-      stroke-width: 1.6;
-    }
-    .secret-chains {
+    .storage-connectors {
       width: calc(100% - 20px);
       margin-inline: 10px;
     }

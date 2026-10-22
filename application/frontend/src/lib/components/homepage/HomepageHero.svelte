@@ -1,11 +1,44 @@
 <script lang="ts">
-  import background from '$image/homepage/welcome-background.webp';
   import {HOMEPAGE_SERVICES} from '$constant';
   import {page} from '$app/state';
 </script>
 
 <section class="spectrum-hero" id="overview">
-  <div class="identity-wall" style:background-image={`url(${background})`} aria-hidden="true"></div>
+  <div class="identity-wall" aria-hidden="true">
+    <svg class="identity-pattern" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <g id="hero-identity-card">
+          <rect
+            x="1"
+            y="1"
+            width="286"
+            height="166"
+            rx="16"
+            fill="currentColor"
+            fill-opacity="0.035"
+            stroke="currentColor"
+            stroke-opacity="0.28" />
+          <rect x="22" y="28" width="78" height="104" rx="10" fill="currentColor" fill-opacity="0.09" />
+          <circle cx="61" cy="63" r="17" fill="currentColor" fill-opacity="0.24" />
+          <path d="M34 118c0-22 12-35 27-35s27 13 27 35" fill="currentColor" fill-opacity="0.18" />
+          <path
+            d="M122 44h88m12 0h20M122 67h120M122 90h52m12 0h56M122 113h95"
+            fill="none"
+            stroke="currentColor"
+            stroke-opacity="0.22"
+            stroke-width="3"
+            stroke-linecap="round" />
+          <circle cx="262" cy="142" r="3" fill="currentColor" fill-opacity="0.45" />
+        </g>
+        <pattern id="hero-identity-tiles" width="960" height="208" patternUnits="userSpaceOnUse">
+          <use href="#hero-identity-card" x="16" y="20" color="#9290f7" />
+          <use href="#hero-identity-card" x="336" y="20" color="#6baccb" />
+          <use href="#hero-identity-card" x="656" y="20" color="#b08adb" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#hero-identity-tiles)" />
+    </svg>
+  </div>
   <div class="hero-light" aria-hidden="true"></div>
   <div class="hero-content chapter-width">
     <h1>Create identities.<br /><span>Keep yours private.</span></h1>
@@ -47,31 +80,29 @@
   }
   .identity-wall {
     position: absolute;
-    inset: -60px -20%;
-    background-size: auto 100%;
-    background-position: center;
-    opacity: 0.45;
+    inset: min(-240px, -15vw) -480px;
     z-index: -3;
-    animation: wall-drift 70s linear infinite alternate;
-    transform: rotate(-5deg) scale(1.1);
+    opacity: 0.22;
+    transform: rotate(-12deg);
+    pointer-events: none;
+  }
+  .identity-pattern {
+    display: block;
+    width: calc(100% + 960px);
+    height: 100%;
+    animation: wall-drift 120s linear infinite;
   }
   .spectrum-hero::after {
     content: '';
     position: absolute;
     inset: 0;
     z-index: -2;
-    background:
-      linear-gradient(180deg, #080b1899, transparent 30%, #070b1bf0 93%),
-      radial-gradient(ellipse, #070b1bd9 12%, transparent 70%);
+    background: radial-gradient(ellipse 70% 70% at 50% 50%, #080c2033 15%, #080c2059 55%, #080c208c 100%);
   }
   .hero-light {
     position: absolute;
-    top: 12%;
-    left: 15%;
-    right: 15%;
-    height: 60%;
+    inset: 10% 15%;
     background: radial-gradient(ellipse, #5534e030, transparent 66%);
-    filter: blur(50px);
     z-index: -1;
   }
   .hero-content {
@@ -180,10 +211,10 @@
   }
   @keyframes wall-drift {
     from {
-      translate: -4% 0;
+      transform: translateX(0);
     }
     to {
-      translate: 4% -3%;
+      transform: translateX(-960px);
     }
   }
   @keyframes hero-enter {
@@ -209,6 +240,11 @@
   @media (max-width: 900px) {
     .hero-content h1 {
       font-size: 7vw;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .identity-pattern {
+      animation: none;
     }
   }
   @media (max-width: 700px) {

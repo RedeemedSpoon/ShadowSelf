@@ -765,7 +765,7 @@
   }
   .mail-notification {
     position: absolute;
-    top: 0;
+    top: -10px;
     left: 10px;
     right: 12px;
     z-index: 3;
