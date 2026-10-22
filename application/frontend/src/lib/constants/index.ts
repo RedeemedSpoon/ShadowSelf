@@ -155,7 +155,7 @@ export const HOMEPAGE_DEMO_PROFILES = [
 ] as const;
 
 export const HOMEPAGE_PANEL_IDENTITIES = {
-  identity: {name: 'Yuna Choi', handle: 'yuna.frames', location: 'South Korea', initials: 'YC', countryCode: 'KR'},
+  identity: {name: 'Yuna Choi', handle: 'yuna.frames', location: 'South Korea', email: 'yuna.frames@example.com'},
   vault: {name: 'Oliver Grant', handle: 'oliver.trails'},
   email: {name: 'Isabel Romero', email: 'isabel.romero@example.com'},
   phone: {name: 'Zara Okafor', phone: '+1 202 555 0142'},

@@ -53,8 +53,7 @@
         <p class="illustration-caption">Encrypted before it leaves your device.</p>
       </div>
       <div class="privacy-copy">
-        <span class="privacy-eyebrow">Zero-knowledge vault. Open-source code.</span>
-        <h2>Your secrets<br />stay yours.</h2>
+        <h2>Zero-knowledge vault.<br />Open-source code.</h2>
         <p>
           Your browser encrypts vault passwords, TOTP secrets, and wallet recovery material before storage. Your
           identity's master password never leaves the browser. ShadowSelf stores the encrypted values without the key to
@@ -170,7 +169,7 @@
     overflow: visible;
   }
   .chain-anchor {
-    stroke-opacity: 0.8;
+    stroke: #cbd5e1;
     stroke-width: 1.5;
   }
   .secret-chains path,
@@ -238,14 +237,8 @@
     font-size: 10px;
     color: #7384a5;
   }
-  .privacy-eyebrow {
-    display: block;
-    color: var(--accent);
-    font-size: 12px;
-    margin-bottom: 22px;
-  }
   .privacy-copy h2 {
-    font-size: clamp(40px, 4vw, 58px);
+    font-size: clamp(30px, 3.2vw, 46px);
     letter-spacing: -2px;
     margin-bottom: 27px;
   }
@@ -284,7 +277,8 @@
       grid-row: 1;
     }
     .privacy-copy h2 {
-      font-size: 43px;
+      font-size: clamp(25px, 6.5vw, 38px);
+      letter-spacing: -1px;
     }
     .privacy-illustration {
       max-width: 370px;

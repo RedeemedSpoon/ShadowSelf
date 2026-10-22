@@ -47,7 +47,7 @@
     color: var(--service-color);
   }
   .profile-tool-heading h3 {
-    font-size: 32px;
+    font-size: 28px;
     letter-spacing: -1px;
     line-height: 1.3;
     font-weight: 500;
@@ -80,7 +80,7 @@
       min-height: 0;
     }
     .profile-tool-heading h3 {
-      font-size: 31px;
+      font-size: 27px;
     }
     .profile-tool-heading p {
       font-size: 14px;

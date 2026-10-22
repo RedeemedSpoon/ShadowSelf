@@ -1,6 +1,5 @@
 <script lang="ts">
   import HomepageAccess from './HomepageAccess.svelte';
-  import Icon from '$component/ui/Icon.svelte';
 </script>
 
 <section class="network-lifecycle" id="lifecycle">
@@ -51,9 +50,6 @@
           </div>
         </div>
       </li>
-      <li class="lifecycle-goal" aria-label="Setup complete" data-reveal>
-        <span class="lifecycle-dot"><Icon name="check" size={17} /></span>
-      </li>
     </ol>
     <HomepageAccess />
   </div>
@@ -65,13 +61,13 @@
     padding-block: 110px;
   }
   .lifecycle-heading h2 {
-    font-size: 49px;
+    font-size: clamp(32px, 3.5vw, 45px);
     letter-spacing: -2px;
     margin-bottom: 25px;
   }
   .lifecycle {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) 30px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0;
     margin-top: 65px;
     padding: 0;
@@ -79,22 +75,19 @@
   }
   .lifecycle li {
     position: relative;
-    border-top: 1px solid #547597;
     padding: 33px 23px 0 0;
+  }
+  .lifecycle li:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: #547597;
   }
   .lifecycle-heading > p {
     max-width: 650px;
     margin-top: 25px;
     font-size: 14px;
-  }
-  .lifecycle-goal {
-    border-top: 0 !important;
-    padding: 0 !important;
-  }
-  .lifecycle-goal .lifecycle-dot {
-    border-color: #34d39980;
-    color: #6ee7b7;
-    background: #102a25;
   }
   .lifecycle-dot {
     position: absolute;
@@ -181,6 +174,9 @@
       border-top: 0;
       border-left: 1px solid #547597;
     }
+    .lifecycle li::before {
+      display: none;
+    }
     .lifecycle li:last-child {
       border-left: 0;
       min-height: 29px;
@@ -203,8 +199,8 @@
       padding-block: 65px;
     }
     .lifecycle-heading h2 {
-      font-size: 35px;
-      letter-spacing: -1.3px;
+      font-size: clamp(23px, 6.3vw, 34px);
+      letter-spacing: -0.8px;
     }
     .lifecycle {
       margin-top: 45px;

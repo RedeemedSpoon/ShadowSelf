@@ -78,9 +78,10 @@
     text-align: center;
   }
   .hero-content h1 {
-    font-size: clamp(56px, 7.4vw, 112px);
+    font-size: clamp(48px, 6.5vw, 96px);
     font-weight: 650;
-    letter-spacing: -5px;
+    letter-spacing: -3px;
+    white-space: nowrap;
     line-height: 1.08;
     animation: hero-enter 1s both;
   }
@@ -207,7 +208,7 @@
   }
   @media (max-width: 900px) {
     .hero-content h1 {
-      font-size: 77px;
+      font-size: 7vw;
     }
   }
   @media (max-width: 700px) {
@@ -216,8 +217,8 @@
       padding: 90px 0;
     }
     .hero-content h1 {
-      font-size: clamp(42px, 8.5vw, 60px);
-      letter-spacing: -2.5px;
+      font-size: clamp(26px, 8.7vw, 60px);
+      letter-spacing: -1px;
     }
     .hero-content > p {
       font-size: 16px;

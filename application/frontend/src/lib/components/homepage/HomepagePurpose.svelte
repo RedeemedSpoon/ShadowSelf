@@ -69,10 +69,11 @@
     </div>
     <div class="assembly" bind:this={assembly} data-reveal aria-label="Identity tools organized under one profile">
       <div class="assembly-tools">
-        {#each HOMEPAGE_SERVICES as service, index (service.id)}
-          <div style:--tool-color={service.color} style:--delay={`${index * -0.7}s`}>
-            <Icon name={service.icon} size={16} /><span>{service.name}</span><b aria-hidden="true">→</b>
-          </div>
+        {#each HOMEPAGE_SERVICES as service (service.id)}
+          <a href={`#feature-${service.id}`} style:--tool-color={service.color}>
+            <Icon name={service.icon} size={16} /><span>{service.name}</span><span class="tool-arrow"
+              ><Icon name="arrow" size={13} /></span>
+          </a>
         {/each}
       </div>
       <div class="assembly-spine" aria-hidden="true"></div>
@@ -86,7 +87,6 @@
               style:--depth={depth}
               style:z-index={HOMEPAGE_DEMO_PROFILES.length - depth}
               aria-hidden={depth !== 0}>
-              <div class="profile-topline"><span>Example identity</span></div>
               <div class="profile-person">
                 <div
                   class="profile-portrait"
@@ -191,17 +191,17 @@
     gap: 85px;
     align-items: center;
   }
-  .purpose-copy h2 {
-    font-size: clamp(36px, 3.5vw, 49px);
-    letter-spacing: -1.9px;
-    margin-bottom: 32px;
-  }
-  .purpose-copy h2 span {
-    color: var(--brand-accent);
-  }
   .purpose-copy p {
     font-size: 14px;
     margin-top: 20px;
+  }
+  .purpose-copy h2 {
+    font-size: clamp(30px, 3.1vw, 43px);
+    letter-spacing: -1.5px;
+    margin-bottom: 28px;
+  }
+  .purpose-copy h2 span {
+    color: var(--brand-accent);
   }
   .purpose-copy .purpose-answer {
     color: #d0d7ee;
@@ -216,7 +216,8 @@
     display: grid;
     gap: 12px;
   }
-  .assembly-tools > div {
+  .assembly-tools > a {
+    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -224,6 +225,14 @@
     background: #11182b;
     border-bottom: 1px solid color-mix(in srgb, var(--tool-color) 25%, transparent);
     border-radius: 5px 0 0 5px;
+    transition:
+      border-color 220ms ease,
+      background 220ms ease;
+  }
+  .assembly-tools > a:hover,
+  .assembly-tools > a:focus-visible {
+    border-bottom-color: var(--tool-color);
+    background: color-mix(in srgb, var(--tool-color) 8%, #11182b);
   }
   .assembly-tools :global(svg) {
     color: var(--tool-color);
@@ -233,12 +242,19 @@
     font-size: 11px;
     color: #bcc5de;
   }
-  .assembly-tools b {
+  .assembly-tools .tool-arrow {
     margin-left: auto;
     color: var(--tool-color);
-    font-size: 12px;
-    font-weight: 400;
-    animation: signal 5.6s var(--delay) ease infinite;
+    display: flex;
+    opacity: 0.35;
+    transition:
+      opacity 220ms ease,
+      translate 220ms ease;
+  }
+  .assembly-tools > a:hover .tool-arrow,
+  .assembly-tools > a:focus-visible .tool-arrow {
+    opacity: 1;
+    translate: 3px;
   }
   .assembly-spine {
     border: 1px solid color-mix(in srgb, var(--accent) 30.2%, transparent);
@@ -294,13 +310,6 @@
     background: var(--accent-light);
     box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 40%, transparent);
     transform-origin: left;
-  }
-  .profile-topline {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: #8998bb;
-    font-size: 9px;
   }
   .assembly-record.shuffling {
     animation: card-to-back 1300ms cubic-bezier(0.3, 0.65, 0.2, 1) both;
@@ -438,18 +447,6 @@
       animation: none;
     }
   }
-  @keyframes signal {
-    0%,
-    75%,
-    100% {
-      opacity: 0.35;
-      translate: 0;
-    }
-    85% {
-      opacity: 1;
-      translate: 4px;
-    }
-  }
   @media (max-width: 1000px) {
     .purpose-layout {
       gap: 40px;
@@ -480,8 +477,8 @@
       gap: 45px;
     }
     .purpose-copy h2 {
-      font-size: 36px;
-      letter-spacing: -1.5px;
+      font-size: clamp(24px, 6.3vw, 36px);
+      letter-spacing: -1px;
     }
     .assembly {
       max-width: 470px;
@@ -527,7 +524,7 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
-    .assembly-tools > div {
+    .assembly-tools > a {
       padding: 12px 9px;
       border-radius: 5px;
     }

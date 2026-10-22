@@ -43,10 +43,10 @@
             <dd>Film, sea air, and long walks.</dd>
           </div>
         </dl>
-        <div class="record-footer"><span>Profile details</span><span>Saved together</span></div>
-      </div>
-      <div class="identity-orbit" aria-hidden="true">
-        <span>{examples.identity.initials}</span><span>{examples.identity.countryCode}</span><span>01</span>
+        <div class="identity-contact">
+          <Icon name="mail" size={16} />
+          <div><span>{examples.identity.email}</span><small>Use this address when signing up.</small></div>
+        </div>
       </div>
     </div>
   {:else if service === 'vault'}
@@ -291,28 +291,24 @@
   .mail-art .record-footer {
     color: #e6ebff;
   }
-  .identity-pass .record-footer {
-    padding: 14px 0 0;
-  }
-  .identity-orbit {
+  .identity-contact {
     display: flex;
-    position: absolute;
-    right: -12px;
-    bottom: -26px;
-    gap: 8px;
-    transform: rotate(4deg);
+    align-items: center;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid #b4a1ff1c;
+    color: #c1c3d9;
+    font-size: 11px;
   }
-  .identity-orbit span {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    border: 1px solid #8a72d871;
-    background: #282040;
-    border-radius: 13px;
-    color: var(--accent-light);
-    font-size: 20px;
-    box-shadow: 0 10px 20px #0004;
+  .identity-contact :global(svg) {
+    flex-shrink: 0;
+  }
+  .identity-contact span {
+    overflow-wrap: anywhere;
+  }
+  .identity-contact small {
+    display: block;
+    margin-top: 6px;
   }
   .vault-record {
     max-width: 470px;

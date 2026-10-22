@@ -138,18 +138,18 @@
     place-items: center;
     width: 30px;
     height: 30px;
-    color: var(--accent);
+    color: var(--accent-strong);
   }
   .signed-in-links {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--accent);
+    color: var(--accent-strong);
   }
   .dashboard-link {
     position: relative;
     padding-block: 8px;
-    color: var(--accent);
+    color: var(--accent-strong);
   }
   .dashboard-link::after {
     content: '';
@@ -163,7 +163,7 @@
   }
   .dashboard-link:hover,
   .settings-link:hover {
-    color: var(--accent-light);
+    color: var(--accent-strong);
   }
   .dashboard-link:hover::after,
   .dashboard-link:focus-visible::after {

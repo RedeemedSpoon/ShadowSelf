@@ -2,6 +2,7 @@
   import {fly} from 'svelte/transition';
   import {onMount} from 'svelte';
   import {PRICING_TIERS} from '$constant';
+  import Icon from '$component/ui/Icon.svelte';
 
   let reducedMotion = $state(true);
 
@@ -43,10 +44,12 @@
           </div>{/key}
       </div>
       <ul>
-        <li>Identity profiles and a separate account vault</li>
-        <li>A dedicated email inbox and SMS number</li>
-        <li>Cryptocurrency wallets with browser signing</li>
-        <li>Browser extension and API access</li>
+        <li><Icon name="check" size={15} /><span>Editable profiles, encrypted passwords, and TOTP</span></li>
+        <li><Icon name="check" size={15} /><span>Dedicated email inbox, aliases, PGP, and SMS</span></li>
+        <li><Icon name="check" size={15} /><span>Cryptocurrency wallets and virtual cards</span></li>
+        <li><Icon name="check" size={15} /><span>Residential proxies managed per identity</span></li>
+        <li><Icon name="check" size={15} /><span>Online drive, image metadata tools, and cloaking</span></li>
+        <li><Icon name="check" size={15} /><span>Website, browser extension, and API access</span></li>
       </ul>
       <a class="primary-action" href="/purchase">Choose a plan</a>
     </div>
@@ -66,7 +69,7 @@
     align-items: center;
   }
   .pricing-copy h2 {
-    font-size: clamp(38px, 4.2vw, 60px);
+    font-size: clamp(32px, 3.6vw, 48px);
     letter-spacing: -2px;
     margin-bottom: 28px;
   }
@@ -135,16 +138,17 @@
     padding: 0;
   }
   li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
     font-size: 12px;
     line-height: 1.7;
-    padding: 9px 0 9px 22px;
-    position: relative;
+    padding: 9px 0;
     color: #c2c8df;
   }
-  li::before {
-    content: '✓';
-    position: absolute;
-    left: 0;
+  li :global(svg) {
+    flex-shrink: 0;
+    margin-top: 3px;
     color: var(--accent);
   }
   .price-panel .primary-action {
@@ -157,7 +161,8 @@
       gap: 40px;
     }
     .pricing-copy h2 {
-      font-size: 43px;
+      font-size: clamp(25px, 6.3vw, 38px);
+      letter-spacing: -1px;
     }
     .pricing-copy p {
       max-width: 100%;
@@ -177,9 +182,6 @@
     }
     .price > span {
       font-size: 55px;
-    }
-    .pricing-copy h2 {
-      font-size: 37px;
     }
   }
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import {page} from '$app/state';
+  import Icon from '$component/ui/Icon.svelte';
 </script>
 
 <section class="spectrum-close">
@@ -11,7 +12,8 @@
       choose.
     </p>
     <a class="primary-action" href={page.data.user ? '/dashboard' : '/signup'}
-      >{page.data.user ? 'Build your next identity' : 'Make your first identity'} <span aria-hidden="true">↗</span></a>
+      >{page.data.user ? 'Build your next identity' : 'Make your first identity'}
+      <span aria-hidden="true"><Icon name="arrow" size={14} /></span></a>
   </div>
 </section>
 
@@ -35,8 +37,8 @@
     isolation: isolate;
   }
   .spectrum-close h2 {
-    font-size: clamp(44px, 5.5vw, 78px);
-    letter-spacing: -3px;
+    font-size: clamp(36px, 4.8vw, 68px);
+    letter-spacing: -2px;
   }
   .spectrum-close p {
     margin: 26px 0 30px;
@@ -70,7 +72,7 @@
   .spectrum-close .primary-action {
     position: relative;
     overflow: hidden;
-    gap: 10px;
+    gap: 6px;
   }
   .spectrum-close .primary-action::after {
     content: '';
@@ -82,6 +84,8 @@
     pointer-events: none;
   }
   .spectrum-close .primary-action span {
+    display: flex;
+    rotate: -45deg;
     transition: transform 180ms ease;
   }
   .spectrum-close .primary-action:hover span {
@@ -107,8 +111,8 @@
       padding-block: 50px;
     }
     .spectrum-close h2 {
-      font-size: 43px;
-      letter-spacing: -2px;
+      font-size: clamp(28px, 7.5vw, 42px);
+      letter-spacing: -1px;
     }
   }
 </style>
