@@ -16,7 +16,7 @@ jobs:
       - run: cp application/.env.example application/.env
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.3
+          bun-version: 1.4.4
       - run: bun install --frozen-lockfile
       - run: bun install --frozen-lockfile
         working-directory: application/backend

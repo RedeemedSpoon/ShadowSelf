@@ -1,4 +1,4 @@
-FROM oven/bun:1.4.3
+FROM oven/bun:1.4.4
 
 ARG APP_ORIGIN
 ARG ONION_ORIGIN
