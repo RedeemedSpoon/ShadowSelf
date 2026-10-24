@@ -124,14 +124,14 @@
     font-size: 13px;
   }
   .error {
-    background: #f8717110;
-    border: 1px solid #f8717135;
-    color: #fda4af;
+    background: color-mix(in srgb, var(--danger-color) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--danger-color) 28%, transparent);
+    color: var(--danger-color);
   }
   .success {
-    background: #34d39910;
-    border: 1px solid #34d39935;
-    color: #9ce4cc;
+    background: color-mix(in srgb, var(--success-color) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--success-color) 28%, transparent);
+    color: var(--success-color);
   }
   .submit-row {
     display: flex;

@@ -8,6 +8,7 @@
     loading = false,
     variant = 'primary',
     icon,
+    iconPosition,
     class: className = '',
     disabled,
     type = 'button',
@@ -17,9 +18,12 @@
     loading?: boolean;
     variant?: 'primary' | 'secondary' | 'danger' | 'quiet';
     icon?: string;
+    iconPosition?: 'start' | 'end';
   } = $props();
 
-  const trailingIcon = $derived(icon === 'arrow' || icon === 'external');
+  const trailingIcon = $derived(
+    iconPosition === 'end' || (iconPosition !== 'start' && (icon === 'arrow' || icon === 'external')),
+  );
 </script>
 
 {#snippet indicator()}

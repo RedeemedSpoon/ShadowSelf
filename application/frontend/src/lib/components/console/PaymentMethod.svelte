@@ -33,6 +33,8 @@
           throw new Error('Could not load card payments.');
         }
 
+        const invalidColor = getComputedStyle(document.documentElement).getPropertyValue('--danger-color').trim();
+
         card = stripe.elements().create('card', {
           style: {
             base: {
@@ -41,7 +43,7 @@
               fontSize: '14px',
               '::placeholder': {color: '#66738d'},
             },
-            invalid: {color: '#f6a8b2'},
+            invalid: {color: invalidColor},
           },
         });
         card.on('ready', () => (ready = true));

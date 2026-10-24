@@ -549,7 +549,7 @@
     border-color: #a592ff50;
   }
   .creation-progress li.complete {
-    color: #83baa9;
+    color: var(--success-color);
   }
   .creation-actions {
     justify-content: flex-end;

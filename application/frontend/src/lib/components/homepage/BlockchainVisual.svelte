@@ -49,7 +49,7 @@
     animation: block-traffic 5s linear infinite;
   }
   .satellite > path {
-    stroke: #48c492;
+    stroke: var(--success-color);
     stroke-width: 1.2;
   }
   .small-top {
@@ -68,25 +68,25 @@
   }
   .cube-left {
     fill: #112e25;
-    stroke: #32ad77;
+    stroke: var(--success-color);
     stroke-width: 1.3;
   }
   .cube-right {
     fill: #16432f;
-    stroke: #40d391;
+    stroke: var(--success-color);
     stroke-width: 1.3;
   }
   .cube-detail {
-    stroke: #68e5a6;
+    stroke: var(--success-color);
     stroke-width: 2;
     opacity: 0.5;
   }
   .signing-shield {
-    stroke: #a7f3d0;
+    stroke: var(--success-color);
     stroke-width: 1.2;
   }
   text {
-    fill: #a7f3d0;
+    fill: var(--success-color);
     font-size: 9px;
   }
   .coin-btc {
@@ -102,7 +102,7 @@
     color: #ff8136;
   }
   .coin-usdt {
-    color: #65e3b0;
+    color: var(--success-color);
   }
   .network-status {
     display: flex;
@@ -112,10 +112,10 @@
     width: fit-content;
     margin: 2px auto 0;
     padding: 12px;
-    border: 1px solid #20dc9140;
+    border: 1px solid color-mix(in srgb, var(--success-color) 25%, transparent);
     border-radius: 7px;
     background: #101e23;
-    color: #a3cebd;
+    color: var(--success-color);
     font-size: 10px;
   }
   .network-status > span {
@@ -126,7 +126,7 @@
   }
   code {
     font-size: 9px;
-    color: #62b99a;
+    color: var(--success-color);
   }
   @keyframes block-traffic {
     to {

@@ -156,12 +156,12 @@
     color: var(--feature-vault);
   }
   .return-example {
-    --example-color: #a2dacc;
+    --example-color: var(--success-color);
     background: #16312c;
-    border-color: #4ca58b33;
+    border-color: color-mix(in srgb, var(--success-color) 20%, transparent);
   }
   .return-example strong {
-    color: #a2dacc;
+    color: var(--success-color);
   }
   @media (max-width: 1050px) {
     .lifecycle {

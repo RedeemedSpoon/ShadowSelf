@@ -107,7 +107,7 @@
     opacity: 0.7;
   }
   .social-links a:hover {
-    background: color-mix(in srgb, var(--accent-light) 4.71%, transparent);
+    background: color-mix(in srgb, currentColor 4.71%, transparent);
     opacity: 1;
   }
   .social-links img {

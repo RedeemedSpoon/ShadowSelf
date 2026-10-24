@@ -416,7 +416,7 @@ with urllib.request.urlopen(request) as response:
     color: #e0e7ff;
   }
   button[data-language='curl'] {
-    --language-color: #4ade80;
+    --language-color: var(--success-color);
   }
   button[data-language='python'] {
     --language-color: #60a5fa;
@@ -532,7 +532,7 @@ with urllib.request.urlopen(request) as response:
     border-radius: 4px;
   }
   [data-method='GET'] {
-    --method-color: #4ade80;
+    --method-color: var(--success-color);
   }
   [data-method='POST'] {
     --method-color: #60a5fa;
@@ -544,7 +544,7 @@ with urllib.request.urlopen(request) as response:
     --method-color: #c084fc;
   }
   [data-method='DELETE'] {
-    --method-color: #fb7185;
+    --method-color: var(--danger-color);
   }
   [data-method='WS'] {
     --method-color: #22d3ee;
@@ -564,7 +564,7 @@ with urllib.request.urlopen(request) as response:
     --status-color: #fbbf24;
   }
   [data-status='401'] {
-    --status-color: #fb7185;
+    --status-color: var(--danger-color);
   }
   [data-status='404'] {
     --status-color: #94a3b8;
@@ -576,7 +576,7 @@ with urllib.request.urlopen(request) as response:
     --status-color: #c084fc;
   }
   [data-status='503'] {
-    --status-color: #f472b6;
+    --status-color: var(--danger-color);
   }
   .expand {
     color: var(--accent);

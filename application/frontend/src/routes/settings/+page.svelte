@@ -114,7 +114,7 @@
             email = settings.email || '';
             mode = 'email';
           }}>Change email</Button
-        ><Button variant="quiet" icon="key" onclick={() => (mode = 'password')}>Change password</Button>
+        ><Button icon="key" iconPosition="end" onclick={() => (mode = 'password')}>Change password</Button>
       </div>
     </section>
     <section class="panel">
@@ -447,11 +447,14 @@
     flex-shrink: 0;
     color: var(--accent);
   }
+  h2 :global(svg[data-icon='card']) {
+    color: var(--feature-card);
+  }
   .danger-panel h2 {
     margin-bottom: 12px;
   }
   .danger-panel h2 :global(svg) {
-    color: #f6a8b2;
+    color: var(--danger-color);
   }
   .settings-grid {
     display: grid;
@@ -509,11 +512,13 @@
     margin: 0;
   }
   .sign-out-sessions :global(.revoke-all) {
-    color: #f08b9b;
+    color: var(--danger-color);
   }
   .sign-out-sessions :global(.revoke-all:hover) {
-    color: #ffacba;
-    background: #fb718512;
+    color: var(--danger-color-hover);
+  }
+  .sign-out-sessions :global(.revoke-all:active) {
+    color: var(--danger-color-pressed);
   }
   .session-title code {
     color: #71839f;
@@ -526,7 +531,7 @@
     justify-content: space-between;
     gap: 25px;
     margin-top: 25px;
-    border-color: #e6829128;
+    border-color: color-mix(in srgb, var(--danger-color) 20%, transparent);
   }
   .settings-password {
     margin-top: 20px;
@@ -544,7 +549,7 @@
       color: var(--accent);
     }
     .danger-panel h2 :global(svg) {
-      color: #f6a8b2;
+      color: var(--danger-color);
     }
     .settings-grid {
       grid-template-columns: 1fr;

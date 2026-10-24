@@ -483,7 +483,7 @@
     font-weight: 400;
   }
   .connected-location :global(svg) {
-    color: #8ebfac;
+    color: var(--success-color);
     flex-shrink: 0;
   }
   .connected-location.connecting :global(svg[data-icon='refresh']) {

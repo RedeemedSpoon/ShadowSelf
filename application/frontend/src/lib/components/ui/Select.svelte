@@ -253,12 +253,12 @@
   }
   .select-options button:hover,
   .select-options button:focus-visible {
-    background: color-mix(in srgb, var(--accent) 10.98%, transparent);
+    background: color-mix(in srgb, currentColor 10.98%, transparent);
     outline-offset: -2px;
   }
   .select-options button[aria-selected='true'] {
     color: var(--accent-light);
-    background: color-mix(in srgb, var(--accent) 8.24%, transparent);
+    background: color-mix(in srgb, currentColor 8.24%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
     .chevron {

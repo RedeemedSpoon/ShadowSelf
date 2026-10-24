@@ -105,7 +105,11 @@
   }
   .dialog-heading :global(.dialog-close:hover),
   .dialog-heading :global(.dialog-close:focus-visible) {
-    color: #fb7185;
+    color: var(--danger-color-hover);
+  }
+
+  .dialog-heading :global(.dialog-close:active) {
+    color: var(--danger-color-pressed);
   }
 
   :global(html:has(.console-dialog.fit)) {

@@ -376,10 +376,10 @@
     display: inline-block;
     margin-top: 20px;
     padding: 10px 15px;
-    background: color-mix(in srgb, var(--feature-email) 35%, #111827);
-    border: 1px solid var(--feature-email);
+    background: var(--danger-surface);
+    border: 1px solid color-mix(in srgb, var(--danger-color) 35%, transparent);
     border-radius: 5px;
-    color: #ffe9ef;
+    color: var(--danger-color);
     font-size: 11px;
   }
   .phone-art {
@@ -795,7 +795,7 @@
   }
   .mail-notification strong {
     display: block;
-    color: #ffe0e4;
+    color: var(--danger-color);
     font-size: 11px;
     font-weight: 500;
   }
@@ -803,7 +803,7 @@
     display: block;
     margin-top: 5px;
     font-size: 9px;
-    color: #bd929f;
+    color: var(--danger-color);
   }
   .mail-notification > i {
     margin-left: auto;

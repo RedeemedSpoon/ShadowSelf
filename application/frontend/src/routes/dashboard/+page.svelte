@@ -115,18 +115,20 @@
         </div>
         <span class="badge {identity.status}"
           >{identity.status === 'inactive' ? 'Setup pending' : identity.status}</span>
-        <div class="identity-contacts">
-          <span class="identity-detail"
-            ><Icon name="mail" size={16} /><span>{identity.email || 'Mailbox pending'}</span></span>
-          <span class="identity-detail"
-            ><Icon name="phone" size={16} /><span
-              >{identity.phone ? formatPhoneNumber(identity.phone) : 'Number pending'}</span
-            ></span>
-        </div>
-        <div class="identity-count">
-          <span>{identity.accounts || 0} vault entries</span>
-        </div>
-        {#if identity.status !== 'inactive'}<Icon name="arrow" size={17} />{/if}</a
+        {#if identity.status !== 'inactive'}
+          <div class="identity-contacts">
+            <span class="identity-detail"
+              ><Icon name="mail" size={16} /><span>{identity.email || 'Mailbox pending'}</span></span>
+            <span class="identity-detail"
+              ><Icon name="phone" size={16} /><span
+                >{identity.phone ? formatPhoneNumber(identity.phone) : 'Number pending'}</span
+              ></span>
+          </div>
+          <div class="identity-count">
+            <span>{identity.accounts || 0} vault entries</span>
+          </div>
+          <Icon name="arrow" size={17} />
+        {/if}</a
       >{/each}
   </div>
   {#if !visible.length}<div class="empty-state">
@@ -197,6 +199,7 @@
     opacity: 0.8;
   }
   .unfinished .identity-avatar {
+    grid-row: 1;
     border-style: dashed;
   }
   .identity-avatar {

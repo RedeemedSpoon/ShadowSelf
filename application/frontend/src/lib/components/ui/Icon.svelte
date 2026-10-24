@@ -53,7 +53,6 @@
   stroke-linecap="round"
   stroke-linejoin="round"
   class={className}
-  style:color={name === 'key' ? 'var(--icon-color, var(--accent))' : undefined}
   aria-hidden="true">
   {#if name === 'account'}
     <circle cx="12" cy="12" r="10" />

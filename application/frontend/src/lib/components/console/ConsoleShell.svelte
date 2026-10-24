@@ -254,8 +254,11 @@
     letter-spacing: 1.1px;
   }
   .homepage-link {
+    --link-color: var(--muted);
+    --link-color-hover: #8996b0;
+    --link-color-pressed: #77849d;
     align-self: flex-start;
-    margin-top: 20px;
+    margin-top: 12px;
   }
   nav {
     min-height: 0;
@@ -289,7 +292,7 @@
   .account-name:hover,
   .identity-navigation-heading:hover {
     color: #e6ebff;
-    background: color-mix(in srgb, var(--accent) 5.1%, transparent);
+    background: color-mix(in srgb, currentColor 5.1%, transparent);
   }
   .identity-navigation-heading {
     display: flex;
@@ -346,7 +349,7 @@
   }
   .identity-shortcut:hover,
   .identity-shortcut.active {
-    background: color-mix(in srgb, var(--accent) 7.06%, transparent);
+    background: color-mix(in srgb, currentColor 7.06%, transparent);
     color: var(--accent-light);
   }
   .identity-shortcut.unfinished {
@@ -422,7 +425,7 @@
       display: none;
     }
     .homepage-link {
-      margin-top: 12px;
+      margin-top: 8px;
     }
     nav {
       display: grid;

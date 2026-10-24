@@ -36,6 +36,9 @@
   }
   .dismiss-status:hover,
   .dismiss-status:focus-visible {
-    color: #fb7185;
+    color: var(--status-action-hover, var(--danger-color-hover));
+  }
+  .dismiss-status:active {
+    color: var(--status-action-pressed, var(--danger-color-pressed));
   }
 </style>

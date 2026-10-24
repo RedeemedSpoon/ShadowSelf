@@ -13,12 +13,21 @@
   --accent-strong: #6253ec;
   --accent-deep: #4938c9;
   --accent-hover: #7b6af2;
+  --danger-color: #c16a76;
+  --danger-color-hover: #b4606d;
+  --danger-color-pressed: #a95562;
+  --danger-surface: #2d1b25;
+  --danger-surface-hover: #271720;
+  --danger-surface-pressed: #22131c;
+  --success-color: #4c9f83;
+  --success-color-hover: #438e75;
+  --success-color-pressed: #397d66;
   --feature-identity: var(--accent);
   --feature-vault: #facc15;
-  --feature-email: #ff5263;
+  --feature-email: var(--danger-color);
   --feature-phone: #38bdf8;
-  --feature-wallet: #20dc91;
-  --feature-card: #f472d0;
+  --feature-wallet: var(--success-color);
+  --feature-card: var(--muted);
   --feature-proxy: #b1ec28;
   --feature-cloud: #ff963e;
   --button-gradient: linear-gradient(90deg, #6556d6 0%, #594ac3 25%, #4d3eb0 50%, #44369e 75%, #3c308e 100%);
@@ -73,6 +82,10 @@ svg[data-icon='user'] {
 
 svg[data-icon='identities'] {
   color: var(--feature-identity);
+}
+
+svg[data-icon='key'] {
+  color: var(--icon-color, var(--link-color));
 }
 
 svg[data-icon='lock'] {
@@ -231,6 +244,7 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 a {
+  --control-focus-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
   color: inherit;
   text-decoration: none;
   transition:
@@ -260,6 +274,7 @@ a {
   }
 }
 button {
+  --control-focus-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
   cursor: pointer;
 }
 button:disabled {
@@ -278,10 +293,14 @@ button:disabled {
     box-shadow 220ms ease,
     background-color 220ms ease;
 }
-:root :is(input:not(.select-validation, [type='checkbox']), textarea, .select-trigger):focus,
-:root .select-trigger[aria-expanded='true'] {
+:root :is(input:not(.select-validation, [type='checkbox']), textarea):focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: var(--control-focus-shadow);
+}
+:root .select-trigger:is(:focus, [aria-expanded='true']) {
+  outline: none;
+  border-color: currentColor;
   box-shadow: var(--control-focus-shadow);
 }
 ::selection {
@@ -389,6 +408,8 @@ button:disabled {
 .control-button,
 .public-action,
 .primary-action {
+  --control-highlight: currentColor;
+  --control-focus-shadow: 0 0 0 3px color-mix(in srgb, var(--control-highlight) 18%, transparent);
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -412,6 +433,9 @@ button:disabled {
     background-color 180ms ease,
     border-color 220ms ease,
     box-shadow 220ms ease;
+}
+:is(.control-button.primary, .public-action, .primary-action) {
+  --control-highlight: var(--link-color);
 }
 :is(.control-button.primary, .public-action, .primary-action)::before {
   content: '';
@@ -439,7 +463,7 @@ button:disabled {
 }
 :is(.control-button, .public-action, .primary-action):focus-visible:not(:disabled, [aria-disabled='true']) {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--control-highlight);
   box-shadow: var(--control-focus-shadow);
 }
 :is(.control-button, .public-action, .primary-action):is(:disabled, [aria-disabled='true']) {
@@ -489,27 +513,31 @@ button:disabled {
   color: #b8bfd5;
 }
 .control-button.danger {
-  background: #3a1e30;
-  border-color: #b34c6d40;
-  color: #f2a7bd;
+  background: var(--danger-surface);
+  border-color: color-mix(in srgb, var(--danger-color) 35%, transparent);
+  color: var(--danger-color);
 }
 .control-button.secondary:hover:not(:disabled) {
-  background: color-mix(in srgb, #9a8dc0 9%, #171e31);
+  background: color-mix(in srgb, currentColor 9%, #171e31);
 }
 .control-button.secondary:active:not(:disabled) {
-  background: color-mix(in srgb, #9a8dc0 18%, #171e31);
+  background: color-mix(in srgb, currentColor 18%, #171e31);
 }
 .control-button.quiet:hover:not(:disabled) {
-  background: #8170ee17;
+  background: color-mix(in srgb, currentColor 9%, transparent);
 }
 .control-button.quiet:active:not(:disabled) {
-  background: #8170ee2e;
+  background: color-mix(in srgb, currentColor 18%, transparent);
 }
 .control-button.danger:hover:not(:disabled) {
-  background: color-mix(in srgb, #e76c96 9%, #3a1e30);
+  background: var(--danger-surface-hover);
+  border-color: color-mix(in srgb, var(--danger-color-hover) 35%, transparent);
+  color: var(--danger-color-hover);
 }
 .control-button.danger:active:not(:disabled) {
-  background: color-mix(in srgb, #e76c96 18%, #3a1e30);
+  background: var(--danger-surface-pressed);
+  border-color: color-mix(in srgb, var(--danger-color-pressed) 35%, transparent);
+  color: var(--danger-color-pressed);
 }
 .button-row {
   display: flex;
@@ -555,7 +583,7 @@ input[type='checkbox'] {
   flex-shrink: 0;
   margin: 0;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--link-color) 45%, transparent);
+  border: 1px solid #3b455d;
   border-radius: 4px;
   background-color: #080e1e;
   background-position: center;
@@ -631,7 +659,7 @@ textarea {
   cursor: not-allowed;
 }
 :root :is(input, textarea, .select-trigger)[aria-invalid='true'] {
-  border-color: #ee7891;
+  border-color: var(--danger-color);
 }
 input::placeholder,
 textarea::placeholder {
@@ -664,14 +692,18 @@ textarea::placeholder {
   margin-top: 1px;
 }
 .status-message.error {
-  color: #f6a8b2;
-  border-color: #e6829138;
-  background: #ae394509;
+  --status-action-hover: var(--danger-color-hover);
+  --status-action-pressed: var(--danger-color-pressed);
+  color: var(--danger-color);
+  border-color: color-mix(in srgb, var(--danger-color) 28%, transparent);
+  background: color-mix(in srgb, var(--danger-color) 6%, transparent);
 }
 .status-message.success {
-  color: #9bddc6;
-  border-color: #57bb9730;
-  background: #48a88109;
+  --status-action-hover: var(--success-color-hover);
+  --status-action-pressed: var(--success-color-pressed);
+  color: var(--success-color);
+  border-color: color-mix(in srgb, var(--success-color) 28%, transparent);
+  background: color-mix(in srgb, var(--success-color) 6%, transparent);
 }
 .empty-state {
   min-height: 260px;
@@ -705,13 +737,14 @@ textarea::placeholder {
 }
 .badge.active,
 .badge.success {
-  color: #83cbb1;
-  border-color: #7cc6a82e;
+  color: var(--success-color);
+  border-color: color-mix(in srgb, var(--success-color) 28%, transparent);
+  background: color-mix(in srgb, var(--success-color) 6%, transparent);
 }
 .badge.disabled {
-  color: #f08b9b;
-  border-color: #f08b9b38;
-  background: #f08b9b0a;
+  color: var(--danger-color);
+  border-color: color-mix(in srgb, var(--danger-color) 28%, transparent);
+  background: color-mix(in srgb, var(--danger-color) 6%, transparent);
 }
 .badge.frozen,
 .badge.pending {
@@ -761,6 +794,7 @@ textarea::placeholder {
   gap: 15px;
 }
 :is(.access-links a, .access-links button, .text-link, .inline-link) {
+  --control-focus-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -793,7 +827,7 @@ textarea::placeholder {
     [aria-disabled='true']
   ) {
   outline: none;
-  border-color: var(--accent);
+  border-color: currentColor;
   box-shadow: var(--control-focus-shadow);
 }
 :is(.access-links a, .access-links button, .text-link, .inline-link):is(:disabled, [aria-disabled='true']) {
