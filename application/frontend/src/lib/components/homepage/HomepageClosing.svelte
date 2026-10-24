@@ -72,37 +72,11 @@
   .spectrum-close .primary-action {
     position: relative;
     overflow: hidden;
-    gap: 6px;
-  }
-  .spectrum-close .primary-action::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(110deg, transparent 35%, #ffffff25 50%, transparent 65%);
-    translate: -120%;
-    animation: action-sheen 7s ease-in-out infinite;
-    pointer-events: none;
-  }
-  .spectrum-close .primary-action span {
-    display: flex;
-    rotate: -45deg;
-    transition: transform 180ms ease;
-  }
-  .spectrum-close .primary-action:hover span {
-    transform: translate(2px, -2px);
+    gap: var(--control-icon-gap);
   }
   @keyframes rotate-lines {
     to {
       transform: rotate(360deg);
-    }
-  }
-  @keyframes action-sheen {
-    0%,
-    70% {
-      translate: -120%;
-    }
-    100% {
-      translate: 120%;
     }
   }
   @media (max-width: 700px) {

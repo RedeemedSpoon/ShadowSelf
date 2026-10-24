@@ -1,6 +1,6 @@
 import {issueSession} from '@middlewares/session-auth';
 import {encryptSecret} from '@core/security';
-import {compareHash, createHash, createTOTP, getRecovery, hashRecoveryCode} from '@utils/cryptography';
+import {compareHash, createHash, createTOTP, getRecovery, getSecret, hashRecoveryCode} from '@utils/cryptography';
 import {issueLoginChallenge, claimLoginChallenge, finishLoginChallenge, claimSensitiveAttempt} from '@core/states';
 import middlewareBase from '@middlewares/middleware-base';
 import {sendVerificationCode} from '@utils/email-smtp';
@@ -9,7 +9,7 @@ import type {QueryUser} from '@type';
 import {check} from '@utils/checks';
 import {sql} from '@core/services';
 import {consumeEmailCode, createSignupDraft, getSignupDraft, signupProgress} from '@core/states';
-import {SIGNUP_DRAFT_TTL} from '@core/constants';
+import {SIGNUP_DRAFT_TTL, SIGNUP_PREVIOUS_STAGE} from '@core/constants';
 import {Elysia} from 'elysia';
 
 export function createAccountRoutes(sendCode = sendVerificationCode) {
@@ -21,7 +21,11 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
       const relativePath = path.slice('/api/auth'.length);
       const signUp = [
         '/registration',
+        '/registration/credentials',
+        '/registration/back',
         '/registration/email',
+        '/registration/username',
+        '/registration/security',
         '/registration/resume',
         '/registration/cancel',
         '/registration/recovery',
@@ -137,7 +141,7 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
     .post('/second-factor', ({set, body}) => completeSecondFactor(body, set, false))
     .post('/recovery', ({set, body}) => completeSecondFactor(body, set, true))
     .post('/registration', async ({set, body}) => {
-      const {email, password, username, err} = check(body, ['email', 'password', 'username']);
+      const {email, password, err} = check(body, ['email', 'password']);
 
       if (err) {
         return error(set, 400, err);
@@ -149,13 +153,7 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
         return error(set, 409, 'This email is already taken');
       }
 
-      const enableTwoFactor = (body as {enableTwoFactor?: unknown}).enableTwoFactor;
-
-      if (typeof enableTwoFactor !== 'boolean') {
-        return error(set, 400, 'Choose whether to enable two-factor authentication');
-      }
-
-      const signup = createSignupDraft(email, await createHash(password), username, enableTwoFactor);
+      const signup = createSignupDraft(email, await createHash(password));
 
       if (!signup) {
         return error(set, 503, 'Signup is busy. Please try again later');
@@ -171,17 +169,146 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
 
       return {signup, email, expiresIn: SIGNUP_DRAFT_TTL / 1000};
     })
+    .post('/registration/credentials', async ({set, body}) => {
+      const {email, password, err} = check(body, ['email', 'password']);
+
+      if (err) {
+        return error(set, 400, err);
+      }
+
+      const signup = (body as {signup?: unknown}).signup;
+      const draft = getSignupDraft(signup);
+
+      if (!draft) {
+        return error(set, 410, 'Signup expired. Start again');
+      }
+
+      if (draft.stage !== 'account') {
+        return error(set, 409, 'Return to the account card before editing your credentials');
+      }
+
+      const taken = await sql`SELECT email FROM users WHERE email = ${email}`;
+
+      if (taken.length) {
+        return error(set, 409, 'This email is already taken');
+      }
+
+      const hash = await createHash(password);
+      const changedEmail = draft.email !== email;
+
+      if (changedEmail) {
+        const response = await sendCode('confirm', email, signup as string);
+
+        if (response.status !== 200) {
+          return error(set, response.status, response.message);
+        }
+
+        draft.verified = false;
+        draft.enableTwoFactor = null;
+        draft.secret = '';
+        draft.recoveryHashes = [];
+        delete draft.encryptedRecovery;
+        delete draft.totpCounter;
+      }
+
+      draft.email = email;
+      draft.password = hash;
+      draft.stage = 'email';
+
+      return signupProgress(signup);
+    })
+    .post('/registration/back', ({set, body}) => {
+      const signup = (body as {signup?: unknown} | null)?.signup;
+      const draft = getSignupDraft(signup);
+
+      if (!draft) {
+        return error(set, 410, 'Signup expired. Start again');
+      }
+
+      const previous = SIGNUP_PREVIOUS_STAGE[draft.stage];
+
+      if (!previous) {
+        return error(set, 409, 'This is the first signup card');
+      }
+
+      draft.stage = previous;
+
+      return signupProgress(signup);
+    })
     .post('/registration/email', ({set, body}) => {
       const input = body as {signup?: string; access?: unknown};
       const draft = getSignupDraft(input?.signup);
 
-      if (!draft || draft.verified || !consumeEmailCode('confirm', draft.email, input.signup!, input.access)) {
+      if (!draft) {
+        return error(set, 410, 'Signup expired. Start again');
+      }
+
+      if (draft.stage !== 'email') {
+        return error(set, 409, 'Return to the email card before continuing');
+      }
+
+      if (!draft.verified && !consumeEmailCode('confirm', draft.email, input.signup!, input.access)) {
         return error(set, 400, 'Invalid or expired email code. Start signup again if needed');
       }
 
       draft.verified = true;
+      draft.stage = 'username';
 
-      return draft.enableTwoFactor ? signupProgress(input.signup) : {ready: true};
+      return signupProgress(input.signup);
+    })
+    .post('/registration/username', ({set, body}) => {
+      const {username, err} = check(body, ['username']);
+
+      if (err) {
+        return error(set, 400, err);
+      }
+
+      const signup = (body as {signup?: unknown}).signup;
+      const draft = getSignupDraft(signup);
+
+      if (!draft) {
+        return error(set, 410, 'Signup expired. Start again');
+      }
+
+      if (!draft.verified || draft.stage !== 'username') {
+        return error(set, 409, 'Verify your email before choosing your username, then continue signup');
+      }
+
+      draft.username = username.trim();
+      draft.stage = 'security';
+
+      return signupProgress(signup);
+    })
+    .post('/registration/security', ({set, body}) => {
+      const input = body as {signup?: unknown; enableTwoFactor?: unknown} | null;
+      const draft = getSignupDraft(input?.signup);
+
+      if (!draft) {
+        return error(set, 410, 'Signup expired. Start again');
+      }
+
+      if (!draft.verified || !draft.username || draft.stage !== 'security') {
+        return error(set, 409, 'Choose a username before setting up account security, then continue signup');
+      }
+
+      if (typeof input?.enableTwoFactor !== 'boolean') {
+        return error(set, 400, 'Choose whether to enable two-factor authentication');
+      }
+
+      draft.enableTwoFactor = input.enableTwoFactor;
+
+      if (input.enableTwoFactor) {
+        draft.secret ||= getSecret();
+        draft.stage = 'authenticator';
+      } else {
+        draft.secret = '';
+        draft.recoveryHashes = [];
+        delete draft.encryptedRecovery;
+        delete draft.totpCounter;
+        draft.stage = 'complete';
+      }
+
+      return signupProgress(input.signup);
     })
     .post('/registration/resume', ({set, body}) => {
       const signup = (body as {signup?: unknown})?.signup;
@@ -189,10 +316,6 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
 
       if (!draft) {
         return error(set, 410, 'Signup expired. Start again');
-      }
-
-      if (draft.verified && !draft.enableTwoFactor) {
-        return {ready: true};
       }
 
       return signupProgress(signup);
@@ -206,12 +329,12 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
       const input = body as {signup?: string; token?: string};
       const draft = getSignupDraft(input?.signup);
 
-      if (!draft?.verified || !draft.secret) {
-        return error(set, 401, 'Signup expired. Start again');
+      if (!draft) {
+        return error(set, 410, 'Signup expired. Start again');
       }
 
-      if (draft.recoveryHashes.length) {
-        return error(set, 409, 'Recovery codes were already issued');
+      if (!draft.verified || !draft.secret || draft.stage !== 'authenticator') {
+        return error(set, 409, 'Return to the authenticator card before verifying its code');
       }
 
       const delta =
@@ -223,12 +346,17 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
         return error(set, 400, 'Incorrect verification code. Please try again');
       }
 
-      const recovery = getRecovery();
-      draft.recoveryHashes = recovery.map(hashRecoveryCode);
-      draft.encryptedRecovery = encryptSecret(JSON.stringify(recovery));
-      draft.totpCounter = Math.floor(Date.now() / 30_000) + delta;
+      if (!draft.recoveryHashes.length) {
+        const recovery = getRecovery();
 
-      return {recovery};
+        draft.recoveryHashes = recovery.map(hashRecoveryCode);
+        draft.encryptedRecovery = encryptSecret(JSON.stringify(recovery));
+      }
+
+      draft.totpCounter = Math.floor(Date.now() / 30_000) + delta;
+      draft.stage = 'recovery';
+
+      return signupProgress(input.signup);
     })
     .post('/registration/complete', async ({set, body}) => {
       const input = body as {signup?: string; savedRecovery?: boolean};
@@ -236,17 +364,19 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
 
       if (
         !draft?.verified ||
+        !['complete', 'recovery'].includes(draft.stage) ||
         !draft.username ||
-        (draft.secret && (!draft.recoveryHashes.length || input.savedRecovery !== true))
+        draft.enableTwoFactor === null ||
+        (draft.enableTwoFactor && (!draft.secret || !draft.recoveryHashes.length || input.savedRecovery !== true))
       ) {
         return error(set, 400, 'Complete verification and save the recovery codes before creating the account');
       }
 
-      const {email, username, password, secret, recoveryHashes} = draft;
+      const {email, username, password, secret, recoveryHashes, totpCounter} = draft;
       const token = await sql.begin(async (transaction) => {
         const inserted =
           await transaction`INSERT INTO users (email, username, password, totp, totp_counter, recovery_hashes, api_key)
-          VALUES (${email}, ${username}, ${password}, ${secret ? encryptSecret(secret) : null}, ${draft.totpCounter ?? null}, ${recoveryHashes}, ${null})
+          VALUES (${email}, ${username}, ${password}, ${secret ? encryptSecret(secret) : null}, ${totpCounter ?? null}, ${recoveryHashes}, ${null})
           ON CONFLICT (email) DO NOTHING RETURNING email, password, totp`;
 
         if (!inserted.length) {

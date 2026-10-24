@@ -1,7 +1,7 @@
 import {SOCKET_AUTH_INTERVAL, SOCKET_CONNECTION_LIMIT, SOCKET_ACCOUNT_CONNECTION_LIMIT} from '@core/constants';
 import {SENSITIVE_ATTEMPT_WINDOW, SENSITIVE_ATTEMPT_LIMIT} from '@core/constants';
 import type {EmailCodePurpose, EmailCode, EmailDeliveryLimit, SignupDraft} from '@type';
-import {hashVerification, getSecret, createTOTP} from '@utils/cryptography';
+import {hashVerification, createTOTP} from '@utils/cryptography';
 import {decryptSecret} from '@core/security';
 import type {SignupProgress} from '@type';
 import {randomInt, randomBytes} from 'node:crypto';
@@ -246,7 +246,7 @@ export function discardEmailCode(purpose: EmailCodePurpose, email: string, bindi
   }
 }
 
-export function createSignupDraft(email: string, password: string, username: string, enableTwoFactor: boolean) {
+export function createSignupDraft(email: string, password: string) {
   for (const [key, entry] of signupDrafts) {
     if (entry.expiresAt <= Date.now()) {
       signupDrafts.delete(key);
@@ -259,13 +259,14 @@ export function createSignupDraft(email: string, password: string, username: str
 
   const id = randomBytes(32).toString('hex');
   signupDrafts.set(id, {
+    stage: 'email',
     email,
     password,
     expiresAt: Date.now() + SIGNUP_DRAFT_TTL,
     verified: false,
-    username,
-    enableTwoFactor,
-    secret: enableTwoFactor ? getSecret() : '',
+    username: '',
+    enableTwoFactor: null,
+    secret: '',
     recoveryHashes: [],
   });
 
@@ -293,22 +294,17 @@ export function signupProgress(id: unknown): SignupProgress | undefined {
     return undefined;
   }
 
-  const profile = {email: draft.email, username: draft.username};
+  const profile = {stage: draft.stage, verified: draft.verified, email: draft.email, username: draft.username};
 
-  if (!draft.verified) {
-    return {...profile, stage: 'email'};
-  }
-
-  if (draft.encryptedRecovery && draft.recoveryHashes.length) {
+  if (draft.stage === 'recovery' && draft.encryptedRecovery && draft.recoveryHashes.length) {
     return {...profile, stage: 'recovery', recovery: JSON.parse(decryptSecret(draft.encryptedRecovery))};
   }
 
-  return {
-    ...profile,
-    stage: 'authenticator',
-    secret: draft.secret,
-    uri: createTOTP(draft.secret, draft.username).toString(),
-  };
+  if (draft.stage === 'authenticator' && draft.secret) {
+    return {...profile, secret: draft.secret, uri: createTOTP(draft.secret, draft.username).toString()};
+  }
+
+  return profile;
 }
 
 const emailCodes = new Map<string, EmailCode>();

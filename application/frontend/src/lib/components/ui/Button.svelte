@@ -18,7 +18,15 @@
     variant?: 'primary' | 'secondary' | 'danger' | 'quiet';
     icon?: string;
   } = $props();
+
+  const trailingIcon = $derived(icon === 'arrow' || icon === 'external');
 </script>
+
+{#snippet indicator()}
+  <span class="button-indicator" aria-hidden="true">
+    {#if loading}<span class="spinner"></span>{:else if icon}<Icon name={icon} size={15} />{/if}
+  </span>
+{/snippet}
 
 <button
   {...rest}
@@ -26,6 +34,7 @@
   class="control-button {variant} {className}"
   disabled={disabled || loading}
   aria-busy={loading}>
-  {#if loading}<span class="spinner" aria-hidden="true"></span>{:else if icon}<Icon name={icon} size={17} />{/if}
-  {@render children?.()}
+  {#if !trailingIcon && (icon || loading)}{@render indicator()}{/if}
+  <span class="button-label">{@render children?.()}</span>
+  {#if trailingIcon}{@render indicator()}{/if}
 </button>

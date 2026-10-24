@@ -257,6 +257,7 @@
       <div class="field">
         <label for="sms-body">Message</label><textarea
           id="sms-body"
+          placeholder="Write your message here…"
           bind:value={body}
           minlength="1"
           maxlength="160"

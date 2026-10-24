@@ -119,19 +119,28 @@
     line-height: 1.5;
     margin: 26px 0 12px;
   }
-  :global(.public-page a) {
-    color: var(--accent-light);
-    text-decoration-color: color-mix(in srgb, var(--accent-light) 33.33%, transparent);
+  :global(.public-page .page-content :is(p, li) a:not(.control-button, .public-action, .primary-action, .text-link)) {
+    color: var(--link-color);
+    text-decoration: underline;
+    text-decoration-color: var(--link-underline-color);
+    text-decoration-thickness: 1px;
     text-underline-offset: 5px;
   }
-  :global(.public-page a:hover) {
-    color: #e2dcff;
+  :global(
+    .public-page .page-content :is(p, li) a:not(.control-button, .public-action, .primary-action, .text-link):hover
+  ) {
+    color: var(--link-color-hover);
+  }
+  :global(
+    .public-page .page-content :is(p, li) a:not(.control-button, .public-action, .primary-action, .text-link):active
+  ) {
+    color: var(--link-color-pressed);
   }
   :global(.public-page a:focus-visible),
   :global(.public-page summary:focus-visible),
   :global(.public-page button:focus-visible) {
-    outline: 2px solid var(--accent-light);
-    outline-offset: 5px;
+    outline: none;
+    box-shadow: var(--control-focus-shadow);
   }
   :global(.public-page ul),
   :global(.public-page ol) {
@@ -168,33 +177,6 @@
     margin-top: 20px;
     font-size: 12px;
     color: #8f9dbb;
-  }
-  :global(.public-page .public-action) {
-    display: inline-flex;
-    gap: 8px;
-    justify-content: center;
-    align-items: center;
-    min-height: 48px;
-    padding: 13px 22px;
-    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
-    border-radius: 7px;
-    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
-    color: #f3f0ff;
-    font-size: 13px;
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-      transform 180ms ease,
-      box-shadow 180ms ease,
-      filter 180ms ease;
-  }
-  :global(.public-page .public-action:hover) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-strong) 25.1%, transparent);
-    filter: brightness(1.12);
-  }
-  :global(.public-page .public-action:active) {
-    transform: translateY(0);
   }
   :global(.public-page .policy-summary) {
     --policy-accent: var(--accent);

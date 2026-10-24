@@ -45,12 +45,12 @@
           storesExpanded = false;
         }
       }}>
-      <a class="extension-action" href={EXTENSION_STORES[0].href} target="_blank" rel="noreferrer">
+      <a class="primary-action extension-action" href={EXTENSION_STORES[0].href} target="_blank" rel="noreferrer">
         Add to Firefox <Icon name="download" size={17} />
       </a>
       <button
         type="button"
-        class="browser-toggle"
+        class="control-button secondary browser-toggle"
         bind:this={storesButton}
         aria-label="Other browsers"
         aria-expanded={storesExpanded}
@@ -82,30 +82,17 @@
     display: inline-flex;
     align-items: stretch;
     border-radius: 7px;
-    transition:
-      transform 180ms ease,
-      box-shadow 180ms ease;
-  }
-  .extension-download:hover,
-  .extension-download:has(.browser-toggle[aria-expanded='true']) {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 32px color-mix(in srgb, var(--accent-strong) 31.37%, transparent);
   }
   .extension-download .extension-action {
-    border-radius: 7px 0 0 7px;
+    border-radius: 6px 0 0 6px;
   }
   .browser-toggle {
     list-style: none;
     display: grid;
     place-items: center;
     padding-inline: 14px;
-    color: #f3f0ff;
-    background: var(--accent-deep);
-    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
     border-left: 0;
-    border-radius: 0 7px 7px 0;
-    cursor: pointer;
-    transition: background 180ms ease;
+    border-radius: 0 6px 6px 0;
   }
   .browser-toggle :global(svg) {
     transform: rotate(0deg);
@@ -113,9 +100,6 @@
   }
   .browser-toggle[aria-expanded='true'] :global(svg) {
     transform: rotate(180deg);
-  }
-  .browser-toggle:hover {
-    background: var(--accent-strong);
   }
   .browser-stores {
     position: absolute;
@@ -191,30 +175,10 @@
     margin: 0 0 30px;
     text-wrap: pretty;
   }
-  .extension-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 15px 23px;
-    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
-    border-radius: 7px;
-    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
-    color: #f3f0ff;
-    font-size: 14px;
-    box-shadow: 0 8px 28px color-mix(in srgb, var(--accent-strong) 14.51%, transparent);
-    transition:
-      transform 180ms ease,
-      box-shadow 180ms ease;
-  }
   @media (prefers-reduced-motion: reduce) {
-    .extension-download,
     .browser-stores,
     .browser-toggle :global(svg) {
       transition: none;
-    }
-    .extension-download:hover,
-    .extension-download:has(.browser-toggle[aria-expanded='true']) {
-      transform: none;
     }
   }
   @media (max-width: 800px) {

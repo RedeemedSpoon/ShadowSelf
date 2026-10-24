@@ -1,8 +1,10 @@
 <script lang="ts">
+  import Select from '$component/ui/Select.svelte';
+  import Icon from '$component/ui/Icon.svelte';
   import {untrack, onDestroy} from 'svelte';
   import {goto, invalidateAll} from '$app/navigation';
   import {request} from '$utils/webfetch';
-  import {ETHNICITIES, MAIL_DOMAIN} from '$constant';
+  import {ETHNICITIES, MAIL_DOMAIN, SEX_OPTIONS} from '$constant';
   import type {CryptoKeys, InformationAPI} from '$type';
   import type {CreationData} from '$type';
   import Button from '$component/ui/Button.svelte';
@@ -317,7 +319,7 @@
   <div>
     <h1>Set up identity</h1>
   </div>
-  <a class="control-button quiet" href="/dashboard">Back to identities</a>
+  <a class="text-link back-link" href="/dashboard"><Icon name="back" size={15} />Back to identities</a>
 </div>
 <div class="creation-flow">
   {#if !data.creation}<Status message={data.loadError} kind="error" /><Button
@@ -369,6 +371,7 @@
             <div class="field wide">
               <label for="create-name">Name</label><input
                 id="create-name"
+                placeholder="Alex Morgan"
                 bind:value={profile.name}
                 required
                 minlength="2"
@@ -377,6 +380,7 @@
             <div class="field">
               <label for="create-age">Age</label><input
                 id="create-age"
+                placeholder="28"
                 type="number"
                 min="18"
                 max="60"
@@ -384,20 +388,23 @@
                 required />
             </div>
             <div class="field">
-              <label for="create-sex">Sex</label><select id="create-sex" bind:value={profile.sex}
-                ><option value="male">Male</option><option value="female">Female</option></select>
+              <label for="create-sex">Sex</label><Select
+                id="create-sex"
+                label="Sex"
+                options={SEX_OPTIONS}
+                bind:value={profile.sex} />
             </div>
             <div class="field wide">
-              <label for="create-ethnicity">Ethnicity</label><select
+              <label for="create-ethnicity">Ethnicity</label><Select
                 id="create-ethnicity"
-                bind:value={profile.ethnicity}
-                >{#each ETHNICITIES as ethnicity (ethnicity)}<option value={ethnicity}
-                    >{ethnicity[0].toUpperCase() + ethnicity.slice(1)}</option
-                  >{/each}</select>
+                label="Ethnicity"
+                options={ETHNICITIES.map((value) => ({value, label: value[0].toUpperCase() + value.slice(1)}))}
+                bind:value={profile.ethnicity} />
             </div>
             <div class="field wide">
               <label for="create-bio">Bio</label><textarea
                 id="create-bio"
+                placeholder="An illustrator in Amsterdam with a soft spot for old synths."
                 bind:value={profile.bio}
                 minlength="5"
                 maxlength="126"></textarea>
@@ -406,15 +413,20 @@
         {:else if step === 3}<div class="field">
             <label for="create-email">Mailbox address</label><input
               id="create-email"
+              placeholder={`ghost@${MAIL_DOMAIN}`}
               type="email"
               bind:value={email}
               pattern={`[^@]+@${MAIL_DOMAIN.replaceAll('.', '\\.')}`}
               required /><small>Addresses use the {MAIL_DOMAIN} domain.</small>
           </div>
         {:else if step === 4}<div class="field">
-            <label for="create-phone">Phone number</label><select id="create-phone" bind:value={phone} required
-              >{#if phone && !phones.includes(phone)}<option>{phone}</option
-                >{/if}{#each phones as number (number)}<option>{number}</option>{/each}</select>
+            <label for="create-phone">Phone number</label><Select
+              id="create-phone"
+              label="Phone number"
+              options={[...new Set([phone, ...phones])].filter(Boolean).map((value) => ({value, label: value}))}
+              bind:value={phone}
+              required
+              placeholder="Load available numbers" />
           </div>
           <Button type="button" variant="secondary" loading={pending} onclick={refreshPhones}
             >Load available numbers</Button>
@@ -424,6 +436,7 @@
               <div class="field">
                 <label for="create-master">Master password</label><input
                   id="create-master"
+                  placeholder="Correct Horse Battery Staple"
                   type="password"
                   minlength="12"
                   bind:value={password}
@@ -433,6 +446,7 @@
               <div class="field">
                 <label for="create-confirm">Confirm master password</label><input
                   id="create-confirm"
+                  placeholder="The same passphrase, once more"
                   type="password"
                   bind:value={confirmation}
                   autocomplete="new-password"
@@ -475,14 +489,14 @@
           <Status
             message="Provisioning creates the mailbox and reserves the phone number. Provider failures retain this draft for retry." />{/if}
         <div class="button-row creation-actions">
-          {#if step > 1 && data.creation.creationStatus !== 'provisioning'}<Button
+          {#if step > 1 && data.creation.creationStatus !== 'provisioning'}<button
               type="button"
-              variant="quiet"
+              class="text-link back-link"
               disabled={pending}
               onclick={() => {
                 step--;
                 error = '';
-              }}>Back</Button
+              }}><Icon name="back" size={15} />Back</button
             >{/if}<Button
             type="submit"
             loading={pending}

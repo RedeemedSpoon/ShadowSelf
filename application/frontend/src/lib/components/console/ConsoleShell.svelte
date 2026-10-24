@@ -143,7 +143,7 @@
       <a class="console-brand" href="/dashboard" aria-label="ShadowSelf dashboard">
         <img src={brand} alt="" /><span>Shadow<span class="brand-self">Self</span><small>IDENTITY CONSOLE</small></span>
       </a>
-      <a class="homepage-link" href="/"><Icon name="back" size={14} />Back to homepage</a>
+      <a class="homepage-link text-link back-link" href="/"><Icon name="back" size={15} />Back to homepage</a>
     </div>
     <nav aria-label="Application navigation">
       <div class="identity-navigation">
@@ -254,12 +254,8 @@
     letter-spacing: 1.1px;
   }
   .homepage-link {
-    display: flex;
-    align-items: center;
-    gap: 7px;
+    align-self: flex-start;
     margin-top: 20px;
-    color: #8f9dbb;
-    font-size: 11px;
   }
   nav {
     min-height: 0;
@@ -341,12 +337,7 @@
     transition:
       background 160ms ease,
       color 160ms ease,
-      opacity 200ms ease,
-      transform 200ms ease;
-  }
-  .identity-shortcut:hover,
-  .identity-shortcut:focus-visible {
-    transform: translateX(4px);
+      opacity 200ms ease;
   }
   .identity-shortcut > span:last-child {
     overflow: hidden;
@@ -407,26 +398,11 @@
     font-weight: 400;
     text-align: left;
   }
-  .sign-out :global(svg) {
-    transition: transform 200ms ease;
-  }
-  .sign-out:hover :global(svg),
-  .sign-out:focus-visible :global(svg) {
-    transform: translateX(3px);
-  }
   .sign-out-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     margin-top: 24px;
-  }
-  .homepage-link {
-    transition:
-      color 180ms ease,
-      transform 180ms ease;
-  }
-  .homepage-link:hover {
-    color: var(--accent-light);
   }
   @media (max-width: 760px) {
     .console-sidebar {

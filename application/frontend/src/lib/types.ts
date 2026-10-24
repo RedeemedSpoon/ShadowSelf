@@ -430,7 +430,8 @@ export interface ApiDocumentationGroup {
 }
 
 export interface SignupState {
-  stage: 'account' | 'email' | 'authenticator' | 'recovery' | 'complete';
+  stage: 'account' | 'email' | 'username' | 'security' | 'authenticator' | 'recovery' | 'complete';
+  verified: boolean;
   email: string;
   username: string;
   secret: string;

@@ -60,12 +60,10 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/auth/registration',
         detail:
-          'Start a resumable registration draft. Username is 1 to 25 characters; password is 12 to 256. Enable two-factor authentication with enableTwoFactor.',
+          'Start a resumable registration draft with email and a password of 12 to 256 characters. Verify the email before choosing a username and two-factor authentication.',
         request: {
           email: 'theo@example.com',
-          username: 'Theo',
           password: 'Example-Account-Password-2026!',
-          enableTwoFactor: true,
         },
         response: {
           signup: '<private signup reference>',
@@ -75,9 +73,25 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       },
       {
         method: 'POST',
+        path: '/api/auth/registration/back',
+        detail:
+          'Return the draft to its previous card without discarding verification, username or existing enrollment. The first card has no earlier signup step. Skipped 2FA returns to the security choice.',
+        request: {signup: '<signup reference>'},
+        response: {stage: 'security', verified: true, email: 'theo@example.com', username: 'Theo'},
+      },
+      {
+        method: 'POST',
+        path: '/api/auth/registration/credentials',
+        detail:
+          'Update credentials after returning to the account card. The same email retains verification; a different email receives a new code and clears earlier 2FA enrollment. The draft expiry is unchanged.',
+        request: {signup: '<signup reference>', email: 'theo@example.com', password: 'Example-Account-Password-2026!'},
+        response: {stage: 'email', verified: true, email: 'theo@example.com', username: 'Theo'},
+      },
+      {
+        method: 'POST',
         path: '/api/auth/registration/resume',
         detail:
-          'Restore a valid registration draft through its private reference. Before email verification, enrollment secrets and recovery codes are excluded. Recovery codes remain retrievable within that verified draft until completion or expiry.',
+          'Restore the current card through its private reference. The verified flag lets a previously confirmed email advance without another code. Enrollment secrets are returned only on the authenticator card, and recovery codes only on the recovery card.',
         request: {
           signup: '<signup reference>',
         },
@@ -94,11 +108,27 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/auth/registration/email',
         detail:
-          'Verify the email code. Two-factor drafts return authenticator enrollment state. Otherwise ready=true permits account completion.',
+          'Continue from the email card. An unverified email requires its code; an already verified email does not. The draft advances to the username card.',
         request: {
           signup: '<signup reference>',
           access: '12345678',
         },
+        response: {stage: 'username', email: 'theo@example.com', username: ''},
+      },
+      {
+        method: 'POST',
+        path: '/api/auth/registration/username',
+        detail:
+          'Set or revise the username on the username card after email verification. Use 1 to 25 characters containing letters, numbers and spaces.',
+        request: {signup: '<signup reference>', username: 'Theo'},
+        response: {stage: 'security', email: 'theo@example.com', username: 'Theo'},
+      },
+      {
+        method: 'POST',
+        path: '/api/auth/registration/security',
+        detail:
+          'Choose or revise 2FA on the security card. True opens authenticator enrollment and preserves an existing secret; false clears enrollment and recovery codes and opens completion. Use Back to change the choice before creating the account.',
+        request: {signup: '<signup reference>', enableTwoFactor: true},
         response: {
           stage: 'authenticator',
           email: 'theo@example.com',
@@ -107,20 +137,24 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
           uri: 'otpauth://totp/<enrollment URI>',
         },
       },
-
       {
         method: 'POST',
         path: '/api/auth/registration/recovery',
         detail:
-          'Verify the six-digit TOTP code. Returns six recovery codes; store them before completing registration. A verified draft can restore these codes until completion or expiry.',
+          'Verify the six-digit TOTP code on the authenticator card. Returns recovery codes; revisiting enrollment preserves existing codes. Save them before completing registration.',
         request: {signup: '<signup from registration response>', token: '123456'},
-        response: {recovery: ['<six one-time recovery codes>']},
+        response: {
+          stage: 'recovery',
+          email: 'theo@example.com',
+          username: 'Theo',
+          recovery: ['<six one-time recovery codes>'],
+        },
       },
       {
         method: 'POST',
         path: '/api/auth/registration/complete',
         detail:
-          'Complete the verified draft. Two-factor enrollment requires a verified authenticator and explicit savedRecovery=true. Optional card setup belongs in account settings or checkout.',
+          'Complete the verified draft from its recovery or final card after setting a username and explicitly choosing account security. Two-factor enrollment requires a verified authenticator and explicit savedRecovery=true. Optional card setup belongs in account settings or checkout.',
         request: {
           signup: '<signup reference>',
           savedRecovery: true,

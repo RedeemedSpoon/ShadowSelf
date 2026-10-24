@@ -6,8 +6,8 @@ import type {SignupState} from '$type';
 import QRCode from 'qrcode';
 
 interface SignupResponse {
-  stage?: 'email' | 'authenticator' | 'recovery';
-  ready?: boolean;
+  stage?: SignupState['stage'];
+  verified?: boolean;
   email?: string;
   username?: string;
   secret?: string;
@@ -19,7 +19,8 @@ async function registrationState(response: SignupResponse): Promise<SignupState>
   const qr = response.uri ? await QRCode.toDataURL(response.uri, {margin: 2}) : '';
 
   return {
-    stage: response.ready ? 'complete' : response.stage || 'account',
+    stage: response.stage || 'account',
+    verified: response.verified || false,
     email: response.email || '',
     username: response.username || '',
     secret: response.secret || '',
@@ -28,23 +29,7 @@ async function registrationState(response: SignupResponse): Promise<SignupState>
   };
 }
 
-async function completeRegistration(cookies: Cookies, savedRecovery = false) {
-  const result = await backend<{token: string}>('/auth/registration/complete', 'POST', {
-    signup: cookies.get('signup'),
-    savedRecovery,
-  });
-
-  if (!result.ok) {
-    return {message: result.error};
-  }
-
-  createCookie(cookies, 'token', result.data.token);
-  cookies.delete('signup', {path: '/signup'});
-
-  redirect(303, '/dashboard');
-}
-
-export const load: PageServerLoad = async ({cookies}) => {
+async function loadRegistration(cookies: Cookies) {
   const signup = cookies.get('signup');
 
   if (!signup) {
@@ -62,16 +47,50 @@ export const load: PageServerLoad = async ({cookies}) => {
   }
 
   return {registration: await registrationState(result.data), message: ''};
-};
+}
+
+async function advanceRegistration(cookies: Cookies, path: string, body: Record<string, unknown>) {
+  const result = await backend<SignupResponse>(`/auth/registration/${path}`, 'POST', {
+    signup: cookies.get('signup'),
+    ...body,
+  });
+
+  if (!result.ok) {
+    return {...(await loadRegistration(cookies)), message: result.error};
+  }
+
+  return {registration: await registrationState(result.data)};
+}
+
+async function completeRegistration(cookies: Cookies, savedRecovery = false) {
+  const result = await backend<{token: string}>('/auth/registration/complete', 'POST', {
+    signup: cookies.get('signup'),
+    savedRecovery,
+  });
+
+  if (!result.ok) {
+    return {...(await loadRegistration(cookies)), message: result.error};
+  }
+
+  createCookie(cookies, 'token', result.data.token);
+  cookies.delete('signup', {path: '/signup'});
+
+  redirect(303, '/dashboard');
+}
+
+export const load: PageServerLoad = ({cookies}) => loadRegistration(cookies);
 
 export const actions: Actions = {
   init: async ({request, cookies}) => {
     const form = await request.formData();
-    const result = await backend<{signup: string; expiresIn: number}>('/auth/registration', 'POST', {
-      email: form.get('email'),
-      password: form.get('password'),
-      username: form.get('username'),
-      enableTwoFactor: form.has('enableTwoFactor'),
+    const credentials = {email: form.get('email'), password: form.get('password')};
+
+    if (cookies.get('signup')) {
+      return advanceRegistration(cookies, 'credentials', credentials);
+    }
+
+    const result = await backend<{signup: string; email: string; expiresIn: number}>('/auth/registration', 'POST', {
+      ...credentials,
     });
 
     if (!result.ok) {
@@ -86,58 +105,21 @@ export const actions: Actions = {
       maxAge: result.data.expiresIn,
     });
 
-    return {
-      registration: await registrationState({
-        stage: 'email',
-        email: String(form.get('email')),
-        username: String(form.get('username')),
-      }),
-    };
+    return {registration: await registrationState({stage: 'email', email: result.data.email})};
   },
-  verifyEmail: async ({request, cookies}) => {
-    const form = await request.formData();
-    const result = await backend<SignupResponse>('/auth/registration/email', 'POST', {
-      signup: cookies.get('signup'),
-      access: form.get('access'),
+  verifyEmail: async ({request, cookies}) =>
+    advanceRegistration(cookies, 'email', {access: (await request.formData()).get('access')}),
+  setUsername: async ({request, cookies}) =>
+    advanceRegistration(cookies, 'username', {username: (await request.formData()).get('username')}),
+  chooseSecurity: async ({request, cookies}) => {
+    const choice = (await request.formData()).get('enableTwoFactor');
+
+    return advanceRegistration(cookies, 'security', {
+      enableTwoFactor: choice === 'yes' ? true : choice === 'no' ? false : null,
     });
-
-    if (!result.ok) {
-      return {message: result.error};
-    }
-
-    if (result.data.ready) {
-      return completeRegistration(cookies);
-    }
-
-    return {registration: await registrationState(result.data)};
   },
-  verifyAuthenticator: async ({request, cookies}) => {
-    const token = (await request.formData()).get('token');
-    const result = await backend<SignupResponse>('/auth/registration/recovery', 'POST', {
-      signup: cookies.get('signup'),
-      token,
-    });
-
-    if (!result.ok) {
-      return {message: result.error};
-    }
-
-    return {registration: await registrationState({...result.data, stage: 'recovery'})};
-  },
+  verifyAuthenticator: async ({request, cookies}) =>
+    advanceRegistration(cookies, 'recovery', {token: (await request.formData()).get('token')}),
   create: async ({request, cookies}) => completeRegistration(cookies, (await request.formData()).has('savedRecovery')),
-  restart: async ({cookies}) => {
-    const signup = cookies.get('signup');
-
-    if (signup) {
-      const result = await backend('/auth/registration/cancel', 'POST', {signup});
-
-      if (!result.ok) {
-        return {message: result.error};
-      }
-    }
-
-    cookies.delete('signup', {path: '/signup'});
-
-    return {registration: await registrationState({})};
-  },
+  back: async ({cookies}) => advanceRegistration(cookies, 'back', {}),
 };

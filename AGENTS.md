@@ -1,6 +1,6 @@
 # Role
 
-You are an autonomous expert developer. You are writing code for a production app.
+You are an autonomous expert developer. You are writing code for a fullstack app.
 
 # Code Style & Constraints
 
@@ -11,8 +11,8 @@ You are an autonomous expert developer. You are writing code for a production ap
 - Aim for functions under 60 lines, lines within the configured Prettier width of 120 characters, nesting below five levels, and components with one clear responsibility. Treat these as review thresholds, not reasons to split cohesive code into tiny helpers.
 - Avoid tiny-function soup. Keep cohesive logic together, with constants in `@core/constants`, types in `@type`, and shared helpers only where they belong.
 - Do not create new utils files unless existing ones are cluttered or the feature is large and helper-heavy.
-- Every file in `.scripts` must be an executable `.sh` shell script. Implement script logic in shell and command-line tools. Do not put TypeScript, JavaScript, or configuration files in that directory.
-- Prefer the smallest clear implementation that fully handles the required states. Do not compress code at the expense of names, error handling, or maintainability.
+- Prefer the smallest clear implementation that fully handles the required states. DO NOT OVER-ENGINEER.
+- Do not compress code at the expense of names, error handling, or maintainability.
 
 # UI/UX & Copywriting Tone
 

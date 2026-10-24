@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="Value extends string">
   import {tick} from 'svelte';
   import {fly} from 'svelte/transition';
   import {MediaQuery} from 'svelte/reactivity';
@@ -9,36 +9,68 @@
     label,
     options,
     compact = false,
-    value = $bindable(''),
+    value = $bindable('' as Value),
+    disabled = false,
+    required = false,
+    placeholder = 'Select an option',
+    onchange,
   }: {
     id: string;
     name?: string;
     label: string;
-    options: readonly {value: string; label: string}[];
-    value?: string;
+    options: readonly {value: Value; label: string}[];
+    value?: Value;
+    disabled?: boolean;
+    required?: boolean;
+    placeholder?: string;
+    onchange?: (value: Value) => void;
     compact?: boolean;
   } = $props();
 
   let open = $state(false);
+  let invalid = $state(false);
   let root: HTMLDivElement;
   let trigger: HTMLButtonElement;
   const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
-  const selected = $derived(options.find((option) => option.value === value) ?? options[0]);
+  const selected = $derived(options.find((option) => option.value === value));
 
   async function openOptions() {
+    if (disabled || options.length === 0) {
+      return;
+    }
+
     open = true;
     await tick();
 
-    root.querySelector<HTMLButtonElement>('[aria-selected="true"]')?.focus();
+    const option =
+      root.querySelector<HTMLButtonElement>('[aria-selected="true"]') ??
+      root.querySelector<HTMLButtonElement>('[role="option"]');
+
+    option?.focus();
   }
 
-  function choose(next: string) {
+  function choose(next: Value) {
+    if (disabled) {
+      return;
+    }
+
+    const changed = next !== value;
+
     value = next;
+    invalid = false;
     open = false;
     trigger.focus();
+
+    if (changed) {
+      onchange?.(next);
+    }
   }
 
   function handleKey(event: KeyboardEvent) {
+    if (disabled || options.length === 0) {
+      return;
+    }
+
     const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End', 'Escape'];
 
     if (!keys.includes(event.key)) {
@@ -86,12 +118,30 @@
       open = false;
     }
   }}>
-  <input type="hidden" {name} value={selected.value} />
+  <input
+    class="select-validation"
+    type="text"
+    autocomplete="off"
+    {name}
+    value={selected?.value ?? ''}
+    {required}
+    {disabled}
+    tabindex="-1"
+    aria-hidden="true"
+    oninvalid={(event) => {
+      event.preventDefault();
+      invalid = true;
+      trigger.focus();
+    }} />
   <button
     bind:this={trigger}
     {id}
     type="button"
     class="select-trigger"
+    role="combobox"
+    {disabled}
+    aria-invalid={invalid || undefined}
+    aria-required={required || undefined}
     aria-label={label}
     aria-haspopup="listbox"
     aria-expanded={open}
@@ -104,12 +154,12 @@
         void openOptions();
       }
     }}>
-    <span>{selected.label}</span>
+    <span>{selected?.label ?? placeholder}</span>
     <svg class="chevron" class:open viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="m4 8 8 8 8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   </button>
-  {#if open}
+  {#if open && !disabled}
     <div
       id={`${id}-options`}
       class="select-options"
@@ -120,8 +170,8 @@
         <button
           type="button"
           role="option"
-          aria-selected={option.value === selected.value}
-          tabindex={option.value === selected.value ? 0 : -1}
+          aria-selected={option.value === selected?.value}
+          tabindex={option.value === selected?.value ? 0 : -1}
           onkeydown={handleKey}
           onclick={() => choose(option.value)}>
           {option.label}
@@ -136,26 +186,24 @@
     position: relative;
     min-width: 0;
   }
+  .select-validation {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    padding: 0;
+    border: 0;
+    clip-path: inset(50%);
+  }
   .select-trigger {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    height: 46px;
-    padding: 13px 15px;
-    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
-    border-radius: 7px;
-    color: #e0e7f9;
-    background: #11182c;
-    font: inherit;
-    font-size: 13px;
     text-align: left;
     cursor: pointer;
     gap: 12px;
-  }
-  .select-trigger:focus-visible,
-  .select-trigger[aria-expanded='true'] {
-    border-color: var(--accent);
   }
   .chevron {
     display: block;
@@ -185,7 +233,6 @@
     height: 42px;
     padding: 11px 12px;
     font-size: 12px;
-    background: #0b1223;
   }
   .select-options button {
     display: flex;
@@ -200,6 +247,9 @@
     font: inherit;
     font-size: 13px;
     cursor: pointer;
+    transition:
+      color 180ms ease,
+      background-color 180ms ease;
   }
   .select-options button:hover,
   .select-options button:focus-visible {

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Select from '$component/ui/Select.svelte';
+  import {TOTP_ALGORITHM_OPTIONS} from '$constant';
   import LoadingState from '$component/ui/LoadingState.svelte';
   import {onMount} from 'svelte';
   import {invalidateAll} from '$app/navigation';
@@ -341,6 +343,7 @@
     <div class="field">
       <label for="entry-username">Username</label><input
         id="entry-username"
+        placeholder="ghost_in_the_machine"
         bind:value={edit.username}
         maxlength="25"
         required
@@ -357,6 +360,7 @@
     <div class="field">
       <label for="entry-password">Password</label><input
         id="entry-password"
+        placeholder="Correct Horse Battery Staple"
         bind:value={edit.password}
         type="password"
         autocomplete="new-password"
@@ -370,8 +374,11 @@
         placeholder="Optional base32 secret" />
     </div>
     <div class="field">
-      <label for="entry-algorithm">TOTP algorithm</label><select id="entry-algorithm" bind:value={edit.algorithm}
-        ><option>SHA1</option><option>SHA256</option><option>SHA512</option></select>
+      <label for="entry-algorithm">TOTP algorithm</label><Select
+        id="entry-algorithm"
+        label="TOTP algorithm"
+        options={TOTP_ALGORITHM_OPTIONS}
+        bind:value={edit.algorithm} />
     </div>
     <Status message={error} kind="error" /><Button type="submit" loading={pending}>Save encrypted entry</Button>
   </form></Dialog>

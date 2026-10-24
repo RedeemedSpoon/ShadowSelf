@@ -129,61 +129,11 @@
     width: min(1160px, calc(100% - 100px));
     margin-inline: auto;
   }
-  :global(.homepage .primary-action) {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 52px;
-    padding: 15px 25px;
-    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
-    border-radius: 7px;
-    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
-    box-shadow:
-      0 8px 28px #4235b02e,
-      inset 0 1px #ffffff15;
-    color: #f3f0ff;
-    font-size: 14px;
-    font-weight: 550;
-    transition:
-      transform 200ms ease,
-      box-shadow 200ms ease;
-    white-space: nowrap;
-  }
-  :global(.homepage .primary-action:hover) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px #6551d54f;
-  }
-  :global(.homepage .secondary-action) {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #b7c2e4;
-    font-size: 13px;
-    padding-block: 14px;
-  }
-  :global(.homepage .secondary-action:hover) {
-    color: #fff;
-  }
-  :global(.homepage .inline-link) {
-    display: inline-block;
-    font-size: 12px;
-    color: var(--brand-accent);
-    text-decoration: underline;
-    text-underline-offset: 6px;
-    text-decoration-color: color-mix(in srgb, var(--accent-strong) 30.2%, transparent);
-    transition:
-      color 220ms ease,
-      text-decoration-color 220ms ease;
-  }
-  :global(.homepage .inline-link:hover) {
-    color: #e0e7ff;
-    text-decoration-color: #e0e7ff;
-  }
   :global(.homepage a:focus-visible),
   :global(.homepage button:focus-visible),
   :global(.homepage summary:focus-visible) {
-    outline: 2px solid var(--accent);
-    outline-offset: 5px;
+    outline: none;
+    box-shadow: var(--control-focus-shadow);
   }
   :global(.homepage section[id]),
   :global(.homepage div[id]) {

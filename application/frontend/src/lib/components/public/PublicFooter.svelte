@@ -138,7 +138,7 @@
     text-decoration: none;
   }
   a:hover {
-    color: #e2dcff;
+    color: #dce3f4;
   }
   .footer-bottom {
     margin-top: 36px;
@@ -148,8 +148,8 @@
     text-align: center;
   }
   a:focus-visible {
-    outline: 2px solid var(--accent-light);
-    outline-offset: 5px;
+    outline: none;
+    box-shadow: var(--control-focus-shadow);
   }
   @media (max-width: 1050px) {
     .footer-inner {

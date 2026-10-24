@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Select from '$component/ui/Select.svelte';
+  import {PAYMENT_ASSET_OPTIONS} from '$constant';
   import {untrack, onMount, onDestroy} from 'svelte';
   import {request} from '$utils/webfetch';
   import type {FullIdentity, Coins, WalletTrade, SwapQuotes, WalletSwapRecord, Provider} from '$type';
@@ -206,6 +208,7 @@
         <div class="field">
           <label for="swap-amount">Amount in {coin.toUpperCase()}</label><input
             id="swap-amount"
+            placeholder="0.01"
             bind:value={amount}
             disabled={pending}
             oninput={clearQuotes}
@@ -214,18 +217,21 @@
             required />
         </div>
         <div class="field">
-          <label for="swap-coin">Receive coin</label><select
+          <label for="swap-coin">Receive coin</label><Select
             id="swap-coin"
+            label="Receive coin"
+            options={PAYMENT_ASSET_OPTIONS.filter((option) => option.value !== coin).map(({value}) => ({
+              value,
+              label: value.toUpperCase(),
+            }))}
             bind:value={destinationCoin}
             disabled={pending}
-            onchange={clearQuotes}
-            >{#each ['btc', 'ltc', 'eth', 'usdt', 'xmr'] as ticker (ticker)}{#if ticker !== coin}<option value={ticker}
-                  >{ticker.toUpperCase()}</option
-                >{/if}{/each}</select>
+            onchange={clearQuotes} />
         </div>
         <div class="field wide">
           <label for="swap-destination">Receive address</label><input
             id="swap-destination"
+            placeholder="Your address on the receiving network"
             bind:value={destination}
             disabled={pending}
             oninput={clearQuotes}
@@ -234,6 +240,7 @@
         <div class="field wide">
           <label for="swap-refund">Refund address in {coin.toUpperCase()}</label><input
             id="swap-refund"
+            placeholder="Your address for returning unexchanged funds"
             bind:value={refund}
             disabled={pending}
             oninput={clearQuotes}

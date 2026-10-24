@@ -290,6 +290,7 @@
           <div class="field">
             <label for="settings-token">Authenticator code</label><input
               id="settings-token"
+              placeholder="000000"
               name="token"
               inputmode="numeric"
               autocomplete="one-time-code"
@@ -299,6 +300,7 @@
           <div class="field">
             <label for="totp-password">Account password</label><input
               id="totp-password"
+              placeholder="Your account passphrase"
               name="currentPassword"
               type="password"
               autocomplete="current-password"
@@ -317,6 +319,7 @@
         {#if mode === 'username'}<div class="field">
             <label for="settings-username">New username</label><input
               id="settings-username"
+              placeholder="ghost_in_the_machine"
               name="username"
               value={settings.username}
               required
@@ -324,6 +327,7 @@
           </div>{/if}{#if mode === 'email'}<div class="field">
             <label for="settings-email">New email address</label><input
               id="settings-email"
+              placeholder="you@example.com"
               name="email"
               type="email"
               maxlength="254"
@@ -333,6 +337,7 @@
           <div class="field">
             <label for="settings-email-code">Code sent to {email}</label><input
               id="settings-email-code"
+              placeholder="00000000"
               name="access"
               inputmode="numeric"
               pattern="[0-9]{8}"
@@ -342,6 +347,7 @@
           <div class="field">
             <label for="settings-new-password">New account password</label><input
               id="settings-new-password"
+              placeholder="Correct Horse Battery Staple"
               name="password"
               type="password"
               minlength="12"
@@ -356,6 +362,7 @@
         <div class="field settings-password">
           <label for="settings-current-password">Current account password</label><input
             id="settings-current-password"
+            placeholder="Your account passphrase"
             name={mode === 'recovery' ? 'password' : 'currentPassword'}
             type="password"
             autocomplete="current-password"
@@ -380,6 +387,7 @@
       <div class="field">
         <label for="payment-password">Account password</label><input
           id="payment-password"
+          placeholder="Your account passphrase"
           name="currentPassword"
           type="password"
           autocomplete="current-password"
@@ -405,6 +413,7 @@
           <label for="account-refund-address">Monero refund address</label>
           <input
             id="account-refund-address"
+            placeholder="Your external Monero address"
             name="refundAddress"
             autocomplete="off"
             spellcheck="false"
@@ -417,6 +426,7 @@
       <div class="field settings-password">
         <label for="account-delete-password">Account password</label><input
           id="account-delete-password"
+          placeholder="Your account passphrase"
           name="currentPassword"
           type="password"
           autocomplete="current-password"

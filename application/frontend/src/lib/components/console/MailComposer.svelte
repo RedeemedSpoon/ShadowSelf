@@ -60,6 +60,7 @@
 
       editor = new Quill(container, {
         theme: 'snow',
+        placeholder: 'Write your message here…',
         modules: {
           toolbar: [
             ['bold', 'italic', 'underline'],
@@ -161,6 +162,7 @@
     <div class="field">
       <label for="mail-to">To</label><input
         id="mail-to"
+        placeholder="recipient@example.com"
         type="email"
         bind:value={to}
         disabled={deliveryUncertain}
@@ -170,6 +172,7 @@
     <div class="field">
       <label for="mail-subject">Subject</label><input
         id="mail-subject"
+        placeholder="Picking up where we left off"
         bind:value={subject}
         disabled={deliveryUncertain}
         maxlength="126" />
@@ -201,6 +204,7 @@
   {#if !html}<div class="field">
       <label for="mail-text">Message</label><textarea
         id="mail-text"
+        placeholder="Write your message here…"
         bind:value={text}
         disabled={deliveryUncertain}
         rows="12"></textarea>
@@ -246,6 +250,10 @@
   .rich-editor :global(.ql-container) {
     min-height: 260px;
     font-size: 14px;
+  }
+  .rich-editor :global(.ql-editor.ql-blank::before) {
+    color: #7d89a6;
+    font-style: normal;
   }
   .rich-editor :global(.ql-stroke) {
     stroke: #a8b5d0;

@@ -477,20 +477,6 @@ with urllib.request.urlopen(request) as response:
     color: #c2cce5;
     margin-bottom: 12px;
   }
-  .endpoint-search input {
-    width: 100%;
-    border: 1px solid color-mix(in srgb, var(--accent-light) 20.78%, transparent);
-    border-radius: 6px;
-    padding: 13px;
-    background: #0c1325;
-    color: #d5def3;
-    font-size: 12px;
-    outline: none;
-  }
-  .endpoint-search input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8.24%, transparent);
-  }
   .endpoints details[data-feature] {
     border-left: 2px solid var(--feature-accent);
   }

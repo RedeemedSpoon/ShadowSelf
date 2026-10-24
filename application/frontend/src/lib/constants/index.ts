@@ -238,3 +238,24 @@ export const EXTENSION_SPEED_HISTORY = {
     Math.max(...EXTENSION_ROUTE_PREVIEW.map((route) => route.upload)) * 1.2,
   ],
 } as const;
+
+export const SEX_OPTIONS = [
+  {value: 'male', label: 'Male'},
+  {value: 'female', label: 'Female'},
+] as const;
+
+export const PAYMENT_ASSET_OPTIONS = [
+  {value: 'xmr', label: 'Monero · Mainnet'},
+  {value: 'btc', label: 'Bitcoin · Mainnet'},
+  {value: 'ltc', label: 'Litecoin · Mainnet'},
+  {value: 'eth', label: 'Ethereum · Mainnet'},
+  {value: 'usdt', label: 'USDT · Ethereum ERC-20'},
+] as const;
+
+export const NETWORK_PRIORITY_OPTIONS = [
+  {value: 'low', label: 'Low'},
+  {value: 'medium', label: 'Medium'},
+  {value: 'high', label: 'High'},
+] as const;
+
+export const TOTP_ALGORITHM_OPTIONS = ['SHA1', 'SHA256', 'SHA512'].map((value) => ({value, label: value}));

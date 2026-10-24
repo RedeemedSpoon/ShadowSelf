@@ -373,7 +373,7 @@
         {:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button
           >{/if}{/if}
       {#if account.status === 'frozen'}
-        <a class="control-button" href="/purchase?id={account.id}&plan={account.plan}">
+        <a class="control-button primary" href="/purchase?id={account.id}&plan={account.plan}">
           <Icon name="refresh" size={17} />Renew identity
         </a>
       {/if}
@@ -383,7 +383,7 @@
   {#if account.status === 'frozen'}<Status
       message="This identity's subscription has expired. You can still read and export your vault, recover wallet keys, and move funds. Renew to restore its paid services." />{/if}
   {#if account.status === 'inactive'}<Status message="Setup is not complete. Continue provisioning this identity." /><a
-      class="control-button"
+      class="control-button primary"
       href="/create?id={account.id}">Continue setup</a
     >{:else if !completeAccount}<Status
       message="Setup was not completed before expiry. Renew this identity before continuing setup." />{:else}
@@ -414,6 +414,7 @@
     <div class="field password-field">
       <label for="unlock-password">Master password</label><input
         id="unlock-password"
+        placeholder="Your identity master passphrase"
         type="password"
         autocomplete="off"
         bind:value={password}
@@ -430,6 +431,7 @@
     <div class="field password-field">
       <label for="new-master">New master password</label><input
         id="new-master"
+        placeholder="Correct Horse Battery Staple"
         type="password"
         minlength="12"
         bind:value={password}
@@ -439,6 +441,7 @@
     <div class="field">
       <label for="confirm-master">Confirm new password</label><input
         id="confirm-master"
+        placeholder="The same passphrase, once more"
         type="password"
         bind:value={confirmPassword}
         autocomplete="new-password"
@@ -461,6 +464,7 @@
         <label for="identity-refund-address">Monero refund address</label>
         <input
           id="identity-refund-address"
+          placeholder="Your external Monero address"
           name="refundAddress"
           autocomplete="off"
           spellcheck="false"
@@ -473,6 +477,7 @@
     <div class="field password-field">
       <label for="delete-password">Account password</label><input
         id="delete-password"
+        placeholder="Your account passphrase"
         name="currentPassword"
         type="password"
         autocomplete="current-password"

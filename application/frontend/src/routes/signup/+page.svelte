@@ -1,5 +1,8 @@
 <script lang="ts">
+  import {untrack} from 'svelte';
   import {enhance} from '$app/forms';
+  import Icon from '$component/ui/Icon.svelte';
+  import AuthCard from '$component/ui/AuthCard.svelte';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
   import Copy from '$component/ui/Copy.svelte';
@@ -8,10 +11,20 @@
   let {data, form}: PageProps = $props();
   let pending = $state(false);
   let savedRecovery = $state(false);
+  let email = $state(untrack(() => data.registration.email));
+  let password = $state('');
   const registration = $derived(form?.registration || data.registration);
+  $effect(() => {
+    if (registration.stage !== 'recovery') {
+      savedRecovery = false;
+    }
+  });
+
   const titles = {
     account: 'Create your account',
     email: 'Verify your email',
+    username: 'Choose your username',
+    security: 'Enable two-factor authentication?',
     authenticator: 'Verify your authenticator',
     recovery: 'Save your recovery codes',
     complete: 'Complete account creation',
@@ -19,6 +32,8 @@
   const actions = {
     account: 'init',
     email: 'verifyEmail',
+    username: 'setUsername',
+    security: 'chooseSecurity',
     authenticator: 'verifyAuthenticator',
     recovery: 'create',
     complete: 'create',
@@ -44,23 +59,29 @@
     content="Create a ShadowSelf account with email verification and optional two-factor authentication." />
 </svelte:head>
 <div class="access">
-  <section class="panel">
+  <AuthCard stage={registration.stage}>
     <h1>{titles[registration.stage]}</h1>
     <Status message={form?.message || data.message || ''} kind="error" />
     <form method="POST" action="?/{actions[registration.stage]}" use:enhance={submit}>
       {#if registration.stage === 'account'}
         <div class="field">
           <label for="signup-email">Email address</label>
-          <input id="signup-email" type="email" name="email" autocomplete="email" maxlength="254" required />
-        </div>
-        <div class="field">
-          <label for="signup-username">Username</label>
-          <input id="signup-username" name="username" autocomplete="nickname" minlength="1" maxlength="25" required />
+          <input
+            id="signup-email"
+            bind:value={email}
+            placeholder="you@example.com"
+            type="email"
+            name="email"
+            autocomplete="email"
+            maxlength="254"
+            required />
         </div>
         <div class="field">
           <label for="signup-password">Account password</label>
           <input
             id="signup-password"
+            bind:value={password}
+            placeholder="Correct Horse Battery Staple"
             name="password"
             type="password"
             minlength="12"
@@ -69,21 +90,49 @@
             required />
           <small>Minimum 12 characters.</small>
         </div>
-        <label class="security-copy recovery-confirm">
-          <input type="checkbox" name="enableTwoFactor" checked /> Enable two-factor authentication
-        </label>
       {:else if registration.stage === 'email'}
-        <p>Code sent to {registration.email}.</p>
+        <p>
+          {registration.verified
+            ? `Your email address ${registration.email} is verified.`
+            : `Code sent to ${registration.email}.`}
+        </p>
+        {#if !registration.verified}
+          <div class="field">
+            <label for="signup-code">Email code</label>
+            <input
+              id="signup-code"
+              placeholder="00000000"
+              name="access"
+              inputmode="numeric"
+              pattern="[0-9]{8}"
+              maxlength="8"
+              autocomplete="one-time-code"
+              required />
+          </div>
+        {/if}
+      {:else if registration.stage === 'username'}
+        <p>Choose a name for your account. You can change it later.</p>
         <div class="field">
-          <label for="signup-code">Email code</label>
+          <label for="signup-username">Username</label>
           <input
-            id="signup-code"
-            name="access"
-            inputmode="numeric"
-            pattern="[0-9]{8}"
-            maxlength="8"
-            autocomplete="one-time-code"
+            id="signup-username"
+            value={registration.username}
+            placeholder="Ghost in the Machine"
+            name="username"
+            autocomplete="nickname"
+            minlength="1"
+            maxlength="25"
             required />
+        </div>
+      {:else if registration.stage === 'security'}
+        <p>Use an authenticator app to add a second verification step when signing in.</p>
+        <div class="security-choice">
+          <Button type="submit" name="enableTwoFactor" value="yes" loading={pending} icon="shield">
+            Yes, enable 2FA
+          </Button>
+          <Button type="submit" name="enableTwoFactor" value="no" variant="secondary" disabled={pending}>
+            No, skip for now
+          </Button>
         </div>
       {:else if registration.stage === 'authenticator'}
         <img class="qr-image" src={registration.qr} alt="Authenticator enrollment QR code" />
@@ -93,6 +142,7 @@
           <label for="signup-totp">Authenticator code</label>
           <input
             id="signup-totp"
+            placeholder="000000"
             name="token"
             inputmode="numeric"
             pattern="[0-9]{6}"
@@ -110,33 +160,45 @@
           <input type="checkbox" name="savedRecovery" bind:checked={savedRecovery} required /> I saved these recovery codes.
         </label>
       {:else}
-        <p>Your email is verified. Retry creating the account.</p>
+        <p>Your email is verified and your account details are ready. Finish creating your account to sign in.</p>
       {/if}
-      <Button
-        type="submit"
-        loading={pending}
-        disabled={registration.stage === 'recovery' && !savedRecovery}
-        icon="arrow">
-        {registration.stage === 'account'
-          ? 'Create account'
-          : registration.stage === 'recovery' || registration.stage === 'complete'
-            ? 'Finish account creation'
-            : 'Verify'}
-      </Button>
+      {#if registration.stage !== 'security'}
+        <Button
+          type="submit"
+          loading={pending}
+          disabled={registration.stage === 'recovery' && !savedRecovery}
+          icon="arrow">
+          {registration.stage === 'account' || (registration.stage === 'email' && registration.verified)
+            ? 'Continue'
+            : registration.stage === 'recovery' || registration.stage === 'complete'
+              ? 'Finish account creation'
+              : registration.stage === 'username'
+                ? 'Continue'
+                : 'Verify'}
+        </Button>
+      {/if}
     </form>
     {#if registration.stage === 'account'}
-      <div class="access-links"><a href="/login">Sign in</a></div>
+      <div class="access-links signup-signin"><a href="/login">Sign in instead</a></div>
     {:else}
-      <form method="POST" action="?/restart" use:enhance={submit} class="access-links">
-        <button type="submit" disabled={pending}>Start again</button>
+      <form method="POST" action="?/back" use:enhance={submit} class="access-links">
+        <input type="hidden" name="stage" value={registration.stage} />
+        <button class="back-link" type="submit" disabled={pending}><Icon name="back" size={15} />Back</button>
       </form>
     {/if}
-  </section>
+  </AuthCard>
 </div>
 
 <style>
+  .signup-signin {
+    justify-content: center;
+  }
+  .security-choice {
+    display: grid;
+    gap: 12px;
+  }
   .security-copy {
-    margin: 18px 0 !important;
+    margin: 16px 0 !important;
   }
   .recovery-confirm {
     display: flex;

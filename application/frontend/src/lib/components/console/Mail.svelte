@@ -448,6 +448,7 @@
     <div class="field">
       <label for="forward-email">Recipient</label><input
         id="forward-email"
+        placeholder="recipient@example.com"
         type="email"
         bind:value={forwardTo}
         disabled={deliveryUncertain}

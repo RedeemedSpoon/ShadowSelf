@@ -47,10 +47,10 @@
         {#if signedIn}<div class="signed-in-links">
             <a class="settings-link" href="/settings" aria-label="Account settings" onclick={() => (expanded = false)}
               ><Icon name="settings" size={19} /></a>
-            <a class="dashboard-link" href="/dashboard" onclick={() => (expanded = false)}>Dashboard</a>
+            <a class="text-link draw-underline" href="/dashboard" onclick={() => (expanded = false)}>Dashboard</a>
           </div>
-        {:else}<a class="sign-in" href="/login" onclick={() => (expanded = false)}>Log in</a><a
-            class="header-action"
+        {:else}<a class="text-link" href="/login" onclick={() => (expanded = false)}>Log in</a><a
+            class="control-button primary"
             href="/signup"
             onclick={() => (expanded = false)}>Create account</a
           >{/if}
@@ -69,6 +69,9 @@
     border-bottom: 1px solid #64748b26;
     box-shadow: 0 4px 24px #02040a20;
     color: #cad3ec;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 16px;
   }
   .header-inner {
     width: min(1100px, calc(100% - 80px));
@@ -93,18 +96,11 @@
     align-items: center;
     gap: 30px;
   }
-  a {
-    text-decoration: none;
-    font-size: 13px;
-    color: inherit;
-    transition:
-      color 180ms ease,
-      background 180ms ease,
-      transform 180ms ease,
-      box-shadow 180ms ease;
+  nav > a {
+    color: #cad3ec;
   }
-  a:hover {
-    color: #fff;
+  nav > a:hover {
+    color: #f0efff;
   }
   .account-links {
     display: flex;
@@ -113,61 +109,29 @@
     padding-left: 28px;
     border-left: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
   }
-  .header-action {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 17px;
-    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
-    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
-    border-radius: 7px;
-    color: #f3f0ff;
-    box-shadow:
-      inset 0 1px #ffffff15,
-      0 4px 16px #4235b024;
-  }
-  .header-action:hover {
-    background: linear-gradient(135deg, var(--accent-hover), var(--accent-strong));
-    box-shadow: 0 6px 24px color-mix(in srgb, var(--accent-strong) 18.82%, transparent);
-  }
-  .sign-in {
-    color: var(--accent);
+  .account-links .control-button {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
   }
   .settings-link {
     display: grid;
     place-items: center;
     width: 30px;
     height: 30px;
-    color: var(--accent-strong);
+    color: var(--link-color);
   }
   .signed-in-links {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--accent-strong);
+    color: var(--link-color);
   }
-  .dashboard-link {
-    position: relative;
-    padding-block: 8px;
-    color: var(--accent-strong);
-  }
-  .dashboard-link::after {
-    content: '';
-    position: absolute;
-    inset: auto 0 2px;
-    height: 1px;
-    background: currentColor;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 240ms ease;
-  }
-  .dashboard-link:hover,
   .settings-link:hover {
-    color: var(--accent-strong);
+    color: var(--link-color-hover);
   }
-  .dashboard-link:hover::after,
-  .dashboard-link:focus-visible::after {
-    transform: scaleX(1);
+  .settings-link:active {
+    color: var(--link-color-pressed);
   }
   .settings-link :global(svg) {
     fill: transparent;
@@ -200,8 +164,8 @@
   }
   a:focus-visible,
   button:focus-visible {
-    outline: 2px solid var(--accent-light);
-    outline-offset: 5px;
+    outline: none;
+    box-shadow: var(--control-focus-shadow);
   }
   @media (max-width: 1050px) {
     .header-inner {
@@ -245,7 +209,6 @@
     }
     nav > a {
       padding: 12px 0;
-      font-size: 14px;
     }
     .account-links {
       border-left: 0;

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Select from '$component/ui/Select.svelte';
+  import {NETWORK_PRIORITY_OPTIONS} from '$constant';
   import {request} from '$utils/webfetch';
   import {decrypt} from '$utils/cryptography';
   import {
@@ -800,6 +802,7 @@
     {#if sweep}<div class="field">
         <label for="sweep-key">{coin === 'btc' || coin === 'ltc' ? 'WIF private key' : 'Hex private key'}</label><input
           id="sweep-key"
+          placeholder="Private key for the wallet to sweep"
           type="password"
           bind:value={privateKey}
           disabled={pending || restoringJournal || !!unresolvedUtxo || !canPrepare}
@@ -809,6 +812,7 @@
         <div class="field">
           <label for="send-amount">Amount in {coin.toUpperCase()}</label><input
             id="send-amount"
+            placeholder="0.01"
             inputmode="decimal"
             bind:value={amount}
             disabled={pending || restoringJournal || !!unresolvedUtxo || !canPrepare}
@@ -817,17 +821,18 @@
             required />
         </div>
         <div class="field">
-          <label for="send-priority">Network priority</label><select
+          <label for="send-priority">Network priority</label><Select
             id="send-priority"
+            label="Network priority"
+            options={NETWORK_PRIORITY_OPTIONS}
             bind:value={priority}
             disabled={pending || restoringJournal || !!unresolvedUtxo || !canPrepare}
-            onchange={selectCoins}
-            ><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option
-            ></select>
+            onchange={selectCoins} />
         </div>
         <div class="field wide">
           <label for="send-destination">Recipient address</label><input
             id="send-destination"
+            placeholder="Recipient address on the selected network"
             bind:value={destination}
             disabled={pending || restoringJournal || !!unresolvedUtxo || !canPrepare}
             autocomplete="off"

@@ -97,14 +97,23 @@
   <form onsubmit={download} class="invoice-form">
     <div class="form-grid">
       <div class="field">
-        <label for="invoice-client">Client name</label><input id="invoice-client" bind:value={client} required />
+        <label for="invoice-client">Client name</label><input
+          id="invoice-client"
+          placeholder="Alex Morgan"
+          bind:value={client}
+          required />
       </div>
       <div class="field">
-        <label for="invoice-email">Client email</label><input id="invoice-email" type="email" bind:value={email} />
+        <label for="invoice-email">Client email</label><input
+          id="invoice-email"
+          placeholder="client@example.com"
+          type="email"
+          bind:value={email} />
       </div>
       <div class="field">
         <label for="invoice-reference">Invoice reference</label><input
           id="invoice-reference"
+          placeholder="INV-2026-001"
           bind:value={invoice}
           required />
       </div>
@@ -115,12 +124,14 @@
     <div class="invoice-rows">
       {#each rows as row, index (index)}<div>
           <input aria-label="Item description" bind:value={row.description} placeholder="Description" required /><input
+            placeholder="1"
             aria-label="Quantity"
             type="number"
             min="1"
             step="1"
             bind:value={row.quantity}
             required /><input
+            placeholder="0.00"
             aria-label="Price in USD"
             type="number"
             min="0"

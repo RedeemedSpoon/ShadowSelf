@@ -88,6 +88,16 @@ export const EMAIL_DELIVERY_LIMIT = 5;
 export const VERIFICATION_CAPACITY = 10_000;
 export const SIGNUP_DRAFT_TTL = 1_800_000;
 
+export const SIGNUP_PREVIOUS_STAGE = {
+  account: undefined,
+  email: 'account',
+  username: 'email',
+  security: 'username',
+  authenticator: 'security',
+  recovery: 'authenticator',
+  complete: 'security',
+} as const;
+
 export const SOCKET_AUTH_INTERVAL = 5000;
 
 export const SENSITIVE_ATTEMPT_WINDOW = 300_000;

@@ -394,12 +394,13 @@ export interface EmailDeliveryLimit {
 }
 
 export interface SignupDraft {
+  stage: SignupProgress['stage'];
   email: string;
   password: string;
   expiresAt: number;
   verified: boolean;
   username: string;
-  enableTwoFactor: boolean;
+  enableTwoFactor: boolean | null;
   secret: string;
   recoveryHashes: string[];
   encryptedRecovery?: string;
@@ -407,7 +408,8 @@ export interface SignupDraft {
 }
 
 export interface SignupProgress {
-  stage: 'email' | 'authenticator' | 'recovery';
+  stage: 'account' | 'email' | 'username' | 'security' | 'authenticator' | 'recovery' | 'complete';
+  verified: boolean;
   email: string;
   username: string;
   secret?: string;

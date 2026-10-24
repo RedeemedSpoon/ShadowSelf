@@ -1,9 +1,10 @@
 <script lang="ts">
+  import Select from '$component/ui/Select.svelte';
   import {onMount, tick, untrack} from 'svelte';
   import {page} from '$app/state';
   import {goto, replaceState} from '$app/navigation';
   import {request} from '$utils/webfetch';
-  import {PRICING_TIERS, CRYPTO_DISCOUNT} from '$constant';
+  import {PRICING_TIERS, CRYPTO_DISCOUNT, PAYMENT_ASSET_OPTIONS} from '$constant';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import type {Stripe, StripeElements, StripePaymentElement} from '@stripe/stripe-js';
   import type {CardCheckout, CryptoInvoice, Coins} from '$type';
@@ -388,13 +389,12 @@
         </div>{:else}<form onsubmit={newInvoice}>
           <div class="field">
             <label for="billing-coin">Payment asset and network</label>
-            <select id="billing-coin" bind:value={ticker} required>
-              <option value="xmr">Monero · Mainnet</option>
-              <option value="btc">Bitcoin · Mainnet</option>
-              <option value="ltc">Litecoin · Mainnet</option>
-              <option value="eth">Ethereum · Mainnet</option>
-              <option value="usdt">USDT · Ethereum ERC-20</option>
-            </select>
+            <Select
+              id="billing-coin"
+              label="Payment asset and network"
+              options={PAYMENT_ASSET_OPTIONS}
+              bind:value={ticker}
+              required />
             <small>XMR invoices are direct. Other assets use an external swap provider on the selected network.</small>
           </div>
           <div class="field">

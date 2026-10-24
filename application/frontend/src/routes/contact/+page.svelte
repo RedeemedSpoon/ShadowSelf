@@ -41,6 +41,7 @@
       <div class="field">
         <label for="subject">Subject</label><input
           id="subject"
+          placeholder="A question about my identity"
           name="subject"
           value={form?.values?.subject || ''}
           required
@@ -54,6 +55,7 @@
     <div class="field">
       <label for="email">Email <span>(optional)</span></label><input
         id="email"
+        placeholder="you@example.com"
         type="email"
         name="email"
         value={form?.values?.email || ''}
@@ -63,8 +65,13 @@
       <p id="email-help" class="field-help">Leave empty to remain anonymous.</p>
     </div>
     <div class="field">
-      <label for="message">Message</label><textarea id="message" name="message" required maxlength="10000" rows="7"
-        >{form?.values?.message || ''}</textarea>
+      <label for="message">Message</label><textarea
+        id="message"
+        placeholder="Tell us what you have in mind. Include any details that might help."
+        name="message"
+        required
+        maxlength="10000"
+        rows="7">{form?.values?.message || ''}</textarea>
     </div>
     <div class="submit-row">
       <button class="public-action" type="submit" disabled={pending} aria-busy={pending}
@@ -97,23 +104,7 @@
     font-size: 12px;
     margin-left: 4px;
   }
-  input,
   textarea {
-    width: 100%;
-    padding: 13px 15px;
-    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
-    border-radius: 7px;
-    color: #e0e7f9;
-    background: #11182c;
-    font: inherit;
-    font-size: 13px;
-  }
-  input {
-    height: 46px;
-  }
-  textarea {
-    resize: vertical;
-    line-height: 1.8;
     min-height: 190px;
   }
   .form-row {
@@ -146,10 +137,6 @@
     display: flex;
     align-items: center;
     margin-top: 4px;
-  }
-  button:disabled {
-    cursor: wait;
-    opacity: 0.65;
   }
   @media (max-width: 600px) {
     .form-row {

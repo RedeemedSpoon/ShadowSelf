@@ -23,8 +23,9 @@
   <h1>{notFound ? 'Page not found' : 'Unable to load this page'}</h1>
   {#if !notFound}<p>{page.error?.message || 'The service could not complete this request.'}</p>{/if}
   <div class="error-actions">
-    <a href="/">Return home <span aria-hidden="true">↗</span></a>{#if !notFound}<button
+    <a class="control-button primary" href="/">Return home <span aria-hidden="true">↗</span></a>{#if !notFound}<button
         type="button"
+        class="text-link"
         onclick={retry}
         disabled={retrying}>{retrying ? 'Loading…' : 'Try again'}</button
       >{/if}
@@ -65,35 +66,6 @@
     gap: 25px;
     align-items: center;
     margin-top: 35px;
-  }
-  a {
-    display: inline-flex;
-    gap: 22px;
-    align-items: center;
-    padding: 13px 20px;
-    border: 1px solid color-mix(in srgb, var(--accent) 43.92%, transparent);
-    border-radius: 7px;
-    background: linear-gradient(135deg, var(--accent-strong), var(--accent-deep));
-    color: #f3f0ff;
-    font-size: 13px;
-    text-decoration: none;
-  }
-  button {
-    color: var(--accent-light);
-    background: none;
-    border: 0;
-    cursor: pointer;
-    font: inherit;
-    font-size: 13px;
-  }
-  button:disabled {
-    opacity: 0.65;
-    cursor: wait;
-  }
-  a:focus-visible,
-  button:focus-visible {
-    outline: 2px solid var(--accent-light);
-    outline-offset: 5px;
   }
   :global(.console) .error-content {
     padding-block: 30px;

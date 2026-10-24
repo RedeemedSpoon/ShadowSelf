@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AuthBackground from '$component/ui/AuthBackground.svelte';
   import {APP_ORIGIN} from '$constant';
   import {page} from '$app/state';
   import {goto, onNavigate} from '$app/navigation';
@@ -16,7 +17,12 @@
   const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
   onNavigate((navigation) => {
+    const authNavigation = [navigation.from?.url.pathname, navigation.to?.url.pathname].some(
+      (path) => path === '/login' || path === '/signup',
+    );
+
     if (
+      authNavigation ||
       reducedMotion.current ||
       !document.startViewTransition ||
       navigation.from?.url.pathname === navigation.to?.url.pathname
@@ -77,6 +83,8 @@
 
     target.scrollIntoView({behavior: reducedMotion.current ? 'instant' : 'smooth', block: 'start'});
   }
+  const accessRoute = $derived(['/login', '/signup'].includes(page.url.pathname));
+
   const consoleRoute = $derived(
     ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some(
       (route) => page.url.pathname === route || page.url.pathname.startsWith(`${route}/`),
@@ -93,6 +101,9 @@
     >{@render children()}</ConsoleShell
   >{:else}<div class="public-site">
     <PublicHeader signedIn={Boolean(data.user)} />
-    <main id="main-content" class="public-main">{@render children()}</main>
+    <main id="main-content" class="public-main" class:auth-page={accessRoute}>
+      {#if accessRoute}<AuthBackground />{/if}
+      {@render children()}
+    </main>
     <PublicFooter />
   </div>{/if}

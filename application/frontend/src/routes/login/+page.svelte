@@ -1,6 +1,8 @@
 <script lang="ts">
   import {untrack} from 'svelte';
   import {enhance} from '$app/forms';
+  import Icon from '$component/ui/Icon.svelte';
+  import AuthCard from '$component/ui/AuthCard.svelte';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
   import type {ActionData} from './$types';
@@ -57,7 +59,7 @@
     name="description"
     content="Sign in to your ShadowSelf identity console." /></svelte:head>
 <div class="access">
-  <section class="panel">
+  <AuthCard stage={step}>
     <h1>{titles[step]}</h1>
     {#if step > 1}<p>
         {step === 2
@@ -83,6 +85,7 @@
       {#if step === 1}<div class="field">
           <label for="login-password">Password</label><input
             id="login-password"
+            placeholder="Correct Horse Battery Staple"
             name="password"
             type="password"
             autocomplete="current-password"
@@ -102,6 +105,7 @@
       {#if step === 5}<div class="field">
           <label for="login-recovery">Recovery code</label><input
             id="login-recovery"
+            placeholder="Your saved recovery code"
             name="code"
             autocomplete="off"
             required />
@@ -112,9 +116,11 @@
     <div class="access-links">
       {#if step === 1}<a href="/signup">Create an account</a><button onclick={() => switchStep(2)}
           >Use email access</button
-        >{:else}<button onclick={() => switchStep(1)}>Back to sign-in</button>{#if step === 4}<button
-            onclick={() => switchStep(5)}>Use recovery code</button
-          >{:else if step === 5}<button onclick={() => switchStep(4)}>Use authenticator</button>{/if}{/if}
+        >{:else}<button class="back-link" onclick={() => switchStep(1)}
+          ><Icon name="back" size={15} />Back to sign-in</button
+        >{#if step === 4}<button onclick={() => switchStep(5)}>Use recovery code</button>{:else if step === 5}<button
+            onclick={() => switchStep(4)}>Use authenticator</button
+          >{/if}{/if}
     </div>
-  </section>
+  </AuthCard>
 </div>

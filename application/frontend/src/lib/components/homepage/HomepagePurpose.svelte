@@ -247,14 +247,11 @@
     color: var(--tool-color);
     display: flex;
     opacity: 0.35;
-    transition:
-      opacity 220ms ease,
-      translate 220ms ease;
+    transition: opacity 180ms ease;
   }
   .assembly-tools > a:hover .tool-arrow,
   .assembly-tools > a:focus-visible .tool-arrow {
     opacity: 1;
-    translate: 3px;
   }
   .assembly-spine {
     border: 1px solid color-mix(in srgb, var(--accent) 30.2%, transparent);

@@ -1,11 +1,12 @@
 <script lang="ts">
+  import Select from '$component/ui/Select.svelte';
   import {untrack} from 'svelte';
   import type {FullIdentity, InformationAPI} from '$type';
   import {request} from '$utils/webfetch';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
   import Copy from '$component/ui/Copy.svelte';
-  import {ETHNICITIES} from '$constant';
+  import {ETHNICITIES, SEX_OPTIONS} from '$constant';
 
   let {account, onupdate}: {account: FullIdentity; onupdate: (patch: Partial<FullIdentity>) => void} = $props();
   let editing = $state(false);
@@ -83,6 +84,7 @@
           <div class="field wide">
             <label for="profile-name">Name</label><input
               id="profile-name"
+              placeholder="Alex Morgan"
               bind:value={profile.name}
               required
               minlength="2"
@@ -91,6 +93,7 @@
           <div class="field">
             <label for="profile-age">Age</label><input
               id="profile-age"
+              placeholder="28"
               type="number"
               min="18"
               max="60"
@@ -98,20 +101,23 @@
               required />
           </div>
           <div class="field">
-            <label for="profile-sex">Sex</label><select id="profile-sex" bind:value={profile.sex}
-              ><option value="male">Male</option><option value="female">Female</option></select>
+            <label for="profile-sex">Sex</label><Select
+              id="profile-sex"
+              label="Sex"
+              options={SEX_OPTIONS}
+              bind:value={profile.sex} />
           </div>
           <div class="field wide">
-            <label for="profile-ethnicity">Ethnicity</label><select
+            <label for="profile-ethnicity">Ethnicity</label><Select
               id="profile-ethnicity"
-              bind:value={profile.ethnicity}
-              >{#each ETHNICITIES as ethnicity (ethnicity)}<option value={ethnicity}
-                  >{ethnicity[0].toUpperCase() + ethnicity.slice(1)}</option
-                >{/each}</select>
+              label="Ethnicity"
+              options={ETHNICITIES.map((value) => ({value, label: value[0].toUpperCase() + value.slice(1)}))}
+              bind:value={profile.ethnicity} />
           </div>
           <div class="field wide">
             <label for="profile-bio">Bio</label><textarea
               id="profile-bio"
+              placeholder="An illustrator in Amsterdam with a soft spot for old synths."
               bind:value={profile.bio}
               minlength="5"
               maxlength="126"></textarea>
