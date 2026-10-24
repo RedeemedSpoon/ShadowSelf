@@ -259,3 +259,93 @@ export const NETWORK_PRIORITY_OPTIONS = [
 ] as const;
 
 export const TOTP_ALGORITHM_OPTIONS = ['SHA1', 'SHA256', 'SHA512'].map((value) => ({value, label: value}));
+
+export const ERROR_PAGES = {
+  404: {
+    scene: 'orbit',
+    label: 'Page not found',
+    title: 'A little off course.',
+    copy: "This page has drifted beyond our coordinates. Let's get you somewhere familiar.",
+    centered: false,
+  },
+  403: {
+    scene: 'jelly',
+    label: 'Access denied',
+    title: "That's classified. Apparently.",
+    copy: "This page needs permissions your current session doesn't have.",
+    centered: true,
+  },
+  500: {
+    scene: 'coffee',
+    label: 'Unexpected error',
+    title: "Well. That wasn't in the plan.",
+    copy: 'Something went wrong while loading this page. Give it another try.',
+    centered: false,
+  },
+  503: {
+    scene: 'break',
+    label: 'Service unavailable',
+    title: 'A brief intermission.',
+    copy: 'The service is unavailable right now. Please try again in a little while.',
+    centered: true,
+  },
+} as const;
+
+export const ERROR_ILLUSTRATION_STARS = {
+  orbit: [
+    [30, 35, 3],
+    [110, 22, 4.5],
+    [239, 20, 1.2],
+    [330, 48, 5],
+    [337, 123, 1],
+    [318, 218, 3.5],
+    [230, 251, 2.5],
+    [98, 250, 1.2],
+    [25, 195, 4],
+    [24, 104, 1.2],
+    [53, 80, 1],
+    [302, 22, 0.8],
+  ],
+  jelly: [
+    [36, 46, 1.2],
+    [99, 30, 5],
+    [193, 23, 1],
+    [281, 40, 3],
+    [322, 88, 1.2],
+    [310, 164, 5],
+    [280, 230, 1],
+    [207, 252, 3],
+    [96, 240, 1.2],
+    [39, 202, 4],
+    [51, 129, 2.5],
+    [144, 21, 0.8],
+  ],
+  coffee: [
+    [40, 42, 4],
+    [110, 53, 3],
+    [155, 22, 1.2],
+    [281, 25, 4.5],
+    [315, 91, 1],
+    [301, 160, 3],
+    [327, 216, 1.2],
+    [270, 248, 4],
+    [91, 247, 2.5],
+    [28, 178, 1.2],
+    [46, 103, 1],
+    [204, 252, 0.8],
+  ],
+  break: [
+    [42, 45, 3.5],
+    [119, 38, 4.5],
+    [205, 26, 1],
+    [298, 34, 3],
+    [329, 101, 1.2],
+    [326, 176, 4],
+    [270, 249, 2.5],
+    [189, 253, 1.2],
+    [48, 241, 3],
+    [25, 137, 1],
+    [63, 84, 0.8],
+    [250, 31, 1.2],
+  ],
+} as const;

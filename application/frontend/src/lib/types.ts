@@ -468,3 +468,5 @@ export interface RoutingMarker {
   y: number;
   visibility: number;
 }
+
+export type ErrorScene = 'orbit' | 'jelly' | 'coffee' | 'break';
