@@ -62,10 +62,9 @@ async function advanceRegistration(cookies: Cookies, path: string, body: Record<
   return {registration: await registrationState(result.data)};
 }
 
-async function completeRegistration(cookies: Cookies, savedRecovery = false) {
+async function completeRegistration(cookies: Cookies) {
   const result = await backend<{token: string}>('/auth/registration/complete', 'POST', {
     signup: cookies.get('signup'),
-    savedRecovery,
   });
 
   if (!result.ok) {
@@ -120,6 +119,8 @@ export const actions: Actions = {
   },
   verifyAuthenticator: async ({request, cookies}) =>
     advanceRegistration(cookies, 'recovery', {token: (await request.formData()).get('token')}),
-  create: async ({request, cookies}) => completeRegistration(cookies, (await request.formData()).has('savedRecovery')),
+  saveRecovery: async ({request, cookies}) =>
+    advanceRegistration(cookies, 'save-recovery', {savedRecovery: (await request.formData()).has('savedRecovery')}),
+  create: async ({cookies}) => completeRegistration(cookies),
   back: async ({cookies}) => advanceRegistration(cookies, 'back', {}),
 };

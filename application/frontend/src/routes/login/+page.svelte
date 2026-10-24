@@ -40,7 +40,7 @@
 
   const titles: Record<number, string> = {
     1: 'Sign in',
-    2: 'Email access',
+    2: 'Forgot password?',
     3: 'Email verification',
     4: 'Two-factor authentication',
     5: 'Use a recovery code',
@@ -63,7 +63,7 @@
     <h1>{titles[step]}</h1>
     {#if step > 1}<p>
         {step === 2
-          ? 'Email access still requires two-factor authentication when enabled.'
+          ? 'Use a code sent to your email to sign in without your password. Two-factor authentication is still required when enabled.'
           : step === 3
             ? 'The eight-digit email code expires in ten minutes.'
             : step === 4
@@ -115,9 +115,8 @@
     </form>
     <div class="access-links">
       {#if step === 1}<a href="/signup">Create an account</a><button onclick={() => switchStep(2)}
-          >Use email access</button
-        >{:else}<button class="back-link" onclick={() => switchStep(1)}
-          ><Icon name="back" size={15} />Back to sign-in</button
+          >Forgot password?</button
+        >{:else}<button class="back-link" onclick={() => switchStep(1)}><Icon name="back" size={15} />Back</button
         >{#if step === 4}<button onclick={() => switchStep(5)}>Use recovery code</button>{:else if step === 5}<button
             onclick={() => switchStep(4)}>Use authenticator</button
           >{/if}{/if}

@@ -16,6 +16,8 @@ You are an autonomous expert developer. You are writing code for a fullstack app
 
 # UI/UX & Copywriting Tone
 
+- Keep purple links, accent text, icons, checkboxes, and controls within the existing dark brand palette; never use bright indigo shades, reuse the CSS rest/hover/pressed color tokens consistently and existing button treatments, and allow different link styles without changing those state colors.
+
 - **Core Direction:** Dark neo-privacy console: slate/black surfaces, indigo/sky/purple accents, glassy depth, crisp typography, restrained motion.
 - **Brand Shape:** Landing pages can be cinematic and bespoke; app pages should be dense, calm, and operational, with product-specific visuals over default SaaS/Tailwind patterns.
 - **UX Priority:** Make flows scannable and decisive: visible states, compact controls, strong empty states, useful icons, and responsive layouts that keep key actions obvious.

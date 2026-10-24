@@ -8,6 +8,8 @@
   import Status from '$component/ui/Status.svelte';
   import Dialog from '$component/ui/Dialog.svelte';
   import Copy from '$component/ui/Copy.svelte';
+  import AuthenticatorSetup from '$component/ui/AuthenticatorSetup.svelte';
+  import RecoveryCodes from '$component/ui/RecoveryCodes.svelte';
   import PaymentMethod from '$component/console/PaymentMethod.svelte';
 
   let {data, form}: PageProps = $props();
@@ -277,14 +279,8 @@
         value={key}
         label="Copy API key" />{:else if recovery.length}<Status
         message="The previous recovery codes no longer work. Save these replacement codes now." />
-      <div class="recovery-codes">
-        {#each recovery as code (code)}<span>{code}</span>{/each}
-      </div>
-      <Copy value={recovery.join('\n')} label="Copy codes" />
-    {:else if mode === 'totp'}{#if totp.qr}<img
-          class="qr-image"
-          src={totp.qr}
-          alt="Authenticator enrollment QR code" /><Copy value={totp.secret} label="Copy secret" />
+      <RecoveryCodes codes={recovery} />
+    {:else if mode === 'totp'}{#if totp.qr}<AuthenticatorSetup qr={totp.qr} secret={totp.secret} />
         <form method="POST" action="?/checkOtp" use:enhance={submit} data-action="checkOtp">
           <input type="hidden" name="secret" value={totp.secret} />
           <div class="field">

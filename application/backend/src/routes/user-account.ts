@@ -30,6 +30,7 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
         '/registration/cancel',
         '/registration/recovery',
         '/registration/complete',
+        '/registration/save-recovery',
       ];
       const otherPaths = ['/password', '/email', '/second-factor', '/recovery', '/email/verify'];
       const mustNotLogIn = [...signUp, ...otherPaths];
@@ -225,7 +226,8 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
         return error(set, 410, 'Signup expired. Start again');
       }
 
-      const previous = SIGNUP_PREVIOUS_STAGE[draft.stage];
+      const previous =
+        draft.stage === 'complete' && draft.enableTwoFactor ? 'recovery' : SIGNUP_PREVIOUS_STAGE[draft.stage];
 
       if (!previous) {
         return error(set, 409, 'This is the first signup card');
@@ -358,16 +360,32 @@ export function createAccountRoutes(sendCode = sendVerificationCode) {
 
       return signupProgress(input.signup);
     })
+    .post('/registration/save-recovery', ({set, body}) => {
+      const input = body as {signup?: string; savedRecovery?: boolean} | null;
+      const draft = getSignupDraft(input?.signup);
+
+      if (!draft) {
+        return error(set, 410, 'Signup expired. Start again');
+      }
+
+      if (draft.stage !== 'recovery' || !draft.recoveryHashes.length || input?.savedRecovery !== true) {
+        return error(set, 400, 'Save the recovery codes before continuing');
+      }
+
+      draft.stage = 'complete';
+
+      return signupProgress(input.signup);
+    })
     .post('/registration/complete', async ({set, body}) => {
-      const input = body as {signup?: string; savedRecovery?: boolean};
+      const input = body as {signup?: string};
       const draft = getSignupDraft(input?.signup);
 
       if (
         !draft?.verified ||
-        !['complete', 'recovery'].includes(draft.stage) ||
+        draft.stage !== 'complete' ||
         !draft.username ||
         draft.enableTwoFactor === null ||
-        (draft.enableTwoFactor && (!draft.secret || !draft.recoveryHashes.length || input.savedRecovery !== true))
+        (draft.enableTwoFactor && (!draft.secret || !draft.recoveryHashes.length))
       ) {
         return error(set, 400, 'Complete verification and save the recovery codes before creating the account');
       }

@@ -3,9 +3,11 @@
   import {enhance} from '$app/forms';
   import Icon from '$component/ui/Icon.svelte';
   import AuthCard from '$component/ui/AuthCard.svelte';
+  import AccountConstellation from '$component/ui/AccountConstellation.svelte';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
-  import Copy from '$component/ui/Copy.svelte';
+  import AuthenticatorSetup from '$component/ui/AuthenticatorSetup.svelte';
+  import RecoveryCodes from '$component/ui/RecoveryCodes.svelte';
   import type {PageProps} from './$types';
 
   let {data, form}: PageProps = $props();
@@ -35,7 +37,7 @@
     username: 'setUsername',
     security: 'chooseSecurity',
     authenticator: 'verifyAuthenticator',
-    recovery: 'create',
+    recovery: 'saveRecovery',
     complete: 'create',
   };
 
@@ -60,6 +62,9 @@
 </svelte:head>
 <div class="access">
   <AuthCard stage={registration.stage}>
+    {#if registration.stage === 'complete'}
+      <AccountConstellation />
+    {/if}
     <h1>{titles[registration.stage]}</h1>
     <Status message={form?.message || data.message || ''} kind="error" />
     <form method="POST" action="?/{actions[registration.stage]}" use:enhance={submit}>
@@ -135,9 +140,7 @@
           </Button>
         </div>
       {:else if registration.stage === 'authenticator'}
-        <img class="qr-image" src={registration.qr} alt="Authenticator enrollment QR code" />
-        <Copy value={registration.secret} label="Copy secret" />
-        <p class="security-copy">Scan the QR code or enter this secret in your authenticator.</p>
+        <AuthenticatorSetup qr={registration.qr} secret={registration.secret} />
         <div class="field">
           <label for="signup-totp">Authenticator code</label>
           <input
@@ -152,15 +155,16 @@
         </div>
       {:else if registration.stage === 'recovery'}
         <p>Each code restores access if you lose your authenticator and can be used once.</p>
-        <div class="recovery-codes">
-          {#each registration.recovery as code (code)}<span>{code}</span>{/each}
-        </div>
-        <Copy value={registration.recovery.join('\n')} label="Copy codes" />
+        <RecoveryCodes codes={registration.recovery} />
         <label class="security-copy recovery-confirm">
-          <input type="checkbox" name="savedRecovery" bind:checked={savedRecovery} required /> I saved these recovery codes.
+          <input type="checkbox" name="savedRecovery" bind:checked={savedRecovery} required />
+          <span>I saved these recovery codes.</span>
         </label>
       {:else}
-        <p>Your email is verified and your account details are ready. Finish creating your account to sign in.</p>
+        <p>
+          You’re all set. Your email is verified and your account details are ready. Finish creating your account to get
+          started.
+        </p>
       {/if}
       {#if registration.stage !== 'security'}
         <Button
@@ -170,11 +174,13 @@
           icon="arrow">
           {registration.stage === 'account' || (registration.stage === 'email' && registration.verified)
             ? 'Continue'
-            : registration.stage === 'recovery' || registration.stage === 'complete'
-              ? 'Finish account creation'
-              : registration.stage === 'username'
-                ? 'Continue'
-                : 'Verify'}
+            : registration.stage === 'recovery'
+              ? 'Next'
+              : registration.stage === 'complete'
+                ? 'Finish account creation'
+                : registration.stage === 'username'
+                  ? 'Continue'
+                  : 'Verify'}
         </Button>
       {/if}
     </form>
@@ -204,9 +210,5 @@
     display: flex;
     align-items: center;
     gap: 10px;
-  }
-  .recovery-confirm input {
-    margin: 0;
-    flex-shrink: 0;
   }
 </style>

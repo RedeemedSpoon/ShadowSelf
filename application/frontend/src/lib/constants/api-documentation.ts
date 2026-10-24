@@ -152,12 +152,19 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
       },
       {
         method: 'POST',
+        path: '/api/auth/registration/save-recovery',
+        detail:
+          'Confirm that recovery codes have been saved and advance to the final account creation card. Required after authenticator verification.',
+        request: {signup: '<signup reference>', savedRecovery: true},
+        response: {stage: 'complete', email: 'theo@example.com', username: 'Theo', verified: true},
+      },
+      {
+        method: 'POST',
         path: '/api/auth/registration/complete',
         detail:
-          'Complete the verified draft from its recovery or final card after setting a username and explicitly choosing account security. Two-factor enrollment requires a verified authenticator and explicit savedRecovery=true. Optional card setup belongs in account settings or checkout.',
+          'Complete the verified draft from its final card after setting a username and explicitly choosing account security. Two-factor enrollment requires a verified authenticator and recovery code confirmation through save-recovery. Optional card setup belongs in account settings or checkout.',
         request: {
           signup: '<signup reference>',
-          savedRecovery: true,
         },
         response: {
           token: 'ss_session_<session token>',

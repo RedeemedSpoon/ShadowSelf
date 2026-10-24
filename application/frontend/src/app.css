@@ -270,7 +270,7 @@ button:disabled {
   outline: none;
   box-shadow: var(--control-focus-shadow);
 }
-:root :is(input:not(.select-validation), textarea, .select-trigger) {
+:root :is(input:not(.select-validation, [type='checkbox']), textarea, .select-trigger) {
   outline: none;
   box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
   transition:
@@ -278,7 +278,7 @@ button:disabled {
     box-shadow 220ms ease,
     background-color 220ms ease;
 }
-:root :is(input:not(.select-validation), textarea, .select-trigger):focus,
+:root :is(input:not(.select-validation, [type='checkbox']), textarea, .select-trigger):focus,
 :root .select-trigger[aria-expanded='true'] {
   outline: none;
   border-color: var(--accent);
@@ -543,6 +543,36 @@ button:disabled {
   color: #c0cbe1;
   font-weight: 500;
 }
+label:has(input[type='checkbox']) {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+}
+input[type='checkbox'] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--link-color) 45%, transparent);
+  border-radius: 4px;
+  background-color: #080e1e;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  box-shadow: none;
+  cursor: pointer;
+}
+input[type='checkbox']:checked {
+  border-color: transparent;
+  background-color: color-mix(in srgb, var(--link-color) 85%, var(--muted));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+}
+input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 3px;
+}
 input:not(
   [type='checkbox'],
   [type='radio'],
@@ -588,7 +618,12 @@ textarea {
   min-height: 120px;
   line-height: 1.8;
 }
-:root :is(input, textarea, .select-trigger):enabled:hover:not(:focus, [aria-expanded='true'], [aria-invalid='true']) {
+:root
+  :is(input:not([type='checkbox']), textarea, .select-trigger):enabled:hover:not(
+    :focus,
+    [aria-expanded='true'],
+    [aria-invalid='true']
+  ) {
   border-color: color-mix(in srgb, var(--accent-light) 38%, transparent);
 }
 :root :is(input, textarea, .select-trigger):disabled {
