@@ -109,8 +109,11 @@
               placeholder="00000000"
               name="access"
               inputmode="numeric"
-              pattern="[0-9]{8}"
-              maxlength="8"
+              pattern={'[0-9]{8}'}
+              oninput={(event) => {
+                event.currentTarget.value = event.currentTarget.value.replace(/\s/g, '');
+              }}
+              maxlength="32"
               autocomplete="one-time-code"
               required />
           </div>
@@ -148,8 +151,11 @@
             placeholder="000000"
             name="token"
             inputmode="numeric"
-            pattern="[0-9]{6}"
-            maxlength="6"
+            pattern={'[0-9]{6}'}
+            oninput={(event) => {
+              event.currentTarget.value = event.currentTarget.value.replace(/\s/g, '');
+            }}
+            maxlength="32"
             autocomplete="one-time-code"
             required />
         </div>

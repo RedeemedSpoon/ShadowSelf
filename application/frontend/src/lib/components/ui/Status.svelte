@@ -1,5 +1,7 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
+  import {notifications} from '$store';
+  import {NOTIFICATION_DURATION} from '$constant';
   import Icon from './Icon.svelte';
 
   let {
@@ -13,41 +15,34 @@
     ondismiss?: () => void;
     children?: Snippet;
   } = $props();
+  const id = $props.id();
+  const overlay = $derived(kind !== 'info' || !!ondismiss);
+
+  $effect(() => {
+    if (!message || !overlay) {
+      return;
+    }
+
+    notifications.update((items) => [
+      ...items.filter((item) => item.id !== id && (item.message !== message || item.kind !== kind)).slice(-2),
+      {id, message, kind, expiresAt: Date.now() + NOTIFICATION_DURATION, ondismiss: () => ondismiss?.()},
+    ]);
+
+    const timer = setTimeout(() => {
+      notifications.update((items) => items.filter((item) => item.id !== id));
+    }, NOTIFICATION_DURATION);
+
+    return () => {
+      clearTimeout(timer);
+      notifications.update((items) => items.filter((item) => item.id !== id));
+    };
+  });
 </script>
 
-{#if message}<div class="status-message {kind}" role={kind === 'error' ? 'alert' : 'status'}>
-    <Icon name={kind === 'error' ? 'warning' : kind === 'success' ? 'check' : 'info'} size={18} /><span
+{#if message && !overlay}
+  <div class="status-message {kind}" role="status">
+    <Icon name="info" size={18} />
+    <span
       >{#if children}{@render children()}{:else}{message}{/if}</span>
-    {#if ondismiss}<button class="dismiss-status" type="button" aria-label="Dismiss notice" onclick={ondismiss}
-        ><Icon name="close" size={15} /></button
-      >{/if}
-  </div>{/if}
-
-<style>
-  .dismiss-status :global(svg) {
-    color: inherit;
-  }
-  .dismiss-status {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    margin: -4px -5px -4px auto;
-    padding: 0;
-    border: 0;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--muted);
-    transition: color 200ms ease;
-  }
-  .dismiss-status:hover,
-  .dismiss-status:focus-visible {
-    color: #dce3f7;
-    background: var(--neutral-hover);
-  }
-  .dismiss-status:active {
-    color: #e6ebff;
-    background: var(--neutral-pressed);
-  }
-</style>
+  </div>
+{/if}

@@ -21,7 +21,9 @@ function lazyClient<T extends object>(factory: () => T): T {
 }
 
 export const stripe = lazyClient(() => {
-  requireProvider(!!stripeConfig.secretKey, 'Card billing');
+  if (!stripeConfig.secretKey) {
+    throw new ApiError(503, 'provider_unavailable', 'Could not start card billing. Try again');
+  }
 
   return new Stripe(stripeConfig.secretKey, {timeout: 15_000, maxNetworkRetries: 2});
 });

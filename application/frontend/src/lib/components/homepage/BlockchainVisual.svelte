@@ -20,11 +20,10 @@
     <path class="cube-left" d="m170 128 65 38v76l-65-38Z" />
     <path class="cube-right" d="m235 166 65-38v76l-65 38Z" />
     <path class="cube-detail" d="m185 159 30 17m-30-4 30 17m42-14 29-17m-29 30 29-17" />
-    <path
-      class="signing-shield"
-      transform="translate(0 -4)"
-      d="m235 110 9 4v6c0 5-9 10-9 10s-9-5-9-10v-6l9-4Zm-4 9 3 3 5-6" />
-    <text x="235" y="140" text-anchor="middle">Sign locally</text>
+    <g class="signing-mark" transform="matrix(.866 .5 -.866 .5 235 128)">
+      <path class="signing-shield" d="M0-19l9 4v6C9-4 0 1 0 1S-9-4-9-9v-6l9-4Zm-4 9 3 3 5-6" />
+      <text x="0" y="17" text-anchor="middle">Sign locally</text>
+    </g>
   </svg>
   <div class="network-status"><span></span>Broadcast to the network <code>12 confirmations</code></div>
 </div>
@@ -82,27 +81,28 @@
     opacity: 0.5;
   }
   .signing-shield {
-    stroke: var(--success-color);
-    stroke-width: 1.2;
+    stroke: #b8efd2;
+    stroke-width: 1.6;
   }
-  text {
-    fill: var(--success-color);
-    font-size: 9px;
+  .signing-mark text {
+    fill: #b8efd2;
+    font-size: 11px;
+    font-weight: 600;
   }
   .coin-btc {
     color: #ffad32;
   }
   .coin-ltc {
-    color: #d6dfec;
+    color: #6b9bdc;
   }
   .coin-eth {
-    color: #b2bffd;
+    color: #b39adc;
   }
   .coin-xmr {
     color: #ff8136;
   }
   .coin-usdt {
-    color: var(--success-color);
+    color: #009393;
   }
   .network-status {
     display: flex;

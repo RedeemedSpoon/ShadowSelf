@@ -11,13 +11,17 @@ import {error} from '@utils/utils';
 import {check} from '@utils/checks';
 import {sql, stripe} from '@core/services';
 import {Elysia} from 'elysia';
-import {REFUND_WINDOW_MS, UUID_PATTERN} from '@core/constants';
+import {UUID_PATTERN} from '@core/constants';
 
 export default new Elysia({prefix: '/api/settings'})
   .use(middlewareBase)
   .guard({authenticated: true})
   .resolve(async ({user, request, body, path}) => {
-    if (!user || request.method === 'GET' || /\/(sessions?|billing-portal|payment(?:-setup)?)\/?$/.test(path)) {
+    if (
+      !user ||
+      request.method === 'GET' ||
+      /\/(username|api-access|api-key|sessions?|billing-portal|payment(?:-setup)?)\/?$/.test(path)
+    ) {
       return {verifiedPassword: ''};
     }
 
@@ -41,7 +45,10 @@ export default new Elysia({prefix: '/api/settings'})
   .onBeforeHandle(({set, request, path, verifiedPassword, passwordLimited}) => {
     set.headers['cache-control'] = 'no-store';
 
-    if (request.method === 'GET' || /\/(sessions?|billing-portal|payment(?:-setup)?)\/?$/.test(path)) {
+    if (
+      request.method === 'GET' ||
+      /\/(username|api-access|api-key|sessions?|billing-portal|payment(?:-setup)?)\/?$/.test(path)
+    ) {
       return;
     }
 
@@ -55,8 +62,8 @@ export default new Elysia({prefix: '/api/settings'})
   })
   .get('/', async ({user}) => {
     const rows =
-      (await sql`SELECT email, username, recovery_hashes, totp, api_access FROM users WHERE id = ${user!.accountID}`) as QueryUser[];
-    const {email, username, recovery_hashes, totp, api_access} = rows[0];
+      (await sql`SELECT email, username, recovery_hashes, totp, api_access, api_key, api_key_suffix FROM users WHERE id = ${user!.accountID}`) as QueryUser[];
+    const {email, username, recovery_hashes, totp, api_access, api_key, api_key_suffix} = rows[0];
 
     const refunds = await sql`SELECT c.id, c.requested_at AS "requestedAt", c.error_code AS "errorCode"
       FROM stripe_cleanup c JOIN users u ON u.stripe_customer = c.customer_id
@@ -65,19 +72,17 @@ export default new Elysia({prefix: '/api/settings'})
     const cryptoRefunds =
       await sql`SELECT id, requested_at AS "requestedAt", error_code AS "errorCode", xmr_amount AS "xmrAmount"
       FROM crypto_refunds WHERE owner = ${user!.accountID} ORDER BY requested_at DESC`;
-    const eligible = await sql`SELECT 1 FROM identities i JOIN crypto_invoices c ON c.identity_id = i.id
-      WHERE i.owner = ${user!.accountID} AND c.owner = i.owner AND NOT c.renewal AND c.status = 'paid'
-      AND i.creation_date <= NOW() AND i.creation_date >= NOW() - ${REFUND_WINDOW_MS} * INTERVAL '1 millisecond' LIMIT 1`;
 
     return {
       email,
       username,
       recoveryRemaining: recovery_hashes.length,
       API: api_access,
+      hasApiKey: !!api_key,
+      apiKeySuffix: api_key_suffix,
       OTP: !!totp,
       refunds,
       cryptoRefunds,
-      cryptoRefundRequired: eligible.length > 0,
     };
   })
   .post('/billing-portal', ({user}) => billingPortal(user!.email))
@@ -105,7 +110,7 @@ export default new Elysia({prefix: '/api/settings'})
 
     return {recovery, recoveryRemaining: recovery.length};
   })
-  .put('/api-access', async ({user, set, body, verifiedPassword}) => {
+  .put('/api-access', async ({user, set, body}) => {
     const enabled = (body as {enabled?: unknown})?.enabled;
 
     if (typeof enabled !== 'boolean') {
@@ -113,7 +118,7 @@ export default new Elysia({prefix: '/api/settings'})
     }
 
     const updated = await sql`UPDATE users SET api_access = ${enabled}
-      WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING api_access`;
+      WHERE id = ${user!.accountID} RETURNING api_access`;
 
     if (!updated.length) {
       return error(set, 409, 'Account changed. Try again');
@@ -121,10 +126,10 @@ export default new Elysia({prefix: '/api/settings'})
 
     return {API: updated[0].api_access};
   })
-  .post('/api-key', async ({set, user, verifiedPassword}) => {
+  .post('/api-key', async ({set, user}) => {
     const key = apiToken();
-    const updated = await sql`UPDATE users SET api_key = ${tokenHash(key)}
-      WHERE id = ${user!.accountID} AND password = ${verifiedPassword} AND api_access = true RETURNING id`;
+    const updated = await sql`UPDATE users SET api_key = ${tokenHash(key)}, api_key_suffix = ${key.slice(-6)}
+      WHERE id = ${user!.accountID} AND api_access = true RETURNING id`;
 
     if (!updated.length) {
       return error(set, 409, 'Enable API access before creating a key');
@@ -283,15 +288,14 @@ export default new Elysia({prefix: '/api/settings'})
 
     return {token: changed.token, warning};
   })
-  .put('/username', async ({set, user, body, verifiedPassword}) => {
+  .put('/username', async ({set, user, body}) => {
     const {err, username} = check(body, ['username']);
 
     if (err) {
       return error(set, 400, err);
     }
 
-    const updated =
-      await sql`UPDATE users SET username = ${username} WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING id`;
+    const updated = await sql`UPDATE users SET username = ${username} WHERE id = ${user!.accountID} RETURNING id`;
 
     if (!updated.length) {
       return error(set, 409, 'Account changed. Try again');
@@ -309,7 +313,7 @@ export default new Elysia({prefix: '/api/settings'})
     const hash = await createHash(password);
 
     const changed = await sql.begin(async (transaction) => {
-      const updated = await transaction`UPDATE users SET password = ${hash}, api_key = NULL
+      const updated = await transaction`UPDATE users SET password = ${hash}, api_key = NULL, api_key_suffix = NULL
         WHERE id = ${user!.accountID} AND password = ${verifiedPassword} RETURNING id`;
 
       if (!updated.length) {

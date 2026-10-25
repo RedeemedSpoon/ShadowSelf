@@ -188,7 +188,7 @@
           </div>
         {/if}
       </div>
-      <a class="navigation-link" href="/docs"><Icon name="code" size={19} />Guides &amp; API</a>
+      <a class="navigation-link" href="/docs"><Icon name="code" size={19} />Documentation</a>
       <a class="navigation-link" href="/extension" aria-busy={extensionPending} onclick={openExtension}>
         <Icon name="shield" size={19} />{extensionPending ? 'Opening extension…' : 'Browser extension'}
       </a>

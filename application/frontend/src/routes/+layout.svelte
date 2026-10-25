@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Notifications from '$component/ui/Notifications.svelte';
   import AuthBackground from '$component/ui/AuthBackground.svelte';
   import {APP_ORIGIN} from '$constant';
   import {page} from '$app/state';
@@ -107,3 +108,5 @@
     </main>
     <PublicFooter />
   </div>{/if}
+
+<Notifications />

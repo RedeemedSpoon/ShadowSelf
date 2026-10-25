@@ -101,12 +101,7 @@ export const actions: Actions = {
 
     const username = form.get('username');
 
-    const response = await fetchBackend(
-      '/settings/username',
-      'PUT',
-      {username, currentPassword: form.get('currentPassword')},
-      cookies.get('token'),
-    );
+    const response = await fetchBackend('/settings/username', 'PUT', {username}, cookies.get('token'));
 
     if (response.type !== 'success') {
       return response;
@@ -186,15 +181,12 @@ export const actions: Actions = {
   toggleApi: async ({request, cookies}) => {
     const form = await request.formData();
 
-    const currentPassword = form.get('currentPassword');
     const enabled = form.get('enabled') === 'true';
 
-    return await fetchBackend('/settings/api-access', 'PUT', {currentPassword, enabled}, cookies.get('token'));
+    return await fetchBackend('/settings/api-access', 'PUT', {enabled}, cookies.get('token'));
   },
-  api: async ({request, cookies}) => {
-    const currentPassword = (await request.formData()).get('currentPassword');
-
-    return await fetchBackend('/settings/api-key', 'POST', {currentPassword}, cookies.get('token'));
+  api: async ({cookies}) => {
+    return await fetchBackend('/settings/api-key', 'POST', {}, cookies.get('token'));
   },
   payment: async ({request, cookies}) => {
     const form = await request.formData();

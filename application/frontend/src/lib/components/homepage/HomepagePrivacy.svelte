@@ -35,7 +35,7 @@
             <path class="chain-anchor" d="M120 10H240" />
           </svg>
           <div class="secret-boxes">
-            <div><Icon name="key" size={19} /><span>Passwords</span><code>••••••••</code></div>
+            <div><Icon name="password" size={19} /><span>Passwords</span><code>••••••••</code></div>
             <div><Icon name="shield" size={19} /><span>TOTP</span><code>••••••</code></div>
             <div><Icon name="wallet" size={19} /><span>Wallet secrets</span><code>••••••••</code></div>
           </div>

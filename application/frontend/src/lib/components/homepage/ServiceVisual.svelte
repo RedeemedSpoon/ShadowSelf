@@ -604,7 +604,7 @@
   .payment-receipt strong {
     display: block;
     margin-top: 5px;
-    color: inherit;
+    color: #e6ebff;
   }
   .payment-receipt small {
     margin-left: auto;

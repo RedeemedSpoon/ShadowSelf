@@ -32,7 +32,8 @@ CREATE TABLE users (
   recovery_hashes varchar(64)[] NOT NULL DEFAULT '{}',
   stripe_customer text,
   api_access boolean DEFAULT false,
-  api_key varchar(64) UNIQUE
+  api_key varchar(64) UNIQUE,
+  api_key_suffix varchar(6)
 );
 
 CREATE TABLE sessions (

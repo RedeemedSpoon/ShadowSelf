@@ -510,3 +510,5 @@ export const SERVICE_GUIDES = {
     note: 'Image processing cannot remove identifying details visible in the picture. Review faces, backgrounds, signs, and reflections yourself.',
   },
 } as const;
+
+export const NOTIFICATION_DURATION = 6000;

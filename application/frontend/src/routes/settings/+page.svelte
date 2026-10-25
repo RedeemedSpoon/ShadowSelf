@@ -1,7 +1,7 @@
 <script lang="ts">
   import {invalidateAll} from '$app/navigation';
   import {enhance} from '$app/forms';
-  import {tick} from 'svelte';
+  import {tick, untrack} from 'svelte';
   import type {SubmitFunction} from '@sveltejs/kit';
   import type {PageProps} from './$types';
   import Button from '$component/ui/Button.svelte';
@@ -19,64 +19,108 @@
   let email = $state('');
   let totp = $state({secret: '', qr: '', step: 0});
   let recovery = $state<string[]>([]);
+  let savedRecovery = $state(false);
   let key = $state('');
   let paymentID = $state('');
   let paymentForm = $state<HTMLFormElement>();
   let sessionsOpen = $state(false);
-  let dismissedNotice = $state.raw<object | null>(null);
+  let notice = $state<{message: string; kind: 'success' | 'error' | 'info'; context: string} | null>(
+    untrack(() =>
+      form?.message
+        ? {message: form.message, kind: form.type === 'success' ? 'success' : 'error', context: 'page'}
+        : null,
+    ),
+  );
   let paymentOpen = $state(false);
   let deleteOpen = $state(false);
 
-  $effect(() => {
-    if (!form) {
-      return;
-    }
+  const submit: SubmitFunction<NonNullable<PageProps['form']>, NonNullable<PageProps['form']>> = ({formElement}) => {
+    const action = formElement.dataset.action || 'action';
+    const context = activeContext;
 
-    if (form.toggleModel) {
-      mode = 'emailVerify';
-    }
-
-    if (form.toggleModel === false) {
-      mode = '';
-    }
-
-    if (form.secret || form.qr) {
-      totp = {secret: form.secret || totp.secret, qr: form.qr || totp.qr, step: Number(form.step || 1)};
-    }
-
-    if (form.recovery) {
-      recovery = form.recovery;
-    }
-
-    if (form.key) {
-      key = form.key;
-    }
-  });
-
-  const submit: SubmitFunction = ({formElement}) => {
-    pending = formElement.dataset.action || 'action';
+    pending = action;
+    notice = null;
 
     return async ({update, result}) => {
       try {
         await update({reset: false});
 
-        if (result.type === 'success' && result.data?.type === 'success' && pending === 'payment') {
-          paymentOpen = false;
-          paymentID = '';
+        if (result.type !== 'success' && result.type !== 'failure') {
+          return;
         }
+
+        if (context !== 'page' && context !== activeContext) {
+          return;
+        }
+
+        const response = result.data;
+
+        if (!response || response.type === 'alert' || result.type === 'failure') {
+          notice = {message: response?.message || 'Could not save this change. Try again.', kind: 'error', context};
+
+          return;
+        }
+
+        applySettingsResponse(response, action);
       } finally {
         pending = '';
       }
     };
   };
   const settings = $derived(data.settings);
+  const activeContext = $derived(
+    mode || (paymentOpen ? 'payment' : deleteOpen ? 'delete' : sessionsOpen ? 'sessions' : 'page'),
+  );
+
+  function applySettingsResponse(response: NonNullable<PageProps['form']>, action: string) {
+    if (response?.toggleModel) {
+      mode = 'emailVerify';
+    } else if (response?.toggleModel === false || action === 'username') {
+      close();
+    }
+
+    if (response?.secret || response?.qr) {
+      totp = {secret: response.secret || '', qr: response.qr || '', step: Number(response.step || 1)};
+    }
+
+    recovery = response?.recovery || [];
+    savedRecovery = false;
+    key = response?.key || '';
+
+    if (key) {
+      mode = 'api';
+    }
+
+    if (action === 'payment') {
+      paymentOpen = false;
+      paymentID = '';
+    }
+
+    const message =
+      response?.message || (action === 'toggleApi' ? `API access ${settings.API ? 'enabled' : 'disabled'}.` : '');
+
+    if (message) {
+      notice = {message, kind: response?.type === 'info' ? 'info' : 'success', context: 'page'};
+    }
+  }
 
   function close() {
     mode = '';
     totp = {secret: '', qr: '', step: 0};
     key = '';
     recovery = [];
+    savedRecovery = false;
+
+    if (notice?.context !== 'page') {
+      notice = null;
+    }
   }
+
+  $effect(() => {
+    if (notice && notice.context !== 'page' && notice.context !== activeContext) {
+      notice = null;
+    }
+  });
 </script>
 
 <svelte:head><title>Account settings | ShadowSelf</title></svelte:head>
@@ -86,11 +130,10 @@
   </div>
 </div>
 <Status
-  message={form !== dismissedNotice ? form?.message || '' : ''}
-  kind={form?.type === 'success' ? 'success' : 'error'}
-  ondismiss={() => (dismissedNotice = form || null)} /><Status
-  message={settings.type === 'alert' ? settings.message : ''}
-  kind="error" />
+  message={notice?.context === 'page' ? notice.message : ''}
+  kind={notice?.kind || 'info'}
+  ondismiss={() => (notice = null)} />
+<Status message={settings.type === 'alert' ? settings.message : ''} kind="error" />
 {#if settings.type === 'alert'}<Button variant="secondary" onclick={() => invalidateAll()}
     >Retry loading settings</Button
   >{:else}
@@ -118,7 +161,41 @@
             email = settings.email || '';
             mode = 'email';
           }}>Change email</Button
-        ><Button icon="key" iconPosition="end" onclick={() => (mode = 'password')}>Change password</Button>
+        ><Button class="change-password" icon="key" iconPosition="end" onclick={() => (mode = 'password')}
+          >Change password</Button>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <h2><Icon name="code" size={20} />API access</h2>
+        </div>
+        <span class="badge {settings.API ? 'active' : 'disabled'}">{settings.API ? 'Enabled' : 'Disabled'}</span>
+      </div>
+      <dl class="data-list api-key-summary">
+        <div>
+          <dt>API key</dt>
+          <dd>
+            {#if settings.hasApiKey}<code>••••••••{settings.apiKeySuffix}</code>{:else}No key generated{/if}
+          </dd>
+        </div>
+      </dl>
+      <p>Keys are shown once. Regenerating a key revokes the previous one.</p>
+      <div class="button-row settings-actions">
+        <form method="POST" action="?/toggleApi" use:enhance={submit} data-action="toggleApi">
+          <input type="hidden" name="enabled" value={String(!settings.API)} />
+          <Button type="submit" variant="secondary" disabled={!!pending} loading={pending === 'toggleApi'}
+            >{settings.API ? 'Disable API access' : 'Enable API access'}</Button>
+        </form>
+        {#if settings.hasApiKey}
+          <Button variant="quiet" disabled={!settings.API || !!pending} onclick={() => (mode = 'api')}
+            >Regenerate key</Button>
+        {:else}
+          <form method="POST" action="?/api" use:enhance={submit} data-action="api">
+            <Button type="submit" variant="quiet" disabled={!settings.API || !!pending} loading={pending === 'api'}
+              >Generate key</Button>
+          </form>
+        {/if}
       </div>
     </section>
     <section class="panel">
@@ -137,21 +214,8 @@
               loading={pending === 'generateOtp'}
               type="submit"
               onclick={() => (mode = 'totp')}>Set up authenticator</Button>
-          </form>{/if}<Button variant="quiet" onclick={() => (mode = 'recovery')}>Replace recovery codes</Button>
-      </div>
-    </section>
-    <section class="panel">
-      <div class="section-heading">
-        <div>
-          <h2><Icon name="code" size={20} />API access</h2>
-        </div>
-        <span class="badge {settings.API ? 'active' : 'disabled'}">{settings.API ? 'Enabled' : 'Disabled'}</span>
-      </div>
-      <p>New API keys are shown once. Generating a key replaces the existing one.</p>
-      <div class="button-row settings-actions">
-        <Button variant="secondary" onclick={() => (mode = 'toggleApi')}
-          >{settings.API ? 'Disable API access' : 'Enable API access'}</Button
-        ><Button variant="quiet" disabled={!settings.API} onclick={() => (mode = 'api')}>Generate new key</Button>
+          </form>{/if}<Button variant="quiet" disabled={!settings.OTP} onclick={() => (mode = 'recovery')}
+          >Replace recovery codes</Button>
       </div>
     </section>
     <section class="panel billing-panel">
@@ -233,9 +297,6 @@
       <div>
         <h2><Icon name="identities" size={20} />Active sessions</h2>
       </div>
-      <div class="sign-out-sessions">
-        <Button variant="quiet" class="revoke-all" onclick={() => (sessionsOpen = true)}>Sign out all sessions</Button>
-      </div>
     </div>
     {#if data.sessionsError}<Status message={data.sessionsError} kind="error" /><Button
         variant="secondary"
@@ -243,7 +304,9 @@
       >{:else if !data.sessions.length}<p>No active sessions.</p>{:else}<div class="sessions-list">
         {#each data.sessions as session (session.id)}<div>
             <span class="session-title"
-              >{session.current ? 'This browser' : 'Signed-in browser'}<code>({session.id.slice(0, 12)}…)</code></span>
+              ><span>{session.current ? 'This browser' : 'Signed-in browser'}</span><code
+                >({session.id.slice(0, 12)}…)</code
+              ></span>
             <form method="POST" action="?/revokeSession" use:enhance={submit} data-action={session.id}>
               <input type="hidden" name="id" value={session.id} /><input
                 type="hidden"
@@ -255,6 +318,10 @@
             </form>
           </div>{/each}
       </div>{/if}
+    <div class="sessions-footer">
+      <p>End access on every browser, including this one.</p>
+      <Button variant="danger" icon="logout" onclick={() => (sessionsOpen = true)}>Sign out all sessions</Button>
+    </div>
   </section>
   <section class="panel danger-panel">
     <div>
@@ -269,22 +336,41 @@
       ? 'Set up authenticator'
       : mode === 'emailVerify'
         ? 'Verify new email'
-        : mode === 'toggleApi'
-          ? 'Change API access'
-          : mode === 'deleteOtp'
-            ? 'Disable authenticator'
-            : mode === 'api'
-              ? 'Generate API key'
-              : mode === 'recovery'
-                ? 'Replace recovery codes'
-                : `Change ${mode}`}
+        : mode === 'deleteOtp'
+          ? 'Disable authenticator'
+          : mode === 'api'
+            ? key
+              ? 'New API key'
+              : 'Regenerate API key?'
+            : mode === 'recovery'
+              ? 'Replace recovery codes'
+              : `Change ${mode}`}
     onclose={close}>
+    <Status message={notice?.context === mode ? notice.message : ''} kind="error" />
     {#if key}<Status message="Store this key now. It will not be shown again."
         >Store this key now. <strong>It will not be shown again.</strong></Status
-      ><Copy value={key} label="Copy API key" />{:else if recovery.length}<Status
+      ><Copy value={key} label="Copy API key" stacked>
+        {#snippet actions()}<Button onclick={close}>Done</Button>{/snippet}
+      </Copy>{:else if recovery.length}<Status
         message="The previous recovery codes no longer work. Save these replacement codes now." />
       <RecoveryCodes codes={recovery} />
-      <div class="dialog-actions"><Button onclick={close}>Done</Button></div>
+      <div class="recovery-confirmation">
+        <label>
+          <input type="checkbox" bind:checked={savedRecovery} />
+          <span>I saved these recovery codes.</span>
+        </label>
+        <Button disabled={!savedRecovery} onclick={close}>Done</Button>
+      </div>
+    {:else if mode === 'api'}
+      <p>
+        This revokes the key ending in <code>{settings.apiKeySuffix}</code>. Update any apps or scripts that use it.
+      </p>
+      <form method="POST" action="?/api" use:enhance={submit} data-action="api">
+        <div class="dialog-actions">
+          <Button variant="secondary" onclick={close}>Cancel</Button>
+          <Button type="submit" loading={pending === 'api'}>Regenerate key</Button>
+        </div>
+      </form>
     {:else if mode === 'totp'}{#if totp.qr}<AuthenticatorSetup qr={totp.qr} secret={totp.secret} />
         <form method="POST" action="?/checkOtp" use:enhance={submit} data-action="checkOtp">
           <input type="hidden" name="secret" value={totp.secret} />
@@ -295,13 +381,16 @@
               name="token"
               inputmode="numeric"
               autocomplete="one-time-code"
-              pattern="[0-9]{6}"
+              pattern={'[0-9]{6}'}
+              oninput={(event) => {
+                event.currentTarget.value = event.currentTarget.value.replace(/\s/g, '');
+              }}
               required />
           </div>
           <div class="field">
-            <label for="totp-password">Account password</label><input
+            <label for="totp-password">Password</label><input
               id="totp-password"
-              placeholder="Your account passphrase"
+              placeholder="Your password"
               name="currentPassword"
               type="password"
               autocomplete="current-password"
@@ -341,12 +430,15 @@
               placeholder="00000000"
               name="access"
               inputmode="numeric"
-              pattern="[0-9]{8}"
+              pattern={'[0-9]{8}'}
+              oninput={(event) => {
+                event.currentTarget.value = event.currentTarget.value.replace(/\s/g, '');
+              }}
               required />
           </div>{/if}{#if mode === 'password'}<Status
-            message="Changing the account password signs out all sessions and revokes the API key." />
+            message="Changing your password signs out all sessions and revokes the API key." />
           <div class="field">
-            <label for="settings-new-password">New account password</label><input
+            <label for="settings-new-password">New password</label><input
               id="settings-new-password"
               placeholder="Correct Horse Battery Staple"
               name="password"
@@ -354,29 +446,26 @@
               minlength="12"
               autocomplete="new-password"
               required />
-          </div>{/if}{#if mode === 'toggleApi'}<input
-            type="hidden"
-            name="enabled"
-            value={String(!settings.API)} />{/if}{#if mode === 'deleteOtp'}<p>
+          </div>{/if}{#if mode === 'deleteOtp'}<p>
             This removes the authenticator requirement from future sign-ins.
           </p>{/if}
-        <div class="field settings-password">
-          <label for="settings-current-password">Current account password</label><input
-            id="settings-current-password"
-            placeholder="Your account passphrase"
-            name={mode === 'recovery' ? 'password' : 'currentPassword'}
-            type="password"
-            autocomplete="current-password"
-            required />
-        </div>
-        <Status message={form?.message || ''} kind="error" /><Button type="submit" loading={pending === mode}
-          >{mode === 'api'
-            ? 'Generate key'
-            : mode === 'recovery'
-              ? 'Generate replacement codes'
-              : mode === 'email'
-                ? 'Send verification code'
-                : 'Confirm change'}</Button>
+        {#if ['email', 'emailVerify', 'password', 'deleteOtp', 'recovery'].includes(mode)}
+          <div class="field settings-password">
+            <label for="settings-current-password">Current password</label><input
+              id="settings-current-password"
+              placeholder="Your password"
+              name={mode === 'recovery' ? 'password' : 'currentPassword'}
+              type="password"
+              autocomplete="current-password"
+              required />
+          </div>
+        {/if}
+        <Button type="submit" loading={pending === mode}
+          >{mode === 'recovery'
+            ? 'Generate replacement codes'
+            : mode === 'email'
+              ? 'Send verification code'
+              : 'Confirm change'}</Button>
       </form>{/if}
   </Dialog>
   <Dialog bind:open={paymentOpen} title="Add payment card">
@@ -390,21 +479,23 @@
         }} />
       <form bind:this={paymentForm} method="POST" action="?/payment" use:enhance={submit} data-action="payment">
         <input type="hidden" name="setupIntent" value={paymentID} />
-        <Status message={form?.type === 'alert' ? form.message || '' : ''} kind="error" />
+        <Status message={notice?.context === 'payment' ? notice.message : ''} kind="error" />
         {#if pending === 'payment'}<Status
-            message="Saving your payment card…" />{:else if paymentID && form?.type === 'alert'}<Button type="submit"
-            >Retry saving payment card</Button
+            message="Saving your payment card…" />{:else if paymentID && notice?.context === 'payment'}<Button
+            type="submit">Retry saving payment card</Button
           >{/if}
       </form>
     {/if}
   </Dialog>
   <Dialog bind:open={sessionsOpen} title="Sign out all devices">
     <p>This ends every active session, including this browser. Sign in again to access your account.</p>
+    <Status message={notice?.context === 'sessions' ? notice.message : ''} kind="error" />
     <form method="POST" action="?/session" use:enhance={submit} data-action="sessions">
       <input type="hidden" name="revoke" value="true" />
       <div class="dialog-actions">
         <Button variant="secondary" onclick={() => (sessionsOpen = false)}>Cancel</Button>
-        <Button type="submit" icon="logout" loading={pending === 'sessions'}>Sign out all devices</Button>
+        <Button type="submit" variant="danger" icon="logout" loading={pending === 'sessions'}
+          >Sign out all devices</Button>
       </div>
     </form>
   </Dialog>
@@ -418,43 +509,39 @@
         Subscriptions are cancelled automatically. Eligible fiat purchases are refunded to the original payment card
         through Stripe.
       </p>
-      {#if settings.cryptoRefundRequired}
-        <p>
-          Eligible initial crypto purchases can be refunded in XMR at their original USD value, converted when the
-          payout is signed. ShadowSelf pays the outgoing network fee.
-        </p>
-      {/if}
+      <p>
+        Eligible initial crypto purchases can be refunded in XMR at their original USD value, converted when the payout
+        is signed. ShadowSelf pays the outgoing network fee.
+      </p>
     </div>
     <form method="POST" action="?/delete" use:enhance={submit} data-action="delete">
-      {#if settings.cryptoRefundRequired}
-        <details class="refund-address">
-          <summary>Monero refund address <span>Optional</span><Icon name="chevron" size={16} /></summary>
-          <div class="field">
-            <label class="sr-only" for="account-refund-address">External Monero address</label>
-            <input
-              id="account-refund-address"
-              placeholder="Your external Monero address"
-              name="refundAddress"
-              autocomplete="off"
-              spellcheck="false"
-              maxlength="106" />
-            <small>Use a mainnet XMR address you control outside this account.</small>
-          </div>
-        </details>
-        <p class="refund-note">
-          An address is only needed to receive a crypto refund. You can delete your account without requesting one.
-        </p>
-      {/if}
+      <details class="refund-address">
+        <summary>Monero refund address <span>Optional</span><Icon name="chevron" size={16} /></summary>
+        <div class="field">
+          <label class="sr-only" for="account-refund-address">External Monero address</label>
+          <input
+            id="account-refund-address"
+            placeholder="Your external Monero address"
+            name="refundAddress"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="106" />
+          <small>Use a mainnet XMR address you control outside this account.</small>
+        </div>
+      </details>
+      <p class="refund-note">
+        An address is only needed to receive a crypto refund. You can delete your account without requesting one.
+      </p>
       <div class="field settings-password">
-        <label for="account-delete-password">Account password</label><input
+        <label for="account-delete-password">Password</label><input
           id="account-delete-password"
-          placeholder="Your account passphrase"
+          placeholder="Your password"
           name="currentPassword"
           type="password"
           autocomplete="current-password"
           required />
       </div>
-      <Status message={form?.message || ''} kind="error" /><Button
+      <Status message={notice?.context === 'delete' ? notice.message : ''} kind="error" /><Button
         type="submit"
         variant="danger"
         loading={pending === 'delete'}>Delete account and identities</Button>
@@ -462,6 +549,38 @@
 {/if}
 
 <style>
+  :global(.change-password svg[data-icon='key']) {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .recovery-confirmation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .recovery-confirmation label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.6;
+    cursor: pointer;
+  }
+  .recovery-confirmation :global(button) {
+    flex-shrink: 0;
+  }
+
+  .api-key-summary {
+    margin-bottom: 16px;
+  }
+  .api-key-summary code {
+    font: inherit;
+    white-space: nowrap;
+  }
+
   .dialog-actions,
   .refund-actions {
     display: flex;
@@ -538,10 +657,13 @@
     gap: 18px;
   }
   .settings-grid > .panel {
+    display: flex;
+    flex-direction: column;
     margin: 0;
   }
   .settings-actions {
-    margin-top: 22px;
+    margin-top: auto;
+    padding-top: 22px;
   }
   .sessions-panel {
     margin-top: 18px;
@@ -561,14 +683,21 @@
     border-top: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
   }
   .active-sessions .section-heading {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
   .active-sessions .sessions-list > div:first-child {
     border-top: 0;
-    padding-top: 0;
   }
-  .active-sessions .sessions-list > div:last-child {
-    padding-bottom: 0;
+  .active-sessions .sessions-list > div {
+    min-height: 48px;
+    padding: 4px 0;
+  }
+  .active-sessions .session-title {
+    min-width: 0;
+    padding-left: 8px;
+  }
+  .active-sessions .sessions-list form {
+    margin: 0;
   }
   .refund-list > div {
     flex-wrap: wrap;
@@ -588,19 +717,18 @@
     gap: 8px;
     font-size: 12px;
   }
-  .sign-out-sessions {
+  .sessions-footer {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .sessions-footer p {
     margin: 0;
-  }
-  .sign-out-sessions :global(.revoke-all) {
-    color: var(--danger-color);
-  }
-  .sign-out-sessions :global(.revoke-all:hover) {
-    color: var(--danger-color-hover);
-  }
-  .sign-out-sessions :global(.revoke-all:active) {
-    color: var(--danger-color-pressed);
+    padding-left: 8px;
+    font-size: 12px;
   }
   .session-title code {
     color: #71839f;
@@ -650,15 +778,16 @@
       font-size: 15px;
       white-space: nowrap;
     }
-    .sign-out-sessions :global(.revoke-all) {
-      padding: 8px 0;
-      font-size: 10px;
-      white-space: nowrap;
-    }
     .sessions-list:not(.refund-list) > div {
       display: grid;
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
       gap: 12px;
+    }
+    .active-sessions .session-title {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
     }
     .sessions-list:not(.refund-list) > div > form {
       justify-self: end;

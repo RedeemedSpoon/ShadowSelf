@@ -98,7 +98,10 @@
             inputmode="numeric"
             autocomplete="one-time-code"
             pattern={step === 3 ? '[0-9]{8}' : '[0-9]{6}'}
-            maxlength={step === 3 ? 8 : 6}
+            oninput={(event) => {
+              event.currentTarget.value = event.currentTarget.value.replace(/\s/g, '');
+            }}
+            maxlength="32"
             placeholder={step === 3 ? '00000000' : '000000'}
             required />
         </div>{/if}

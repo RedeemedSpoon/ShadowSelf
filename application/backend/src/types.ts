@@ -71,6 +71,7 @@ export interface QueryUser {
   stripe_customer: string | null;
   api_access: boolean | null;
   api_key: string | null;
+  api_key_suffix: string | null;
 }
 
 export interface QueryIdentity {

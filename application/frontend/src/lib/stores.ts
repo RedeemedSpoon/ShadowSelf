@@ -1,6 +1,6 @@
 import {browser} from '$app/environment';
 import {writable, type Writable} from 'svelte/store';
-import type {FullIdentity, MoneroData} from '$type';
+import type {AppNotice, FullIdentity, MoneroData} from '$type';
 
 function clientStore<T>(initial: T): Writable<T> {
   const store = writable(initial);
@@ -29,3 +29,5 @@ function clientStore<T>(initial: T): Writable<T> {
 export const identity = clientStore<FullIdentity | null>(null);
 export const moneroData = clientStore<MoneroData>({address: '', viewKey: '', spendKey: ''});
 export const vaultKey = clientStore<CryptoKey | null>(null);
+
+export const notifications = clientStore<AppNotice[]>([]);

@@ -110,7 +110,7 @@
 
   async function mountCard(details: CardCheckout) {
     if (!data.stripeKey) {
-      throw new Error('Card payments are unavailable.');
+      throw new Error('Could not load the card form. Close it and try again.');
     }
 
     loadStripe.setLoadParameters({advancedFraudSignals: false});

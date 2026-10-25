@@ -471,3 +471,11 @@ export interface RoutingMarker {
 }
 
 export type ErrorScene = 'orbit' | 'jelly' | 'coffee' | 'break';
+
+export interface AppNotice {
+  id: string;
+  expiresAt: number;
+  message: string;
+  kind: 'info' | 'error' | 'success';
+  ondismiss: () => void;
+}
