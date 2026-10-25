@@ -1,50 +1,246 @@
 <script lang="ts">
-  import {APP_ORIGIN} from '$constant';
-  import {tick} from 'svelte';
+  import {API_BASE_URL, SERVICE_GUIDES} from '$constant';
+  import {onMount, tick} from 'svelte';
   import {goto} from '$app/navigation';
   import Icon from '$component/ui/Icon.svelte';
+  import ApiMethod from '$component/public/ApiMethod.svelte';
+  import DocsSearch from '$component/public/DocsSearch.svelte';
   import CodeLanguageIcon from '$component/public/CodeLanguageIcon.svelte';
   import PublicPage from '$component/public/PublicPage.svelte';
   import {API_DOCUMENTATION} from '$lib/constants/api-documentation';
 
   const samples = {
-    curl: `curl --fail-with-body ${APP_ORIGIN}/api/identities \\\n  -H "Authorization: Bearer $SHADOWSELF_TOKEN"`,
-    javascript: `const response = await fetch('${APP_ORIGIN}/api/identities', {
-  headers: { Authorization: \`Bearer \${process.env.SHADOWSELF_TOKEN}\` }
+    curl: `curl --fail-with-body ${API_BASE_URL}/auth/test \\\n  -H "Authorization: Bearer $SHADOWSELF_API_KEY"`,
+    javascript: `const response = await fetch('${API_BASE_URL}/auth/test', {
+  headers: { Authorization: \`Bearer \${process.env.SHADOWSELF_API_KEY}\` }
 });
+
 const body = await response.json();
+
 if (!response.ok) {
   throw new Error(body.error.message);
 }
-console.log(body.identities);`,
+
+console.log(body);`,
     python: `import json
 import os
 import urllib.request
 
 request = urllib.request.Request(
-    '${APP_ORIGIN}/api/identities',
-    headers={'Authorization': 'Bearer ' + os.environ['SHADOWSELF_TOKEN']}
+    '${API_BASE_URL}/auth/test',
+    headers={'Authorization': 'Bearer ' + os.environ['SHADOWSELF_API_KEY']}
 )
 with urllib.request.urlopen(request) as response:
-    print(json.load(response)['identities'])`,
+    print(json.load(response))`,
   };
   const languages = [
     {id: 'curl', label: 'cURL'},
     {id: 'javascript', label: 'JavaScript'},
     {id: 'python', label: 'Python'},
   ] as const;
+  let content: HTMLDivElement;
+  let activeSection = $state('introduction');
+  let scrollFrame = 0;
+  let searchNavigation: AbortController | undefined;
   let language = $state<keyof typeof samples>('curl');
-  let query = $state('');
   let copied = $state(false);
   let copyError = $state('');
-  let groups = $derived(
-    API_DOCUMENTATION.map((group) => ({
-      ...group,
-      endpoints: group.endpoints.filter((endpoint) =>
-        `${endpoint.method} ${endpoint.path} ${endpoint.detail}`.toLowerCase().includes(query.toLowerCase().trim()),
-      ),
-    })).filter((group) => group.endpoints.length),
-  );
+
+  function animateEndpoint(node: HTMLDetailsElement) {
+    const summary = node.querySelector('summary')!;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let animation: Animation | undefined;
+    let expanded = node.open;
+
+    node.dataset.expanded = String(expanded);
+
+    function finishTransition() {
+      animation?.cancel();
+      animation = undefined;
+      node.open = expanded;
+      node.dataset.expanded = String(expanded);
+    }
+
+    function toggle(event: MouseEvent) {
+      event.preventDefault();
+
+      const startHeight = node.getBoundingClientRect().height;
+
+      animation?.cancel();
+      expanded = !expanded;
+      node.dataset.expanded = String(expanded);
+
+      if (reducedMotion.matches) {
+        finishTransition();
+
+        return;
+      }
+
+      node.open = true;
+
+      const endHeight = expanded ? node.getBoundingClientRect().height : summary.getBoundingClientRect().height;
+
+      animation = node.animate({height: [`${startHeight}px`, `${endHeight}px`]}, {duration: 380, easing: 'ease'});
+      animation.onfinish = finishTransition;
+    }
+
+    function open() {
+      expanded = true;
+      finishTransition();
+    }
+
+    summary.addEventListener('click', toggle);
+    node.addEventListener('endpoint-open', open);
+    reducedMotion.addEventListener('change', finishTransition);
+
+    return {
+      destroy() {
+        animation?.cancel();
+        summary.removeEventListener('click', toggle);
+        node.removeEventListener('endpoint-open', open);
+        reducedMotion.removeEventListener('change', finishTransition);
+      },
+    };
+  }
+
+  function highlightSearchResult(target: HTMLElement) {
+    const elements = [target];
+
+    if (target instanceof HTMLDetailsElement) {
+      elements.push(...target.querySelectorAll<HTMLElement>('summary, p, .endpoint-example, pre'));
+    }
+
+    for (const element of elements) {
+      const backgroundColor = getComputedStyle(element).backgroundColor;
+
+      element.getAnimations().forEach((animation) => animation.cancel());
+      element.animate(
+        [
+          {backgroundColor, boxShadow: 'inset 0 0 0 1px transparent'},
+          {
+            backgroundColor: 'color-mix(in srgb, var(--feature-accent, var(--accent)) 20%, transparent)',
+            boxShadow:
+              element === target
+                ? 'inset 0 0 0 1px color-mix(in srgb, var(--feature-accent, var(--accent)) 50%, transparent)'
+                : 'inset 0 0 0 1px transparent',
+            offset: 0.45,
+          },
+          {backgroundColor, boxShadow: 'inset 0 0 0 1px transparent'},
+        ],
+        {duration: 550, iterations: 2, easing: 'ease-in-out'},
+      );
+    }
+  }
+
+  async function openSearchResult(sectionId: string, endpointId?: string) {
+    await tick();
+
+    const section = document.getElementById(sectionId);
+    const target = endpointId ? document.getElementById(endpointId) : section?.querySelector('h2');
+
+    if (!target) {
+      return;
+    }
+
+    searchNavigation?.abort();
+    searchNavigation = new AbortController();
+
+    if (target instanceof HTMLDetailsElement) {
+      target.dispatchEvent(new Event('endpoint-open'));
+    }
+
+    await goto(`#${endpointId || sectionId}`, {noScroll: true, keepFocus: true});
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const scrollTarget = target instanceof HTMLDetailsElement ? (target.querySelector('summary') ?? target) : target;
+    const bounds = scrollTarget.getBoundingClientRect();
+    const maximumScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const destination = Math.max(
+      0,
+      Math.min(window.scrollY + bounds.top + bounds.height / 2 - window.innerHeight / 2, maximumScroll),
+    );
+    const willScroll = Math.abs(destination - window.scrollY) > 1;
+
+    if (!reducedMotion && willScroll) {
+      document.addEventListener('scrollend', () => highlightSearchResult(target), {
+        once: true,
+        signal: searchNavigation.signal,
+      });
+    }
+
+    window.scrollTo({top: destination, behavior: reducedMotion ? 'instant' : 'smooth'});
+    target.setAttribute('tabindex', '-1');
+    target.focus({preventScroll: true});
+    scheduleActiveSection();
+
+    if (!reducedMotion && !willScroll) {
+      highlightSearchResult(target);
+    }
+  }
+
+  function updateActiveSection() {
+    if (!content) {
+      return;
+    }
+
+    if (window.scrollY <= 2) {
+      activeSection = 'introduction';
+
+      return;
+    }
+
+    const sections = [...content.querySelectorAll<HTMLElement>('section[id]')];
+    const headerHeight = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--public-header-height'),
+    );
+    const readingStart = headerHeight + 24;
+    let current: HTMLElement | undefined = sections[0];
+
+    for (const [index, section] of sections.entries()) {
+      const heading = section.querySelector('h2');
+
+      if (!heading) {
+        continue;
+      }
+
+      const headingTop = heading.getBoundingClientRect().top;
+      const previousHeading = sections[index - 1]?.querySelector('h2');
+      const sectionSpacing = previousHeading
+        ? headingTop - previousHeading.getBoundingClientRect().top
+        : window.innerHeight;
+      const threshold = Math.min(window.innerHeight * 0.55, readingStart + sectionSpacing * 0.6);
+
+      if (headingTop <= threshold + 1) {
+        current = section;
+      }
+    }
+
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+      current = sections.at(-1);
+    }
+
+    if (current) {
+      activeSection = current.id;
+    }
+  }
+
+  function scheduleActiveSection() {
+    cancelAnimationFrame(scrollFrame);
+    scrollFrame = requestAnimationFrame(updateActiveSection);
+  }
+
+  onMount(() => {
+    window.addEventListener('scroll', scheduleActiveSection, {passive: true});
+    window.addEventListener('resize', scheduleActiveSection);
+    scheduleActiveSection();
+
+    return () => {
+      window.removeEventListener('scroll', scheduleActiveSection);
+      window.removeEventListener('resize', scheduleActiveSection);
+      cancelAnimationFrame(scrollFrame);
+      searchNavigation?.abort();
+    };
+  });
 
   function endpointFeature(path: string) {
     if (path.includes('/vault')) {
@@ -61,10 +257,6 @@ with urllib.request.urlopen(request) as response:
 
     if (path.includes('/wallet')) {
       return 'wallet';
-    }
-
-    if (path.includes('/billing')) {
-      return 'card';
     }
 
     return 'identity';
@@ -86,55 +278,78 @@ with urllib.request.urlopen(request) as response:
 <svelte:head
   ><title>API documentation | ShadowSelf</title><meta
     name="description"
-    content="The ShadowSelf API contract for authentication, identities, creation, vaults, messaging, wallets, and billing." /></svelte:head>
+    content="Use the ShadowSelf API to work with your identities and their tools from scripts and applications. Authentication, request examples, and service guides." /></svelte:head>
 
-<PublicPage title="API reference" description="REST endpoints under /api. JSON requests and responses." wide>
+<PublicPage
+  title="Product guides &amp; API reference"
+  description="Work with your identities and their tools from your own scripts and applications."
+  wide>
   {#snippet sidebar()}
     <nav class="docs-navigation" aria-label="Documentation sections">
+      <DocsSearch onselect={openSearchResult} />
       <span class="navigation-label">Getting started</span>
-      <a href="#authentication"><Icon name="lock" size={15} />Authentication</a>
-      <a href="#request-example"><Icon name="code" size={15} />Request example</a>
-      <a href="#errors"><Icon name="warning" size={15} />Errors &amp; retries</a>
-      <a href="#security"><Icon name="shield" size={15} />Encryption &amp; availability</a>
-      <span class="navigation-label">Endpoints</span>{#each API_DOCUMENTATION as group (group.id)}<a
+      <a href="#introduction" aria-current={activeSection === 'introduction' ? 'location' : undefined}>
+        <Icon name="info" size={15} />Introduction
+      </a>
+      <a href="#authentication" aria-current={activeSection === 'authentication' ? 'location' : undefined}
+        ><Icon name="lock" size={15} />Authentication</a>
+      <a href="#request-example" aria-current={activeSection === 'request-example' ? 'location' : undefined}
+        ><Icon name="code" size={15} />Test your API key</a>
+      <a href="#errors" aria-current={activeSection === 'errors' ? 'location' : undefined}
+        ><Icon name="warning" size={15} />Errors &amp; retries</a>
+      <a href="#security" aria-current={activeSection === 'security' ? 'location' : undefined}
+        ><Icon name="shield" size={15} />Encryption &amp; availability</a>
+      <span class="navigation-label">Services &amp; API</span>{#each API_DOCUMENTATION as group (group.id)}<a
           href={`#${group.id}`}
-          data-feature={group.feature}
-          onclick={async (event) => {
-            if (!query) {
-              return;
-            }
-            event.preventDefault();
-            query = '';
-            await tick();
-            await goto(`#${group.id}`);
-          }}><Icon name={group.icon} size={15} />{group.title}</a
+          aria-current={activeSection === group.id ? 'location' : undefined}
+          data-feature={group.feature}><Icon name={group.icon} size={15} />{group.title}</a
         >{/each}
     </nav>
   {/snippet}
-  <div class="docs-content">
+  <div class="docs-content" bind:this={content}>
+    <section id="introduction">
+      <h2 class="section-title"><Icon name="code" size={21} />Use ShadowSelf from your own code</h2>
+      <p>
+        An API lets a script or application work with a service by sending requests to it. The ShadowSelf API gives you
+        another way to use your identities and their tools, alongside the dashboard and browser extension. You can read
+        messages, manage saved logins, or build a client around your own workflow.
+      </p>
+      <p>
+        Send HTTP requests to <code>{API_BASE_URL}</code>. Each endpoint below describes an operation, the fields it
+        accepts, and the response it returns. Requests and responses use JSON. Methods such as <code>GET</code> read
+        data, while <code>POST</code>, <code>PATCH</code>, <code>PUT</code>, and <code>DELETE</code> make changes. Your API
+        key limits access to your own account and identities.
+      </p>
+      <aside class="usage-note" aria-label="Considerate API use">
+        <Icon name="warning" size={19} />
+        <div>
+          <h3>Please be considerate with requests</h3>
+          <p>
+            Avoid tight polling loops, duplicate calls, and immediate retries. Use WebSocket events for live messages
+            instead of repeatedly checking for updates. Aggressive traffic may be rate-limited. If you receive
+            <code>429 Too Many Requests</code>, pause and increase the delay before trying again.
+          </p>
+        </div>
+      </aside>
+    </section>
     <section id="authentication">
       <h2 class="section-title"><Icon name="lock" size={21} />Authenticate each request</h2>
       <p>
-        Send a session token or enabled API key in <code>Authorization: Bearer &lt;token&gt;</code>. Sign in through
-        <code><span class="method" data-method="POST">POST</span> /auth/password</code>
-        or the email flow. A completed login returns <code>{'{token}'}</code>; an account with two-factor authentication
-        first returns
-        <code>{'{challenge,expiresIn}'}</code>.
+        Enable API access in account settings and generate an API key. Send it in
+        <code>Authorization: Bearer &lt;key&gt;</code> with each request. The key is shown once, so save it securely.
       </p>
       <p>
-        Complete the challenge through <code>/auth/second-factor</code> or <code>/auth/recovery</code>. Generate an API
-        key in account settings after enabling API access. The new key is shown once. Keep tokens out of URLs, browser
-        storage, screenshots, and source control.
-      </p>
-      <p>
-        The website uses a secure HTTP-only session cookie. Requests from a separate API client use the bearer header.
-        Identity operations require ownership, and active services require a ready identity.
+        Keep API keys out of URLs, browser storage, screenshots, and source control. Identity operations require
+        ownership, and active services require a ready identity. Revoke a key in account settings if it is exposed.
       </p>
     </section>
     <section id="request-example">
-      <h2 class="section-title"><Icon name="code" size={21} />List your identities</h2>
-      <p>Set <code>SHADOWSELF_TOKEN</code> in your client environment.</p>
-      <div class="code-window">
+      <h2 class="section-title"><Icon name="code" size={21} />Test your API key</h2>
+      <p>
+        Set <code>SHADOWSELF_API_KEY</code> in your client environment, then make a <code>GET</code> request to
+        <code>/api/auth/test</code>. This checks your key without changing identity data.
+      </p>
+      <div class="code-window" id="request-example-endpoint-0">
         <div class="code-toolbar">
           <div aria-label="Example language">
             {#each languages as item (item.id)}<button
@@ -155,8 +370,8 @@ with urllib.request.urlopen(request) as response:
       </div>
       {#if copyError}<p class="copy-error" role="status">{copyError}</p>{/if}
       <p class="code-note">
-        Success returns <code>{'{identities:[...]}'}</code>. Each identity includes an explicit status. An unavailable
-        service is not represented as a successful empty result.
+        A valid key returns <code>200 OK</code> with <code>{'{"authenticated":true}'}</code>. If access is denied, check
+        that API access is enabled in settings and that the full key follows <code>Bearer</code> with a space.
       </p>
     </section>
     <section id="errors">
@@ -173,34 +388,30 @@ with urllib.request.urlopen(request) as response:
           )}</code></pre>
       <div class="status-list">
         <div>
-          <code class="status-code" data-status="400">400</code><span
-            >Invalid request. Correct the input before retrying.</span>
+          <code class="status-code">400</code><span>Invalid request. Correct the input before retrying.</span>
         </div>
         <div>
-          <code class="status-code" data-status="401">401 / 403</code><span
+          <code class="status-code">401 / 403</code><span
             >Authentication or access denied. Check the credential and ownership.</span>
         </div>
         <div>
-          <code class="status-code" data-status="404">404</code><span
-            >The record is missing or is not available to your account.</span>
+          <code class="status-code">404</code><span>The record is missing or is not available to your account.</span>
         </div>
         <div>
-          <code class="status-code" data-status="409">409</code><span
+          <code class="status-code">409</code><span
             >The state changed or request details conflict. Reload and resolve the conflict.</span>
         </div>
         <div>
-          <code class="status-code" data-status="429">429</code><span
-            >A rate limit applies. Wait before trying again.</span>
+          <code class="status-code">429</code><span>A rate limit applies. Wait before trying again.</span>
         </div>
         <div>
-          <code class="status-code" data-status="503">503</code><span
+          <code class="status-code">503</code><span
             >A provider is unavailable or an operation needs reconciliation.</span>
         </div>
       </div>
       <p>
-        Use a stable UUID <code>requestID</code> for each purchase, renewal, or swap. Retry the same operation with the same
-        ID and input. A response that asks for reconciliation means you should inspect the current state before starting another
-        payment.
+        Use a stable UUID <code>requestID</code> for each swap. Retry the same operation with the same ID and input. If a
+        response asks for reconciliation, inspect the current state before starting another swap.
       </p>
       <p>
         Vault mutations require the current <code>vaultRevision</code>. A 409 response means your snapshot is stale.
@@ -223,57 +434,73 @@ with urllib.request.urlopen(request) as response:
         are separate from these encrypted identity secrets.
       </p>
       <p>
-        Creation uses a persistent named draft and ordinary REST calls. Save draft fields through <code
-          ><span class="method" data-method="PUT">PUT</span> /identities/:id/creation</code
-        >, then provision the validated draft. Portrait generation, email, phone, billing, and wallet operations depend
-        on their configured providers. Names and biographies are generated locally.
+        Creation uses a persistent named draft and ordinary REST calls. Save draft fields through
+        <span class="inline-endpoint"><ApiMethod method="PUT" /><code>/identities/:id/creation</code></span>, then
+        provision the validated draft. Portrait generation, email, phone, billing, and wallet operations depend on their
+        configured providers. Names and biographies are generated locally.
       </p>
       <div class="policy-note">
         <p>
-          Network routing is unavailable. <code><span class="method" data-method="GET">GET</span> /extension</code>
-          returns
-          <code>network.status = 'unavailable'</code>. No proxy activation or device VPN endpoint exists. Crypto billing
-          can be disabled independently of user wallets.
+          Residential routing uses the selected identity's connection settings. Check the exit IP before browsing. An
+          exit location does not change cookies or browser fingerprints. Virtual cards, residential proxies, and the
+          online drive each stay attached to their identity. Crypto billing is separate from identity wallets.
         </p>
       </div>
-      <p>
-        WebSocket event routes authenticate the connection and periodically recheck it. They support <code>ping</code>
-        and <code>pong</code>. Reconnect with valid credentials and fetch current state after a disconnect.
-      </p>
     </section>
-    <div class="endpoint-search">
-      <label for="endpoint-search">Find an endpoint</label><input
-        id="endpoint-search"
-        type="search"
-        placeholder="Search path, method, or payload"
-        bind:value={query} />
-    </div>
-    {#if !groups.length}<p class="empty-results" role="status">No endpoints match "{query}".</p>{/if}
-    {#each groups as group (group.id)}<section id={group.id} class="endpoint-group" data-feature={group.feature}>
+    {#each API_DOCUMENTATION as group (group.id)}<section
+        id={group.id}
+        class="endpoint-group"
+        data-feature={group.feature}>
         <h2 class="section-title">
           <Icon name={group.icon} size={22} />{group.title}<span>{group.endpoints.length}</span>
         </h2>
-        <div class="endpoints">
-          {#each group.endpoints as endpoint (`${endpoint.method}-${endpoint.path}`)}<details
-              data-feature={endpointFeature(endpoint.path)}>
-              <summary
-                ><span class="method" data-method={endpoint.method}>{endpoint.method}</span><code>{endpoint.path}</code
-                ><span class="expand" aria-hidden="true">+</span></summary>
-              <p>{endpoint.detail}</p>
-              {#if endpoint.query}<div class="endpoint-example">
-                  <h3>Query example</h3>
-                  <pre><code>{endpoint.query}</code></pre>
-                </div>{/if}
-              {#if endpoint.request}<div class="endpoint-example">
-                  <h3>JSON request</h3>
-                  <pre><code>{JSON.stringify(endpoint.request, null, 2)}</code></pre>
-                </div>{/if}
-              {#if endpoint.response}<div class="endpoint-example">
-                  <h3>Success response example</h3>
-                  <pre><code>{JSON.stringify(endpoint.response, null, 2)}</code></pre>
-                </div>{/if}
-            </details>{/each}
-        </div>
+        {#if group.id === 'websockets'}
+          <p>
+            Connect to receive live identity events. The connection authenticates your credentials and periodically
+            rechecks access. Send <code>ping</code> to receive <code>pong</code>. After reconnecting, fetch the current
+            mailbox and conversations to recover events missed while disconnected.
+          </p>
+        {/if}
+        {#if group.guide}
+          {@const guide = SERVICE_GUIDES[group.guide]}
+          <div class="service-guide">
+            <p>{guide.introduction}</p>
+            <dl>
+              {#each guide.tools as tool (tool.name)}
+                <div>
+                  <dt>{tool.name}</dt>
+                  <dd>{tool.description}</dd>
+                </div>
+              {/each}
+            </dl>
+            <p class="guide-note">{guide.note}</p>
+          </div>
+        {/if}
+        {#if group.endpoints.length}<div class="endpoints">
+            {#each group.endpoints as endpoint, index (`${endpoint.method}-${endpoint.path}`)}<details
+                id={`${group.id}-endpoint-${index}`}
+                use:animateEndpoint
+                data-feature={endpointFeature(endpoint.path)}>
+                <summary
+                  ><ApiMethod method={endpoint.method} /><code>{endpoint.path}</code><span
+                    class="expand"
+                    aria-hidden="true">+</span
+                  ></summary>
+                <p>{endpoint.detail}</p>
+                {#if endpoint.query}<div class="endpoint-example">
+                    <h3>Query example</h3>
+                    <pre><code>{endpoint.query}</code></pre>
+                  </div>{/if}
+                {#if endpoint.request}<div class="endpoint-example">
+                    <h3>JSON request</h3>
+                    <pre><code>{JSON.stringify(endpoint.request, null, 2)}</code></pre>
+                  </div>{/if}
+                {#if endpoint.response}<div class="endpoint-example">
+                    <h3>Success response example</h3>
+                    <pre><code>{JSON.stringify(endpoint.response, null, 2)}</code></pre>
+                  </div>{/if}
+              </details>{/each}
+          </div>{/if}
       </section>{/each}
     <p class="docs-footnote">
       Path parameters such as <code>:id</code> must be replaced with the owned record's ID. Fields ending in
@@ -288,6 +515,56 @@ with urllib.request.urlopen(request) as response:
 </PublicPage>
 
 <style>
+  .usage-note {
+    display: flex;
+    align-items: start;
+    gap: 13px;
+    padding: 20px;
+    margin-block: 25px 32px;
+    border-left: 2px solid var(--feature-vault);
+    border-radius: 0 7px 7px 0;
+    background: color-mix(in srgb, var(--feature-vault) 4%, transparent);
+  }
+  .usage-note > :global(svg) {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--feature-vault);
+  }
+  .usage-note h3 {
+    margin: 0 0 9px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #d8cda9;
+  }
+  .usage-note p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .service-guide {
+    margin-block: 22px;
+  }
+  .service-guide dl {
+    margin: 22px 0;
+  }
+  .service-guide dl > div {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .service-guide dt {
+    color: var(--feature-accent);
+    font-size: 12px;
+    margin-bottom: 7px;
+  }
+  .service-guide dd {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .guide-note {
+    padding-left: 14px;
+    border-left: 2px solid var(--feature-accent);
+  }
   .docs-navigation {
     display: grid;
     gap: 4px;
@@ -301,7 +578,7 @@ with urllib.request.urlopen(request) as response:
     text-transform: uppercase;
     padding: 0 0 10px;
   }
-  .navigation-label:not(:first-child) {
+  .navigation-label:not(:first-of-type) {
     margin-top: 16px;
     padding-top: 20px;
     border-top: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
@@ -312,12 +589,18 @@ with urllib.request.urlopen(request) as response:
     gap: 9px;
     font-size: 11px;
     line-height: 1.7;
-    padding: 9px 0;
+    padding: 9px 10px;
+    border-radius: 5px;
     text-decoration: none;
     color: #94a3c2;
   }
-  .docs-navigation a:hover {
-    color: var(--accent-light);
+  .docs-navigation a:is(:hover, :focus-visible, [aria-current='location']) {
+    color: #dce3f7;
+    background: var(--neutral-hover);
+  }
+  .docs-navigation a:active {
+    color: #e6ebff;
+    background: var(--neutral-pressed);
   }
   .docs-navigation a[data-feature] :global(svg) {
     color: var(--feature-accent);
@@ -464,19 +747,6 @@ with urllib.request.urlopen(request) as response:
     font-size: 12px;
     line-height: 1.7;
   }
-  .endpoint-search {
-    padding: 25px;
-    background: #111a30;
-    border: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
-    border-radius: 8px;
-    margin-top: 40px;
-  }
-  .endpoint-search label {
-    display: block;
-    font-size: 12px;
-    color: #c2cce5;
-    margin-bottom: 12px;
-  }
   .endpoints details[data-feature] {
     border-left: 2px solid var(--feature-accent);
   }
@@ -489,8 +759,9 @@ with urllib.request.urlopen(request) as response:
     font:
       11px 'Fira Code Variable',
       monospace;
-    color: var(--accent);
-    border: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
+    color: var(--feature-accent);
+    border: 1px solid color-mix(in srgb, var(--feature-accent) 20%, transparent);
+    background: color-mix(in srgb, var(--feature-accent) 8%, transparent);
     padding: 4px 7px;
     border-radius: 4px;
   }
@@ -499,12 +770,15 @@ with urllib.request.urlopen(request) as response:
     border-radius: 8px;
     overflow: hidden;
   }
+  .endpoints details {
+    overflow: hidden;
+  }
   details + details {
     border-top: 1px solid color-mix(in srgb, var(--accent-light) 9.41%, transparent);
   }
   summary {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) 15px;
+    grid-template-columns: 64px minmax(0, 1fr) 15px;
     align-items: start;
     gap: 12px;
     list-style: none;
@@ -520,69 +794,39 @@ with urllib.request.urlopen(request) as response:
     padding-top: 2px;
     line-height: 1.7;
   }
-  .method {
-    display: inline-block;
-    color: #0a1020;
-    background: var(--method-color);
-    font:
-      700 10px 'Fira Code Variable',
-      monospace;
-    padding: 4px 6px;
-    text-align: center;
-    border-radius: 4px;
-  }
-  [data-method='GET'] {
-    --method-color: var(--success-color);
-  }
-  [data-method='POST'] {
-    --method-color: #60a5fa;
-  }
-  [data-method='PUT'] {
-    --method-color: #fbbf24;
-  }
-  [data-method='PATCH'] {
-    --method-color: #c084fc;
-  }
-  [data-method='DELETE'] {
-    --method-color: var(--danger-color);
-  }
-  [data-method='WS'] {
-    --method-color: #22d3ee;
+  .inline-endpoint {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-inline: 4px;
+    vertical-align: middle;
   }
   .status-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     align-self: start;
     width: fit-content;
-    color: #0a1020;
-    background: var(--status-color);
-    font-weight: 700;
-    font-size: 10px;
+    min-width: 54px;
+    min-height: 24px;
     padding: 4px 7px;
+    border: 1px solid transparent;
     border-radius: 4px;
+    color: var(--danger-color);
+    background: color-mix(in srgb, var(--danger-color) 11%, transparent);
+    font:
+      600 10px 'Fira Code Variable',
+      monospace;
+    line-height: 1.2;
     white-space: nowrap;
-  }
-  [data-status='400'] {
-    --status-color: #fbbf24;
-  }
-  [data-status='401'] {
-    --status-color: var(--danger-color);
-  }
-  [data-status='404'] {
-    --status-color: #94a3b8;
-  }
-  [data-status='409'] {
-    --status-color: #fb923c;
-  }
-  [data-status='429'] {
-    --status-color: #c084fc;
-  }
-  [data-status='503'] {
-    --status-color: var(--danger-color);
   }
   .expand {
     color: var(--accent);
     font-size: 16px;
+    transition: transform 180ms ease;
   }
-  details[open] .expand {
+  details:global([data-expanded='true']) .expand {
     transform: rotate(45deg);
   }
   details > p {
@@ -614,8 +858,10 @@ with urllib.request.urlopen(request) as response:
     color: #8d9cba;
     font-size: 12px !important;
   }
-  .empty-results {
-    padding: 25px 0;
+  @media (prefers-reduced-motion: reduce) {
+    .expand {
+      transition: none;
+    }
   }
   @media (max-width: 900px) {
     .docs-navigation {
@@ -635,7 +881,7 @@ with urllib.request.urlopen(request) as response:
       width: 100%;
       padding-bottom: 2px;
     }
-    .navigation-label:not(:first-child) {
+    .navigation-label:not(:first-of-type) {
       margin-top: 8px;
       padding-top: 12px;
     }
@@ -668,9 +914,6 @@ with urllib.request.urlopen(request) as response:
     }
     summary code {
       font-size: 9px;
-    }
-    .endpoint-search {
-      padding: 18px;
     }
   }
 </style>

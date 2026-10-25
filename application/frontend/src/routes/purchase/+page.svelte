@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {fly} from 'svelte/transition';
   import Select from '$component/ui/Select.svelte';
   import {onMount, tick, untrack} from 'svelte';
   import {page} from '$app/state';
@@ -17,6 +18,7 @@
   import Icon from '$component/ui/Icon.svelte';
 
   let {data}: {data: PageData} = $props();
+  let reducedMotion = $state(true);
   let plan = $state<keyof typeof PRICING_TIERS>('monthly');
   let pending = $state(false);
   let error = $state('');
@@ -35,15 +37,17 @@
   let elements: StripeElements;
   let payment: StripePaymentElement;
   let poll: ReturnType<typeof setInterval>;
-  const purchaseUnavailable = $derived(!data.creationAvailable && !page.url.searchParams.has('id'));
   const renewal = $derived(page.url.searchParams.get('id'));
   const tier = $derived(PRICING_TIERS[plan]);
   const capabilities = [
     {label: 'Identity profile', icon: 'user'},
-    {label: 'Dedicated mailbox', icon: 'mail'},
+    {label: 'Email, aliases, and PGP', icon: 'mail'},
     {label: 'Phone number', icon: 'phone'},
-    {label: 'Encrypted account vault', icon: 'lock'},
-    {label: 'Client-signed crypto wallet', icon: 'wallet'},
+    {label: 'Encrypted passwords, TOTP, and recovery codes', icon: 'key'},
+    {label: 'Client-signed crypto wallets', icon: 'wallet'},
+    {label: 'Virtual cards and spending controls', icon: 'card'},
+    {label: 'Residential proxies', icon: 'proxy'},
+    {label: 'Online drive', icon: 'cloud'},
   ];
   const invoiceMessages: Record<string, string> = {
     reconciling:
@@ -277,6 +281,14 @@
   }
 
   onMount(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updateMotion = () => {
+      reducedMotion = preference.matches;
+    };
+
+    updateMotion();
+    preference.addEventListener('change', updateMotion);
+
     const desired = page.url.searchParams.get('plan');
 
     if (desired && desired in PRICING_TIERS) {
@@ -303,6 +315,7 @@
     }
 
     return () => {
+      preference.removeEventListener('change', updateMotion);
       clearInterval(poll);
       payment?.destroy();
     };
@@ -316,9 +329,6 @@
   </div>
 </div>
 <Status message={error} kind="error" />
-{#if purchaseUnavailable}<Status
-    message={data.availabilityError ||
-      'New identity purchases are unavailable while replacement phone and network providers are being configured.'} />{/if}
 <div class="purchase-grid">
   <section class="panel">
     <div class="plan-switch" aria-label="Billing plan">
@@ -329,7 +339,13 @@
           >{choice === 'annually' ? 'Annual' : choice === 'lifetime' ? 'Lifetime' : 'Monthly'}</button
         >{/each}
     </div>
-    <div class="plan-price"><span>${tier.price.toFixed(2)}</span><small>{tier.description}</small></div>
+    <div class="plan-price-value" aria-live="polite" aria-atomic="true">
+      {#key plan}
+        <div class="plan-price" in:fly={{y: reducedMotion ? 0 : 10, duration: reducedMotion ? 0 : 280}}>
+          <span>${tier.price.toFixed(2)}</span><small>{tier.description}</small>
+        </div>
+      {/key}
+    </div>
     <h2>Included services</h2>
     <ul class="included-capabilities">
       {#each capabilities as capability (capability.label)}<li>
@@ -384,8 +400,7 @@
       </div>
       {#if method === 'card' && !renewal}<p>Stripe handles card details and subscription payments.</p>
         <div class="checkout-actions">
-          <Button icon="card" loading={pending} disabled={purchaseUnavailable} onclick={() => payCard()}
-            >Continue with card</Button>
+          <Button icon="card" loading={pending} onclick={() => payCard()}>Continue with card</Button>
         </div>{:else}<form onsubmit={newInvoice}>
           <div class="field">
             <label for="billing-coin">Payment asset and network</label>
@@ -403,8 +418,7 @@
               bind:value={refund}
               placeholder="Optional address for {ticker.toUpperCase()}" />
           </div>
-          <Button type="submit" icon="wallet" loading={pending} disabled={purchaseUnavailable}
-            >Create payment invoice</Button>
+          <Button type="submit" icon="wallet" loading={pending}>Create payment invoice</Button>
         </form>{/if}{/if}
   </section>
 </div>
@@ -449,6 +463,9 @@
   .plan-switch button.active {
     background: color-mix(in srgb, var(--accent-strong) 14.12%, transparent);
     color: var(--accent-light);
+  }
+  .plan-price-value {
+    display: flow-root;
   }
   .plan-price {
     margin: 28px 0;

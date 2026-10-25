@@ -20,7 +20,7 @@
       <div class="identity-echo" aria-hidden="true"></div>
       <div class="identity-pass">
         <div class="window-bar">
-          <span class="emblem"><ServiceIcon /></span><span>Example identity</span>
+          <span class="emblem"><ServiceIcon /></span><span>ID: 7F3A92C1</span>
         </div>
         <div class="person">
           <div class="portrait-scan">
@@ -42,11 +42,11 @@
             <dt>Biography</dt>
             <dd>Film, sea air, and long walks.</dd>
           </div>
+          <div>
+            <dt>Purpose</dt>
+            <dd>Photography communities</dd>
+          </div>
         </dl>
-        <div class="identity-contact">
-          <Icon name="mail" size={16} />
-          <div><span>{examples.identity.email}</span><small>Use this address when signing up.</small></div>
-        </div>
       </div>
     </div>
   {:else if service === 'vault'}
@@ -78,8 +78,7 @@
         <div class="secret-note"><Icon name="shield" size={16} /> Encrypted in your browser</div>
       </div>
       <div class="recovery-slip">
-        <Icon name="key" size={18} /><span>Recovery codes<br /><small>8 codes saved</small></span><code
-          >•••• − ••••</code>
+        <Icon name="key" size={18} /><span>Recovery codes<br /><small>8 codes saved</small></span><code>•••• ••••</code>
       </div>
     </div>
   {:else if service === 'email'}
@@ -141,8 +140,8 @@
     <div class="proxy-art">
       <img class="world-map" src={map} alt="" />
       <svg class="proxy-route" viewBox="0 0 500 300" fill="none" aria-hidden="true">
-        <path d="M80 190Q245 -15 415 135" /><path class="route-packet" d="M80 190Q245 -15 415 135" pathLength="100" />
-        <circle cx="80" cy="190" r="6" /><circle cx="415" cy="135" r="6" />
+        <path d="M62 132Q245 -15 415 135" /><path class="route-packet" d="M62 132Q245 -15 415 135" pathLength="100" />
+        <circle cx="62" cy="132" r="6" /><circle cx="415" cy="135" r="6" />
       </svg>
       <span class="route-origin">Your device</span><span class="route-destination">Residential exit</span>
       <div class="proxy-ticket">
@@ -214,6 +213,10 @@
   .window-bar > span:last-child {
     color: #9693a9;
     font-size: 10px;
+  }
+  .identity-pass .window-bar > span:last-child {
+    color: var(--accent);
+    font-family: 'Fira Code Variable', monospace;
   }
   .identity-pass .window-bar {
     padding: 0;
@@ -290,25 +293,6 @@
   }
   .mail-art .record-footer {
     color: #e6ebff;
-  }
-  .identity-contact {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding-top: 16px;
-    border-top: 1px solid #b4a1ff1c;
-    color: #c1c3d9;
-    font-size: 11px;
-  }
-  .identity-contact :global(svg) {
-    flex-shrink: 0;
-  }
-  .identity-contact span {
-    overflow-wrap: anywhere;
-  }
-  .identity-contact small {
-    display: block;
-    margin-top: 6px;
   }
   .vault-record {
     max-width: 470px;
@@ -614,11 +598,8 @@
     border: 1px solid color-mix(in srgb, var(--feature-card) 19%, transparent);
     border-radius: 8px;
     transform: rotate(3deg);
-    color: #e6ebff;
+    color: var(--feature-card);
     font-size: 11px;
-  }
-  .payment-receipt :global(svg[data-icon='card']) {
-    color: inherit;
   }
   .payment-receipt strong {
     display: block;
@@ -664,8 +645,8 @@
   .route-origin,
   .route-destination {
     position: absolute;
-    top: 63%;
-    left: 10%;
+    top: 43%;
+    left: 5%;
     color: var(--feature-proxy);
     font-size: 10px;
   }

@@ -1,6 +1,15 @@
 import {PUBLIC_APP_ORIGIN, PUBLIC_ONION_ORIGIN, PUBLIC_MAIL_DOMAIN} from '$env/static/public';
 
 export const APP_ORIGIN = PUBLIC_APP_ORIGIN;
+export const API_BASE_URL = 'https://shadowself.io/api';
+export const API_METHOD_COLORS: Record<string, string> = {
+  GET: '#72b5a0',
+  POST: '#86a9d2',
+  PUT: '#c9ab72',
+  PATCH: '#ad98c8',
+  DELETE: '#c48c98',
+  WS: 'var(--accent)',
+};
 export const SITE_HOST = new URL(APP_ORIGIN).host;
 export const MAIL_DOMAIN = PUBLIC_MAIL_DOMAIN;
 export const COIN_DECIMALS = {btc: 8, ltc: 8, eth: 18, usdt: 6, xmr: 12} as const;
@@ -41,7 +50,7 @@ export const HOMEPAGE_SERVICES = [
   },
   {
     id: 'vault',
-    icon: 'lock',
+    icon: 'key',
     name: 'Account vault',
     title: 'Passwords and TOTP, per identity.',
     description:
@@ -348,4 +357,155 @@ export const ERROR_ILLUSTRATION_STARS = {
     [63, 84, 0.8],
     [250, 31, 1.2],
   ],
+} as const;
+
+export const SERVICE_GUIDES = {
+  identity: {
+    title: 'Identity profiles',
+    introduction: 'Keep the profile and tools for each online persona together.',
+    tools: [
+      {name: 'Profile details', description: 'Generate and edit the name, biography, age, and location.'},
+      {
+        name: 'Profile pictures',
+        description: 'Generate portraits and prepare pictures for the accounts using this identity.',
+      },
+      {
+        name: 'Separate workspaces',
+        description: 'Open an identity before using its contact details, credentials, payments, connection, or files.',
+      },
+    ],
+    note: 'Profile locations and network exit locations are separate settings. A synthetic profile is not an official identity document.',
+  },
+  vault: {
+    title: 'Account vault',
+    introduction: 'Store each website login under the identity that owns it.',
+    tools: [
+      {
+        name: 'Saved logins',
+        description:
+          'Save website addresses, usernames, passwords, and notes. Search and copy details when signing in.',
+      },
+      {
+        name: 'Two-factor codes',
+        description: 'Store TOTP secrets and generate current verification codes in your browser.',
+      },
+      {
+        name: 'Recovery codes',
+        description: 'Keep account recovery codes with the login so they are available when the authenticator is not.',
+      },
+    ],
+    note: 'Unlock secrets with the identity master password. The account sign-in password does not decrypt the vault.',
+  },
+  email: {
+    title: 'Email, aliases, and PGP',
+    introduction: 'Handle verification messages and correspondence through a dedicated inbox.',
+    tools: [
+      {
+        name: 'Messages and attachments',
+        description: 'Read, send, reply, forward, and save drafts. Download attachments and organize mail.',
+      },
+      {
+        name: 'Email aliases',
+        description:
+          'Use separate addresses for different accounts while keeping their messages in the same identity inbox.',
+      },
+      {
+        name: 'PGP encryption',
+        description: 'Manage encryption keys and exchange encrypted messages with contacts who use PGP.',
+      },
+    ],
+    note: 'Ordinary mail is outside vault encryption. PGP protects the message contents you explicitly encrypt.',
+  },
+  phone: {
+    title: 'Phone and SMS',
+    introduction: 'Keep text conversations and verification messages under a separate number.',
+    tools: [
+      {
+        name: 'Incoming messages',
+        description: 'Read verification codes and incoming texts without switching to a personal phone number.',
+      },
+      {
+        name: 'Conversations',
+        description: 'Send and reply to SMS. Keep messages grouped by contact under the selected identity.',
+      },
+      {name: 'Message history', description: 'Review delivery status and manage the conversation history.'},
+    ],
+    note: 'Phone-number acceptance varies by website. Check acceptance before using the number as your only recovery method.',
+  },
+  wallet: {
+    title: 'Cryptocurrency wallets',
+    introduction: 'Manage Bitcoin, Litecoin, Ethereum, USDT on Ethereum, and Monero per identity.',
+    tools: [
+      {
+        name: 'Send and receive',
+        description: 'Generate receive addresses and QR codes, check network fees, and sign transfers in your browser.',
+      },
+      {
+        name: 'Balances and history',
+        description: 'Review balances, market values, confirmations, and transaction history for each asset.',
+      },
+      {
+        name: 'Swaps and recovery',
+        description: 'Exchange supported assets and recover interrupted payments using their saved references.',
+      },
+    ],
+    note: 'Keep recovery phrases outside the service. Confirm the asset, network, recipient, and fee before signing a transfer.',
+  },
+  card: {
+    title: 'Virtual cards',
+    introduction: 'Keep online card payments and spending controls with the identity making the purchase.',
+    tools: [
+      {
+        name: 'Card details',
+        description: 'Manage virtual card details for online purchases and keep each card attached to its identity.',
+      },
+      {
+        name: 'Spending controls',
+        description: 'Set spending limits, review available funds, and freeze a card when it should not be used.',
+      },
+      {
+        name: 'Payment history',
+        description: 'Review purchases, declined payments, and refunds alongside the card they belong to.',
+      },
+    ],
+    note: 'Identity virtual cards are separate from the payment card used to pay for a ShadowSelf subscription.',
+  },
+  proxy: {
+    title: 'Residential proxies',
+    introduction: 'Choose a residential exit location for browsing under this identity.',
+    tools: [
+      {
+        name: 'Exit locations',
+        description: 'Choose the country and available location for the residential connection.',
+      },
+      {
+        name: 'Connection settings',
+        description: 'Keep routing settings attached to the identity and use them through the browser extension.',
+      },
+      {
+        name: 'Connection status',
+        description: 'Check the current exit IP and connection status before using an account.',
+      },
+    ],
+    note: 'A different exit IP does not remove cookies or browser fingerprints. Keep separate browser sessions for separate identities.',
+  },
+  cloud: {
+    title: 'Online drive',
+    introduction: 'Keep identity files together and prepare images before sharing them.',
+    tools: [
+      {
+        name: 'Files and folders',
+        description: 'Upload, organize, download, and remove files within the selected identity.',
+      },
+      {
+        name: 'Image metadata',
+        description: 'Inspect, remove, or edit embedded image metadata before exporting a copy.',
+      },
+      {
+        name: 'Watermarks and cloaking',
+        description: 'Apply a watermark or prepare a cloaked image, then review the exported result before sharing.',
+      },
+    ],
+    note: 'Image processing cannot remove identifying details visible in the picture. Review faces, backgrounds, signs, and reflections yourself.',
+  },
 } as const;

@@ -5,6 +5,7 @@
   import Icon from '$component/ui/Icon.svelte';
   import Status from '$component/ui/Status.svelte';
   import Select from '$component/ui/Select.svelte';
+  import {HOMEPAGE_SERVICES} from '$constant';
   import {formatPhoneNumber} from '$utils/formatting';
 
   let {data}: {data: PageData} = $props();
@@ -126,6 +127,12 @@
           </div>
           <div class="identity-count">
             <span>{identity.accounts || 0} vault entries</span>
+            <span class="identity-services" aria-label="Identity tools">
+              {#each HOMEPAGE_SERVICES as service (service.id)}
+                <span title={service.name} role="img" aria-label={service.name}
+                  ><Icon name={service.icon} size={13} /></span>
+              {/each}
+            </span>
           </div>
           <Icon name="arrow" size={17} />
         {/if}</a
@@ -144,6 +151,14 @@
 {/if}
 
 <style>
+  .identity-services {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .identity-services > span {
+    display: inline-flex;
+  }
   .identity-toolbar {
     display: flex;
     align-items: center;

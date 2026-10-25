@@ -98,6 +98,21 @@
             'Bitcoin, Litecoin, Ethereum, USDT on Ethereum, and Monero. Check the asset and network before sending. Public blockchain activity is visible even when the wallet belongs to a synthetic identity.',
         },
         {
+          question: 'Are virtual cards the same as my subscription payment card?',
+          answer:
+            'No. Identity virtual cards are for online purchases under that identity, with spending controls and payment history. The card saved in account settings pays for ShadowSelf subscriptions.',
+        },
+        {
+          question: 'How do residential proxies relate to the profile location?',
+          answer:
+            'The profile location is part of the identity biography. Residential proxies choose the connection exit location separately. Check the exit IP before browsing, and keep cookies and browser sessions separate between identities.',
+        },
+        {
+          question: 'What can I do with the drive and image tools?',
+          answer:
+            'Keep files in the identity workspace and organize them into folders. Before sharing an image, inspect, remove, or edit metadata, add a watermark, or prepare a cloaked copy. Review the exported image yourself. These tools do not remove identifying details visible in the picture.',
+        },
+        {
           question: 'Who runs the services behind an identity?',
           answer:
             'Mail, mobile numbers, residential routing, card payments, and other services rely on configured providers. They receive the information needed to do their job. The privacy policy explains those data flows. A single workspace does not mean there are no third parties.',

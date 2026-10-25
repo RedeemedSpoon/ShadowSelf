@@ -1,337 +1,25 @@
 import {MAIL_DOMAIN} from '$constant';
 import type {ApiDocumentationGroup} from '$type';
 
+export const API_KEY_TEST_DOCUMENTATION: ApiDocumentationGroup = {
+  id: 'request-example',
+  title: 'Test your API key',
+  icon: 'code',
+  feature: 'identity',
+  endpoints: [
+    {
+      method: 'GET',
+      path: '/api/auth/test',
+      detail: 'Check that API access is enabled and your API key is valid without changing identity data.',
+      response: {authenticated: true},
+    },
+  ],
+};
+
 export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
   {
-    id: 'authentication-endpoints',
-    title: 'Authentication',
-    icon: 'lock',
-    feature: 'identity',
-    endpoints: [
-      {
-        method: 'GET',
-        path: '/api/auth/session',
-        detail: '{username,email}',
-        response: {username: 'Theo', email: 'theo@example.com'},
-      },
-      {
-        method: 'GET',
-        path: '/api/auth/recovery-remaining',
-        detail: '{recoveryRemaining}',
-        response: {recoveryRemaining: 6},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/password',
-        detail:
-          'Sign in with your account password. A second-factor account returns {challenge,expiresIn:300} instead of a token.',
-        request: {email: 'theo@example.com', password: 'Example-Account-Password-2026!'},
-        response: {token: 'ss_session_<session token>'},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/email',
-        detail: '{email} → {email}',
-        request: {email: 'theo@example.com'},
-        response: {email: 'theo@example.com'},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/email/verify',
-        detail: '{email,access} → token or challenge',
-        request: {email: 'theo@example.com', access: '12345678'},
-        response: {challenge: '<challenge from sign-in response>', expiresIn: 300},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/second-factor',
-        detail: '{challenge,token} → session token',
-        request: {challenge: '<challenge from sign-in response>', token: '123456'},
-        response: {token: 'ss_session_<session token>'},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/recovery',
-        detail: '{challenge,code} → session token',
-        request: {challenge: '<challenge from sign-in response>', code: 'abcdef-123456-abcdef-123456'},
-        response: {token: 'ss_session_<session token>'},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration',
-        detail:
-          'Start a resumable registration draft with email and a password of 12 to 256 characters. Verify the email before choosing a username and two-factor authentication.',
-        request: {
-          email: 'theo@example.com',
-          password: 'Example-Account-Password-2026!',
-        },
-        response: {
-          signup: '<private signup reference>',
-          email: 'theo@example.com',
-          expiresIn: 1800,
-        },
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/back',
-        detail:
-          'Return the draft to its previous card without discarding verification, username or existing enrollment. The first card has no earlier signup step. Skipped 2FA returns to the security choice.',
-        request: {signup: '<signup reference>'},
-        response: {stage: 'security', verified: true, email: 'theo@example.com', username: 'Theo'},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/credentials',
-        detail:
-          'Update credentials after returning to the account card. The same email retains verification; a different email receives a new code and clears earlier 2FA enrollment. The draft expiry is unchanged.',
-        request: {signup: '<signup reference>', email: 'theo@example.com', password: 'Example-Account-Password-2026!'},
-        response: {stage: 'email', verified: true, email: 'theo@example.com', username: 'Theo'},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/resume',
-        detail:
-          'Restore the current card through its private reference. The verified flag lets a previously confirmed email advance without another code. Enrollment secrets are returned only on the authenticator card, and recovery codes only on the recovery card.',
-        request: {
-          signup: '<signup reference>',
-        },
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/cancel',
-        detail: 'Discard the registration draft.',
-        request: {
-          signup: '<signup reference>',
-        },
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/email',
-        detail:
-          'Continue from the email card. An unverified email requires its code; an already verified email does not. The draft advances to the username card.',
-        request: {
-          signup: '<signup reference>',
-          access: '12345678',
-        },
-        response: {stage: 'username', email: 'theo@example.com', username: ''},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/username',
-        detail:
-          'Set or revise the username on the username card after email verification. Use 1 to 25 characters containing letters, numbers and spaces.',
-        request: {signup: '<signup reference>', username: 'Theo'},
-        response: {stage: 'security', email: 'theo@example.com', username: 'Theo'},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/security',
-        detail:
-          'Choose or revise 2FA on the security card. True opens authenticator enrollment and preserves an existing secret; false clears enrollment and recovery codes and opens completion. Use Back to change the choice before creating the account.',
-        request: {signup: '<signup reference>', enableTwoFactor: true},
-        response: {
-          stage: 'authenticator',
-          email: 'theo@example.com',
-          username: 'Theo',
-          secret: '<base32 secret>',
-          uri: 'otpauth://totp/<enrollment URI>',
-        },
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/recovery',
-        detail:
-          'Verify the six-digit TOTP code on the authenticator card. Returns recovery codes; revisiting enrollment preserves existing codes. Save them before completing registration.',
-        request: {signup: '<signup from registration response>', token: '123456'},
-        response: {
-          stage: 'recovery',
-          email: 'theo@example.com',
-          username: 'Theo',
-          recovery: ['<six one-time recovery codes>'],
-        },
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/save-recovery',
-        detail:
-          'Confirm that recovery codes have been saved and advance to the final account creation card. Required after authenticator verification.',
-        request: {signup: '<signup reference>', savedRecovery: true},
-        response: {stage: 'complete', email: 'theo@example.com', username: 'Theo', verified: true},
-      },
-      {
-        method: 'POST',
-        path: '/api/auth/registration/complete',
-        detail:
-          'Complete the verified draft from its final card after setting a username and explicitly choosing account security. Two-factor enrollment requires a verified authenticator and recovery code confirmation through save-recovery. Optional card setup belongs in account settings or checkout.',
-        request: {
-          signup: '<signup reference>',
-        },
-        response: {
-          token: 'ss_session_<session token>',
-        },
-      },
-      {
-        method: 'GET',
-        path: '/api/auth/test',
-        detail: '{authenticated:true}',
-        response: {authenticated: true},
-      },
-    ],
-  },
-  {
-    id: 'account-settings',
-    title: 'Account settings',
-    icon: 'settings',
-    feature: 'identity',
-    endpoints: [
-      {
-        method: 'GET',
-        path: '/api/settings',
-        detail:
-          '{email,username,recoveryRemaining,API,OTP,refunds,cryptoRefunds,cryptoRefundRequired}. refunds contains unfinished card refunds; cryptoRefunds contains pending XMR payouts with id,requestedAt,errorCode,xmrAmount. cryptoRefundRequired indicates an eligible identity purchase needs an external XMR address on account deletion.',
-        response: {
-          email: 'theo@example.com',
-          username: 'Theo',
-          recoveryRemaining: 6,
-          API: false,
-          OTP: true,
-          refunds: [],
-          cryptoRefunds: [],
-          cryptoRefundRequired: false,
-        },
-      },
-      {
-        method: 'GET',
-        path: '/api/settings/sessions',
-        detail: '{sessions:[{id,current,createdAt,expiresAt}]}',
-        response: {
-          sessions: [
-            {
-              id: '2e5463b6-13db-4385-9f39-8d53da0d4d1f',
-              current: true,
-              createdAt: '2026-10-11T00:00:00.000Z',
-              expiresAt: '2027-01-09T00:00:00.000Z',
-            },
-          ],
-        },
-      },
-      {
-        method: 'DELETE',
-        path: '/api/settings/sessions',
-        detail:
-          'Provide id to revoke an owned session. Send {} or no body to revoke all sessions, including the current one.',
-        request: {id: '2e5463b6-13db-4385-9f39-8d53da0d4d1f'},
-        response: {success: true},
-      },
-      {
-        method: 'DELETE',
-        path: '/api/settings/session',
-        detail: 'logs out current session',
-        response: {success: true},
-      },
-      {
-        method: 'GET',
-        path: '/api/settings/totp',
-        detail: '{secret,uri} enrollment draft',
-        response: {secret: '<base32 secret>', uri: 'otpauth://totp/<enrollment URI>'},
-      },
-      {
-        method: 'POST',
-        path: '/api/settings/totp',
-        detail: '{currentPassword,secret,token} → recovery codes',
-        request: {
-          currentPassword: 'Example-Account-Password-2026!',
-          secret: '<32-character base32 secret>',
-          token: '123456',
-        },
-        response: {recovery: ['<six one-time recovery codes>'], recoveryRemaining: 6},
-      },
-      {
-        method: 'DELETE',
-        path: '/api/settings/totp',
-        detail: '{currentPassword}',
-        request: {currentPassword: 'Example-Account-Password-2026!'},
-        response: {recoveryRemaining: 0},
-      },
-      {
-        method: 'POST',
-        path: '/api/settings/recovery',
-        detail: '{password} → recovery codes',
-        request: {password: 'Example-Account-Password-2026!'},
-        response: {recovery: ['<six new one-time recovery codes>'], recoveryRemaining: 6},
-      },
-      {
-        method: 'PUT',
-        path: '/api/settings/api-access',
-        detail: '{currentPassword,enabled:boolean} → {API}',
-        request: {currentPassword: 'Example-Account-Password-2026!', enabled: true},
-        response: {API: true},
-      },
-      {
-        method: 'POST',
-        path: '/api/settings/api-key',
-        detail: '{currentPassword} → {key} displayed once',
-        request: {currentPassword: 'Example-Account-Password-2026!'},
-        response: {key: 'ss_api_<new key shown once>'},
-      },
-      {
-        method: 'POST',
-        path: '/api/settings/email',
-        detail: '{currentPassword,email} sends verification',
-        request: {currentPassword: 'Example-Account-Password-2026!', email: 'new-address@example.com'},
-        response: {email: 'new-address@example.com'},
-      },
-      {
-        method: 'PUT',
-        path: '/api/settings/email',
-        detail: '{currentPassword,email,access} → {token,warning?}',
-        request: {
-          currentPassword: 'Example-Account-Password-2026!',
-          email: 'new-address@example.com',
-          access: '12345678',
-        },
-        response: {token: 'ss_session_<replacement session token>'},
-      },
-      {
-        method: 'PUT',
-        path: '/api/settings/username',
-        detail: '{currentPassword,username}',
-        request: {currentPassword: 'Example-Account-Password-2026!', username: 'Theo'},
-        response: {success: true},
-      },
-      {
-        method: 'PUT',
-        path: '/api/settings/password',
-        detail: '{currentPassword,password} revokes sessions and API key',
-        request: {currentPassword: 'Example-Account-Password-2026!', password: 'New-Example-Password-2026!'},
-        response: {success: true},
-      },
-      {
-        method: 'POST',
-        path: '/api/settings/payment',
-        detail: '{currentPassword,payment}',
-        request: {currentPassword: 'Example-Account-Password-2026!', payment: 'pm_<Stripe payment-method ID>'},
-        response: {sessionUrl: '<Stripe billing portal URL>'},
-      },
-      {
-        method: 'POST',
-        path: '/api/settings/billing-portal',
-        detail: '{currentPassword}',
-        request: {currentPassword: 'Example-Account-Password-2026!'},
-        response: {sessionUrl: '<Stripe billing portal URL>'},
-      },
-      {
-        method: 'DELETE',
-        path: '/api/settings/account',
-        detail:
-          'Requires {currentPassword,refundAddress?}. An external mainnet XMR refundAddress is required when cryptoRefundRequired=true. Returns {success:true} after account deletion. Card cancellation, eligible refunds, and customer cleanup continue automatically. Crypto refunds use the original discounted USD purchase value, converted to XMR at signing; ShadowSelf pays the outgoing network fee.',
-        request: {currentPassword: 'Example-Account-Password-2026!'},
-        response: {success: true},
-      },
-    ],
-  },
-  {
     id: 'identities-creation',
+    guide: 'identity',
     title: 'Identities and creation',
     icon: 'user',
     feature: 'identity',
@@ -485,16 +173,11 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         request: {},
         response: {success: true, identityID: 'a11ce0000001'},
       },
-      {
-        method: 'WS',
-        path: '/api/identities/:id/events',
-        detail:
-          'Connect with valid authentication. Events are {type:"email",email:{...}} and {type:"message",message:{...}}. Send the string ping to receive pong. Fetch mailbox/conversations after reconnecting to recover missed events.',
-      },
     ],
   },
   {
     id: 'vault',
+    guide: 'vault',
     title: 'Account vault',
     icon: 'key',
     feature: 'vault',
@@ -601,6 +284,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
   },
   {
     id: 'email',
+    guide: 'email',
     title: 'Email',
     icon: 'mail',
     feature: 'email',
@@ -695,6 +379,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
   },
   {
     id: 'phone',
+    guide: 'phone',
     title: 'Phone',
     icon: 'phone',
     feature: 'phone',
@@ -749,6 +434,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
   },
   {
     id: 'wallets',
+    guide: 'wallet',
     title: 'Cryptocurrency wallets',
     icon: 'wallet',
     feature: 'wallet',
@@ -880,118 +566,40 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
     ],
   },
   {
-    id: 'billing',
-    title: 'Billing',
+    id: 'service-card',
+    title: 'Virtual cards',
     icon: 'card',
     feature: 'card',
-    endpoints: [
-      {
-        method: 'POST',
-        path: '/api/billing/checkout',
-        detail:
-          'Plan is monthly, annually or lifetime. Stable requestID identifies one purchase. Returns step confirm with saved-card details, or create/auth/finish with clientSecret, identityID and providerID. Card data belongs in Stripe Elements; this route does not accept a payment field.',
-        request: {plan: 'monthly', requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5'},
-        response: {step: 'confirm', cardName: 'Visa', last4: '4242', identityID: 'a11ce0000001'},
-      },
-      {
-        method: 'POST',
-        path: '/api/billing/checkout/confirm',
-        detail:
-          'Confirm using the saved card and the same plan/requestID. A create step requires Stripe Elements; auth requires Stripe authentication; finish means Stripe reported success. Identity creation is completed by the verified payment webhook.',
-        request: {plan: 'monthly', requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5'},
-        response: {
-          step: 'create',
-          clientSecret: '<Stripe client secret>',
-          identityID: 'a11ce0000001',
-          providerID: 'pi_<payment intent>',
-        },
-      },
-      {
-        method: 'POST',
-        path: '/api/billing/crypto/invoices',
-        detail: '{plan,swapCoin,requestID,refundAddress?}',
-        request: {plan: 'monthly', requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5', swapCoin: 'xmr'},
-        response: {
-          invoiceID: '<invoice UUID>',
-          depositAddress: '<deposit address>',
-          depositAmount: '0.123456',
-          coin: 'xmr',
-        },
-      },
-      {
-        method: 'POST',
-        path: '/api/billing/crypto/renewals',
-        detail:
-          'Renew an owned identity using its existing plan. Optional refundAddress is for the selected swapCoin. Stable requestID identifies one renewal.',
-        request: {
-          plan: 'monthly',
-          requestID: 'a879a094-8396-42fc-9e46-73eebfaf1de5',
-          swapCoin: 'xmr',
-          identityID: 'a11ce0000001',
-        },
-        response: {
-          invoiceID: '<invoice UUID>',
-          depositAddress: '<deposit address>',
-          depositAmount: '0.123456',
-          coin: 'xmr',
-        },
-      },
-      {
-        method: 'GET',
-        path: '/api/billing/crypto/requests/:id',
-        detail:
-          'Recover the persisted invoice ID for the same payment request UUID after an interrupted response. Inspect that invoice instead of issuing another purchase.',
-      },
-      {
-        method: 'GET',
-        path: '/api/billing/crypto/invoices/:id',
-        detail:
-          'Returns original deposit details, including a required depositMemo when supplied, plus invoiceID, status, identityID, createdAt, expiresAt, and remainingAmount. Timestamps are ISO strings; remainingAmount is the remaining XMR amount. Status is pending, confirming, paid, underpaid, expired, late, reconciliation, or refunded. A late payment needs reconciliation and does not activate the identity automatically. A paid renewal returns its existing identityID.',
-      },
-      {
-        method: 'WS',
-        path: '/api/billing/crypto/invoices/:id/events',
-        detail: 'Invoice state updates',
-        response: {status: 'pending', identityID: null},
-      },
-    ],
+    guide: 'card',
+    endpoints: [],
   },
   {
-    id: 'extension',
-    title: 'Browser extension',
+    id: 'service-proxy',
+    title: 'Residential proxies',
+    icon: 'proxy',
+    feature: 'proxy',
+    guide: 'proxy',
+    endpoints: [],
+  },
+  {
+    id: 'service-cloud',
+    title: 'Online drive',
+    icon: 'cloud',
+    feature: 'cloud',
+    guide: 'cloud',
+    endpoints: [],
+  },
+  {
+    id: 'websockets',
+    title: 'WebSockets',
     icon: 'code',
     feature: 'identity',
     endpoints: [
       {
-        method: 'GET',
-        path: '/api/extension',
-        detail: "{username,identities,network:{status:'unavailable',reason}}",
-        response: {
-          username: 'Theo',
-          identities: [],
-          network: {status: 'unavailable', reason: 'A network provider has not been configured'},
-        },
-      },
-    ],
-  },
-  {
-    id: 'contact',
-    title: 'Contact',
-    icon: 'send',
-    feature: 'identity',
-    endpoints: [
-      {
-        method: 'POST',
-        path: '/api/contact',
+        method: 'WS',
+        path: '/api/identities/:id/events',
         detail:
-          'Public endpoint. category is question, feedback, collaboration, refund, bug, help, or other. Subject is 1 to 120 characters and message is 1 to 10000. Optional email receives replies.',
-        request: {
-          category: 'question',
-          subject: 'Email service availability',
-          message: 'Which email services are currently available?',
-          email: 'theo@example.com',
-        },
-        response: {message: '<delivery confirmation>'},
+          'Connect with valid authentication. Events are {type:"email",email:{...}} and {type:"message",message:{...}}. Send the string ping to receive pong. Fetch mailbox/conversations after reconnecting to recover missed events.',
       },
     ],
   },

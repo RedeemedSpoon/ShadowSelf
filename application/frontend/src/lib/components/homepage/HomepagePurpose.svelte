@@ -360,8 +360,11 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    color: var(--accent-light);
+    color: var(--muted);
     font-size: 9px;
+  }
+  .profile-email :global(svg) {
+    color: inherit;
   }
   .profile-email > span {
     min-width: 0;

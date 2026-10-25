@@ -33,6 +33,13 @@
       ShadowSelf started as a way to put those pieces together. The aim is practical: make a separate identity something
       you can actually keep using, rather than a disposable name you forget after registration.
     </p>
+    <h2>The tools under each identity</h2>
+    <p>
+      Each workspace brings together a profile, encrypted account vault, email with aliases and PGP, a phone number,
+      cryptocurrency wallets, virtual cards, residential proxies, and an online drive. Image tools help inspect and edit
+      metadata, add watermarks, and prepare cloaked copies before sharing. The website, browser extension, and API give
+      access to the same identity tools.
+    </p>
     <h2>Built in the open</h2>
     <p>
       The website, API, and browser extension live in the same <a

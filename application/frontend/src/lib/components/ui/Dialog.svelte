@@ -94,7 +94,18 @@
 </dialog>
 
 <style>
+  .console-dialog .dialog-heading h2 {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.3;
+  }
   .console-dialog .dialog-heading :global(.dialog-close) {
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+    padding: 0;
+    gap: 0;
+    flex-shrink: 0;
     color: var(--muted);
     background: transparent;
     border-color: transparent;
@@ -103,13 +114,16 @@
     transform: none;
     transition: color 200ms ease;
   }
-  .dialog-heading :global(.dialog-close:hover),
-  .dialog-heading :global(.dialog-close:focus-visible) {
-    color: var(--danger-color-hover);
+  .console-dialog .dialog-heading :global(.dialog-close:is(:hover, :focus-visible)) {
+    color: #dce3f7;
+    background: var(--neutral-hover);
   }
-
-  .dialog-heading :global(.dialog-close:active) {
-    color: var(--danger-color-pressed);
+  .console-dialog .dialog-heading :global(.dialog-close:focus-visible) {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--muted) 20%, transparent);
+  }
+  .console-dialog .dialog-heading :global(.dialog-close:active) {
+    color: #e6ebff;
+    background: var(--neutral-pressed);
   }
 
   :global(html:has(.console-dialog.fit)) {

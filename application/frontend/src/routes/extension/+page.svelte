@@ -35,7 +35,7 @@
     <h1>Your identities.<br /><span>Within reach.</span></h1>
     <p>
       Keep your identities close while you browse. Open their profiles, messages, and account vaults from the extension,
-      then get back to what you were doing.
+      manage residential routing, and reach their wallets, virtual cards, and files.
     </p>
     <div
       class="extension-download"
@@ -45,21 +45,23 @@
           storesExpanded = false;
         }
       }}>
-      <a class="primary-action extension-action" href={EXTENSION_STORES[0].href} target="_blank" rel="noreferrer">
-        Add to Firefox <Icon name="download" size={17} />
-      </a>
-      <button
-        type="button"
-        class="control-button secondary browser-toggle"
-        bind:this={storesButton}
-        aria-label="Other browsers"
-        aria-expanded={storesExpanded}
-        aria-controls="browser-stores"
-        onclick={() => {
-          storesExpanded = !storesExpanded;
-        }}>
-        <Icon name="chevron" size={18} />
-      </button>
+      <div class="primary-action download-control">
+        <a class="extension-action" href={EXTENSION_STORES[0].href} target="_blank" rel="noreferrer">
+          Add to Firefox <Icon name="download" size={17} />
+        </a>
+        <button
+          type="button"
+          class="control-button browser-toggle"
+          bind:this={storesButton}
+          aria-label="Other browsers"
+          aria-expanded={storesExpanded}
+          aria-controls="browser-stores"
+          onclick={() => {
+            storesExpanded = !storesExpanded;
+          }}>
+          <Icon name="chevron" size={18} />
+        </button>
+      </div>
       <div
         id="browser-stores"
         class="browser-stores"
@@ -83,16 +85,32 @@
     align-items: stretch;
     border-radius: 7px;
   }
-  .extension-download .extension-action {
-    border-radius: 6px 0 0 6px;
+  .download-control {
+    overflow: clip;
+    padding: 0;
+    gap: 0;
+  }
+  .extension-action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--control-icon-gap);
+    padding: 15px 25px;
+    min-height: 52px;
+    color: inherit;
   }
   .browser-toggle {
-    list-style: none;
     display: grid;
     place-items: center;
+    align-self: stretch;
     padding-inline: 14px;
-    border-left: 0;
-    border-radius: 0 6px 6px 0;
+    background: transparent;
+    color: inherit;
+    border: 0;
+    border-left: 1px solid #ffffff18;
+    border-radius: 0;
+  }
+  .download-control:has(:focus-visible) {
+    box-shadow: var(--control-focus-shadow);
   }
   .browser-toggle :global(svg) {
     transform: rotate(0deg);
@@ -138,8 +156,11 @@
     font-size: 13px;
     transition: background 180ms ease;
   }
-  .browser-stores a:hover {
-    background: #8773ff15;
+  .browser-stores a:is(:hover, :focus-visible) {
+    background: var(--neutral-hover);
+  }
+  .browser-stores a:active {
+    background: var(--neutral-pressed);
   }
 
   .extension-copy {

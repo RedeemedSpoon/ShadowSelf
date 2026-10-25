@@ -150,7 +150,7 @@
         ><Button variant="quiet" disabled={!settings.API} onclick={() => (mode = 'api')}>Generate new key</Button>
       </div>
     </section>
-    <section class="panel">
+    <section class="panel billing-panel">
       <div class="section-heading">
         <div>
           <h2><Icon name="card" size={20} />Billing</h2>
@@ -436,6 +436,9 @@
 {/if}
 
 <style>
+  .billing-panel {
+    --feature-card: var(--muted);
+  }
   h1,
   h2 {
     display: flex;

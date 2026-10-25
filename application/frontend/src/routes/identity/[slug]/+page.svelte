@@ -5,7 +5,7 @@
   import {page} from '$app/state';
   import {get} from 'svelte/store';
   import {identity, vaultKey, moneroData} from '$store';
-  import type {FullIdentity, IdentityMetadata, AccountAPI} from '$type';
+  import type {FullIdentity, IdentityMetadata, AccountAPI, HomepageServiceId} from '$type';
   import {request} from '$utils/webfetch';
   import Button from '$component/ui/Button.svelte';
   import Status from '$component/ui/Status.svelte';
@@ -14,7 +14,12 @@
   import type {PageProps} from './$types';
   import type {Component} from 'svelte';
 
-  type ServiceProps = {account: FullIdentity; onupdate: (patch: Partial<FullIdentity>) => void; onunlock: () => void};
+  type ServiceProps = {
+    account: FullIdentity;
+    onupdate: (patch: Partial<FullIdentity>) => void;
+    onunlock: () => void;
+    service?: HomepageServiceId;
+  };
 
   const panels = {
     info: () => import('$component/console/Profile.svelte'),
@@ -22,6 +27,9 @@
     email: () => import('$component/console/Mail.svelte'),
     phone: () => import('$component/console/Phone.svelte'),
     crypto: () => import('$component/console/Wallet.svelte'),
+    card: () => import('$component/console/ServiceOverview.svelte'),
+    proxy: () => import('$component/console/ServiceOverview.svelte'),
+    cloud: () => import('$component/console/ServiceOverview.svelte'),
   };
 
   let {data, form}: PageProps = $props();
@@ -39,10 +47,13 @@
   let keyEpoch = 0;
   const tabs = [
     {id: 'info', feature: 'identity', label: 'Information', icon: 'user'},
-    {id: 'account', feature: 'vault', label: 'Account vault', icon: 'lock'},
+    {id: 'account', feature: 'vault', label: 'Account vault', icon: 'key'},
     {id: 'email', feature: 'email', label: 'Email', icon: 'mail'},
     {id: 'phone', feature: 'phone', label: 'Phone', icon: 'phone'},
     {id: 'crypto', feature: 'wallet', label: 'Crypto wallet', icon: 'wallet'},
+    {id: 'card', feature: 'card', label: 'Virtual cards', icon: 'card'},
+    {id: 'proxy', feature: 'proxy', label: 'Residential proxies', icon: 'proxy'},
+    {id: 'cloud', feature: 'cloud', label: 'Online drive', icon: 'cloud'},
   ];
   const availableTabs = $derived(
     account?.status === 'frozen' ? tabs.filter((tab) => ['account', 'crypto'].includes(tab.id)) : tabs,
@@ -400,7 +411,11 @@
         {#await panel}
           <LoadingState label={`Loading ${tabs.find((tab) => tab.id === section)?.label || 'service'}`} />
         {:then Panel}
-          <Panel account={completeAccount} onupdate={update} onunlock={() => (unlockOpen = true)} />
+          <Panel
+            account={completeAccount}
+            service={tabs.find((tab) => tab.id === section)?.feature as HomepageServiceId}
+            onupdate={update}
+            onunlock={() => (unlockOpen = true)} />
         {:catch}
           <Status message="This service could not be loaded. Reload the page to retry." kind="error" />
         {/await}

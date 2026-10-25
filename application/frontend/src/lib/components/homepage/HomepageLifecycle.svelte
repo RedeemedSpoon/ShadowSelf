@@ -82,7 +82,7 @@
     position: absolute;
     inset: 0 0 auto;
     height: 1px;
-    background: #547597;
+    background: color-mix(in srgb, var(--accent) 55%, transparent);
   }
   .lifecycle-heading > p {
     max-width: 650px;
@@ -96,10 +96,10 @@
     height: 29px;
     display: grid;
     place-items: center;
-    border: 1px solid #6797bd;
-    background: #0c1a2b;
+    border: 1px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, #0b1021);
     border-radius: 50%;
-    color: #8dc6ed;
+    color: var(--accent);
     font-size: 11px;
   }
   .lifecycle h3 {
@@ -115,15 +115,15 @@
     min-height: 116px;
   }
   .lifecycle-example {
-    --example-color: var(--accent);
+    --example-color: var(--feature-vault);
     display: flex;
     flex-direction: column;
     gap: 10px;
     padding: 20px 14px;
     margin-top: 23px;
-    border: 1px solid #7c67c644;
+    border: 1px solid color-mix(in srgb, var(--example-color) 30%, transparent);
     border-radius: 7px;
-    background: #1c1a35;
+    background: color-mix(in srgb, var(--example-color) 12%, #0b1021);
   }
   .lifecycle-example > span {
     font-size: 9px;
@@ -131,7 +131,7 @@
   }
   .lifecycle-example strong {
     font-size: 12px;
-    color: var(--accent-light);
+    color: var(--example-color);
     font-weight: 500;
   }
   .lifecycle-example code {
@@ -141,27 +141,12 @@
   }
   .email-example {
     --example-color: var(--feature-email);
-    background: color-mix(in srgb, var(--feature-email) 12%, #0b1021);
-    border-color: color-mix(in srgb, var(--feature-email) 30%, transparent);
-  }
-  .email-example strong {
-    color: var(--feature-email);
   }
   .vault-example {
-    --example-color: var(--feature-vault);
-    background: #292315;
-    border-color: #fbbf2443;
-  }
-  .vault-example strong {
-    color: var(--feature-vault);
+    --example-color: var(--feature-phone);
   }
   .return-example {
     --example-color: var(--success-color);
-    background: #16312c;
-    border-color: color-mix(in srgb, var(--success-color) 20%, transparent);
-  }
-  .return-example strong {
-    color: var(--success-color);
   }
   @media (max-width: 1050px) {
     .lifecycle {
@@ -172,7 +157,7 @@
     .lifecycle li {
       padding: 0 0 35px 35px;
       border-top: 0;
-      border-left: 1px solid #547597;
+      border-left: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
     }
     .lifecycle li::before {
       display: none;

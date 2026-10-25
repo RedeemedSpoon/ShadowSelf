@@ -21,7 +21,6 @@
   let step = $state(1);
   let pending = $state(false);
   let error = $state('');
-  let noticeDismissed = $state(false);
   let phones = $state<string[]>([]);
   let location = $state('');
   let profile = $state<Profile>({name: '', bio: '', picture: '', age: 28, sex: 'male', ethnicity: ETHNICITIES[0]});
@@ -326,11 +325,6 @@
       variant="secondary"
       onclick={() => invalidateAll()}>Retry setup</Button
     >{:else}
-    {#if !noticeDismissed}
-      <Status
-        message="Setup cannot be completed while replacement phone and network providers are being configured. Your draft can still be edited."
-        ondismiss={() => (noticeDismissed = true)} />
-    {/if}
     <ol class="creation-progress">
       {#each stages as stage, index (stage.label)}<li
           data-feature={stage.feature}
@@ -352,7 +346,7 @@
           <div class="field">
             <label for="profile-location">Profile location</label>
             <input id="profile-location" bind:value={location} maxlength="120" placeholder="City or region" required />
-            <small>This describes the profile. Network access will depend on the configured provider.</small>
+            <small>This describes the profile. Choose the connection location separately in Residential proxies.</small>
           </div>
         {:else if step === 2}<div class="creation-profile">
             {#if profile.picture}<img

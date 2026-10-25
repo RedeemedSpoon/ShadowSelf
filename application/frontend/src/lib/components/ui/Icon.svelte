@@ -46,9 +46,9 @@
   width={size}
   height={size}
   viewBox="0 0 24 24"
-  fill={name === 'key' ? 'currentColor' : 'none'}
+  fill="none"
   fill-rule="evenodd"
-  stroke={name === 'key' ? 'none' : 'currentColor'}
+  stroke="currentColor"
   stroke-width="1.6"
   stroke-linecap="round"
   stroke-linejoin="round"

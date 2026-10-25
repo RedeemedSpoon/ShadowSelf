@@ -8,6 +8,8 @@
   --surface: #0e1629;
   --line: color-mix(in srgb, var(--accent-light) 12.55%, transparent);
   --muted: #9caac6;
+  --neutral-hover: #ffffff08;
+  --neutral-pressed: #ffffff12;
   --accent: #8170ee;
   --accent-light: #9b91ff;
   --accent-strong: #6253ec;
@@ -27,7 +29,7 @@
   --feature-email: var(--danger-color);
   --feature-phone: #38bdf8;
   --feature-wallet: var(--success-color);
-  --feature-card: var(--muted);
+  --feature-card: #f472d0;
   --feature-proxy: #b1ec28;
   --feature-cloud: #ff963e;
   --button-gradient: linear-gradient(90deg, #6556d6 0%, #594ac3 25%, #4d3eb0 50%, #44369e 75%, #3c308e 100%);
@@ -85,7 +87,7 @@ svg[data-icon='identities'] {
 }
 
 svg[data-icon='key'] {
-  color: var(--icon-color, var(--link-color));
+  color: var(--icon-color, var(--feature-accent, var(--link-color)));
 }
 
 svg[data-icon='lock'] {

@@ -4,11 +4,11 @@
 
 <svg viewBox="0 0 24 24" aria-hidden="true">
   {#if language === 'curl'}
-    <rect x="2" y="3" width="20" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+    <rect x="2" y="3" width="20" height="18" rx="3" fill="currentColor" />
     <path
       d="m6 8 4 4-4 4m7 0h5"
       fill="none"
-      stroke="currentColor"
+      stroke="#0a1020"
       stroke-width="1.6"
       stroke-linecap="round"
       stroke-linejoin="round" />
