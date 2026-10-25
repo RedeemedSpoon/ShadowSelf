@@ -467,27 +467,32 @@
 <Dialog bind:open={deleteOpen} title="Delete this identity"
   ><p>
     Deletion removes its profile, vault and messaging resources. Subscription cancellation and eligible refunds continue
-    automatically afterward. Move any wallet funds before proceeding. Your account and other identities remain.
+    automatically afterward. Move funds out of wallets and virtual cards before proceeding. Eligible fiat refunds return
+    to the original payment card through Stripe. Your account and other identities remain.
   </p>
   <form method="POST" action="?/delete" use:enhance>
     {#if account?.cryptoRefund}
       <p>
-        Your original ${Number(account.cryptoRefund.usdAmount).toFixed(2)} purchase is eligible for an automatic XMR refund,
-        converted at the exchange rate when the payout is signed. ShadowSelf pays the outgoing network fee.
+        Your original ${Number(account.cryptoRefund.usdAmount).toFixed(2)} purchase is eligible for an XMR refund, converted
+        at the exchange rate when the payout is signed. ShadowSelf pays the outgoing network fee.
       </p>
-      <div class="field">
-        <label for="identity-refund-address">Monero refund address</label>
-        <input
-          id="identity-refund-address"
-          placeholder="Your external Monero address"
-          name="refundAddress"
-          autocomplete="off"
-          spellcheck="false"
-          maxlength="106"
-          required />
-        <small
-          >Use a mainnet XMR address you control outside this identity. Deletion removes this identity's wallet access.</small>
-      </div>
+      <details class="identity-refund-address">
+        <summary>Monero refund address <span>Optional</span><Icon name="chevron" size={16} /></summary>
+        <div class="field">
+          <label class="sr-only" for="identity-refund-address">External Monero address</label>
+          <input
+            id="identity-refund-address"
+            placeholder="Your external Monero address"
+            name="refundAddress"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="106" />
+          <small>Use a mainnet XMR address you control outside this identity.</small>
+        </div>
+      </details>
+      <p class="refund-note">
+        An address is only needed to receive a crypto refund. You can delete this identity without requesting one.
+      </p>
     {/if}
     <div class="field password-field">
       <label for="delete-password">Account password</label><input
@@ -503,6 +508,39 @@
   </form></Dialog>
 
 <style>
+  .identity-refund-address {
+    margin-top: 20px;
+    padding: 14px;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
+    border-radius: 5px;
+  }
+  .identity-refund-address summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .identity-refund-address summary::-webkit-details-marker {
+    display: none;
+  }
+  .identity-refund-address summary span {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .identity-refund-address[open] summary :global(svg) {
+    transform: rotate(180deg);
+  }
+  .identity-refund-address .field {
+    margin: 16px 0 0;
+  }
+  .refund-note {
+    margin-top: 12px;
+    font-size: 12px;
+  }
+
   @media (max-width: 600px) {
     .identity-actions {
       gap: 5px;

@@ -129,7 +129,7 @@
   aria-expanded={open}
   aria-keyshortcuts="Control+K"
   onclick={toggleSearch}>
-  <Icon name="search" size={15} /><span>Search reference</span><kbd>Ctrl + K</kbd>
+  <Icon name="search" size={15} /><span>Search</span><kbd>Ctrl + K</kbd>
 </button>
 
 <Dialog bind:open title="Search the API reference">
@@ -194,30 +194,43 @@
   .search-trigger {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
     width: 100%;
-    padding: 11px 9px;
+    padding: 9px 10px;
     margin-bottom: 20px;
     border: 1px solid var(--line);
     border-radius: 5px;
     background: transparent;
-    color: var(--muted);
-    font-size: 10px;
+    color: #94a3c2;
+    font-size: 11px;
+    line-height: 1.7;
     text-align: left;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease,
+      box-shadow 180ms ease;
   }
-  .search-trigger kbd {
-    margin-left: auto;
-    font:
-      9px 'Fira Code Variable',
-      monospace;
-    white-space: nowrap;
-  }
-  .search-trigger:hover {
+  .search-trigger:is(:hover, :focus-visible, [aria-expanded='true']) {
+    border-color: color-mix(in srgb, var(--accent-light) 22%, transparent);
     background: var(--neutral-hover);
     color: #dce3f7;
   }
+  .search-trigger:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 65%, transparent);
+  }
   .search-trigger:active {
     background: var(--neutral-pressed);
+    color: #e6ebff;
+  }
+  .search-trigger kbd {
+    margin-left: auto;
+    color: #667796;
+    font:
+      400 9px 'Fira Code Variable',
+      monospace;
+    white-space: nowrap;
   }
   .search-input {
     position: relative;
@@ -424,6 +437,7 @@
     font-size: 10px;
   }
   @media (prefers-reduced-motion: reduce) {
+    .search-trigger,
     .more-results,
     .results-frame::before {
       transition: none;

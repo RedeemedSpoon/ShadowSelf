@@ -224,7 +224,7 @@ export interface APIRequest {
   swapCoin: string;
 }
 
-export type Mailbox = 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
+export type Mailbox = 'Inbox' | 'Sent' | 'Drafts' | 'Junk';
 
 export interface EmailContent {
   email: string;

@@ -1,6 +1,7 @@
 <script lang="ts">
   import {invalidateAll} from '$app/navigation';
   import {enhance} from '$app/forms';
+  import {tick} from 'svelte';
   import type {SubmitFunction} from '@sveltejs/kit';
   import type {PageProps} from './$types';
   import Button from '$component/ui/Button.svelte';
@@ -20,6 +21,9 @@
   let recovery = $state<string[]>([]);
   let key = $state('');
   let paymentID = $state('');
+  let paymentForm = $state<HTMLFormElement>();
+  let sessionsOpen = $state(false);
+  let dismissedNotice = $state.raw<object | null>(null);
   let paymentOpen = $state(false);
   let deleteOpen = $state(false);
 
@@ -47,10 +51,6 @@
     if (form.key) {
       key = form.key;
     }
-
-    if (form.sessionUrl && pending === 'portal') {
-      window.location.assign(form.sessionUrl);
-    }
   });
 
   const submit: SubmitFunction = ({formElement}) => {
@@ -58,11 +58,12 @@
 
     return async ({update, result}) => {
       try {
-        if (result.type === 'success' && result.data?.sessionUrl && pending === 'portal') {
-          window.location.assign(result.data.sessionUrl);
-        }
-
         await update({reset: false});
+
+        if (result.type === 'success' && result.data?.type === 'success' && pending === 'payment') {
+          paymentOpen = false;
+          paymentID = '';
+        }
       } finally {
         pending = '';
       }
@@ -84,7 +85,10 @@
     <h1><Icon name="settings" size={24} />Account settings</h1>
   </div>
 </div>
-<Status message={form?.message || ''} kind={form?.type === 'success' ? 'success' : 'error'} /><Status
+<Status
+  message={form !== dismissedNotice ? form?.message || '' : ''}
+  kind={form?.type === 'success' ? 'success' : 'error'}
+  ondismiss={() => (dismissedNotice = form || null)} /><Status
   message={settings.type === 'alert' ? settings.message : ''}
   kind="error" />
 {#if settings.type === 'alert'}<Button variant="secondary" onclick={() => invalidateAll()}
@@ -156,17 +160,19 @@
           <h2><Icon name="card" size={20} />Billing</h2>
         </div>
       </div>
-      <p>Identity subscriptions use Stripe.</p>
+      <p>Manage payment cards and identity subscriptions through Stripe.</p>
       <div class="button-row settings-actions">
-        <Button variant="secondary" icon="card" onclick={() => (paymentOpen = true)}>Add payment card</Button><Button
-          variant="quiet"
-          onclick={() => (mode = 'portal')}>Open billing portal</Button>
+        <Button variant="secondary" onclick={() => (paymentOpen = true)}>Add payment card</Button>
+        <form method="POST" action="?/portal" use:enhance={submit} data-action="portal">
+          <Button type="submit" variant="quiet" icon="external" loading={pending === 'portal'}
+            >Open billing portal</Button>
+        </form>
       </div>
     </section>
   </div>
   {#if settings.cryptoRefunds?.length}
     <section class="panel sessions-panel" aria-label="Crypto refunds">
-      <h2><Icon name="refresh" size={20} />Crypto refunds</h2>
+      <h2><Icon name="wallet" size={20} />Crypto refunds</h2>
       <p>
         Eligible refunds are paid in XMR using the original USD purchase value. The exchange rate is fixed when the
         payout is signed. ShadowSelf pays the outgoing fee.
@@ -189,12 +195,14 @@
           </div>
         {/each}
       </div>
-      <Button variant="secondary" onclick={() => invalidateAll()}>Refresh refund status</Button>
+      <div class="refund-actions">
+        <Button variant="secondary" onclick={() => invalidateAll()}>Refresh refund status</Button>
+      </div>
     </section>
   {/if}
   {#if settings.refunds?.length}
     <section class="panel sessions-panel" aria-label="Card refunds">
-      <h2>Card refunds</h2>
+      <h2><Icon name="card" size={20} />Card refunds</h2>
       <p>These refunds continue after identity deletion. Completed refunds no longer appear here.</p>
       <div class="sessions-list refund-list">
         {#each settings.refunds as refund (refund.id)}
@@ -215,7 +223,9 @@
           </div>
         {/each}
       </div>
-      <Button variant="secondary" onclick={() => invalidateAll()}>Refresh refund status</Button>
+      <div class="refund-actions">
+        <Button variant="secondary" onclick={() => invalidateAll()}>Refresh refund status</Button>
+      </div>
     </section>
   {/if}
   <section class="panel sessions-panel active-sessions">
@@ -223,13 +233,9 @@
       <div>
         <h2><Icon name="identities" size={20} />Active sessions</h2>
       </div>
-      <form class="sign-out-sessions" method="POST" action="?/session" use:enhance={submit} data-action="sessions">
-        <input type="hidden" name="revoke" value="true" /><Button
-          type="submit"
-          variant="quiet"
-          class="revoke-all"
-          loading={pending === 'sessions'}>Sign out all sessions</Button>
-      </form>
+      <div class="sign-out-sessions">
+        <Button variant="quiet" class="revoke-all" onclick={() => (sessionsOpen = true)}>Sign out all sessions</Button>
+      </div>
     </div>
     {#if data.sessionsError}<Status message={data.sessionsError} kind="error" /><Button
         variant="secondary"
@@ -253,7 +259,7 @@
   <section class="panel danger-panel">
     <div>
       <h2><Icon name="trash" size={20} />Delete account</h2>
-      <p>Delete the account and its identities. Move wallet funds first.</p>
+      <p>Delete the account and its identities. Move funds out of wallets and virtual cards first.</p>
     </div>
     <Button variant="danger" icon="trash" onclick={() => (deleteOpen = true)}>Delete account</Button>
   </section>
@@ -267,19 +273,18 @@
           ? 'Change API access'
           : mode === 'deleteOtp'
             ? 'Disable authenticator'
-            : mode === 'portal'
-              ? 'Open billing portal'
-              : mode === 'api'
-                ? 'Generate API key'
-                : mode === 'recovery'
-                  ? 'Replace recovery codes'
-                  : `Change ${mode}`}
+            : mode === 'api'
+              ? 'Generate API key'
+              : mode === 'recovery'
+                ? 'Replace recovery codes'
+                : `Change ${mode}`}
     onclose={close}>
-    {#if key}<Status message="Store this key now. It will not be shown again." /><Copy
-        value={key}
-        label="Copy API key" />{:else if recovery.length}<Status
+    {#if key}<Status message="Store this key now. It will not be shown again."
+        >Store this key now. <strong>It will not be shown again.</strong></Status
+      ><Copy value={key} label="Copy API key" />{:else if recovery.length}<Status
         message="The previous recovery codes no longer work. Save these replacement codes now." />
       <RecoveryCodes codes={recovery} />
+      <div class="dialog-actions"><Button onclick={close}>Done</Button></div>
     {:else if mode === 'totp'}{#if totp.qr}<AuthenticatorSetup qr={totp.qr} secret={totp.secret} />
         <form method="POST" action="?/checkOtp" use:enhance={submit} data-action="checkOtp">
           <input type="hidden" name="secret" value={totp.secret} />
@@ -365,59 +370,80 @@
             required />
         </div>
         <Status message={form?.message || ''} kind="error" /><Button type="submit" loading={pending === mode}
-          >{mode === 'portal'
-            ? 'Open Stripe portal'
-            : mode === 'api'
-              ? 'Generate key'
-              : mode === 'recovery'
-                ? 'Generate replacement codes'
-                : mode === 'email'
-                  ? 'Send verification code'
-                  : 'Confirm change'}</Button>
+          >{mode === 'api'
+            ? 'Generate key'
+            : mode === 'recovery'
+              ? 'Generate replacement codes'
+              : mode === 'email'
+                ? 'Send verification code'
+                : 'Confirm change'}</Button>
       </form>{/if}
   </Dialog>
-  <Dialog bind:open={paymentOpen} title="Add payment card"
-    ><PaymentMethod stripeKey={data.stripeKey} onready={(id) => (paymentID = id)} />
-    <form method="POST" action="?/payment" use:enhance={submit} data-action="payment">
-      <input type="hidden" name="paymentID" value={paymentID} />
-      <div class="field">
-        <label for="payment-password">Account password</label><input
-          id="payment-password"
-          placeholder="Your account passphrase"
-          name="currentPassword"
-          type="password"
-          autocomplete="current-password"
-          required />
+  <Dialog bind:open={paymentOpen} title="Add payment card">
+    {#if paymentOpen}
+      <PaymentMethod
+        stripeKey={data.stripeKey}
+        onready={async (id) => {
+          paymentID = id;
+          await tick();
+          paymentForm?.requestSubmit();
+        }} />
+      <form bind:this={paymentForm} method="POST" action="?/payment" use:enhance={submit} data-action="payment">
+        <input type="hidden" name="setupIntent" value={paymentID} />
+        <Status message={form?.type === 'alert' ? form.message || '' : ''} kind="error" />
+        {#if pending === 'payment'}<Status
+            message="Saving your payment card…" />{:else if paymentID && form?.type === 'alert'}<Button type="submit"
+            >Retry saving payment card</Button
+          >{/if}
+      </form>
+    {/if}
+  </Dialog>
+  <Dialog bind:open={sessionsOpen} title="Sign out all devices">
+    <p>This ends every active session, including this browser. Sign in again to access your account.</p>
+    <form method="POST" action="?/session" use:enhance={submit} data-action="sessions">
+      <input type="hidden" name="revoke" value="true" />
+      <div class="dialog-actions">
+        <Button variant="secondary" onclick={() => (sessionsOpen = false)}>Cancel</Button>
+        <Button type="submit" icon="logout" loading={pending === 'sessions'}>Sign out all devices</Button>
       </div>
-      <Status message={form?.message || ''} kind="error" /><Button
-        type="submit"
-        disabled={!paymentID}
-        loading={pending === 'payment'}>Save payment method</Button>
-    </form></Dialog>
+    </form>
+  </Dialog>
   <Dialog bind:open={deleteOpen} title="Delete your account"
-    ><p>
-      This deletes your account and identities. Subscription cancellation and eligible refunds continue automatically
-      after deletion. Move any wallet funds first.
-    </p>
-    <form method="POST" action="?/delete" use:enhance={submit} data-action="delete">
+    ><div class="deletion-details">
+      <p>
+        This permanently deletes your account, identities, vaults and messages. Move funds out of all wallets and
+        virtual cards before continuing. Deletion removes access to them.
+      </p>
+      <p>
+        Subscriptions are cancelled automatically. Eligible fiat purchases are refunded to the original payment card
+        through Stripe.
+      </p>
       {#if settings.cryptoRefundRequired}
         <p>
-          Eligible initial crypto purchases will be refunded in XMR at their original USD value, converted when each
+          Eligible initial crypto purchases can be refunded in XMR at their original USD value, converted when the
           payout is signed. ShadowSelf pays the outgoing network fee.
         </p>
-        <div class="field">
-          <label for="account-refund-address">Monero refund address</label>
-          <input
-            id="account-refund-address"
-            placeholder="Your external Monero address"
-            name="refundAddress"
-            autocomplete="off"
-            spellcheck="false"
-            maxlength="106"
-            required />
-          <small
-            >Use a mainnet XMR address you control outside this account. Refunds continue after account deletion.</small>
-        </div>
+      {/if}
+    </div>
+    <form method="POST" action="?/delete" use:enhance={submit} data-action="delete">
+      {#if settings.cryptoRefundRequired}
+        <details class="refund-address">
+          <summary>Monero refund address <span>Optional</span><Icon name="chevron" size={16} /></summary>
+          <div class="field">
+            <label class="sr-only" for="account-refund-address">External Monero address</label>
+            <input
+              id="account-refund-address"
+              placeholder="Your external Monero address"
+              name="refundAddress"
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="106" />
+            <small>Use a mainnet XMR address you control outside this account.</small>
+          </div>
+        </details>
+        <p class="refund-note">
+          An address is only needed to receive a crypto refund. You can delete your account without requesting one.
+        </p>
       {/if}
       <div class="field settings-password">
         <label for="account-delete-password">Account password</label><input
@@ -436,8 +462,55 @@
 {/if}
 
 <style>
+  .dialog-actions,
+  .refund-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .deletion-details {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .deletion-details p {
+    margin: 0;
+  }
+  .refund-address {
+    padding: 14px;
+    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
+    border-radius: 5px;
+  }
+  .refund-address summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 13px;
+  }
+  .refund-address summary::-webkit-details-marker {
+    display: none;
+  }
+  .refund-address summary span {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .refund-address[open] summary :global(svg) {
+    transform: rotate(180deg);
+  }
+  .refund-address .field {
+    margin-top: 16px;
+    margin-bottom: 0;
+  }
+  .refund-note {
+    margin-top: 12px;
+    font-size: 12px;
+  }
   .billing-panel {
-    --feature-card: var(--muted);
+    --feature-card: var(--accent);
   }
   h1,
   h2 {
@@ -451,7 +524,7 @@
     color: var(--accent);
   }
   h2 :global(svg[data-icon='card']) {
-    color: var(--feature-card);
+    color: var(--accent);
   }
   .danger-panel h2 {
     margin-bottom: 12px;
@@ -472,6 +545,12 @@
   }
   .sessions-panel {
     margin-top: 18px;
+  }
+  .sessions-panel > h2 {
+    margin-bottom: 12px;
+  }
+  .sessions-panel > p {
+    margin-bottom: 18px;
   }
   .sessions-list > div {
     display: flex;

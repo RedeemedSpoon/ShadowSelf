@@ -17,7 +17,7 @@ export default new Elysia({prefix: '/api/settings'})
   .use(middlewareBase)
   .guard({authenticated: true})
   .resolve(async ({user, request, body, path}) => {
-    if (!user || request.method === 'GET' || /\/sessions?\/?$/.test(path)) {
+    if (!user || request.method === 'GET' || /\/(sessions?|billing-portal|payment(?:-setup)?)\/?$/.test(path)) {
       return {verifiedPassword: ''};
     }
 
@@ -41,7 +41,7 @@ export default new Elysia({prefix: '/api/settings'})
   .onBeforeHandle(({set, request, path, verifiedPassword, passwordLimited}) => {
     set.headers['cache-control'] = 'no-store';
 
-    if (request.method === 'GET' || /\/sessions?\/?$/.test(path)) {
+    if (request.method === 'GET' || /\/(sessions?|billing-portal|payment(?:-setup)?)\/?$/.test(path)) {
       return;
     }
 
@@ -191,18 +191,36 @@ export default new Elysia({prefix: '/api/settings'})
 
     return {recovery, recoveryRemaining: recovery.length};
   })
-  .post('/payment', async ({set, body, user}) => {
-    const {err, payment} = check(body, ['payment']);
+  .post('/payment-setup', async ({user}) => {
+    const customer = await createBillingCustomer(user!.email);
 
-    if (err) {
-      return error(set, 400, err);
+    const intent = await stripe.setupIntents.create({
+      customer,
+      payment_method_types: ['card'],
+      usage: 'off_session',
+    });
+
+    return {clientSecret: intent.client_secret};
+  })
+  .post('/payment', async ({set, body, user}) => {
+    const setupIntent = (body as {setupIntent?: unknown})?.setupIntent;
+
+    if (typeof setupIntent !== 'string' || !/^seti_[a-zA-Z0-9]{1,128}$/.test(setupIntent)) {
+      return error(set, 400, 'Invalid card setup reference');
     }
 
     const customer = await createBillingCustomer(user!.email);
-    await stripe.paymentMethods.attach(payment, {customer});
+    const intent = await stripe.setupIntents.retrieve(setupIntent);
+
+    if (intent.customer !== customer || intent.status !== 'succeeded' || !intent.payment_method) {
+      return error(set, 400, 'Complete card verification before saving this payment method');
+    }
+
+    const payment = typeof intent.payment_method === 'string' ? intent.payment_method : intent.payment_method.id;
+
     await stripe.customers.update(customer, {invoice_settings: {default_payment_method: payment}});
 
-    return await billingPortal(user!.email);
+    return {success: true};
   })
   .post('/email', async ({set, body, user}) => {
     const {err, email} = check(body, ['email']);

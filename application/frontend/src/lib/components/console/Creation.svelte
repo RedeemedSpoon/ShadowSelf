@@ -365,7 +365,7 @@
             <div class="field wide">
               <label for="create-name">Name</label><input
                 id="create-name"
-                placeholder="Alex Morgan"
+                placeholder="Iris Novak"
                 bind:value={profile.name}
                 required
                 minlength="2"

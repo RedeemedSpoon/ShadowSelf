@@ -343,7 +343,7 @@
     }
   }
   .location-marker {
-    opacity: 0.38;
+    opacity: 0.75;
     transition: opacity 500ms ease;
   }
   .location-marker.active {
@@ -365,14 +365,18 @@
     stroke: color-mix(in srgb, var(--accent) 50.2%, transparent);
   }
   .location-marker text {
-    fill: #bdc9e4;
+    fill: #c8d0e3;
+    paint-order: stroke;
+    stroke: #090f20;
+    stroke-width: 4px;
+    stroke-linejoin: round;
     font:
       11px Inter,
       sans-serif;
     font-weight: 500;
   }
   .location-marker .country-label {
-    fill: #6d809f;
+    fill: #98a9c5;
     font:
       7px 'Fira Code Variable',
       monospace;

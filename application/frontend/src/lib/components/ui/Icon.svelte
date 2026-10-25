@@ -49,7 +49,7 @@
   fill="none"
   fill-rule="evenodd"
   stroke="currentColor"
-  stroke-width="1.6"
+  stroke-width={name === 'close' ? 2.4 : 1.6}
   stroke-linecap="round"
   stroke-linejoin="round"
   class={className}

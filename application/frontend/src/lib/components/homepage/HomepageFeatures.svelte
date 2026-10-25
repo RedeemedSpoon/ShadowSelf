@@ -46,6 +46,9 @@
     font-size: 13px;
     color: var(--service-color);
   }
+  .profile-tool-heading > span :global(svg) {
+    color: inherit;
+  }
   .profile-tool-heading h3 {
     font-size: 28px;
     letter-spacing: -1px;

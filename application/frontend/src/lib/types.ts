@@ -126,7 +126,7 @@ export interface Message {
   to: string;
 }
 
-export type Mailbox = 'INBOX' | 'Sent' | 'Drafts' | 'Junk';
+export type Mailbox = 'Inbox' | 'Sent' | 'Drafts' | 'Junk';
 
 export type EmailAttachment = Omit<Attachment, 'data'> & {index: number; data?: string};
 
@@ -417,7 +417,7 @@ export interface ApiDocumentationEndpoint {
   path: string;
   detail: string;
   request?: Record<string, unknown>;
-  response?: Record<string, unknown>;
+  response: Record<string, unknown>;
   query?: string;
 }
 

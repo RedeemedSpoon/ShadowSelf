@@ -13,7 +13,7 @@
 
   let {account}: {account: FullIdentity} = $props();
   let page = $state<EmailPage | null>(null);
-  let mailbox = $state<Mailbox>('INBOX');
+  let mailbox = $state<Mailbox>('Inbox');
   let target = $state<Email | null>(null);
   let thread = $state<Email[]>([]);
   let mode = $state<'browse' | 'compose' | 'reply' | 'draft'>('browse');
@@ -27,7 +27,7 @@
   let deleteOpen = $state(false);
   let generation = 0;
   let controller: AbortController | undefined;
-  const names: Mailbox[] = ['INBOX', 'Sent', 'Drafts', 'Junk'];
+  const names: Mailbox[] = ['Inbox', 'Sent', 'Drafts', 'Junk'];
   const messages = $derived(page?.messages || []);
   const path = $derived(`/identities/${account.id}/mail`);
 
@@ -324,7 +324,7 @@
     const incoming = (event: Event) => {
       const update = (event as CustomEvent).detail;
 
-      if (update.identityID !== account.id || update.type !== 'email' || mailbox !== 'INBOX' || !page) {
+      if (update.identityID !== account.id || update.type !== 'email' || mailbox !== 'Inbox' || !page) {
         return;
       }
 
@@ -423,7 +423,7 @@
       <p>
         {page.nextCursor
           ? 'Continue to look for earlier messages.'
-          : mailbox === 'INBOX'
+          : mailbox === 'Inbox'
             ? 'Incoming email will appear here.'
             : 'Messages saved in this mailbox will appear here.'}
       </p>

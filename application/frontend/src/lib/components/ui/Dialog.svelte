@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {Snippet} from 'svelte';
-  import Button from './Button.svelte';
+  import Icon from './Icon.svelte';
 
   let {
     open = $bindable(false),
@@ -88,40 +88,47 @@
   aria-label={title}>
   <div class="dialog-heading">
     <h2>{title}</h2>
-    <Button variant="quiet" class="dialog-close" icon="close" aria-label="Close dialog" onclick={close} />
+    <button type="button" class="dialog-close" aria-label="Close dialog" onclick={close}
+      ><Icon name="close" size={16} /></button>
   </div>
   {@render children()}
 </dialog>
 
 <style>
+  .dialog-close :global(svg) {
+    color: inherit;
+  }
   .console-dialog .dialog-heading h2 {
     margin: 0;
     font-size: 19px;
     line-height: 1.3;
   }
-  .console-dialog .dialog-heading :global(.dialog-close) {
-    width: 28px;
-    height: 28px;
-    min-height: 28px;
+  .console-dialog .dialog-heading .dialog-close {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    min-height: 26px;
     padding: 0;
     gap: 0;
     flex-shrink: 0;
     color: var(--muted);
     background: transparent;
-    border-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
     box-shadow: none;
     filter: none;
     transform: none;
     transition: color 200ms ease;
   }
-  .console-dialog .dialog-heading :global(.dialog-close:is(:hover, :focus-visible)) {
+  .console-dialog .dialog-heading .dialog-close:is(:hover, :focus-visible) {
     color: #dce3f7;
     background: var(--neutral-hover);
   }
-  .console-dialog .dialog-heading :global(.dialog-close:focus-visible) {
+  .console-dialog .dialog-heading .dialog-close:focus-visible {
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--muted) 20%, transparent);
   }
-  .console-dialog .dialog-heading :global(.dialog-close:active) {
+  .console-dialog .dialog-heading .dialog-close:active {
     color: #e6ebff;
     background: var(--neutral-pressed);
   }

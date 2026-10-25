@@ -99,7 +99,7 @@
       <div class="field">
         <label for="invoice-client">Client name</label><input
           id="invoice-client"
-          placeholder="Alex Morgan"
+          placeholder="Priya Desai"
           bind:value={client}
           required />
       </div>

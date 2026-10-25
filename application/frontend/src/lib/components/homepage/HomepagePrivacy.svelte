@@ -74,7 +74,7 @@
 <style>
   .privacy {
     padding-block: 110px;
-    background: radial-gradient(ellipse at 20% 45%, #4338ca10, transparent 55%), #0b1020;
+    background: radial-gradient(ellipse at 20% 45%, #4338ca10, transparent 55%), #0b1121;
   }
   .privacy-layout {
     display: grid;

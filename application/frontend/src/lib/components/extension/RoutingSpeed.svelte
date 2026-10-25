@@ -98,10 +98,10 @@
 
 <style>
   .connection-speed {
-    color: #bae6fd;
+    color: #91c8b0;
   }
   .connection-speed.upload {
-    color: var(--accent-light);
+    color: #d2a0ae;
   }
   .speed-direction {
     stroke: currentColor;

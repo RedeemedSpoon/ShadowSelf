@@ -35,7 +35,8 @@
           <h3>Save the login</h3>
           <p>Store the website, username, password, and TOTP secret in this identity's account vault.</p>
           <div class="lifecycle-example vault-example">
-            <span>trailnotes.example</span><strong>santiago.routes</strong><code>Password saved · TOTP enabled</code>
+            <span>trailnotes.example</span><strong>Website credentials saved</strong><code
+              >Password saved · TOTP enabled</code>
           </div>
         </div>
       </li>
@@ -45,8 +46,7 @@
           <h3>Sign in next time</h3>
           <p>Choose the same identity, copy its saved login, and use its current two-factor code.</p>
           <div class="lifecycle-example return-example">
-            <span>trailnotes.example</span><strong>Signed in as santiago.routes</strong><code
-              >Same account, same identity</code>
+            <span>trailnotes.example</span><strong>Saved login selected</strong><code>Same account, same identity</code>
           </div>
         </div>
       </li>
@@ -57,7 +57,12 @@
 
 <style>
   .network-lifecycle {
-    background: #0b1021;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='white' opacity='.012' filter='url(%23grain)' d='M0 0h128v128H0z'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse at 72% 35%, #15152c 0%, #101428 42%, #0c1223 82%);
+    background-size:
+      128px 128px,
+      100% 100%;
     padding-block: 110px;
   }
   .lifecycle-heading h2 {

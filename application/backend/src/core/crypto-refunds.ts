@@ -45,16 +45,8 @@ export async function queueCryptoRefund(
 ) {
   const invoice = await identityCryptoRefund(id, owner, database);
 
-  if (!invoice) {
+  if (!invoice || !address) {
     return;
-  }
-
-  if (!address) {
-    throw new ApiError(
-      400,
-      'refund_address_required',
-      'A Monero refund address is required for this eligible crypto purchase',
-    );
   }
 
   await database`INSERT INTO crypto_refunds (invoice_id, owner, destination_encrypted)

@@ -33,7 +33,7 @@ export function listenForEmail(user: string, password: string, socketID: string)
             continue;
           }
 
-          const email = await parseEnvelope(message, 'INBOX');
+          const email = await parseEnvelope(message, 'Inbox');
 
           const socket = wsConnections.get(socketID);
 
@@ -78,7 +78,7 @@ export function listenForEmail(user: string, password: string, socketID: string)
       active.once('error', schedule);
 
       const mailbox = await new Promise<{uidnext: number; uidvalidity: number}>((resolve, reject) => {
-        active.imap.openBox('INBOX', (error, box) => (error ? reject(error) : resolve(box)));
+        active.imap.openBox('Inbox', (error, box) => (error ? reject(error) : resolve(box)));
       });
 
       if (lastUID === undefined) {
@@ -179,7 +179,7 @@ export function createMailReader(connect = imapConnection) {
     },
     reply(user: string, password: string, messageID: string) {
       return withConnection(user, password, async (connection) => {
-        for (const mailbox of ['INBOX', 'Sent'] as const) {
+        for (const mailbox of ['Inbox', 'Sent'] as const) {
           await connection.openBox(mailbox);
 
           const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {

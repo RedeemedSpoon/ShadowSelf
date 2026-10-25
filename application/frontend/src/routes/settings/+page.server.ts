@@ -44,10 +44,14 @@ export const actions: Actions = {
 
     return response;
   },
-  portal: async ({request, cookies}) => {
-    const currentPassword = (await request.formData()).get('currentPassword');
+  portal: async ({cookies}) => {
+    const response = await fetchBackend('/settings/billing-portal', 'POST', {}, cookies.get('token'));
 
-    return await fetchBackend('/settings/billing-portal', 'POST', {currentPassword}, cookies.get('token'));
+    if (response.type !== 'success' || !response.sessionUrl) {
+      return response;
+    }
+
+    redirect(303, response.sessionUrl);
   },
   email: async ({request, cookies}) => {
     const form = await request.formData();
@@ -195,20 +199,18 @@ export const actions: Actions = {
   payment: async ({request, cookies}) => {
     const form = await request.formData();
 
-    const payment = form.get('paymentID');
-
     const response = await fetchBackend(
       '/settings/payment',
       'POST',
-      {payment, currentPassword: form.get('currentPassword')},
+      {setupIntent: form.get('setupIntent')},
       cookies.get('token'),
     );
 
-    if (!response.sessionUrl) {
+    if (response.type !== 'success') {
       return response;
     }
 
-    return {sessionUrl: response.sessionUrl, message: 'Successfully added payment method', type: 'success'};
+    return {message: 'Payment card saved for future subscription payments.', type: 'success'};
   },
   session: async ({request, cookies}) => {
     const form = await request.formData();

@@ -137,7 +137,8 @@
     margin-top: 0;
   }
   figure {
-    margin: 45px 0;
+    width: 60%;
+    margin: 45px auto;
   }
   figure img {
     display: block;
@@ -150,5 +151,10 @@
     color: #8f9dbb;
     font-size: 12px;
     line-height: 1.7;
+  }
+  @media (max-width: 600px) {
+    figure {
+      width: 100%;
+    }
   }
 </style>

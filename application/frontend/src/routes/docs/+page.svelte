@@ -1,8 +1,9 @@
 <script lang="ts">
-  import {API_BASE_URL, SERVICE_GUIDES} from '$constant';
-  import {onMount, tick} from 'svelte';
+  import {API_BASE_URL, COPY_FEEDBACK_DURATION, SERVICE_GUIDES} from '$constant';
+  import {onDestroy, onMount, tick} from 'svelte';
   import {goto} from '$app/navigation';
   import Icon from '$component/ui/Icon.svelte';
+  import DocsCodeBlock from '$component/public/DocsCodeBlock.svelte';
   import ApiMethod from '$component/public/ApiMethod.svelte';
   import DocsSearch from '$component/public/DocsSearch.svelte';
   import CodeLanguageIcon from '$component/public/CodeLanguageIcon.svelte';
@@ -45,6 +46,9 @@ with urllib.request.urlopen(request) as response:
   let language = $state<keyof typeof samples>('curl');
   let copied = $state(false);
   let copyError = $state('');
+  let copyTimer: ReturnType<typeof setTimeout> | undefined;
+
+  onDestroy(() => clearTimeout(copyTimer));
 
   function animateEndpoint(node: HTMLDetailsElement) {
     const summary = node.querySelector('summary')!;
@@ -104,11 +108,10 @@ with urllib.request.urlopen(request) as response:
   }
 
   function highlightSearchResult(target: HTMLElement) {
-    const elements = [target];
-
-    if (target instanceof HTMLDetailsElement) {
-      elements.push(...target.querySelectorAll<HTMLElement>('summary, p, .endpoint-example, pre'));
-    }
+    const elements = [
+      target,
+      ...target.querySelectorAll<HTMLElement>('summary, p, .endpoint-example, .code-toolbar, pre'),
+    ];
 
     for (const element of elements) {
       const backgroundColor = getComputedStyle(element).backgroundColor;
@@ -118,16 +121,16 @@ with urllib.request.urlopen(request) as response:
         [
           {backgroundColor, boxShadow: 'inset 0 0 0 1px transparent'},
           {
-            backgroundColor: 'color-mix(in srgb, var(--feature-accent, var(--accent)) 20%, transparent)',
+            backgroundColor: `color-mix(in srgb, var(--feature-accent, var(--accent)) 12%, ${backgroundColor})`,
             boxShadow:
               element === target
-                ? 'inset 0 0 0 1px color-mix(in srgb, var(--feature-accent, var(--accent)) 50%, transparent)'
+                ? 'inset 0 0 0 1px color-mix(in srgb, var(--feature-accent, var(--accent)) 35%, transparent)'
                 : 'inset 0 0 0 1px transparent',
             offset: 0.45,
           },
           {backgroundColor, boxShadow: 'inset 0 0 0 1px transparent'},
         ],
-        {duration: 550, iterations: 2, easing: 'ease-in-out'},
+        {duration: 900, iterations: 2, easing: 'ease-in-out'},
       );
     }
   }
@@ -268,7 +271,13 @@ with urllib.request.urlopen(request) as response:
 
     try {
       await navigator.clipboard.writeText(samples[language]);
+
+      clearTimeout(copyTimer);
+
       copied = true;
+      copyTimer = setTimeout(() => {
+        copied = false;
+      }, COPY_FEEDBACK_DURATION);
     } catch {
       copyError = 'Copy failed. Select the code to copy it.';
     }
@@ -308,7 +317,7 @@ with urllib.request.urlopen(request) as response:
   {/snippet}
   <div class="docs-content" bind:this={content}>
     <section id="introduction">
-      <h2 class="section-title"><Icon name="code" size={21} />Use ShadowSelf from your own code</h2>
+      <h2 class="section-title"><Icon name="info" size={21} />Use ShadowSelf from your own code</h2>
       <p>
         An API lets a script or application work with a service by sending requests to it. The ShadowSelf API gives you
         another way to use your identities and their tools, alongside the dashboard and browser extension. You can read
@@ -357,6 +366,8 @@ with urllib.request.urlopen(request) as response:
                 data-language={item.id}
                 aria-pressed={language === item.id}
                 onclick={() => {
+                  clearTimeout(copyTimer);
+
                   language = item.id;
                   copied = false;
                   copyError = '';
@@ -380,12 +391,9 @@ with urllib.request.urlopen(request) as response:
         Errors use the HTTP status and a consistent JSON body. Read <code>error.code</code> for the machine-readable
         reason and <code>error.message</code> for the explanation.
       </p>
-      <pre class="error-example"><code
-          >{JSON.stringify(
-            {error: {code: 'unauthenticated', message: 'Authentication required'}},
-            null,
-            2,
-          )}</code></pre>
+      <DocsCodeBlock
+        label="Error response"
+        text={JSON.stringify({error: {code: 'unauthenticated', message: 'Authentication required'}}, null, 2)} />
       <div class="status-list">
         <div>
           <code class="status-code">400</code><span>Invalid request. Correct the input before retrying.</span>
@@ -458,9 +466,13 @@ with urllib.request.urlopen(request) as response:
           <p>
             Connect to receive live identity events. The connection authenticates your credentials and periodically
             rechecks access. Send <code>ping</code> to receive <code>pong</code>. After reconnecting, fetch the current
-            mailbox and conversations to recover events missed while disconnected.
+            mailbox to recover events missed while disconnected. SMS events are planned.
           </p>
         {/if}
+        {#if group.id === 'phone'}<p>
+            Phone endpoints return <code>503 provider_unavailable</code> until a phone provider is configured. The examples
+            below describe the provider contract.
+          </p>{/if}
         {#if group.guide}
           {@const guide = SERVICE_GUIDES[group.guide]}
           <div class="service-guide">
@@ -486,19 +498,36 @@ with urllib.request.urlopen(request) as response:
                     class="expand"
                     aria-hidden="true">+</span
                   ></summary>
-                <p>{endpoint.detail}</p>
+                <p class="endpoint-description">
+                  {#each endpoint.detail.split('`') as part, partIndex (partIndex)}{#if partIndex % 2}<code>{part}</code
+                      >{:else}{part}{/if}{/each}
+                </p>
+                {#if !endpoint.query && endpoint.method !== 'WS'}<p class="request-note">
+                    {endpoint.request
+                      ? 'Send the JSON body below.'
+                      : endpoint.method === 'GET'
+                        ? 'No request body or query parameters.'
+                        : 'No request body required.'}
+                  </p>{/if}
                 {#if endpoint.query}<div class="endpoint-example">
-                    <h3>Query example</h3>
-                    <pre><code>{endpoint.query}</code></pre>
+                    <DocsCodeBlock label="Query example" text={endpoint.query} />
                   </div>{/if}
                 {#if endpoint.request}<div class="endpoint-example">
-                    <h3>JSON request</h3>
-                    <pre><code>{JSON.stringify(endpoint.request, null, 2)}</code></pre>
+                    <DocsCodeBlock label="JSON request" text={JSON.stringify(endpoint.request, null, 2)} />
                   </div>{/if}
-                {#if endpoint.response}<div class="endpoint-example">
-                    <h3>Success response example</h3>
-                    <pre><code>{JSON.stringify(endpoint.response, null, 2)}</code></pre>
-                  </div>{/if}
+                <div class="endpoint-example">
+                  <DocsCodeBlock
+                    label={endpoint.method === 'WS'
+                      ? 'Incoming email event · JSON text frame'
+                      : 'Success response · HTTP 200'}
+                    text={JSON.stringify(endpoint.response, null, 2)} />
+                </div>
+                {#if endpoint.method === 'WS'}
+                  <p class="endpoint-description">
+                    Send <code>ping</code> as a text frame to check the connection. The reply is plain text, so handle it
+                    before parsing JSON events.
+                  </p>
+                {/if}
               </details>{/each}
           </div>{/if}
       </section>{/each}
@@ -654,9 +683,9 @@ with urllib.request.urlopen(request) as response:
   pre {
     overflow-x: auto;
     margin: 0;
-    padding: 25px;
+    padding: 18px;
     line-height: 1.8;
-    background: #0a1020;
+    background: #080d1b;
     tab-size: 2;
   }
   pre code {
@@ -664,7 +693,7 @@ with urllib.request.urlopen(request) as response:
     white-space: pre;
   }
   .code-window {
-    border: 1px solid color-mix(in srgb, var(--accent-light) 18.82%, transparent);
+    border: 1px solid var(--line);
     border-radius: 8px;
     overflow: hidden;
   }
@@ -673,8 +702,8 @@ with urllib.request.urlopen(request) as response:
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    padding: 8px;
-    background: #151c33;
+    padding: 8px 12px;
+    background: #101728;
   }
   .code-toolbar > div {
     display: flex;
@@ -716,6 +745,15 @@ with urllib.request.urlopen(request) as response:
   }
   .copy-button {
     flex-shrink: 0;
+    color: #9eacc9;
+  }
+  .copy-button:hover {
+    color: #dce3f7;
+    background: var(--neutral-hover);
+  }
+  .copy-button:active {
+    color: #c0cbe0;
+    background: var(--neutral-pressed);
   }
   .copy-button :global(svg) {
     color: currentColor;
@@ -728,10 +766,6 @@ with urllib.request.urlopen(request) as response:
     color: #fbbf24;
     font-size: 11px !important;
     margin-top: 10px !important;
-  }
-  .error-example {
-    border: 1px solid color-mix(in srgb, var(--accent-light) 14.51%, transparent);
-    border-radius: 7px;
   }
   .status-list {
     display: grid;
@@ -746,6 +780,9 @@ with urllib.request.urlopen(request) as response:
     padding: 12px 0;
     font-size: 12px;
     line-height: 1.7;
+  }
+  .status-list > div:last-child {
+    border-bottom: 0;
   }
   .endpoints details[data-feature] {
     border-left: 2px solid var(--feature-accent);
@@ -784,7 +821,7 @@ with urllib.request.urlopen(request) as response:
     list-style: none;
     padding: 17px;
     cursor: pointer;
-    background: color-mix(in srgb, var(--accent-light) 1.57%, transparent);
+    background: #0a1020;
   }
   summary::-webkit-details-marker {
     display: none;
@@ -829,29 +866,24 @@ with urllib.request.urlopen(request) as response:
   details:global([data-expanded='true']) .expand {
     transform: rotate(45deg);
   }
-  details > p {
+  .endpoint-description {
     margin: 0 !important;
     padding: 18px;
-    background: #090f2090;
-    font:
-      11px 'Fira Code Variable',
-      monospace;
+    background: #080e1d;
+    font-size: 12px;
+    line-height: 1.9;
     overflow-wrap: anywhere;
   }
   .endpoint-example {
     padding: 0 18px 18px;
-    background: #090f2090;
+    background: #080e1d;
   }
-  .endpoint-example h3 {
-    margin: 0 0 10px;
-    font-size: 10px;
-    font-weight: 500;
+  .request-note {
+    margin: 0 !important;
+    padding: 0 18px 18px;
     color: #97a8c6;
-  }
-  .endpoint-example pre {
-    border: 1px solid color-mix(in srgb, var(--accent-light) 9.41%, transparent);
-    border-radius: 5px;
-    padding: 14px;
+    font-size: 11px !important;
+    background: #080e1d;
   }
   .docs-footnote {
     margin-top: 35px !important;

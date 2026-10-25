@@ -183,7 +183,7 @@
 <style>
   .purpose {
     padding-block: 110px 55px;
-    background: radial-gradient(ellipse at 80% 35%, #4f46e510, transparent 60%), #090f20;
+    background: radial-gradient(ellipse at 80% 35%, #4f46e510, transparent 60%), #0b1122;
   }
   .purpose-layout {
     display: grid;

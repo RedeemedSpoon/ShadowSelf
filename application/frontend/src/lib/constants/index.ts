@@ -2,6 +2,7 @@ import {PUBLIC_APP_ORIGIN, PUBLIC_ONION_ORIGIN, PUBLIC_MAIL_DOMAIN} from '$env/s
 
 export const APP_ORIGIN = PUBLIC_APP_ORIGIN;
 export const API_BASE_URL = 'https://shadowself.io/api';
+export const COPY_FEEDBACK_DURATION = 2000;
 export const API_METHOD_COLORS: Record<string, string> = {
   GET: '#72b5a0',
   POST: '#86a9d2',

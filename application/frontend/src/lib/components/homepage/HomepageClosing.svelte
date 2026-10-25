@@ -33,7 +33,7 @@
     display: grid;
     place-items: center;
     padding-block: 65px;
-    background: linear-gradient(#0b1020, #090e23 35%);
+    background: linear-gradient(#0a0f20, #090e23 65%);
     isolation: isolate;
   }
   .spectrum-close h2 {

@@ -515,7 +515,7 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
           return {err: 'Mailbox must be a string'} as APIRequest;
         }
 
-        if (!['INBOX', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
+        if (!['Inbox', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
           return {err: 'Non-existent mailbox, please try again'} as APIRequest;
         }
 

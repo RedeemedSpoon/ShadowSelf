@@ -14,7 +14,7 @@ function location(value: unknown) {
   const mailbox = body?.mailbox;
   const uid = typeof body?.uid === 'string' ? Number(body.uid) : body?.uid;
 
-  if (!['INBOX', 'Sent', 'Drafts', 'Junk'].includes(String(mailbox)) || !Number.isSafeInteger(uid) || Number(uid) < 1) {
+  if (!['Inbox', 'Sent', 'Drafts', 'Junk'].includes(String(mailbox)) || !Number.isSafeInteger(uid) || Number(uid) < 1) {
     return null;
   }
 
@@ -34,7 +34,7 @@ export default new Elysia({prefix: '/api/identities/:id/mail'})
       const before = query.before === undefined ? undefined : Number(query.before);
 
       if (
-        !['INBOX', 'Sent', 'Drafts', 'Junk'].includes(mailbox || '') ||
+        !['Inbox', 'Sent', 'Drafts', 'Junk'].includes(mailbox || '') ||
         (before !== undefined && (!Number.isSafeInteger(before) || before < 1))
       ) {
         return error(set, 400, 'Invalid mailbox or cursor');
