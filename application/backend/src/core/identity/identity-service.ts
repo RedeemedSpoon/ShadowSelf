@@ -1,5 +1,5 @@
 import {ApiError} from '@core/security';
-import {queueCryptoRefund, validateRefundAddress} from '@core/crypto-refunds';
+import {queueCryptoRefund, validateRefundAddress} from '@core/billing/crypto-refunds';
 import {REFUND_WINDOW_MS} from '@core/constants';
 import {withReservedTransaction} from '@utils/utils';
 import {sql} from '@core/services';

@@ -1,14 +1,25 @@
-import {env} from '$env/dynamic/private';
+import {reportFailure} from '$logging';
 import {ONION_URL, BILLING_RECEIPT_PATH_PATTERN} from '$constant';
 import {createRequestLimiter} from '$lib/request-limits.server';
-import {error, redirect, type Handle} from '@sveltejs/kit';
-import {sequence} from '@sveltejs/kit/hooks';
+import {error, json, redirect, text, type Handle, type HandleServerError} from '@sveltejs/kit';
 import {backend} from '$lib/backend.server';
-import csrf from '$utils/csrf';
 
 const limitRequest = createRequestLimiter();
 
-const authenticate: Handle = async ({event, resolve}) => {
+export const handle: Handle = async ({event, resolve}) => {
+  const {request, url} = event;
+  const apiRequest = url.pathname === '/api' || url.pathname.startsWith('/api/');
+
+  if (!apiRequest && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+    if (request.headers.get('origin') !== url.origin) {
+      const message = `Cross-site ${request.method} form submissions are forbidden`;
+
+      return request.headers.get('accept') === 'application/json'
+        ? json({message}, {status: 403})
+        : text(message, {status: 403});
+    }
+  }
+
   const mutation = !['GET', 'HEAD', 'OPTIONS'].includes(event.request.method);
   const sensitive =
     mutation &&
@@ -26,17 +37,7 @@ const authenticate: Handle = async ({event, resolve}) => {
     );
   }
 
-  if (env.PURCHASE_REVIEW === 'true') {
-    if (event.url.pathname.startsWith('/api/')) {
-      error(403, 'API requests are disabled in the purchase review copy.');
-    }
-
-    if (event.url.pathname === '/' || event.url.pathname === '/purchase') {
-      redirect(303, '/purchase-review');
-    }
-  }
-
-  const token = env.PURCHASE_REVIEW === 'true' ? undefined : event.cookies.get('token');
+  const token = event.cookies.get('token');
   const path = event.url.pathname;
   const receiptPage = BILLING_RECEIPT_PATH_PATTERN.test(path);
   const receiptRequest = receiptPage || path.startsWith('/api/billing/receipts/');
@@ -91,4 +92,8 @@ const authenticate: Handle = async ({event, resolve}) => {
   return response;
 };
 
-export const handle = sequence(csrf([]), authenticate);
+export const handleError: HandleServerError = ({error: failure, event, status}) => {
+  reportFailure(`Frontend ${event.request.method} ${event.route.id || '/unknown'} (HTTP ${status})`, failure);
+
+  return {message: 'The page could not be loaded. Please try again.'};
+};

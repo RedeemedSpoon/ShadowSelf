@@ -88,7 +88,7 @@ The selected browser archive is extracted before loading it. Chromium browsers u
 
 Billing, provider integrations, and service administration are maintained specifically for ShadowSelf. These areas are published for reference and are not general contribution targets.
 
-<img src="./application/frontend/src/lib/images/visuals/system-design.webp" alt="ShadowSelf system design" width="100%">
+<img src="./application/frontend/src/lib/images/system-design.webp" alt="ShadowSelf system design" width="100%">
 
 ## Contributing
 

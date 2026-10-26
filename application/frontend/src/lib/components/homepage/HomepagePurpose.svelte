@@ -2,7 +2,6 @@
   import {onMount} from 'svelte';
   import {HOMEPAGE_SERVICES, HOMEPAGE_DEMO_PROFILES} from '$constant';
   import Icon from '$component/ui/Icon.svelte';
-  import portraits from '$image/homepage/profile-pictures/persona-profiles.webp';
 
   let profileIndex = $state(0);
   let outgoing = $state<number | null>(null);
@@ -88,13 +87,13 @@
               style:z-index={HOMEPAGE_DEMO_PROFILES.length - depth}
               aria-hidden={depth !== 0}>
               <div class="profile-person">
-                <div
+                <img
                   class="profile-portrait"
-                  role="img"
-                  aria-label={`Fictional portrait of ${profile.name}`}
-                  style:background-image={`url(${portraits})`}
-                  style:background-position={profile.position}>
-                </div>
+                  src={profile.picture}
+                  alt={`Fictional portrait of ${profile.name}`}
+                  width="64"
+                  height="64"
+                  loading="lazy" />
                 <strong>{profile.name}</strong>
                 <span>{profile.location}</span>
               </div>
@@ -341,7 +340,7 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background-size: 300% 200%;
+    object-fit: cover;
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-strong) 10.2%, transparent);
   }
   .profile-person strong {

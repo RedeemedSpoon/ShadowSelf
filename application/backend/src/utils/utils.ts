@@ -3,22 +3,6 @@ import type {ReservedSql} from 'postgres';
 import {ApiError} from '@core/security';
 import {SWAP_NETWORKS} from '@core/constants';
 
-export function reportFailure(operation: string, failure: unknown) {
-  const details = failure as {code?: unknown; status?: unknown; name?: unknown} | null;
-  const providerCode =
-    typeof details?.code === 'string' && /^(?:[0-9A-Z]{5}|ECONNREFUSED|ECONNRESET|ETIMEDOUT)$/.test(details.code)
-      ? details.code
-      : undefined;
-  const category =
-    failure instanceof ApiError
-      ? failure.code
-      : providerCode || (failure instanceof Error ? failure.name : 'UnknownError');
-  const status =
-    typeof details?.status === 'number' && details.status >= 400 && details.status < 600 ? details.status : undefined;
-
-  console.error('Operation failed', {operation, category, status});
-}
-
 export function error(set: {[key: string]: unknown}, status: number, message: string) {
   set.status = status;
 
@@ -37,16 +21,6 @@ export function error(set: {[key: string]: unknown}, status: number, message: st
   };
 
   return {error: {code: codes[status] || 'request_failed', message}};
-}
-
-export async function providerJson(url: string, options?: RequestInit, fetcher: typeof fetch = fetch): Promise<any> {
-  const response = await fetcher(url, {...options, signal: options?.signal || AbortSignal.timeout(15_000)});
-
-  if (!response.ok) {
-    throw new Error('The provider request failed');
-  }
-
-  return await response.json();
 }
 
 export function toTitleCase(str: string) {

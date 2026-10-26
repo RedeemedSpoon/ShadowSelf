@@ -50,7 +50,9 @@
   <div>
     <h1>Identities</h1>
   </div>
-  <a class="control-button primary" href="/purchase"><Icon name="plus" size={17} />New identity</a>
+  {#if data.billingEnabled}<a class="control-button primary" href="/purchase"
+      ><Icon name="plus" size={17} />New identity</a
+    >{/if}
 </div>
 {#if data.recoveryRemaining === 0 && !recoveryDismissed}<Status
     message="No recovery codes remain. Generate new codes in account settings."
@@ -63,7 +65,9 @@
 {:else if !data.identities.length}<div class="empty-state">
     <Icon name="identities" size={42} />
     <h2>No identities</h2>
-    <a class="control-button primary" href="/purchase"><Icon name="plus" size={17} />Create an identity</a>
+    {#if data.billingEnabled}<a class="control-button primary" href="/purchase"
+        ><Icon name="plus" size={17} />Create an identity</a
+      >{:else}<p>New identity purchases are currently disabled.</p>{/if}
   </div>
 {:else}
   <div class="identity-toolbar">

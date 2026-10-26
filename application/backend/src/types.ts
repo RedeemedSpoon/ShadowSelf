@@ -11,7 +11,6 @@ export interface WSConnection {
   websocket: ElysiaWS;
   authorize: () => Promise<boolean>;
   authTimer: ReturnType<typeof setInterval>;
-  phoneNumber: string;
   emailAddress: string;
 }
 
@@ -51,12 +50,8 @@ export interface BodyField {
   access: string;
   username: string;
   password: string;
-  subscription: string;
-  intent: string;
-  payment: string;
   secret: string;
   token: string;
-  id: string;
   err: string;
 }
 
@@ -178,12 +173,8 @@ export interface APIRequest {
   password: string;
   website: string;
   totp: string | null;
-  algorithm: string;
   uid: number;
-  uuid: string;
   mailbox: string;
-  since: number;
-  from: number;
   draft: number;
   forward: string;
   accounts: {
@@ -206,10 +197,6 @@ export interface APIRequest {
     viewKey: string;
     spendKey: string;
   };
-  btc: string;
-  ltc: string;
-  evm: string;
-  xmr: string;
   coin: CryptoCurrencies;
   addresses: string[];
   coinTo: CryptoCurrencies;

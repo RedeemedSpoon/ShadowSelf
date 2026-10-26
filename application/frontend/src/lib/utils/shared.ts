@@ -2,9 +2,9 @@ import DOMPurify from 'dompurify';
 import type {Cookies} from '@sveltejs/kit';
 import type {Attachment} from '$type';
 
-export function createCookie(cookies: Cookies, name: string, value: string, short = false, secure = true) {
-  const maxAge = short ? 3600 : 90 * 24 * 3600;
-  cookies.set(name, value, {path: '/', httpOnly: true, secure, sameSite: 'strict', maxAge});
+export function createCookie(cookies: Cookies, name: string, value: string) {
+  const maxAge = 90 * 24 * 3600;
+  cookies.set(name, value, {path: '/', httpOnly: true, secure: true, sameSite: 'strict', maxAge});
 }
 
 export function base64ToBlob(base64: string, type = 'image/png') {

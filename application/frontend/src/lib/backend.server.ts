@@ -1,3 +1,4 @@
+import {log, reportFailure} from '$logging';
 import {env} from '$env/dynamic/private';
 import type {ApiResult} from '$type';
 
@@ -18,6 +19,13 @@ export async function backend<T = Record<string, unknown>>(
     const data = await response.json();
 
     if (!response.ok) {
+      if (response.status >= 500 && !['provider_unavailable', 'billing_disabled'].includes(data.error?.code)) {
+        log(
+          'error',
+          `Frontend API ${method} ${path.split('?')[0]}: HTTP ${response.status}; ${data.error?.message || 'Request failed'}`,
+        );
+      }
+
       return {
         ok: false,
         error: data.error?.message || 'Request failed',
@@ -27,7 +35,9 @@ export async function backend<T = Record<string, unknown>>(
     }
 
     return {ok: true, data};
-  } catch {
+  } catch (failure) {
+    reportFailure(`Frontend API ${method} ${path.split('?')[0]}`, failure);
+
     return {
       ok: false,
       error: 'The service could not be reached. Please try again.',

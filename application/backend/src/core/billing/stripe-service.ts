@@ -1,10 +1,11 @@
+import {log, reportFailure} from '@logging';
 import {origin} from '@core/config';
-import {recordStripeLifetimeReceipt, recordStripeInvoiceReceipt} from '@core/billing-receipts';
+import {recordStripeLifetimeReceipt, recordStripeInvoiceReceipt} from '@core/billing/billing-receipts';
 import {BILLING_CURRENCY, PRICING_TIERS, STRIPE_EVENT_TYPES, STRIPE_EVENT_RETENTION_DAYS} from '@core/constants';
-import {repairStripeCleanup} from '@core/stripe-cleanup';
+import {repairStripeCleanup} from '@core/billing/stripe-cleanup';
 import {sql, stripe} from '@core/services';
-import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/swap-provider';
-import {withAccountLock, removeIdentityRecords} from '@core/identity-service';
+import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/providers/swap-provider';
+import {withAccountLock, removeIdentityRecords} from '@core/identity/identity-service';
 import type {QueryIdentity, StripeEventReference} from '@type';
 import type Stripe from 'stripe';
 import type {TransactionSql, ReservedSql} from 'postgres';
@@ -467,7 +468,7 @@ async function reconcileBilling() {
 
     for (const intent of intents) {
       if (!intent.stripe_customer) {
-        console.error(`Payment request ${intent.id} has no billing customer; manual review required`);
+        log('error', `Payment request ${intent.id} has no billing customer; manual review required`);
         continue;
       }
 
@@ -500,7 +501,8 @@ async function reconcileBilling() {
       }
 
       if (matches.length !== 1) {
-        console.error(
+        log(
+          'error',
           `Payment request ${intent.id} requires manual review; found ${matches.length} matching provider objects`,
         );
       }
@@ -511,7 +513,7 @@ async function reconcileBilling() {
     const blocked = await sql`SELECT id, error_code FROM stripe_cleanup WHERE retry_at IS NULL`;
 
     for (const job of blocked) {
-      console.error(`Stripe cleanup ${job.id} needs attention: ${job.error_code}`);
+      log('error', `Stripe cleanup ${job.id} needs attention: ${job.error_code}`);
     }
 
     if (blocked.length) {
@@ -526,8 +528,8 @@ async function reconcileBilling() {
 }
 
 if (import.meta.main) {
-  void reconcileBilling().catch((error) => {
-    console.error(error instanceof Error ? error.message : 'Billing reconciliation failed');
+  void reconcileBilling().catch((failure) => {
+    reportFailure('Billing reconciliation', failure);
     process.exitCode = 1;
   });
 }

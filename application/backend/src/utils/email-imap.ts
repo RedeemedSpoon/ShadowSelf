@@ -112,24 +112,25 @@ export function listenForEmail(user: string, password: string, socketID: string)
   };
 }
 
-export function createMailReader(connect = imapConnection) {
-  async function withConnection<T>(
-    user: string,
-    password: string,
-    action: (connection: imap.ImapSimple) => Promise<T>,
-  ) {
-    const connection = await connect(user, password);
+async function withImapConnection<T>(
+  user: string,
+  password: string,
+  action: (connection: imap.ImapSimple) => Promise<T>,
+  connect = imapConnection,
+) {
+  const connection = await connect(user, password);
 
-    try {
-      return await action(connection);
-    } finally {
-      connection.end();
-    }
+  try {
+    return await action(connection);
+  } finally {
+    connection.end();
   }
+}
 
+export function createMailReader(connect = imapConnection) {
   return {
     list(user: string, password: string, mailbox: Mailbox, before?: number) {
-      return withConnection(user, password, (connection) => listMailbox(connection, mailbox, before));
+      return withImapConnection(user, password, (connection) => listMailbox(connection, mailbox, before), connect);
     },
     message(
       user: string,
@@ -139,142 +140,156 @@ export function createMailReader(connect = imapConnection) {
       markRead = true,
       includeAttachments = false,
     ) {
-      return withConnection(user, password, async (connection) => {
-        await connection.openBox(mailbox);
-
-        const messages = await connection.search([['UID', uid]], {bodies: ['HEADER'], struct: true, markSeen: false});
-        const message = messages.find((message) => message.attributes.uid === uid);
-
-        if (!message) {
-          return null;
-        }
-
-        const email = await parseMessage(connection, message, mailbox, includeAttachments);
-
-        if (markRead && !email.read) {
-          await connection.addFlags(uid, ['\\Seen']);
-          email.read = true;
-        }
-
-        return email;
-      });
-    },
-    attachment(user: string, password: string, mailbox: Mailbox, uid: number, index: number) {
-      return withConnection(user, password, async (connection) => {
-        await connection.openBox(mailbox);
-
-        const messages = await connection.search([['UID', uid]], {bodies: ['HEADER'], struct: true, markSeen: false});
-        const message = messages.find((message) => message.attributes.uid === uid);
-        const part = message && attachmentParts(message)[index];
-
-        if (!message || !part) {
-          return null;
-        }
-
-        return {
-          ...attachmentMetadata(part, index),
-          data: Buffer.from(await connection.getPartData(message, part)).toString('base64'),
-        };
-      });
-    },
-    reply(user: string, password: string, messageID: string) {
-      return withConnection(user, password, async (connection) => {
-        for (const mailbox of ['Inbox', 'Sent'] as const) {
+      return withImapConnection(
+        user,
+        password,
+        async (connection) => {
           await connection.openBox(mailbox);
 
-          const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
-            bodies: ['HEADER'],
-            struct: true,
-            markSeen: false,
-          });
+          const messages = await connection.search([['UID', uid]], {bodies: ['HEADER'], struct: true, markSeen: false});
+          const message = messages.find((message) => message.attributes.uid === uid);
 
-          for (const message of messages) {
-            const email = await parseMessage(connection, message, mailbox);
+          if (!message) {
+            return null;
+          }
 
-            if (email.messageID === messageID) {
-              return email;
+          const email = await parseMessage(connection, message, mailbox, includeAttachments);
+
+          if (markRead && !email.read) {
+            await connection.addFlags(uid, ['\\Seen']);
+            email.read = true;
+          }
+
+          return email;
+        },
+        connect,
+      );
+    },
+    attachment(user: string, password: string, mailbox: Mailbox, uid: number, index: number) {
+      return withImapConnection(
+        user,
+        password,
+        async (connection) => {
+          await connection.openBox(mailbox);
+
+          const messages = await connection.search([['UID', uid]], {bodies: ['HEADER'], struct: true, markSeen: false});
+          const message = messages.find((message) => message.attributes.uid === uid);
+          const part = message && attachmentParts(message)[index];
+
+          if (!message || !part) {
+            return null;
+          }
+
+          return {
+            ...attachmentMetadata(part, index),
+            data: Buffer.from(await connection.getPartData(message, part)).toString('base64'),
+          };
+        },
+        connect,
+      );
+    },
+    reply(user: string, password: string, messageID: string) {
+      return withImapConnection(
+        user,
+        password,
+        async (connection) => {
+          for (const mailbox of ['Inbox', 'Sent'] as const) {
+            await connection.openBox(mailbox);
+
+            const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+              bodies: ['HEADER'],
+              struct: true,
+              markSeen: false,
+            });
+
+            for (const message of messages) {
+              const email = await parseMessage(connection, message, mailbox);
+
+              if (email.messageID === messageID) {
+                return email;
+              }
             }
           }
-        }
 
-        return null;
-      });
+          return null;
+        },
+        connect,
+      );
     },
   };
 }
 
 export const mailReader = createMailReader();
 
-export async function appendToMailbox(asDraft: boolean, content: EmailContent, connect = imapConnection) {
-  const connection = await connect(content.email, content.password);
+export function appendToMailbox(asDraft: boolean, content: EmailContent, connect = imapConnection) {
+  return withImapConnection(
+    content.email,
+    content.password,
+    async (connection) => {
+      await connection.openBox(asDraft ? 'Drafts' : 'Sent');
 
-  try {
-    await connection.openBox(asDraft ? 'Drafts' : 'Sent');
+      const date = content.date || new Date();
+      const messageID = content.messageID || `<${randomUUID()}@${content.email.split('@')[1]}>`;
+      const type = content.type;
 
-    const date = content.date || new Date();
-    const messageID = content.messageID || `<${randomUUID()}@${content.email.split('@')[1]}>`;
-    const type = content.type;
+      if (!asDraft) {
+        const existing = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+          bodies: ['HEADER.FIELDS (MESSAGE-ID)'],
+          markSeen: false,
+        });
 
-    if (!asDraft) {
-      const existing = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
-        bodies: ['HEADER.FIELDS (MESSAGE-ID)'],
-        markSeen: false,
-      });
-
-      for (const message of existing) {
-        if ((await parseEnvelope(message, 'Sent')).messageID === messageID) {
-          return {uid: message.attributes.uid, date, messageID, type};
+        for (const message of existing) {
+          if ((await parseEnvelope(message, 'Sent')).messageID === messageID) {
+            return {uid: message.attributes.uid, date, messageID, type};
+          }
         }
       }
-    }
 
-    const attachments = (content.attachments || []).map((attachment) => ({
-      filename: attachment.filename,
-      contentType: attachment.contentType,
-      cid: attachment.cid,
-      content: attachment.data,
-      encoding: 'base64',
-    }));
-    const mail = new MailComposer({
-      messageId: messageID,
-      from: content.email,
-      to: content.to,
-      subject: content.subject,
-      ...(type === 'html' ? {html: content.body} : {text: content.body}),
-      references: content.references,
-      inReplyTo: content.inReplyTo,
-      attachments,
-      date,
-    });
+      const attachments = (content.attachments || []).map((attachment) => ({
+        filename: attachment.filename,
+        contentType: attachment.contentType,
+        cid: attachment.cid,
+        content: attachment.data,
+        encoding: 'base64',
+      }));
+      const mail = new MailComposer({
+        messageId: messageID,
+        from: content.email,
+        to: content.to,
+        subject: content.subject,
+        ...(type === 'html' ? {html: content.body} : {text: content.body}),
+        references: content.references,
+        inReplyTo: content.inReplyTo,
+        attachments,
+        date,
+      });
 
-    const existing = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
-      bodies: ['HEADER.FIELDS (MESSAGE-ID)'],
-    });
+      const existing = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+        bodies: ['HEADER.FIELDS (MESSAGE-ID)'],
+      });
 
-    if (existing.length) {
-      return {uid: existing[0].attributes.uid, date, messageID, type};
-    }
+      if (existing.length) {
+        return {uid: existing[0].attributes.uid, date, messageID, type};
+      }
 
-    await connection.append(await mail.compile().build(), {flags: asDraft ? ['\\Seen', '\\Draft'] : ['\\Seen']});
+      await connection.append(await mail.compile().build(), {flags: asDraft ? ['\\Seen', '\\Draft'] : ['\\Seen']});
 
-    const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
-      bodies: ['HEADER.FIELDS (MESSAGE-ID)'],
-    });
+      const messages = await connection.search([['HEADER', 'MESSAGE-ID', messageID]], {
+        bodies: ['HEADER.FIELDS (MESSAGE-ID)'],
+      });
 
-    if (!messages[0]) {
-      throw new Error('Saved message could not be located');
-    }
+      if (!messages[0]) {
+        throw new Error('Saved message could not be located');
+      }
 
-    return {uid: messages[0].attributes.uid, date, messageID, type};
-  } finally {
-    connection.end();
-  }
+      return {uid: messages[0].attributes.uid, date, messageID, type};
+    },
+    connect,
+  );
 }
 
-export async function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
-  const connection = await imapConnection(user, password);
-
-  try {
+export function deleteEmail(user: string, password: string, mailbox: string, uid: number) {
+  return withImapConnection(user, password, async (connection) => {
     await connection.openBox(mailbox);
 
     if (mailbox === 'Junk') {
@@ -282,9 +297,7 @@ export async function deleteEmail(user: string, password: string, mailbox: strin
     } else {
       await connection.moveMessage(uid.toString(), 'Junk');
     }
-  } finally {
-    connection.end();
-  }
+  });
 }
 
 async function searchIDs(connection: imap.ImapSimple, criteria: any[]) {

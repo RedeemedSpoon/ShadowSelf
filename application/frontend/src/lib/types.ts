@@ -155,7 +155,6 @@ export interface Account {
   password: string;
   website: string | null;
   totp: string | null;
-  algorithm: string | null;
 }
 
 export type CryptoFees = {
@@ -480,32 +479,6 @@ export interface AppNotice {
   ondismiss: () => void;
 }
 
-export type PurchaseReviewStage =
-  | 'choose'
-  | 'card'
-  | 'declined'
-  | 'loading'
-  | 'setup-error'
-  | 'processing'
-  | 'authentication'
-  | 'authentication-failed'
-  | 'network-error'
-  | 'complete'
-  | 'identity'
-  | 'confirmation'
-  | 'invoice-error'
-  | 'invalid-refund'
-  | InvoiceStatus;
-
-export interface PurchaseReviewCase {
-  id: string;
-  label: string;
-  group: string;
-  method: 'card' | 'crypto';
-  stage: PurchaseReviewStage;
-  scenario?: 'saved' | 'renewal';
-}
-
 export interface PurchaseDraft {
   plan: 'monthly' | 'annually' | 'lifetime';
   method: 'card' | 'crypto';
@@ -516,7 +489,6 @@ export interface PurchaseDraft {
   cardStarted?: boolean;
   invoiceRequested?: boolean;
   paidIdentity?: string;
-  stage?: PurchaseReviewStage;
 }
 
 export interface BillingReceiptDetails {

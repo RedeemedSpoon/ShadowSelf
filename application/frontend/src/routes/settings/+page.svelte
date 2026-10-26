@@ -17,7 +17,7 @@
   let pending = $state('');
   let mode = $state('');
   let email = $state('');
-  let totp = $state({secret: '', qr: '', step: 0});
+  let totp = $state({secret: '', qr: ''});
   let recovery = $state<string[]>([]);
   let savedRecovery = $state(false);
   let key = $state('');
@@ -80,7 +80,7 @@
     }
 
     if (response?.secret || response?.qr) {
-      totp = {secret: response.secret || '', qr: response.qr || '', step: Number(response.step || 1)};
+      totp = {secret: response.secret || '', qr: response.qr || ''};
     }
 
     recovery = response?.recovery || [];
@@ -106,7 +106,7 @@
 
   function close() {
     mode = '';
-    totp = {secret: '', qr: '', step: 0};
+    totp = {secret: '', qr: ''};
     key = '';
     recovery = [];
     savedRecovery = false;

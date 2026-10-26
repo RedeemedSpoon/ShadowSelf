@@ -15,11 +15,13 @@
     user,
     identities,
     identitiesError,
+    billingEnabled,
     children,
   }: {
     user: string;
     identities: Identity[];
     identitiesError: string;
+    billingEnabled: boolean;
     children: Snippet;
   } = $props();
   let identitiesOpen = $state(true);
@@ -175,7 +177,7 @@
                 <span>{identity.name || '[SETUP PENDING]'}</span>
               </a>
             {:else}
-              {#if !identitiesError}<a class="identity-shortcut" href="/purchase"
+              {#if !identitiesError && billingEnabled}<a class="identity-shortcut" href="/purchase"
                   ><Icon name="plus" size={14} />Create an identity</a
                 >{/if}
             {/each}

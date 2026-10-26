@@ -9,8 +9,6 @@
     "check": "bun run --cwd application/frontend check && bun run --cwd application/backend check",
     "build": "bun run --cwd application/frontend build && bun run --cwd application/backend build",
     "verify": "bun run lint && bun run check && bun run build",
-    "review:sync": "bash .scripts/sync-purchase-review.sh",
-    "review:dev": "bun run review:sync && bun run --cwd ../ShadowSelf-purchase-review/application/frontend dev --port 5001",
     "package:extension": "bash .scripts/pack-extension.sh",
     "audit": "bun audit --audit-level=moderate && (cd application/backend && bun audit --audit-level=moderate) && (cd application/frontend && bun audit --audit-level=moderate)"
   },

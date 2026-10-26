@@ -1,21 +1,19 @@
-import {IDENTITY_CREATION_AVAILABLE} from '@core/constants';
-import {createBillingCustomer} from '@core/stripe-service';
-import {withAccountLock} from '@core/identity-service';
+import {createBillingCustomer} from '@core/billing/stripe-service';
+import {withAccountLock} from '@core/identity/identity-service';
 import middlewareBase from '@middlewares/middleware-base';
 import {generateIdentityID} from '@utils/cryptography';
 import {sql, stripe} from '@core/services';
-import {stripeConfig, origin} from '@core/config';
+import {stripeConfig, origin, billingEnabled} from '@core/config';
 import {PRICING_TIERS, BILLING_CURRENCY, UUID_PATTERN} from '@core/constants';
 import {error, toTitleCase} from '@utils/utils';
 import type Stripe from 'stripe';
 import {Elysia} from 'elysia';
-import {ApiError, requireProvider} from '@core/security';
+import {ApiError} from '@core/security';
 import type {ReservedSql} from 'postgres';
 
 export default new Elysia({prefix: '/api/billing'})
   .use(middlewareBase)
   .guard({authenticated: true})
-  .get('/availability', () => ({creationAvailable: IDENTITY_CREATION_AVAILABLE}))
   .post('/checkout', ({set, user, body}) => checkout(set, user.email, body, false))
   .post('/checkout/confirm', ({set, user, body}) => checkout(set, user.email, body, true));
 
@@ -26,7 +24,9 @@ export async function checkout(
   confirm: boolean,
   provider: Stripe = stripe,
 ) {
-  requireProvider(IDENTITY_CREATION_AVAILABLE, 'New identity purchases');
+  if (!billingEnabled) {
+    throw new ApiError(503, 'billing_disabled', 'Purchases and renewals are currently disabled');
+  }
 
   const input = body as {plan?: string; requestID?: string};
 

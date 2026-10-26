@@ -250,7 +250,6 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
               password: '<v1. followed by base64-encoded IV and AES-GCM ciphertext>',
               website: 'https://example.com',
               totp: null,
-              algorithm: null,
             },
           ],
           vaultRevision: 1,
@@ -261,7 +260,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'POST',
         path: '/api/identities/:id/vault/entries',
         detail:
-          'Create a vault entry with `username`, encrypted `password`, and optional `website`, `totp`, and `algorithm`. Send the current `vaultRevision` and `walletBlob` encryption context. Returns the saved entry and incremented `vaultRevision`.',
+          'Create a vault entry with `username`, encrypted `password`, and optional `website` and `totp`. Send the current `vaultRevision` and `walletBlob` encryption context. Returns the saved entry and incremented `vaultRevision`.',
         request: {
           username: 'noah_kim',
           password: '<v1. followed by base64-encoded IV and AES-GCM ciphertext>',
@@ -283,7 +282,7 @@ export const API_DOCUMENTATION: ApiDocumentationGroup[] = [
         method: 'PATCH',
         path: '/api/identities/:id/vault/entries',
         detail:
-          'Update a vault entry by `id` with `username`, `password`, and optional `website`, `totp`, and `algorithm`. Send the current `vaultRevision` and `walletBlob`. Returns the updated entry and incremented `vaultRevision`.',
+          'Update a vault entry by `id` with `username`, `password`, and optional `website` and `totp`. Send the current `vaultRevision` and `walletBlob`. Returns the updated entry and incremented `vaultRevision`.',
         request: {
           id: 116,
           username: 'ada_bellini',

@@ -18,21 +18,19 @@ async function listIdentities(owner: number) {
     (await sql`SELECT i.id, i.status, i.name, i.email, i.phone, i.location, i.picture, i.crypto_invoice, i.plan, (SELECT COUNT(*)::integer FROM accounts a WHERE a.owner = i.id) AS accounts
     FROM identities i WHERE owner = ${owner} ORDER BY creation_date DESC`) as (QueryIdentity & {accounts: number})[];
 
-  return await Promise.all(
-    rows.map(async (identity) => ({
-      id: identity.id,
-      status: identity.status,
-      name: identity.name,
-      email: identity.email,
-      phone: identity.phone,
-      country: null,
-      location: identity.location,
-      picture: identity.picture,
-      accounts: identity.accounts,
-      paymentMethod: identity.crypto_invoice ? 'crypto' : 'fiat',
-      plan: identity.plan,
-    })),
-  );
+  return rows.map((identity) => ({
+    id: identity.id,
+    status: identity.status,
+    name: identity.name,
+    email: identity.email,
+    phone: identity.phone,
+    country: null,
+    location: identity.location,
+    picture: identity.picture,
+    accounts: identity.accounts,
+    paymentMethod: identity.crypto_invoice ? 'crypto' : 'fiat',
+    plan: identity.plan,
+  }));
 }
 
 export default new Elysia()
@@ -75,7 +73,7 @@ export default new Elysia()
 
       if (
         !socketCapacityAvailable(ws.data.user!.accountID) ||
-        wsConnections.values().filter((connection) => connection.emailAddress === identity!.email).length >=
+        [...wsConnections.values()].filter((connection) => connection.emailAddress === identity!.email).length >=
           SOCKET_MAILBOX_CONNECTION_LIMIT
       ) {
         return ws.close(1013, 'Connection limit reached');
@@ -87,7 +85,6 @@ export default new Elysia()
         websocket: ws,
         authorize,
         authTimer,
-        phoneNumber: identity!.phone!,
         emailAddress: identity!.email!,
       });
 

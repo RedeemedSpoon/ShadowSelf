@@ -137,7 +137,6 @@ CREATE TABLE accounts (
   username varchar(25) NOT NULL,
   password varchar(5503) NOT NULL,
   website varchar(2048),
-  algorithm varchar(6),
   totp varchar(5503)
 );
 

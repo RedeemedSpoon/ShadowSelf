@@ -1,6 +1,12 @@
 import {USDT_CONTRACT} from '@core/constants';
-import {withChainEndpoint, chainJson, chainRequest, ethereumRpc, requireEthereumMainnet} from '@core/chain-requests';
-import {initialEvmHistory, openHistoryCursor, loadUtxoHistory, loadEvmHistory} from '@core/wallet-history';
+import {
+  withChainEndpoint,
+  chainJson,
+  chainRequest,
+  ethereumRpc,
+  requireEthereumMainnet,
+} from '@core/providers/chain-requests';
+import {initialEvmHistory, openHistoryCursor, loadUtxoHistory, loadEvmHistory} from '@core/wallet/wallet-history';
 import {Transaction} from '@scure/btc-signer';
 import {getUtxoData, getXmrNode, mapChainRequests} from '@utils/crypto-nodes';
 import {ApiError} from '@core/security';

@@ -1,7 +1,7 @@
 <script lang="ts">
   import Dialog from '$component/ui/Dialog.svelte';
   import PublicPage from '$component/public/PublicPage.svelte';
-  import systemDesign from '$image/visuals/system-design.webp';
+  import systemDesign from '$image/system-design.webp';
   let designOpen = $state(false);
 </script>
 
@@ -84,7 +84,7 @@
   <img class="design-full" src={systemDesign} alt="Original ShadowSelf system design, February 2026" />
   <div class="design-actions">
     <a
-      href="https://github.com/RedeemedSpoon/ShadowSelf/blob/master/application/frontend/src/lib/images/visuals/system-design.webp"
+      href="https://github.com/RedeemedSpoon/ShadowSelf/blob/master/application/frontend/src/lib/images/system-design.webp"
       target="_blank"
       rel="noreferrer">Open original ↗</a>
     <a href={systemDesign} download="shadowself-system-design.webp">Download image</a>

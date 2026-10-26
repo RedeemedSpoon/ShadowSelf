@@ -1,9 +1,10 @@
-import {withChainEndpoint, chainJson, ethereumRpc, requireEthereumMainnet} from '@core/chain-requests';
-import {repairCryptoRefunds} from '@core/crypto-refunds';
-import {repairStripeCleanup} from '@core/stripe-cleanup';
-import {enqueueBillingReceipt, processBillingReceipts} from '@core/billing-receipts';
-import {repairStripeEvents} from '@core/stripe-service';
-import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/swap-provider';
+import {log, reportFailure, failureMessage} from '@logging';
+import {withChainEndpoint, chainJson, ethereumRpc, requireEthereumMainnet} from '@core/providers/chain-requests';
+import {repairCryptoRefunds} from '@core/billing/crypto-refunds';
+import {repairStripeCleanup} from '@core/billing/stripe-cleanup';
+import {enqueueBillingReceipt, processBillingReceipts} from '@core/billing/billing-receipts';
+import {repairStripeEvents} from '@core/billing/stripe-service';
+import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/providers/swap-provider';
 import {
   withBillingWallet,
   saveWalletState,
@@ -11,16 +12,16 @@ import {
   invoiceState,
   entitlementEnd,
   fullPaymentTimestamp,
-} from '@core/wallet-service';
+} from '@core/wallet/wallet-service';
 import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, POLL_CLEANUP_INTERVAL} from '@core/constants';
 import {cryptoFees, cryptoPrices, invoiceConnections, billingWallet, billingReadiness} from '@core/states';
 import {COINGECKO_URL, PRICING_TIERS} from '@core/constants';
 import {PAYMENT_WINDOW_MIN, INVOICE_POLL_BATCH_SIZE, INVOICE_ACTIVE_MONITOR_MS} from '@core/constants';
 import type {QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
-import {withReservedTransaction, reportFailure} from '@utils/utils';
+import {withReservedTransaction} from '@utils/utils';
 import {sql} from '@core/services';
-import {stripeConfig, moneroWallet, trocadorApiKey, emailConfig} from '@core/config';
+import {stripeConfig, moneroWallet, trocadorApiKey, emailConfig, dbConfig, chainEndpoints} from '@core/config';
 import type {ReservedSql} from 'postgres';
 
 let activeInvoiceCursor: string | null = null;
@@ -32,9 +33,9 @@ export async function processInvoiceBatch<T>(invoices: T[], process: (invoice: T
   for (const invoice of invoices) {
     try {
       await process(invoice);
-    } catch {
+    } catch (failure) {
       failed += 1;
-      console.error('Invoice processing failed; financial records retained for the next pass');
+      reportFailure('Invoice processing; retained for retry', failure);
     }
   }
 
@@ -72,7 +73,10 @@ export async function pollInvoices(connection: ReservedSql, wallet = billingWall
   }
 
   if (result.failed || Date.now() - started >= POLL_INVOICES_INTERVAL) {
-    console.info('Invoice polling metrics', {...result, durationMs: Date.now() - started, archived: archived.length});
+    log(
+      'info',
+      `Invoice polling: ${result.processed} processed, ${result.failed} failed, ${archived.length} archived in ${Date.now() - started}ms`,
+    );
   }
 
   return {...result, durationMs: Date.now() - started, archived: archived.length};
@@ -202,7 +206,7 @@ async function observeInvoice(connection: ReservedSql, invoice: QueryInvoice, wa
   const remaining = required > balance ? required - balance : 0n;
   const remainingAmount = `${remaining / 1_000_000_000_000n}.${(remaining % 1_000_000_000_000n).toString().padStart(12, '0')}`;
 
-  for (const ws of invoiceConnections.values().filter((ws) => ws.invoiceID === invoice.id)) {
+  for (const ws of [...invoiceConnections.values()].filter((ws) => ws.invoiceID === invoice.id)) {
     try {
       if (await ws.authorize()) {
         ws.websocket.send(JSON.stringify({status, identityID, remainingAmount}));
@@ -358,11 +362,23 @@ async function cleanupWorkers() {
 }
 
 async function runWorker(name: string, operation: () => Promise<unknown>, interval: number) {
+  let previousFailure = '';
+
   while (true) {
     try {
       await operation();
+
+      if (previousFailure) {
+        log('success', `${name}: recovered`);
+        previousFailure = '';
+      }
     } catch (failure) {
-      reportFailure(name, failure);
+      const message = failureMessage(failure);
+
+      if (message !== previousFailure) {
+        log('error', `${name}: ${message}; retry in ${interval / 1000}s`);
+        previousFailure = message;
+      }
     }
 
     await new Promise((resolve) => setTimeout(resolve, interval));
@@ -370,8 +386,20 @@ async function runWorker(name: string, operation: () => Promise<unknown>, interv
 }
 
 export function initBackgroundWorkers() {
-  void runWorker('Fee polling', pollFees, POLL_FEES_INTERVAL);
+  if (
+    [chainEndpoints.btc, chainEndpoints.ltc, chainEndpoints.ethRpc, chainEndpoints.xmr].some(
+      (endpoints) => endpoints.length,
+    )
+  ) {
+    void runWorker('Fee polling', pollFees, POLL_FEES_INTERVAL);
+  }
+
   void runWorker('Price polling', pollPrices, POLL_PRICES_INTERVAL);
+
+  if (!dbConfig.password) {
+    return;
+  }
+
   void runWorker('Identity expiry', cleanupWorkers, POLL_CLEANUP_INTERVAL);
 
   if (emailConfig.billingPassword && emailConfig.host) {
@@ -388,7 +416,13 @@ export function initBackgroundWorkers() {
     void runWorker('Wallet swap reconciliation', repairWalletSwapRequests, POLL_INVOICES_INTERVAL);
   }
 
-  if (moneroWallet.address && moneroWallet.viewKey && moneroWallet.spendKey && moneroWallet.password) {
+  if (
+    moneroWallet.address &&
+    moneroWallet.viewKey &&
+    moneroWallet.spendKey &&
+    moneroWallet.password &&
+    chainEndpoints.xmr.length
+  ) {
     void runWorker('Invoice polling', () => withBillingWallet(pollInvoices), POLL_INVOICES_INTERVAL);
     void runWorker('Crypto refunds', repairCryptoRefunds, POLL_INVOICES_INTERVAL);
   }

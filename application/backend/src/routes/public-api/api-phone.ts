@@ -1,5 +1,5 @@
 import middlewareApi from '@middlewares/middleware-api';
-import {phoneProvider} from '@core/phone-provider';
+import {phoneProvider} from '@core/identity/phone-provider';
 import {SMS_MAX_LENGTH} from '@core/constants';
 import {checkAPI} from '@utils/checks';
 import {error} from '@utils/utils';

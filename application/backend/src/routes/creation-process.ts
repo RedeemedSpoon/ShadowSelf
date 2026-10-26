@@ -1,7 +1,7 @@
-import {provisionIdentity, withIdentityLock} from '@core/identity-service';
+import {provisionIdentity, withIdentityLock} from '@core/identity/identity-service';
 import middlewareApi from '@middlewares/middleware-api';
 import {ETHNICITIES} from '@core/constants';
-import {phoneProvider} from '@core/phone-provider';
+import {phoneProvider} from '@core/identity/phone-provider';
 import {generateProfile} from '@utils/prompts';
 import {checkIdentity} from '@utils/checks';
 import type {CreationDraft} from '@type';

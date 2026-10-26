@@ -1,14 +1,14 @@
 import type {CryptoWalletResponse, UTXOData, UtxoProviderTransaction, WalletScanOptions} from '@type';
 import {xpubToAddress} from '@utils/cryptography';
 import {ApiError} from '@core/security';
-import {chainRequest, withChainEndpoint, moneroNodeInfo} from '@core/chain-requests';
+import {chainRequest, withChainEndpoint, moneroNodeInfo} from '@core/providers/chain-requests';
 import {
   aggregateWalletHistory,
   validateUtxoHistory,
   nextUtxoHistory,
   sealHistoryCursor,
   historyKey,
-} from '@core/wallet-history';
+} from '@core/wallet/wallet-history';
 import {UTXO_GAP_LIMIT, UTXO_HARD_LIMIT, UTXO_RECOVERY_LIMIT, CHAIN_REQUEST_CONCURRENCY} from '@core/constants';
 
 export async function mapChainRequests<T, R>(

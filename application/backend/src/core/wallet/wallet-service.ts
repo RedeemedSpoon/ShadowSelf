@@ -1,4 +1,4 @@
-import {withChainEndpoint, moneroNodeInfo} from '@core/chain-requests';
+import {withChainEndpoint, moneroNodeInfo} from '@core/providers/chain-requests';
 import {billingWallet, setBillingWallet, billingReadiness} from '@core/states';
 import {moneroWallet} from '@core/config';
 import {requireProvider} from '@core/security';

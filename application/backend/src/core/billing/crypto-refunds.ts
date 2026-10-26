@@ -1,9 +1,10 @@
+import {reportFailure} from '@logging';
 import {sql} from '@core/services';
 import {billingWallet, cryptoPrices, billingReadiness} from '@core/states';
-import {withBillingWallet, saveWalletState, quoteUsdXmr, parseXmr} from '@core/wallet-service';
+import {withBillingWallet, saveWalletState, quoteUsdXmr, parseXmr} from '@core/wallet/wallet-service';
 import {CRYPTO_REFUND_CONFIRMATIONS, REFUND_WINDOW_MS, POLL_PRICES_INTERVAL} from '@core/constants';
 import {ApiError, decryptSecret, encryptSecret} from '@core/security';
-import {withReservedTransaction, reportFailure} from '@utils/utils';
+import {withReservedTransaction} from '@utils/utils';
 import type {CryptoRefund} from '@type';
 import type {ReservedSql, TransactionSql} from 'postgres';
 import moneroTs from 'monero-ts';

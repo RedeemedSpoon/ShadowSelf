@@ -61,6 +61,7 @@ const config = {
     adapter: adapter({out: 'build', serveAssets: true, precompress: true}),
     alias: {
       $image: 'src/lib/images',
+      $logging: '../logging.ts',
       $utils: 'src/lib/utils',
       $component: 'src/lib/components',
       $type: 'src/lib/types.ts',

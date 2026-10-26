@@ -46,28 +46,8 @@ export const throttle = (action: string, ms: number) => ({
   },
 });
 
-class ConnectionManager<T> {
-  private connections = new Map<string, T>();
-
-  set(id: string, connection: T) {
-    this.connections.set(id, connection);
-  }
-
-  get(id: string) {
-    return this.connections.get(id);
-  }
-
-  delete(id: string) {
-    this.connections.delete(id);
-  }
-
-  values() {
-    return Array.from(this.connections.values());
-  }
-}
-
-export const wsConnections = new ConnectionManager<WSConnection>();
-export const invoiceConnections = new ConnectionManager<InvoiceConnection>();
+export const wsConnections = new Map<string, WSConnection>();
+export const invoiceConnections = new Map<string, InvoiceConnection>();
 
 export function socketCapacityAvailable(accountID: number) {
   const connections = [...wsConnections.values(), ...invoiceConnections.values()];

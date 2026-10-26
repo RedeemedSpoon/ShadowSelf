@@ -41,7 +41,7 @@
 
 <script lang="ts">
   import {onMount} from 'svelte';
-  import geometry from '$lib/data/world-land.json';
+  import geometry from './world-land.json';
 
   let {longitude}: {longitude: number} = $props();
   let canvas: HTMLCanvasElement;

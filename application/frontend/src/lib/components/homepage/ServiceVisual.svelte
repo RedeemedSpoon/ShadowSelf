@@ -1,12 +1,11 @@
 <script lang="ts">
-  import portrait from '$image/homepage/profile-pictures/yuna-choi.webp';
+  import portrait from '$image/profile-pictures/yuna-choi.webp';
   import {HOMEPAGE_PANEL_IDENTITIES} from '$constant';
   import type {HomepageServiceId} from '$type';
-  import ServiceIcon from './ServiceIcon.svelte';
   import BlockchainVisual from './BlockchainVisual.svelte';
   import DriveVisual from './DriveVisual.svelte';
   import Icon from '$component/ui/Icon.svelte';
-  import map from '$image/patterns/world-map.svg';
+  import map from '$image/world-map.svg';
 
   let {service}: {service: HomepageServiceId} = $props();
   const examples = HOMEPAGE_PANEL_IDENTITIES;
@@ -20,7 +19,7 @@
       <div class="identity-echo" aria-hidden="true"></div>
       <div class="identity-pass">
         <div class="window-bar">
-          <span class="emblem"><ServiceIcon /></span><span>ID: 7F3A92C1</span>
+          <span class="emblem"><Icon name="identity-card" size={28} /></span><span>ID: 7F3A92C1</span>
         </div>
         <div class="person">
           <div class="portrait-scan">

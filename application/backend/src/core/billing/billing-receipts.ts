@@ -1,5 +1,5 @@
 import {billingTransporter, sql} from '@core/services';
-import {billingReceiptEmail} from '@core/billing-receipt-email';
+import {billingReceiptEmail} from '@core/billing/billing-receipt-email';
 import {BILLING_RECEIPT_BATCH_SIZE, BILLING_RECEIPT_RETRY_MS, BILLING_RECEIPT_MAX_RETRY_MS} from '@core/constants';
 import type {BillingReceipt, BillingReceiptDelivery, BillingReceiptInput, BillingReceiptRecord} from '@type';
 import type Stripe from 'stripe';

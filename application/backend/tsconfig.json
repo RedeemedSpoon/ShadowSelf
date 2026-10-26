@@ -17,7 +17,8 @@
       "@core/*": ["./src/core/*"],
       "@utils/*": ["./src/utils/*"],
       "@middlewares/*": ["./src/middlewares/*"],
-      "@type": ["./src/types.ts"]
+      "@type": ["./src/types.ts"],
+      "@logging": ["../logging.ts"]
     },
     "types": ["bun"]
   }

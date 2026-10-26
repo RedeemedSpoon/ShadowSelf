@@ -1,7 +1,8 @@
+import {reportFailure} from '@logging';
 import {checkContact} from '@utils/checks';
 import {contact} from '@utils/email-smtp';
 import type {ContactDetail} from '@type';
-import {error, reportFailure} from '@utils/utils';
+import {error} from '@utils/utils';
 import {ApiError} from '@core/security';
 import {Elysia} from 'elysia';
 import {billingReadiness, cryptoPrices} from '@core/states';
@@ -16,7 +17,7 @@ import billing from './routes/billing';
 
 export function createApp(providers: {sendVerificationCode?: typeof sendVerificationCode} = {}) {
   return new Elysia({serve: {maxRequestBodySize: 20 * 1024 * 1024}})
-    .onError(({code, error: failure, set}) => {
+    .onError(({code, error: failure, set, request, route}) => {
       if (failure instanceof ApiError) {
         set.status = failure.status;
 
@@ -35,7 +36,7 @@ export function createApp(providers: {sendVerificationCode?: typeof sendVerifica
         return error(set, 409, 'This resource is already registered');
       }
 
-      reportFailure('HTTP request', failure);
+      reportFailure(`HTTP ${request.method} ${route || '/'}`, failure);
 
       return error(set, 500, 'The operation could not complete. Retry shortly');
     })

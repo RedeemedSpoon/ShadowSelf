@@ -1,5 +1,5 @@
-import {billingPortal, createBillingCustomer} from '@core/stripe-service';
-import {deleteAccount} from '@core/identity-service';
+import {billingPortal, createBillingCustomer} from '@core/billing/stripe-service';
+import {deleteAccount} from '@core/identity/identity-service';
 import {consumeEmailCode, claimSensitiveAttempt} from '@core/states';
 import {createTOTP, getSecret, createHash, getRecovery, hashRecoveryCode, compareHash} from '@utils/cryptography';
 import {apiToken, encryptSecret, tokenHash} from '@core/security';

@@ -1,7 +1,8 @@
+import {reportFailure} from '@logging';
 import {GoogleGenAI} from '@google/genai';
 import {geminiApiKey, geminiImageModel} from '@core/config';
 import {ApiError, requireProvider} from '@core/security';
-import {normalizePortrait, reportFailure} from '@utils/utils';
+import {normalizePortrait} from '@utils/utils';
 
 export function portraitPrompt(location: string, ethnicity: string, age: number, sex: string, bio: string): string {
   return `Create one realistic photograph of a fictional adult for a personal social media profile.

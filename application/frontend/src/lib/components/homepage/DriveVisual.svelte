@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from '$component/ui/Icon.svelte';
-  import portrait from '$image/homepage/profile-pictures/gabriel-costa.webp';
+  import portrait from '$image/profile-pictures/gabriel-costa.webp';
   import {HOMEPAGE_PANEL_IDENTITIES} from '$constant';
 </script>
 

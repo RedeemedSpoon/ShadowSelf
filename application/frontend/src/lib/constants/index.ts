@@ -1,3 +1,9 @@
+import camilaPortrait from '$image/profile-pictures/camila-duarte.webp';
+import kenjiPortrait from '$image/profile-pictures/kenji-mori.webp';
+import aishaPortrait from '$image/profile-pictures/aisha-bello.webp';
+import matteoPortrait from '$image/profile-pictures/matteo-conti.webp';
+import leilaPortrait from '$image/profile-pictures/leila-mansour.webp';
+import arjunPortrait from '$image/profile-pictures/arjun-mehta.webp';
 import {PUBLIC_APP_ORIGIN, PUBLIC_ONION_ORIGIN, PUBLIC_MAIL_DOMAIN} from '$env/static/public';
 
 export const APP_ORIGIN = PUBLIC_APP_ORIGIN;
@@ -14,7 +20,6 @@ export const API_METHOD_COLORS: Record<string, string> = {
 export const SITE_HOST = new URL(APP_ORIGIN).host;
 export const MAIL_DOMAIN = PUBLIC_MAIL_DOMAIN;
 export const COIN_DECIMALS = {btc: 8, ltc: 8, eth: 18, usdt: 6, xmr: 12} as const;
-export const CONTACT_EMAIL = `contact@${MAIL_DOMAIN}`;
 
 export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
 export const ONION_URL = PUBLIC_ONION_ORIGIN;
@@ -149,7 +154,7 @@ export const HOMEPAGE_DEMO_PROFILES = [
     email: 'camila.duarte@example.com',
     balance: '$1,284.60',
     accounts: 12,
-    position: '0% 0%',
+    picture: camilaPortrait,
   },
   {
     name: 'Kenji Mori',
@@ -157,7 +162,7 @@ export const HOMEPAGE_DEMO_PROFILES = [
     email: 'kenji.mori@example.com',
     balance: '$738.25',
     accounts: 8,
-    position: '50% 0%',
+    picture: kenjiPortrait,
   },
   {
     name: 'Aisha Bello',
@@ -165,7 +170,7 @@ export const HOMEPAGE_DEMO_PROFILES = [
     email: 'aisha.bello@example.com',
     balance: '$2,046.80',
     accounts: 16,
-    position: '100% 0%',
+    picture: aishaPortrait,
   },
   {
     name: 'Matteo Conti',
@@ -173,7 +178,7 @@ export const HOMEPAGE_DEMO_PROFILES = [
     email: 'matteo.conti@example.com',
     balance: '$462.15',
     accounts: 6,
-    position: '0% 100%',
+    picture: matteoPortrait,
   },
   {
     name: 'Leila Mansour',
@@ -181,7 +186,7 @@ export const HOMEPAGE_DEMO_PROFILES = [
     email: 'leila.mansour@example.com',
     balance: '$1,607.90',
     accounts: 11,
-    position: '50% 100%',
+    picture: leilaPortrait,
   },
   {
     name: 'Arjun Mehta',
@@ -189,7 +194,7 @@ export const HOMEPAGE_DEMO_PROFILES = [
     email: 'arjun.mehta@example.com',
     balance: '$925.40',
     accounts: 9,
-    position: '100% 100%',
+    picture: arjunPortrait,
   },
 ] as const;
 
@@ -296,8 +301,6 @@ export const NETWORK_PRIORITY_OPTIONS = [
   {value: 'medium', label: 'Medium'},
   {value: 'high', label: 'High'},
 ] as const;
-
-export const TOTP_ALGORITHM_OPTIONS = ['SHA1', 'SHA256', 'SHA512'].map((value) => ({value, label: value}));
 
 export const ERROR_PAGES = {
   404: {

@@ -1,3 +1,4 @@
+import {log, reportFailure} from '@logging';
 import {sql} from '@core/services';
 import {trocadorApiKey} from '@core/config';
 import {SWAP_API, SWAP_CHECKOUT_URL} from '@core/constants';
@@ -265,10 +266,10 @@ export async function repairPaymentInvoices() {
         !invoice.provider_reference ||
         !(await reconcilePaymentInvoice(invoice as Parameters<typeof reconcilePaymentInvoice>[0]))
       ) {
-        console.error(`Invoice ${invoice.id} remains uncertain; provider review is required`);
+        log('error', `Invoice ${invoice.id} remains uncertain; provider review is required`);
       }
-    } catch {
-      console.error(`Invoice ${invoice.id} reconciliation is unavailable; request was retained`);
+    } catch (failure) {
+      reportFailure(`Invoice ${invoice.id}; retained for reconciliation`, failure);
     }
   }
 }
@@ -286,10 +287,10 @@ export async function repairWalletSwapRequests() {
       if (response) {
         await sql`UPDATE wallet_swaps SET response = ${sql.json(response)}, status = 'completed' WHERE id = ${swap.id} AND status = 'requested'`;
       } else {
-        console.error(`Swap ${swap.id} remains uncertain; provider review is required`);
+        log('error', `Swap ${swap.id} remains uncertain; provider review is required`);
       }
-    } catch {
-      console.error(`Swap ${swap.id} reconciliation is unavailable; request was retained`);
+    } catch (failure) {
+      reportFailure(`Swap ${swap.id}; retained for reconciliation`, failure);
     }
   }
 }

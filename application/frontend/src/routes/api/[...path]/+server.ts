@@ -1,3 +1,4 @@
+import {reportFailure} from '$logging';
 import {env} from '$env/dynamic/private';
 import {json, type RequestHandler} from '@sveltejs/kit';
 
@@ -25,7 +26,11 @@ const proxy: RequestHandler = async ({request, params, url}) => {
         'Cache-Control': 'no-store',
       },
     });
-  } catch {
+  } catch (failure) {
+    if (!request.signal.aborted) {
+      reportFailure(`Frontend proxy ${request.method} /api/${params.path}`, failure);
+    }
+
     return json(
       {error: {code: 'service_unavailable', message: 'The service could not be reached. Please try again.'}},
       {status: 503},

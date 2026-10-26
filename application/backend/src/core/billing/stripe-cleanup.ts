@@ -1,6 +1,7 @@
+import {log, reportFailure} from '@logging';
 import {sql, stripe} from '@core/services';
 import {ApiError} from '@core/security';
-import {withIdentityLock} from '@core/identity-service';
+import {withIdentityLock} from '@core/identity/identity-service';
 import type {StripeCleanup} from '@type';
 import type {ReservedSql} from 'postgres';
 import type Stripe from 'stripe';
@@ -18,8 +19,8 @@ export async function repairStripeCleanup(provider: Stripe = stripe) {
           await processCleanup(rows[0] as StripeCleanup, connection, provider);
         }
       });
-    } catch {
-      console.error(`Stripe cleanup ${job.id} deferred`);
+    } catch (failure) {
+      reportFailure(`Stripe cleanup ${job.id}; deferred`, failure);
     }
   }
 }
@@ -59,7 +60,7 @@ async function processCleanup(job: StripeCleanup, connection: ReservedSql, provi
     error_code = ${code} WHERE id = ${job.id}`;
 
   if (blocked && job.error_code !== code) {
-    console.error(`Stripe cleanup ${job.id} needs attention: ${code}`);
+    log('error', `Stripe cleanup ${job.id} needs attention: ${code}`);
   }
 }
 

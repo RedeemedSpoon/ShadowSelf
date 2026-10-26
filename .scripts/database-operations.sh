@@ -2,8 +2,10 @@
 set -euo pipefail
 umask 077
 
-scripts_dir=$(dirname "$(realpath "$0")")
-source "$scripts_dir/environment.sh"
+fail() {
+  printf '%s\n' "$*" >&2
+  exit 1
+}
 
 operation=${1:-}
 input=${2:-}
@@ -16,28 +18,25 @@ if [[ "$operation" == query && -z "${input//[[:space:]]/}" ]]; then
   fail 'Provide a SQL query'
 fi
 
-load_environment
+remote_command='set -eu
+container=$(docker ps \
+  --filter label=com.docker.compose.project=shadowself \
+  --filter label=com.docker.compose.service=postgres \
+  --format "{{.ID}}")
 
-remote=${environment[SHADOWSELF_SSH_TARGET]-}
-container=${environment[SHADOWSELF_DB_CONTAINER]-}
-remote_pattern='^([a-zA-Z0-9_.-]+@)?([a-zA-Z0-9_.-]+|\[[a-fA-F0-9:]+\])$'
-
-if [[ ! "$remote" =~ $remote_pattern || "$remote" == -* || ! "$container" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]]; then
-  fail 'Configure SHADOWSELF_SSH_TARGET and SHADOWSELF_DB_CONTAINER in application/.env'
-fi
-
-ssh_options=(-o BatchMode=yes)
-
-if [[ -n "${environment[SSH_KEY]-}" ]]; then
-  ssh_options+=(-i "${environment[SSH_KEY]}")
-fi
+case "$container" in
+  ""|*[!a-f0-9]*)
+    printf "%s\n" "Expected exactly one running ShadowSelf PostgreSQL container" >&2
+    exit 1
+    ;;
+esac
+'
 
 if [[ "$operation" == query ]]; then
-  printf -v remote_command 'docker exec -i %s sh -c %q' \
-    "$container" \
-    'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+  query_command='psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+  remote_command+="docker exec -i \"\$container\" sh -c '$query_command'"
 
-  printf '%s\n' "$input" | ssh "${ssh_options[@]}" "$remote" "$remote_command"
+  printf '%s\n' "$input" | ssh -o BatchMode=yes root@shadowself.io "$remote_command"
   exit 0
 fi
 
@@ -47,14 +46,13 @@ if [[ -e "$destination" || -L "$destination" ]]; then
   fail 'Backup already exists'
 fi
 
-temporary=$(mktemp "$destination.XXXXXX")
+temporary=$(mktemp -- "$destination.XXXXXX")
 trap 'rm -f -- "$temporary"' EXIT
 
-printf -v remote_command 'docker exec %s sh -c %q' \
-  "$container" \
-  'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc'
+dump_command='pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc'
+remote_command+="docker exec \"\$container\" sh -c '$dump_command'"
 
-ssh "${ssh_options[@]}" "$remote" "$remote_command" > "$temporary"
+ssh -o BatchMode=yes root@shadowself.io "$remote_command" > "$temporary"
 pg_restore --list "$temporary" >/dev/null
 
 ln -- "$temporary" "$destination"

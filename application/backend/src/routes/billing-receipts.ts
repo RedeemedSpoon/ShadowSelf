@@ -2,8 +2,8 @@ import {Elysia} from 'elysia';
 import {sql} from '@core/services';
 import {UUID_PATTERN} from '@core/constants';
 import {ApiError, verifyReceiptAccess} from '@core/security';
-import {billingReceiptPDF} from '@core/billing-receipt-email';
-import {receiptFromRecord} from '@core/billing-receipts';
+import {billingReceiptPDF} from '@core/billing/billing-receipt-email';
+import {receiptFromRecord} from '@core/billing/billing-receipts';
 import type {BillingReceiptRecord} from '@type';
 
 async function receiptFromLink(id: string, access: string) {

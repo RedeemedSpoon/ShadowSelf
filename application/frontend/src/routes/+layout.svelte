@@ -89,7 +89,7 @@
   const receiptRoute = $derived(BILLING_RECEIPT_PATH_PATTERN.test(page.url.pathname));
 
   const consoleRoute = $derived(
-    ['/dashboard', '/settings', '/identity', '/purchase', '/purchase-review', '/create'].some(
+    ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some(
       (route) => page.url.pathname === route || page.url.pathname.startsWith(`${route}/`),
     ),
   );
@@ -103,6 +103,7 @@
 {#if receiptRoute}<main id="main-content" class="receipt-public">{@render children()}</main>
 {:else if consoleRoute}<ConsoleShell
     user={data.user}
+    billingEnabled={data.billingEnabled}
     identities={data.identities}
     identitiesError={data.identitiesError}>{@render children()}</ConsoleShell
   >{:else}<div class="public-site">

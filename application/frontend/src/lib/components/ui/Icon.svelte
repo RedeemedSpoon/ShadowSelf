@@ -47,16 +47,21 @@
   data-icon={name}
   width={size}
   height={size}
-  viewBox="0 0 24 24"
+  viewBox={name === 'identity-card' ? '0 0 32 32' : '0 0 24 24'}
   fill="none"
   fill-rule="evenodd"
   stroke="currentColor"
-  stroke-width={name === 'close' ? 2.4 : 1.6}
+  stroke-width={name === 'close' ? 2.4 : name === 'identity-card' ? 1.5 : 1.6}
   stroke-linecap="round"
   stroke-linejoin="round"
   class={className}
   aria-hidden="true">
-  {#if name === 'account'}
+  {#if name === 'identity-card'}
+    <rect x="3" y="7" width="26" height="22" rx="4" fill="currentColor" fill-opacity=".08" />
+    <path d="M12 7V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3M14 5h4" />
+    <circle cx="11" cy="16" r="3" />
+    <path d="M6 24c0-6 10-6 10 0m4-10h5m-5 5h5m-5 5h3" />
+  {:else if name === 'account'}
     <circle cx="12" cy="12" r="10" />
     <path
       class="account-person"

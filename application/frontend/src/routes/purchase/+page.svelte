@@ -9,6 +9,7 @@
   import type {CardCheckout, CryptoInvoice, Coins} from '$type';
   import type {PageData} from './$types';
   import Button from '$component/ui/Button.svelte';
+  import Icon from '$component/ui/Icon.svelte';
   import PurchaseExperience from '$component/purchase/PurchaseExperience.svelte';
   import PurchaseModal from '$component/purchase/PurchaseModal.svelte';
   import PurchaseSuccess from '$component/purchase/PurchaseSuccess.svelte';
@@ -170,7 +171,7 @@
   }
 
   async function payCard(confirm = false) {
-    if (pending) {
+    if (pending || !data.billingEnabled) {
       return;
     }
 
@@ -340,7 +341,7 @@
   }
 
   async function newInvoice() {
-    if (pending) {
+    if (pending || !data.billingEnabled) {
       return;
     }
 
@@ -472,6 +473,10 @@
   }
 
   onMount(() => {
+    if (!data.billingEnabled) {
+      return;
+    }
+
     const saved = readPurchaseDraft(draftKey);
 
     if (saved) {
@@ -531,71 +536,83 @@
   });
 </script>
 
-<svelte:head><title>{renewal ? 'Renew identity' : 'Choose an identity plan'} | ShadowSelf</title></svelte:head>
-<PurchaseExperience
-  bind:plan
-  bind:method
-  renewal={!!renewal}
-  locked={pending || !!invoice || !!checkout || restoredCard || invoiceRequested || successOpen}
-  onchange={choose}
-  onmethodchange={() => (error = '')}>
-  {#snippet payment()}
-    {#if invoice}
-      <PurchaseInvoice
-        bind:open={invoiceOpen}
-        {invoice}
-        message={status}
-        pending={invoiceRefreshing}
-        onrefresh={refreshInvoice}
-        ondismiss={navigation.dismiss} />
-    {:else if method === 'crypto' || renewal}
-      <PurchaseCryptoForm bind:ticker bind:refund {pending} onsubmit={reviewCrypto} />
-    {:else}
-      <div class="card-start">
-        <p>Pay securely by card.<br /><span>Stripe handles your card details and subscription payments.</span></p>
-        <Button icon="card" loading={pending} onclick={resumeCard}>Review card payment</Button>
-      </div>
-    {/if}
-  {/snippet}
-</PurchaseExperience>
-
-<PurchaseModal bind:open={cardOpen} title="Card payment" label="SECURE CHECKOUT" ondismiss={navigation.dismiss}>
-  <PurchaseConfirmation {plan} method="card" />
-  <div class="card-checkout">
-    {#if error}<p class="purchase-error" role="alert">{error}</p>{/if}
-    {#if checkout?.step === 'confirm'}
-      <div class="saved-card">
-        <span>Saved payment method</span><strong>{checkout.cardName} ending {checkout.last4}</strong>
-      </div>
-      <div class="card-actions">
-        <Button variant="secondary" disabled={pending} onclick={navigation.dismiss}>Back</Button><Button
-          loading={pending}
-          onclick={() => payCard(true)}>Pay ${tier.price.toFixed(2)}</Button>
-      </div>
-    {:else}
-      {#if !error || cardReady}<div class="stripe-mount" bind:this={mountPoint}></div>{/if}
-      <div class="card-actions">
-        <Button variant="secondary" disabled={pending} onclick={navigation.dismiss}>Back</Button
-        >{#if error && !cardReady}<Button loading={pending} onclick={retryCard}>Retry card checkout</Button
-          >{:else}<Button disabled={!cardReady} loading={pending} onclick={confirmCard}
-            >Pay ${tier.price.toFixed(2)}</Button
-          >{/if}
-      </div>
-    {/if}
+<svelte:head
+  ><title
+    >{!data.billingEnabled ? 'Purchases are disabled' : renewal ? 'Renew identity' : 'Choose an identity plan'} | ShadowSelf</title
+  ></svelte:head>
+{#if !data.billingEnabled}
+  <div class="empty-state">
+    <Icon name="card" size={42} />
+    <h1>Purchases are disabled</h1>
+    <p>New identity purchases and renewals are currently unavailable.</p>
+    <a class="control-button secondary" href="/dashboard">Back to identities</a>
   </div>
-</PurchaseModal>
-<PurchaseModal
-  bind:open={confirmationOpen}
-  title={renewal ? 'Confirm renewal' : 'Review your purchase'}
-  ondismiss={navigation.dismiss}>
-  {#if error}<p class="purchase-error" role="alert">{error}</p>{/if}
-  <PurchaseConfirmation {plan} method="crypto"
-    ><Button variant="secondary" disabled={pending} onclick={navigation.dismiss}>Back</Button><Button
-      loading={pending}
-      onclick={newInvoice}>Create payment invoice</Button
-    ></PurchaseConfirmation>
-</PurchaseModal>
-<PurchaseSuccess bind:open={successOpen} renewal={!!renewal} oncontinue={handoff} ondismiss={finishPurchase} />
+{:else}
+  <PurchaseExperience
+    bind:plan
+    bind:method
+    renewal={!!renewal}
+    locked={pending || !!invoice || !!checkout || restoredCard || invoiceRequested || successOpen}
+    onchange={choose}
+    onmethodchange={() => (error = '')}>
+    {#snippet payment()}
+      {#if invoice}
+        <PurchaseInvoice
+          bind:open={invoiceOpen}
+          {invoice}
+          message={status}
+          pending={invoiceRefreshing}
+          onrefresh={refreshInvoice}
+          ondismiss={navigation.dismiss} />
+      {:else if method === 'crypto' || renewal}
+        <PurchaseCryptoForm bind:ticker bind:refund {pending} onsubmit={reviewCrypto} />
+      {:else}
+        <div class="card-start">
+          <p>Pay securely by card.<br /><span>Stripe handles your card details and subscription payments.</span></p>
+          <Button icon="card" loading={pending} onclick={resumeCard}>Review card payment</Button>
+        </div>
+      {/if}
+    {/snippet}
+  </PurchaseExperience>
+
+  <PurchaseModal bind:open={cardOpen} title="Card payment" label="SECURE CHECKOUT" ondismiss={navigation.dismiss}>
+    <PurchaseConfirmation {plan} method="card" />
+    <div class="card-checkout">
+      {#if error}<p class="purchase-error" role="alert">{error}</p>{/if}
+      {#if checkout?.step === 'confirm'}
+        <div class="saved-card">
+          <span>Saved payment method</span><strong>{checkout.cardName} ending {checkout.last4}</strong>
+        </div>
+        <div class="card-actions">
+          <Button variant="secondary" disabled={pending} onclick={navigation.dismiss}>Back</Button><Button
+            loading={pending}
+            onclick={() => payCard(true)}>Pay ${tier.price.toFixed(2)}</Button>
+        </div>
+      {:else}
+        {#if !error || cardReady}<div class="stripe-mount" bind:this={mountPoint}></div>{/if}
+        <div class="card-actions">
+          <Button variant="secondary" disabled={pending} onclick={navigation.dismiss}>Back</Button
+          >{#if error && !cardReady}<Button loading={pending} onclick={retryCard}>Retry card checkout</Button
+            >{:else}<Button disabled={!cardReady} loading={pending} onclick={confirmCard}
+              >Pay ${tier.price.toFixed(2)}</Button
+            >{/if}
+        </div>
+      {/if}
+    </div>
+  </PurchaseModal>
+  <PurchaseModal
+    bind:open={confirmationOpen}
+    title={renewal ? 'Confirm renewal' : 'Review your purchase'}
+    ondismiss={navigation.dismiss}>
+    {#if error}<p class="purchase-error" role="alert">{error}</p>{/if}
+    <PurchaseConfirmation {plan} method="crypto"
+      ><Button variant="secondary" disabled={pending} onclick={navigation.dismiss}>Back</Button><Button
+        loading={pending}
+        onclick={newInvoice}>Create payment invoice</Button
+      ></PurchaseConfirmation>
+  </PurchaseModal>
+  <PurchaseSuccess bind:open={successOpen} renewal={!!renewal} oncontinue={handoff} ondismiss={finishPurchase} />
+{/if}
 
 <style>
   .card-checkout {

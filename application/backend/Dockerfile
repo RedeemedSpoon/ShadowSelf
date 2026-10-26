@@ -9,6 +9,7 @@ COPY backend/package.json backend/bun.lock ./
 RUN bun install --frozen-lockfile
 
 COPY backend/ ./
+COPY logging.ts /app/logging.ts
 
 EXPOSE 3000
 

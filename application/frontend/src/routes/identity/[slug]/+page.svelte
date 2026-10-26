@@ -189,7 +189,7 @@
 
         const entries = await Promise.all(
           result.data.accounts.map(async (entry) => ({
-            ...entry,
+            id: entry.id,
             password: entry.password ? await encrypt(await decrypted(entry.password, originalKey), key) : '',
             totp: entry.totp ? await encrypt(await decrypted(entry.totp, originalKey), key) : null,
           })),
@@ -383,7 +383,7 @@
             >{/if}
         {:else}<Button variant="secondary" icon="key" onclick={() => (unlockOpen = true)}>Unlock secrets</Button
           >{/if}{/if}
-      {#if account.status === 'frozen'}
+      {#if account.status === 'frozen' && data.billingEnabled}
         <a class="control-button primary" href="/purchase?id={account.id}&plan={account.plan}">
           <Icon name="refresh" size={17} />Renew identity
         </a>
@@ -392,12 +392,15 @@
     </div>
   </div>
   {#if account.status === 'frozen'}<Status
-      message="This identity's subscription has expired. You can still read and export your vault, recover wallet keys, and move funds. Renew to restore its paid services." />{/if}
+      message={"This identity's subscription has expired. You can still read and export your vault, recover wallet keys, and move funds." +
+        (data.billingEnabled ? ' Renew to restore its paid services.' : ' Renewals are currently disabled.')} />{/if}
   {#if account.status === 'inactive'}<Status message="Setup is not complete. Continue provisioning this identity." /><a
       class="control-button primary"
       href="/create?id={account.id}">Continue setup</a
     >{:else if !completeAccount}<Status
-      message="Setup was not completed before expiry. Renew this identity before continuing setup." />{:else}
+      message={data.billingEnabled
+        ? 'Setup was not completed before expiry. Renew this identity before continuing setup.'
+        : 'Setup was not completed before expiry. Renewals are currently disabled.'} />{:else}
     <div class="tabs" aria-label="Identity services">
       {#each availableTabs as tab (tab.id)}<button
           data-feature={tab.feature}

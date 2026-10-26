@@ -1,6 +1,4 @@
 <script lang="ts">
-  import Select from '$component/ui/Select.svelte';
-  import {TOTP_ALGORITHM_OPTIONS} from '$constant';
   import LoadingState from '$component/ui/LoadingState.svelte';
   import {onMount} from 'svelte';
   import {invalidateAll} from '$app/navigation';
@@ -31,7 +29,7 @@
   let deleteTarget = $state<Account | null>(null);
   let revealed = $state<number[]>([]);
   let clock = $state(Date.now());
-  let edit = $state({id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'});
+  let edit = $state({id: 0, username: '', website: '', password: '', totp: ''});
   let revision = $state(0);
   let loadEpoch = 0;
   const readOnly = $derived(account.status === 'frozen');
@@ -50,7 +48,7 @@
     if (!key) {
       editOpen = false;
       deleteTarget = null;
-      edit = {id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'};
+      edit = {id: 0, username: '', website: '', password: '', totp: ''};
 
       return;
     }
@@ -128,8 +126,8 @@
     }
 
     edit = entry
-      ? {...entry, website: entry.website || '', totp: entry.totp || '', algorithm: entry.algorithm || 'SHA1'}
-      : {id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'};
+      ? {...entry, website: entry.website || '', totp: entry.totp || ''}
+      : {id: 0, username: '', website: '', password: '', totp: ''};
     editOpen = true;
     error = '';
   }
@@ -143,9 +141,7 @@
     const time = clock;
 
     try {
-      return entry.totp
-        ? new TOTP({algorithm: entry.algorithm || 'SHA1', secret: entry.totp}).generate({timestamp: time})
-        : '';
+      return entry.totp ? new TOTP({secret: entry.totp}).generate({timestamp: time}) : '';
     } catch {
       return 'Invalid TOTP secret';
     }
@@ -163,7 +159,7 @@
 
     try {
       if (edit.totp) {
-        new TOTP({algorithm: edit.algorithm, secret: edit.totp}).generate();
+        new TOTP({secret: edit.totp}).generate();
       }
 
       const key = $vaultKey;
@@ -173,7 +169,9 @@
       }
 
       const body = {
-        ...edit,
+        ...(edit.id ? {id: edit.id} : {}),
+        username: edit.username,
+        website: edit.website,
         password: edit.password ? await encrypt(edit.password, key) : '',
         totp: edit.totp ? await encrypt(edit.totp, key) : null,
         vaultRevision: revision,
@@ -195,7 +193,7 @@
       }
 
       editOpen = false;
-      edit = {id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'};
+      edit = {id: 0, username: '', website: '', password: '', totp: ''};
       await load();
     } catch (cause) {
       error = cause instanceof Error ? cause.message : 'Could not save this entry.';
@@ -338,7 +336,7 @@
 <Dialog
   bind:open={editOpen}
   title={edit.id ? 'Edit vault account' : 'Add vault account'}
-  onclose={() => (edit = {id: 0, username: '', website: '', password: '', totp: '', algorithm: 'SHA1'})}
+  onclose={() => (edit = {id: 0, username: '', website: '', password: '', totp: ''})}
   ><form onsubmit={save}>
     <div class="field">
       <label for="entry-username">Username</label><input
@@ -372,13 +370,6 @@
         bind:value={edit.totp}
         autocomplete="off"
         placeholder="Optional base32 secret" />
-    </div>
-    <div class="field">
-      <label for="entry-algorithm">TOTP algorithm</label><Select
-        id="entry-algorithm"
-        label="TOTP algorithm"
-        options={TOTP_ALGORITHM_OPTIONS}
-        bind:value={edit.algorithm} />
     </div>
     <Status message={error} kind="error" /><Button type="submit" loading={pending}>Save encrypted entry</Button>
   </form></Dialog>

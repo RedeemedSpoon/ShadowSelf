@@ -1,5 +1,5 @@
 <script lang="ts">
-  import AssetIcon from './AssetIcon.svelte';
+  import AssetIcon from '$component/ui/AssetIcon.svelte';
 </script>
 
 <div class="blockchain" aria-label="Five cryptocurrency nodes connected to a wallet that signs locally">

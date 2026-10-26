@@ -42,7 +42,7 @@ async function sendOfficialEmail(email: string, token: string, reason: keyof typ
   }
 }
 
-export async function sendIdentityEmail(emailContent: EmailContent) {
+async function sendIdentityEmail(emailContent: EmailContent) {
   const {
     email,
     password,
@@ -92,7 +92,7 @@ export async function sendIdentityEmail(emailContent: EmailContent) {
   return {messageID: message.messageId as string, date, type};
 }
 
-export function verificationEmail(token: string, reason: keyof typeof EMAIL_TEMPLATES) {
+function verificationEmail(token: string, reason: keyof typeof EMAIL_TEMPLATES) {
   const template = EMAIL_TEMPLATES[reason];
   const subject = `ShadowSelf: ${template.title}`;
   const code = token.replace(
@@ -176,6 +176,7 @@ export function createIdentitySender(dependencies: {
     try {
       const sent = await dependencies.send({...content, messageID: claim.messageID});
       const response = {status: 'sent' as const, ...sent};
+
       await dependencies.complete(identity, request, response);
 
       return {...response, replay: false};
@@ -187,9 +188,15 @@ export function createIdentitySender(dependencies: {
 
 export function createSubmissionStore(database = sql) {
   return {
-    async claim(identity: string, request: string, fingerprint: string, messageID: string) {
-      return await database.begin(async (connection) => {
+    async claim(
+      identity: string,
+      request: string,
+      fingerprint: string,
+      messageID: string,
+    ): Promise<MailSubmissionClaim> {
+      return database.begin(async (connection) => {
         await connection`SELECT pg_advisory_xact_lock(hashtext(${`mail:${identity}`}))`;
+
         const existing =
           await connection`SELECT * FROM mail_submissions WHERE identity_id = ${identity} AND request_id = ${request}`;
 

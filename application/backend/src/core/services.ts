@@ -9,7 +9,12 @@ import Stripe from 'stripe';
 function lazyClient<T extends object>(factory: () => T): T {
   let instance: T | undefined;
 
-  return new Proxy({} as T, {
+  return new Proxy(function () {} as unknown as T, {
+    apply(_target, thisArg, argumentsList) {
+      instance ||= factory();
+
+      return Reflect.apply(instance as (...args: unknown[]) => unknown, thisArg, argumentsList);
+    },
     get(_target, property) {
       instance ||= factory();
 
@@ -28,15 +33,19 @@ export const stripe = lazyClient(() => {
   return new Stripe(stripeConfig.secretKey, {timeout: 15_000, maxNetworkRetries: 2});
 });
 
-export const sql = postgres({
-  host: dbConfig.host,
-  port: dbConfig.port,
-  database: dbConfig.dbName,
-  username: dbConfig.username,
-  password: dbConfig.password,
-  max: 10,
-  connect_timeout: 10,
-  idle_timeout: 30,
+export const sql = lazyClient(() => {
+  requireProvider(!!dbConfig.password, 'Database');
+
+  return postgres({
+    host: dbConfig.host,
+    port: dbConfig.port,
+    database: dbConfig.dbName,
+    username: dbConfig.username,
+    password: dbConfig.password,
+    max: 10,
+    connect_timeout: 10,
+    idle_timeout: 30,
+  });
 });
 
 function smtpTransporter(user: string, pass: string) {

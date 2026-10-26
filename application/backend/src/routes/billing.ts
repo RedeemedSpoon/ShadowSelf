@@ -1,5 +1,5 @@
 import middlewareBase from '@middlewares/middleware-base';
-import {deleteIdentity} from '@core/identity-service';
+import {deleteIdentity} from '@core/identity/identity-service';
 import {compareHash} from '@utils/cryptography';
 import {claimSensitiveAttempt} from '@core/states';
 import {error} from '@utils/utils';

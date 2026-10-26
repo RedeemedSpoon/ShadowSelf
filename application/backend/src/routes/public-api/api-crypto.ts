@@ -1,9 +1,9 @@
 import {cryptoFees, cryptoPrices, billingReadiness, throttle} from '@core/states';
 import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, UUID_PATTERN} from '@core/constants';
-import {chainProvider} from '@core/chain-provider';
-import {issuedWalletAddresses, reserveWalletAddress, rememberRecoveredAddresses} from '@core/wallet-addresses';
-import {withAccountLock, withIdentityLock} from '@core/identity-service';
-import {swapProvider} from '@core/swap-provider';
+import {chainProvider} from '@core/providers/chain-provider';
+import {issuedWalletAddresses, reserveWalletAddress, rememberRecoveredAddresses} from '@core/wallet/wallet-addresses';
+import {withAccountLock, withIdentityLock} from '@core/identity/identity-service';
+import {swapProvider} from '@core/providers/swap-provider';
 import {requireProvider, ApiError} from '@core/security';
 import {trocadorApiKey} from '@core/config';
 import middlewareApi from '@middlewares/middleware-api';

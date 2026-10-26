@@ -1,17 +1,21 @@
-import {initBackgroundWorkers} from '@core/background-workers';
-import {createApp} from './app';
+import {log, reportFailure} from '@logging';
 
 async function start() {
-  const app = createApp().listen({port: 3000, idleTimeout: 150});
+  const {warnMissingConfiguration} = await import('@core/config');
+  warnMissingConfiguration();
+
+  const {createApp} = await import('./app');
+  const app = createApp().listen({port: 3000, idleTimeout: 150, reusePort: false});
+
+  log('success', `API listening on ${app.server?.hostname}:${app.server?.port}`);
 
   if (process.env.NODE_ENV !== 'test') {
+    const {initBackgroundWorkers} = await import('@core/background-workers');
     initBackgroundWorkers();
   }
-
-  console.log(`ShadowSelf API listening on ${app.server?.hostname}:${app.server?.port}`);
 }
 
-void start().catch(() => {
-  console.error('API startup failed');
+void start().catch((failure) => {
+  reportFailure('API startup', failure);
   process.exitCode = 1;
 });

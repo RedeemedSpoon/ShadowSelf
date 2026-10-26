@@ -1,5 +1,5 @@
 import middlewareApi from '@middlewares/middleware-api';
-import {identityCryptoRefund} from '@core/crypto-refunds';
+import {identityCryptoRefund} from '@core/billing/crypto-refunds';
 import {generateProfile} from '@utils/prompts';
 import {faker} from '@faker-js/faker';
 import {checkAPI} from '@utils/checks';

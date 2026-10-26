@@ -1,6 +1,6 @@
 import {encryptSecret, decryptSecret, ApiError} from '@core/security';
 import {chainEndpoints} from '@core/config';
-import {chainJson, withChainEndpoint} from '@core/chain-requests';
+import {chainJson, withChainEndpoint} from '@core/providers/chain-requests';
 import {ESPLORA_HISTORY_PAGE_SIZE, WALLET_HISTORY_PAGE_SIZE, USDT_CONTRACT} from '@core/constants';
 import {xpubToAddress} from '@utils/cryptography';
 import {createHash} from 'node:crypto';

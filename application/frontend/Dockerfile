@@ -23,6 +23,7 @@ COPY frontend/package.json frontend/bun.lock ./
 RUN bun install --frozen-lockfile
 
 COPY frontend/ ./
+COPY logging.ts /app/logging.ts
 
 RUN bun run build
 

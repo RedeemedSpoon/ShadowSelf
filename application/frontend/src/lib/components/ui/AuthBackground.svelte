@@ -1,9 +1,5 @@
-<script lang="ts">
-  let {contrast = 14, running = true}: {contrast?: number; running?: boolean} = $props();
-</script>
-
 <div class="auth-background" aria-hidden="true">
-  <div class="rotor" class:paused={!running} style="opacity: {contrast / 100}">
+  <div class="rotor">
     <img src="/auth-spiral.webp" width="3072" height="3072" alt="" decoding="async" draggable={false} />
   </div>
   <div class="shade"></div>
@@ -21,6 +17,7 @@
   }
   .rotor {
     position: absolute;
+    opacity: 0.14;
     left: 50%;
     top: 50%;
     width: max(145cqw, 145cqh);
@@ -29,9 +26,6 @@
     contain: paint;
     will-change: transform;
     animation: spiral-turn 720s linear infinite;
-  }
-  .rotor.paused {
-    animation-play-state: paused;
   }
   img {
     display: block;

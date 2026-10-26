@@ -1,4 +1,5 @@
-import {processStripeEvent, saveStripeEvent} from '@core/stripe-service';
+import {reportFailure} from '@logging';
+import {processStripeEvent, saveStripeEvent} from '@core/billing/stripe-service';
 import {error} from '@utils/utils';
 import {stripeConfig} from '@core/config';
 import {requireProvider} from '@core/security';
@@ -21,7 +22,9 @@ export default new Elysia().post(
     }
 
     await saveStripeEvent(event);
-    void processStripeEvent(event.id).catch(() => console.error('Stripe event saved for reconciliation'));
+    void processStripeEvent(event.id).catch((failure) =>
+      reportFailure('Stripe event saved for reconciliation', failure),
+    );
 
     return {received: true};
   },

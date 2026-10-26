@@ -139,9 +139,8 @@ export const actions: Actions = {
 
     const qr = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 
-    return {step: 1, secret: response.secret, qr};
+    return {secret: response.secret, qr};
   },
-  nextOtp: async () => ({step: 2}),
   checkOtp: async ({request, cookies}) => {
     const form = await request.formData();
 
@@ -155,23 +154,14 @@ export const actions: Actions = {
       cookies.get('token'),
     );
 
-    if (response.type !== 'success') {
-      return {step: 2, ...response};
-    }
-
-    return {step: 3, OTP: true, ...response};
+    return response;
   },
-  otp: async () => ({step: 1}),
   deleteOtp: async ({request, cookies}) => {
     const currentPassword = (await request.formData()).get('currentPassword');
 
     const response = await fetchBackend('/settings/totp', 'DELETE', {currentPassword}, cookies.get('token'));
 
-    if (response.type !== 'success') {
-      return response;
-    }
-
-    return {OTP: false, ...response};
+    return response;
   },
   recovery: async ({request, cookies}) => {
     const password = (await request.formData()).get('password');

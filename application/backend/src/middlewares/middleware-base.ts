@@ -16,6 +16,13 @@ const middlewareBase = (app: Elysia) =>
       return {user, authorize};
     })
     .macro({
+      signedOut: {
+        beforeHandle({user}) {
+          if (user) {
+            throw new ApiError(401, 'unauthenticated', 'You are already logged in');
+          }
+        },
+      },
       authenticated: {
         resolve({user}) {
           if (!user) {

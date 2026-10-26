@@ -12,34 +12,23 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
   const body = rawBody as BodyField;
 
   for (const field of fields) {
-    const isOptional = field.startsWith('?');
-    const fieldType = isOptional ? field.slice(1) : field;
-
-    if (!Object.prototype.hasOwnProperty.call(body, field) && !isOptional) {
+    if (!Object.prototype.hasOwnProperty.call(body, field)) {
       return {err: `${toTitleCase(field)} is a required field`} as BodyField;
     }
 
-    if (isOptional && body[fieldType as keyof BodyField] === undefined) {
-      continue;
+    if (typeof body[field as keyof BodyField] !== 'string') {
+      return {err: `${toTitleCase(field)} must be a string`} as BodyField;
     }
 
-    if (typeof body[fieldType as keyof BodyField] !== 'string') {
-      return {err: `${toTitleCase(fieldType)} must be a string`} as BodyField;
-    }
-
-    if ((body[fieldType as keyof BodyField] as string).length > 256) {
-      return {err: `${toTitleCase(fieldType)} is too long`} as BodyField;
+    if ((body[field as keyof BodyField] as string).length > 256) {
+      return {err: `${toTitleCase(field)} is too long`} as BodyField;
     }
 
     if (ignore) {
       continue;
     }
 
-    if (isOptional && !body[fieldType as keyof BodyField]) {
-      continue;
-    }
-
-    switch (fieldType) {
+    switch (field) {
       case 'username':
         if (!body.username.trim() || !/^[\p{L}\p{N}\s]+$/u.test(body.username)) {
           return {err: 'Username can only contain letters, numbers and spaces'} as BodyField;
@@ -52,7 +41,7 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         break;
 
       case 'password':
-        if (body.password.length < 12 || body.password.length > 256) {
+        if (body.password.length < 12) {
           return {err: 'Use a password between 12 and 256 characters'} as BodyField;
         }
 
@@ -63,10 +52,6 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
 
         if (!validEmailAddress(body.email)) {
           return {err: 'Invalid email address. Please try again'} as BodyField;
-        } else {
-          if (body.email.length > 254) {
-            return {err: 'Email is too long (maximum 254 characters)'} as BodyField;
-          }
         }
 
         break;
@@ -91,34 +76,6 @@ export function check(rawBody: unknown, fields: string[], ignore?: boolean): Bod
         }
 
         break;
-
-      case 'payment':
-        if (body.payment.length !== 27 || !body.payment.startsWith('pm_')) {
-          return {err: 'Payment method is invalid. Please try again'} as BodyField;
-        }
-
-        break;
-
-      case 'intent':
-        if (body.intent.length !== 27 || !body.intent.startsWith('pi_')) {
-          return {err: 'Payment Intent is invalid. Please try again'} as BodyField;
-        }
-
-        break;
-
-      case 'subscription':
-        if (body.subscription.length !== 28 || !body.subscription.startsWith('sub_')) {
-          return {err: 'Subscription ID is invalid. Please try again'} as BodyField;
-        }
-
-        break;
-
-      case 'id':
-        if (body.id.length !== 12) {
-          return {err: 'Invalid ID, please try again'} as BodyField;
-        }
-
-        break;
     }
   }
 
@@ -138,12 +95,6 @@ export function checkContact(rawBody: unknown): ContactDetail {
     )
   ) {
     return {err: 'Invalid contact request'} as ContactDetail;
-  }
-
-  for (const field of ['category', 'message', 'subject']) {
-    if (!Object.prototype.hasOwnProperty.call(body, field)) {
-      return {err: `${toTitleCase(field)} is a required field`} as ContactDetail;
-    }
   }
 
   if (!body.subject.trim().length || body.subject.length > 120) {
@@ -245,20 +196,6 @@ export async function checkIdentity(kind: string, rawBody: unknown): Promise<Che
 
       if (!/^0x[a-fA-F0-9]{40}$/.test(keys.evm)) {
         return {error: 'Invalid Ethereum Address'};
-      }
-
-      break;
-    }
-
-    case 'provision': {
-      const validationKinds = ['location', 'identity', 'email', 'phone', 'wallet'];
-
-      for (const validationKind of validationKinds) {
-        const {error} = await checkIdentity(validationKind, body);
-
-        if (error) {
-          return {error};
-        }
       }
 
       break;
@@ -406,27 +343,9 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
         break;
 
-      case 'draft':
-        if (body.draft !== null && (!Number.isSafeInteger(body.draft) || body.draft < 1)) {
-          return {err: 'Draft must be a single positive message UID or null'} as APIRequest;
-        }
-
-        break;
-
       case 'totp':
         if (body.totp !== null && !validCiphertext(body.totp)) {
           return {err: 'Invalid encrypted authenticator secret'} as APIRequest;
-        }
-
-        break;
-
-      case 'algorithm':
-        if (typeof body.algorithm !== 'string') {
-          return {err: 'Algorithm must be a string'} as APIRequest;
-        }
-
-        if (!['SHA1', 'SHA256', 'SHA512'].includes(body.algorithm)) {
-          return {err: 'Unrecognized algorithm, please try again'} as APIRequest;
         }
 
         break;
@@ -445,13 +364,6 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
         break;
 
-      case 'uuid':
-        if (typeof body.uuid !== 'string') {
-          return {err: 'Email UUID must be a string'} as APIRequest;
-        }
-
-        break;
-
       case 'identityID':
         if (typeof body.identityID !== 'string') {
           return {err: 'Identity ID must be a string'} as APIRequest;
@@ -459,13 +371,6 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
         if (body.identityID.length !== 12) {
           return {err: 'Invalid Identity ID, please try again'} as APIRequest;
-        }
-
-        break;
-
-      case 'since':
-        if (typeof body.since !== 'string' || !Number.isInteger(Number(body.since)) || Number(body.since) < 1) {
-          return {err: 'Invalid since parameter, please try again'} as APIRequest;
         }
 
         break;
@@ -517,17 +422,6 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
         if (!['Inbox', 'Sent', 'Drafts', 'Junk'].includes(body.mailbox)) {
           return {err: 'Non-existent mailbox, please try again'} as APIRequest;
-        }
-
-        break;
-
-      case 'from':
-        if (typeof body.from !== 'string') {
-          return {err: 'From address must be a string'} as APIRequest;
-        }
-
-        if (!validEmailAddress(body.from)) {
-          return {err: 'Invalid from email address, please try again'} as APIRequest;
         }
 
         break;
@@ -659,50 +553,6 @@ export async function checkAPI(rawBody: unknown, fields: string[]): Promise<APIR
 
         if (!validCiphertext(body.keys.viewKey)) {
           return {err: 'Invalid encrypted viewKey in keys'} as APIRequest;
-        }
-
-        break;
-
-      case 'btc':
-        if (typeof body.btc !== 'string') {
-          return {err: 'Bitcoin XPUB must be a string'} as APIRequest;
-        }
-
-        if (!/^[xyzXtTuUvV]pub[a-zA-Z0-9]{100,130}$/.test(body.btc)) {
-          return {err: 'Invalid Bitcoin Extended Public Key (XPUB)'} as APIRequest;
-        }
-
-        break;
-
-      case 'ltc':
-        if (typeof body.ltc !== 'string') {
-          return {err: 'Litecoin XPUB must be a string'} as APIRequest;
-        }
-
-        if (!/^[LMxyzXtTuUvV]pub[a-zA-Z0-9]{100,130}$/.test(body.ltc)) {
-          return {err: 'Invalid Litecoin Extended Public Key (XPUB)'} as APIRequest;
-        }
-
-        break;
-
-      case 'evm':
-        if (typeof body.evm !== 'string') {
-          return {err: 'Ethereum address must be a string'} as APIRequest;
-        }
-
-        if (!/^0x[a-fA-F0-9]{40}$/.test(body.evm)) {
-          return {err: 'Invalid Ethereum/EVM Address format'} as APIRequest;
-        }
-
-        break;
-
-      case 'xmr':
-        if (typeof body.xmr !== 'string') {
-          return {err: 'Monero address must be a string'} as APIRequest;
-        }
-
-        if (!/^[48][a-zA-Z0-9]{90,110}$/.test(body.xmr)) {
-          return {err: 'Invalid Monero Address format'} as APIRequest;
         }
 
         break;

@@ -1,9 +1,6 @@
-export const DEVELOPMENT_SECRET_SAUCE = 'synthetic-development-secret-sauce-not-for-deployment';
-
-export const IDENTITY_CREATION_AVAILABLE = false;
+export const DEFAULT_SECRET_SAUCE = 'INSECURE_DEFAULT';
 
 export const ETHNICITIES = ['caucasian', 'black', 'hispanic', 'slav', 'arab', 'east asian', 'south asian'];
-export const EMAIL_JUNK_RETENTION_DAYS = 7;
 export const EMAIL_FETCH_LIMIT = 10;
 export const EMAIL_UID_WINDOW = 1000;
 export const EMAIL_OUTBOUND_HOURLY_LIMIT = 30;

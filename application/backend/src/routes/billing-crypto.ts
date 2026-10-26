@@ -1,5 +1,5 @@
-import {IDENTITY_CREATION_AVAILABLE, SWAP_CHECKOUT_URL} from '@core/constants';
-import {allocateInvoiceAddress, quoteXmr, parseXmr, purchaseUsdAmount} from '@core/wallet-service';
+import {SWAP_CHECKOUT_URL} from '@core/constants';
+import {allocateInvoiceAddress, quoteXmr, parseXmr, purchaseUsdAmount} from '@core/wallet/wallet-service';
 import {POLL_PRICES_INTERVAL} from '@core/constants';
 import {
   cryptoPrices,
@@ -11,13 +11,13 @@ import {
 } from '@core/states';
 import {CRYPTO_DISCOUNT, PRICING_TIERS, PAYMENT_WINDOW_MIN, UUID_PATTERN} from '@core/constants';
 import middlewareBase from '@middlewares/middleware-base';
-import {trocadorApiKey} from '@core/config';
-import {requireProvider} from '@core/security';
+import {trocadorApiKey, billingEnabled} from '@core/config';
+import {ApiError, requireProvider} from '@core/security';
 import {error} from '@utils/utils';
-import {swapProvider, reconcilePaymentInvoice} from '@core/swap-provider';
+import {swapProvider, reconcilePaymentInvoice} from '@core/providers/swap-provider';
 import {checkAPI} from '@utils/checks';
 import {sql} from '@core/services';
-import {withAccountLock} from '@core/identity-service';
+import {withAccountLock} from '@core/identity/identity-service';
 import type {PaymentInvoiceRecovery} from '@type';
 import {Elysia, t} from 'elysia';
 
@@ -155,7 +155,9 @@ export default new Elysia({prefix: '/api/billing/crypto', websocket: {idleTimeou
   });
 
 async function createInvoice(set: Record<string, any>, email: string, body: unknown, renewal: boolean) {
-  requireProvider(renewal || IDENTITY_CREATION_AVAILABLE, 'New identity purchases');
+  if (!billingEnabled) {
+    throw new ApiError(503, 'billing_disabled', 'Purchases and renewals are currently disabled');
+  }
 
   const fields = ['plan', 'swapCoin', '?refundAddress', ...(renewal ? ['identityID'] : [])];
   const {err, plan, swapCoin, refundAddress, identityID} = await checkAPI(body, fields);
