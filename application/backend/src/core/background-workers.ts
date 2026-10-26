@@ -1,6 +1,7 @@
 import {withChainEndpoint, chainJson, ethereumRpc, requireEthereumMainnet} from '@core/chain-requests';
 import {repairCryptoRefunds} from '@core/crypto-refunds';
 import {repairStripeCleanup} from '@core/stripe-cleanup';
+import {enqueueBillingReceipt, processBillingReceipts} from '@core/billing-receipts';
 import {repairStripeEvents} from '@core/stripe-service';
 import {repairPaymentInvoices, repairWalletSwapRequests} from '@core/swap-provider';
 import {
@@ -13,13 +14,13 @@ import {
 } from '@core/wallet-service';
 import {POLL_FEES_INTERVAL, POLL_PRICES_INTERVAL, POLL_INVOICES_INTERVAL, POLL_CLEANUP_INTERVAL} from '@core/constants';
 import {cryptoFees, cryptoPrices, invoiceConnections, billingWallet, billingReadiness} from '@core/states';
-import {COINGECKO_URL} from '@core/constants';
+import {COINGECKO_URL, PRICING_TIERS} from '@core/constants';
 import {PAYMENT_WINDOW_MIN, INVOICE_POLL_BATCH_SIZE, INVOICE_ACTIVE_MONITOR_MS} from '@core/constants';
 import type {QueryInvoice} from '@type';
 import {generateIdentityID} from '@utils/cryptography';
 import {withReservedTransaction, reportFailure} from '@utils/utils';
 import {sql} from '@core/services';
-import {stripeConfig, moneroWallet, trocadorApiKey} from '@core/config';
+import {stripeConfig, moneroWallet, trocadorApiKey, emailConfig} from '@core/config';
 import type {ReservedSql} from 'postgres';
 
 let activeInvoiceCursor: string | null = null;
@@ -116,6 +117,28 @@ export async function activateInvoice(connection: ReservedSql, invoice: QueryInv
       await transaction`INSERT INTO identities (id, owner, creation_date, plan, crypto_invoice)
         VALUES (${identityID}, ${invoice.owner}, ${new Date()}, ${invoice.plan}, ${invoice.id})`;
     }
+
+    await enqueueBillingReceipt(transaction, {
+      owner: invoice.owner!,
+      identityID,
+      provider: 'crypto',
+      providerReference: invoice.id,
+      details: {
+        identityID,
+        plan: invoice.plan,
+        renewal: invoice.renewal,
+        paidAt: paidAt.toISOString(),
+        amount: invoice.usd_amount,
+        currency: 'USD',
+        discount: (PRICING_TIERS[invoice.plan] / 100 - Number(invoice.usd_amount)).toFixed(4),
+        tax: null,
+        periodStart: entitlementStart.toISOString(),
+        periodEnd: entitlementEnd(entitlementStart, invoice.plan)?.toISOString() || null,
+        paymentMethod: 'Cryptocurrency',
+        cryptoAmount: invoice.xmr_amount,
+        cryptoCoin: 'XMR',
+      },
+    });
 
     return identityID;
   });
@@ -350,6 +373,10 @@ export function initBackgroundWorkers() {
   void runWorker('Fee polling', pollFees, POLL_FEES_INTERVAL);
   void runWorker('Price polling', pollPrices, POLL_PRICES_INTERVAL);
   void runWorker('Identity expiry', cleanupWorkers, POLL_CLEANUP_INTERVAL);
+
+  if (emailConfig.billingPassword && emailConfig.host) {
+    void runWorker('Billing receipt delivery', processBillingReceipts, POLL_INVOICES_INTERVAL);
+  }
 
   if (stripeConfig.secretKey) {
     void runWorker('Stripe reconciliation', repairStripeEvents, POLL_INVOICES_INTERVAL);

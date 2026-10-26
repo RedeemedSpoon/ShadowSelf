@@ -28,6 +28,7 @@ export async function contact(body: ContactDetail) {
 async function sendOfficialEmail(email: string, token: string, reason: keyof typeof EMAIL_TEMPLATES) {
   const mailOptions = {
     from: emailConfig.verificationAddress,
+    replyTo: emailConfig.contactAddress,
     to: email,
     ...verificationEmail(token, reason),
   };

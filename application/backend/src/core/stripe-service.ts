@@ -1,4 +1,5 @@
 import {origin} from '@core/config';
+import {recordStripeLifetimeReceipt, recordStripeInvoiceReceipt} from '@core/billing-receipts';
 import {BILLING_CURRENCY, PRICING_TIERS, STRIPE_EVENT_TYPES, STRIPE_EVENT_RETENTION_DAYS} from '@core/constants';
 import {repairStripeCleanup} from '@core/stripe-cleanup';
 import {sql, stripe} from '@core/services';
@@ -199,6 +200,15 @@ async function applyLifetimePayment(id: string, transaction: TransactionSql, pro
 
   await transaction`INSERT INTO identities (id, owner, creation_date, plan, payment_intent)
     VALUES (${payment.metadata.id}, ${purchases[0].owner}, ${new Date(payment.created * 1000)}, 'lifetime', ${payment.id}) ON CONFLICT (id) DO NOTHING`;
+
+  await recordStripeLifetimeReceipt(
+    transaction,
+    {
+      owner: purchases[0].owner,
+      identityID: payment.metadata.id,
+    },
+    payment,
+  );
 }
 
 async function applyPaidInvoice(id: string, transaction: TransactionSql, provider: Stripe) {
@@ -267,6 +277,16 @@ async function applyPaidInvoice(id: string, transaction: TransactionSql, provide
   await transaction`UPDATE identities SET status = CASE
     WHEN EXISTS (SELECT 1 FROM creation_jobs WHERE identity_id = ${purchase.identity_id} AND status = 'completed') THEN 'active' ELSE 'inactive' END
     WHERE id = ${purchase.identity_id} AND owner = ${purchase.owner} AND subscription_id = ${subscriptionID} AND status = 'frozen'`;
+
+  await recordStripeInvoiceReceipt(
+    transaction,
+    {
+      owner: purchase.owner,
+      identityID: purchase.identity_id,
+      plan: purchase.plan,
+    },
+    invoice,
+  );
 }
 
 async function applyChargeReversal(

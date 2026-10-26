@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({url, cookies}) => {
     creationStatus: 'editing' | 'provisioning' | 'completed';
   }>(`/identities/${id}/creation`, 'GET', undefined, cookies.get('token'));
 
-  if (result.ok && result.data.creationStatus === 'completed') {
+  if (result.ok && (result.data.creationStatus === 'completed' || ['active', 'frozen'].includes(result.data.status))) {
     redirect(303, `/identity/${id}`);
   }
 

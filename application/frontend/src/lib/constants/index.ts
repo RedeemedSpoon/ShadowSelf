@@ -40,6 +40,35 @@ export const PRICING_TIERS = {
   },
 };
 
+export const PURCHASE_INVOICE_MESSAGES: Record<string, string> = {
+  reconciling:
+    'The exchange request is being checked. Do not send payment or start another purchase. Refresh to retry reconciliation.',
+  reconciliation: 'Payment evidence needs review. Keep this reference and do not send another payment.',
+  waiting: 'Waiting for payment.',
+  pending: 'Waiting for payment.',
+  confirming: 'Payment observed. Waiting for confirmations.',
+  paid: 'Payment confirmed.',
+  refunded: 'This payment was refunded. Check the refund address and provider transaction.',
+  late: 'Payment arrived after expiry. Reconciliation is required. Do not send another payment.',
+  underpaid: 'Payment is below the required amount. Review the remaining balance before sending more.',
+  expired: 'This invoice has expired. Check payment history before creating another invoice.',
+};
+
+export const PURCHASE_COVERAGE = 'Every plan includes all ShadowSelf features for one identity.';
+
+export const PURCHASE_FEES = 'Bandwidth may be billed separately. Other fees may apply.';
+
+export const PURCHASE_FEATURES = [
+  {id: 'identity', icon: 'user', label: 'Identity', detail: 'Profiles & portraits'},
+  {id: 'vault', icon: 'key', label: 'Account vault', detail: 'Passwords & two-factor codes'},
+  {id: 'email', icon: 'mail', label: 'Email', detail: 'Inbox, aliases & PGP'},
+  {id: 'phone', icon: 'phone', label: 'Phone', detail: 'Dedicated number & SMS'},
+  {id: 'wallet', icon: 'wallet', label: 'Crypto wallets', detail: 'Keys controlled in your browser'},
+  {id: 'card', icon: 'card', label: 'Virtual cards', detail: 'Online payments & spending limits'},
+  {id: 'proxy', icon: 'proxy', label: 'Residential proxies', detail: 'Routing for each identity'},
+  {id: 'cloud', icon: 'cloud', label: 'Online drive', detail: 'Files & image privacy tools'},
+] as const;
+
 export const HOMEPAGE_SERVICES = [
   {
     id: 'identity',
@@ -512,3 +541,14 @@ export const SERVICE_GUIDES = {
 } as const;
 
 export const NOTIFICATION_DURATION = 6000;
+
+export const PURCHASE_CONFETTI = Array.from({length: 20}, (_, index) => ({
+  x: Math.round(Math.cos((index / 20) * Math.PI * 2) * (85 + (index % 4) * 17)),
+  y: Math.round(Math.sin((index / 20) * Math.PI * 2) * (65 + (index % 3) * 18)),
+  delay: (index % 5) * 45,
+  rotation: index * 43,
+  color: ['var(--accent)', 'var(--accent-light)', 'var(--accent-deep)', '#d8d0ff'][index % 4],
+}));
+
+export const BILLING_RECEIPT_PATH_PATTERN =
+  /^\/purchase\/receipts\/[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;

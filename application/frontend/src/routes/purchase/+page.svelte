@@ -1,71 +1,166 @@
 <script lang="ts">
-  import {fly} from 'svelte/transition';
-  import Select from '$component/ui/Select.svelte';
   import {onMount, tick, untrack} from 'svelte';
   import {page} from '$app/state';
-  import {goto, replaceState} from '$app/navigation';
+  import {goto, replaceState, invalidate} from '$app/navigation';
   import {request} from '$utils/webfetch';
-  import {PRICING_TIERS, CRYPTO_DISCOUNT, PAYMENT_ASSET_OPTIONS} from '$constant';
+  import {PRICING_TIERS, PURCHASE_INVOICE_MESSAGES} from '$constant';
   import {loadStripe} from '@stripe/stripe-js/pure';
   import type {Stripe, StripeElements, StripePaymentElement} from '@stripe/stripe-js';
   import type {CardCheckout, CryptoInvoice, Coins} from '$type';
   import type {PageData} from './$types';
-  import QRCode from 'qrcode';
   import Button from '$component/ui/Button.svelte';
-  import Status from '$component/ui/Status.svelte';
-  import Dialog from '$component/ui/Dialog.svelte';
-  import Copy from '$component/ui/Copy.svelte';
-  import Icon from '$component/ui/Icon.svelte';
+  import PurchaseExperience from '$component/purchase/PurchaseExperience.svelte';
+  import PurchaseModal from '$component/purchase/PurchaseModal.svelte';
+  import PurchaseSuccess from '$component/purchase/PurchaseSuccess.svelte';
+  import {
+    createPurchaseNavigation,
+    readPurchaseDraft,
+    savePurchaseDraft,
+  } from '$component/purchase/purchase-navigation';
+  import PurchaseConfirmation from '$component/purchase/PurchaseConfirmation.svelte';
+  import PurchaseCryptoForm from '$component/purchase/PurchaseCryptoForm.svelte';
+  import PurchaseInvoice from '$component/purchase/PurchaseInvoice.svelte';
 
   let {data}: {data: PageData} = $props();
-  let reducedMotion = $state(true);
   let plan = $state<keyof typeof PRICING_TIERS>('monthly');
   let pending = $state(false);
+  let confirmationOpen = $state(false);
+  let cardOpen = $state(false);
+  let successOpen = $state(false);
+  let paidIdentity = $state('');
+  let invoiceOpen = $state(false);
+  let mounted = $state(false);
+  let restoredCard = $state(false);
+  let invoiceRequested = $state(false);
+  let flowEpoch = 0;
+  let disposed = false;
   let error = $state('');
   let method = $state<'card' | 'crypto'>('card');
   let ticker = $state<Coins>('xmr');
   let refund = $state('');
   let invoice = $state<CryptoInvoice | null>(null);
   let status = $state('');
-  let qr = $state('');
   let checkout = $state<CardCheckout | null>(null);
-  let checkoutOpen = $state(false);
   let cardReady = $state(false);
+  let invoiceRefreshing = $state(false);
   let requestID = $state<string>(untrack(() => data.requestID));
   let mountPoint = $state<HTMLDivElement>();
   let stripe: Stripe | null = null;
-  let elements: StripeElements;
-  let payment: StripePaymentElement;
+  let elements: StripeElements | null = null;
+  let payment: StripePaymentElement | null = null;
   let poll: ReturnType<typeof setInterval>;
   const renewal = $derived(page.url.searchParams.get('id'));
+  const draftKey = $derived(`shadowself:purchase:${renewal || 'new'}`);
   const tier = $derived(PRICING_TIERS[plan]);
-  const capabilities = [
-    {label: 'Identity profile', icon: 'user'},
-    {label: 'Email, aliases, and PGP', icon: 'mail'},
-    {label: 'Phone number', icon: 'phone'},
-    {label: 'Encrypted passwords, TOTP, and recovery codes', icon: 'key'},
-    {label: 'Client-signed crypto wallets', icon: 'wallet'},
-    {label: 'Virtual cards and spending controls', icon: 'card'},
-    {label: 'Residential proxies', icon: 'proxy'},
-    {label: 'Online drive', icon: 'cloud'},
-  ];
-  const invoiceMessages: Record<string, string> = {
-    reconciling:
-      'The exchange request is being checked. Do not send payment or start another purchase. Refresh to retry reconciliation.',
-    reconciliation:
-      'Payment evidence needs review. This page will keep checking. Keep this reference and do not send another payment.',
-    waiting: 'Waiting for payment.',
-    pending: 'Waiting for payment.',
-    confirming: 'Payment observed. Waiting for confirmations.',
-    paid: 'Payment confirmed.',
-    refunded: 'This payment was refunded. Check the refund address and provider transaction.',
-    late: 'Payment arrived after expiry. Reconciliation is required. Do not send another payment.',
-    underpaid: 'Payment is below the required amount. Review the remaining balance before sending more.',
-    expired: 'This invoice has expired. Check payment history before creating another invoice.',
-  };
+  const navigation = createPurchaseNavigation('/purchase', closePayment);
+
+  $effect(() => {
+    if (mounted) {
+      savePurchaseDraft(draftKey, {
+        plan,
+        method,
+        ticker,
+        refund,
+        requestID,
+        invoiceID: invoice?.invoiceID,
+        cardStarted: !!checkout || restoredCard,
+        invoiceRequested,
+        paidIdentity,
+      });
+    }
+  });
+
+  $effect(() => {
+    if (invoiceOpen && invoice) {
+      void navigation.start();
+    }
+  });
+
+  function closePayment() {
+    if (successOpen) {
+      void finishPurchase();
+      return;
+    }
+
+    cardOpen = false;
+    confirmationOpen = false;
+    invoiceOpen = false;
+  }
+
+  async function finishPurchase() {
+    reset();
+    await navigation.prepareHandoff();
+  }
+
+  function resumeCard() {
+    if (checkout) {
+      navigation.start();
+      cardOpen = true;
+    } else {
+      void payCard();
+    }
+  }
+
+  function reset() {
+    savePurchaseDraft(draftKey, null);
+    restoredCard = false;
+    invoiceRequested = false;
+    invoiceOpen = false;
+    flowEpoch++;
+    clearInterval(poll);
+    payment?.destroy();
+    payment = null;
+    elements = null;
+    stripe = null;
+    checkout = null;
+    invoice = null;
+    error = '';
+    status = '';
+    pending = false;
+    cardReady = false;
+    invoiceRefreshing = false;
+    cardOpen = false;
+    confirmationOpen = false;
+    successOpen = false;
+    paidIdentity = '';
+    plan = 'monthly';
+    method = 'card';
+    ticker = 'xmr';
+    refund = '';
+    requestID = crypto.randomUUID();
+  }
+
+  function paymentSucceeded(identityID: string) {
+    if (disposed) {
+      return;
+    }
+
+    clearInterval(poll);
+    navigation.start();
+    paidIdentity = identityID;
+    cardOpen = false;
+    confirmationOpen = false;
+    invoice = null;
+    successOpen = true;
+    void invalidate('app:identities');
+  }
+
+  async function handoff() {
+    const destination = renewal ? `/identity/${paidIdentity}` : `/create?id=${paidIdentity}`;
+
+    reset();
+    await navigation.prepareHandoff();
+    await goto(destination);
+  }
+
+  function reviewCrypto(event: SubmitEvent) {
+    event.preventDefault();
+    navigation.start();
+    confirmationOpen = true;
+  }
 
   function choose(value: keyof typeof PRICING_TIERS) {
-    if (pending || invoice || checkout) {
+    if (pending || invoice || checkout || restoredCard || invoiceRequested) {
       return;
     }
 
@@ -75,6 +170,15 @@
   }
 
   async function payCard(confirm = false) {
+    if (pending) {
+      return;
+    }
+
+    const epoch = flowEpoch;
+
+    navigation.start();
+    restoredCard = true;
+    cardOpen = true;
     pending = true;
     error = '';
 
@@ -88,51 +192,70 @@
         throw new Error(result.error);
       }
 
-      checkout = result.data;
-
       if (result.data.step === 'finish') {
-        await goto(`/create?id=${result.data.identityID}`);
-
+        paymentSucceeded(result.data.identityID);
         return;
       }
 
-      checkoutOpen = true;
+      if (disposed || epoch !== flowEpoch) {
+        return;
+      }
+
+      checkout = result.data;
 
       if (result.data.step === 'create' || result.data.step === 'auth') {
-        await mountCard(result.data);
+        await mountCard(result.data, epoch);
       }
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : 'Could not start checkout.';
+      if (epoch === flowEpoch && !disposed) {
+        error = cause instanceof Error ? cause.message : 'Could not start checkout.';
+        cardOpen = true;
+      }
     } finally {
-      pending = false;
+      if (epoch === flowEpoch) {
+        pending = false;
+      }
     }
   }
 
-  async function mountCard(details: CardCheckout) {
+  async function mountCard(details: CardCheckout, epoch = flowEpoch) {
+    cardReady = false;
+
     if (!data.stripeKey) {
-      throw new Error('Could not load the card form. Close it and try again.');
+      throw new Error('Could not load the card form. Retry card checkout.');
     }
 
     loadStripe.setLoadParameters({advancedFraudSignals: false});
     stripe = await loadStripe(data.stripeKey);
+
+    if (disposed || epoch !== flowEpoch) {
+      return;
+    }
 
     if (!stripe) {
       throw new Error('Stripe could not be loaded.');
     }
 
     if (details.step === 'auth') {
+      cardOpen = false;
+
       const result = await stripe.confirmCardPayment(details.clientSecret);
 
       if (result.error) {
         throw new Error(result.error.message);
       }
 
-      await goto(`/create?id=${details.identityID}`);
+      paymentSucceeded(details.identityID);
 
       return;
     }
 
     await tick();
+
+    if (disposed || epoch !== flowEpoch) {
+      return;
+    }
+
     payment?.destroy();
     elements = stripe.elements({
       clientSecret: details.clientSecret,
@@ -142,13 +265,42 @@
       },
     });
     payment = elements.create('payment');
-    payment.on('ready', () => (cardReady = true));
+    payment.on('ready', () => {
+      if (epoch === flowEpoch) {
+        cardReady = true;
+      }
+    });
 
     if (!mountPoint) {
-      throw new Error('Payment form could not be displayed. Close checkout and retry.');
+      throw new Error('Payment form could not be displayed. Retry card checkout.');
     }
 
     payment.mount(mountPoint);
+  }
+
+  async function retryCard() {
+    if (!checkout) {
+      await payCard();
+      return;
+    }
+
+    const epoch = flowEpoch;
+
+    pending = true;
+    error = '';
+
+    try {
+      await mountCard(checkout, epoch);
+    } catch (cause) {
+      if (epoch === flowEpoch && !disposed) {
+        error = cause instanceof Error ? cause.message : 'Could not load card checkout. Try again.';
+        cardOpen = true;
+      }
+    } finally {
+      if (epoch === flowEpoch) {
+        pending = false;
+      }
+    }
   }
 
   async function confirmCard() {
@@ -156,13 +308,17 @@
       return;
     }
 
+    const identityID = checkout.identityID;
+    const epoch = flowEpoch;
+
     pending = true;
     error = '';
+    cardOpen = false;
 
     try {
       const result = await stripe.confirmPayment({
         elements,
-        confirmParams: {return_url: `${page.url.origin}/create?id=${checkout.identityID}`},
+        confirmParams: {return_url: `${page.url.origin}/purchase?plan=${plan}&card_return=${requestID}`},
         redirect: 'if_required',
       });
 
@@ -170,16 +326,27 @@
         throw new Error(result.error.message);
       }
 
-      await goto(`/create?id=${checkout.identityID}`);
+      paymentSucceeded(identityID);
     } catch (cause) {
-      error = cause instanceof Error ? cause.message : 'Payment could not be confirmed. Retry this checkout.';
+      if (epoch === flowEpoch && !disposed) {
+        error = cause instanceof Error ? cause.message : 'Payment could not be confirmed. Retry this checkout.';
+        cardOpen = true;
+      }
     } finally {
-      pending = false;
+      if (epoch === flowEpoch) {
+        pending = false;
+      }
     }
   }
 
-  async function newInvoice(event: SubmitEvent) {
-    event.preventDefault();
+  async function newInvoice() {
+    if (pending) {
+      return;
+    }
+
+    const epoch = flowEpoch;
+
+    invoiceRequested = true;
     pending = true;
     error = '';
 
@@ -202,78 +369,102 @@
         throw new Error(result.error);
       }
 
-      await showInvoice(result.data);
+      if (epoch !== flowEpoch || disposed) {
+        return;
+      }
+
+      await showInvoice(result.data, confirmationOpen);
     } catch (cause) {
+      if (epoch !== flowEpoch || disposed) {
+        return;
+      }
+
       error = cause instanceof Error ? cause.message : 'Could not create an invoice.';
       await recoverInvoice(requestID);
     } finally {
-      pending = false;
+      if (epoch === flowEpoch) {
+        pending = false;
+      }
     }
   }
 
-  async function showInvoice(value: CryptoInvoice) {
+  async function showInvoice(value: CryptoInvoice, open = true) {
+    const epoch = flowEpoch;
+
+    navigation.start();
+    confirmationOpen = false;
+    method = 'crypto';
     invoice = value;
-    await renderInvoiceQR(value);
-    replaceState(`?${renewal ? `id=${renewal}&plan=${plan}&` : ''}invoice=${value.invoiceID}`, page.state);
-    status = invoiceMessages[value.status] || 'Checking payment status.';
+    invoiceOpen = open;
+
+    if (disposed || epoch !== flowEpoch) {
+      return;
+    }
+
+    replaceState(`?plan=${plan}&${renewal ? `id=${renewal}&` : ''}invoice=${value.invoiceID}`, page.state);
+    status = PURCHASE_INVOICE_MESSAGES[value.status] || 'Checking payment status.';
     clearInterval(poll);
     poll = setInterval(() => void refreshInvoice(), 5000);
     await refreshInvoice();
   }
 
   async function refreshInvoice() {
-    if (!invoice) {
+    if (!invoice || invoiceRefreshing) {
       return;
     }
 
-    const result = await request<CryptoInvoice>(`/billing/crypto/invoices/${invoice.invoiceID}`);
+    const epoch = flowEpoch;
+    const renewalID = renewal;
 
-    if (!result.ok) {
-      status = `${result.error} Keep this invoice open and retry.`;
+    invoiceRefreshing = true;
 
-      return;
+    try {
+      const result = await request<CryptoInvoice>(`/billing/crypto/invoices/${invoice.invoiceID}`);
+
+      if (disposed || epoch !== flowEpoch) {
+        if (!disposed && result.ok && result.data.status === 'paid' && (renewalID || result.data.identityID)) {
+          paymentSucceeded(renewalID || result.data.identityID!);
+        }
+
+        return;
+      }
+
+      if (!result.ok) {
+        status = `${result.error} Keep this invoice open and retry.`;
+        return;
+      }
+
+      invoice = result.data;
+      status = PURCHASE_INVOICE_MESSAGES[result.data.status] || result.data.status;
+
+      if (result.data.status === 'underpaid') {
+        status += ` Remaining ${result.data.remainingAmount} XMR.`;
+      }
+
+      if (result.data.status === 'paid' && (renewalID || result.data.identityID)) {
+        paymentSucceeded(renewalID || result.data.identityID!);
+      } else if (result.data.status === 'paid') {
+        status = 'Payment confirmed. Preparing your identity…';
+      }
+
+      if (['late', 'refunded'].includes(result.data.status)) {
+        clearInterval(poll);
+      }
+    } finally {
+      if (epoch === flowEpoch) {
+        invoiceRefreshing = false;
+      }
     }
-
-    invoice = result.data;
-    await renderInvoiceQR(result.data);
-    status = invoiceMessages[result.data.status] || result.data.status;
-
-    if (result.data.status === 'underpaid') {
-      status += ` Remaining ${result.data.remainingAmount} XMR.`;
-    }
-
-    if (result.data.status === 'paid') {
-      clearInterval(poll);
-      await goto(renewal ? `/identity/${renewal}` : `/create?id=${result.data.identityID}`);
-    }
-
-    if (['late', 'refunded'].includes(result.data.status)) {
-      clearInterval(poll);
-    }
-  }
-
-  async function renderInvoiceQR(value: CryptoInvoice) {
-    if (!value.depositAddress || value.depositMemo) {
-      qr = '';
-
-      return;
-    }
-
-    const scheme = {xmr: 'monero', btc: 'bitcoin', ltc: 'litecoin'}[value.coin.toLowerCase()];
-    const amountKey = value.coin.toLowerCase() === 'xmr' ? 'tx_amount' : 'amount';
-    const uri = scheme
-      ? `${scheme}:${value.depositAddress}?${amountKey}=${encodeURIComponent(value.depositAmount || '')}`
-      : value.depositAddress;
-    qr = await QRCode.toDataURL(uri, {width: 240, margin: 2});
   }
 
   async function recoverInvoice(reference: string) {
+    const epoch = flowEpoch;
     const result = await request<{invoiceID: string}>(`/billing/crypto/requests/${reference}`);
 
-    if (result.ok) {
+    if (result.ok && epoch === flowEpoch && !disposed) {
       const recovered = await request<CryptoInvoice>(`/billing/crypto/invoices/${result.data.invoiceID}`);
 
-      if (recovered.ok) {
+      if (recovered.ok && epoch === flowEpoch && !disposed) {
         error = '';
         await showInvoice(recovered.data);
       }
@@ -281,13 +472,21 @@
   }
 
   onMount(() => {
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const updateMotion = () => {
-      reducedMotion = preference.matches;
-    };
+    const saved = readPurchaseDraft(draftKey);
 
-    updateMotion();
-    preference.addEventListener('change', updateMotion);
+    if (saved) {
+      plan = saved.plan;
+      method = saved.method;
+      ticker = saved.ticker;
+      refund = saved.refund;
+      requestID = saved.requestID || requestID;
+      restoredCard = !!saved.cardStarted;
+      invoiceRequested = !!saved.invoiceRequested;
+      paidIdentity = saved.paidIdentity || '';
+      successOpen = !!paidIdentity;
+    }
+
+    mounted = true;
 
     const desired = page.url.searchParams.get('plan');
 
@@ -295,14 +494,24 @@
       plan = desired as typeof plan;
     }
 
-    const reference = page.url.searchParams.get('request');
+    const returned =
+      page.url.searchParams.get('card_return') || (!successOpen && saved?.cardStarted ? saved.requestID : null);
+
+    if (returned) {
+      requestID = returned;
+      void payCard();
+    }
+
+    const reference =
+      page.url.searchParams.get('request') ||
+      (!successOpen && saved?.invoiceRequested && !saved?.invoiceID ? saved?.requestID : null);
 
     if (reference) {
       requestID = reference;
       void recoverInvoice(reference);
     }
 
-    const id = page.url.searchParams.get('invoice');
+    const id = page.url.searchParams.get('invoice') || (!successOpen ? saved?.invoiceID : null);
 
     if (id) {
       void request<CryptoInvoice>(`/billing/crypto/invoices/${id}`).then(async (result) => {
@@ -315,7 +524,7 @@
     }
 
     return () => {
-      preference.removeEventListener('change', updateMotion);
+      disposed = true;
       clearInterval(poll);
       payment?.destroy();
     };
@@ -323,194 +532,101 @@
 </script>
 
 <svelte:head><title>{renewal ? 'Renew identity' : 'Choose an identity plan'} | ShadowSelf</title></svelte:head>
-<div class="page-heading">
-  <div>
-    <h1>{renewal ? 'Renew identity' : 'New identity'}</h1>
-  </div>
-</div>
-<Status message={error} kind="error" />
-<div class="purchase-grid">
-  <section class="panel">
-    <div class="plan-switch" aria-label="Billing plan">
-      {#each Object.keys(PRICING_TIERS) as choice (choice)}<button
-          class:active={plan === choice}
-          disabled={!!checkout || !!invoice || pending || !!renewal}
-          onclick={() => choose(choice as typeof plan)}
-          >{choice === 'annually' ? 'Annual' : choice === 'lifetime' ? 'Lifetime' : 'Monthly'}</button
-        >{/each}
-    </div>
-    <div class="plan-price-value" aria-live="polite" aria-atomic="true">
-      {#key plan}
-        <div class="plan-price" in:fly={{y: reducedMotion ? 0 : 10, duration: reducedMotion ? 0 : 280}}>
-          <span>${tier.price.toFixed(2)}</span><small>{tier.description}</small>
-        </div>
-      {/key}
-    </div>
-    <h2>Included services</h2>
-    <ul class="included-capabilities">
-      {#each capabilities as capability (capability.label)}<li>
-          <Icon name={capability.icon} size={16} />{capability.label}
-        </li>{/each}
-    </ul>
-    <small>{CRYPTO_DISCOUNT}% discount with crypto.</small>
-  </section>
-  <section class="panel">
-    <h2>{invoice ? 'Payment invoice' : 'Payment method'}</h2>
-    {#if invoice}{#if qr}<img class="qr-image" src={qr} alt="Invoice payment QR code" />{/if}
-      <dl class="data-list">
-        {#if invoice.depositAddress && invoice.depositAmount}<div>
-            <dt>Send amount</dt>
-            <dd>
-              <Copy value={String(invoice.depositAmount)} label="Copy amount" />
-              {invoice.coin || ticker.toUpperCase()}
-            </dd>
-          </div>
-          <div>
-            <dt>Deposit address</dt>
-            <dd><Copy value={invoice.depositAddress} label="Copy address" /></dd>
-          </div>
-          {#if invoice.depositMemo}<div>
-              <dt>Required memo / destination tag</dt>
-              <dd><Copy value={invoice.depositMemo} label="Copy required memo" /></dd>
-            </div>{/if}{/if}
-        <div>
-          <dt>Reference</dt>
-          <dd>{invoice.invoiceID}</dd>
-        </div>
-      </dl>
-      {#if invoice.depositMemo}<Status
-          message="Include the exact memo or destination tag with your payment. The address alone is not sufficient." />{/if}
-      <Status message={status} />
-      <div class="button-row invoice-actions">
-        <Button variant="secondary" onclick={refreshInvoice}>Refresh payment status</Button>{#if invoice.externalLink}<a
-            class="control-button quiet"
-            href={invoice.externalLink}
-            target="_blank"
-            rel="noopener noreferrer">Track swap</a
+<PurchaseExperience
+  bind:plan
+  bind:method
+  renewal={!!renewal}
+  locked={pending || !!invoice || !!checkout || restoredCard || invoiceRequested || successOpen}
+  onchange={choose}
+  onmethodchange={() => (error = '')}>
+  {#snippet payment()}
+    {#if invoice}
+      <PurchaseInvoice
+        bind:open={invoiceOpen}
+        {invoice}
+        message={status}
+        pending={invoiceRefreshing}
+        onrefresh={refreshInvoice}
+        ondismiss={navigation.dismiss} />
+    {:else if method === 'crypto' || renewal}
+      <PurchaseCryptoForm bind:ticker bind:refund {pending} onsubmit={reviewCrypto} />
+    {:else}
+      <div class="card-start">
+        <p>Pay securely by card.<br /><span>Stripe handles your card details and subscription payments.</span></p>
+        <Button icon="card" loading={pending} onclick={resumeCard}>Review card payment</Button>
+      </div>
+    {/if}
+  {/snippet}
+</PurchaseExperience>
+
+<PurchaseModal bind:open={cardOpen} title="Card payment" label="SECURE CHECKOUT" ondismiss={navigation.dismiss}>
+  <PurchaseConfirmation {plan} method="card" />
+  <div class="card-checkout">
+    {#if error}<p class="purchase-error" role="alert">{error}</p>{/if}
+    {#if checkout?.step === 'confirm'}
+      <div class="saved-card">
+        <span>Saved payment method</span><strong>{checkout.cardName} ending {checkout.last4}</strong>
+      </div>
+      <div class="card-actions">
+        <Button variant="secondary" disabled={pending} onclick={navigation.dismiss}>Back</Button><Button
+          loading={pending}
+          onclick={() => payCard(true)}>Pay ${tier.price.toFixed(2)}</Button>
+      </div>
+    {:else}
+      {#if !error || cardReady}<div class="stripe-mount" bind:this={mountPoint}></div>{/if}
+      <div class="card-actions">
+        <Button variant="secondary" disabled={pending} onclick={navigation.dismiss}>Back</Button
+        >{#if error && !cardReady}<Button loading={pending} onclick={retryCard}>Retry card checkout</Button
+          >{:else}<Button disabled={!cardReady} loading={pending} onclick={confirmCard}
+            >Pay ${tier.price.toFixed(2)}</Button
           >{/if}
       </div>
-      <small>Keep this invoice reference. An interrupted connection does not cancel a payment.</small>
-    {:else}<div class="tabs payment-tabs">
-        {#if !renewal}<button data-feature="card" class:active={method === 'card'} onclick={() => (method = 'card')}
-            ><Icon name="card" size={16} />Card</button
-          >{/if}<button
-          data-feature="wallet"
-          class:active={method === 'crypto' || !!renewal}
-          onclick={() => (method = 'crypto')}><Icon name="wallet" size={16} />Crypto</button>
-      </div>
-      {#if method === 'card' && !renewal}<p>Stripe handles card details and subscription payments.</p>
-        <div class="checkout-actions">
-          <Button icon="card" loading={pending} onclick={() => payCard()}>Continue with card</Button>
-        </div>{:else}<form onsubmit={newInvoice}>
-          <div class="field">
-            <label for="billing-coin">Payment asset and network</label>
-            <Select
-              id="billing-coin"
-              label="Payment asset and network"
-              options={PAYMENT_ASSET_OPTIONS}
-              bind:value={ticker}
-              required />
-            <small>XMR invoices are direct. Other assets use an external swap provider on the selected network.</small>
-          </div>
-          <div class="field">
-            <label for="billing-refund">Refund address</label><input
-              id="billing-refund"
-              bind:value={refund}
-              placeholder="Optional address for {ticker.toUpperCase()}" />
-          </div>
-          <Button type="submit" icon="wallet" loading={pending}>Create payment invoice</Button>
-        </form>{/if}{/if}
-  </section>
-</div>
-<Dialog bind:open={checkoutOpen} title="Card checkout"
-  ><Status message={error} kind="error" />{#if checkout?.step === 'confirm'}<p>
-      Pay ${tier.price.toFixed(2)} using your saved {checkout.cardName} card ending {checkout.last4}.
-    </p>
-    <div class="checkout-actions">
-      <Button loading={pending} onclick={() => payCard(true)}>Confirm purchase</Button>
-    </div>{:else}<div class="stripe-mount" bind:this={mountPoint}></div>
-    <div class="checkout-actions">
-      <Button disabled={!cardReady} loading={pending} onclick={confirmCard}>Pay ${tier.price.toFixed(2)}</Button>
-    </div>{/if}</Dialog>
+    {/if}
+  </div>
+</PurchaseModal>
+<PurchaseModal
+  bind:open={confirmationOpen}
+  title={renewal ? 'Confirm renewal' : 'Review your purchase'}
+  ondismiss={navigation.dismiss}>
+  {#if error}<p class="purchase-error" role="alert">{error}</p>{/if}
+  <PurchaseConfirmation {plan} method="crypto"
+    ><Button variant="secondary" disabled={pending} onclick={navigation.dismiss}>Back</Button><Button
+      loading={pending}
+      onclick={newInvoice}>Create payment invoice</Button
+    ></PurchaseConfirmation>
+</PurchaseModal>
+<PurchaseSuccess bind:open={successOpen} renewal={!!renewal} oncontinue={handoff} ondismiss={finishPurchase} />
 
 <style>
-  .purchase-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    max-width: 1050px;
+  .card-checkout {
+    margin-top: 24px;
   }
-  .purchase-grid > .panel {
-    margin: 0;
-  }
-  .plan-switch {
+  .card-actions {
     display: flex;
-    gap: 4px;
-    padding: 4px;
-    border: 1px solid color-mix(in srgb, var(--accent-light) 12.55%, transparent);
-    border-radius: 6px;
-    background: #070e1c;
-  }
-  .plan-switch button {
-    flex: 1;
-    padding: 10px 6px;
-    background: none;
-    border: 0;
-    border-radius: 4px;
-    color: #8493af;
-    font-size: 11px;
-  }
-  .plan-switch button.active {
-    background: color-mix(in srgb, var(--accent-strong) 14.12%, transparent);
-    color: var(--accent-light);
-  }
-  .plan-price-value {
-    display: flow-root;
-  }
-  .plan-price {
-    margin: 28px 0;
-    display: flex;
-    align-items: baseline;
+    justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 10px;
-  }
-  .plan-price span {
-    font-size: 48px;
-    letter-spacing: -2px;
-    font-weight: 550;
-  }
-  .tabs button[data-feature] {
-    color: var(--feature-accent);
-  }
-  .included-capabilities {
-    padding: 0;
-    margin: 24px 0;
-    list-style: none;
-    display: grid;
-    gap: 15px;
-  }
-  .included-capabilities li {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #b7c3dc;
-    font-size: 12px;
-  }
-  .payment-tabs {
-    margin-top: 17px;
-  }
-  .checkout-actions,
-  .invoice-actions {
-    margin: 24px 0;
+    margin-top: 22px;
   }
   .stripe-mount {
-    min-height: 230px;
+    min-height: 150px;
   }
-  @media (max-width: 900px) {
-    .purchase-grid {
-      grid-template-columns: 1fr;
-    }
-    .plan-price span {
-      font-size: 42px;
-    }
+  .saved-card {
+    display: grid;
+    gap: 8px;
+    padding: 16px 0;
+  }
+  .saved-card span {
+    color: #9e91bd;
+    font-size: 11px;
+  }
+  .saved-card strong {
+    color: #d4c8f0;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .card-start span {
+    color: var(--muted);
+    font-size: 11px;
   }
 </style>

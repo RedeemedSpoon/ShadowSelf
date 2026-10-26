@@ -30,12 +30,12 @@ export default defineConfig({
   ],
   server: {
     proxy: {'^/api/.*/events': {target: deployment.BACKEND_URL || 'http://localhost:3000', ws: true}},
-    port: 5000,
+    port: Number(deployment.FRONTEND_PORT || 5000),
     strictPort: true,
     hmr: {
       host: 'localhost',
       protocol: 'ws',
-      clientPort: 5000,
+      clientPort: Number(deployment.FRONTEND_PORT || 5000),
     },
   },
 });

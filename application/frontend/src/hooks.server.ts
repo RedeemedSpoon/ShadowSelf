@@ -1,4 +1,5 @@
-import {ONION_URL} from '$constant';
+import {env} from '$env/dynamic/private';
+import {ONION_URL, BILLING_RECEIPT_PATH_PATTERN} from '$constant';
 import {createRequestLimiter} from '$lib/request-limits.server';
 import {error, redirect, type Handle} from '@sveltejs/kit';
 import {sequence} from '@sveltejs/kit/hooks';
@@ -25,14 +26,28 @@ const authenticate: Handle = async ({event, resolve}) => {
     );
   }
 
-  const token = event.cookies.get('token');
+  if (env.PURCHASE_REVIEW === 'true') {
+    if (event.url.pathname.startsWith('/api/')) {
+      error(403, 'API requests are disabled in the purchase review copy.');
+    }
+
+    if (event.url.pathname === '/' || event.url.pathname === '/purchase') {
+      redirect(303, '/purchase-review');
+    }
+  }
+
+  const token = env.PURCHASE_REVIEW === 'true' ? undefined : event.cookies.get('token');
   const path = event.url.pathname;
-  const protectedRoute = ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some(
-    (route) => path === route || path.startsWith(`${route}/`),
-  );
+  const receiptPage = BILLING_RECEIPT_PATH_PATTERN.test(path);
+  const receiptRequest = receiptPage || path.startsWith('/api/billing/receipts/');
+  const protectedRoute =
+    !receiptPage &&
+    ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some(
+      (route) => path === route || path.startsWith(`${route}/`),
+    );
   event.locals.user = '';
 
-  if (token && !path.startsWith('/api/')) {
+  if (token && !receiptPage && !path.startsWith('/api/')) {
     const result = await backend<{username: string}>('/auth/session', 'GET', undefined, token);
 
     if (result.ok) {
@@ -62,12 +77,16 @@ const authenticate: Handle = async ({event, resolve}) => {
 
   const response = await resolve(event);
 
-  if (token || protectedRoute) {
+  if (token || protectedRoute || receiptRequest) {
     response.headers.set('cache-control', 'no-store');
   }
 
+  if (receiptRequest) {
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  }
+
   response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'same-origin');
+  response.headers.set('Referrer-Policy', receiptRequest ? 'no-referrer' : 'same-origin');
 
   return response;
 };

@@ -479,3 +479,68 @@ export interface AppNotice {
   kind: 'info' | 'error' | 'success';
   ondismiss: () => void;
 }
+
+export type PurchaseReviewStage =
+  | 'choose'
+  | 'card'
+  | 'declined'
+  | 'loading'
+  | 'setup-error'
+  | 'processing'
+  | 'authentication'
+  | 'authentication-failed'
+  | 'network-error'
+  | 'complete'
+  | 'identity'
+  | 'confirmation'
+  | 'invoice-error'
+  | 'invalid-refund'
+  | InvoiceStatus;
+
+export interface PurchaseReviewCase {
+  id: string;
+  label: string;
+  group: string;
+  method: 'card' | 'crypto';
+  stage: PurchaseReviewStage;
+  scenario?: 'saved' | 'renewal';
+}
+
+export interface PurchaseDraft {
+  plan: 'monthly' | 'annually' | 'lifetime';
+  method: 'card' | 'crypto';
+  ticker: Coins;
+  refund: string;
+  requestID?: string;
+  invoiceID?: string;
+  cardStarted?: boolean;
+  invoiceRequested?: boolean;
+  paidIdentity?: string;
+  stage?: PurchaseReviewStage;
+}
+
+export interface BillingReceiptDetails {
+  identityID: string;
+  plan: 'monthly' | 'annually' | 'lifetime';
+  renewal: boolean;
+  paidAt: string;
+  amount: string;
+  currency: string;
+  discount: string;
+  tax: string | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+  paymentMethod: string;
+  cryptoAmount?: string;
+  cryptoCoin?: string;
+  providerInvoiceNumber?: string;
+  providerInvoiceURL?: string;
+  providerInvoicePDF?: string;
+}
+
+export interface BillingReceipt {
+  id: string;
+  provider: 'stripe' | 'crypto';
+  providerReference: string;
+  details: BillingReceiptDetails;
+}

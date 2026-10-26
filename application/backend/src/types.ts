@@ -557,3 +557,53 @@ export interface EvmHistoryCursor {
   previous: string;
   carry?: EvmHistoryGroup;
 }
+
+export interface BillingReceiptDetails {
+  identityID: string;
+  plan: 'monthly' | 'annually' | 'lifetime';
+  renewal: boolean;
+  paidAt: string;
+  amount: string;
+  currency: string;
+  discount: string;
+  tax: string | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+  paymentMethod: string;
+  cryptoAmount?: string;
+  cryptoCoin?: string;
+  providerInvoiceNumber?: string;
+  providerInvoiceURL?: string;
+  providerInvoicePDF?: string;
+}
+
+export interface BillingReceipt {
+  id: string;
+  provider: 'stripe' | 'crypto';
+  providerReference: string;
+  details: BillingReceiptDetails;
+}
+
+export interface BillingReceiptInput {
+  owner: number;
+  identityID: string;
+  provider: BillingReceipt['provider'];
+  providerReference: string;
+  details: BillingReceiptDetails;
+}
+
+export interface BillingReceiptRecord {
+  id: string;
+  provider: BillingReceipt['provider'];
+  provider_reference: string;
+  details: BillingReceiptDetails;
+}
+
+export interface BillingReceiptDelivery extends BillingReceiptRecord {
+  recipient_role: 'account' | 'identity';
+  recipient_email: string | null;
+  account_email: string;
+  identity_email: string | null;
+  identity_status: string | null;
+  attempts: number;
+}

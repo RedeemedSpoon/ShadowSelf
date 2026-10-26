@@ -4,6 +4,8 @@
 DROP VIEW IF EXISTS mailboxes;
 DROP VIEW IF EXISTS mailbox_owners;
 DROP TABLE IF EXISTS service_mailboxes;
+DROP TABLE IF EXISTS billing_receipt_deliveries;
+DROP TABLE IF EXISTS billing_receipts;
 DROP TABLE IF EXISTS fiat_intents;
 DROP TABLE IF EXISTS stripe_events;
 DROP TABLE IF EXISTS stripe_cleanup;
@@ -231,6 +233,30 @@ CREATE TABLE fiat_intents (
   created_at timestamptz NOT NULL DEFAULT NOW(),
   UNIQUE (owner, request_id)
 );
+
+CREATE TABLE billing_receipts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  identity_id varchar(12) REFERENCES identities(id) ON DELETE SET NULL,
+  provider text NOT NULL CHECK (provider IN ('stripe', 'crypto')),
+  provider_reference text NOT NULL,
+  details jsonb NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT NOW(),
+  UNIQUE (provider, provider_reference)
+);
+
+CREATE TABLE billing_receipt_deliveries (
+  receipt_id uuid NOT NULL REFERENCES billing_receipts(id) ON DELETE CASCADE,
+  recipient_role text NOT NULL CHECK (recipient_role IN ('account', 'identity')),
+  recipient_email varchar(254),
+  sent_at timestamptz,
+  retry_at timestamptz NOT NULL DEFAULT NOW(),
+  attempts integer NOT NULL DEFAULT 0,
+  error_code text,
+  PRIMARY KEY (receipt_id, recipient_role)
+);
+CREATE INDEX billing_receipts_owner_idx ON billing_receipts(owner, created_at DESC);
+CREATE INDEX billing_receipt_deliveries_pending_idx ON billing_receipt_deliveries(retry_at) WHERE sent_at IS NULL;
 
 CREATE INDEX identities_owner_creation_idx ON identities(owner, creation_date DESC);
 CREATE INDEX accounts_owner_idx ON accounts(owner);

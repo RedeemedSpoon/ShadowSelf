@@ -115,3 +115,12 @@ export const CHAIN_REQUEST_TIMEOUT_MS = 6_000;
 export const CHAIN_PROVIDER_COOLDOWN_MS = 30_000;
 export const WALLET_HISTORY_PAGE_SIZE = 50;
 export const ESPLORA_HISTORY_PAGE_SIZE = 25;
+
+export const BILLING_RECEIPT_BATCH_SIZE = 10;
+export const BILLING_RECEIPT_RETRY_MS = 60_000;
+export const BILLING_RECEIPT_MAX_RETRY_MS = 86_400_000;
+
+export const BILLING_PLAN_LABELS = {monthly: 'Monthly', annually: 'Annual', lifetime: 'Lifetime'} as const;
+
+export const BILLING_RECEIPT_NOTICE =
+  'This receipt covers identity access. Network fees and separately billed usage are not included.';

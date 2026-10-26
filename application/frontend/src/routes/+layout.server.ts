@@ -5,7 +5,7 @@ import type {Identity} from '$type';
 export const load: LayoutServerLoad = async ({locals, cookies, url, depends}) => {
   depends('app:identities');
 
-  const consoleRoute = ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some(
+  const consoleRoute = ['/dashboard', '/settings', '/identity', '/purchase', '/purchase-review', '/create'].some(
     (route) => url.pathname === route || url.pathname.startsWith(`${route}/`),
   );
 

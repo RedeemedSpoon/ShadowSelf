@@ -1,4 +1,12 @@
-import {createCipheriv, createDecipheriv, createHash, hkdfSync, randomBytes} from 'node:crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  createHmac,
+  hkdfSync,
+  randomBytes,
+  timingSafeEqual,
+} from 'node:crypto';
 import {secretSauce} from '@core/config';
 
 const encryptionKey = Buffer.from(hkdfSync('sha256', secretSauce, 'shadowself', 'server-secrets-v1', 32));
@@ -54,4 +62,24 @@ export function requireProvider(configured: boolean, name: string) {
   if (!configured) {
     throw new ApiError(503, 'provider_unavailable', `${name} is unavailable`);
   }
+}
+
+export function receiptAccessToken(receiptID: string, recipient: 'account' | 'identity') {
+  const signature = createHmac('sha256', secretSauce)
+    .update(`billing-receipt-v1:${receiptID}:${recipient}`)
+    .digest('base64url');
+
+  return `${recipient}.${signature}`;
+}
+
+export function verifyReceiptAccess(receiptID: string, token: string) {
+  const match = /^(account|identity)\.[A-Za-z0-9_-]{43}$/.exec(token);
+
+  if (!match) {
+    return false;
+  }
+
+  const expected = receiptAccessToken(receiptID, match[1] as 'account' | 'identity');
+
+  return timingSafeEqual(Buffer.from(token), Buffer.from(expected));
 }

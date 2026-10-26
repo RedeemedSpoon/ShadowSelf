@@ -1,7 +1,7 @@
 <script lang="ts">
   import {fly} from 'svelte/transition';
   import {onMount} from 'svelte';
-  import {PRICING_TIERS} from '$constant';
+  import {PRICING_TIERS, PURCHASE_COVERAGE, CRYPTO_DISCOUNT, PURCHASE_FEES} from '$constant';
   import Icon from '$component/ui/Icon.svelte';
 
   let reducedMotion = $state(true);
@@ -26,7 +26,7 @@
   <div class="chapter-width pricing-layout" data-reveal>
     <div class="pricing-copy">
       <h2>One identity.<br />Your choice of plan.</h2>
-      <p>Each plan covers one identity. Pay monthly, cover a year, or choose lifetime access with a single payment.</p>
+      <p>{PURCHASE_COVERAGE} Choose monthly, annual, or lifetime access.</p>
       <a class="inline-link" href="/purchase">Full plan and payment details</a>
     </div>
     <div class="price-panel">
@@ -43,6 +43,10 @@
             <p class="plan-caption">{plan.title}</p>
           </div>{/key}
       </div>
+      <div class="crypto-pricing">
+        <strong>{CRYPTO_DISCOUNT}% less with crypto</strong><span
+          >${(plan.price * (1 - CRYPTO_DISCOUNT / 100)).toFixed(2)} {plan.description}</span>
+      </div>
       <ul>
         <li><Icon name="check" size={15} /><span>Editable profiles, encrypted passwords, and TOTP</span></li>
         <li><Icon name="check" size={15} /><span>Dedicated email inbox, aliases, PGP, and SMS</span></li>
@@ -52,6 +56,7 @@
         <li><Icon name="check" size={15} /><span>Website, browser extension, and API access</span></li>
       </ul>
       <a class="primary-action" href="/purchase">Choose a plan</a>
+      <p class="pricing-fees">{PURCHASE_FEES}</p>
     </div>
   </div>
 </section>
@@ -150,6 +155,28 @@
     flex-shrink: 0;
     margin-top: 3px;
     color: var(--accent);
+  }
+  .crypto-pricing {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px;
+    margin-top: 16px;
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--accent-deep) 12%, transparent);
+    color: var(--accent-light);
+    font-size: 11px;
+  }
+  .crypto-pricing strong {
+    font-weight: 550;
+  }
+  .price-panel .pricing-fees {
+    margin: 16px 0 0;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.8;
   }
   .price-panel .primary-action {
     display: flex;

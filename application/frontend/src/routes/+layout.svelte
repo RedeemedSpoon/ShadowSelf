@@ -1,7 +1,7 @@
 <script lang="ts">
   import Notifications from '$component/ui/Notifications.svelte';
   import AuthBackground from '$component/ui/AuthBackground.svelte';
-  import {APP_ORIGIN} from '$constant';
+  import {APP_ORIGIN, BILLING_RECEIPT_PATH_PATTERN} from '$constant';
   import {page} from '$app/state';
   import {goto, onNavigate} from '$app/navigation';
   import {MediaQuery} from 'svelte/reactivity';
@@ -86,8 +86,10 @@
   }
   const accessRoute = $derived(['/login', '/signup'].includes(page.url.pathname));
 
+  const receiptRoute = $derived(BILLING_RECEIPT_PATH_PATTERN.test(page.url.pathname));
+
   const consoleRoute = $derived(
-    ['/dashboard', '/settings', '/identity', '/purchase', '/create'].some(
+    ['/dashboard', '/settings', '/identity', '/purchase', '/purchase-review', '/create'].some(
       (route) => page.url.pathname === route || page.url.pathname.startsWith(`${route}/`),
     ),
   );
@@ -98,8 +100,11 @@
 <svelte:document onclickcapture={followSection} />
 
 <a class="skip-link" href="#main-content">Skip to content</a>
-{#if consoleRoute}<ConsoleShell user={data.user} identities={data.identities} identitiesError={data.identitiesError}
-    >{@render children()}</ConsoleShell
+{#if receiptRoute}<main id="main-content" class="receipt-public">{@render children()}</main>
+{:else if consoleRoute}<ConsoleShell
+    user={data.user}
+    identities={data.identities}
+    identitiesError={data.identitiesError}>{@render children()}</ConsoleShell
   >{:else}<div class="public-site">
     <PublicHeader signedIn={Boolean(data.user)} />
     <main id="main-content" class="public-main" class:auth-page={accessRoute}>
@@ -110,3 +115,10 @@
   </div>{/if}
 
 <Notifications />
+
+<style>
+  .receipt-public {
+    min-height: 100dvh;
+    padding: 28px 18px;
+  }
+</style>

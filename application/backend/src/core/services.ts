@@ -129,3 +129,7 @@ export const contactTransporter = lazyClient(() =>
 export const verificationTransporter = lazyClient(() =>
   smtpTransporter(emailConfig.verificationAddress, emailConfig.verificationPassword),
 );
+
+export const billingTransporter = lazyClient(() =>
+  smtpTransporter(emailConfig.billingAddress, emailConfig.billingPassword),
+);

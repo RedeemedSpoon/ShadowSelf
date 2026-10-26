@@ -17,8 +17,8 @@ if [[ "$1" == domain ]]; then
   exit 0
 fi
 
-mailboxes=(contact verification)
-passwords=("${environment[EMAIL_CONTACT]-}" "${environment[EMAIL_VERIFICATION]-}")
+mailboxes=(contact verification billing)
+passwords=("${environment[EMAIL_CONTACT]-}" "${environment[EMAIL_VERIFICATION]-}" "${environment[EMAIL_BILLING]-}")
 rows=()
 
 for index in "${!mailboxes[@]}"; do

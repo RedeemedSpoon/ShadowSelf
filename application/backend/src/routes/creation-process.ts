@@ -65,7 +65,11 @@ export default new Elysia({prefix: '/api/identities/:id/creation'})
   .onBeforeHandle(({identity, request}) => {
     const provisionRetry = request.method === 'POST' && new URL(request.url).pathname.endsWith('/provision');
 
-    if (identity?.status === 'active' && (request.method === 'GET' || provisionRetry)) {
+    if (request.method === 'GET' && ['active', 'frozen'].includes(identity?.status || '')) {
+      return;
+    }
+
+    if (identity?.status === 'active' && provisionRetry) {
       return;
     }
 
@@ -74,6 +78,10 @@ export default new Elysia({prefix: '/api/identities/:id/creation'})
     }
   })
   .get('/', async ({identity}) => {
+    if (identity!.status !== 'inactive') {
+      return {draft: {}, status: identity!.status, creationStatus: 'completed'};
+    }
+
     const job = await loadDraft(identity!.id);
 
     return {draft: job.draft, status: identity!.status, creationStatus: job.status};

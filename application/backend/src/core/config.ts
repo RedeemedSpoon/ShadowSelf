@@ -64,8 +64,10 @@ export const emailConfig = {
   domain: mailDomain,
   contactAddress: `contact@${mailDomain}`,
   verificationAddress: `verification@${mailDomain}`,
+  billingAddress: `billing@${mailDomain}`,
   contactPassword: process.env.EMAIL_CONTACT || '',
   verificationPassword: process.env.EMAIL_VERIFICATION || '',
+  billingPassword: process.env.EMAIL_BILLING || '',
 };
 
 function providerEndpoints(name: string) {

@@ -7,8 +7,10 @@ import {sql} from '@core/services';
 import {Elysia} from 'elysia';
 import billingFiat from './billing-fiat';
 import billingCrypto from './billing-crypto';
+import billingReceipts from './billing-receipts';
 
 export default new Elysia()
+  .use(billingReceipts)
   .use(billingFiat)
   .use(billingCrypto)
   .use(middlewareBase)
